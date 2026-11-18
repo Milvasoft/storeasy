@@ -320,7 +320,8 @@ API'si olmayan iş storeasy'de bir **asistanlı adım** kaydıdır:
 | İş | Tür | Faz | Not |
 |---|---|---|---|
 | Uygulama oluşturma | Asistanlı | 8 | API yok |
-| Uygulama ayrıntıları (iletişim e-postası, web sitesi, kategori) | API | 2 | `edits.details` |
+| Uygulama ayrıntıları (iletişim e-postası, telefon, web sitesi, varsayılan dil) | API | 2 | `edits.details` |
+| Uygulama kategorisi ve etiketler | Asistanlı | 8 | `edits.details`'te kategori alanı yok; Play Console'da |
 | Dil başına mağaza listesi | API | 2 | |
 | Grafikler: ikon, öne çıkan görsel, telefon ve 7"/10" tablet ekranları | API | 2 | |
 | Track ve sürümler (internal, closed, open, production), sürüm notları, aşamalı yayın, ülke seçimi | API | 2 | Production yalnız `ReleaseProduction` izniyle |
