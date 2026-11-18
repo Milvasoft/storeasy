@@ -23,5 +23,7 @@ public static class TableNames
     public const string StoreConnections = nameof(StoreConnections);
     public const string StoreAuditLogs = nameof(StoreAuditLogs);
     public const string AccountTokens = nameof(AccountTokens);
+    public const string StoreJobs = nameof(StoreJobs);
+    public const string StoreJobSteps = nameof(StoreJobSteps);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

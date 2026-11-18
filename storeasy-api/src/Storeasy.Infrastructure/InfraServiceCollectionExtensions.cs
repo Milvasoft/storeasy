@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Milvasoft.Caching.Builder;
 using Milvasoft.Caching.Redis;
 using Milvasoft.Caching.Redis.Accessor;
@@ -27,6 +28,7 @@ using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.Infrastructure.Persistence.Repository;
 using Storeasy.Infrastructure.Security;
 using Storeasy.Infrastructure.Services;
+using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
 using Npgsql;
 
@@ -70,6 +72,8 @@ public static class InfraServiceCollectionExtensions
         services.AddHttpClient(StoreGateway.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
 
         services.AddAccountServices(configurationManager);
+
+        services.AddStoreJobServices(configurationManager);
 
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
@@ -152,6 +156,28 @@ public static class InfraServiceCollectionExtensions
         services.AddHttpClient(NotifikeEmailSender.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
 
         services.AddScoped<IAccountMailer, AccountMailer>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the store job queue and its in-process runner. Handlers register as <see cref="IStoreJobHandler"/>; the live
+    /// event publisher defaults to one that drops events (the API registers its SignalR publisher first).
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddStoreJobServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        services.AddSingleton(configurationManager.GetSection(StoreJobOptions.SectionName).Get<StoreJobOptions>() ?? new StoreJobOptions());
+
+        services.TryAddSingleton<IActivityPublisher, NullActivityPublisher>();
+
+        services.AddScoped<IStoreJobQueue, StoreJobQueue>();
+        services.AddScoped<StoreJobExecutor>();
+
+        // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
+        services.AddHostedService<StoreJobRunner>();
 
         return services;
     }

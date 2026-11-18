@@ -40,6 +40,8 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<StoreConnection> StoreConnections { get; set; }
     public DbSet<StoreAuditLog> StoreAuditLogs { get; set; }
     public DbSet<AccountToken> AccountTokens { get; set; }
+    public DbSet<StoreJob> StoreJobs { get; set; }
+    public DbSet<StoreJobStep> StoreJobSteps { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

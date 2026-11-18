@@ -47,6 +47,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public const string ConnectionStringKey = "ConnectionStrings:DefaultConnectionString";
 
     /// <summary>
+    /// Configuration key that turns the store job runner of a host on or off.
+    /// </summary>
+    public const string StoreJobsEnabledKey = "Storeasy:Jobs:Enabled";
+
+    /// <summary>
     /// Access token signing key of the test hosts. The appsettings files carry no key, so it is given through the
     /// environment like in a deployment (in Development the application would generate a random one per host).
     /// </summary>
@@ -135,6 +140,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
+
+            // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
+            services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();
         });
     }
 
@@ -162,6 +170,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public WebApplicationFactory<IApiMarker> CreateHost(Dictionary<string, string> overrides = null, Action<IServiceCollection> configureServices = null)
     {
         overrides ??= [];
+
+        // Only the shared host runs store jobs: a second runner on the same database would take jobs whose handler or
+        // fakes live in the shared host.
+        overrides.TryAdd(StoreJobsEnabledKey, "false");
 
         var previous = overrides.Keys.ToDictionary(key => key, key => Environment.GetEnvironmentVariable(EnvironmentName(key)));
 
@@ -227,6 +239,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         [RedisConnectionStringKey] = RedisConnectionString,
         [StartupExtensions.TokenSigningKeyConfigurationKey] = TokenSigningKey,
         ["Storeasy:Encryption:MasterKey"] = EncryptionMasterKey,
+        [StoreJobsEnabledKey] = "true",
+        ["Storeasy:Jobs:PollIntervalMilliseconds"] = "100",
+        ["Storeasy:Jobs:RetryBaseDelaySeconds"] = "0",
         ["Serilog:MinimumLevel:Default"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Warning",

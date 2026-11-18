@@ -85,6 +85,10 @@ public static class MessageKey
     public const string GoogleKeyInvalid = nameof(GoogleKeyInvalid);
     public const string StoreSecret = "Global.StoreSecret";
     public const string StoreNotSupported = nameof(StoreNotSupported);
+    public const string StoreJobNotFound = nameof(StoreJobNotFound);
+    public const string StoreJobAlreadyFinished = nameof(StoreJobAlreadyFinished);
+    public const string GlobalStoreJob = "Global.StoreJob";
+    public const string GlobalApp = "Global.App";
     public const string RegistrationClosed = nameof(RegistrationClosed);
     public const string RegistrationInvitationRequired = nameof(RegistrationInvitationRequired);
     public const string EmailNotVerified = nameof(EmailNotVerified);

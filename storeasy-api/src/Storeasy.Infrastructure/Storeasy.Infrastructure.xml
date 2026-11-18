@@ -130,6 +130,15 @@
             <param name="configurationManager"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddStoreJobServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the store job queue and its in-process runner. Handlers register as <see cref="T:Storeasy.Application.Interfaces.IStoreJobHandler"/>; the live
+            event publisher defaults to one that drops events (the API registers its SignalR publisher first).
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddDataAccessServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds data access services.
@@ -1131,6 +1140,225 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> of a host without live clients: drops every event. The API replaces it with its
+            SignalR publisher.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext">
+            <summary>
+            The <see cref="T:Storeasy.Application.Interfaces.IStoreJobContext"/> of one attempt, created by <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/>. Steps are rows of
+            <see cref="T:Storeasy.Domain.Stores.StoreJobStep"/>; every step call renews the lease and publishes a live event, and at most once per
+            <see cref="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval"/> reads whether a member asked to stop the job.
+            </summary>
+            <param name="job">The claimed job (id, organization, app, store, kind, payload, attempt).</param>
+            <param name="firstStepOrder">Position of the first step of this attempt.</param>
+            <param name="services">Repositories and services of the executor's scope.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.#ctor(Storeasy.Domain.Stores.StoreJob,System.Int32,Storeasy.Infrastructure.StoreJobs.StoreJobContextServices)">
+            <summary>
+            The <see cref="T:Storeasy.Application.Interfaces.IStoreJobContext"/> of one attempt, created by <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/>. Steps are rows of
+            <see cref="T:Storeasy.Domain.Stores.StoreJobStep"/>; every step call renews the lease and publishes a live event, and at most once per
+            <see cref="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval"/> reads whether a member asked to stop the job.
+            </summary>
+            <param name="job">The claimed job (id, organization, app, store, kind, payload, attempt).</param>
+            <param name="firstStepOrder">Position of the first step of this attempt.</param>
+            <param name="services">Repositories and services of the executor's scope.</param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval">
+            <summary>
+            Shortest pause between two reads of the stop request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.JobId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.AppId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.Attempt">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelObserved">
+            <summary>
+            Whether this attempt stopped because a member cancelled the job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.GetPayload``1">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.BeginStepAsync(System.String,Storeasy.Domain.Enums.StepDirection,System.String,System.Nullable{System.Int64},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.ReportProgressAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.EndStepAsync(System.Int32,Storeasy.Domain.Enums.StoreJobStepStatus,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.OpenConnectionAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices">
+            <summary>
+            What a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext"/> uses from the executor's scope.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="StepRepository"></param>
+            <param name="ConnectionRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+            <param name="Lease"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJobStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.TimeSpan)">
+            <summary>
+            What a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext"/> uses from the executor's scope.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="StepRepository"></param>
+            <param name="ConnectionRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+            <param name="Lease"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.StepRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.ActivityPublisher">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.Lease">
+            <summary></summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor">
+            <summary>
+            Claims and runs one store job (scoped; the runner creates a scope per job). The claim is a single
+            <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent workers and
+            instances never get the same job. A queued job whose next attempt is due, or a running job whose lease expired
+            (its instance died), is claimed. The attempt ends in Succeeded, Failed, Cancelled, or Queued again: a transient
+            failure with attempts left (backoff, <see cref="M:Storeasy.Domain.Stores.StoreJobRules.RetryDelay(System.Int32,System.TimeSpan,System.TimeSpan)"/>) or a host shutdown (the attempt is
+            given back).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="jobRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="handlers"></param>
+            <param name="secretProtector"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJobStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreJobHandler},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Claims and runs one store job (scoped; the runner creates a scope per job). The claim is a single
+            <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent workers and
+            instances never get the same job. A queued job whose next attempt is due, or a running job whose lease expired
+            (its instance died), is claimed. The attempt ends in Succeeded, Failed, Cancelled, or Queued again: a transient
+            failure with attempts left (backoff, <see cref="M:Storeasy.Domain.Stores.StoreJobRules.RetryDelay(System.Int32,System.TimeSpan,System.TimeSpan)"/>) or a host shutdown (the attempt is
+            given back).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="jobRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="handlers"></param>
+            <param name="secretProtector"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.RunNextAsync(System.Threading.CancellationToken)">
+            <summary>
+            Claims the next due job and runs one attempt of it.
+            </summary>
+            <param name="stoppingToken">Signalled when the host stops.</param>
+            <returns>Whether a job was claimed.</returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.IsTransient(System.Exception)">
+            <summary>
+            Whether a failed attempt may succeed later: a <see cref="T:Storeasy.Application.Interfaces.StoreJobException"/> says so itself; network failures and
+            timeouts are transient; anything else (a bug, bad data) is not.
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobQueue">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreJobQueue"/>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobQueue.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreJobQueue"/>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobQueue.EnqueueAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreJobRequest},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobRunner">
+            <summary>
+            The API's in-process store job runner (docs/urun-plani.md K4): <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.Workers"/> loops, each
+            claiming and running one job at a time through a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/> in a fresh scope, and sleeping
+            <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.PollIntervalMilliseconds"/> when the queue is empty. A worker survives any error of one
+            round (an unreachable database during startup included) and tries again after the pause.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider)">
+            <summary>
+            The API's in-process store job runner (docs/urun-plani.md K4): <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.Workers"/> loops, each
+            claiming and running one job at a time through a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/> in a fresh scope, and sleeping
+            <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.PollIntervalMilliseconds"/> when the queue is empty. A worker survives any error of one
+            round (an unreachable database during startup included) and tries again after the pause.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.ExecuteAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">

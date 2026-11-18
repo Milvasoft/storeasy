@@ -38,6 +38,7 @@ public static class ResponseStatusCodes
         [MessageKey.InvitationInvalid] = StatusCodes.Status404NotFound,
         [MessageKey.OrganizationMemberNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.OrganizationNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.StoreJobNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.UserExists] = StatusCodes.Status409Conflict,
@@ -50,6 +51,7 @@ public static class ResponseStatusCodes
         [MessageKey.OrganizationAlreadyMember] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationSlugTaken] = StatusCodes.Status409Conflict,
         [MessageKey.EmailAlreadyVerified] = StatusCodes.Status409Conflict,
+        [MessageKey.StoreJobAlreadyFinished] = StatusCodes.Status409Conflict,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,

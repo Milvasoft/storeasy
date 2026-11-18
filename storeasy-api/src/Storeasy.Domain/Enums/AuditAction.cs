@@ -50,4 +50,8 @@ public enum AuditAction : short
     /// <summary>Store connection verified against the store.</summary>
     [Description("Store connection verified")]
     ConnectionVerified = 23,
+
+    /// <summary>Store job cancelled.</summary>
+    [Description("Store job cancelled")]
+    JobCancelled = 30,
 }

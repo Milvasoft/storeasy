@@ -17,7 +17,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118115551_AddAccountTokens";
+    public override string LastMigrationId => "20261118120950_AddStoreJobs";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -621,6 +621,140 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("StoreConnections");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Stores.StoreJob", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int?>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<int>("Attempt")
+                    .HasColumnType("integer");
+
+                b.Property<bool>("CancelRequested")
+                    .HasColumnType("boolean");
+
+                b.Property<byte>("Channel")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("EndDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Error")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<short>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LockedUntil")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("MaxAttempts")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("NextAttemptDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Payload")
+                    .HasColumnType("jsonb");
+
+                b.Property<int?>("RequestedByUserId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("RequestedByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("Result")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("StartDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<byte?>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Summary")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "CreationDate")
+                    .IsDescending(false, true);
+
+                b.HasIndex("Status", "NextAttemptDate");
+
+                b.ToTable("StoreJobs");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Stores.StoreJobStep", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("Attempt")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Direction")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("EndDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Message")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("Order")
+                    .HasColumnType("integer");
+
+                b.Property<long?>("Progress")
+                    .HasColumnType("bigint");
+
+                b.Property<DateTime>("StartDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<long>("StoreJobId")
+                    .HasColumnType("bigint");
+
+                b.Property<long?>("Total")
+                    .HasColumnType("bigint");
+
+                b.HasKey("Id");
+
+                b.HasIndex("StoreJobId", "Order");
+
+                b.ToTable("StoreJobSteps");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.User", b =>
             {
                 var id = b.Property<int>("Id")
@@ -913,6 +1047,28 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Organization");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Stores.StoreJob", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Stores.StoreJobStep", b =>
+            {
+                b.HasOne("Storeasy.Domain.Stores.StoreJob", "StoreJob")
+                    .WithMany("Steps")
+                    .HasForeignKey("StoreJobId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreJob");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.UserRoleRelation", b =>
             {
                 b.HasOne("Storeasy.Domain.Role", "Role")
@@ -958,6 +1114,11 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("RolePermissionRelations");
 
                 b.Navigation("UserRoleRelations");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Stores.StoreJob", b =>
+            {
+                b.Navigation("Steps");
             });
 
         modelBuilder.Entity("Storeasy.Domain.User", b =>

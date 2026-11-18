@@ -30,4 +30,10 @@ public enum ActionChannel : byte
     /// </summary>
     [Description("System")]
     System = 4,
+
+    /// <summary>
+    /// A CI pipeline or build service (package intake).
+    /// </summary>
+    [Description("CI")]
+    Ci = 5,
 }

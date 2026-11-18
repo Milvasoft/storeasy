@@ -55,6 +55,7 @@ docker compose up -d
 | `Storeasy:Email:Smtp:Password` | `Storeasy__Email__Smtp__Password` | Secret. SMTP password. |
 | `Storeasy:Email:Notifike:BaseUrl` | `Storeasy__Email__Notifike__BaseUrl` | Notifike API base address (`POST {BaseUrl}/notifications/send`). |
 | `Storeasy:Email:Notifike:ApiKey` | `Storeasy__Email__Notifike__ApiKey` | Secret. Notifike API key (`X-Api-Key` header). |
+| `Storeasy:Jobs:Enabled`, `Workers`, `PollIntervalMilliseconds`, `LeaseSeconds`, `DefaultMaxAttempts`, `RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | `Storeasy__Jobs__...` | Store job runner: whether this instance runs jobs, parallel jobs per instance, idle poll pause, lease of a running attempt (renewed on every step), attempts and the exponential retry backoff. |
 | - | `MILVA_ENV` | `dev`, `test` or `prod`, see [Environment](#environment-milva_env). |
 
 #### Secrets
@@ -192,6 +193,10 @@ The Visual Studio container profile builds `Dockerfile-dev`.
 - `POST account/email/verify` (anonymous, token valid 48 hours), `POST account/email/verify/resend` (signed in; earlier links stop working), `POST account/password/forgot` (anonymous, always 200 so it reveals no account) and `POST account/password/reset` (anonymous, token valid 1 hour; rotates the session stamp, so every access and refresh token of the account dies, clears a lockout and marks the e-mail verified).
 - Tokens are random (`SecureTokens`), single use and stored only as SHA-256 hashes (`AccountTokens`). Every anonymous account endpoint is rate limited per client address.
 - E-mails (verification, reset, invitation) are localized (tr-TR, en-US, the request culture) HTML built from resx texts (`EmailTemplates`). A delivery failure is logged and never fails the request; the user can ask again.
+
+### Store jobs
+
+Store work runs as jobs (`StoreJobs`, steps in `StoreJobSteps`), never inside a request. `IStoreJobQueue` queues them; `StoreJobRunner` (a hosted service in the API, `Storeasy:Jobs`) claims one at a time per worker with `UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1)`, so instances never share a job, and reclaims a running job whose lease expired. The handler of the job kind (`IStoreJobHandler`) reports steps through `IStoreJobContext`, which renews the lease, publishes live events and stops the job when a member cancelled it. A `StoreJobException` marked transient (or a network failure) is retried with exponential backoff while attempts remain; anything else fails the job. The payload never carries a secret: a handler opens a store connection's secret inside the execution only (`OpenConnectionAsync`). Endpoints: `PATCH storejobs` (list), `GET storejobs/job` (detail with steps), `POST storejobs/job/cancel` (Editor and above; a queued job is cancelled at once, a running one at its next step).
 
 ### Health checks
 

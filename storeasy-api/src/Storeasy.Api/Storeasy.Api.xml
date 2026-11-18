@@ -801,6 +801,43 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.StoreJobsController">
+            <summary>
+            Store job endpoints: the organization's queue of store work, its live state and its replayable steps. Members follow
+            the same jobs live on the activity hub (<c>/hubs/activity</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Store job endpoints: the organization's queue of store work, its live state and its replayable steps. Members follow
+            the same jobs live on the activity hub (<c>/hubs/activity</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.GetJobsAsync(Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's store jobs, newest first (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.GetJobAsync(Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one store job with its steps (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.CancelJobAsync(Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand,System.Threading.CancellationToken)">
+            <summary>
+            Cancels a queued job at once, or asks a running job to stop at its next step (editors and above). Returns the state
+            after the request.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.UsersController">
             <summary>
             User endpoints.
@@ -953,6 +990,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118120950_AddStoreJobs">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

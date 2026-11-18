@@ -461,6 +461,102 @@
             Token information of the user.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto">
+            <summary>
+            One live event of an organization (see <see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>). Carries ids, states and short redacted
+            messages only; never a secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Type">
+            <summary>
+            Event type, one of <see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.OrganizationId">
+            <summary>
+            Organization the event belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.JobId">
+            <summary>
+            Job id for job events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.JobKind">
+            <summary>
+            Job kind for job events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.JobStatus">
+            <summary>
+            Job state after the event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Attempt">
+            <summary>
+            Attempt of the job the event belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Store">
+            <summary>
+            Store involved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.AppId">
+            <summary>
+            storeasy app involved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.ConnectionId">
+            <summary>
+            Store connection involved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.StepOrder">
+            <summary>
+            Step position for step events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.StepName">
+            <summary>
+            Step name for step events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.StepStatus">
+            <summary>
+            Step state for step events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Direction">
+            <summary>
+            Step direction for step events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Progress">
+            <summary>
+            Units done for progress events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Total">
+            <summary>
+            Units in total for progress events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.ConnectionStatus">
+            <summary>
+            Connection state for connection events.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Message">
+            <summary>
+            Short, redacted note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Date">
+            <summary>
+            UTC instant of the event.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.ActivityLogDtos.ActivityLogListDto">
             <summary>
             Data transfer object for activity log list.
@@ -1370,6 +1466,176 @@
             <summary>
             Projection from a connection row. Deliberately lists every column it reads, so the encrypted columns are never
             loaded for a read.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto">
+            <summary>
+            A store job with its parameters, result and steps (the replayable timeline).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto.Payload">
+            <summary>
+            Parameters as JSON (never a secret).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto.Result">
+            <summary>
+            Structured result as JSON.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto.NextAttemptDate">
+            <summary>
+            UTC instant from which a queued job may run (a retry waits for it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto.Steps">
+            <summary>
+            Steps in order, across attempts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto.Projection">
+            <summary>
+            Projection from a job row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto">
+            <summary>
+            A store job in the organization's job list.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Id">
+            <summary>
+            Job id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Kind">
+            <summary>
+            What the job does.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Status">
+            <summary>
+            Current state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Store">
+            <summary>
+            Store the job talks to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.AppId">
+            <summary>
+            storeasy app the job works on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Channel">
+            <summary>
+            Where the request came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.RequestedByUserName">
+            <summary>
+            Requester ("system" for system jobs).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Attempt">
+            <summary>
+            Attempts started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.MaxAttempts">
+            <summary>
+            Attempts allowed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.CancelRequested">
+            <summary>
+            Whether a stop was requested while it runs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Summary">
+            <summary>
+            One line outcome.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Error">
+            <summary>
+            Redacted reason of the last failed attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.CreationDate">
+            <summary>
+            UTC instant the job was queued.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.StartDate">
+            <summary>
+            UTC instant the first attempt started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.EndDate">
+            <summary>
+            UTC instant the job finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobListDto.Projection">
+            <summary>
+            Projection from a job row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto">
+            <summary>
+            One step of a store job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Order">
+            <summary>
+            Position in the job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Attempt">
+            <summary>
+            Attempt the step belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Name">
+            <summary>
+            Machine name (<c>area.action</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Direction">
+            <summary>
+            Which way data moves.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Progress">
+            <summary>
+            Units done.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Total">
+            <summary>
+            Units in total.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.Message">
+            <summary>
+            Short note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.StartDate">
+            <summary>
+            UTC start.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.StoreJobStepDto.EndDate">
+            <summary>
+            UTC end.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.TranslationDtos.NameDescriptionTranslationDto">
@@ -3231,6 +3497,135 @@
         <member name="M:Storeasy.Application.Features.StoreConnections.VerifyStoreConnection.VerifyStoreConnectionCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.StoreConnections.VerifyStoreConnection.VerifyStoreConnectionCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand">
+            <summary>
+            Stops a store job: a queued job is cancelled at once, a running one stops at its next step boundary. Returns the job
+            state after the request (Cancelled or Running).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand.JobId">
+            <summary>
+            Job id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand"/>. Both transitions are conditional updates on the current state, so a
+            job the runner claims meanwhile gets the stop request instead of being cancelled under it.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand"/>. Both transitions are conditional updates on the current state, so a
+            job the runner claims meanwhile gets the stop request instead of being cancelled under it.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.ActivityPublisher">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandHandler.Handle(Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery">
+            <summary>
+            Reads one store job of the organization with its steps.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery.JobId">
+            <summary>
+            Job id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery"/>. A job of another organization is reported as not found.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery"/>. A job of another organization is reported as not found.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryHandler.Handle(Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery">
+            <summary>
+            Pages through an organization's store jobs, newest first. The standard list request filters apply to the DTO fields.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery.AppId">
+            <summary>
+            Only the jobs of this storeasy app (optional).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery"/>.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery"/>.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryHandler.Handle(Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Users.CreateUser.CreateUserCommand">
             <summary>
             Data transfer object for user creation.
@@ -3570,6 +3965,20 @@
             Generates token for ci user.
             Generates access token carrying the user's current revocation stamp.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IActivityPublisher">
+            <summary>
+            Pushes live events to the members of one organization (the API sends them over the SignalR activity hub, to the
+            organization's group). Best effort: never throws and never blocks the work that produced the event.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <summary>
+            Sends <paramref name="activityEvent"/> to the members of its organization.
+            </summary>
+            <param name="activityEvent"></param>
+            <param name="cancellationToken"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IAuditTrail">
@@ -4081,6 +4490,232 @@
         <member name="P:Storeasy.Application.Interfaces.StoreVerification.Error">
             <summary>Redacted, short reason when not verified.</summary>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreJobHandler">
+            <summary>
+            Executes the store jobs of one <see cref="P:Storeasy.Application.Interfaces.IStoreJobHandler.Kind"/>. Registered scoped; the runner resolves the handlers of a fresh
+            scope per job and picks the one for the job's kind. A handler reports its work as steps through the context, throws
+            <see cref="T:Storeasy.Application.Interfaces.StoreJobException"/> (or lets a store call exception through) to fail an attempt, and returns the outcome
+            on success. The runner decides retries, cancellation and the final state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobHandler.Kind">
+            <summary>
+            The kind of job this handler executes.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <summary>
+            Runs one attempt of the job.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken">Signalled when the host stops.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreJobContext">
+            <summary>
+            What a handler sees of its job and how it reports progress. Every step call renews the job's lease, publishes a live
+            event and, at most about once a second, checks whether a member cancelled the job (then it throws
+            <see cref="T:System.OperationCanceledException"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobContext.JobId">
+            <summary>
+            Job id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobContext.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobContext.AppId">
+            <summary>
+            storeasy app the job works on, if one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobContext.Store">
+            <summary>
+            Store the job talks to, if one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreJobContext.Attempt">
+            <summary>
+            Current attempt, from 1.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobContext.GetPayload``1">
+            <summary>
+            Reads the job's payload as <typeparamref name="T"/>; default when there is none.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobContext.BeginStepAsync(System.String,Storeasy.Domain.Enums.StepDirection,System.String,System.Nullable{System.Int64},System.Threading.CancellationToken)">
+            <summary>
+            Starts a step and returns its position.
+            </summary>
+            <param name="name">Machine name (<c>area.action</c>).</param>
+            <param name="direction"></param>
+            <param name="message">Short note, redacted before it is stored.</param>
+            <param name="total">Units in total, if known.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobContext.ReportProgressAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Reports progress of a running step.
+            </summary>
+            <param name="order"></param>
+            <param name="progress"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobContext.EndStepAsync(System.Int32,Storeasy.Domain.Enums.StoreJobStepStatus,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Ends a step.
+            </summary>
+            <param name="order"></param>
+            <param name="status"></param>
+            <param name="message">Short note, redacted before it is stored.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobContext.OpenConnectionAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Opens the secret of one of the organization's store connections for this execution only. Returns null when the
+            connection does not exist in the organization (or was removed).
+            </summary>
+            <param name="connectionId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.OpenedStoreConnection">
+            <summary>
+            A store connection opened inside a job. Keep it in memory only for the store calls of the job.
+            </summary>
+            <param name="Id">Connection id.</param>
+            <param name="Store">Store of the connection.</param>
+            <param name="Name">Display name.</param>
+            <param name="SecretJson">The decrypted secret JSON.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.OpenedStoreConnection.#ctor(System.Int32,Storeasy.Domain.Enums.StoreKind,System.String,System.String)">
+            <summary>
+            A store connection opened inside a job. Keep it in memory only for the store calls of the job.
+            </summary>
+            <param name="Id">Connection id.</param>
+            <param name="Store">Store of the connection.</param>
+            <param name="Name">Display name.</param>
+            <param name="SecretJson">The decrypted secret JSON.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.OpenedStoreConnection.Id">
+            <summary>Connection id.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.OpenedStoreConnection.Store">
+            <summary>Store of the connection.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.OpenedStoreConnection.Name">
+            <summary>Display name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.OpenedStoreConnection.SecretJson">
+            <summary>The decrypted secret JSON.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreJobOutcome">
+            <summary>
+            Result of a successful job.
+            </summary>
+            <param name="Summary">One line, human readable outcome.</param>
+            <param name="Result">Structured result, serialized to JSON; may be null.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreJobOutcome.#ctor(System.String,System.Object)">
+            <summary>
+            Result of a successful job.
+            </summary>
+            <param name="Summary">One line, human readable outcome.</param>
+            <param name="Result">Structured result, serialized to JSON; may be null.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobOutcome.Summary">
+            <summary>One line, human readable outcome.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobOutcome.Result">
+            <summary>Structured result, serialized to JSON; may be null.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreJobException">
+            <summary>
+            Fails the current attempt of a store job with a message that is safe to store and show (no secrets). A transient
+            failure (network, store 5xx, rate limit) is retried with backoff while attempts remain; a permanent one fails the job.
+            </summary>
+            <param name="message"></param>
+            <param name="transient"></param>
+            <param name="innerException"></param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreJobException.#ctor(System.String,System.Boolean,System.Exception)">
+            <summary>
+            Fails the current attempt of a store job with a message that is safe to store and show (no secrets). A transient
+            failure (network, store 5xx, rate limit) is retried with backoff while attempts remain; a permanent one fails the job.
+            </summary>
+            <param name="message"></param>
+            <param name="transient"></param>
+            <param name="innerException"></param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobException.Transient">
+            <summary>
+            Whether a later attempt may succeed.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreJobQueue">
+            <summary>
+            Puts store work on the database backed queue. The requester (current user) and channel (<see cref="P:Storeasy.Application.Interfaces.IAuditTrail.Channel"/>)
+            are recorded, a <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobQueued"/> event is published, and the runner picks the jobs up.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreJobQueue.EnqueueAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreJobRequest},System.Threading.CancellationToken)">
+            <summary>
+            Queues <paramref name="requests"/> in one write and returns their ids in the same order.
+            </summary>
+            <param name="requests"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreJobRequest">
+            <summary>
+            A job to queue.
+            </summary>
+            <param name="OrganizationId">Owning organization.</param>
+            <param name="Kind">What to do.</param>
+            <param name="Payload">Parameters, serialized to JSON. Must not carry a secret.</param>
+            <param name="Store">Store the job talks to, if one.</param>
+            <param name="AppId">storeasy app the job works on, if one.</param>
+            <param name="MaxAttempts">Attempts allowed; null for the configured default.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreJobRequest.#ctor(System.Int32,Storeasy.Domain.Enums.StoreJobKind,System.Object,System.Nullable{Storeasy.Domain.Enums.StoreKind},System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            A job to queue.
+            </summary>
+            <param name="OrganizationId">Owning organization.</param>
+            <param name="Kind">What to do.</param>
+            <param name="Payload">Parameters, serialized to JSON. Must not carry a secret.</param>
+            <param name="Store">Store the job talks to, if one.</param>
+            <param name="AppId">storeasy app the job works on, if one.</param>
+            <param name="MaxAttempts">Attempts allowed; null for the configured default.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.OrganizationId">
+            <summary>Owning organization.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.Kind">
+            <summary>What to do.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.Payload">
+            <summary>Parameters, serialized to JSON. Must not carry a secret.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.Store">
+            <summary>Store the job talks to, if one.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.AppId">
+            <summary>storeasy app the job works on, if one.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.MaxAttempts">
+            <summary>Attempts allowed; null for the configured default.</summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.ITransactionRunner">
             <summary>
             Runs a unit of database work inside a real transaction that the transaction interceptor opens on the
@@ -4195,6 +4830,57 @@
             <see cref="F:Storeasy.Domain.Enums.UserType.Manager"/> users, are exempt). Unverified users can sign in, browse and accept invitations, but
             cannot create what costs or exposes something: organizations and store connections. Checked by
             <see cref="T:Storeasy.Application.Behaviours.VerifiedEmailBehavior`2"/>; a failure is <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.EmailNotVerified"/> (403).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Constants.ActivityEventTypes">
+            <summary>
+            Values of <see cref="P:Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto.Type"/>: what happened in an organization, pushed to its
+            members over the activity hub (<c>/hubs/activity</c>, client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod">
+            <summary>
+            Name of the client method every event is sent to.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobQueued">
+            <summary>
+            A job was queued.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobProgress">
+            <summary>
+            A job changed state without finishing (started, retry scheduled).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobStep">
+            <summary>
+            A job step started, progressed or ended.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobSucceeded">
+            <summary>
+            A job finished successfully.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobFailed">
+            <summary>
+            A job failed for good.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.JobCancelled">
+            <summary>
+            A job was cancelled.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ConnectionVerified">
+            <summary>
+            A store connection was checked against its store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.AppSynced">
+            <summary>
+            An app's store records and builds were refreshed from the stores.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Constants.GlobalConstant">
@@ -5334,6 +6020,53 @@
         <member name="P:Storeasy.Application.Utils.Models.RegistrationOptions.Mode">
             <summary>
             Who may register. <see cref="F:Storeasy.Domain.Enums.RegistrationMode.Open"/> by default.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.StoreJobOptions">
+            <summary>
+            Settings of the store job runner (configuration section <see cref="F:Storeasy.Application.Utils.Models.StoreJobOptions.SectionName"/>), bound once and registered as a
+            singleton.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.StoreJobOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.Enabled">
+            <summary>
+            Whether this instance runs jobs. Every instance can enqueue; turn the runner off on instances that should not
+            talk to the stores.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.Workers">
+            <summary>
+            Jobs one instance runs at the same time.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.PollIntervalMilliseconds">
+            <summary>
+            Pause of an idle worker before it looks for a job again, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.LeaseSeconds">
+            <summary>
+            Lease of a running attempt, in seconds. Renewed on every step report; a job whose lease runs out is claimed again.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.DefaultMaxAttempts">
+            <summary>
+            Attempts of a job when the request does not say.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.RetryBaseDelaySeconds">
+            <summary>
+            Delay before the first retry, in seconds; doubles with every further attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.RetryMaxDelaySeconds">
+            <summary>
+            Longest delay between two attempts, in seconds.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Utils.PermissionManager.PermissionCatalog.GetPermissionsAndGroups">

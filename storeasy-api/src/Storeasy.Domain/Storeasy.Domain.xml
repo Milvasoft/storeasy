@@ -128,6 +128,11 @@
             storeasy itself (webhook, scheduled sync).
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.ActionChannel.Ci">
+            <summary>
+            A CI pipeline or build service (package intake).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AuditAction">
             <summary>
             Kinds of organization audit entries. Values are explicit and never reused.
@@ -165,6 +170,9 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionVerified">
             <summary>Store connection verified against the store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.JobCancelled">
+            <summary>Store job cancelled.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ConnectionStatus">
             <summary>
@@ -322,6 +330,92 @@
         <member name="F:Storeasy.Domain.Enums.RegistrationMode.Closed">
             <summary>
             Nobody may register; accounts are created by an instance admin.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StepDirection">
+            <summary>
+            Which way a store job step moves data, for the live activity view.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StepDirection.Outbound">
+            <summary>
+            storeasy calls the store (requests, uploads).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StepDirection.Inbound">
+            <summary>
+            The store answers or reports back (responses, processing states).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StepDirection.Internal">
+            <summary>
+            Work inside storeasy (matching, saving).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StoreJobKind">
+            <summary>
+            What a store job does. Each kind has one handler in the store engine. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps">
+            <summary>
+            Pulls the apps and builds of one store connection and links them to storeasy apps.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StoreJobStatus">
+            <summary>
+            State of a store job. Queued and Running are open; the others are final. Values are explicit and never reused (the
+            runner's claim query compares the numbers).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStatus.Queued">
+            <summary>
+            Waiting for a runner (new, or a retry waiting for its next attempt).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStatus.Running">
+            <summary>
+            A runner holds the job.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStatus.Succeeded">
+            <summary>
+            Finished successfully.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStatus.Failed">
+            <summary>
+            Finished with an error after the last attempt.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStatus.Cancelled">
+            <summary>
+            Stopped by a member before it finished.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StoreJobStepStatus">
+            <summary>
+            State of one step of a store job.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStepStatus.Running">
+            <summary>
+            In progress.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStepStatus.Succeeded">
+            <summary>
+            Done.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStepStatus.Failed">
+            <summary>
+            Ended with an error.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobStepStatus.Skipped">
+            <summary>
+            Not needed (nothing to do, or not supported by the store).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreKind">
@@ -973,6 +1067,238 @@
         <member name="P:Storeasy.Domain.Stores.StoreConnection.Organization">
             <summary>
             Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreJob">
+            <summary>
+            One unit of store work in the database backed queue (docs/urun-plani.md K4). The API's runner claims queued jobs with
+            <c>FOR UPDATE SKIP LOCKED</c>, so several instances never run the same job; a running job holds a lease
+            (<see cref="P:Storeasy.Domain.Stores.StoreJob.LockedUntil"/>) that is renewed while it reports steps, and a job whose lease ran out (its instance died)
+            is claimed again. <see cref="P:Storeasy.Domain.Stores.StoreJob.Payload"/> carries the job's parameters and never a secret: store secrets are opened only
+            inside the execution, from the connection row.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreJob.ErrorMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreJob.Error"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreJob.SummaryMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreJob.Summary"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.AppId">
+            <summary>
+            storeasy app the job works on, when it is about one app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Store">
+            <summary>
+            Store the job talks to, when it is about one store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Kind">
+            <summary>
+            What the job does; selects the handler.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Payload">
+            <summary>
+            Parameters of the job as JSON. Never a secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Result">
+            <summary>
+            Structured result of a successful run as JSON.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Summary">
+            <summary>
+            One line, human readable outcome.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Status">
+            <summary>
+            Current state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Channel">
+            <summary>
+            Where the request came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.RequestedByUserId">
+            <summary>
+            User who asked for the job. Null for system jobs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.RequestedByUserName">
+            <summary>
+            User name of the requester at the time ("system" for system jobs).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Attempt">
+            <summary>
+            Attempts started so far.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.MaxAttempts">
+            <summary>
+            Attempts allowed before the job fails for good.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.NextAttemptDate">
+            <summary>
+            UTC instant from which a queued job may be claimed (later than the creation for a retry with backoff).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.StartDate">
+            <summary>
+            UTC instant the first attempt started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.EndDate">
+            <summary>
+            UTC instant the job reached a final state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.LockedUntil">
+            <summary>
+            UTC instant the running attempt's lease expires. Null while not running.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.CancelRequested">
+            <summary>
+            A member asked to stop the running job; the runner stops at the next step boundary.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Error">
+            <summary>
+            Redacted, short reason of the last failed attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Steps">
+            <summary>
+            Steps of the job in order.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJob.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreJobRules">
+            <summary>
+            Pure rules of the store job queue. No database.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreJobRules.IsFinished(Storeasy.Domain.Enums.StoreJobStatus)">
+            <summary>
+            Whether <paramref name="status"/> is final (the job will never run again).
+            </summary>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreJobRules.RetryDelay(System.Int32,System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Delay before the next attempt after attempt number <paramref name="attempt"/> (from 1) failed: exponential
+            (<paramref name="baseDelay"/>, twice that, four times...) and capped at <paramref name="maxDelay"/>.
+            </summary>
+            <param name="attempt"></param>
+            <param name="baseDelay"></param>
+            <param name="maxDelay"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreJobRules.ShouldRetry(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Whether a failed attempt number <paramref name="attempt"/> is retried: only transient failures, and only while
+            attempts remain.
+            </summary>
+            <param name="attempt"></param>
+            <param name="maxAttempts"></param>
+            <param name="transient"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreJobStep">
+            <summary>
+            One step of a <see cref="P:Storeasy.Domain.Stores.StoreJobStep.StoreJob"/> (e.g. <c>apps.list</c>, <c>builds.save</c>): the live activity view draws it and
+            the job detail replays it. Rows of every attempt are kept, so a retried job shows what failed before.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreJobStep.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreJobStep.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreJobStep.MessageMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreJobStep.Message"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.StoreJobId">
+            <summary>
+            Owning job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Order">
+            <summary>
+            Position in the job, from 1, across attempts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Attempt">
+            <summary>
+            Attempt the step belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Name">
+            <summary>
+            Machine name of the step (<c>area.action</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Direction">
+            <summary>
+            Which way data moves.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Status">
+            <summary>
+            Current state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Progress">
+            <summary>
+            Units done (bytes, items). Null when the step has no measurable progress.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Total">
+            <summary>
+            Units in total. Null when unknown.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.Message">
+            <summary>
+            Redacted, short human readable note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.StartDate">
+            <summary>
+            UTC instant the step started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.EndDate">
+            <summary>
+            UTC instant the step ended.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreJobStep.StoreJob">
+            <summary>
+            Navigation property of the job.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.User">
