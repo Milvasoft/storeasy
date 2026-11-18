@@ -1446,6 +1446,9 @@
         <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.OpenReadAsync(System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.WriteAsync(System.String,System.IO.Stream,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> of a host without live clients: drops every event. The API replaces it with its
@@ -3343,6 +3346,571 @@
             Adds the new records: each joins the storeasy app whose record in another store has the same platform identifier
             (and no record in this store yet), otherwise a new storeasy app named after it.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.MockupExportJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport"/> job (docs 12.11): renders every selected class, locale and slot of a
+            template, stores each PNG as an asset (purpose MockupOutput), zips them with the manifest, and returns the
+            <see cref="T:Storeasy.Domain.JsonModels.MockupExportManifest"/> as the job result for the screenshot upload plan. Steps on the activity hub:
+            <c>assets.load</c>, one <c>render.size</c> per class with per image progress, <c>asset.store</c>, <c>zip.store</c>. An
+            image that cannot be produced (raw screenshot too small or unreadable) fails its class's step and is listed in the
+            manifest's failures; the other images still count. When the job is cancelled or fails, the objects it already wrote are
+            deleted. Nothing is written to a store.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="mockupRenderer"></param>
+            <param name="studioAssetReader"></param>
+            <param name="fileStorage"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.MockupExportJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IScreenshotSizeSource,Storeasy.Application.Interfaces.IMockupRenderer,Storeasy.Application.Interfaces.IStudioAssetReader,Storeasy.Application.Interfaces.IFileStorage,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport"/> job (docs 12.11): renders every selected class, locale and slot of a
+            template, stores each PNG as an asset (purpose MockupOutput), zips them with the manifest, and returns the
+            <see cref="T:Storeasy.Domain.JsonModels.MockupExportManifest"/> as the job result for the screenshot upload plan. Steps on the activity hub:
+            <c>assets.load</c>, one <c>render.size</c> per class with per image progress, <c>asset.store</c>, <c>zip.store</c>. An
+            image that cannot be produced (raw screenshot too small or unreadable) fails its class's step and is listed in the
+            manifest's failures; the other images still count. When the job is cancelled or fails, the objects it already wrote are
+            deleted. Nothing is written to a store.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="mockupRenderer"></param>
+            <param name="studioAssetReader"></param>
+            <param name="fileStorage"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.MockupExportJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.MockupExportJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.MockupExportJobHandler.DeleteWrittenAsync(System.Collections.Generic.List{System.String})">
+            <summary>
+            Best effort removal of the objects of a failed or cancelled attempt (their asset rows were never written or roll
+            back with the job).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.NoOpTitleTranslator">
+            <summary>
+            The default <see cref="T:Storeasy.Application.Interfaces.ITitleTranslator"/>: no provider, no paid service, nothing leaves the host. The suggestion
+            endpoint answers 503 while this is registered. A real provider replaces the registration.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.NoOpTitleTranslator.IsAvailable">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.NoOpTitleTranslator.SuggestAsync(Storeasy.Application.Interfaces.TitleSuggestionRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter">
+            <summary>
+            Lays out and draws caption text: splits it into runs by the first font of the fallback chain that has each character,
+            shapes every run with HarfBuzz (ligatures, Arabic joining, Indic clusters), breaks lines with
+            <see cref="T:Storeasy.Domain.Studio.CaptionLineBreaker"/> and shrinks the size for auto fit. Right to left paragraphs (Arabic, Hebrew) draw their
+            runs from right to left and align to the right by default (basic bidi: each run is shaped in its own direction, runs of
+            a line are reversed). One instance per render; it owns its shapers.
+            </summary>
+            <param name="fonts"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.#ctor(Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary)">
+            <summary>
+            Lays out and draws caption text: splits it into runs by the first font of the fallback chain that has each character,
+            shapes every run with HarfBuzz (ligatures, Arabic joining, Indic clusters), breaks lines with
+            <see cref="T:Storeasy.Domain.Studio.CaptionLineBreaker"/> and shrinks the size for auto fit. Right to left paragraphs (Arabic, Hebrew) draw their
+            runs from right to left and align to the right by default (basic bidi: each run is shaped in its own direction, runs of
+            a line are reversed). One instance per render; it owns its shapers.
+            </summary>
+            <param name="fonts"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.Layout(System.String,System.String,System.Int32,System.String,System.Single,System.Single,System.Int32,System.Boolean,System.Single,System.Single)">
+            <summary>
+            Lays out <paramref name="text"/> in <paramref name="maxWidth"/> pixels: at <paramref name="size"/>, or shrinking in
+            steps down to <paramref name="minSize"/> until it fits in <paramref name="maxLines"/> when <paramref name="autoFit"/>.
+            </summary>
+            <param name="text"></param>
+            <param name="family"></param>
+            <param name="weight"></param>
+            <param name="locale"></param>
+            <param name="size"></param>
+            <param name="minSize"></param>
+            <param name="maxLines"></param>
+            <param name="autoFit"></param>
+            <param name="maxWidth"></param>
+            <param name="lineHeight">Line height as a multiple of the size.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.Draw(SkiaSharp.SKCanvas,Storeasy.Infrastructure.Studio.Rendering.TextBlock,System.Single,System.Single,System.Single,System.String,SkiaSharp.SKColor)">
+            <summary>
+            Draws <paramref name="block"/> with its first line's top at <paramref name="top"/>, aligned in the box from
+            <paramref name="left"/> to <paramref name="right"/>.
+            </summary>
+            <param name="canvas"></param>
+            <param name="block"></param>
+            <param name="left"></param>
+            <param name="right"></param>
+            <param name="top"></param>
+            <param name="alignment"><c>center</c>, <c>start</c> or <c>end</c>.</param>
+            <param name="color"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.IsRightToLeft(System.String)">
+            <summary>
+            Whether the paragraph's first strong character is right to left (Hebrew, Arabic and their presentation forms).
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter.Itemize(System.String,System.Collections.Generic.List{SkiaSharp.SKTypeface})">
+            <summary>
+            Splits <paramref name="text"/> into runs of one typeface: each character takes the first typeface of the chain that
+            has it; spaces, punctuation shared by scripts and combining marks stay in the current run.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.TextBlock">
+            <summary>
+            Laid out caption text.
+            </summary>
+            <param name="Lines">Lines in order.</param>
+            <param name="Size">Font size in pixels.</param>
+            <param name="LineHeight">Line height in pixels.</param>
+            <param name="RightToLeft">Whether the paragraph is right to left.</param>
+            <param name="FontMetrics">Ascent (negative) and descent of the first font.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.TextBlock.#ctor(System.Collections.Generic.IReadOnlyList{Storeasy.Infrastructure.Studio.Rendering.TextLine},System.Single,System.Single,System.Boolean,System.ValueTuple{System.Single,System.Single})">
+            <summary>
+            Laid out caption text.
+            </summary>
+            <param name="Lines">Lines in order.</param>
+            <param name="Size">Font size in pixels.</param>
+            <param name="LineHeight">Line height in pixels.</param>
+            <param name="RightToLeft">Whether the paragraph is right to left.</param>
+            <param name="FontMetrics">Ascent (negative) and descent of the first font.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Lines">
+            <summary>Lines in order.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Size">
+            <summary>Font size in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.LineHeight">
+            <summary>Line height in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.RightToLeft">
+            <summary>Whether the paragraph is right to left.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.FontMetrics">
+            <summary>Ascent (negative) and descent of the first font.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Empty">
+            <summary>
+            A block without text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Height">
+            <summary>
+            Height of the block.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Ascent">
+            <summary>
+            Ascent of the first font (negative).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextBlock.Descent">
+            <summary>
+            Descent of the first font.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.TextLine">
+            <summary>
+            A line of runs in visual order.
+            </summary>
+            <param name="Runs"></param>
+            <param name="Width"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.TextLine.#ctor(System.Collections.Generic.IReadOnlyList{Storeasy.Infrastructure.Studio.Rendering.TextRun},System.Single)">
+            <summary>
+            A line of runs in visual order.
+            </summary>
+            <param name="Runs"></param>
+            <param name="Width"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextLine.Runs">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextLine.Width">
+            <summary></summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.TextRun">
+            <summary>
+            Text drawn with one typeface.
+            </summary>
+            <param name="Text"></param>
+            <param name="Typeface"></param>
+            <param name="Width"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.TextRun.#ctor(System.String,SkiaSharp.SKTypeface,System.Single)">
+            <summary>
+            Text drawn with one typeface.
+            </summary>
+            <param name="Text"></param>
+            <param name="Typeface"></param>
+            <param name="Width"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextRun.Text">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextRun.Typeface">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.TextRun.Width">
+            <summary></summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.DeviceFramePainter">
+            <summary>
+            storeasy's own parametric device frames, drawn with paths: a rounded body in the template's color with an edge light,
+            an even bezel, and per kind an island, notch or camera hole (phone), a camera dot in the bezel (tablet), a hinge edge
+            (foldable outer display), a crease hint along the fold (foldable inner display) or a title bar with generic window
+            controls (desktop). No manufacturer artwork, logo or product shape is used: proportions come only from the screenshot
+            class's aspect ratio and the template's parameters.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.DeviceFramePainter.Measure(Storeasy.Domain.Enums.MockupFrameKind,Storeasy.Domain.JsonModels.MockupFrameSpec,Storeasy.Domain.Studio.PixelSize,System.Single)">
+            <summary>
+            Geometry of the device on a canvas of <paramref name="canvas"/> pixels before rotation: body width from the
+            template's scale (of the canvas width, or of 1.25 times the height on a landscape canvas so a window keeps room for
+            the caption), screen with the class's aspect, body around it, top at the template's offset.
+            </summary>
+            <param name="kind"></param>
+            <param name="frame"></param>
+            <param name="canvas"></param>
+            <param name="screenAspect">Width divided by height of the screen (the class's aspect).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.DeviceFramePainter.Draw(SkiaSharp.SKCanvas,Storeasy.Infrastructure.Studio.Rendering.FrameGeometry,Storeasy.Domain.JsonModels.MockupFrameSpec,System.Action{SkiaSharp.SKCanvas,SkiaSharp.SKRect})">
+            <summary>
+            Draws the frame and lets <paramref name="drawScreen"/> fill the screen (the canvas is clipped to it).
+            </summary>
+            <param name="canvas"></param>
+            <param name="geometry"></param>
+            <param name="frame"></param>
+            <param name="drawScreen"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.DeviceFramePainter.ParseColor(System.String,SkiaSharp.SKColor)">
+            <summary>
+            Parses <c>#RRGGBB</c> or <c>#RRGGBBAA</c>; <paramref name="fallback"/> when it is not a color.
+            </summary>
+            <param name="value"></param>
+            <param name="fallback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.DeviceFramePainter.Shade(SkiaSharp.SKColor,System.Single)">
+            <summary>
+            <paramref name="color"/> lightened (positive <paramref name="amount"/>) or darkened (negative) towards white or black.
+            </summary>
+            <param name="color"></param>
+            <param name="amount"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry">
+            <summary>
+            Placement of a device on a canvas, before rotation.
+            </summary>
+            <param name="Kind">Frame kind.</param>
+            <param name="Body">Body rectangle.</param>
+            <param name="Screen">Screen rectangle.</param>
+            <param name="BodyRadius">Body corner radius in pixels.</param>
+            <param name="ScreenRadius">Screen corner radius in pixels.</param>
+            <param name="TitleBarHeight">Height of a desktop title bar, 0 otherwise.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.#ctor(Storeasy.Domain.Enums.MockupFrameKind,SkiaSharp.SKRect,SkiaSharp.SKRect,System.Single,System.Single,System.Single)">
+            <summary>
+            Placement of a device on a canvas, before rotation.
+            </summary>
+            <param name="Kind">Frame kind.</param>
+            <param name="Body">Body rectangle.</param>
+            <param name="Screen">Screen rectangle.</param>
+            <param name="BodyRadius">Body corner radius in pixels.</param>
+            <param name="ScreenRadius">Screen corner radius in pixels.</param>
+            <param name="TitleBarHeight">Height of a desktop title bar, 0 otherwise.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.Kind">
+            <summary>Frame kind.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.Body">
+            <summary>Body rectangle.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.Screen">
+            <summary>Screen rectangle.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.BodyRadius">
+            <summary>Body corner radius in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.ScreenRadius">
+            <summary>Screen corner radius in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.FrameGeometry.TitleBarHeight">
+            <summary>Height of a desktop title bar, 0 otherwise.</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMockupRenderer"/> with SkiaSharp (MIT) and HarfBuzz shaping. Layers, back to front: background (solid,
+            gradient, or image covering the canvas), shapes and badges under the device, the device frame with the screenshot,
+            the caption block, layers marked above. The layout is computed at the class size and scaled for previews, so a preview
+            is the export in small. The canvas starts opaque white and the PNG is written without an alpha channel (App Store
+            Connect refuses transparency; the other stores accept opaque images).
+            </summary>
+            <param name="fonts"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer.#ctor(Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMockupRenderer"/> with SkiaSharp (MIT) and HarfBuzz shaping. Layers, back to front: background (solid,
+            gradient, or image covering the canvas), shapes and badges under the device, the device frame with the screenshot,
+            the caption block, layers marked above. The layout is computed at the class size and scaled for previews, so a preview
+            is the export in small. The canvas starts opaque white and the PNG is written without an alpha channel (App Store
+            Connect refuses transparency; the other stores accept opaque images).
+            </summary>
+            <param name="fonts"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer.Render(Storeasy.Application.Interfaces.MockupRenderRequest)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer.MeasureCaptions(Storeasy.Domain.JsonModels.MockupSpec,Storeasy.Domain.Studio.PixelSize,Storeasy.Domain.Enums.MockupFrameKind,System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer.CheckScreenshot(SkiaSharp.SKImage,SkiaSharp.SKRect,System.Collections.Generic.List{Storeasy.Application.Interfaces.MockupRenderIssue},System.Boolean)">
+            <summary>
+            Upscale and aspect checks of the raw screenshot against the screen it fills (at class size), and the alpha check.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.SkiaMockupRenderer.LayoutCaptions(Storeasy.Infrastructure.Studio.Rendering.CaptionTypesetter,Storeasy.Domain.JsonModels.MockupSpec,Storeasy.Domain.Studio.PixelSize,System.String,System.String,System.String,System.Boolean,System.Collections.Generic.List{Storeasy.Application.Interfaces.MockupRenderIssue})">
+            <summary>
+            Lays out the caption block. A caption only image (a feature graphic: no device) sets its type larger, since the
+            caption is all there is.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary">
+            <summary>
+            The fonts the studio draws with, all SIL OFL 1.1 and shipped with the application (<c>StudioFonts/</c>): Inter and Noto
+            Sans for Latin, Greek and Cyrillic, Noto Sans Arabic, Hebrew, Thai and Devanagari, and Noto Sans CJK (JP, KR, SC, TC).
+            Typefaces load from their files on first use and are shared (immutable, thread safe). No system font is ever used, so a
+            render looks the same on every host.
+            </summary>
+            <param name="folder">Folder with the <c>Inter</c>, <c>NotoSans</c> and <c>NotoSansCJK</c> subfolders.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.#ctor(System.String)">
+            <summary>
+            The fonts the studio draws with, all SIL OFL 1.1 and shipped with the application (<c>StudioFonts/</c>): Inter and Noto
+            Sans for Latin, Greek and Cyrillic, Noto Sans Arabic, Hebrew, Thai and Devanagari, and Noto Sans CJK (JP, KR, SC, TC).
+            Typefaces load from their files on first use and are shared (immutable, thread safe). No system font is ever used, so a
+            render looks the same on every host.
+            </summary>
+            <param name="folder">Folder with the <c>Inter</c>, <c>NotoSans</c> and <c>NotoSansCJK</c> subfolders.</param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.DefaultFolderName">
+            <summary>
+            Default folder name next to the application.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies">
+            <summary>
+            Fallback families of the scripts the primary families lack.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Arabic">
+            <summary>Noto Sans Arabic.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Hebrew">
+            <summary>Noto Sans Hebrew.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Thai">
+            <summary>Noto Sans Thai.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Devanagari">
+            <summary>Noto Sans Devanagari.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Japanese">
+            <summary>Noto Sans CJK JP.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.Korean">
+            <summary>Noto Sans CJK KR.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.SimplifiedChinese">
+            <summary>Noto Sans CJK SC.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ScriptFamilies.TraditionalChinese">
+            <summary>Noto Sans CJK TC.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.Folder">
+            <summary>
+            Folder of the font files.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.ResolveFolder(System.String)">
+            <summary>
+            The default font folder: <c>StudioFonts</c> next to the application.
+            </summary>
+            <param name="configured">Configured folder; empty for the default.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.WeightsOf(System.String)">
+            <summary>
+            Embedded weights of <paramref name="family"/>.
+            </summary>
+            <param name="family"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.AllFiles">
+            <summary>
+            Every font file the library may load, relative to <see cref="P:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.Folder"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.NearestWeight(System.String,System.Int32)">
+            <summary>
+            The embedded weight of <paramref name="family"/> nearest to <paramref name="weight"/> (the heavier one on a tie).
+            </summary>
+            <param name="family"></param>
+            <param name="weight"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.Get(System.String,System.Int32)">
+            <summary>
+            The typeface of <paramref name="family"/> in its embedded weight nearest to <paramref name="weight"/>.
+            </summary>
+            <param name="family"></param>
+            <param name="weight"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.FallbackChain(System.String,System.String)">
+            <summary>
+            Families to try in order for a caption in <paramref name="locale"/>: the template's family, Noto Sans, the CJK
+            family of the locale's writing (Japanese, Korean, Traditional or Simplified Chinese) before the other CJK families,
+            then Arabic, Hebrew, Thai and Devanagari.
+            </summary>
+            <param name="primary"></param>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.Rendering.StudioFontLibrary.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IScreenshotSizeSource"/> over the store rules catalog the API loads at startup (<see cref="T:Storeasy.Application.Interfaces.IRulesCatalog"/>,
+            one catalog and one <c>Storeasy:Stores:RulesPath</c> setting for the whole API). Reads only the rules of
+            <see cref="T:Storeasy.Domain.Studio.StudioClassMap"/>; sizes, counts, requirement levels and dates come from the catalog, and the export size of
+            a class is its largest listed size. Built once, on first use.
+            </summary>
+            <param name="rulesCatalog"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource.#ctor(Storeasy.Application.Interfaces.IRulesCatalog)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IScreenshotSizeSource"/> over the store rules catalog the API loads at startup (<see cref="T:Storeasy.Application.Interfaces.IRulesCatalog"/>,
+            one catalog and one <c>Storeasy:Stores:RulesPath</c> setting for the whole API). Reads only the rules of
+            <see cref="T:Storeasy.Domain.Studio.StudioClassMap"/>; sizes, counts, requirement levels and dates come from the catalog, and the export size of
+            a class is its largest listed size. Built once, on first use.
+            </summary>
+            <param name="rulesCatalog"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource.Current">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource.Build(Storeasy.Domain.Rules.RuleCatalog)">
+            <summary>
+            Reads the studio classes from <paramref name="catalog"/>. Throws when a studio rule is missing or a preset size is
+            outside its rule's range.
+            </summary>
+            <param name="catalog"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource.LargestSize(System.Collections.Generic.List{Storeasy.Domain.Studio.PixelSize},System.String)">
+            <summary>
+            The largest listed size in the orientation of the first one (the store scales it down for smaller devices of the
+            class; it never scales up).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.RulesCatalogScreenshotSizeSource.CheckPreset(Storeasy.Domain.Studio.ScreenshotClass,Storeasy.Domain.Rules.RuleParams)">
+            <summary>
+            A preset must sit inside its rule's range and keep a required aspect ratio, so a catalog change that moves the
+            range is noticed at load instead of producing images the store refuses.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.StarterTemplateCatalog">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStarterTemplateCatalog"/> over the starter designs embedded in this assembly
+            (<c>Studio/StarterTemplates/*.json</c>, resource names <c>studio/starters/*</c>). Every starter is validated with
+            <see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Validate(Storeasy.Domain.JsonModels.MockupSpec)"/> when the catalog loads, so a broken starter stops the first use loudly.
+            </summary>
+            <param name="starters">Starters in display order.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StarterTemplateCatalog.#ctor(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.Studio.StarterTemplate})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStarterTemplateCatalog"/> over the starter designs embedded in this assembly
+            (<c>Studio/StarterTemplates/*.json</c>, resource names <c>studio/starters/*</c>). Every starter is validated with
+            <see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Validate(Storeasy.Domain.JsonModels.MockupSpec)"/> when the catalog loads, so a broken starter stops the first use loudly.
+            </summary>
+            <param name="starters">Starters in display order.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.StarterTemplateCatalog.All">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StarterTemplateCatalog.Find(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StarterTemplateCatalog.LoadEmbedded">
+            <summary>
+            Loads the embedded starters, ordered by resource name.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.StudioAssetReader">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStudioAssetReader"/> with a least recently used cache of encoded bytes bounded by
+            <paramref name="capacityBytes"/>. Previews redraw the same few screenshots on every edit; the cache keeps them off the
+            storage. A file larger than a quarter of the capacity is read but not kept.
+            </summary>
+            <param name="storage"></param>
+            <param name="capacityBytes"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StudioAssetReader.#ctor(Storeasy.Application.Interfaces.IFileStorage,System.Int64)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStudioAssetReader"/> with a least recently used cache of encoded bytes bounded by
+            <paramref name="capacityBytes"/>. Previews redraw the same few screenshots on every edit; the cache keeps them off the
+            storage. A file larger than a quarter of the capacity is read but not kept.
+            </summary>
+            <param name="storage"></param>
+            <param name="capacityBytes"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Studio.StudioAssetReader.CachedBytes">
+            <summary>
+            Bytes held by the cache.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StudioAssetReader.ReadAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Studio.StudioServiceCollectionExtensions">
+            <summary>
+            Registrations of the mockup studio (phase 6).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Studio.StudioServiceCollectionExtensions.AddStudioServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the studio: screenshot sizes from the rules catalog (<see cref="T:Storeasy.Application.Interfaces.IRulesCatalog"/>), the SkiaSharp renderer with the embedded fonts, server side
+            raw screenshot cache over the bucket, the starter templates, the caption translator (a no-op unless
+            another implementation is registered first) and the export job handler.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer">
             <summary>

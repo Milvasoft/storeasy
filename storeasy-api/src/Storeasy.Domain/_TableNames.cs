@@ -32,6 +32,9 @@ public static class TableNames
     public const string SavedAnswers = nameof(SavedAnswers);
     public const string ChangePlans = nameof(ChangePlans);
     public const string AssistedSteps = nameof(AssistedSteps);
+    public const string MockupTemplates = nameof(MockupTemplates);
+    public const string MockupSlots = nameof(MockupSlots);
+    public const string MockupCaptions = nameof(MockupCaptions);
     public const string MsProducts = nameof(MsProducts);
     public const string MsSubmissions = nameof(MsSubmissions);
     public const string MsFlights = nameof(MsFlights);

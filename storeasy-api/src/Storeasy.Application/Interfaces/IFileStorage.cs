@@ -92,6 +92,17 @@ public interface IFileStorage
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Writes an object from the server (work the API does itself, such as the studio's rendered images), replacing one
+    /// with the same key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="content">Content, read from its current position to the end.</param>
+    /// <param name="contentType"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken);
 }
 
 /// <summary>

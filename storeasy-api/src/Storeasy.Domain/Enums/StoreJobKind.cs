@@ -20,6 +20,13 @@ public enum StoreJobKind : short
     ApplyChangePlan = 2,
 
     /// <summary>
+    /// Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
+    /// studio's own band.
+    /// </summary>
+    [Description("Mockup export")]
+    MockupExport = 60,
+
+    /// <summary>
     /// Reads the Microsoft Store products of one connection: MSIX apps, MSI/EXE products, submissions and their status,
     /// package flights, add-ons and installer packages.
     /// </summary>

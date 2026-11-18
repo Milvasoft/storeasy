@@ -36,6 +36,9 @@ public static class FeatureFlagKeys
     /// <summary>Excel exports (one export reads up to the export row limit in a single request).</summary>
     public const string Export = "Export";
 
+    /// <summary>Mockup studio caption suggestions (a paid translation provider when one is configured; 503 when off).</summary>
+    public const string StudioAiCaptions = "Studio.AiCaptions";
+
     /// <summary>All known keys, in display order.</summary>
-    public static readonly string[] All = [Export];
+    public static readonly string[] All = [Export, StudioAiCaptions];
 }
