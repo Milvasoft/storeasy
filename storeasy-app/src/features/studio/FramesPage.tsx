@@ -62,7 +62,9 @@ function FrameCard({ frame }: { frame: MockupFrameDto }) {
                 {requirement.label}
               </Badge>
               {item.RequiredFrom ? (
-                <span className="w-full pl-9 text-xs text-fg3">{interpolate(s.export.requiredFrom, { date: format.date(item.RequiredFrom) })}</span>
+                <span className="w-full pl-9 text-xs text-fg3">
+                  {interpolate(s.export.requiredFrom, { date: format.date(item.RequiredFrom) })}
+                </span>
               ) : null}
             </li>
           )

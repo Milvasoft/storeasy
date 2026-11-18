@@ -52,9 +52,36 @@ const frames: MockupFrameDto[] = [
     Bezel: 0.025,
     Cutouts: ['island', 'notch', 'hole', 'none'],
     Classes: [
-      cls('apple.screenshots.iphone-dynamic-island-medium', StoreKind.Apple, 'iPhone DI medium', 'iPhone DI orta', 1206, 2622, MockupDeviceFamily.Phone, MockupRequirement.Required),
-      cls('apple.screenshots.iphone-dynamic-island-large', StoreKind.Apple, 'iPhone DI large', 'iPhone DI büyük', 1320, 2868, MockupDeviceFamily.Phone, MockupRequirement.Recommended),
-      cls('google.screenshots.phone', StoreKind.Google, 'Phone', 'Telefon', 1080, 1920, MockupDeviceFamily.Phone, MockupRequirement.Required),
+      cls(
+        'apple.screenshots.iphone-dynamic-island-medium',
+        StoreKind.Apple,
+        'iPhone DI medium',
+        'iPhone DI orta',
+        1206,
+        2622,
+        MockupDeviceFamily.Phone,
+        MockupRequirement.Required,
+      ),
+      cls(
+        'apple.screenshots.iphone-dynamic-island-large',
+        StoreKind.Apple,
+        'iPhone DI large',
+        'iPhone DI büyük',
+        1320,
+        2868,
+        MockupDeviceFamily.Phone,
+        MockupRequirement.Recommended,
+      ),
+      cls(
+        'google.screenshots.phone',
+        StoreKind.Google,
+        'Phone',
+        'Telefon',
+        1080,
+        1920,
+        MockupDeviceFamily.Phone,
+        MockupRequirement.Required,
+      ),
     ],
   },
   {
@@ -62,7 +89,18 @@ const frames: MockupFrameDto[] = [
     CornerRadius: 0.05,
     Bezel: 0.03,
     Cutouts: ['hole', 'none'],
-    Classes: [cls('apple.screenshots.ipad-13', StoreKind.Apple, 'iPad 13"', 'iPad 13"', 2064, 2752, MockupDeviceFamily.Tablet, MockupRequirement.Required)],
+    Classes: [
+      cls(
+        'apple.screenshots.ipad-13',
+        StoreKind.Apple,
+        'iPad 13"',
+        'iPad 13"',
+        2064,
+        2752,
+        MockupDeviceFamily.Tablet,
+        MockupRequirement.Required,
+      ),
+    ],
   },
   {
     Kind: MockupFrameKind.FoldableInner,
@@ -70,7 +108,16 @@ const frames: MockupFrameDto[] = [
     Bezel: 0.035,
     Cutouts: ['hole'],
     Classes: [
-      cls('apple.screenshots.iphone-duo-inner', StoreKind.Apple, 'iPhone Duo inner display', 'iPhone Duo iç ekran', 2007, 2853, MockupDeviceFamily.Tablet, MockupRequirement.Optional),
+      cls(
+        'apple.screenshots.iphone-duo-inner',
+        StoreKind.Apple,
+        'iPhone Duo inner display',
+        'iPhone Duo iç ekran',
+        2007,
+        2853,
+        MockupDeviceFamily.Tablet,
+        MockupRequirement.Optional,
+      ),
     ],
   },
   {
@@ -78,7 +125,18 @@ const frames: MockupFrameDto[] = [
     CornerRadius: 0.01,
     Bezel: 0,
     Cutouts: [],
-    Classes: [cls('microsoft.screenshots.desktop', StoreKind.Microsoft, 'Desktop', 'Masaüstü', 1920, 1080, MockupDeviceFamily.Desktop, MockupRequirement.Required)],
+    Classes: [
+      cls(
+        'microsoft.screenshots.desktop',
+        StoreKind.Microsoft,
+        'Desktop',
+        'Masaüstü',
+        1920,
+        1080,
+        MockupDeviceFamily.Desktop,
+        MockupRequirement.Required,
+      ),
+    ],
   },
 ]
 
@@ -176,7 +234,7 @@ function manifest(template: MockupTemplateDetailDto): MockupExportManifest {
       locales.map((locale) => ({
         Store: item.Store,
         ClassKey: item.ClassKey,
-        StoreClassKey: item.Store === StoreKind.Microsoft ? null : item.ClassKey.split('.').pop()?.toUpperCase() ?? null,
+        StoreClassKey: item.Store === StoreKind.Microsoft ? null : (item.ClassKey.split('.').pop()?.toUpperCase() ?? null),
         Locale: locale,
         Width: item.Width,
         Height: item.Height,
@@ -214,14 +272,24 @@ function find(request: Request, key = 'TemplateId'): MockupTemplateDetailDto | u
 export const studioMockHandlers: HttpHandler[] = [
   http.patch(`${BASE}/Mockups/templates`, () => {
     const rows = templates.map(({ Spec: _spec, Slots: _slots, Captions: _captions, ...row }) => row)
-    return HttpResponse.json({ isSuccess: true, statusCode: 200, messages: [], data: rows, currentPageNumber: 1, totalPageCount: 1, totalDataCount: rows.length })
+    return HttpResponse.json({
+      isSuccess: true,
+      statusCode: 200,
+      messages: [],
+      data: rows,
+      currentPageNumber: 1,
+      totalPageCount: 1,
+      totalDataCount: rows.length,
+    })
   }),
   http.get(`${BASE}/Mockups/template`, ({ request }) => {
     const template = find(request)
     return template ? envelope(template) : refuse('MockupTemplateNotFound', 'Şablon bulunamadı.', 404)
   }),
   http.post(`${BASE}/Mockups/template`, async ({ request }) => {
-    const input = await body<{ AppId: number; Name: string; Locales: string[]; PrimaryLocale: string; CopyFromTemplateId?: number | null }>(request)
+    const input = await body<{ AppId: number; Name: string; Locales: string[]; PrimaryLocale: string; CopyFromTemplateId?: number | null }>(
+      request,
+    )
     const source = templates.find((item) => item.Id === input.CopyFromTemplateId)
     const id = nextId++
     templates.push({
@@ -286,9 +354,7 @@ export const studioMockHandlers: HttpHandler[] = [
     }
     return envelope({ saved: input.Items.length, measuredClassKey: 'google.screenshots.phone', warnings })
   }),
-  http.post(`${BASE}/Mockups/captions/suggest`, () =>
-    refuse('FeatureDisabled', 'Yapay zeka önerisi bu kurulumda kapalı.', 503),
-  ),
+  http.post(`${BASE}/Mockups/captions/suggest`, () => refuse('FeatureDisabled', 'Yapay zeka önerisi bu kurulumda kapalı.', 503)),
   http.get(`${BASE}/Mockups/frames`, () => envelope(frames)),
   http.get(`${BASE}/Mockups/starter-templates`, () =>
     envelope([
@@ -322,7 +388,9 @@ export const studioMockHandlers: HttpHandler[] = [
   http.post(`${BASE}/Mockups/export/plan`, async ({ request }) => {
     const input = await body<{ TemplateId: number; Locales?: string[] | null; ClassKeys?: string[] | null }>(request)
     const template = templates.find((item) => item.Id === input.TemplateId)
-    return template ? envelope(planOf(template, input.Locales ?? null, input.ClassKeys ?? null)) : refuse('MockupTemplateNotFound', 'Şablon bulunamadı.', 404)
+    return template
+      ? envelope(planOf(template, input.Locales ?? null, input.ClassKeys ?? null))
+      : refuse('MockupTemplateNotFound', 'Şablon bulunamadı.', 404)
   }),
   http.post(`${BASE}/Mockups/export`, () => envelope(EXPORT_JOB_ID)),
   http.get(`${BASE}/Mockups/export/manifest`, () => envelope(manifest(templates[0]))),

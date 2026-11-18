@@ -58,7 +58,12 @@ export function NewTemplateModal({
   const starterKey = start.startsWith('starter:') ? start.slice(8) || null : null
 
   const nameError = submitted && !name.trim() ? s.create.nameRequired : nameTaken ? s.create.nameTaken : null
-  const localeError = submitted && locales.length === 0 ? s.create.localesRequired : badLocale ? interpolate(s.create.localeInvalid, { locale: badLocale }) : null
+  const localeError =
+    submitted && locales.length === 0
+      ? s.create.localesRequired
+      : badLocale
+        ? interpolate(s.create.localeInvalid, { locale: badLocale })
+        : null
   const appError = submitted && !appId ? s.create.appRequired : null
 
   const create = useMutation({
@@ -149,7 +154,11 @@ export function NewTemplateModal({
           <Input value={localeText} onChange={(event) => setLocaleText(event.target.value)} />
         </Field>
         <Field label={s.create.primary}>
-          <Select value={primaryLocale || null} options={locales.map((locale) => ({ value: locale, label: locale }))} onChange={setPrimary} />
+          <Select
+            value={primaryLocale || null}
+            options={locales.map((locale) => ({ value: locale, label: locale }))}
+            onChange={setPrimary}
+          />
         </Field>
         {failed ? (
           <p className="err-t" role="alert">

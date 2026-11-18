@@ -29,10 +29,7 @@ import { useZipDownload } from './useZipDownload'
 
 export const RENDER_STEP = 'render.size'
 
-type PlanOutcome =
-  | { kind: 'planned'; plan: ChangePlanDto }
-  | { kind: 'failed'; message: string }
-  | { kind: 'noRecord' }
+type PlanOutcome = { kind: 'planned'; plan: ChangePlanDto } | { kind: 'failed'; message: string } | { kind: 'noRecord' }
 
 function setKey(set: MockupExportSet): string {
   return `${set.ClassKey}|${set.Locale}`
@@ -109,7 +106,12 @@ function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; c
             {s.job.zip}
           </Button>
           {canEdit ? (
-            <Button variant="primary" loading={send.isPending} disabled={uploadable.length === 0 || send.isSuccess} onClick={() => send.mutate()}>
+            <Button
+              variant="primary"
+              loading={send.isPending}
+              disabled={uploadable.length === 0 || send.isSuccess}
+              onClick={() => send.mutate()}
+            >
               <Send aria-hidden />
               {interpolate(s.job.sendToPlans, { count: uploadable.length })}
             </Button>
@@ -117,7 +119,10 @@ function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; c
         </span>
       </div>
       {send.isSuccess ? (
-        <Callout tone={planned === uploadable.length ? 'success' : 'warning'} title={interpolate(s.job.plansCreated, { count: planned, total: uploadable.length })}>
+        <Callout
+          tone={planned === uploadable.length ? 'success' : 'warning'}
+          title={interpolate(s.job.plansCreated, { count: planned, total: uploadable.length })}
+        >
           {s.job.plansHint}
         </Callout>
       ) : null}
@@ -126,8 +131,8 @@ function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; c
           <ul className="grid gap-1">
             {(manifest.Failures ?? []).map((failure, index) => (
               <li key={index}>
-                <span className="mono">{failure.ClassKey}</span> · {failure.Locale} · {interpolate(s.slots.slot, { order: failure.SlotOrder })}:{' '}
-                {warningText(failure, s)}
+                <span className="mono">{failure.ClassKey}</span> · {failure.Locale} ·{' '}
+                {interpolate(s.slots.slot, { order: failure.SlotOrder })}: {warningText(failure, s)}
               </li>
             ))}
           </ul>
@@ -223,9 +228,11 @@ function StepRow({ step }: { step: StoreJobStepDto }) {
     <li className="grid gap-1 border-b border-border py-2 last:border-b-0">
       <div className="flex gap-2 text-[13px]">
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <span className="mono tabular-nums text-fg2">{total > 0 ? `${done} / ${total}` : s.job.stepStatus[step.Status] ?? ''}</span>
+        <span className="mono tabular-nums text-fg2">{total > 0 ? `${done} / ${total}` : (s.job.stepStatus[step.Status] ?? '')}</span>
       </div>
-      {total > 0 ? <Progress value={done} max={total} small label={label} tone={step.Status === StoreJobStepStatus.Failed ? 'dng' : undefined} /> : null}
+      {total > 0 ? (
+        <Progress value={done} max={total} small label={label} tone={step.Status === StoreJobStepStatus.Failed ? 'dng' : undefined} />
+      ) : null}
     </li>
   )
 }

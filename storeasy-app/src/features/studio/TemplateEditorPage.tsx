@@ -68,9 +68,7 @@ function ConflictModal({ editor }: { editor: TemplateEditor }) {
       }
     >
       {editor.detail.data?.LastModifierUserName ? (
-        <p className="text-[13px] text-fg2">
-          {interpolate(s.conflict.lastSaved, { user: editor.detail.data.LastModifierUserName })}
-        </p>
+        <p className="text-[13px] text-fg2">{interpolate(s.conflict.lastSaved, { user: editor.detail.data.LastModifierUserName })}</p>
       ) : null}
     </Modal>
   )

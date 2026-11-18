@@ -94,7 +94,12 @@ function SuggestModal({
               {interpolate(s.ai.apply, { count: accepted.size })}
             </Button>
           ) : (
-            <Button variant="primary" loading={suggest.isPending} disabled={scope === 'problems' && problemSlots.length === 0} onClick={() => suggest.mutate()}>
+            <Button
+              variant="primary"
+              loading={suggest.isPending}
+              disabled={scope === 'problems' && problemSlots.length === 0}
+              onClick={() => suggest.mutate()}
+            >
               {s.ai.ask}
             </Button>
           )}
@@ -262,7 +267,8 @@ export function CaptionsPanel({ editor, canEdit }: { editor: TemplateEditor; can
                   const saved = editor.savedCaptions[key] ?? EMPTY
                   const changed = cell.title !== saved.title || cell.subtitle !== saved.subtitle
                   const problems = cellWarnings(editor.captionWarnings, locale, order)
-                  const fallback = locale !== draft.PrimaryLocale ? interpolate(s.captions.fallback, { locale: draft.PrimaryLocale }) : undefined
+                  const fallback =
+                    locale !== draft.PrimaryLocale ? interpolate(s.captions.fallback, { locale: draft.PrimaryLocale }) : undefined
                   return (
                     <td key={locale} className={cn('min-w-[220px] align-top', problems.length > 0 && 'bg-danger/5')}>
                       <div className="grid gap-2">

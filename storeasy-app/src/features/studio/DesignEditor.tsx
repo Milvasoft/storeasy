@@ -41,15 +41,7 @@ const SCREENSHOT_TYPES = ['.png', '.jpg', '.jpeg']
 
 type Selection = 'template' | 'background' | 'frame' | 'text' | number
 
-function SlotScreenshots({
-  editor,
-  order,
-  canEdit,
-}: {
-  editor: TemplateEditor
-  order: number
-  canEdit: boolean
-}) {
+function SlotScreenshots({ editor, order, canEdit }: { editor: TemplateEditor; order: number; canEdit: boolean }) {
   const s = useStudioT()
   const draft = editor.draft!
   const [scope, setScope] = useState<string>('')
@@ -77,9 +69,7 @@ function SlotScreenshots({
         />
       </div>
       {FAMILIES.map((family) => {
-        const own = draft.Slots.find(
-          (slot) => slot.Order === order && slot.Family === family && (slot.Locale ?? null) === locale,
-        )
+        const own = draft.Slots.find((slot) => slot.Order === order && slot.Family === family && (slot.Locale ?? null) === locale)
         const used = slotAsset(draft.Slots, order, family, locale)
         const label = familyLabel(family, s)
         return (
@@ -87,7 +77,9 @@ function SlotScreenshots({
             <div className="flex items-center gap-2 text-[13px]">
               <b>{label}</b>
               {used ? (
-                <span className="mono truncate text-xs text-fg2">{names[used.AssetId] ?? interpolate(s.slots.asset, { id: used.AssetId })}</span>
+                <span className="mono truncate text-xs text-fg2">
+                  {names[used.AssetId] ?? interpolate(s.slots.asset, { id: used.AssetId })}
+                </span>
               ) : (
                 <span className="text-xs text-fg3">{family === MockupDeviceFamily.Phone ? s.slots.none : s.slots.fallback}</span>
               )}
@@ -309,10 +301,22 @@ export function DesignEditor({ editor, frames, canEdit }: { editor: TemplateEdit
           actions={
             canEdit ? (
               <>
-                <IconButton label={s.slots.removeLast} size="sm" ghost disabled={draft.SlotCount <= 1} onClick={() => setSlotCount(draft.SlotCount - 1)}>
+                <IconButton
+                  label={s.slots.removeLast}
+                  size="sm"
+                  ghost
+                  disabled={draft.SlotCount <= 1}
+                  onClick={() => setSlotCount(draft.SlotCount - 1)}
+                >
                   <Minus aria-hidden />
                 </IconButton>
-                <IconButton label={s.slots.add} size="sm" ghost disabled={draft.SlotCount >= MAX_SLOTS} onClick={() => setSlotCount(draft.SlotCount + 1)}>
+                <IconButton
+                  label={s.slots.add}
+                  size="sm"
+                  ghost
+                  disabled={draft.SlotCount >= MAX_SLOTS}
+                  onClick={() => setSlotCount(draft.SlotCount + 1)}
+                >
                   <Plus aria-hidden />
                 </IconButton>
               </>
@@ -401,9 +405,19 @@ export function DesignEditor({ editor, frames, canEdit }: { editor: TemplateEdit
         <div className="flex items-center gap-2 text-xs text-fg3">
           <span>{interpolate(s.preview.range, { from: pageStart, to: page[page.length - 1] ?? pageStart, count: draft.SlotCount })}</span>
           <span className="ml-auto" role="status" aria-live="polite">
-            {preview.isFetching ? s.preview.drawing : preview.data ? interpolate(s.preview.duration, { ms: preview.data.DurationMs }) : null}
+            {preview.isFetching
+              ? s.preview.drawing
+              : preview.data
+                ? interpolate(s.preview.duration, { ms: preview.data.DurationMs })
+                : null}
           </span>
-          <IconButton label={s.preview.previous} size="sm" ghost disabled={pageStart <= 1} onClick={() => setSelectedSlot(Math.max(1, pageStart - 1))}>
+          <IconButton
+            label={s.preview.previous}
+            size="sm"
+            ghost
+            disabled={pageStart <= 1}
+            onClick={() => setSelectedSlot(Math.max(1, pageStart - 1))}
+          >
             <ChevronLeft aria-hidden />
           </IconButton>
           <IconButton

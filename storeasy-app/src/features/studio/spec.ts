@@ -1,11 +1,4 @@
-import type {
-  MockupCaptionDto,
-  MockupLayerSpec,
-  MockupSlotDto,
-  MockupSpec,
-  MockupTextStyleSpec,
-  MockupWarningDto,
-} from './types'
+import type { MockupCaptionDto, MockupLayerSpec, MockupSlotDto, MockupSpec, MockupTextStyleSpec, MockupWarningDto } from './types'
 
 // Pure helpers of the template document: no React, no API.
 
@@ -250,7 +243,14 @@ export function sameJson(a: unknown, b: unknown): boolean {
 
 /** Splits a typed list of locales ("tr, en-US de-DE") into unique tags in order. */
 export function parseLocales(text: string): string[] {
-  return [...new Set(text.split(/[\s,;]+/).map((value) => value.trim()).filter(Boolean))]
+  return [
+    ...new Set(
+      text
+        .split(/[\s,;]+/)
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  ]
 }
 
 const LOCALE_PATTERN = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/
