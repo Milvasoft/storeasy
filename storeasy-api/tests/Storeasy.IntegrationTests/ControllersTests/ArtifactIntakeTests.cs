@@ -165,6 +165,54 @@ public class ArtifactIntakeTests(StoreasyApiFactory factory) : IntakeTestBase(fa
     }
 
     [Fact]
+    public async Task HoldForConfirmation_ShouldShowTheChecksBeforeAnyDelivery()
+    {
+        var (org, google, package) = await AndroidAppAsync(onWarning: DeliveryWarningAction.Deliver);
+
+        var client = TokenClient(await PatAsync(org.Owner, org.OrganizationId));
+        var (sessionId, _, _) = await UploadAsync(client, google.AppId, "c.aab", PackageFactory.Aab(package, 80), new { holdForConfirmation = true });
+        var held = await WaitForSessionAsync(sessionId);
+        var bundlesWhileHeld = Play.Apps[package]["bundles"].AsArray().Count;
+        var (deliverHttp, _) = await org.Owner.Client.PostAsync<ArtifactSessionDetailDto>("artifacts/session/deliver", new { organizationId = org.OrganizationId, sessionId });
+        var delivered = await WaitForSessionAsync(sessionId);
+
+        held.Status.Should().Be(ArtifactSessionStatus.Held);
+        held.HoldReason.Should().StartWith("Waiting for confirmation");
+        held.Checks.Should().NotBeEmpty("the package was read and checked before it was held");
+        bundlesWhileHeld.Should().Be(0);
+        deliverHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        delivered.Status.Should().Be(ArtifactSessionStatus.Delivered);
+    }
+
+    [Fact]
+    public async Task Counts_ShouldCountThePeriodsPackagesByStatusAndSource()
+    {
+        var (org, google, package) = await AndroidAppAsync();
+        var (other, _, _) = await AndroidAppAsync();
+
+        var client = TokenClient(await PatAsync(org.Owner, org.OrganizationId));
+        var (deliveredId, _, _) = await UploadAsync(client, google.AppId, "a.aab", PackageFactory.Aab(package, 90));
+        await WaitForSessionAsync(deliveredId);
+        var (heldId, _, _) = await UploadAsync(client, google.AppId, "b.aab", PackageFactory.Aab(package, 91, targetSdk: null));
+        await WaitForSessionAsync(heldId);
+
+        var (http, counts) = await org.Owner.Client.GetAsync<ArtifactCountsDto>($"artifacts/counts?organizationId={org.OrganizationId}");
+        var (_, appCounts) = await org.Owner.Client.GetAsync<ArtifactCountsDto>($"artifacts/counts?organizationId={org.OrganizationId}&appId={int.MaxValue}");
+        var (foreign, _) = await other.Owner.Client.GetAsync<ArtifactCountsDto>($"artifacts/counts?organizationId={org.OrganizationId}");
+        var (tooLong, _) = await org.Owner.Client.GetAsync<ArtifactCountsDto>($"artifacts/counts?organizationId={org.OrganizationId}&from=2026-01-01T00:00:00Z&to=2027-06-01T00:00:00Z");
+
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        counts.Data.Total.Should().Be(2);
+        counts.Data.ByStatus.Single(s => s.Status == ArtifactSessionStatus.Delivered).Count.Should().Be(1);
+        counts.Data.ByStatus.Single(s => s.Status == ArtifactSessionStatus.Held).Count.Should().Be(1);
+        counts.Data.ByStatus.Should().HaveCount(Enum.GetValues<ArtifactSessionStatus>().Length);
+        counts.Data.BySource.Should().ContainSingle().Which.Count.Should().Be(2);
+        appCounts.Data.Total.Should().Be(0);
+        foreign.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        tooLong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task CiToken_ShouldUploadToItsAppsOnly()
     {
         var (org, google, package) = await AndroidAppAsync();

@@ -59,7 +59,11 @@ public class AccountDtoTests
             EmailConfirmed = u.EmailConfirmed,
             Name = u.Name,
             Surname = u.Surname,
-            Roles = u.RoleRelations.Select(rr => new NameIntNavigationDto { Id = rr.Role.Id, Name = rr.Role.Name }).ToList()
+            UserType = u.UserType,
+            PreferredLanguage = u.PreferredLanguage,
+            CreationDate = u.CreationDate,
+            Roles = u.RoleRelations.Select(rr => new NameIntNavigationDto { Id = rr.Role.Id, Name = rr.Role.Name }).ToList(),
+            Permissions = u.RoleRelations.SelectMany(rr => rr.Role.RolePermissionRelations.Select(rp => rp.Permission.PermissionGroup + "." + rp.Permission.Name)).ToList(),
         };
 
         // Act

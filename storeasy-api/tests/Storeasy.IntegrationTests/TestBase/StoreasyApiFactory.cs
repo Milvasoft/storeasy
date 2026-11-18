@@ -117,6 +117,21 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeDownloadServer Downloads { get; } = new();
 
+    /// <summary>
+    /// Google's sign in endpoints (OpenID Connect).
+    /// </summary>
+    public FakeGoogle Google { get; } = new();
+
+    /// <summary>
+    /// Browsers' push services.
+    /// </summary>
+    public FakePushService PushService { get; } = new();
+
+    /// <summary>
+    /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
+    /// </summary>
+    public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
+
     private static int _databaseSequence;
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("app_tests")
@@ -217,6 +232,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             // Intake phase: OIDC issuers, pulled package downloads and the bucket's ranged reads and part listings.
             services.AddHttpClient(Storeasy.Infrastructure.Intake.OidcTokenValidator.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => OidcIssuers);
             services.AddHttpClient(Storeasy.Infrastructure.Intake.ArtifactDownloader.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Downloads);
+
+            // Phase 8: Google sign in and browser push services.
+            services.AddHttpClient(Storeasy.Infrastructure.Services.GoogleSignInService.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Google);
+            services.AddHttpClient(Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => PushService);
             services.RemoveAll<IArtifactStorage>();
             services.AddSingleton<IArtifactStorage>(FileStorage);
         });
@@ -250,6 +269,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         // Only the shared host runs store jobs: a second runner on the same database would take jobs whose handler or
         // fakes live in the shared host.
         overrides.TryAdd(StoreJobsEnabledKey, "false");
+        overrides.TryAdd("Storeasy:Email:Outbox:Enabled", "false");
 
         var previous = overrides.Keys.ToDictionary(key => key, key => Environment.GetEnvironmentVariable(EnvironmentName(key)));
 
@@ -325,6 +345,15 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         ["Storeasy:OrgWebhooks:PollIntervalMilliseconds"] = "100",
         ["Storeasy:OrgWebhooks:RetryBaseDelaySeconds"] = "0",
         ["Storeasy:OrgWebhooks:MaxAttempts"] = "3",
+        ["Storeasy:Email:Outbox:Enabled"] = "true",
+        ["Storeasy:Email:Outbox:PollIntervalMilliseconds"] = "50",
+        ["Storeasy:Email:Outbox:RetryBaseDelaySeconds"] = "0",
+        ["Storeasy:Auth:Google:ClientId"] = FakeGoogle.ClientId,
+        ["Storeasy:Auth:Google:ClientSecret"] = FakeGoogle.ClientSecret,
+        ["Storeasy:Auth:Google:Authority"] = FakeGoogle.Authority,
+        ["Storeasy:WebPush:Subject"] = "mailto:tests@example.com",
+        ["Storeasy:WebPush:PublicKey"] = VapidKeys.PublicKey,
+        ["Storeasy:WebPush:PrivateKey"] = VapidKeys.PrivateKey,
         ["Serilog:MinimumLevel:Default"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Warning",
@@ -384,6 +413,14 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     }
 
     private static string EnvironmentName(string key) => key.Replace(":", "__");
+
+    private static (string PublicKey, string PrivateKey) CreateVapidKeys()
+    {
+        using var key = System.Security.Cryptography.ECDiffieHellman.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+        var parameters = key.ExportParameters(true);
+
+        return (System.Buffers.Text.Base64Url.EncodeToString([0x04, .. parameters.Q.X, .. parameters.Q.Y]), System.Buffers.Text.Base64Url.EncodeToString(parameters.D));
+    }
 }
 
 /// <summary>

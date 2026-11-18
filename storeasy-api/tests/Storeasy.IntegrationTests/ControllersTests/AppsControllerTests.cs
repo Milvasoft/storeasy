@@ -129,6 +129,73 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
     }
 
     [Fact]
+    public async Task Profile_ShouldBeReadBackWithTheDetail_AndTheListShouldFilterByStore()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var packageName = $"com.{setup.Suffix}.android";
+
+        GiveAppleApps(setup, new StoreAppRecord($"5{setup.Suffix}", $"com.{setup.Suffix}.ios", "Only iOS"));
+        await SyncAsync(setup);
+
+        var googleConnectionId = await AddGoogleConnectionAsync(setup);
+        _factory.StoreGateway.GoogleApps[packageName] = new StoreAppRecord(packageName, packageName, "Only Android");
+        var (_, added) = await setup.Owner.Client.PostAsync<AppAddedDto>("apps/google", new { organizationId = setup.OrganizationId, connectionId = googleConnectionId, packageName });
+        await WaitForJobAsync(added.Data.JobId);
+        var iosAppId = (await ListAppsAsync(setup)).Single(a => a.Name == "Only iOS").Id;
+
+        // Act
+        var (_, before) = await setup.Owner.Client.GetAsync<AppDetailDto>($"apps/app?organizationId={setup.OrganizationId}&appId={iosAppId}");
+        var (save, _) = await setup.Owner.Client.PutAsync<int>("apps/profile", new { organizationId = setup.OrganizationId, appId = iosAppId, platforms = new[] { "iOS" }, deviceFamilies = new[] { "iphone", "ipad" }, regions = new[] { "tr", "de" }, features = new[] { "subscriptions" }, buildSdkVersion = "26.1", isLive = true });
+        var (_, after) = await setup.Owner.Client.GetAsync<AppDetailDto>($"apps/app?organizationId={setup.OrganizationId}&appId={iosAppId}");
+        var (_, google) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, store = StoreKind.Google, pageNumber = 1, rowCount = 1 });
+        var (_, apple) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, store = StoreKind.Apple, pageNumber = 1, rowCount = 50 });
+
+        // Assert
+        before.Data.Profile.Should().BeNull();
+        save.StatusCode.Should().Be(HttpStatusCode.OK);
+        after.Data.Profile.Platforms.Should().Equal("ios");
+        after.Data.Profile.DeviceFamilies.Should().Equal("iphone", "ipad");
+        after.Data.Profile.Regions.Should().Equal("TR", "DE");
+        after.Data.Profile.BuildSdkVersion.Should().Be("26.1");
+        after.Data.Profile.IsLive.Should().BeTrue();
+        google.Data.Should().ContainSingle().Which.Stores.Should().OnlyContain(s => s.Store == StoreKind.Google);
+        google.TotalDataCount.Should().Be(1, "the filter runs on the server, so the count follows it");
+        apple.Data.Select(a => a.Name).Should().Equal("Only iOS");
+    }
+
+    [Fact]
+    public async Task Sync_ShouldRegisterTheWebhookOfTheConnectionForAppsThatArriveLater()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var first = new StoreAppRecord($"6{setup.Suffix}", $"com.{setup.Suffix}.first", "First");
+        var later = new StoreAppRecord($"7{setup.Suffix}", $"com.{setup.Suffix}.later", "Later");
+
+        GiveAppleApps(setup, first);
+        await SyncAsync(setup);
+
+        var (endpointHttp, _) = await setup.Owner.Client.PostAsync<Application.Dtos.EventDtos.WebhookSecretDto>("webhooks/endpoint", new { organizationId = setup.OrganizationId, source = WebhookSource.AppStoreConnect, storeConnectionId = setup.AppleConnectionId, registerAtStore = true });
+
+        await EventTestKit.WaitForJobsAsync(_factory, setup.OrganizationId, StoreJobKind.RegisterWebhooks);
+
+        // Act
+        GiveAppleApps(setup, first, later);
+        await SyncAsync(setup);
+        await EventTestKit.WaitForJobsAsync(_factory, setup.OrganizationId, StoreJobKind.RegisterWebhooks);
+
+        await SyncAsync(setup);
+
+        var registrations = _factory.StoreEvents.Webhooks.Where(w => w.AppId == first.ExternalId || w.AppId == later.ExternalId).ToList();
+        var jobs = await _factory.DbAsync(db => db.StoreJobs.CountAsync(j => j.OrganizationId == setup.OrganizationId && j.Kind == StoreJobKind.RegisterWebhooks));
+
+        // Assert
+        endpointHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        registrations.Should().Contain(w => w.AppId == later.ExternalId, "the app that arrived later gets the webhook");
+        jobs.Should().Be(2, "a sync that brings no new app registers nothing");
+    }
+
+    [Fact]
     public async Task AddGoogleApp_ShouldLinkToTheAppleRecordWithTheSameIdentifier()
     {
         // Arrange

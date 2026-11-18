@@ -47,7 +47,7 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         row.Email.Should().Be(email);
         row.UserType.Should().Be(UserType.AppUser);
         detail.Data.EmailConfirmed.Should().BeFalse();
-        _factory.EmailSender.LastToken(email, AppOptions.VerifyEmailPath).Should().StartWith("evt_");
+        (await _factory.EmailSender.LastTokenAsync(email, AppOptions.VerifyEmailPath)).Should().StartWith("evt_");
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         // Arrange
         var email = NewEmail();
         var (_, user) = await RegisterAndLoginAsync(email);
-        var token = _factory.EmailSender.LastToken(email, AppOptions.VerifyEmailPath);
+        var token = await _factory.EmailSender.LastTokenAsync(email, AppOptions.VerifyEmailPath);
 
         // Act
         var (blocked, _) = await user.Client.PostAsync<int>("organizations/organization", new { name = $"Org {TestApi.Unique()}" });
@@ -99,11 +99,11 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         // Arrange
         var email = NewEmail();
         var (_, user) = await RegisterAndLoginAsync(email);
-        var firstToken = _factory.EmailSender.LastToken(email, AppOptions.VerifyEmailPath);
+        var firstToken = await _factory.EmailSender.LastTokenAsync(email, AppOptions.VerifyEmailPath);
 
         // Act
         var (resend, _) = await user.Client.PostAsync("account/email/verify/resend", new { });
-        var secondToken = _factory.EmailSender.LastToken(email, AppOptions.VerifyEmailPath);
+        var secondToken = await _factory.EmailSender.LastTokenAsync(email, AppOptions.VerifyEmailPath, firstToken);
         var (oldLink, _) = await _factory.CreateClientWithAddress().PostAsync("account/email/verify", new { token = firstToken });
         var (newLink, _) = await _factory.CreateClientWithAddress().PostAsync("account/email/verify", new { token = secondToken });
         var (resendVerified, _) = await user.Client.PostAsync("account/email/verify/resend", new { });
@@ -132,7 +132,8 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         knownHttp.StatusCode.Should().Be(HttpStatusCode.OK);
         unknownHttp.StatusCode.Should().Be(HttpStatusCode.OK);
         unknownBody.IsSuccess.Should().Be(knownBody.IsSuccess);
-        _factory.EmailSender.LastToken(email, AppOptions.ResetPasswordPath).Should().StartWith("pwr_");
+        (await _factory.EmailSender.LastTokenAsync(email, AppOptions.ResetPasswordPath)).Should().StartWith("pwr_");
+        await EventTestKit.EventuallyAsync(async () => !await _factory.DbAsync(db => db.EmailOutbox.AnyAsync()), "the outbox was not drained");
         _factory.EmailSender.To(unknown).Should().BeEmpty();
     }
 
@@ -143,7 +144,7 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         var email = NewEmail();
         var (_, user) = await RegisterAndLoginAsync(email);
         await _factory.CreateClientWithAddress().PostAsync("account/password/forgot", new { email });
-        var token = _factory.EmailSender.LastToken(email, AppOptions.ResetPasswordPath);
+        var token = await _factory.EmailSender.LastTokenAsync(email, AppOptions.ResetPasswordPath);
         const string newPassword = "N3w!reset";
 
         // Act
@@ -168,7 +169,7 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         var email = NewEmail();
         await RegisterAndLoginAsync(email);
         await _factory.CreateClientWithAddress().PostAsync("account/password/forgot", new { email });
-        var token = _factory.EmailSender.LastToken(email, AppOptions.ResetPasswordPath);
+        var token = await _factory.EmailSender.LastTokenAsync(email, AppOptions.ResetPasswordPath);
 
         var (weak, _) = await _factory.CreateClientWithAddress().PostAsync("account/password/reset", new { token, newPassword = "weak" });
         var (strong, _) = await _factory.CreateClientWithAddress().PostAsync("account/password/reset", new { token, newPassword = "Str0ng!pass" });
@@ -201,7 +202,7 @@ public class AccountRegistrationTests(StoreasyApiFactory factory) : IntegrationT
         var (_, invitation) = await owner.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId = organizationId.Data, email = invitee, role = OrgRole.Editor });
 
         // Assert
-        var mail = _factory.EmailSender.To(invitee).Should().ContainSingle().Subject;
+        var mail = (await _factory.EmailSender.WaitForAsync(invitee)).Should().ContainSingle().Subject;
 
         _factory.EmailSender.LastToken(invitee, AppOptions.InvitationPath).Should().Be(invitation.Data.Token);
         mail.HtmlBody.Should().Contain(invitation.Data.Token);

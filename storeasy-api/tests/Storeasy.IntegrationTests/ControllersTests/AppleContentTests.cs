@@ -194,6 +194,24 @@ public class AppleContentTests(StoreasyApiFactory factory) : ContentTestBase(fac
         var versionId = Apple.AddApp(appleId);
         var (record, _) = await NewAppAsync(org, appleId);
         var editor = await MemberAsync(org, OrgRole.Editor);
+        var rejection = new Domain.Feedback.RejectionCase
+        {
+            OrganizationId = org.OrganizationId,
+            AppId = record.AppId,
+            StoreAppId = record.StoreAppId,
+            Store = StoreKind.Apple,
+            ExternalVersionId = versionId,
+            VersionString = "1.0",
+            Kind = RejectionKind.Rejected,
+            OpenedVia = RejectionSource.Webhook,
+            OpenedDate = DateTime.UtcNow.AddDays(-1),
+        };
+
+        await _factory.DbAsync(async db =>
+        {
+            db.RejectionCases.Add(rejection);
+            await db.SaveChangesAsync();
+        });
 
         var (editorHttp, _) = await editor.Client.PostAsync<ChangePlanDto>("releases/submit-for-review", new { organizationId = org.OrganizationId, storeAppId = record.StoreAppId, confirm = "Pusula 1.0" });
         var (wrongHttp, wrong) = await org.Owner.Client.PostAsync<ChangePlanDto>("releases/submit-for-review", new { organizationId = org.OrganizationId, storeAppId = record.StoreAppId, confirm = "Pusula 2.0" });
@@ -209,6 +227,11 @@ public class AppleContentTests(StoreasyApiFactory factory) : ContentTestBase(fac
         submitted.Data.RequiredPermission.Should().Be(OrgPermission.SubmitForReview);
         job.Status.Should().Be(StoreJobStatus.Succeeded);
         Apple.Versions[versionId]["appVersionState"].GetValue<string>().Should().Be("WAITING_FOR_REVIEW");
+
+        var closed = await _factory.DbAsync(db => db.RejectionCases.AsNoTracking().SingleAsync(c => c.Id == rejection.Id));
+
+        closed.State.Should().Be(RejectionState.Closed, "submitting again answers the rejection");
+        closed.ClosedVia.Should().Be(RejectionCloseReason.Submission);
     }
 
     [Fact]
