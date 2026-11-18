@@ -31,6 +31,7 @@ using Storeasy.Infrastructure.Services;
 using Storeasy.Infrastructure.Storage;
 using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
+using Storeasy.Infrastructure.Studio;
 using Npgsql;
 
 namespace Storeasy.Infrastructure;
@@ -81,6 +82,9 @@ public static class InfraServiceCollectionExtensions
 
         services.AddSingleton(storageOptions);
         services.AddSingleton<IFileStorage>(new S3FileStorage(S3FileStorage.CreateClient(storageOptions), storageOptions));
+
+        // Mockup studio (phase 6): renderer, fonts, screenshot sizes, export job.
+        services.AddStudioServices(configurationManager);
 
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
