@@ -24,6 +24,9 @@ public sealed partial class StoreGateway
     /// <inheritdoc/>
     public async Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken)
     {
+        if (store == StoreKind.Microsoft && _microsoftStore != null)
+            return [.. (await _microsoftStore.ListApplicationsAsync(secretJson, cancellationToken)).Select(a => new StoreAppRecord(a.Id, a.PackageFamilyName, a.PrimaryName))];
+
         if (store != StoreKind.Apple)
             throw new StoreCallException(store == StoreKind.Google ? "Google Play has no API that lists apps; add the app by its package name." : NotSupportedMessage(store), null, false);
 
@@ -65,6 +68,12 @@ public sealed partial class StoreGateway
 
                     return new StoreAppRecord(externalId, externalId, ReadString(listing.RootElement, "title") ?? externalId);
                 }, cancellationToken);
+            case StoreKind.Microsoft when _microsoftStore != null:
+            {
+                var app = await _microsoftStore.GetApplicationAsync(secretJson, externalId, cancellationToken);
+
+                return new StoreAppRecord(app.Id, app.PackageFamilyName, app.PrimaryName);
+            }
             default:
                 throw new StoreCallException(NotSupportedMessage(store), null, false);
         }
@@ -85,6 +94,12 @@ public sealed partial class StoreGateway
 
                     return ParseGoogleBuilds(bundles.RootElement, tracks.RootElement);
                 }, cancellationToken);
+            case StoreKind.Microsoft when _microsoftStore != null:
+            {
+                var app = await _microsoftStore.GetApplicationAsync(secretJson, externalId, cancellationToken);
+
+                return (await Microsoft.MsSyncReader.ReadAppAsync(_microsoftStore, secretJson, app, cancellationToken)).Builds;
+            }
             default:
                 throw new StoreCallException(NotSupportedMessage(store), null, false);
         }
