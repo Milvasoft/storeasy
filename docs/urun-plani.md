@@ -229,7 +229,7 @@ onayıyla.
 | Domain | Buğra kararı: `storeasy.milvasoft.com`, test `t-storeasy.milvasoft.com`. API aynı host'ta `/api`, SignalR `/hubs`, MCP `/mcp` (web konteynerindeki nginx API'ye yönlendirir). Gerekçe: Cloudflare'in ücretsiz sertifikası iki seviyeli alt alanı (`api.storeasy.milvasoft.com`) kapsamaz; tek origin CORS ve cookie sorununu da kaldırır. 07'deki `api.`/`app.` düzeninden sapma |
 | PostgreSQL | Paylaşılan instance, kendi rolü ve `StoreasyDb` (prod'da `TEMPLATE template0`) |
 | Redis | Paylaşılan instance, anahtar öneki `storeasy:` |
-| Depolama | Onaylandı: `storeasy-s3-{test,prod}-bucket`, eu-central-1, herkese kapalı, CloudFront yok; okuma ve yazma presigned URL ile. Ayarlar `Storage__S3__Bucket`, `Region`, `AccessKey`, `SecretKey`, isteğe bağlı `ServiceUrl` (MinIO, ForcePathStyle). Kurulum betiği `serverstuff/docs/storeasy-s3-kurulum.sh`, henüz çalıştırılmadı |
+| Depolama | Onaylandı: `storeasy-s3-{test,prod}-bucket`, eu-central-1, herkese kapalı, CloudFront yok; okuma ve yazma presigned URL ile. Ayarlar `Storage__S3__Bucket`, `Region`, `AccessKey`, `SecretKey`, isteğe bağlı `ServiceUrl` (MinIO, ForcePathStyle). Bucket'lar kuruldu (SSE-S3, CORS doğrulandı); erişim anahtarları deploy zamanı |
 | Mail | Notifike (Milvasoft barındırması), yanında SMTP uygulaması (self-host) |
 | CI/CD | GitHub Actions: test ve PR kontrolleri. Azure DevOps: yalnız imaj derleme ve Dokploy deploy'u. Dallar `master`, `test`, `dev` |
 | Sırlar | Azure DevOps variable group (`storeasy-test`, `storeasy-prod`); ana anahtar sürümlü (K6 zaten öyle), yedeği ayrı saklanır |
