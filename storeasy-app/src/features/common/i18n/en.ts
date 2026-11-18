@@ -7,6 +7,7 @@ export const p2en = {
     listing: 'Store listing',
     media: 'Media',
     release: 'Release',
+    money: 'Money',
     reviews: 'Reviews',
     rejections: 'Rejections',
     answers: 'Saved answers',
@@ -32,6 +33,9 @@ export const p2en = {
     testers: 'Testers',
     testflight: 'TestFlight',
     reviewInfo: 'Review information',
+    subscriptions: 'Subscriptions',
+    iap: 'In-App Purchases',
+    purchaseSettings: 'Purchase settings',
   },
   plan: {
     title: 'Change plan',
@@ -581,6 +585,9 @@ export const p2en = {
       dataSafety: 'Data safety',
       submitForReview: 'Submit for review',
       msChange: 'Microsoft Store change',
+      monetization: 'Subscriptions and products',
+      serverNotifications: 'Server notifications',
+      sandboxTesters: 'Sandbox testers',
     },
     assistedStatus: { todo: 'To do', inProgress: 'In progress', handedOff: 'Handed off', done: 'Done', skipped: 'Not needed' },
     permission: {
