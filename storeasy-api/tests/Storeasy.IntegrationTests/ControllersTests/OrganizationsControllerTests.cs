@@ -205,6 +205,87 @@ public class OrganizationsControllerTests(StoreasyApiFactory factory) : Integrat
     }
 
     [Fact]
+    public async Task RoleChanges_ShouldNotEscalatePrivileges()
+    {
+        // Arrange
+        var owner = await NewMemberAsync();
+        var admin = await NewMemberAsync();
+        var editor = await NewMemberAsync();
+        var viewer = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+
+        var adminMemberId = await AddMemberAsync(owner.User, organizationId, admin, OrgRole.Admin);
+        await AddMemberAsync(owner.User, organizationId, editor, OrgRole.Editor);
+        var viewerMemberId = await AddMemberAsync(owner.User, organizationId, viewer, OrgRole.Viewer);
+
+        // Act
+        var (adminSelfPromote, _) = await admin.User.Client.PutAsync<int>("organizations/member/role", new { organizationId, memberId = adminMemberId, role = OrgRole.Owner });
+        var (adminInvitesOwner, _) = await admin.User.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId, email = $"o{TestApi.Unique()}@example.com", role = OrgRole.Owner });
+        var (editorPromotes, _) = await editor.User.Client.PutAsync<int>("organizations/member/role", new { organizationId, memberId = viewerMemberId, role = OrgRole.Admin });
+        var (editorInvites, _) = await editor.User.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId, email = $"e{TestApi.Unique()}@example.com", role = OrgRole.Viewer });
+        var (_, mine) = await admin.User.Client.GetAsync<List<MyOrganizationDto>>("organizations/mine");
+
+        // Assert
+        adminSelfPromote.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        adminInvitesOwner.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Forbidden);
+        editorPromotes.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        editorInvites.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        mine.Data.Single(o => o.Id == organizationId).Role.Should().Be(OrgRole.Admin);
+    }
+
+    [Fact]
+    public async Task ConnectionList_ShouldShowFingerprintsOnlyToConnectionManagers()
+    {
+        // Arrange
+        var owner = await NewMemberAsync();
+        var viewer = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+
+        await AddMemberAsync(owner.User, organizationId, viewer, OrgRole.Viewer);
+        await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Apple, name = "Team key", secret = AppleSecret() });
+
+        // Act
+        var (_, ownerList) = await owner.User.Client.GetAsync<List<StoreConnectionDto>>($"storeconnections?organizationId={organizationId}");
+        var (viewerHttp, viewerList) = await viewer.User.Client.GetAsync<List<StoreConnectionDto>>($"storeconnections?organizationId={organizationId}");
+
+        // Assert
+        ownerList.Data.Should().ContainSingle().Which.Fingerprint.KeyId.Should().Be("ABC123DEFG");
+        viewerHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var shown = viewerList.Data.Should().ContainSingle().Subject;
+        shown.Name.Should().Be("Team key");
+        shown.Fingerprint.Should().BeNull();
+        shown.LastVerifyError.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdateOrganization_ShouldChangeTheSlugUniquelyAndOnlyForOwners()
+    {
+        // Arrange
+        var owner = await NewMemberAsync();
+        var admin = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+        var otherName = $"Taken {TestApi.Unique()}";
+        await CreateOrganizationAsync(owner.User, otherName);
+        await AddMemberAsync(owner.User, organizationId, admin, OrgRole.Admin);
+        var newSlug = $"New Slug {TestApi.Unique()}";
+
+        // Act
+        var (changed, _) = await owner.User.Client.PutAsync<int>("organizations/organization", new { organizationId, name = "Renamed", slug = newSlug });
+        var (taken, _) = await owner.User.Client.PutAsync<int>("organizations/organization", new { organizationId, name = "Renamed", slug = otherName });
+        var (invalid, _) = await owner.User.Client.PutAsync<int>("organizations/organization", new { organizationId, name = "Renamed", slug = "a" });
+        var (byAdmin, _) = await admin.User.Client.PutAsync<int>("organizations/organization", new { organizationId, name = "Admin rename", slug = $"adm-{TestApi.Unique()}" });
+        var row = await _factory.DbAsync(db => db.Organizations.AsNoTracking().SingleAsync(o => o.Id == organizationId));
+
+        // Assert
+        changed.StatusCode.Should().Be(HttpStatusCode.OK);
+        taken.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        byAdmin.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        row.Name.Should().Be("Renamed");
+        row.Slug.Should().Be(Storeasy.Domain.Organizations.OrgRoleRules.ToSlug(newSlug));
+    }
+
+    [Fact]
     public async Task LastOwner_ShouldNotLeaveOrBeDemoted()
     {
         // Arrange

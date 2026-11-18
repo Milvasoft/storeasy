@@ -77,7 +77,6 @@ public record VerifyStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreC
             ConnectionId = connection.Id,
             Store = connection.Store,
             ConnectionStatus = result.Status,
-            Message = error,
             Date = now,
         }, cancellationToken);
 
