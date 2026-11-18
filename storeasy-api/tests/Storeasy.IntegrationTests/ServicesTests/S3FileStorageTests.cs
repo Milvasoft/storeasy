@@ -26,7 +26,7 @@ public sealed class S3FileStorageTests : IAsyncLifetime
     private const string _password = "storeasy-tests-password";
     private const ushort _port = 9000;
 
-    private readonly IContainer _minio = new ContainerBuilder().WithImage("pgsty/minio:RELEASE.2026-08-04T00-00-00Z")
+    private readonly IContainer _minio = new ContainerBuilder("pgsty/minio:RELEASE.2026-08-04T00-00-00Z")
                                                                .WithEnvironment("MINIO_ROOT_USER", _user)
                                                                .WithEnvironment("MINIO_ROOT_PASSWORD", _password)
                                                                .WithCommand("server", "/data")
