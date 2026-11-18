@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// What an export of a template would produce: the screenshot classes of the app's stores from the rules catalog with

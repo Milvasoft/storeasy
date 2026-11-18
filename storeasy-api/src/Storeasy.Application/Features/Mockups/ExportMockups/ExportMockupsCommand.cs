@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Command;
+using Milvasoft.Components.CQRS.Command;
 using Storeasy.Application.Dtos.StoreJobDtos;
 
 namespace Storeasy.Application.Features.Mockups.ExportMockups;

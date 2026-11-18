@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Storeasy.Domain.Studio;
 
 namespace Storeasy.UnitTests.StudioTests;

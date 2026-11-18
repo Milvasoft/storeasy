@@ -1,4 +1,4 @@
-﻿using SkiaSharp;
+using SkiaSharp;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.JsonModels;

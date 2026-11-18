@@ -1,4 +1,4 @@
-﻿using SkiaSharp;
+using SkiaSharp;
 using Storeasy.Domain.Studio;
 using System.Collections.Concurrent;
 using System.Globalization;

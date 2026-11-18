@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Domain.JsonModels;
+namespace Storeasy.Domain.JsonModels;
 
 /// <summary>
 /// The design of a mockup template, stored as jsonb and versioned by <see cref="SchemaVersion"/>. It is the single source

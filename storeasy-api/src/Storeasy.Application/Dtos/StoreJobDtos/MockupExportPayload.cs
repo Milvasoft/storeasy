@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.StoreJobDtos;
+namespace Storeasy.Application.Dtos.StoreJobDtos;
 
 /// <summary>
 /// Payload of a <see cref="StoreJobKind.MockupExport"/> job: the template, its version at the time of the request, and

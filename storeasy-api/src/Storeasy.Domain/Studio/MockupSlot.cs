@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.EntityBases.Concrete;
 using Storeasy.Domain.Enums;
 using System.ComponentModel.DataAnnotations;

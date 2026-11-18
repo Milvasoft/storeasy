@@ -1,4 +1,4 @@
-﻿using Storeasy.Domain.JsonModels;
+using Storeasy.Domain.JsonModels;
 using System.Globalization;
 using System.Text.RegularExpressions;
 

@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Interfaces;
+namespace Storeasy.Application.Interfaces;
 
 /// <summary>
 /// Reads the raw screenshots and background images of mockup templates with a bounded in-memory cache. Object keys are

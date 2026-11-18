@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Interfaces;
+namespace Storeasy.Application.Interfaces;
 
 /// <summary>
 /// Suggests captions of a mockup template in another locale (studio caption suggestions, docs 12.8). Behind a kill switch:

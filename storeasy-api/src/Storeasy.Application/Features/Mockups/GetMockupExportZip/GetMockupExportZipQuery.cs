@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 using Storeasy.Application.Dtos.AssetDtos;
 
 namespace Storeasy.Application.Features.Mockups.GetMockupExportZip;

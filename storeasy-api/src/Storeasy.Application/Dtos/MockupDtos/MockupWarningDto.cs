@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// A render warning or failure, or a caption that overflows. Codes are listed in storeasy-api/docs/studio.md.

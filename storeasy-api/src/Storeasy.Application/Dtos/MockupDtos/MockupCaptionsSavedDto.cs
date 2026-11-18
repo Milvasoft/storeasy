@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// Outcome of a caption save: the cells written and the captions that overflow in the narrowest exported class.

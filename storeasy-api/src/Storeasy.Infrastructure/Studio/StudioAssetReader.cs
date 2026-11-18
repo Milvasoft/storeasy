@@ -1,4 +1,4 @@
-﻿using Storeasy.Application.Interfaces;
+using Storeasy.Application.Interfaces;
 
 namespace Storeasy.Infrastructure.Studio;
 

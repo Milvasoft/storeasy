@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// A built in starter design.

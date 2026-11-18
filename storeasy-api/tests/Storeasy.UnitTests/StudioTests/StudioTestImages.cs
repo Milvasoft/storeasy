@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using SkiaSharp;
 using Storeasy.Infrastructure.Studio;
 using Storeasy.Infrastructure.Studio.Rendering;

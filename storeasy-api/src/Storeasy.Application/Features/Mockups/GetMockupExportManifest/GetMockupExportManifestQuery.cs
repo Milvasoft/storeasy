@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 
 namespace Storeasy.Application.Features.Mockups.GetMockupExportManifest;
 

@@ -1,4 +1,4 @@
-﻿using Storeasy.Domain.Enums;
+using Storeasy.Domain.Enums;
 
 namespace Storeasy.Domain.Studio;
 

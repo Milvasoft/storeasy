@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Command;
+using Milvasoft.Components.CQRS.Command;
 
 namespace Storeasy.Application.Features.Mockups.CreateMockupTemplate;
 

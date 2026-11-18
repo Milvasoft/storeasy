@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 using Milvasoft.Components.Rest.Request;
 using Storeasy.Application.Dtos.MockupDtos;
 

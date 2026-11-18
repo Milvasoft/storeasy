@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.EntityBases.Concrete.Auditing;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.JsonModels;

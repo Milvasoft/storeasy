@@ -1,4 +1,4 @@
-﻿using SkiaSharp;
+using SkiaSharp;
 using SkiaSharp.HarfBuzz;
 using Storeasy.Domain.Studio;
 using System.Text;

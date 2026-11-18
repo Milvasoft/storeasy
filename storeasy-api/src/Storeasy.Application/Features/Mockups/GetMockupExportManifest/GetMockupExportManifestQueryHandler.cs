@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
 using Storeasy.Domain.Stores;

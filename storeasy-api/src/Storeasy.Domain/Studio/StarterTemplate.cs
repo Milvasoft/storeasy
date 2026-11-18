@@ -1,4 +1,4 @@
-﻿using Storeasy.Domain.JsonModels;
+using Storeasy.Domain.JsonModels;
 
 namespace Storeasy.Domain.Studio;
 

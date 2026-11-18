@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 using Storeasy.Application.Dtos.MockupDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 

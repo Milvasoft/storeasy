@@ -1,4 +1,4 @@
-﻿using Storeasy.Application.Interfaces;
+using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Rules;
 using Storeasy.Domain.Studio;
 using System.Globalization;

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SkiaSharp;
 using Storeasy.Application.Dtos.AssetDtos;

@@ -1,4 +1,4 @@
-﻿using Storeasy.Application.Utils.Models;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Stores;

@@ -1,4 +1,4 @@
-﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.CQRS.Query;
 using Storeasy.Application.Dtos.MockupDtos;
 
 namespace Storeasy.Application.Features.Mockups.GetMockupTemplateDetail;

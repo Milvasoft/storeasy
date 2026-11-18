@@ -1,4 +1,4 @@
-﻿using Milvasoft.Attributes.Annotations;
+using Milvasoft.Attributes.Annotations;
 using Storeasy.Domain.Studio;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;

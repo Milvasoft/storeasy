@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// The raw screenshot of one slot for one device family (and optionally one locale).

@@ -1,4 +1,4 @@
-﻿using Storeasy.Application.Interfaces;
+using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Studio;
 using System.Text.Json;
 

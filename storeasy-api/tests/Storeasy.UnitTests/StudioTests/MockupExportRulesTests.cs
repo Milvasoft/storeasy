@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Enums;

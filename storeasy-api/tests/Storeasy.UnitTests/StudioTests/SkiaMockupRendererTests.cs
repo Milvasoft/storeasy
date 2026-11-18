@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using SkiaSharp;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Enums;

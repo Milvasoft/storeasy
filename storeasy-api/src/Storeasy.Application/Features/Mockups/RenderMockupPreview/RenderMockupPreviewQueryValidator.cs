@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Milvasoft.Core.Abstractions.Localization;
 using Storeasy.Application.Behaviours;
 using Storeasy.Domain.Studio;

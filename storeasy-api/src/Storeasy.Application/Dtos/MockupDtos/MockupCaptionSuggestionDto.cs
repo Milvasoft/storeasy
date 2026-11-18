@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Dtos.MockupDtos;
+namespace Storeasy.Application.Dtos.MockupDtos;
 
 /// <summary>
 /// Suggested captions for one locale. Nothing is saved: the client puts accepted suggestions into the grid as unsaved

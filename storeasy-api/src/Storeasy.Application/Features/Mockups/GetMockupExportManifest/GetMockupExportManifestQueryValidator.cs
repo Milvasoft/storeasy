@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Milvasoft.Core.Abstractions.Localization;
 
 namespace Storeasy.Application.Features.Mockups.GetMockupExportManifest;

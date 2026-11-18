@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Storeasy.Application.Features.Mockups.GetMockupFrames;
 

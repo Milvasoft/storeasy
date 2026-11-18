@@ -1,4 +1,4 @@
-﻿using Storeasy.Application.Dtos.MockupDtos;
+using Storeasy.Application.Dtos.MockupDtos;
 using Storeasy.Domain.Studio;
 
 namespace Storeasy.Application.Utils.Helpers;

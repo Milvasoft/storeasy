@@ -1,4 +1,4 @@
-﻿using Storeasy.Domain.Studio;
+using Storeasy.Domain.Studio;
 
 namespace Storeasy.Application.Utils.Models;
 

@@ -1,4 +1,4 @@
-﻿namespace Storeasy.Application.Utils.Models;
+namespace Storeasy.Application.Utils.Models;
 
 /// <summary>
 /// Mockup studio settings (configuration section <see cref="SectionName"/>), bound once and registered as a singleton.
