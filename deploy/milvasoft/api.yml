@@ -1,0 +1,25 @@
+# Milvasoft hosting (storeasy.milvasoft.com), Dokploy GitHub autodeploy: Dokploy builds this on the server on every
+# master push. Self-hosters use deploy/docker-compose.yml instead. Settings come from the .env Dokploy writes.
+# DataProtection keeps its keys in the default location of the image's `app` user, so they survive redeploys.
+services:
+  storeasy-api:
+    container_name: storeasy-api
+    build:
+      context: ../..
+      dockerfile: storeasy-api/Dockerfile
+      args:
+        STOREASY_COMMIT: ${STOREASY_COMMIT:-}
+    image: storeasy-api:milvasoft
+    restart: unless-stopped
+    env_file: [.env]
+    volumes:
+      - storeasy-dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
+    networks: [container-network]
+
+volumes:
+  storeasy-dataprotection-keys:
+    external: true
+
+networks:
+  container-network:
+    external: true

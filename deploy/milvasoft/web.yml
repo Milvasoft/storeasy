@@ -1,0 +1,19 @@
+# Milvasoft hosting (storeasy.milvasoft.com), Dokploy GitHub autodeploy: the web app (nginx) behind Traefik; it proxies
+# /api, /hubs, /mcp, /webhooks and /health to storeasy-api. Self-hosters use deploy/docker-compose.yml instead.
+services:
+  storeasy-web:
+    container_name: storeasy-web
+    build:
+      context: ../../storeasy-app
+      args:
+        VITE_SOURCE_URL: https://github.com/Milvasoft/storeasy
+        VITE_APP_VERSION: ${STOREASY_COMMIT:-}
+    image: storeasy-web:milvasoft
+    restart: unless-stopped
+    environment:
+      STOREASY_API_UPSTREAM: http://storeasy-api:8080
+    networks: [container-network]
+
+networks:
+  container-network:
+    external: true
