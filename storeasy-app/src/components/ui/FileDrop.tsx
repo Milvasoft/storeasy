@@ -53,7 +53,7 @@ export function FileDrop({
   return (
     <div
       className={cn(
-        'flex flex-col items-center gap-2 rounded-md border-[1.5px] border-dashed border-borderStrong px-4 py-6 text-center text-[13px] text-fg2 transition-colors duration-1',
+        'flex flex-col items-center gap-2 rounded-md border-[1.5px] border-dashed border-borderControl px-4 py-6 text-center text-[13px] text-fg2 transition-colors duration-1',
         dragging && 'border-fg bg-bg2',
       )}
       onDragOver={(event) => {
