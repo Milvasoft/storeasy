@@ -35,6 +35,18 @@ public enum AuditAction : short
     [Description("Member removed")]
     MemberRemoved = 14,
 
+    /// <summary>Custom role created.</summary>
+    [Description("Custom role created")]
+    OrganizationRoleCreated = 15,
+
+    /// <summary>Custom role renamed or its permissions changed.</summary>
+    [Description("Custom role updated")]
+    OrganizationRoleUpdated = 16,
+
+    /// <summary>Custom role deleted.</summary>
+    [Description("Custom role deleted")]
+    OrganizationRoleDeleted = 17,
+
     /// <summary>Store connection added.</summary>
     [Description("Store connection added")]
     ConnectionAdded = 20,

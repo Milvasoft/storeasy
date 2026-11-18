@@ -3,8 +3,9 @@
 namespace Storeasy.Domain.Enums;
 
 /// <summary>
-/// Role of a user inside one organization. Lower value = more rights. What each role may do is decided in one place:
-/// <see cref="Organizations.OrgRoleRules"/>.
+/// Role of a user inside one organization. The four seeded roles are locked (lower value = more rights); a member may
+/// instead hold a <see cref="Custom"/> role, an <see cref="Organizations.OrganizationRole"/> the organization defined. What
+/// each role may do is decided in one place: <see cref="Organizations.OrgRoleRules"/>.
 /// </summary>
 public enum OrgRole : byte
 {
@@ -31,4 +32,11 @@ public enum OrgRole : byte
     /// </summary>
     [Description("Viewer")]
     Viewer = 4,
+
+    /// <summary>
+    /// A role the organization defined (<see cref="Organizations.OrganizationRole"/>): its own permission set, never more
+    /// than the member who assigns it holds and never the owner only permissions.
+    /// </summary>
+    [Description("Custom role")]
+    Custom = 5,
 }

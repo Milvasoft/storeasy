@@ -43,6 +43,11 @@ public class OrganizationInvitation : CreationAuditableEntity<int>
     public OrgRole Role { get; set; }
 
     /// <summary>
+    /// The organization's own role when <see cref="Role"/> is <see cref="OrgRole.Custom"/>; null otherwise.
+    /// </summary>
+    public int? CustomRoleId { get; set; }
+
+    /// <summary>
     /// Hex SHA-256 hash of the invitation token.
     /// </summary>
     [MaxLength(64)]
@@ -66,10 +71,21 @@ public class OrganizationInvitation : CreationAuditableEntity<int>
     /// <summary>
     /// Id of the user who sent the invitation.
     /// </summary>
+    [ForeignKey(nameof(Inviter))]
     public int InviterUserId { get; set; }
 
     /// <summary>
     /// Navigation property of the organization.
     /// </summary>
     public virtual Organization Organization { get; set; }
+
+    /// <summary>
+    /// Navigation property of the custom role.
+    /// </summary>
+    public virtual OrganizationRole CustomRole { get; set; }
+
+    /// <summary>
+    /// Navigation property of the user who sent the invitation.
+    /// </summary>
+    public virtual User Inviter { get; set; }
 }

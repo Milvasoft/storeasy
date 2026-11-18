@@ -41,4 +41,11 @@ public static class FeatureFlagKeys
 
     /// <summary>All known keys, in display order.</summary>
     public static readonly string[] All = [Export, StudioAiCaptions];
+
+    /// <summary>
+    /// Localization key of the description of <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static string DescriptionKey(string key) => $"FeatureFlagDescription.{key}";
 }

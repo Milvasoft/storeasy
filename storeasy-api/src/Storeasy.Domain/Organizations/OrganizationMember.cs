@@ -6,7 +6,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Storeasy.Domain.Organizations;
 
 /// <summary>
-/// Membership of a user in an organization with one <see cref="OrgRole"/>. A user has at most one row per organization.
+/// Membership of a user in an organization with one <see cref="OrgRole"/> (a seeded role, or <see cref="OrgRole.Custom"/>
+/// with <see cref="CustomRoleId"/>). A user has at most one row per organization.
 /// </summary>
 [Table(TableNames.OrganizationMembers)]
 [Index(nameof(OrganizationId), nameof(UserId), IsUnique = true)]
@@ -27,6 +28,16 @@ public class OrganizationMember : CreationAuditableEntity<int>
     /// Role of the user in this organization.
     /// </summary>
     public OrgRole Role { get; set; }
+
+    /// <summary>
+    /// The organization's own role when <see cref="Role"/> is <see cref="OrgRole.Custom"/>; null otherwise.
+    /// </summary>
+    public int? CustomRoleId { get; set; }
+
+    /// <summary>
+    /// Navigation property of the custom role.
+    /// </summary>
+    public virtual OrganizationRole CustomRole { get; set; }
 
     /// <summary>
     /// Navigation property of the organization.

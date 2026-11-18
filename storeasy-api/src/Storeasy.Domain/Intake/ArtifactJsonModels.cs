@@ -72,6 +72,12 @@ public sealed class ArtifactDeliveryOverride
     /// Release notes or "What to Test" text.
     /// </summary>
     public string Notes { get; set; }
+
+    /// <summary>
+    /// Read and check the package, then hold it until a member confirms the delivery (<c>artifacts/session/deliver</c>);
+    /// the web app's manual upload sets it so the checks are shown before anything reaches a store.
+    /// </summary>
+    public bool HoldForConfirmation { get; set; }
 }
 
 /// <summary>
