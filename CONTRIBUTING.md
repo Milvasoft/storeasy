@@ -79,5 +79,7 @@ stores, mail and storage are faked.
 - Plain commits, no sign-off line required. Write the subject in the imperative, about what changed and why
   ("Refuse production tracks in the delivery override"), not "fix" or "update".
 - Keep a pull request to one topic. Fill in the template: what changed, how it was tested, screenshots for UI.
-- Update the docs and the `README` of the package when behaviour or configuration changes.
+- Update the docs and the `README` of the package when behaviour or configuration changes: a new configuration key
+  goes into the reference of [docs/self-host.md](docs/self-host.md) (and `deploy/.env.example` when self-hosters set
+  it), a new endpoint area into [docs/api.md](docs/api.md), a new MCP tool into [docs/mcp.md](docs/mcp.md).
 - CI must be green before review.

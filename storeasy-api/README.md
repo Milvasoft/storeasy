@@ -214,7 +214,7 @@ Files live in a private bucket and move only through presigned URLs (`IFileStora
 
 ### Apps and builds
 
-A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, later the Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store answers "not supported yet". `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
+A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store MSIX apps are listed by the sync; MSI/EXE products are added by Store id (`POST ms/product`). `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
 
 ### Store content, change plans and readiness
 
@@ -226,7 +226,7 @@ Areas: listing texts (`listings`, catalog limits, App Store keywords counted in 
 
 - **Inbound webhooks**: `/api/webhooks/apple/{publicId}` (App Store Connect, `x-apple-signature: hmacsha256=<hex>`) and `/api/webhooks/signed/{publicId}` (any sender: `X-Storeasy-Signature: sha256=<hex>` over `{timestamp}.{body}`, `X-Storeasy-Timestamp`, `X-Storeasy-Event-Id`). Anonymous, rate limited, 256 KB body limit; an event id is accepted once per endpoint. Endpoints are managed under `webhooks` (owners and admins); an App Store Connect endpoint is registered at Apple by a `RegisterWebhooks` job (one webhook per app). `Storeasy:Webhooks`: `PublicBaseUrl` (defaults to `Storeasy:App:BaseUrl`), `SecretGraceHours` (24), `MaxEventAgeHours` (168), `SignedToleranceSeconds` (300).
 - **Outgoing webhooks**: `webhooks/subscription(s)`, `webhooks/deliveries`; HTTPS only, public addresses only (checked on save and again at connection time), signed like the signed receiver, retried with backoff. `Storeasy:OrgWebhooks`: `Enabled`, `PollIntervalMilliseconds`, `MaxAttempts` (6), `RetryBaseDelaySeconds` (30), `TimeoutSeconds` (10), `AllowHttp` (false), `MaxSubscriptions` (20).
-- **Notifications**: in-app (`account/notifications`, now with `organizationId`), e-mail, live `notification.created` on the user's own hub group; per kind preferences at `account/preferences` (security and connection alerts cannot be turned off; web push is stored for phase 8).
+- **Notifications**: in-app (`account/notifications`, now with `organizationId`), e-mail, live `notification.created` on the user's own hub group; per kind preferences at `account/preferences` (security and connection alerts cannot be turned off); web push is the third channel (phase 8).
 - **Rejections, reviews, TestFlight**: `rejections/*`, `reviews/*`, `testflight/*`; store writes are store jobs.
 - **Schedules** (`Storeasy:Events:SchedulesEnabled`, UTC): version state sync every 15 minutes, reviews every 30 minutes, TestFlight every 6 hours, deadline reminders daily 08:00 (TestFlight expiry 14/7/1 days, compliance 30/7/1 days), rule watcher daily 06:00.
 - **Rule watcher**: `rules/sources`, `rules/proposals` (platform admins, `RuleCatalogManagement`). `Storeasy:RuleWatcher`: `Enabled`, `MaxBytes`, `AllowedHosts` (official domains only), `Sources`.
@@ -239,10 +239,33 @@ The HTTP contract of the client tools (CLI, `storeasy-mcp` bridge, GitHub Action
 - Remote MCP at `/mcp` (Streamable HTTP, stateless, `ModelContextProtocol.AspNetCore`), personal access tokens only. Every tool sends the same MediatR request as the REST endpoint, so organization authorization, validation and the audit trail (channel MCP) are the same. Store writes are plans (`*_plan` tools always make a dry run); `plans_approve`, `submit_for_review`, `ms_submit`, `subscriptions_apply` and `iap_apply` need `confirm: true` plus the typed confirmation where the web needs one. File arguments are asset ids marked with `x-storeasy-upload`. The catalog is `Storeasy.Api/Mcp/McpToolCatalog.cs`.
 - Package intake (`apps/{appId}/artifacts`, `artifacts/*`, `oidc/exchange`): CI tokens (`sci_`, app and scope limited), trusted publishers (GitHub, Azure DevOps, GitLab OIDC; keys from the issuer's JWKS, allow-listed issuers only) exchanged for 15 minute upload tokens (`sut_`), presigned multipart sessions with resume and SHA-256 dedupe, and a `ProcessArtifact` store job that verifies the hash, reads the package (IPA Info.plist binary or XML, AAB protocol buffer manifest, APK binary XML, MSIX manifests), runs the catalog checks and delivers by the app's delivery rule: Play testing track (edit, bundle upload, release), TestFlight internal group (App Store Connect `buildUploads`, processing, export compliance, group through the TestFlight gateway) or a Microsoft package flight draft (phase 5 change applier). Production and review submission are never automatic; anything else unclear is `Held`. Pull sources: `/api/webhooks/eas/{id}` (expo-signature, HMAC-SHA1) and `/api/webhooks/artifacts/{id}` (HMAC-SHA256 with timestamp), downloads https only from the source's allowed domains with internal addresses refused at connect time. `IntakeCleanupJob` deletes packages past the organization's retention (default 30 days), abandoned uploads, pending assets and expired upload tokens. `Storeasy:Intake:AppleUploadMode` = `External` switches Apple delivery to the documented fallback (the CI uploads, storeasy waits for the build).
 
+### Microsoft Store (phase 5)
+
+`ms/*` (`MsController`): an Entra connection (`{"tenantId","clientId","clientSecret","sellerId"}` plus the secret's expiry date, at most 24 months away) opens two APIs, the MSIX submission API and the MSI/EXE API (`Storeasy:MicrosoftStore`). MSIX apps arrive with the sync, MSI/EXE products by Store id. Reads of storeasy's rows never call Microsoft; `ms/content` and `ms/change` read the store in the request. Every write (listings, images, packages of the app or a flight, pricing, installers, rollout, new flights and add-ons) is a plan applied into storeasy's own draft submission, whose content fingerprint detects a draft edited in Partner Center; `ms/submission/submit` sends it to certification (`SubmitForReview`, Store id typed). Items the API cannot change (first submission, store-managed consumables, mandatory updates, Pricing Version 2, a draft changed in Partner Center) become assisted steps. Installer packages get an Authenticode check (`ms/packages/verify`, downloads guarded against private addresses). `PUT ms/connection/secret` replaces the client secret after verifying it; expiry reminders run 30, 7 and 1 days before.
+
+### Studio (phase 6)
+
+`mockups/*`: templates per app (JSON spec), storeasy's own device frames, embedded open licensed fonts (`StudioFonts`), captions per locale, server side previews and exports rendered with SkiaSharp (`Storeasy:Studio`). An export is a store job whose manifest (asset ids by store, class and locale) feeds the screenshot plans. Caption suggestions sit behind the `Studio.AiCaptions` flag and a translator; none ships (`NoOpTitleTranslator`), so they answer 503.
+
+### Money (phase 7)
+
+`subscriptions/*`, `iap/*`, `purchasesettings/*`: App Store subscription groups, subscriptions, prices per territory (with conversion through the store's equalization), introductory, promotional and win-back offers, in-app purchases, server notification URLs and sandbox testers; Play subscriptions, base plans, offers and one-time products. Reads show the last `SyncStoreProducts` job; every write is a change plan.
+
+### Release work (phase 8)
+
+- **Custom roles** (`organizations/roles`, `role`): sets of organization permissions, never more than the assigner holds and never `ManageOrganization` (`OrgRoleRules`).
+- **Google sign in** (`account/login/google/start`, `account/login/google`, `Storeasy:Auth:Google`): authorization code with PKCE, state in Redis, linking by verified address only.
+- **Web push** (`account/push/*`, `Storeasy:WebPush`): VAPID and RFC 8291 encryption in `Notifications/WebPush`, no third party library.
+- **E-mail outbox** (`EmailOutbox`, `Storeasy:Email:Outbox`): e-mails are queued sealed and sent by a background sender.
+- **Sessions** (`account/sessions`, `account/session`, `account/sessions/others`) and a token revocation list.
+- **Instance settings and status** (`system/*`): public settings, feature flag states, the registration mode saved in `SystemSettings` (wins over `Storeasy:Registration:Mode`), and a status page of the build (`Storeasy:Build:Commit`), dependencies and queues.
+
+Every configuration key with its default is listed in [docs/self-host.md](../docs/self-host.md#6-configuration-reference); the REST areas and their permissions in [docs/api.md](../docs/api.md).
+
 ### Health checks
 
-- `GET /api/v1.0/healthcheck`: liveness, touches nothing.
-- `GET /api/v1.0/healthcheck/ready`: readiness, 200 when the database and Redis answer, 503 otherwise, with the state of each check.
+- `GET /api/v1.0/healthcheck` (also `/health/live`): liveness, touches nothing.
+- `GET /api/v1.0/healthcheck/ready` (also `/health/ready`): readiness, 200 when the database and Redis answer, 503 otherwise, with the state of each check. The web container proxies only the `/api/...` forms.
 
 ### Tests
 

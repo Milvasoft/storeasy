@@ -122,8 +122,20 @@ services:
       Storeasy__Email__Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
       Storeasy__Email__Notifike__BaseUrl: ${NOTIFIKE_BASE_URL:-}
       Storeasy__Email__Notifike__ApiKey: ${NOTIFIKE_API_KEY:-}
+      Storeasy__Email__Outbox__Enabled: ${STOREASY_EMAIL_OUTBOX_ENABLED:-true}
       Storeasy__Jobs__Enabled: ${STOREASY_JOBS_ENABLED:-true}
       Storeasy__Jobs__Workers: ${STOREASY_JOBS_WORKERS:-2}
+      Storeasy__Events__SchedulesEnabled: ${STOREASY_SCHEDULES_ENABLED:-true}
+      # Optional features: empty disables them (docs/self-host.md).
+      Storeasy__Auth__Google__ClientId: ${STOREASY_GOOGLE_CLIENT_ID:-}
+      Storeasy__Auth__Google__ClientSecret: ${STOREASY_GOOGLE_CLIENT_SECRET:-}
+      Storeasy__WebPush__PublicKey: ${STOREASY_WEBPUSH_PUBLIC_KEY:-}
+      Storeasy__WebPush__PrivateKey: ${STOREASY_WEBPUSH_PRIVATE_KEY:-}
+      Storeasy__WebPush__Subject: ${STOREASY_WEBPUSH_SUBJECT:-mailto:admin@localhost}
+      # Api: storeasy uploads IPAs to App Store Connect. External: the CI uploads, storeasy waits for the build.
+      Storeasy__Intake__AppleUploadMode: ${STOREASY_APPLE_UPLOAD_MODE:-Api}
+      # Source commit shown on the system status page (the image build does not stamp one).
+      Storeasy__Build__Commit: ${STOREASY_COMMIT:-}
       Storage__S3__Bucket: ${S3_BUCKET:-storeasy}
       Storage__S3__Region: ${S3_REGION:-us-east-1}
       Storage__S3__AccessKey: ${S3_ACCESS_KEY}
