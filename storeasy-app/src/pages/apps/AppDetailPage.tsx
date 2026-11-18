@@ -34,6 +34,8 @@ import { showToast } from '@/lib/toast/toast'
 import { APP_NAMES_REQUEST } from '@/lib/activity/ActivityContext'
 import { JobsPage } from '@/pages/activity/JobsPages'
 import { JobRow } from '@/pages/ActivityPage'
+import { workspaceTabs } from '@/features/common/AppWorkspace'
+import { useP2 } from '@/features/common/i18n/useP2'
 
 export type AppTab = 'overview' | 'builds' | 'jobs'
 
@@ -276,6 +278,7 @@ function Overview({ app, connections, started }: { app: AppDetailDto; connection
  */
 export function AppDetailPage({ tab }: { tab: AppTab }) {
   const t = useT()
+  const p2 = useP2()
   const format = useFormat()
   const { appId: rawId = '' } = useParams()
   const appId = Number(rawId)
@@ -362,6 +365,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
           { value: 'overview', label: t.app.overview, to: `/apps/${data.Id}` },
           { value: 'builds', label: t.app.builds, to: `/apps/${data.Id}/builds`, count: (data.Builds ?? []).length },
           { value: 'jobs', label: t.app.jobs, to: `/apps/${data.Id}/jobs` },
+          ...workspaceTabs(data.Id, p2),
         ]}
       />
       {tab === 'overview' ? <Overview app={data} connections={connections.data ?? []} started={started} /> : null}
