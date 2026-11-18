@@ -187,17 +187,17 @@ mağaza işi storeasy'de ve MCP'de olmalı. API'si olmayan iş de storeasy'nin i
 |---|---|---|
 | 1. Temel | Repo, API, kayıt ve giriş, organizasyon, roller, davet, şifreli bağlantılar, denetim kaydı (yapıldı); `StoreJob` kuyruğu, SignalR olayları, S3 (MinIO yerelde, presigned), mağazadan uygulama ve build senkronu, kural kataloğu v1 (bölüm 12); web: tasarım, kabuk, giriş, uygulamalar, bağlantılar, üyeler, denetim kaydı | Yerelde bağlantı ekleme, uygulamaların iki mağazadan gelmesi |
 | 2. Hazırlık ve içerik | Hazırlık kontrolü (11.1) ve uygulama başına kayıtlı cevaplar; metinler ve kategoriler, yaş derecelendirmesi (yeni sorular dahil), fiyat ve bölgeler, ekran görüntüsü ve önizleme setleri (kataloğa göre zorunlu, yedekle karşılanan, eksik), build izleme ve bağlama, ihracat uyumu, inceleme bilgileri, yayın türü ve aşamalı yayın, incelemeye gönderme (onaylı); Play: uygulama ayrıntıları, listeler, görseller, track ve sürüm, aşamalı yayın, ülkeler, test kullanıcıları, AAB, Data safety; canlı aktivite görünümü | Sousial ve Crewhall için "eksik ne var" tek çağrıda doğru cevap; Sousial iPad seti storeasy'den yüklenir |
-| 3. MCP | PAT, `/mcp`, matristeki her API satırı için araç (yazmalar dry run + onay), tüm uygulamaların özeti tek çağrı, `storeasy-mcp` yerel köprüsü (yerel dosya yolları ve klasörler) | Bir Claude oturumu store-ops yerine storeasy ile Sousial işini baştan sona yapar |
+| 3. MCP ve paket alma | PAT, `/mcp`, CI'dan paket alma (bölüm 11.8: OIDC güvenilir yayıncı, CI token'ı, CLI, GitHub Action, Azure DevOps görevi, EAS webhook'u), matristeki her API satırı için araç (yazmalar dry run + onay), tüm uygulamaların özeti tek çağrı, `storeasy-mcp` yerel köprüsü (yerel dosya yolları ve klasörler) | Bir Claude oturumu store-ops yerine storeasy ile Sousial işini baştan sona yapar; bir GitHub Actions çalışması sır saklamadan AAB'yi internal track'e gönderir |
 | 4. Olaylar ve takip | Webhook alıcısı, bildirimler, red akışı (11.3), yorum kutuları (Apple ve Play, yanıt), TestFlight (gruplar, test kullanıcıları, beta metinleri, beta inceleme, build bitiş tarihleri), kural izleyici ve uygulama başına uyum zaman çizelgesi (bölüm 12) | Gerçek bir red bildirime ve red kaydına düşer; Expenny ve Perry'nin TestFlight bitiş tarihleri görünür |
 | 5. Microsoft Store | Üçüncü mağaza (bölüm 11.6): Entra bağlantısı, uygulama ve gönderim senkronu, listeler ve görseller, MSIX paketleri ve paket uçuşları, aşamalı yayın, add-on'lar; MSI/EXE uygulamalar için ayrı API; sertifikasyon durumu; kataloğa Microsoft kuralları | Bir Windows uygulamasının liste ve paket güncellemesi storeasy'den gönderilir |
 | 6. Stüdyo | Mockup şablonları, kendi çizdiğimiz çerçeveler (iPhone Duo dış ve iç ekran dahil), başlık lokalizasyonu, kataloğa göre tüm zorunlu ve önerilen boyutlara tek seferde dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
 | 7. Para | Abonelik grupları, abonelikler, bölge fiyatları, tanıtım ve promosyon teklifleri, retention mesajları, IAP; Play abonelikleri, base plan'lar, teklifler, tek seferlik ürünler | Bir uygulamanın abonelikleri storeasy'den kurulur |
 | 8. Yayın | Asistanlı adımların tamamı (11.4), özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
 
-**MVP:** Faz 1 + 2 + 3. Bu üçüyle Buğra'nın uygulamalarında "gönderime hazır mı, eksik ne" sorusu, metin, görsel,
-build ve gönderim storeasy ve MCP üzerinden yapılır; store-ops emekli olur. Faz 4 hemen arkasından gelir, çünkü red
-ve TestFlight takibi günlük iş. Microsoft Store Faz 5'te, MVP ve takip oturunca üçüncü mağaza olarak gelir. Stüdyo
-Faz 6'da; ondan önce görseller dışarıda üretilip storeasy'ye verilir.
+**MVP yok (Buğra, 18 Kasım 2026):** Ürün bütün özellikleriyle tek seferde yapılır. Fazlar artık yalnız yapım
+sırasıdır; her faz bitince kod çalışır durumdadır ama hiçbir faz "ilk sürüm" diye ayrı yayına çıkmaz. Yayın (Faz 8)
+bütün fazlar bitince, Buğra'nın onayıyla yapılır. store-ops, Faz 3 bittiğinde storeasy'nin MCP'si yerine geçince
+emekli olur.
 
 Microsoft Store Buğra'nın kararıyla (18 Kasım 2026) öne alındı: Faz 4'ün hemen arkasında. Hazırlık: `StoreKind` enum'u, `IStoreGateway` ve kural kataloğu baştan üç
 mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda gömülmez.
@@ -222,6 +222,7 @@ mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda 
 | Public GitHub reposu ve organizasyonu | Buğra | Repo yerel |
 | Hosting, DB, Redis, S3, mail, Seq, CI | DevOpsçu | Cevaplandı, 10. bölüm |
 | Barındırılan sürüm ücretli mi | Buğra | Kapsam dışı |
+| MVP | Buğra | Kaldırıldı (18 Kasım 2026): bütün ürün tek seferde, bölüm 7 |
 | Logo ve vurgu rengi | Buğra | Karar verildi (18 Kasım 2026): logo K3 "Dört kanat e" (rüzgârgülünün bir kanadı eksik hâli, boşluk "e"nin ağzı; `docs/storeasy uygulaması tasarımı/03-Logo-Onerileri-4.html`), vurgu Ultramarin #4636FF / #857AFF. Yazı logoda ortadaki "e" vurgu renginde |
 | Microsoft Store | Buğra | Eklendi ve öne alındı (18 Kasım 2026): Faz 5, bölüm 11.6 |
 
@@ -372,7 +373,51 @@ bunu gönderim ekranında uyarı olarak gösterir. Aynı anda tek bir aktif gön
 - Matristeki her API ve asistanlı satır bir araçtır; yazmalar dry run ve onay kapılı.
 - Tek çağrıda tüm uygulamaların özeti (iki mağaza, durum, eksikler).
 - Araçlar yerel dosya yolu ve klasör kabul eder. Uzaktan MCP dosyayı göremez; yerel `storeasy-mcp` köprüsü dosyaları presigned
-  URL ile S3'e yükleyip aracı varlık kimlikleriyle çağırır. Bu yüzden köprü MVP'de (Faz 3).
+  URL ile S3'e yükleyip aracı varlık kimlikleriyle çağırır. Köprü Faz 3'te.
+
+### 11.8 Paket alma (CI ve build servisleri)
+
+İstek (Buğra, 18 Kasım 2026): build pipeline'ları paketi doğrudan storeasy'ye versin, storeasy mağazaya götürsün. Sektörde
+yerleşik yol, Firebase App Distribution, Sentry ve Codemagic'teki gibi "CLI + CI eklentisi + REST" ve kimlik için OIDC ile
+güvenilir yayıncıdır (PyPI ve npm trusted publishing): CI kendi kısa ömürlü OIDC token'ını gösterir, kalıcı sır saklanmaz.
+
+Giriş yolları:
+
+| Yol | Nasıl | Not |
+|---|---|---|
+| Push: REST | `POST /api/v1/apps/{appId}/artifacts` yükleme oturumu açar, dosya S3'e presigned multipart ile gider, `complete` ile kapanır | Kaldığı yerden devam eder; aynı SHA-256 ikinci kez işlenmez |
+| Push: CLI | `storeasy upload <dosya> --app <id>` (npm paketi, `storeasy-mcp` ile aynı paket) | Yerel makine ve her CI'da çalışır |
+| Push: GitHub Action | `storeasy/upload-action` | OIDC ile, `id-token: write` izniyle; sır gerekmez |
+| Push: Azure DevOps görevi | `StoreasyUpload@1` | OIDC (workload identity) veya CI token'ı |
+| Pull: EAS webhook'u | EAS build bitince `artifacts.buildUrl` ile storeasy'ye haber verir, storeasy indirir | `expo-signature` (HMAC-SHA1) doğrulanır; indirme yalnız izinli alan adlarından (SSRF koruması) |
+| Pull: genel webhook | Codemagic, Bitrise ve diğerleri için imzalı "artifact hazır" çağrısı (HMAC-SHA256, storeasy'nin kendi şeması) | Aynı izinli alan adı listesi |
+| Elle | Web arayüzünde sürükle bırak, MCP'de yerel dosya yolu | |
+| Sonra (Faz 8) | fastlane eklentisi | |
+
+Kimlik:
+
+- **OIDC güvenilir yayıncı (önerilen):** Uygulama başına güven kuralı: sağlayıcı (GitHub, Azure DevOps, GitLab), repo veya
+  proje, dal ve ortam. CI'ın token'ı (audience `storeasy`) doğrulanıp 15 dakikalık yükleme token'ına çevrilir. Azure DevOps
+  token'ında dal bilgisi olmadığı için orada kısıt service connection ve ortam onaylarıyla kurulur.
+- **CI token'ı:** Organizasyona bağlı, uygulama ve izin kapsamlı (`artifacts:write`), süreli, `sci_` önekli; yalnız SHA-256
+  hash saklanır. PAT'tan ayrıdır, bir kişiye bağlı değildir.
+
+İşleme:
+
+1. Dosya S3'e iner (şifreli, saklama süresi organizasyon ayarı, varsayılan 30 gün).
+2. Paket okunur: IPA'dan bundle id, sürüm ve build numarası, minimum iOS; AAB'den paket adı, versionCode, targetSdk;
+   MSIX'ten kimlik ve sürüm. Uygulamayla eşleşmeyen paket reddedilir.
+3. Hazırlık kontrolü kataloğa göre çalışır: hedef API seviyesi, versionCode'un öncekinden büyük olması, SDK ve Xcode
+   alt sınırları, imza.
+4. Uygulamanın teslim kuralı uygulanır: ör. "iOS → TestFlight iç grup", "Android → internal track", "Windows → paket
+   uçuşu". Production ve incelemeye gönderme hiçbir zaman otomatik değildir; onay adımı ve izin ister.
+5. Mağazaya teslim:
+   - **Apple:** App Store Connect API'nin build upload kaynakları (`buildUploads`, `buildUploadFiles`, parçalı yükleme).
+     Uçtan uca çalıştığı Faz 3'te gerçek bir build ile doğrulanacak. Çalışmazsa yedek yol: CI paketi Apple'a kendisi
+     yükler (EAS Submit, Xcode Cloud), storeasy build'i senkronla görüp aynı teslim kuralını uygular.
+   - **Google:** `edits.bundles.upload` ve track ataması.
+   - **Microsoft:** MSIX paket yükleme; MSI ve EXE'de yükleyici URL'si güncellenir (Faz 5).
+6. Her adım canlı aktivite görünümünde akar ve denetim kaydına düşer; sonuç CI'a çıkış kodu ve özet olarak döner.
 
 ## 12. Mağaza kuralları kataloğu ve izleyici
 
