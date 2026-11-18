@@ -77,6 +77,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeFileStorage FileStorage { get; } = new();
 
+    /// <summary>
+    /// The server side object storage fake of the mockup studio.
+    /// </summary>
+    public FakeObjectContentStorage ObjectStorage { get; } = new();
+
     private static int _databaseSequence;
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("app_tests")
@@ -148,6 +153,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IFileStorage>();
             services.AddSingleton<IFileStorage>(FileStorage);
+
+            services.RemoveAll<IObjectContentStorage>();
+            services.AddSingleton<IObjectContentStorage>(ObjectStorage);
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();
