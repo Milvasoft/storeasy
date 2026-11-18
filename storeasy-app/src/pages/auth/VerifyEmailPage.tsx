@@ -1,66 +1,86 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { CircleCheck, Clock, MailCheck } from 'lucide-react'
 import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
 import { LogoMark } from '@/components/layout/Logo'
 import { FormErrors } from '@/components/ui/Feedback'
-import { Button, Field, Input } from '@/components/ui/primitives'
+import { Button } from '@/components/ui/primitives'
 import { registrationApi } from '@/lib/api/endpoints'
-import { type ApiError, apiErrorMessage, hasApiKey } from '@/lib/api/http'
-import { TEXT_LIMITS } from '@/lib/api/textLimits'
+import { apiStatus, type ApiError } from '@/lib/api/http'
+import { useAuth } from '@/lib/auth/AuthContext'
 import { formatCountdown, useCountdown } from '@/lib/hooks/useCountdown'
 import { useT } from '@/lib/i18n/I18nContext'
 import { withPlaceholders } from '@/lib/i18n/interpolate'
-import { emailError } from '@/lib/validation'
+import { HOME_PATH } from '@/lib/nav/nav'
 
-export const VERIFICATION_USED_KEY = 'VerificationTokenUsed'
 const RESEND_SECONDS = 60
 
-// A resend form: the answer is the same whether or not the address has an account; 429 starts the countdown.
-function ResendForm({ initialEmail, submitLabel }: { initialEmail: string; submitLabel: string }) {
+/**
+ * "Send again" for the signed-in user (the API sends to the account's own address; a signed-out visitor is asked to sign
+ * in first). 60 s countdown, or the API's Retry-After after a 429; 409 means the address was verified meanwhile.
+ */
+function ResendButton({ label, onVerified }: { label: string; onVerified: () => void }) {
   const t = useT()
-  const [email, setEmail] = useState(initialEmail)
-  const [error, setError] = useState<string | null>(null)
+  const countdown = useCountdown()
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
-  const countdown = useCountdown()
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault()
-    const problem = emailError(email, t)
-    setError(problem)
-    if (problem) {
-      return
-    }
+  const resend = async () => {
     setBusy(true)
     try {
-      await registrationApi.resendVerification(email.trim())
+      await registrationApi.resendVerification()
       setSent(true)
       countdown.start(RESEND_SECONDS)
-    } catch (failure) {
-      countdown.start((failure as ApiError).retryAfterSeconds ?? RESEND_SECONDS)
-      setError(apiErrorMessage(failure, t.common.error))
+    } catch (error) {
+      if (apiStatus(error) === 409) {
+        onVerified()
+      } else {
+        countdown.start((error as ApiError).retryAfterSeconds ?? RESEND_SECONDS)
+      }
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <form className="grid gap-3 text-left" onSubmit={submit} noValidate>
+    <div className="grid gap-3">
       {sent ? <FormErrors tone="info" title={t.verify.resent} /> : null}
-      <Field label={t.fields.email} error={error}>
-        <Input
-          type="email"
-          autoComplete="email"
-          value={email}
-          maxLength={TEXT_LIMITS.email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-      </Field>
-      <Button type="submit" variant="primary" block loading={busy} disabled={countdown.seconds > 0}>
-        {countdown.seconds > 0 ? `${submitLabel} · ${formatCountdown(countdown.seconds)}` : submitLabel}
+      <Button variant="primary" block loading={busy} disabled={countdown.seconds > 0} onClick={() => void resend()}>
+        {countdown.seconds > 0 ? `${label} · ${formatCountdown(countdown.seconds)}` : label}
       </Button>
-    </form>
+    </div>
+  )
+}
+
+function SignInToResend() {
+  const t = useT()
+  return (
+    <>
+      <p className="m-0 text-[13px] text-fg3">{t.verify.signedOutNote}</p>
+      <Link className="btn inv blk" to="/login">
+        {t.verify.signInToResend}
+      </Link>
+    </>
+  )
+}
+
+function DoneCard() {
+  const t = useT()
+  const { status } = useAuth()
+  const authed = status === 'authed'
+  return (
+    <AuthCard icon={<CircleCheck aria-hidden />} tone="ok" title={t.verify.doneTitle}>
+      <p className="m-0 text-sm text-fg2">{authed ? t.verify.doneBodySignedIn : t.verify.doneBody}</p>
+      {authed ? (
+        <Link className="btn pri lg blk" to={HOME_PATH}>
+          {t.common.continue}
+        </Link>
+      ) : (
+        <Link className="btn pri lg blk" to="/login?verified=1">
+          {t.login.submit}
+        </Link>
+      )}
+    </AuthCard>
   )
 }
 
@@ -68,38 +88,34 @@ function ResendForm({ initialEmail, submitLabel }: { initialEmail: string; submi
 export function VerifyEmailPage() {
   const t = useT()
   const location = useLocation()
-  const [params] = useSearchParams()
-  const email = (location.state as { email?: string } | null)?.email ?? params.get('email') ?? ''
-  const countdown = useCountdown()
-  const [sent, setSent] = useState(false)
+  const { status, user, refreshUser } = useAuth()
+  const email = (location.state as { email?: string } | null)?.email ?? user?.email ?? null
 
-  const resend = async () => {
-    try {
-      await registrationApi.resendVerification(email)
-      setSent(true)
-      countdown.start(RESEND_SECONDS)
-    } catch (error) {
-      countdown.start((error as ApiError).retryAfterSeconds ?? RESEND_SECONDS)
-    }
+  if (status === 'authed' && user?.emailConfirmed === true) {
+    return (
+      <SoloLayout>
+        <DoneCard />
+      </SoloLayout>
+    )
   }
 
   return (
     <SoloLayout>
       <AuthCard icon={<MailCheck aria-hidden />} title={t.verify.checkTitle}>
-        <p className="m-0 text-sm text-fg2">
-          {email ? withPlaceholders(t.verify.checkBody, { email: <b className="text-fg">{email}</b> }) : t.verify.checkBodyNoEmail}
-        </p>
-        {sent ? <FormErrors tone="info" title={t.verify.resent} /> : null}
         {email ? (
-          <p className="m-0 text-[13px] text-fg2">
-            {t.verify.notArrived}{' '}
-            <button type="button" className="lnk" disabled={countdown.seconds > 0} onClick={() => void resend()}>
-              {countdown.seconds > 0 ? `${t.verify.resend} · ${formatCountdown(countdown.seconds)}` : t.verify.resend}
-            </button>
-          </p>
-        ) : (
-          <ResendForm initialEmail="" submitLabel={t.verify.resend} />
-        )}
+          <p className="m-0 text-sm text-fg2">{withPlaceholders(t.verify.checkBody, { email: <b className="text-fg">{email}</b> })}</p>
+        ) : null}
+        <p className="m-0 text-[13px] text-fg2">{t.verify.notArrived}</p>
+        {status === 'authed' ? (
+          <>
+            <ResendButton label={t.verify.resend} onVerified={() => void refreshUser()} />
+            <Link className="btn ghost blk" to={HOME_PATH}>
+              {t.common.continue}
+            </Link>
+          </>
+        ) : status === 'guest' ? (
+          <SignInToResend />
+        ) : null}
         <p className="m-0 text-[13px] text-fg3">
           {t.verify.wrongAddress}{' '}
           <Link className="lnk" to="/register">
@@ -111,12 +127,16 @@ export function VerifyEmailPage() {
   )
 }
 
-type TokenState = { kind: 'pending' } | { kind: 'done' } | { kind: 'used' } | { kind: 'expired'; message: string }
+type TokenState = { kind: 'pending' } | { kind: 'done' } | { kind: 'invalid' }
 
-/** The link from the e-mail (design 5.15, 5.16): verifies on open; success leads to sign-in (verification does not sign in). */
+/**
+ * The link from the e-mail (design 5.15, 5.16): verifies on open, signed in or not (verifying does not sign in). The API
+ * answers one AccountTokenInvalid for an expired, used or replaced link; a new one is sent to the signed-in account.
+ */
 export function VerifyEmailTokenPage() {
   const t = useT()
   const { token = '' } = useParams()
+  const { status, refreshUser } = useAuth()
   const [state, setState] = useState<TokenState>({ kind: 'pending' })
   const started = useRef(false)
 
@@ -129,14 +149,15 @@ export function VerifyEmailTokenPage() {
     registrationApi
       .verifyEmail(token)
       .then(() => setState({ kind: 'done' }))
-      .catch((error) =>
-        setState(
-          hasApiKey(error, VERIFICATION_USED_KEY)
-            ? { kind: 'used' }
-            : { kind: 'expired', message: apiErrorMessage(error, t.verify.expiredBody) },
-        ),
-      )
-  }, [token, t.verify.expiredBody])
+      .catch(() => setState({ kind: 'invalid' }))
+  }, [token])
+
+  // A signed-in tab reads its account again, so the verification banner goes away at once.
+  useEffect(() => {
+    if (state.kind === 'done' && status === 'authed') {
+      void refreshUser()
+    }
+  }, [state.kind, status, refreshUser])
 
   return (
     <SoloLayout>
@@ -146,23 +167,15 @@ export function VerifyEmailTokenPage() {
           <span className="text-sm text-fg2">{t.verify.checking}</span>
         </div>
       ) : state.kind === 'done' ? (
-        <AuthCard icon={<CircleCheck aria-hidden />} tone="ok" title={t.verify.doneTitle}>
-          <p className="m-0 text-sm text-fg2">{t.verify.doneBody}</p>
-          <Link className="btn pri lg blk" to="/login?verified=1">
-            {t.login.submit}
-          </Link>
-        </AuthCard>
-      ) : state.kind === 'used' ? (
-        <AuthCard icon={<CircleCheck aria-hidden />} title={t.verify.usedTitle}>
-          <p className="m-0 text-sm text-fg2">{t.verify.usedBody}</p>
-          <Link className="btn inv blk" to="/login">
-            {t.login.submit}
-          </Link>
-        </AuthCard>
+        <DoneCard />
       ) : (
         <AuthCard icon={<Clock aria-hidden />} tone="warn" title={t.verify.expiredTitle}>
-          <p className="m-0 text-sm text-fg2">{state.message}</p>
-          <ResendForm initialEmail="" submitLabel={t.verify.newLink} />
+          <p className="m-0 text-sm text-fg2">{t.verify.expiredBody}</p>
+          {status === 'authed' ? (
+            <ResendButton label={t.verify.newLink} onVerified={() => setState({ kind: 'done' })} />
+          ) : (
+            <SignInToResend />
+          )}
         </AuthCard>
       )}
     </SoloLayout>
