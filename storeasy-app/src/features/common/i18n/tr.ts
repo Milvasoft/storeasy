@@ -7,6 +7,8 @@ export const p2tr: P2Dictionary = {
     listing: 'Mağaza kaydı',
     media: 'Görseller',
     release: 'Yayın',
+    reviews: 'Yorumlar',
+    rejections: 'Red kayıtları',
     answers: 'Kayıtlı cevaplar',
     assisted: 'Asistanlı adımlar',
     compliance: 'Uyum',
@@ -28,6 +30,7 @@ export const p2tr: P2Dictionary = {
     previews: 'Önizleme videoları',
     versions: "Sürümler ve track'ler",
     testers: 'Test kullanıcıları',
+    testflight: 'TestFlight',
     reviewInfo: 'İnceleme bilgileri',
   },
   plan: {

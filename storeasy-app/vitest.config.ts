@@ -16,6 +16,8 @@ export default defineConfig({
     restoreMocks: true,
     clearMocks: true,
     testTimeout: 15_000,
+    // expect.poll waits as long as findBy* (test/support/setup.ts) before it gives up.
+    expect: { poll: { timeout: 5_000 } },
     // The suite must not depend on a developer's .env file: every value the app reads from the environment is pinned here.
     env: {
       VITE_API_URL: '',

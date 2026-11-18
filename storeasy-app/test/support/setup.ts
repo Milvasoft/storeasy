@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { dismissToast, getToasts } from '@/lib/toast/toast'
 import { server } from './server'
@@ -14,6 +14,10 @@ class NoopObserver {
     return []
   }
 }
+
+// A full parallel run loads lazy route chunks slowly: findBy* and waitFor wait up to 5 s instead of 1 s, so a test waits
+// for what the user sees instead of racing the machine's load.
+configure({ asyncUtilTimeout: 5_000 })
 
 export const reducedMotion = { value: false }
 

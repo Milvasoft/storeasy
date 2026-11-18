@@ -101,7 +101,7 @@ export const NAV: NavGroup[] = [
     key: 'platform',
     managerOnly: true,
     items: [
-      { key: 'adminRules', path: '/admin/rules', icon: Radar, feature: 'Platform' },
+      { key: 'adminRules', path: '/admin/rules', icon: Radar, feature: 'RuleWatcher' },
       { key: 'adminUsers', path: '/admin/users', icon: User, feature: 'Platform' },
       { key: 'adminRoles', path: '/admin/roles', icon: Shield, feature: 'Platform' },
       { key: 'adminLogs', path: '/admin/activity-logs', icon: History, feature: 'Platform' },

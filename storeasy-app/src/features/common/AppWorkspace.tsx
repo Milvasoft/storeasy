@@ -23,10 +23,20 @@ import { storeFromSlug, storeSlug } from './store'
 // chip row). The overview, builds and jobs tabs belong to AppDetailPage; this frame links to them and they link here.
 
 export type WorkspaceSection =
-  'readiness' | 'listing' | 'media' | 'release' | 'answers' | 'assisted' | 'compliance' | 'profile' | 'microsoft'
+  'readiness' | 'listing' | 'media' | 'release' | 'reviews' | 'rejections' | 'answers' | 'assisted' | 'compliance' | 'profile' | 'microsoft'
 
 export type WorkspaceSub =
-  'texts' | 'details' | 'category' | 'ageRating' | 'pricing' | 'screenshots' | 'previews' | 'versions' | 'testers' | 'reviewInfo'
+  | 'texts'
+  | 'details'
+  | 'category'
+  | 'ageRating'
+  | 'pricing'
+  | 'screenshots'
+  | 'previews'
+  | 'versions'
+  | 'testers'
+  | 'testflight'
+  | 'reviewInfo'
 
 interface SubItem {
   key: WorkspaceSub
@@ -54,6 +64,7 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
   release: [
     { key: 'versions', path: 'release/versions', stores: BOTH },
     { key: 'testers', path: 'release/testers', stores: GOOGLE },
+    { key: 'testflight', path: 'release/testflight', stores: APPLE },
     { key: 'reviewInfo', path: 'release/review-info', stores: APPLE },
   ],
 }
@@ -63,6 +74,8 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   listing: 'listing/texts',
   media: 'listing/screenshots',
   release: 'release/versions',
+  reviews: 'reviews',
+  rejections: 'rejections',
   answers: 'answers',
   assisted: 'assisted',
   compliance: 'compliance',
@@ -83,6 +96,8 @@ const SECTIONS: WorkspaceSection[] = [
   'listing',
   'media',
   'release',
+  'reviews',
+  'rejections',
   'answers',
   'assisted',
   'compliance',
