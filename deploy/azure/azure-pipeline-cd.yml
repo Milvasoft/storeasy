@@ -1,0 +1,69 @@
+# Milvasoft hosting: writes the compose files and their .env to Dokploy and lets Dokploy deploy (API first, then web).
+# No trigger of its own: runs when CI-storeasy succeeds. Settings come from the Azure DevOps variable group
+# storeasy-test; secret variables do not reach printenv, so each one is mapped in the env: block below.
+trigger: none
+pr: none
+
+resources:
+  pipelines:
+    - pipeline: ci
+      source: CI-storeasy
+      trigger:
+        branches:
+          include:
+            - master
+
+variables:
+  - group: storeasy-test
+  - group: dokploy
+
+pool:
+  name: Hq-docker-agent
+  demands:
+    - Agent.Name -equals HQ-AZURE-AGENT
+
+steps:
+  - task: Bash@3
+    displayName: Create .env files
+    inputs:
+      targetType: inline
+      script: |
+        set -e
+        D="$(Build.SourcesDirectory)/deploy/azure"
+        printenv | grep -vE '^(PATH|HOME|PWD|OLDPWD|SHLVL|HOSTNAME|TERM|LANG|LC_ALL|_|BUILD_.*|SYSTEM_.*|AGENT_.*|TF_BUILD|ENDPOINT_.*|PIPELINE_.*|RESOURCES_.*|DOKPLOY_.*|TASK_.*|VSTS_.*|INPUT_.*|MSDEPLOY_.*|AZURE_.*|COMMON_.*|RUNNER_.*|STOREASY_API_UPSTREAM)=' > "$D/.env"
+        echo "STOREASY_API_UPSTREAM=${STOREASY_API_UPSTREAM}" > "$D/.env.web"
+    env:
+      ConnectionStrings__DefaultConnectionString: $(ConnectionStrings__DefaultConnectionString)
+      Storeasy__Encryption__MasterKey: $(Storeasy__Encryption__MasterKey)
+      Milvasoft__Identity__Token__SymmetricPublicKey: $(Milvasoft__Identity__Token__SymmetricPublicKey)
+      Storeasy__WebPush__PrivateKey: $(Storeasy__WebPush__PrivateKey)
+      Storeasy__Email__Notifike__ApiKey: $(Storeasy__Email__Notifike__ApiKey)
+      Storage__S3__AccessKey: $(Storage__S3__AccessKey)
+      Storage__S3__SecretKey: $(Storage__S3__SecretKey)
+
+  - task: Bash@3
+    displayName: Deploy storeasy-api
+    inputs:
+      targetType: filePath
+      filePath: $(Build.SourcesDirectory)/deploy/azure/dokploy-deploy.sh
+      arguments: '"$(Build.SourcesDirectory)/deploy/azure/docker-compose-api.yml" "$(Build.SourcesDirectory)/deploy/azure/.env"'
+    env:
+      DOKPLOY_API_KEY: $(DOKPLOY_API_KEY)
+      DOKPLOY_COMPOSE_ID: Wk9fAFluSI0AiLYgAvRBX
+
+  - task: Bash@3
+    displayName: Deploy storeasy-web
+    inputs:
+      targetType: filePath
+      filePath: $(Build.SourcesDirectory)/deploy/azure/dokploy-deploy.sh
+      arguments: '"$(Build.SourcesDirectory)/deploy/azure/docker-compose-web.yml" "$(Build.SourcesDirectory)/deploy/azure/.env.web"'
+    env:
+      DOKPLOY_API_KEY: $(DOKPLOY_API_KEY)
+      DOKPLOY_COMPOSE_ID: b6I_M7i2DH4pdk36gcvon
+
+  - task: Bash@3
+    displayName: Remove .env files
+    condition: always()
+    inputs:
+      targetType: inline
+      script: rm -f "$(Build.SourcesDirectory)/deploy/azure/.env" "$(Build.SourcesDirectory)/deploy/azure/.env.web"

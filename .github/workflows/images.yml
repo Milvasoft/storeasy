@@ -29,8 +29,10 @@ jobs:
       matrix:
         include:
           - name: storeasy-api
+            context: .
             dockerfile: storeasy-api/Dockerfile
           - name: storeasy-web
+            context: storeasy-app
             dockerfile: storeasy-app/Dockerfile
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,7 +62,7 @@ jobs:
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
@@ -68,5 +70,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             STOREASY_COMMIT=${{ github.sha }}
+            VITE_APP_VERSION=${{ github.ref_name }}
+            VITE_SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}

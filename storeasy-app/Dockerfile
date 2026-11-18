@@ -23,6 +23,7 @@ RUN npm run build
 FROM nginx:alpine AS final
 # The API container the proxy talks to; nginx's entrypoint substitutes it into the template at start.
 ENV STOREASY_API_UPSTREAM=http://storeasy-api:8080
+ENV STOREASY_RESOLVER=127.0.0.11
 ENV NGINX_ENVSUBST_FILTER=STOREASY_
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf
