@@ -1,7 +1,10 @@
-# Prod image: linux/arm64 (Dokploy on Oracle ARM, plan section 10). Local development uses Dockerfile-dev.
+# Prod image (Dokploy on Oracle ARM builds it natively as linux/arm64, plan section 10). Local development uses
+# Dockerfile-dev. The image is built for the builder's platform; for another one:
+#   docker buildx build --platform linux/arm64 -t storeasy-web .
+# The build stage runs on the builder's own platform (the output is static files), only nginx is the target platform.
 # Build context = storeasy-app/. Every VITE_* value is baked in at build time; CI passes them as --build-arg.
 # The checkout has no .env, so every value is an arg.
-FROM --platform=linux/arm64 node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -17,7 +20,7 @@ ARG VITE_APP_VERSION=
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 RUN npm run build
 
-FROM --platform=linux/arm64 nginx:alpine AS final
+FROM nginx:alpine AS final
 # The API container the proxy talks to; nginx's entrypoint substitutes it into the template at start.
 ENV STOREASY_API_UPSTREAM=http://storeasy-api:8080
 ENV NGINX_ENVSUBST_FILTER=STOREASY_

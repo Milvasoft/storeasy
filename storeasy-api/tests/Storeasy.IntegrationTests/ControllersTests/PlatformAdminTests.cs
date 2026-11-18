@@ -15,7 +15,10 @@ using Storeasy.Application.Utils.PermissionManager;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.IntegrationTests.TestBase;
+using Microsoft.Extensions.DependencyInjection;
+using Storeasy.Application.Interfaces;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Storeasy.IntegrationTests.ControllersTests;
 
@@ -174,6 +177,50 @@ public class PlatformAdminTests(StoreasyApiFactory factory) : IntegrationTestBas
         status.Data.Jobs.Should().NotBeNull();
         limited.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         user.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task SystemStatus_ShouldProbeTheSmtpServer()
+    {
+        // Arrange: one SMTP address that accepts connections and one that refuses them.
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var openPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+        var closedPort = FreePort();
+
+        // Act
+        var reachable = await ProbeSmtpAsync(openPort);
+        var refused = await ProbeSmtpAsync(closedPort);
+
+        // Assert
+        reachable.Configured.Should().BeTrue();
+        reachable.Healthy.Should().BeTrue();
+        reachable.Provider.Should().Be(nameof(EmailProvider.Smtp));
+        refused.Healthy.Should().BeFalse();
+        refused.Error.Should().NotBeNullOrWhiteSpace();
+    }
+
+    private async Task<DependencyStatusDto> ProbeSmtpAsync(int port)
+    {
+        await using var host = _factory.CreateHost(new()
+        {
+            ["Storeasy:Email:Provider"] = nameof(EmailProvider.Smtp),
+            ["Storeasy:Email:Smtp:Host"] = "127.0.0.1",
+            ["Storeasy:Email:Smtp:Port"] = port.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["Storeasy:Email:Smtp:From"] = "status@example.com",
+        });
+        using var scope = host.Services.CreateScope();
+        var status = await scope.ServiceProvider.GetRequiredService<ISystemStatusProbe>().CheckAsync(CancellationToken.None);
+
+        return status.Mail;
+    }
+
+    private static int FreePort()
+    {
+        using var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+
+        return ((IPEndPoint)probe.LocalEndpoint).Port;
     }
 
     [Fact]

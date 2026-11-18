@@ -109,8 +109,9 @@ banner (design 5.34).
 
 ## Deployment
 
-`Dockerfile` builds a linux/arm64 nginx image. nginx serves the SPA (index.html no-cache, hashed assets for a year,
-security headers) and proxies `/api`, `/hubs` (WebSocket upgrade) and `/mcp` to `STOREASY_API_UPSTREAM` (runtime env,
+`Dockerfile` builds an nginx image for the builder's platform (`docker buildx build --platform linux/arm64` for the
+upstream ARM hosting; the Node build stage always runs natively). nginx serves the SPA (index.html no-cache, hashed assets for a year,
+security headers) and proxies `/api`, `/hubs` (WebSocket upgrade), `/mcp`, `/webhooks` and `/health` to `STOREASY_API_UPSTREAM` (runtime env,
 default `http://storeasy-api:8080`), so the product is one origin (plan section 10).
 
 ## Decisions
@@ -123,11 +124,13 @@ Differences from `02-frontend-standartlari.md`, with the reason:
 - **Theme.** `.dark` on `<html>`, light/dark/system; `--accent-fill` equals `--accent` (Ultramarine is 6.5:1 under white).
 - **Feature flags are in code.** There is no anonymous flag endpoint for app users yet; `FeatureFlagsProvider` holds the
   section switches (all off) and pages behind them render the designed first-use state with a "coming" mark.
-- **No server-side preferences yet.** Language and theme are kept in the browser; `PUT account/preferences` and
-  `PUT account/profile` are planned on the API.
+- **Language and theme live in the browser.** `PUT account/profile` (name, surname, interface language) and
+  `account/preferences` (notification channels) are on the API and used by the account pages.
 - **`@floating-ui/react-dom`** positions every panel (02 section 9.4 names Floating UI).
 - **`@microsoft/signalr`** for the live hub (plan K5).
 - **No terms checkbox and no 6-digit code on sign-up / verification.** The legal documents and the code path are not in
   the API contract yet; the design drops them when absent (5.14, 5.33).
 - **Coverage thresholds** start at the current coverage (77 / 72 / 77 / 68), below the Dump values, and rise with it.
-- **e2e** has one sign-in journey against a seeded account; `e2e:up` / `e2e:down` come with an API image.
+- **e2e** runs against the whole self-host stack (`deploy/docker-compose.yml` + `deploy/e2e/`, Mailpit for e-mail):
+  `e2e:up` / `e2e:down` call `deploy/e2e/stack.mjs` instead of an `e2e/docker-compose.e2e.yml`, so the compose file
+  under test is the one self-hosters run (e2e/README.md).

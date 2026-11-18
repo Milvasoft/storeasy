@@ -3691,7 +3691,8 @@
         <member name="T:Storeasy.Infrastructure.Services.SystemStatusProbe">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.ISystemStatusProbe"/>. Each dependency check is timed and limited to <see cref="F:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckTimeout"/>; a
-            failure is reported (redacted) instead of thrown. The queue numbers are counts over all organizations (raw counts on the
+            failure is reported (redacted) instead of thrown. The SMTP server is checked by opening a TCP connection to it (no mail
+            is sent); the Notifike provider is not probed (Healthy stays null). The queue numbers are counts over all organizations (raw counts on the
             database context, the only cross organization read of the API).
             </summary>
             <param name="dbContext"></param>
@@ -3708,7 +3709,8 @@
         <member name="M:Storeasy.Infrastructure.Services.SystemStatusProbe.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.EmailOptions,Storeasy.Application.Utils.Models.EncryptionOptions,Storeasy.Application.Utils.Models.GoogleAuthOptions,Storeasy.Application.Utils.Models.WebPushOptions,Storeasy.Application.Utils.Models.BuildOptions,Microsoft.Extensions.Hosting.IHostEnvironment,System.TimeProvider)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.ISystemStatusProbe"/>. Each dependency check is timed and limited to <see cref="F:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckTimeout"/>; a
-            failure is reported (redacted) instead of thrown. The queue numbers are counts over all organizations (raw counts on the
+            failure is reported (redacted) instead of thrown. The SMTP server is checked by opening a TCP connection to it (no mail
+            is sent); the Notifike provider is not probed (Healthy stays null). The queue numbers are counts over all organizations (raw counts on the
             database context, the only cross organization read of the API).
             </summary>
             <param name="dbContext"></param>

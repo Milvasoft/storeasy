@@ -174,7 +174,7 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleWatchSource> sourceR
                 Data = new { proposalId = proposal.Id },
                 RelatedEntity = NotificationEntity.RuleProposal,
                 RelatedEntityId = proposal.Id.ToString(CultureInfo.InvariantCulture),
-                ActionLink = $"/platform/rules/proposals/{proposal.Id}",
+                ActionLink = $"/admin/rules/proposals/{proposal.Id}",
             }, cancellationToken);
         }
 

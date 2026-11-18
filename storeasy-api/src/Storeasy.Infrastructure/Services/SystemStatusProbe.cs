@@ -8,12 +8,14 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Persistence.Context;
 using System.Diagnostics;
+using System.Net.Sockets;
 
 namespace Storeasy.Infrastructure.Services;
 
 /// <summary>
 /// Default <see cref="ISystemStatusProbe"/>. Each dependency check is timed and limited to <see cref="CheckTimeout"/>; a
-/// failure is reported (redacted) instead of thrown. The queue numbers are counts over all organizations (raw counts on the
+/// failure is reported (redacted) instead of thrown. The SMTP server is checked by opening a TCP connection to it (no mail
+/// is sent); the Notifike provider is not probed (Healthy stays null). The queue numbers are counts over all organizations (raw counts on the
 /// database context, the only cross organization read of the API).
 /// </summary>
 /// <param name="dbContext"></param>
@@ -68,6 +70,11 @@ public sealed class SystemStatusProbe(StoreasyDbContext dbContext,
 
             return true;
         }, cancellationToken);
+        var mailConfigured = _emailOptions.FindMissingSetting() == null;
+        var mail = _emailOptions.Provider == EmailProvider.Smtp
+            ? await TimedAsync(mailConfigured, async token => await CanConnectAsync(_emailOptions.Smtp.Host, _emailOptions.Smtp.Port, token), cancellationToken)
+            : new DependencyStatusDto { Configured = mailConfigured };
+        mail.Provider = _emailOptions.Provider.ToString();
         var dayAgo = now.AddDays(-1);
 
         return new SystemStatusDto
@@ -79,7 +86,7 @@ public sealed class SystemStatusProbe(StoreasyDbContext dbContext,
             Database = database,
             Redis = redis,
             Storage = storage,
-            Mail = new DependencyStatusDto { Configured = _emailOptions.FindMissingSetting() == null, Provider = _emailOptions.Provider.ToString() },
+            Mail = mail,
             SignalRBackplane = redisConnected ? "Redis" : "Local",
             EncryptionKeyConfigured = !string.IsNullOrWhiteSpace(_encryptionOptions.MasterKey),
             GoogleSignInConfigured = _googleAuthOptions.Enabled,
@@ -94,6 +101,15 @@ public sealed class SystemStatusProbe(StoreasyDbContext dbContext,
             },
             PendingEmails = database.Healthy != true ? 0 : await _dbContext.EmailOutbox.CountAsync(cancellationToken),
         };
+    }
+
+    private static async Task<bool> CanConnectAsync(string host, int port, CancellationToken cancellationToken)
+    {
+        using var client = new TcpClient();
+
+        await client.ConnectAsync(host, port, cancellationToken);
+
+        return client.Connected;
     }
 
     private static async Task<DependencyStatusDto> TimedAsync(bool configured, Func<CancellationToken, Task<bool>> check, CancellationToken cancellationToken)

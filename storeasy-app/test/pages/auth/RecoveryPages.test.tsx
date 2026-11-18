@@ -67,6 +67,14 @@ describe('VerifyEmail pages', () => {
     expect(lastRequestTo('/Account/email/verify')?.body).toEqual({ Token: 'abc' })
   })
 
+  it('verifies the token of the e-mail link (/verify-email?token=) on the verify page', async () => {
+    renderWithProviders(<VerifyEmailPage />, { authed: false, route: '/verify-email?token=mail-1', path: '/verify-email' })
+
+    expect(await screen.findByRole('heading', { name: 'E-postan doğrulandı' })).toBeInTheDocument()
+    expect(requestsTo('/Account/email/verify')).toHaveLength(1)
+    expect(lastRequestTo('/Account/email/verify')?.body).toEqual({ Token: 'mail-1' })
+  })
+
   it('asks a signed-out visitor to sign in for a new link when the token no longer works', async () => {
     server.use(endpoint('post', '/Account/email/verify', () => errorResponse('AccountTokenInvalid', 'Geçersiz bağlantı.', 400)))
     renderWithProviders(<VerifyEmailTokenPage />, { authed: false, route: '/verify-email/old', path: '/verify-email/:token' })
@@ -138,6 +146,12 @@ describe('InvitePage', () => {
 
     expect(await screen.findByRole('link', { name: 'Giriş yap ve katıl' })).toHaveAttribute('href', '/login?returnUrl=%2Finvite%2Ftok-9')
     expect(screen.getByRole('link', { name: 'Hesap oluştur ve katıl' })).toHaveAttribute('href', '/register?invite=tok-9')
+  })
+
+  it('reads the token of the e-mail link (/invitation?token=)', async () => {
+    renderWithProviders(<InvitePage />, { authed: false, route: '/invitation?token=tok-9', path: '/invitation' })
+
+    expect(await screen.findByRole('link', { name: 'Giriş yap ve katıl' })).toHaveAttribute('href', '/login?returnUrl=%2Finvite%2Ftok-9')
   })
 
   it('accepts the invitation for a signed-in user and opens the organization', async () => {

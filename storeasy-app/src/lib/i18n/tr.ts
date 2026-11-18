@@ -600,7 +600,8 @@ export const tr: Dictionary = {
     someFailed: 'Bazı davetler oluşturulamadı',
     throttled: 'Saatlik davet sınırına ulaşıldı.',
     linkOnce: 'Bağlantılar yalnız şimdi gösteriliyor',
-    linkOnceBody: 'Davet e-postaları henüz gönderilmiyor: her bağlantıyı kopyalayıp ilet. Aynı adrese yeni davet eskisinin yerine geçer.',
+    linkOnceBody:
+      'Her adrese bağlantısı e-postayla da gönderildi. Kendin iletmek istersen bağlantıyı kopyala. Aynı adrese yeni davet eskisinin yerine geçer.',
     validUntil: '{date} tarihine kadar geçerli',
     ownerViaTransfer: 'Yalnız sahiplik devriyle',
     reinviteNote: 'Bekleyen daveti olan bir adrese yeniden davet eskisini iptal eder ve yeni bağlantı üretir.',

@@ -28,6 +28,24 @@ describe('app shell and routing', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/setup')
   })
 
+  it('takes a platform administrator without an organization to the admin area instead of the setup', async () => {
+    testState.organizations = []
+
+    await renderApp({ route: '/apps', userType: UserType.Manager, storedOrganization: false })
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/admin/system'))
+  })
+
+  it('opens an admin page for a platform administrator without an organization', async () => {
+    testState.organizations = []
+    server.use(endpoint('patch', '/Users', () => Response.json({ IsSuccess: true, StatusCode: 200, Data: [], TotalDataCount: 0 })))
+
+    await renderApp({ route: '/admin/users', userType: UserType.Manager, storedOrganization: false })
+
+    expect(await screen.findByRole('heading', { name: 'Kullanıcılar' })).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent('/admin/users')
+  })
+
   it('says access is gone when the remembered organization is no longer among the memberships', async () => {
     testState.organizations = []
 

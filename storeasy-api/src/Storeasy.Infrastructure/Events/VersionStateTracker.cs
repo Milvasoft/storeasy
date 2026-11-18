@@ -235,7 +235,7 @@ public sealed class VersionStateTracker(IStoreasyRepositoryBase<StoreApp> storeA
             AppId = storeApp.AppId,
             RelatedEntity = NotificationEntity.AppVersionState,
             RelatedEntityId = change.ExternalVersionId,
-            ActionLink = $"/apps/{storeApp.AppId}/release",
+            ActionLink = $"/apps/{storeApp.AppId}/release/versions",
             WebhookEventType = OrgWebhookEventTypes.VersionStateChanged,
             ActivityType = ActivityEventTypes.VersionStateChanged,
         }, cancellationToken);

@@ -18,7 +18,7 @@ describe('system status', () => {
     expect(dependencyView({ Configured: false }, platformTr).label).toBe('Ayarlı değil')
     expect(dependencyView({ Configured: true, Healthy: false }, platformTr).tone).toBe('danger')
     expect(dependencyView({ Configured: true, Healthy: true }, platformTr).tone).toBe('success')
-    expect(dependencyView({ Configured: true, Healthy: null }, platformTr).tone).toBe('warning')
+    expect(dependencyView({ Configured: true, Healthy: null }, platformTr)).toEqual({ label: platformTr.system.configured })
     expect(modeLabel(RegistrationMode.InviteOnly, platformTr)).toBe('Yalnız davetle')
   })
 

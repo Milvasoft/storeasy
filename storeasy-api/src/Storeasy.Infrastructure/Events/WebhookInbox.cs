@@ -196,7 +196,7 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
             Data = new { endpointId = endpoint.Id, eventId = webhookEvent.Id },
             RelatedEntity = NotificationEntity.WebhookEvent,
             RelatedEntityId = webhookEvent.Id.ToString(CultureInfo.InvariantCulture),
-            ActionLink = $"/webhooks/events/{webhookEvent.Id}",
+            ActionLink = $"/webhooks?event={webhookEvent.Id}",
         }, cancellationToken);
     }
 

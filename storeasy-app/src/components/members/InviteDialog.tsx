@@ -40,7 +40,7 @@ interface Created {
 
 /**
  * Inviting people (design 15.5-15.8): one request per address (the API takes one e-mail), the link of each invitation
- * shown once because e-mails are not sent yet, 409 per address keeps that address in the form, 429 counts down. The
+ * shown once (the API also e-mails it to the address), 409 per address keeps that address in the form, 429 counts down. The
  * organization's custom roles are offered next to the seeded ones; a role the inviter could not grant is disabled.
  */
 const DEFAULT_CHOICE = choiceValue(OrgRole.Editor)

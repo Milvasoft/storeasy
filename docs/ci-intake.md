@@ -124,7 +124,7 @@ payload (`storeasy.artifact-ready/v1`) with at least the download URL and the fi
 
 A downloaded file whose SHA-256 differs from the declared one is rejected. Both receivers take bodies up to 1 MiB and
 answer 202 with the session when they accept a package. The API also answers the same receivers at
-`/webhooks/eas/...` and `/webhooks/artifacts/...`, but the web container only proxies `/api`, so use the `/api` form.
+`/webhooks/eas/...` and `/webhooks/artifacts/...`; the web container proxies both forms.
 
 ## Checks
 

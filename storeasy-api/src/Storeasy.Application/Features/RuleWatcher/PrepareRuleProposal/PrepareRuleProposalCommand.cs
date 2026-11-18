@@ -3,8 +3,8 @@
 namespace Storeasy.Application.Features.RuleWatcher.PrepareRuleProposal;
 
 /// <summary>
-/// Writes the catalog side of a pending proposal: the rules it changes and the patch (what the MCP tool
-/// <c>rules_proposal_prepare</c> calls with the caller's token). Nothing is published until an admin approves.
+/// Writes the catalog side of a pending proposal: the rules it changes and the patch (<c>PUT rules/proposal/prepare</c>,
+/// platform admins only). Nothing is published until an admin approves.
 /// </summary>
 public record PrepareRuleProposalCommand : ICommand<int>
 {

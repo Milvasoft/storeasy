@@ -71,7 +71,8 @@ public class RuleWatcherController(IMediator mediator) : ControllerBase
     public Task<Response<RuleProposalDetailDto>> GetProposalAsync([FromQuery] GetRuleProposalDetailQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
-    /// Writes the catalog side of a proposal (MCP <c>rules_proposal_prepare</c>).
+    /// Writes the catalog side of a proposal (the rules it changes, the patch and a note); the proposal is then shown as
+    /// prepared by Claude. Platform admin only, so it is not an MCP tool (MCP tools are organization scoped).
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellation"></param>
