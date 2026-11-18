@@ -1,0 +1,176 @@
+# storeasy self-host stack (docs/self-host.md).
+#   cp .env.example .env   # fill in the values, see the generation commands in the file
+#   docker compose up -d --build
+#
+# One origin: the web container (nginx) serves the app and proxies /api, /hubs (WebSocket) and /mcp to the API.
+# Put a TLS terminating reverse proxy (Caddy, Traefik, nginx) in front of WEB_PORT and of S3_PORT. Nothing here
+# listens on a public interface by default (127.0.0.1 bindings).
+# Secrets come only from .env; this file holds no password or key.
+name: storeasy
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  postgres:
+    <<: *restart
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-storeasy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-storeasy}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+      start_period: 20s
+    networks: [storeasy]
+
+  redis:
+    <<: *restart
+    image: redis:7-alpine
+    # Cache, token revocation stamps, feature flags, rate limits and the SignalR backplane. Internal network only.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks: [storeasy]
+
+  # Writes the SeaweedFS S3 identity from .env into a volume, so no key is kept in a file next to this one.
+  seaweedfs-config:
+    image: chrislusf/seaweedfs:4.51
+    restart: "no"
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in .env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in .env}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        printf '{"identities":[{"name":"storeasy","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /config/s3.json
+    volumes:
+      - seaweedfs-config:/config
+    networks: [storeasy]
+
+  seaweedfs:
+    <<: *restart
+    image: chrislusf/seaweedfs:4.51
+    command: server -s3 -s3.config=/config/s3.json -dir=/data
+    # S3 API. Browsers and CI runners PUT files to presigned URLs on S3_PUBLIC_URL, so the reverse proxy must route
+    # that host to this port.
+    ports:
+      - "${S3_BIND:-127.0.0.1}:${S3_PORT:-8333}:8333"
+    volumes:
+      - seaweedfs-data:/data
+      - seaweedfs-config:/config:ro
+    depends_on:
+      seaweedfs-config:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 20s
+    networks: [storeasy]
+
+  # Creates the bucket once; exits when it exists.
+  seaweedfs-init:
+    image: chrislusf/seaweedfs:4.51
+    restart: "no"
+    environment:
+      S3_BUCKET: ${S3_BUCKET:-storeasy}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        until echo 's3.bucket.list' | weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888 | grep -q "$$S3_BUCKET";
+        do echo "s3.bucket.create -name $$S3_BUCKET" | weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888; sleep 2; done
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    networks: [storeasy]
+
+  storeasy-api:
+    <<: *restart
+    image: ${STOREASY_API_IMAGE:-storeasy-api:local}
+    # The build context is the repository root so the rules/ catalog is shipped inside the image.
+    build:
+      context: ..
+      dockerfile: storeasy-api/Dockerfile
+    environment:
+      # The image sets ASPNETCORE_ENVIRONMENT=Production and MILVA_ENV=prod.
+      ConnectionStrings__DefaultConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-storeasy};Username=${POSTGRES_USER:-storeasy};Password=${POSTGRES_PASSWORD}"
+      Milvasoft__Caching__Redis__ConnectionString: "redis:6379"
+      CacheKeys__Prefix: ${STOREASY_CACHE_PREFIX:-storeasy}
+      Milvasoft__Identity__Token__SymmetricPublicKey: ${STOREASY_TOKEN_KEY:?set STOREASY_TOKEN_KEY in .env}
+      Storeasy__Encryption__MasterKey: ${STOREASY_MASTER_KEY:?set STOREASY_MASTER_KEY in .env}
+      Storeasy__Encryption__KeyVersion: ${STOREASY_MASTER_KEY_VERSION:-1}
+      Storeasy__App__BaseUrl: ${STOREASY_BASE_URL:?set STOREASY_BASE_URL in .env}
+      Storeasy__Registration__Mode: ${STOREASY_REGISTRATION_MODE:-Open}
+      Storeasy__Email__Provider: ${STOREASY_EMAIL_PROVIDER:-Smtp}
+      Storeasy__Email__FromName: ${STOREASY_EMAIL_FROM_NAME:-storeasy}
+      Storeasy__Email__Smtp__Host: ${SMTP_HOST:-}
+      Storeasy__Email__Smtp__Port: ${SMTP_PORT:-587}
+      Storeasy__Email__Smtp__UserName: ${SMTP_USERNAME:-}
+      Storeasy__Email__Smtp__Password: ${SMTP_PASSWORD:-}
+      Storeasy__Email__Smtp__From: ${SMTP_FROM:-}
+      Storeasy__Email__Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
+      Storeasy__Email__Notifike__BaseUrl: ${NOTIFIKE_BASE_URL:-}
+      Storeasy__Email__Notifike__ApiKey: ${NOTIFIKE_API_KEY:-}
+      Storeasy__Jobs__Enabled: ${STOREASY_JOBS_ENABLED:-true}
+      Storeasy__Jobs__Workers: ${STOREASY_JOBS_WORKERS:-2}
+      Storage__S3__Bucket: ${S3_BUCKET:-storeasy}
+      Storage__S3__Region: ${S3_REGION:-us-east-1}
+      Storage__S3__AccessKey: ${S3_ACCESS_KEY}
+      Storage__S3__SecretKey: ${S3_SECRET_KEY}
+      Storage__S3__ServiceUrl: ${S3_PUBLIC_URL:?set S3_PUBLIC_URL in .env}
+      Storage__S3__ForcePathStyle: "true"
+      SeqUri: ${SEQ_URI:-}
+      OpenTelemetry__CollectorUrl: ${OTEL_COLLECTOR_URL:-}
+      # Optional: serve the rules catalog from a mounted folder instead of the copy in the image.
+      # Storeasy__Stores__RulesPath: /rules
+    # volumes:
+    #   - ../rules:/rules:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    networks: [storeasy]
+
+  storeasy-web:
+    <<: *restart
+    image: ${STOREASY_WEB_IMAGE:-storeasy-web:local}
+    build:
+      context: ../storeasy-app
+      args:
+        # AGPL-3.0 section 13: link to the source of the version you run. Empty: the upstream repository.
+        VITE_SOURCE_URL: ${STOREASY_SOURCE_URL:-}
+        VITE_APP_VERSION: ${STOREASY_VERSION:-}
+    environment:
+      STOREASY_API_UPSTREAM: http://storeasy-api:8080
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80"
+    depends_on:
+      - storeasy-api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      retries: 3
+    networks: [storeasy]
+
+networks:
+  storeasy:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  seaweedfs-data:
+  seaweedfs-config:

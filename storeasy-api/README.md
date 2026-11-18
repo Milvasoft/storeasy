@@ -1,6 +1,6 @@
 # Storeasy Api
 
-This document is a guide to what you need to know about the project.
+This document is a guide to what you need to know about the project. Running storeasy on a server: [docs/self-host.md](../docs/self-host.md); contributing: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Tech Stack
 

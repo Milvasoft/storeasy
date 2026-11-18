@@ -1,0 +1,34 @@
+name: Store rule change
+description: A store requirement in the rules catalog is missing, outdated or wrong.
+labels: [rules]
+body:
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store
+      options:
+        - App Store Connect
+        - Google Play
+        - Microsoft Store
+    validations:
+      required: true
+  - type: input
+    id: rule
+    attributes:
+      label: Rule id
+      description: Existing rule id from rules/*.json, or empty for a new rule.
+      placeholder: apple.screenshots.ipad-13
+  - type: textarea
+    id: change
+    attributes:
+      label: What changed
+      description: New values, dates or conditions.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Official source
+      description: Link to the store's own documentation or announcement (no third-party sites).
+    validations:
+      required: true
