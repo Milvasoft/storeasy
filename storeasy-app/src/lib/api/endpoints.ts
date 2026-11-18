@@ -96,6 +96,11 @@ export const systemApi = {
   // Anonymous: registration mode, Google sign in, the version and the web push public key.
   publicSettings: () => apiGet<PublicSettingsDto>('/System/public-settings', undefined, { auth: false }),
 
+  // Anonymous, single team only: creates the administrator and the team with the setup code from the API log and signs
+  // in (403 wrong code, 409 already set up).
+  completeSetup: (input: CompleteSetupInput) =>
+    apiPost<LoginResponseDto>('/System/setup', { ...input, DeviceId: getDeviceId() }, { auth: false }),
+
   // Every signed in user: whether each server side feature is on.
   featureFlags: () => apiGet<FeatureFlagStateDto[]>('/System/feature-flags'),
 }
@@ -103,6 +108,15 @@ export const systemApi = {
 /** A role choice as the member and invitation commands take it: a seeded role, or Custom with its id. */
 function roleFields(choice: RoleChoice) {
   return { Role: choice.role, CustomRoleId: choice.customRoleId }
+}
+
+export interface CompleteSetupInput {
+  SetupCode: string
+  Name: string
+  Surname?: string | null
+  Email: string
+  Password: string
+  OrganizationName: string
 }
 
 // ---- Account: registration and recovery -----------------------------------

@@ -335,6 +335,8 @@ export const platformEn = {
     registrationFromConfig: 'From the server configuration (Storeasy:Registration:Mode).',
     registrationSaved: 'Saved here; the configuration says {mode}.',
     registrationReadOnly: 'Changing the registration mode needs the SystemManagement.Settings permission.',
+    registrationSingleTeam:
+      'This server is used by a single team (Storeasy:Mode=SingleTeam): there is no sign-up, people join by invitation from Members.',
     current: 'Now',
     save: 'Save',
     cancel: 'Cancel',
@@ -697,6 +699,8 @@ export const platformTr: PlatformDictionary = {
     registrationFromConfig: 'Sunucu yapılandırmasından (Storeasy:Registration:Mode).',
     registrationSaved: 'Burada kaydedildi; yapılandırmadaki değer {mode}.',
     registrationReadOnly: 'Kayıt modunu değiştirmek için SystemManagement.Settings izni gerekir.',
+    registrationSingleTeam:
+      "Bu sunucuyu tek bir takım kullanıyor (Storeasy:Mode=SingleTeam): kayıt yok, kişiler Üyeler'den davetle katılır.",
     current: 'Şu an',
     save: 'Kaydet',
     cancel: 'Vazgeç',

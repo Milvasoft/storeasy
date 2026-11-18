@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, ChevronsUpDown, Plus, Settings } from 'lucide-react'
 import { CreateOrganizationForm } from '@/components/org/CreateOrganizationForm'
+import { useDeployment } from '@/features/access/publicSettings'
 import { Menu, type MenuEntry } from '@/components/ui/Menu'
 import { Modal } from '@/components/ui/Modal'
 import { foldSearch } from '@/components/ui/Select'
@@ -25,9 +26,23 @@ export function OrgSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const { organizations, current, switchTo } = useOrganization()
   const [creating, setCreating] = useState(false)
   const [query, setQuery] = useState('')
+  const { singleTeam } = useDeployment()
 
   if (!current) {
     return null
+  }
+
+  // A single team instance has one organization: the team's name, no switcher and no "new organization".
+  if (singleTeam) {
+    return (
+      <div className="orgsw" role="group" aria-label={interpolate(t.orgSwitcher.team, { name: current.Name })}>
+        <span className="oav">{initialOf(current.Name)}</span>
+        <span className="min-w-0 flex-1">
+          <b className="truncate">{current.Name}</b>
+          <small>{roleLabel(current.Role, t)}</small>
+        </span>
+      </div>
+    )
   }
 
   const needle = foldSearch(query.trim())

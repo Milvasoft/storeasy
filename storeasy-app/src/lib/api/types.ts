@@ -111,6 +111,11 @@ export type ExternalLoginProvider = (typeof ExternalLoginProvider)[keyof typeof 
 export const RegistrationMode = { Open: 1, InviteOnly: 2, Closed: 3 } as const
 export type RegistrationMode = (typeof RegistrationMode)[keyof typeof RegistrationMode]
 
+// Storeasy:Mode. SingleTeam: one team on its own instance (first run setup, one organization, no sign up). MultiTenant:
+// a hosted instance for many customers.
+export const DeploymentMode = { SingleTeam: 1, MultiTenant: 2 } as const
+export type DeploymentMode = (typeof DeploymentMode)[keyof typeof DeploymentMode]
+
 // The state of an invitation as its preview reports it.
 export const InvitationStatus = { Pending: 1, Expired: 2, Revoked: 3, Accepted: 4 } as const
 export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
@@ -199,6 +204,10 @@ export interface UpdateProfileInput {
 /** Anonymous: what the sign-in and registration screens need before anyone signs in. */
 export interface PublicSettingsDto {
   RegistrationMode: RegistrationMode
+  /** Missing on an older API: treated as multi tenant (today's behaviour). */
+  Mode?: DeploymentMode
+  /** True while a single team instance has no user: the first run setup replaces the sign-in. */
+  SetupRequired?: boolean
   GoogleSignInEnabled: boolean
   Version?: string | null
   /** The VAPID public key (base64url); null when web push is not configured. */
