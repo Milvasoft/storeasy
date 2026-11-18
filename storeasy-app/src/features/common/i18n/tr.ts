@@ -11,6 +11,7 @@ export const p2tr: P2Dictionary = {
     assisted: 'Asistanlı adımlar',
     compliance: 'Uyum',
     profile: 'Profil',
+    microsoft: 'Microsoft Store',
     store: 'Mağaza',
     noRecord: 'Bu uygulamanın {store} kaydı yok.',
     notForStore: 'Bu bölüm {store} için yok.',
@@ -576,6 +577,7 @@ export const p2tr: P2Dictionary = {
       bundleUpload: 'Paket yükleme',
       dataSafety: 'Data safety',
       submitForReview: 'İncelemeye gönderme',
+      msChange: 'Microsoft Store değişikliği',
     },
     assistedStatus: {
       todo: 'Yapılacak',
