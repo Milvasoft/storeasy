@@ -24,8 +24,10 @@ You need an App Store Connect API **team key**.
    request API access once.
 2. Under **Team Keys**, generate a key. Role: **App Manager**. It covers what storeasy does: app information and
    version texts, screenshots and previews, builds and export compliance, TestFlight, pricing and availability, age
-   rating, review information, submission and customer review replies. **Admin** is not needed; **Developer** is not
-   enough for metadata.
+   rating, review information, submission and customer review replies. **Developer** is not enough for metadata.
+   Checked live on 2026-11-18: an App Manager team key worked for metadata, screenshots, builds, age rating and
+   subscriptions (including review screenshots). Registering App Store Connect webhooks may need an **Admin** key (not
+   tested yet); everything else works with App Manager.
 3. Download the `.p8` file (Apple lets you download it once) and note the **Key ID** and the **Issuer ID** shown on the
    page.
 4. In storeasy, add an Apple connection with the issuer id, key id and the content of the `.p8` file, then verify it.
@@ -38,16 +40,20 @@ Apple does not let the API create apps: create the app record in App Store Conne
 You need a Google Cloud service account with a JSON key, invited to your Play Console account.
 
 1. In Google Cloud, pick or create a project, enable the **Google Play Android Developer API**, create a service
-   account and create a **JSON key** for it. If your organization policy blocks key creation
-   (`iam.disableServiceAccountKeyCreation`), allow it for this project.
-2. In Play Console, open **Users and permissions > Invite new users**, enter the service account e-mail and grant, per
-   app or for the account:
-   - view app information;
-   - edit the store listing, pricing and distribution;
-   - manage testing tracks and edit tester lists, and release to testing tracks;
-   - release to production (only if storeasy should release to production; storeasy still requires the Admin or Owner
-     role and a typed confirmation);
-   - reply to reviews.
+   account and create a **JSON key** for it. The service account needs **no Google Cloud roles**. If your organization
+   policy blocks key creation (`iam.disableServiceAccountKeyCreation`), allow it for this project.
+2. In Play Console, open **Users and permissions > Invite new users**, enter the service account e-mail and grant these
+   app permissions (the set checked live on 2026-11-18):
+   - **View app information and download bulk reports (read-only)**;
+   - **Release apps to testing tracks**;
+   - **Manage store presence**;
+   - **Reply to reviews**.
+
+   Play may add related permissions on its own (for example quality views and policy declarations); that is fine. Reads
+   work right away. Optional, off by default:
+   - **Release to production, exclude devices, and use Play App Signing**: only if storeasy should release to
+     production; storeasy still requires the Admin or Owner role and a typed confirmation;
+   - **View financial data**: only if you want storeasy to read sales and subscription reports.
 
    Play Console labels change over time; pick the closest match.
 3. In storeasy, add a Google connection with the content of the JSON key file, then verify it.
