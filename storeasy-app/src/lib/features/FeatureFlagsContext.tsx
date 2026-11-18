@@ -8,6 +8,8 @@ export type FeatureFlagKey =
   | 'Compliance'
   | 'Reviews'
   | 'Studio'
+  // The studio's AI caption suggestions (server kill switch Studio.AiCaptions, 503 when off).
+  | 'StudioAiCaptions'
   | 'Intake'
   | 'Webhooks'
   | 'Rules'
@@ -23,7 +25,8 @@ export type FeatureFlags = Record<FeatureFlagKey, boolean>
 export const DEFAULT_FLAGS: FeatureFlags = {
   Compliance: false,
   Reviews: false,
-  Studio: false,
+  Studio: true,
+  StudioAiCaptions: false,
   Intake: false,
   Webhooks: false,
   Rules: false,

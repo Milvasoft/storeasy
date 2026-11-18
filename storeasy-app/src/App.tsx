@@ -35,6 +35,7 @@ const AccountPage = lazyPage(() => import('@/pages/account/AccountPage'), 'Accou
 const SecurityPage = lazyPage(() => import('@/pages/account/AccountPage'), 'SecurityPage')
 const SectionPage = lazyPage(() => import('@/pages/SectionPages'), 'SectionPage')
 const PlatformPage = lazyPage(() => import('@/pages/SectionPages'), 'PlatformPage')
+const StudioRoutes = lazyPage(() => import('@/features/studio/StudioRoutes'), 'StudioRoutes')
 
 function Lazy({ children }: { children: JSX.Element }) {
   return <Suspense fallback={<BootScreen />}>{children}</Suspense>
@@ -186,7 +187,7 @@ export function App() {
         <Route path="/activity/plans" element={<ActivityPlansPage />} />
         <Route path="/reviews" element={<SectionPage section="reviews" />} />
         <Route path="/compliance" element={<SectionPage section="compliance" />} />
-        <Route path="/studio" element={<SectionPage section="studio" />} />
+        <Route path="/studio/*" element={<StudioRoutes />} />
         <Route path="/intake" element={<SectionPage section="intake" />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/webhooks" element={<SectionPage section="webhooks" />} />

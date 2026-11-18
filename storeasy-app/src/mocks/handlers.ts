@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse, type HttpHandler } from 'msw'
 import { appsMockHandlers } from './appsMock'
+import { studioMockHandlers } from './studioMock'
 import type { FilterCriteria, ListRequest } from '@/lib/api/list'
 import {
   ActionChannel,
@@ -314,6 +315,7 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.ConnectionVerified, `${connection?.Name} verified.`, connection?.Store ?? null)
     return envelope(connection)
   }),
+  ...studioMockHandlers,
   ...appsMockHandlers,
   http.delete(`${BASE}/StoreConnections/connection`, async ({ request }) => {
     const { ConnectionId } = await body<{ ConnectionId: number }>(request)
