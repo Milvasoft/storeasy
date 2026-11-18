@@ -13,7 +13,7 @@ namespace Storeasy.Api.Controllers;
 
 /// <summary>
 /// The caller's notification preferences (<c>account/preferences</c>): channels per notification kind, valid in every
-/// organization. Web push is stored for phase 8 and not sent yet.
+/// organization. Web push is sent to the browsers the caller subscribed (when the instance has a VAPID key pair).
 /// </summary>
 [ApiController]
 [Route(GlobalConstant.RouteBase + "/account")]

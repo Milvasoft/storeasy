@@ -549,13 +549,13 @@
         <member name="T:Storeasy.Api.Controllers.AccountPreferencesController">
             <summary>
             The caller's notification preferences (<c>account/preferences</c>): channels per notification kind, valid in every
-            organization. Web push is stored for phase 8 and not sent yet.
+            organization. Web push is sent to the browsers the caller subscribed (when the instance has a VAPID key pair).
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.AccountPreferencesController.#ctor(MediatR.IMediator)">
             <summary>
             The caller's notification preferences (<c>account/preferences</c>): channels per notification kind, valid in every
-            organization. Web push is stored for phase 8 and not sent yet.
+            organization. Web push is sent to the browsers the caller subscribed (when the instance has a VAPID key pair).
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.AccountPreferencesController.GetPreferencesAsync(System.Threading.CancellationToken)">
@@ -2423,7 +2423,8 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.RuleWatcherController.PrepareProposalAsync(Storeasy.Application.Features.RuleWatcher.PrepareRuleProposal.PrepareRuleProposalCommand,System.Threading.CancellationToken)">
             <summary>
-            Writes the catalog side of a proposal (MCP <c>rules_proposal_prepare</c>).
+            Writes the catalog side of a proposal (the rules it changes, the patch and a note); the proposal is then shown as
+            prepared by Claude. Platform admin only, so it is not an MCP tool (MCP tools are organization scoped).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>

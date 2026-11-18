@@ -32,13 +32,16 @@ browser / CI / MCP client
    /api/      -> storeasy-api:8080          | presigned PUT / GET (browsers, CI runners, the API)
    /hubs/     -> storeasy-api:8080 (WebSocket)
    /mcp       -> storeasy-api:8080 (streamable HTTP)
+   /webhooks/ -> storeasy-api:8080
+   /health/   -> storeasy-api:8080
                     |
           postgres:5432   redis:6379
 ```
 
-- **One origin.** The web container serves the app and proxies `/api`, `/hubs` and `/mcp` to the API, so there is no
-  CORS setup and one certificate for the app. Inbound webhooks (App Store Connect, EAS, signed webhooks) live under
-  `/api/webhooks/...` and pass the same way.
+- **One origin.** The web container serves the app and proxies `/api`, `/hubs`, `/mcp`, `/webhooks` and `/health` to
+  the API, so there is no CORS setup and one certificate for the app. Inbound webhooks (App Store Connect, EAS, signed
+  webhooks) live under `/api/webhooks/...` (the EAS and artifact receivers also under `/webhooks/...`) and pass the
+  same way.
 - **Files never pass through the API.** Uploads and downloads use presigned URLs on the S3 endpoint, so the S3 API needs
   its own public host name (for example `files.storeasy.example.com`).
 - **Background work runs inside the API**: the store job runner, the e-mail outbox sender, the web push sender, the
@@ -97,7 +100,11 @@ STOREASY_COMMIT=$(git rev-parse --short HEAD) docker compose up -d --build
 docker compose ps
 ```
 
-(`STOREASY_COMMIT` can also be set in `.env`; it is optional.)
+(`STOREASY_COMMIT` can also be set in `.env`; it is optional. Compose passes it to the API image build as the
+`STOREASY_COMMIT` build argument, which stamps it into the image as `Storeasy__Build__Commit` and the assembly's
+informational version, and also sets it at runtime. A prebuilt image keeps the commit it was built with when
+`STOREASY_COMMIT` is empty. Building the image by hand:
+`docker build -f storeasy-api/Dockerfile --build-arg STOREASY_COMMIT=$(git rev-parse --short HEAD) -t storeasy-api .`)
 
 Startup order: PostgreSQL and Redis become healthy, `seaweedfs-config` writes the S3 identity from `.env` into a
 volume, SeaweedFS starts, `seaweedfs-init` creates the bucket and exits, then the API starts and applies the database
@@ -369,7 +376,7 @@ AWS S3 works too: leave `ServiceUrl` empty, set the region, block public access 
 | `SeqUri` | `SEQ_URI` | empty | Seq server (`MILVA_ENV` `test` or `prod`). Empty disables Seq. |
 | `OpenTelemetry:CollectorUrl` | `OTEL_COLLECTOR_URL` | empty | OTLP gRPC endpoint for logs, metrics and traces (`prod`). Empty disables OpenTelemetry. |
 | `OpenTelemetry:ServiceName` | | `storeasy-api` | Service name in logs, metrics and traces. |
-| `Storeasy:Build:Commit` | `STOREASY_COMMIT` | empty | Source commit shown on the system status page. Empty: the commit stamped into the assembly version, if any (the Docker build stamps none). |
+| `Storeasy:Build:Commit` | `STOREASY_COMMIT` | empty | Source commit shown on the system status page. Empty: the commit stamped into the assembly version, if any (the Docker build stamps the `STOREASY_COMMIT` build argument). |
 
 With both `SeqUri` and `OpenTelemetry:CollectorUrl` empty in `prod`, logs go to the console
 (`docker compose logs storeasy-api`).
@@ -391,7 +398,7 @@ answers 503 from the next request on; a missing flag reads as on.
 | `VITE_SOURCE_URL` | build | "Source code" link in the footer and account menu (AGPL section 13). Empty: the upstream repository. In `.env`: `STOREASY_SOURCE_URL`. |
 | `VITE_APP_VERSION` | build | Version shown in the menu. In `.env`: `STOREASY_VERSION`. |
 | `VITE_API_URL` | build | API origin. Keep empty for the single origin setup. |
-| `STOREASY_API_UPSTREAM` | runtime | Where nginx proxies `/api`, `/hubs` and `/mcp` (default `http://storeasy-api:8080`). |
+| `STOREASY_API_UPSTREAM` | runtime | Where nginx proxies `/api`, `/hubs`, `/mcp`, `/webhooks` and `/health` (default `http://storeasy-api:8080`). |
 
 `VITE_*` values are baked into the image: changing one means `docker compose build storeasy-web`.
 
@@ -499,7 +506,7 @@ empty stack now and then to prove it works.
 |---|---|
 | `GET /api/v1.0/healthcheck` | Liveness: the process answers. Use this for restarts. |
 | `GET /api/v1.0/healthcheck/ready` | Readiness: 200 when PostgreSQL and Redis answer, 503 otherwise, with the state of each check. Do not restart on 503 (a Redis outage is not fixed by restarting the API). |
-| `GET /health/live`, `GET /health/ready` | The same two probes at the API's root, for orchestrators that reach the API container directly (port 8080). The web container does not proxy them (it answers with the app page), so through the web container use the `/api/v1.0/healthcheck` forms. |
+| `GET /health/live`, `GET /health/ready` | The same two probes at the API's root, for orchestrators that reach the API container directly (port 8080). The web container proxies them too. |
 | `GET /api/v1.0/system/status` | For the instance admin (admin area, **System**): version, commit, environment, PostgreSQL, Redis, object storage and mail provider (configured, healthy, latency), the SignalR backplane, whether the master key, Google sign in and web push are configured (yes or no only), job queues across organizations and e-mails waiting in the outbox. |
 
 The API image is chiseled (no shell), so it has no Docker `HEALTHCHECK`; watch it from your proxy or monitoring.
@@ -539,9 +546,6 @@ storeasy is licensed under AGPL-3.0-only (see [`LICENSE`](../LICENSE) and [`NOTI
   [connecting-stores.md](connecting-stores.md) were checked live.
 - The App Store Connect build upload path (`STOREASY_APPLE_UPLOAD_MODE=Api`) still needs one real build to confirm it;
   `External` is the fallback.
-- The web `Dockerfile` builds for `linux/arm64` (the upstream hosting runs on ARM). On an x86_64 server, either enable
-  arm64 emulation (`docker run --privileged --rm tonistiigi/binfmt --install arm64`) or build the web image without the
-  platform pin.
 - The API trusts exactly two forwarding hops. A CDN in front of your proxy adds a third hop; then client addresses in
   logs and per-address rate limits show the CDN.
 - The scheduled work of [section 11](#11-retention-and-scheduled-work) runs on every instance that has it enabled;

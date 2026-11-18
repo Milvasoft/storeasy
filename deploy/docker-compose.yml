@@ -2,7 +2,8 @@
 #   cp .env.example .env   # fill in the values, see the generation commands in the file
 #   docker compose up -d --build
 #
-# One origin: the web container (nginx) serves the app and proxies /api, /hubs (WebSocket) and /mcp to the API.
+# One origin: the web container (nginx) serves the app and proxies /api, /hubs (WebSocket), /mcp, /webhooks and /health
+# to the API.
 # Put a TLS terminating reverse proxy (Caddy, Traefik, nginx) in front of WEB_PORT and of S3_PORT. Nothing here
 # listens on a public interface by default (127.0.0.1 bindings).
 # Secrets come only from .env; this file holds no password or key.
@@ -102,6 +103,9 @@ services:
     build:
       context: ..
       dockerfile: storeasy-api/Dockerfile
+      args:
+        # Source commit stamped into the image (system status page); see docs/self-host.md.
+        STOREASY_COMMIT: ${STOREASY_COMMIT:-}
     environment:
       # The image sets ASPNETCORE_ENVIRONMENT=Production and MILVA_ENV=prod.
       ConnectionStrings__DefaultConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-storeasy};Username=${POSTGRES_USER:-storeasy};Password=${POSTGRES_PASSWORD}"
@@ -134,7 +138,7 @@ services:
       Storeasy__WebPush__Subject: ${STOREASY_WEBPUSH_SUBJECT:-mailto:admin@localhost}
       # Api: storeasy uploads IPAs to App Store Connect. External: the CI uploads, storeasy waits for the build.
       Storeasy__Intake__AppleUploadMode: ${STOREASY_APPLE_UPLOAD_MODE:-Api}
-      # Source commit shown on the system status page (the image build does not stamp one).
+      # Source commit shown on the system status page. Empty: the commit the image was built with (build arg above).
       Storeasy__Build__Commit: ${STOREASY_COMMIT:-}
       Storage__S3__Bucket: ${S3_BUCKET:-storeasy}
       Storage__S3__Region: ${S3_REGION:-us-east-1}
