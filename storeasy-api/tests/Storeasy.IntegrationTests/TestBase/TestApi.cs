@@ -16,7 +16,6 @@ using Storeasy.Infrastructure.Persistence.Context;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Storeasy.IntegrationTests.TestBase;
 
@@ -202,23 +201,6 @@ public static class TestApi
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         return client;
-    }
-
-    /// <summary>
-    /// Reads the bearer token the API documentation (Scalar) page hands out: the root user's, with its current stamp.
-    /// </summary>
-    /// <param name="client"></param>
-    /// <returns></returns>
-    public static async Task<string> GetDocumentationTokenAsync(this HttpClient client)
-    {
-        var html = await client.GetStringAsync($"{GlobalConstant.RoutePrefix}/documentation", TestContext.Current.CancellationToken);
-
-        var match = Regex.Match(html, "\"token\"\\s*:\\s*\"([^\"]+)\"");
-
-        if (!match.Success)
-            throw new InvalidOperationException("The documentation page carries no bearer token.");
-
-        return match.Groups[1].Value;
     }
 
     /// <summary>

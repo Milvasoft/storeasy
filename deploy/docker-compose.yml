@@ -107,7 +107,9 @@ services:
         # Source commit stamped into the image (system status page); see docs/self-host.md.
         STOREASY_COMMIT: ${STOREASY_COMMIT:-}
     environment:
-      # The image sets ASPNETCORE_ENVIRONMENT=Production and MILVA_ENV=prod.
+      # The image sets ASPNETCORE_ENVIRONMENT=Production and MILVA_ENV=prod. Keep prod: test and dev open the API
+      # documentation and the developer endpoints and must never run on a reachable host. Storeasy__Bootstrap__InitKey
+      # belongs only to the temporary initialization container of docs/self-host.md section 5, never to this file.
       ConnectionStrings__DefaultConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-storeasy};Username=${POSTGRES_USER:-storeasy};Password=${POSTGRES_PASSWORD}"
       Milvasoft__Caching__Redis__ConnectionString: "redis:6379"
       CacheKeys__Prefix: ${STOREASY_CACHE_PREFIX:-storeasy}

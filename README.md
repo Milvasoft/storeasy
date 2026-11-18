@@ -86,8 +86,10 @@ cp .env.example .env
 npm run dev
 ```
 
-Seed a development database from the API documentation page (`POST /api/v1.0/developer/database/seed`); see
-[storeasy-api/README.md](storeasy-api/README.md#5-initial-data). To run the web app without a backend:
+Initialize a development database with the bootstrap key (`POST /api/v1.0/developer/database/init`), sign in as
+`rootuser` and seed the development users (`POST /api/v1.0/developer/database/seed`); see
+[storeasy-api/README.md](storeasy-api/README.md#5-initial-data). The documentation and the developer endpoints are
+open only with `MILVA_ENV=dev` (the launch profiles set it); never run `dev` or `test` on a public host. To run the web app without a backend:
 `VITE_MOCK_API=true npm run dev`.
 
 To run storeasy on a server, follow [docs/self-host.md](docs/self-host.md).

@@ -1,9 +1,9 @@
 # REST API
 
 A short map of the storeasy REST surface. The full reference, with every request and response shape, is the API's
-OpenAPI document: `/api/docs/v1.0/docs.json`, browsable at `/api/documentation`. Both are served when `MILVA_ENV` is
-`dev` or `test` (a local run, or the temporary instance of [self-host.md](self-host.md#5-first-admin-and-first-account));
-production closes them. The calls the client tools rely on are pinned in [`tools/CONTRACT.md`](../tools/CONTRACT.md).
+OpenAPI document: `/api/docs/v1.0/docs.json`, browsable at `/api/documentation`. Both are served only when `MILVA_ENV`
+is exactly `dev` (a local run); `test`, `prod` and any other value close them (404). The page carries no token: sign in
+with `POST /api/v1.0/account/login` and paste the access token into the page. The calls the client tools rely on are pinned in [`tools/CONTRACT.md`](../tools/CONTRACT.md).
 
 ## Conventions
 
@@ -82,7 +82,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | | `system/status`, `system/settings`, `system/settings/registration-mode` | `SystemManagement.Status`, `SystemManagement.Settings` |
 | Platform admin | `users`, `roles`, `permissions`, `featureflags`, `languages`, `activitylogs`, `rules/sources`, `rules/proposals` | Platform permissions |
 | Health | `healthcheck`, `healthcheck/ready` (also `/health/live`, `/health/ready` at the API root) | Anonymous |
-| Developer | `developer/database/*` | Super admin; closed when `MILVA_ENV=prod` |
+| Developer | `developer/database/*`, `developer/export/*`, `developer/import/*` | Super admin; `developer/database/init` is anonymous with the bootstrap key header `X-Storeasy-Init-Key` ([self-host.md](self-host.md#5-first-admin-and-first-account)). Open only when `MILVA_ENV=dev` (404 otherwise) |
 
 Outgoing webhooks send these events, signed like the signed receiver (`X-Storeasy-Signature` over
 `<timestamp>.<body>`): `rejection.opened`, `rejection.closed`, `version.state_changed`, `review.received`,

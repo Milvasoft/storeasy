@@ -23786,7 +23786,7 @@
         </member>
         <member name="T:Storeasy.Application.Interfaces.IDeveloperService">
             <summary>
-            Developer service.
+            Developer service. Every operation runs only when <c>MILVA_ENV</c> is exactly <c>dev</c>.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Interfaces.IDeveloperService.ResetDatabaseAsync">
@@ -23811,7 +23811,8 @@
         </member>
         <member name="M:Storeasy.Application.Interfaces.IDeveloperService.InitDatabaseAsync">
             <summary>
-            Initial migration operation.
+            Initial migration operation. Also requires the configured bootstrap init key in the request's
+            <c>X-Storeasy-Init-Key</c> header and an uninitialized database; returns the generated root password once.
             </summary>
             <returns></returns>
         </member>
@@ -29191,9 +29192,10 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Storeasy.Application.Utils.Extensions.StoreasyExtensions.IsCurrentEnvProduction">
+        <member name="M:Storeasy.Application.Utils.Extensions.StoreasyExtensions.IsCurrentEnvDevelopment">
             <summary>
-            Checks if the current environment is production.
+            True only when <c>MILVA_ENV</c> is exactly <c>dev</c>. Developer features (the API documentation, the developer
+            endpoints) are allowed by this check alone: <c>test</c>, <c>prod</c>, an empty or an unknown value keeps them closed.
             </summary>
             <returns></returns>
         </member>
@@ -30935,6 +30937,39 @@
             <param name="path"></param>
             <param name="token"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.BootstrapOptions">
+            <summary>
+            Bootstrap settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.SectionName"/>, environment <c>Storeasy__Bootstrap__InitKey</c>),
+            bound once and registered as a singleton. Only the anonymous <c>developer/database/init</c> endpoint reads them.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.BootstrapOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.BootstrapOptions.InitKeyHeaderName">
+            <summary>
+            Request header that carries <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey"/>. It is never logged.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.BootstrapOptions.MinimumInitKeyLength">
+            <summary>
+            Shortest <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey"/> that enables database initialization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey">
+            <summary>
+            One-off secret that <c>developer/database/init</c> requires in <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.InitKeyHeaderName"/>. Empty (the default)
+            or shorter than <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.MinimumInitKeyLength"/> keeps the endpoint closed. Set it only on the temporary
+            <c>MILVA_ENV=dev</c> container that initializes a database, never keep it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.BootstrapOptions.IsInitKeyConfigured">
+            <summary>
+            True when <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey"/> is long enough to enable database initialization.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.BuildOptions">
             <summary>

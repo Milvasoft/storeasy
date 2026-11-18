@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
@@ -10,7 +11,9 @@ using Storeasy.Application.Utils.PermissionManager;
 namespace Storeasy.Api.Controllers;
 
 /// <summary>
-/// Developer endpoints. Every endpoint requires a super admin and is disabled in production.
+/// Developer endpoints. They run only when <c>MILVA_ENV</c> is exactly <c>dev</c> (404 in <c>test</c>, <c>prod</c> and any
+/// other value). Every endpoint requires a super admin, except <c>database/init</c>, which is anonymous and guarded by the
+/// bootstrap init key instead (see <see cref="InitDatabaseAsync"/>).
 /// </summary>
 [ApiController]
 [Route(GlobalConstant.FullRoute)]
@@ -29,12 +32,11 @@ public class DeveloperController(IDeveloperService developerService) : Controlle
     public Task<Response> MigrateAsync() => _developerService.ResetDatabaseAsync();
 
     /// <summary>
-    /// Seeds data for development purposes. Accepts the documentation token before the root user exists (no stamp check);
-    /// it seeds only an empty database ("Already seeded!" otherwise).
+    /// Seeds the development users and role (<c>admin</c>, <c>viewer</c>) into a database initialized with
+    /// <c>database/init</c>; call it with the root user's token ("Already seeded!" the second time).
     /// </summary>
     /// <returns></returns>
     [HttpPost("database/seed")]
-    [SkipSessionStampValidation]
     public Task<Response> SeedDataAsync() => _developerService.SeedDevelopmentDataAsync();
 
     /// <summary>
@@ -45,12 +47,15 @@ public class DeveloperController(IDeveloperService developerService) : Controlle
     public Task<Response> SeedFakeDataAsync(bool sameData = true, string locale = "tr") => _developerService.SeedFakeDataAsync(sameData, locale);
 
     /// <summary>
-    /// Initial migration operation. Accepts the documentation token before the root user exists (no stamp check);
-    /// it initializes only an uninitialized database ("Already initialized!" otherwise).
+    /// Initial migration operation; returns the generated root password once. Anonymous, and runs only when
+    /// <c>MILVA_ENV</c> is <c>dev</c>, <c>Storeasy:Bootstrap:InitKey</c> is configured (at least 32 characters; otherwise
+    /// 404), the request carries the same value in the <c>X-Storeasy-Init-Key</c> header (otherwise 401) and the database
+    /// is not initialized yet ("Already initialized!" otherwise). The header is never logged.
     /// </summary>
     /// <returns></returns>
     [HttpPost("database/init")]
-    [SkipSessionStampValidation]
+    [AllowAnonymous]
+    [RateLimit(5, 60, "developer-database-init")]
     public async Task<Response> InitDatabaseAsync() => await _developerService.InitDatabaseAsync();
 
     /// <summary>

@@ -6,6 +6,7 @@ using Milvasoft.Core.Helpers;
 using Milvasoft.Interception.Interceptors.ActivityScope;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.JsonModels;
 using Npgsql;
@@ -174,13 +175,14 @@ public class ExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFact
                          ex.ToString());
     }
 
-    // Headers that must never reach the logs (bearer tokens, session cookies, credentials).
+    // Headers that must never reach the logs (bearer tokens, session cookies, credentials, the bootstrap init key).
     private static readonly HashSet<string> _sensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
         "Authorization",
         "Proxy-Authorization",
         "Cookie",
-        "Set-Cookie"
+        "Set-Cookie",
+        BootstrapOptions.InitKeyHeaderName
     };
 
     /// <summary>

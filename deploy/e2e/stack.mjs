@@ -35,7 +35,12 @@ const compose = (...args) => [
 ]
 
 function docker(args, options = {}) {
-  return execFileSync('docker', args, { cwd: repo, stdio: options.capture ? 'pipe' : 'inherit', encoding: 'utf8' })
+  return execFileSync('docker', args, {
+    cwd: repo,
+    stdio: options.capture ? 'pipe' : 'inherit',
+    encoding: 'utf8',
+    env: options.env ? { ...process.env, ...options.env } : process.env,
+  })
 }
 
 function git(...args) {
@@ -85,23 +90,36 @@ async function waitFor(url, accept = (r) => r.ok, attempts = 120) {
   throw new Error(`${url} did not answer in time`)
 }
 
-// docs/self-host.md section 5: a temporary MILVA_ENV=dev instance of the same image serves the documentation page, whose
-// token is accepted by database/init before the root user exists.
+// docs/self-host.md section 5: a temporary MILVA_ENV=dev instance of the same image, bound to the loopback address, with
+// a bootstrap init key generated here at runtime. The key reaches the container through the docker process environment
+// (`-e NAME` without a value), so it never appears on a command line or in a file, and it dies with the container.
 async function initialize() {
   if (existsSync(rootPasswordFile)) return
   docker(compose('stop', 'storeasy-api'))
   const name = 'storeasy-e2e-init'
+  const initKey = randomBytes(32).toString('hex')
   docker(['rm', '-f', name], { capture: true })
-  docker(compose('run', '-d', '--name', name, '-e', 'MILVA_ENV=dev', '-p', `127.0.0.1:${initPort}:8080`, 'storeasy-api'), {
-    capture: true,
-  })
+  docker(
+    compose(
+      'run',
+      '-d',
+      '--name',
+      name,
+      '-e',
+      'MILVA_ENV=dev',
+      '-e',
+      'Storeasy__Bootstrap__InitKey',
+      '-p',
+      `127.0.0.1:${initPort}:8080`,
+      'storeasy-api',
+    ),
+    { capture: true, env: { Storeasy__Bootstrap__InitKey: initKey } },
+  )
   try {
-    const page = await (await waitFor(`http://127.0.0.1:${initPort}/api/documentation`)).text()
-    const token = page.match(/eyJ[\w-]+\.[\w-]+\.[\w-]+/)?.[0]
-    if (!token) throw new Error('No token on the documentation page')
+    await waitFor(`http://127.0.0.1:${initPort}/api/v1.0/healthcheck/ready`)
     const response = await fetch(`http://127.0.0.1:${initPort}/api/v1.0/developer/database/init`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 'X-Storeasy-Init-Key': initKey },
     })
     const body = await response.json()
     const password = body.data ?? body.Data

@@ -2895,13 +2895,17 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Services.DeveloperService">
             <summary>
-            Developer service.
+            Developer service. Every operation runs only when <c>MILVA_ENV</c> is exactly <c>dev</c>
+            (<see cref="M:Storeasy.Application.Utils.Extensions.StoreasyExtensions.IsCurrentEnvDevelopment"/>); in any other environment (<c>test</c>, <c>prod</c>, empty,
+            unknown) it answers <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PageNotFound"/>.
             </summary>
             <param name="serviceProvider"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.DeveloperService.#ctor(System.IServiceProvider)">
             <summary>
-            Developer service.
+            Developer service. Every operation runs only when <c>MILVA_ENV</c> is exactly <c>dev</c>
+            (<see cref="M:Storeasy.Application.Utils.Extensions.StoreasyExtensions.IsCurrentEnvDevelopment"/>); in any other environment (<c>test</c>, <c>prod</c>, empty,
+            unknown) it answers <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PageNotFound"/>.
             </summary>
             <param name="serviceProvider"></param>
         </member>
@@ -2920,7 +2924,10 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Services.DeveloperService.SeedDevelopmentDataAsync">
             <summary>
-            Seeds data for development purposes.
+            Seeds data for development purposes: the <c>Viewer</c> role and the <c>admin</c> and <c>viewer</c> users. The
+            endpoint needs a super admin token, so the database is normally initialized already (<c>database/init</c>, root
+            user with its generated password); only when the root user is missing are the defaults seeded here too, with
+            <see cref="F:Storeasy.Infrastructure.Services.DeveloperService.DevelopmentPassword"/> as the root password.
             </summary>
             <returns></returns>
         </member>
@@ -2934,7 +2941,11 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Services.DeveloperService.InitDatabaseAsync">
             <summary>
-            Initial migration operation.
+            Initial migration operation: seeds the root user and returns its generated password once. Runs only when all of
+            these hold: <c>MILVA_ENV</c> is <c>dev</c>, <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey"/> is configured (at least
+            <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.MinimumInitKeyLength"/> characters), the request carries it in
+            <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.InitKeyHeaderName"/> and the database is not initialized yet. The key is read from the
+            request here (never passed as an argument), so no interceptor or log ever sees it.
             </summary>
             <returns></returns>
         </member>
@@ -2948,6 +2959,15 @@
             <summary>
             Imports existing data.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.InitKeyMatches(System.String,System.String)">
+            <summary>
+            Compares the provided init key with the configured one in constant time. Both are hashed first, so neither the
+            content nor the length of the configured key leaks through the comparison time.
+            </summary>
+            <param name="providedKey"></param>
+            <param name="configuredKey"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.ExportService">
