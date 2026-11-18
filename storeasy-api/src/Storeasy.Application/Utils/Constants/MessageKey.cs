@@ -214,5 +214,22 @@ public static class MessageKey
     public const string ReadinessStepOpen = "Readiness.StepOpen";
     public const string ReadinessDeadline = "Readiness.Deadline";
     public const string ReadinessUnknown = "Readiness.Unknown";
+    public const string MockupTemplateNotFound = nameof(MockupTemplateNotFound);
+    public const string MockupTemplateNameExists = nameof(MockupTemplateNameExists);
+    public const string MockupTemplateChanged = nameof(MockupTemplateChanged);
+    public const string MockupSpecInvalid = nameof(MockupSpecInvalid);
+    public const string MockupLocaleInvalid = nameof(MockupLocaleInvalid);
+    public const string MockupClassUnknown = nameof(MockupClassUnknown);
+    public const string MockupSlotInvalid = nameof(MockupSlotInvalid);
+    public const string MockupAssetInvalid = nameof(MockupAssetInvalid);
+    public const string MockupStarterNotFound = nameof(MockupStarterNotFound);
+    public const string MockupNothingToExport = nameof(MockupNothingToExport);
+    public const string MockupExportNotFound = nameof(MockupExportNotFound);
+    public const string MockupExportNotReady = nameof(MockupExportNotReady);
+    public const string TitleTranslatorUnavailable = nameof(TitleTranslatorUnavailable);
+    public const string GlobalMockupTemplate = "Global.MockupTemplate";
+    public const string GlobalSlot = "Global.Slot";
+    public const string GlobalCaption = "Global.Caption";
+    public const string GlobalScreenshotClass = "Global.ScreenshotClass";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

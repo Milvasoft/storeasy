@@ -45,6 +45,21 @@ public sealed class FakeFileStorage : IFileStorage
     public Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken)
         => _contents.TryGetValue(key, out var content) ? Task.FromResult<Stream>(new MemoryStream(content, writable: false)) : throw new FileNotFoundException(key);
 
+    /// <summary>
+    /// Content of an object written with content, or null.
+    /// </summary>
+    public byte[] Content(string key) => _contents.TryGetValue(key, out var content) ? content : null;
+
+    /// <inheritdoc/>
+    public async Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken)
+    {
+        using var buffer = new MemoryStream();
+
+        await content.CopyToAsync(buffer, cancellationToken);
+
+        Put(key, buffer.ToArray(), contentType);
+    }
+
     /// <inheritdoc/>
     public string CreateUploadUrl(string key, string contentType, TimeSpan lifetime) => $"{BaseUrl}/{key}?op=put&type={Uri.EscapeDataString(contentType)}";
 

@@ -18,4 +18,11 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Apply a change plan")]
     ApplyChangePlan = 2,
+
+    /// <summary>
+    /// Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
+    /// studio's own band.
+    /// </summary>
+    [Description("Mockup export")]
+    MockupExport = 60,
 }
