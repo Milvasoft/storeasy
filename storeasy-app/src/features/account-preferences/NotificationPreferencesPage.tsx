@@ -11,12 +11,15 @@ import { notificationKeys } from '@/features/notifications/api'
 import { useNotificationsText } from '@/features/notifications/i18n'
 import { notificationTypeDescription, notificationTypeLabel } from '@/features/notifications/labels'
 import type { NotificationPreferenceDto, NotificationType } from '@/features/notifications/types'
+import { useAccessText } from '@/features/access/i18n'
+import { PushCard } from '@/features/access/PushCard'
 import { preferencesApi } from './api'
 
-// Design 14.22: per kind, in-app and e-mail; saved on every switch (one PUT per kind), "Saved" next to the row. Locked
-// kinds (security and connections) cannot be turned off; web push waits for phase 8.
+// Design 14.22: per kind, in-app, e-mail and web push; saved on every switch (one PUT per kind), "Saved" next to the row.
+// Locked kinds (security and connections) keep in-app and e-mail on; web push stays a free choice. Web push reaches the
+// browsers turned on in the card above the table.
 
-type Channel = 'InApp' | 'Email'
+type Channel = 'InApp' | 'Email' | 'WebPush'
 
 /** The account tabs, with this page's tab (the account page draws the same row). */
 export function accountTabItems(t: { profile: string; security: string }, notifications: string) {
@@ -38,7 +41,7 @@ function PreferenceRow({ preference }: { preference: NotificationPreferenceDto }
         Kind: preference.Kind as NotificationType,
         InApp: change.InApp ?? preference.InApp,
         Email: change.Email ?? preference.Email,
-        WebPush: preference.WebPush,
+        WebPush: change.WebPush ?? preference.WebPush,
       }),
     onSuccess: (updated) => {
       queryClient.setQueryData<NotificationPreferenceDto[]>(notificationKeys.preferences(), (list) =>
@@ -82,9 +85,9 @@ function PreferenceRow({ preference }: { preference: NotificationPreferenceDto }
       <td data-l={t.prefs.webPush}>
         <Switch
           checked={preference.WebPush}
-          disabled
+          disabled={save.isPending}
           label={interpolate(t.prefs.switchOf, { channel: t.prefs.webPush, kind })}
-          onChange={() => undefined}
+          onChange={(value) => save.mutate({ WebPush: value })}
         />
       </td>
       <td className="ta text-xs text-success" aria-live="polite">
@@ -97,6 +100,7 @@ function PreferenceRow({ preference }: { preference: NotificationPreferenceDto }
 /** /account/notifications. */
 export function NotificationPreferencesPage() {
   const t = useNotificationsText()
+  const access = useAccessText()
   const base = useT()
   const preferences = useQuery({
     queryKey: notificationKeys.preferences(),
@@ -111,6 +115,7 @@ export function NotificationPreferencesPage() {
           <h2 className="h3">{t.prefs.title}</h2>
           <p className="text-[13px] text-fg2">{t.prefs.subtitle}</p>
         </div>
+        <PushCard />
         {preferences.isLoading ? (
           <CardSkeleton count={1} />
         ) : preferences.isError ? (
@@ -125,7 +130,7 @@ export function NotificationPreferencesPage() {
                   <th scope="col">{t.prefs.inApp}</th>
                   <th scope="col">{t.prefs.email}</th>
                   <th scope="col">
-                    {t.prefs.webPush} <span className="text-xs font-normal text-fg3">{t.prefs.webPushSoon}</span>
+                    {t.prefs.webPush} <span className="block text-xs font-normal text-fg3">{access.push.columnHint}</span>
                   </th>
                   <th scope="col">
                     <span className="sr-only">{t.prefs.saved}</span>

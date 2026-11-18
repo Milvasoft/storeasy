@@ -12,15 +12,18 @@ import { Select } from '@/components/ui/Select'
 import { Avatar, Button, EmptyState, IconButton, PageHeader, TableSkeleton } from '@/components/ui/primitives'
 import { foldSearch } from '@/components/ui/Select'
 import { organizationsApi } from '@/lib/api/endpoints'
-import { OrgPermission, OrgRole, type OrganizationInvitationDto, type OrganizationMemberDto } from '@/lib/api/types'
+import { OrgPermission, OrgRole, type OrganizationInvitationDto, type OrganizationMemberDto, type RoleChoice } from '@/lib/api/types'
 import { displayName, initialsOf, useAuth } from '@/lib/auth/AuthContext'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
-import { canAssign, canRemove, ROLES, roleDescription, roleLabel } from '@/lib/org/roles'
+import { canGrant, canRemoveMember, choiceValue, parseChoice, roleLabel, seededAccess } from '@/lib/org/roles'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
+import { useAccessText } from '@/features/access/i18n'
+import { MembersTabs } from '@/features/access/MembersTabs'
+import { accessOfHolder, actorAccess, choiceLabel, orgRoleKeys, roleChoices, roleOptions, useOrgRoles } from '@/features/access/roles'
 
 function memberName(member: OrganizationMemberDto): string {
   return displayName({ name: member.Name, surname: member.Surname, email: member.Email, userName: member.Email ?? '' })
@@ -32,6 +35,7 @@ function memberName(member: OrganizationMemberDto): string {
  */
 export function MembersPage() {
   const t = useT()
+  const access = useAccessText()
   const format = useFormat()
   const confirm = useConfirm()
   const navigate = useNavigate()
@@ -42,16 +46,23 @@ export function MembersPage() {
   const [inviting, setInviting] = useState(false)
   const [query, setQuery] = useState('')
   const manage = can(OrgPermission.ManageMembers)
-  const actor = organization.Role
+  const actor = actorAccess(organization)
 
   const members = useQuery({ queryKey: queryKeys.members.list(organization.Id), queryFn: () => organizationsApi.members(organization.Id) })
+  const roles = useOrgRoles(organization.Id, manage)
+
+  const choiceName = (choice: RoleChoice) => {
+    const role = roleChoices(roles.data).find((item) => choiceValue(item.Role, item.Id) === choiceValue(choice.role, choice.customRoleId))
+    return role ? choiceLabel(role, t) : roleLabel(choice.role, t)
+  }
 
   const changeRole = useMutation({
-    mutationFn: ({ member, role }: { member: OrganizationMemberDto; role: OrgRole }) =>
-      organizationsApi.changeRole(organization.Id, member.Id, role),
-    onSuccess: (_id, { member, role }) => {
-      showToast(interpolate(t.members.roleChanged, { name: memberName(member), role: roleLabel(role, t) }), 'success')
+    mutationFn: ({ member, choice }: { member: OrganizationMemberDto; choice: RoleChoice }) =>
+      organizationsApi.changeRole(organization.Id, member.Id, choice),
+    onSuccess: (_id, { member, choice }) => {
+      showToast(interpolate(t.members.roleChanged, { name: memberName(member), role: choiceName(choice) }), 'success')
       void queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
+      void queryClient.invalidateQueries({ queryKey: orgRoleKeys.all })
       if (member.UserId === user?.id) {
         void refetchOrganizations()
       }
@@ -86,23 +97,26 @@ export function MembersPage() {
   const rows = needle ? all.filter((member) => foldSearch(`${memberName(member)} ${member.Email ?? ''}`).includes(needle)) : all
   const invitations = members.data?.Invitations ?? null
 
-  const askRole = async (member: OrganizationMemberDto, role: OrgRole) => {
-    if (role === member.Role) {
+  const askRole = async (member: OrganizationMemberDto, value: string) => {
+    if (value === choiceValue(member.Role, member.CustomRoleId)) {
       return
     }
+    const choice = parseChoice(value)
     const self = member.UserId === user?.id
     const ok = await confirm({
       title: interpolate(t.members.roleConfirmTitle, { name: memberName(member) }),
       message: (
         <span className="grid gap-2">
-          <span>{interpolate(t.members.roleConfirmBody, { from: roleLabel(member.Role, t), to: roleLabel(role, t) })}</span>
+          <span>
+            {interpolate(t.members.roleConfirmBody, { from: roleLabel(member.Role, t, member.CustomRoleName), to: choiceName(choice) })}
+          </span>
           {self ? <b className="text-warningText">{t.members.selfDemote}</b> : null}
         </span>
       ),
       confirmLabel: t.members.changeRole,
     })
     if (ok) {
-      changeRole.mutate({ member, role })
+      changeRole.mutate({ member, choice })
     }
   }
 
@@ -154,34 +168,33 @@ export function MembersPage() {
       cell: (member) => {
         // The only owner cannot step down (OrganizationLastOwner, design 15.1).
         const lastOwner = member.Role === OrgRole.Owner && ownerCount <= 1
-        const editable = manage && !lastOwner && canAssign(actor, member.Role, member.Role === OrgRole.Owner ? OrgRole.Admin : member.Role)
+        const current = accessOfHolder(member, roles.data)
+        const editable =
+          manage && !lastOwner && canGrant(actor, current, member.Role === OrgRole.Owner ? seededAccess(OrgRole.Admin) : current)
         if (!editable) {
           const reason =
-            member.Role === OrgRole.Owner && actor === OrgRole.Admin
+            member.Role === OrgRole.Owner && actor.role !== OrgRole.Owner && manage
               ? t.members.ownerLocked
               : lastOwner && manage
                 ? t.members.lastOwner
                 : null
           return (
             <span className="grid">
-              <span>{roleLabel(member.Role, t)}</span>
+              <span>{roleLabel(member.Role, t, member.CustomRoleName)}</span>
               {reason ? <span className="text-xs text-fg3">{reason}</span> : null}
             </span>
           )
         }
         return (
-          <span className="block w-40">
-            <Select
+          <span className="block w-44">
+            <Select<string>
               aria-label={interpolate(t.members.roleOf, { name: memberName(member) })}
-              value={member.Role}
-              onChange={(role) => void askRole(member, role)}
+              value={choiceValue(member.Role, member.CustomRoleId)}
+              onChange={(value) => void askRole(member, value)}
               disabled={changeRole.isPending}
-              options={ROLES.map((role) => ({
-                value: role,
-                label: roleLabel(role, t),
-                description: roleDescription(role, t),
-                disabled: !canAssign(actor, member.Role, role),
-                disabledReason: t.members.ownerOnlyOwner,
+              options={roleOptions(roles.data, actor, current, t, { ownerAllowed: true }).map((option) => ({
+                ...option,
+                disabledReason: option.value === choiceValue(OrgRole.Owner) ? t.members.ownerOnlyOwner : access.roles.notHeld,
               }))}
             />
           </span>
@@ -200,7 +213,7 @@ export function MembersPage() {
       role: 'action',
       cell: (member) => {
         const self = member.UserId === user?.id
-        if (!self && !(manage && canRemove(actor, member.Role))) {
+        if (!self && !(manage && canRemoveMember(actor, accessOfHolder(member, roles.data)))) {
           return null
         }
         return (
@@ -236,7 +249,7 @@ export function MembersPage() {
 
   const invitationColumns: Column<OrganizationInvitationDto>[] = [
     { key: 'email', header: t.fields.email, role: 'main', cell: (invitation) => <b className="break-all">{invitation.Email}</b> },
-    { key: 'role', header: t.members.role, cell: (invitation) => roleLabel(invitation.Role, t) },
+    { key: 'role', header: t.members.role, cell: (invitation) => roleLabel(invitation.Role, t, invitation.CustomRoleName) },
     {
       key: 'expiry',
       header: t.members.expires,
@@ -298,6 +311,7 @@ export function MembersPage() {
         }
         actions={inviteButton}
       />
+      <MembersTabs members={members.data ? all.length : undefined} />
       {members.isLoading ? (
         <TableSkeleton columns={[t.members.member, t.members.role, t.members.joined]} rows={4} label={t.common.loading} />
       ) : members.isError ? (
@@ -352,7 +366,13 @@ export function MembersPage() {
         </div>
       )}
       {manage ? (
-        <InviteDialog open={inviting} onClose={() => setInviting(false)} organizationId={organization.Id} actorRole={actor} />
+        <InviteDialog
+          open={inviting}
+          onClose={() => setInviting(false)}
+          organizationId={organization.Id}
+          actor={actor}
+          roles={roles.data}
+        />
       ) : null}
     </>
   )

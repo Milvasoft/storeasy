@@ -28,6 +28,8 @@ const AssistedStepPage = lazyPage(() => import('@/features/assisted/AssistedPage
 const PlansPage = lazyPage(() => import('@/features/plans/PlansPages'), 'PlansPage')
 const PlanDetailPage = lazyPage(() => import('@/features/plans/PlansPages'), 'PlanDetailPage')
 const RulesPage = lazyPage(() => import('@/features/rules/RulesPage'), 'RulesPage')
+// Phase 8: the organization's custom roles.
+const OrgRolesPage = lazyPage(() => import('@/features/access/OrgRolesPage'), 'OrgRolesPage')
 // Phase 7: subscriptions, In-App Purchases and purchase settings.
 const SubscriptionsPage = lazyPage(() => import('@/features/monetization/SubscriptionsPage'), 'SubscriptionsPage')
 const SubscriptionDetailPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'SubscriptionDetailPage')
@@ -110,6 +112,7 @@ export function contentRoutes() {
       <Route path="/activity/plans" element={<PlansPage />} />
       <Route path="/activity/plans/:planId" element={<PlanDetailPage />} />
       <Route path="/compliance" element={<OrgCompliancePage />} />
+      <Route path="/members/roles" element={<OrgRolesPage />} />
       <Route path="/rules" element={<RulesPage />} />
       <Route path="/rules/:ruleId" element={<RulesPage />} />
       <Route path="/apps/:appId/money/subscriptions" element={<SubscriptionsPage />} />

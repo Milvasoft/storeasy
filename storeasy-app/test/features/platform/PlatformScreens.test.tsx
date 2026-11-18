@@ -103,7 +103,11 @@ describe('FeatureFlagsPage', () => {
   it('builds the command from the changed fields only', () => {
     const flag = { Id: 1, Key: 'Export', IsEnabled: true, Reason: null }
     expect(flagCommand(flag, true, '')).toBeNull()
-    expect(flagCommand(flag, false, ' Kota ')).toEqual({ Id: 1, IsEnabled: { Value: false, IsUpdated: true }, Reason: { Value: 'Kota', IsUpdated: true } })
+    expect(flagCommand(flag, false, ' Kota ')).toEqual({
+      Id: 1,
+      IsEnabled: { Value: false, IsUpdated: true },
+      Reason: { Value: 'Kota', IsUpdated: true },
+    })
   })
 
   it('lists the flags with their state and reason', async () => {
@@ -128,11 +132,13 @@ describe('FeatureFlagsPage', () => {
     expect(within(confirm).getByText('Gerekçe: Depolama taşınıyor')).toBeInTheDocument()
     await user.click(within(confirm).getByRole('button', { name: 'Özelliği kapat' }))
 
-    await expect.poll(() => lastRequestTo('/FeatureFlags/featureFlag')?.body).toEqual({
-      Id: 1,
-      IsEnabled: { Value: false, IsUpdated: true },
-      Reason: { Value: 'Depolama taşınıyor', IsUpdated: true },
-    })
+    await expect
+      .poll(() => lastRequestTo('/FeatureFlags/featureFlag')?.body)
+      .toEqual({
+        Id: 1,
+        IsEnabled: { Value: false, IsUpdated: true },
+        Reason: { Value: 'Depolama taşınıyor', IsUpdated: true },
+      })
     expect(await screen.findByText('Excel dışa aktarma kaydedildi.')).toBeInTheDocument()
   })
 
@@ -142,11 +148,13 @@ describe('FeatureFlagsPage', () => {
     await user.click(await screen.findByRole('switch', { name: 'Yapay zekâ başlık önerileri açık' }))
     await user.click(screen.getByRole('button', { name: 'Kaydet' }))
 
-    await expect.poll(() => lastRequestTo('/FeatureFlags/featureFlag')?.body).toEqual({
-      Id: 2,
-      IsEnabled: { Value: true, IsUpdated: true },
-      Reason: { Value: null, IsUpdated: true },
-    })
+    await expect
+      .poll(() => lastRequestTo('/FeatureFlags/featureFlag')?.body)
+      .toEqual({
+        Id: 2,
+        IsEnabled: { Value: true, IsUpdated: true },
+        Reason: { Value: null, IsUpdated: true },
+      })
   })
 
   it('puts a row back with cancel', async () => {
@@ -175,18 +183,19 @@ describe('SystemPage', () => {
     expect(healthView(undefined, platformTr).label).toBe('Ulaşılamıyor')
   })
 
-  it('shows the probes, the dependencies, the versions and the registration mode note', async () => {
+  it('shows the probes, the dependencies, the versions and the registration mode', async () => {
     renderWithProviders(<SystemPage />, MANAGER)
 
-    expect(await screen.findByText('Hazırlık yoklaması 42 ms · 30 saniyede bir yenilenir')).toBeInTheDocument()
+    expect(await screen.findByText(/^Hazırlık yoklaması 42 ms · Durum .* kontrol edildi · 30 saniyede bir yenilenir$/)).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Canlılık' })).toHaveTextContent('Ok')
     const checks = screen.getByRole('region', { name: 'Bağımlılıklar' })
     expect(within(checks).getByText('PostgreSQL')).toBeInTheDocument()
     expect(within(checks).getByText('Redis')).toBeInTheDocument()
     expect(screen.getByText('v9.9.9-test')).toBeInTheDocument()
     expect(await screen.findByText(/v1\.3\.0 · 84 kural/)).toBeInTheDocument()
-    expect(screen.getByText(/API kayıt modunu henüz bildirmiyor/)).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: /Yalnız davetle/ })).toBeDisabled()
+    expect(screen.getByText('v1.4.2 · commit 3f9c2ab')).toBeInTheDocument()
+    expect(await screen.findByRole('radio', { name: /Açık · Şu an/ })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /Yalnız davetle/ })).toBeEnabled()
   })
 
   it('shows a not ready probe without breaking the rest of the screen', async () => {

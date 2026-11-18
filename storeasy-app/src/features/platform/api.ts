@@ -7,9 +7,12 @@ import type {
   FeatureFlagListDto,
   LanguageDto,
   PermissionListDto,
+  PlatformRuleCatalogDto,
   ReadinessReport,
   RoleDetailDto,
   RoleListDto,
+  SystemSettingsDto,
+  SystemStatusDto,
   UpdateFeatureFlagCommand,
   UpdateLanguageCommand,
   UpdateRoleCommand,
@@ -17,6 +20,7 @@ import type {
   UserDetailDto,
   UserListDto,
 } from './types'
+import type { RegistrationMode } from '@/lib/api/types'
 
 // storeasy-api UsersController, RolesController, PermissionsController, ActivityLogsController, LanguagesController,
 // FeatureFlagsController (api/v1.0/<controller>, Manager user type + the global permission of each action) and the
@@ -50,6 +54,16 @@ export const platformApi = {
   // Liveness answers the plain text "Ok"; readiness answers its report with 200 or 503.
   live: () => apiProbe<string>('/HealthCheck'),
   ready: () => apiProbe<ReadinessReport>('/HealthCheck/ready'),
+
+  // SystemController: dependencies, job queues and optional features (SystemManagement.Status).
+  status: () => apiGet<SystemStatusDto>('/System/status'),
+  // The registration mode in force and where it comes from (SystemManagement.Settings).
+  settings: () => apiGet<SystemSettingsDto>('/System/settings'),
+  // Overrides Storeasy:Registration:Mode; null returns to the configured one. Answers the mode now in force.
+  updateRegistrationMode: (mode: RegistrationMode | null) => apiPut<RegistrationMode>('/System/settings/registration-mode', { Mode: mode }),
+
+  // The loaded rules catalog without an organization (RuleCatalogManagement.List).
+  ruleCatalog: () => apiGet<PlatformRuleCatalogDto>('/Rules/platform-catalog'),
 }
 
 export const platformKeys = {
@@ -63,4 +77,7 @@ export const platformKeys = {
   languages: () => ['platform', 'languages'] as const,
   featureFlags: () => ['platform', 'feature-flags'] as const,
   health: () => ['platform', 'health'] as const,
+  status: () => ['platform', 'status'] as const,
+  settings: () => ['platform', 'settings'] as const,
+  ruleCatalog: () => ['platform', 'rule-catalog'] as const,
 }

@@ -89,6 +89,28 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('post', '/Account/logout', () => json(envelope(null))),
   endpoint('get', '/Account/detail', () => json(envelope(testState.account))),
   endpoint('put', '/Account/password/change', () => json(envelope(null))),
+  endpoint('post', '/Account/login/google/start', () =>
+    json(envelope({ AuthorizationUrl: 'https://accounts.google.test/o/oauth2/v2/auth?state=google-state', State: 'google-state' })),
+  ),
+  endpoint('post', '/Account/login/google', ({ body }) => {
+    const input = body as { State?: string } | null
+    if (input?.State === 'used-state') {
+      return errorResponse('GoogleSignInStateInvalid', 'Google ile giriş isteği geçersiz ya da süresi dolmuş.', 400)
+    }
+    return json(envelope(loginResponse()))
+  }),
+  endpoint('put', '/Account/profile', () => json(envelope(testState.account.Id))),
+  endpoint('get', '/Account/sessions', () => json(envelope(testState.sessions))),
+  endpoint('delete', '/Account/session', ({ body }) => json(envelope((body as { Id: number }).Id))),
+  endpoint('delete', '/Account/sessions/others', () => json(envelope(testState.sessions.filter((session) => !session.IsCurrent).length))),
+  endpoint('get', '/Account/push/subscriptions', () => json(envelope(testState.pushSubscriptions))),
+  endpoint('post', '/Account/push/subscription', () => json(envelope(91))),
+  endpoint('delete', '/Account/push/subscription', () => json(envelope(91))),
+  endpoint('post', '/Account/push/test', () => json(envelope(testState.pushSubscriptions.length))),
+
+  // ---- system -------------------------------------------------------------
+  endpoint('get', '/System/public-settings', () => json(envelope(testState.publicSettings))),
+  endpoint('get', '/System/feature-flags', () => json(envelope(testState.featureFlags))),
 
   // ---- account: registration and recovery ---------------------------------
   endpoint('post', '/Account/register', () => json(envelope(TEST_NEW_USER_ID))),
@@ -106,6 +128,17 @@ export const defaultHandlers: HttpHandler[] = [
     json(envelope({ Id: 77, Token: `token-for-${(body as { Email?: string }).Email}`, ExpiryDate: '2026-11-25T12:00:00Z' })),
   ),
   endpoint('delete', '/Organizations/invitation', () => json(envelope(31))),
+  endpoint('get', '/Organizations/invitation/preview', () =>
+    testState.invitationPreview
+      ? json(envelope(testState.invitationPreview))
+      : errorResponse('InvitationInvalid', 'Davet bulunamadı.', 404),
+  ),
+  endpoint('get', '/Organizations/roles', () => json(envelope(testState.orgRoles))),
+  endpoint('post', '/Organizations/role', () => json(envelope(14))),
+  endpoint('put', '/Organizations/role', ({ body }) => json(envelope((body as { RoleId: number }).RoleId))),
+  endpoint('delete', '/Organizations/role', ({ body }) => json(envelope((body as { RoleId: number }).RoleId))),
+  endpoint('get', '/Organizations/settings', () => json(envelope(testState.orgSettings))),
+  endpoint('put', '/Organizations/settings', () => json(envelope(testState.organizations[0]?.Id ?? 0))),
   endpoint('post', '/Organizations/invitation/accept', () => json(envelope(8))),
   endpoint('put', '/Organizations/member/role', () => json(envelope(2))),
   endpoint('delete', '/Organizations/member', () => json(envelope(2))),
@@ -122,7 +155,12 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('delete', '/StoreConnections/connection', () => json(envelope(11))),
 
   // ---- apps and builds ----------------------------------------------------
-  endpoint('patch', '/Apps', () => json(listEnvelope(testState.apps))),
+  endpoint('patch', '/Apps', ({ body }) => {
+    const store = (body as { Store?: number } | null)?.Store
+    return json(
+      listEnvelope(store ? testState.apps.filter((item) => item.Stores?.some((record) => record.Store === store)) : testState.apps),
+    )
+  }),
   endpoint('get', '/Apps/app', ({ url }) =>
     Number(url.searchParams.get('AppId')) === testState.appDetail.Id
       ? json(envelope(testState.appDetail))

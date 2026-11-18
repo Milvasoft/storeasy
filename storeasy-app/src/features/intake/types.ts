@@ -225,6 +225,8 @@ export interface ArtifactDeliveryOverride {
   Track?: string | null
   Group?: string | null
   Notes?: string | null
+  /** Read and check the package, then hold it until a member confirms the delivery (artifacts/session/deliver). */
+  HoldForConfirmation?: boolean
 }
 
 export interface OpenArtifactSessionInput {
@@ -355,4 +357,13 @@ export interface SaveArtifactSourceInput {
 export interface IntakeSettingsDto {
   ArtifactRetentionDays: number
   MaxArtifactBytes: number
+}
+
+/** GET artifacts/counts: a period (default the last 30 days) by status and by source. */
+export interface ArtifactCountsDto {
+  From: IsoDateTime
+  To: IsoDateTime
+  Total: number
+  ByStatus?: Array<{ Status: ArtifactSessionStatus; Count: number }> | null
+  BySource?: Array<{ Source: ArtifactSource; Count: number }> | null
 }

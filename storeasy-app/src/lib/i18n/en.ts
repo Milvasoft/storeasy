@@ -904,12 +904,14 @@ export const en = {
       admin: 'Admin',
       editor: 'Editor',
       viewer: 'Viewer',
+      custom: 'Custom role',
     },
     roleDescription: {
       owner: 'Everything, including ownership and deleting the organization',
       admin: 'Connections, members, production',
       editor: 'Content, test releases, review replies',
       viewer: 'View only',
+      custom: 'The permissions the organization picked',
     },
     store: {
       apple: 'App Store',

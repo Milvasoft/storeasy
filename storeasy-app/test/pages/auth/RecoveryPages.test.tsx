@@ -133,10 +133,10 @@ describe('VerifyEmail pages', () => {
 })
 
 describe('InvitePage', () => {
-  it('sends a guest to sign in or sign up, carrying the token', () => {
+  it('sends a guest to sign in or sign up, carrying the token', async () => {
     renderWithProviders(<InvitePage />, { authed: false, route: '/invite/tok-9', path: '/invite/:token' })
 
-    expect(screen.getByRole('link', { name: 'Giriş yap ve katıl' })).toHaveAttribute('href', '/login?returnUrl=%2Finvite%2Ftok-9')
+    expect(await screen.findByRole('link', { name: 'Giriş yap ve katıl' })).toHaveAttribute('href', '/login?returnUrl=%2Finvite%2Ftok-9')
     expect(screen.getByRole('link', { name: 'Hesap oluştur ve katıl' })).toHaveAttribute('href', '/register?invite=tok-9')
   })
 

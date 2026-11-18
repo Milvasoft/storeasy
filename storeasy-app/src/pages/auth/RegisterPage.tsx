@@ -14,6 +14,7 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { StorageKey, writeStorage } from '@/lib/utils/storage'
 import { emailError, passwordError, requiredError } from '@/lib/validation'
+import { GoogleSignInButton } from '@/features/access/GoogleSignIn'
 
 // MessageKey.EmailExists and the 403 keys of a closed or invite-only installation (Storeasy.Application MessageKey).
 export const EMAIL_EXISTS_KEY = 'User.ExistWithSameEmail'
@@ -186,6 +187,7 @@ export function RegisterPage() {
         <Button type="submit" variant="primary" size="lg" block loading={busy}>
           {t.register.submit}
         </Button>
+        <GoogleSignInButton invitationToken={invitationToken} />
         <p className="m-0 text-center text-[12.5px] text-fg2">
           {t.register.haveAccount}{' '}
           <Link className="lnk" to="/login">

@@ -30,6 +30,9 @@ export const PlatformPermission = {
   LanguageUpdate: 'LanguageManagement.Update',
   FeatureFlagList: 'FeatureFlagManagement.List',
   FeatureFlagUpdate: 'FeatureFlagManagement.Update',
+  RuleCatalogList: 'RuleCatalogManagement.List',
+  SystemStatus: 'SystemManagement.Status',
+  SystemSettings: 'SystemManagement.Settings',
 } as const
 
 // Every list asks for at most this many rows (GlobalConstant.MaxRowCount is 100); the role and permission pickers read

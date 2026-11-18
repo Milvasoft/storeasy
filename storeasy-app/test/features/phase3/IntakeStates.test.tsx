@@ -111,13 +111,18 @@ describe('intake states', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/intake\/sessions$/)
   })
 
-  it('counts held and rejected sessions on the overview', async () => {
-    const today = new Date().toISOString()
-    phase3State.sessions = [
-      sessionListItem({ Id: 1, Status: ArtifactSessionStatus.Held, StartDate: today }),
-      sessionListItem({ Id: 2, Status: ArtifactSessionStatus.Rejected, StartDate: today }),
-      sessionListItem({ Id: 3, Status: ArtifactSessionStatus.Delivered, StartDate: today, Source: ArtifactSource.Eas }),
-    ]
+  it('counts held and rejected sessions on the overview from artifacts/counts', async () => {
+    phase3State.counts = {
+      From: '2026-11-18T00:00:00Z',
+      To: '2026-11-18T12:00:00Z',
+      Total: 3,
+      ByStatus: [
+        { Status: ArtifactSessionStatus.Held, Count: 1 },
+        { Status: ArtifactSessionStatus.Rejected, Count: 1 },
+        { Status: ArtifactSessionStatus.Delivered, Count: 1 },
+      ],
+      BySource: [{ Source: ArtifactSource.Eas, Count: 1 }],
+    }
     phase3State.summary = [
       { AppId: 101, AppName: 'Pusula', LastSession: sessionListItem({ Status: ArtifactSessionStatus.Delivered }), Rules: [] },
       { AppId: 102, AppName: 'Mola', LastSession: null, Rules: [] },
@@ -126,7 +131,10 @@ describe('intake states', () => {
 
     expect((await screen.findAllByText('Kural yok')).length).toBeGreaterThan(0)
     expect(screen.getByText('Henüz paket yok')).toBeInTheDocument()
+    expect(await screen.findByText("EAS webhook'u 1")).toBeInTheDocument()
     expect(screen.getByText('Onay bekleyen').nextSibling).toHaveTextContent('1')
+    expect(screen.getByText('Bugün gelen paket').nextSibling).toHaveTextContent('3')
+    expect(requestsTo('/Artifacts/counts').map((request) => Object.keys(request.query).sort().join())).toContain('OrganizationId')
   })
 
   it('tells a viewer to ask an admin on the first open', async () => {

@@ -6,10 +6,10 @@ import { PasswordPolicy } from '@/components/auth/PasswordPolicy'
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 import { Badge } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
-import { Callout, FormErrors } from '@/components/ui/Feedback'
+import { FormErrors } from '@/components/ui/Feedback'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { SegmentedControl, Tabs } from '@/components/ui/Tabs'
-import { Avatar, Button, Field, Input, PageHeader, PasswordInput, Skeleton } from '@/components/ui/primitives'
+import { Avatar, Button, Field, PageHeader, PasswordInput, Skeleton } from '@/components/ui/primitives'
 import { authApi } from '@/lib/api/endpoints'
 import { ApiError, apiErrorMessage } from '@/lib/api/http'
 import { TEXT_LIMITS } from '@/lib/api/textLimits'
@@ -23,6 +23,7 @@ import { queryKeys } from '@/lib/query/keys'
 import { passwordError } from '@/lib/validation'
 import { accountTabItems } from '@/features/account-preferences/NotificationPreferencesPage'
 import { useNotificationsText } from '@/features/notifications/i18n'
+import { LinkedAccountsCard, ProfileForm, SessionsCard } from '@/features/access/AccountCards'
 
 function AccountTabs() {
   const { t } = useI18n()
@@ -30,7 +31,7 @@ function AccountTabs() {
   return <Tabs label={t.account.title} items={accountTabItems(t.account, notifications.prefs.tab)} />
 }
 
-/** Profile (design 16.3): read from account/detail. Editing the profile needs PUT account/profile (planned). */
+/** Profile (design 16.3): read from account/detail, saved with PUT account/profile (name, surname, language). */
 export function AccountPage() {
   const { t, lang, setLang } = useI18n()
   const { organizations } = useOrganization()
@@ -48,36 +49,21 @@ export function AccountPage() {
         <ScreenState error={detail.error} onRetry={() => void detail.refetch()} />
       ) : (
         <div className="grid max-w-3xl gap-5">
-          <section className="card">
-            <div className="card-h">
-              <h2 className="h3">{t.account.profile}</h2>
-            </div>
-            <div className="card-b grid gap-4">
-              {account ? (
-                <div className="flex items-center gap-3">
-                  <Avatar initials={initialsOf(name)} size="l" />
-                  <div className="min-w-0">
-                    <b className="block truncate text-[15px]">{name}</b>
-                    <span className="block truncate text-[13px] text-fg3">{account.Email}</span>
-                  </div>
+          {account ? (
+            <>
+              <div className="flex items-center gap-3">
+                <Avatar initials={initialsOf(name)} size="l" />
+                <div className="min-w-0">
+                  <b className="block truncate text-[15px]">{name}</b>
+                  <span className="block truncate text-[13px] text-fg3">{account.Email}</span>
                 </div>
-              ) : (
-                <Skeleton shape="b" className="w-64" />
-              )}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t.fields.name}>
-                  <Input value={account?.Name ?? ''} readOnly />
-                </Field>
-                <Field label={t.fields.surname}>
-                  <Input value={account?.Surname ?? ''} readOnly />
-                </Field>
               </div>
-              <Field label={t.fields.email}>
-                <Input value={account?.Email ?? ''} readOnly />
-              </Field>
-              <Callout tone="info">{t.account.profileComing}</Callout>
-            </div>
-          </section>
+              {/* Keyed by the saved values, so a refetch after saving resets the form. */}
+              <ProfileForm key={`${account.Name ?? ''}|${account.Surname ?? ''}|${account.PreferredLanguage ?? ''}`} account={account} />
+            </>
+          ) : (
+            <Skeleton shape="b" className="h-48 w-full" />
+          )}
           <section className="card">
             <div className="card-h">
               <h2 className="h3">{t.account.preferences}</h2>
@@ -124,7 +110,8 @@ export function AccountPage() {
 
 /**
  * Password and sessions (design 16.7, 18.19). Changing the password renews the security stamp: every session, this
- * one included, ends, and the sign-in screen says so. The session list waits for its endpoints.
+ * one included, ends, and the sign-in screen says so. The devices list (AccountSessions flag) signs out one device or
+ * every other one; linked accounts show the Google sign in.
  */
 export function SecurityPage() {
   const { t } = useI18n()
@@ -215,7 +202,9 @@ export function SecurityPage() {
             </Button>
           </div>
         </form>
-        {!sessionsEnabled ? (
+        {sessionsEnabled ? (
+          <SessionsCard />
+        ) : (
           <section className="card dash">
             <div className="card-h">
               <MonitorSmartphone className="h-4 w-4 text-fg3" aria-hidden />
@@ -224,7 +213,8 @@ export function SecurityPage() {
             </div>
             <p className="card-b m-0 text-[13px] text-fg2">{t.security.sessionsBody}</p>
           </section>
-        ) : null}
+        )}
+        <LinkedAccountsCard />
       </div>
     </>
   )

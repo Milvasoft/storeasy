@@ -162,12 +162,13 @@ describe('NotificationPreferencesPage', () => {
     expect(screen.getByRole('switch', { name: 'E-posta: Yeni yorum' })).toHaveAttribute('aria-checked', 'true')
   })
 
-  it('keeps the required kinds and web push locked', async () => {
-    renderWithProviders(<NotificationPreferencesPage />)
+  it('keeps the required kinds locked and saves the web push channel', async () => {
+    const { user } = renderWithProviders(<NotificationPreferencesPage />)
 
     expect(await screen.findByRole('switch', { name: 'Uygulama içi: Güvenlik ve bağlantılar' })).toBeDisabled()
-    expect(screen.getByRole('switch', { name: 'Web push: Red' })).toBeDisabled()
+    await user.click(screen.getByRole('switch', { name: 'Web push: Red' }))
+    await expect.poll(() => lastRequestTo('/account/preferences')?.body).toMatchObject({ WebPush: true, InApp: true, Email: true })
     expect(screen.getByRole('link', { name: 'Bildirimler' })).toHaveAttribute('href', '/account/notifications')
-    expect(requestsTo('/account/preferences')).toHaveLength(1)
+    expect(requestsTo('/account/preferences').filter((request) => request.method === 'GET')).toHaveLength(1)
   })
 })

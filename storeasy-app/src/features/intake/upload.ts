@@ -21,9 +21,9 @@ export async function uploadArtifact(
   organizationId: number,
   appId: number,
   file: File,
-  options: UploadOptions & { notes?: string; onHashed?: () => void } = {},
+  options: UploadOptions & { notes?: string; hold?: boolean; onHashed?: () => void } = {},
 ): Promise<ArtifactUploadResult> {
-  const { onProgress, signal, notes, onHashed } = options
+  const { onProgress, signal, notes, hold, onHashed } = options
   const sha256 = await sha256Hex(file)
   onHashed?.()
   const session = await intakeApi.open(organizationId, appId, {
@@ -32,7 +32,9 @@ export async function uploadArtifact(
     Sha256: sha256,
     ContentType: file.type || 'application/octet-stream',
     Source: ArtifactSource.Manual,
-    Delivery: notes?.trim() ? { Notes: notes.trim() } : null,
+    // Held: read and checked, then waiting for a member to deliver it from the session (HoldForConfirmation).
+    Delivery:
+      notes?.trim() || hold ? { ...(notes?.trim() ? { Notes: notes.trim() } : {}), ...(hold ? { HoldForConfirmation: true } : {}) } : null,
   })
   if (session.Duplicate) {
     return { sessionId: session.SessionId, duplicate: true, originalSessionId: session.OriginalSessionId ?? null }

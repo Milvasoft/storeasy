@@ -1,6 +1,6 @@
 import { HttpResponse, type HttpHandler } from 'msw'
 import { beforeEach } from 'vitest'
-import { UserType } from '@/lib/api/types'
+import { RegistrationMode, UserType } from '@/lib/api/types'
 import {
   UserActivity,
   type ActivityLogListDto,
@@ -10,6 +10,8 @@ import {
   type ReadinessReport,
   type RoleDetailDto,
   type RoleListDto,
+  type SystemSettingsDto,
+  type SystemStatusDto,
   type UserDetailDto,
   type UserListDto,
 } from '@/features/platform/types'
@@ -53,12 +55,48 @@ function listRow(user: UserDetailDto): UserListDto {
 }
 
 export const PERMISSIONS: PermissionListDto[] = [
-  { Id: 1, Name: 'SuperAdmin', Description: 'Bütün sisteme erişim.', PermissionGroup: 'App', PermissionGroupDescription: 'Uygulama geneli' },
-  { Id: 2, Name: 'List', Description: 'Kullanıcı listeleme yetkisi.', PermissionGroup: 'UserManagement', PermissionGroupDescription: 'Kullanıcı yönetimi' },
-  { Id: 3, Name: 'Detail', Description: 'Kullanıcı detayını görme yetkisi.', PermissionGroup: 'UserManagement', PermissionGroupDescription: 'Kullanıcı yönetimi' },
-  { Id: 4, Name: 'Create', Description: 'Kullanıcı oluşturma yetkisi.', PermissionGroup: 'UserManagement', PermissionGroupDescription: 'Kullanıcı yönetimi' },
-  { Id: 5, Name: 'List', Description: 'Rol listeleme yetkisi.', PermissionGroup: 'RoleManagement', PermissionGroupDescription: 'Rol yönetimi' },
-  { Id: 6, Name: 'Approve', Description: 'Katalog önerisini onaylama.', PermissionGroup: 'RuleCatalogManagement', PermissionGroupDescription: 'Mağaza kuralları kataloğu' },
+  {
+    Id: 1,
+    Name: 'SuperAdmin',
+    Description: 'Bütün sisteme erişim.',
+    PermissionGroup: 'App',
+    PermissionGroupDescription: 'Uygulama geneli',
+  },
+  {
+    Id: 2,
+    Name: 'List',
+    Description: 'Kullanıcı listeleme yetkisi.',
+    PermissionGroup: 'UserManagement',
+    PermissionGroupDescription: 'Kullanıcı yönetimi',
+  },
+  {
+    Id: 3,
+    Name: 'Detail',
+    Description: 'Kullanıcı detayını görme yetkisi.',
+    PermissionGroup: 'UserManagement',
+    PermissionGroupDescription: 'Kullanıcı yönetimi',
+  },
+  {
+    Id: 4,
+    Name: 'Create',
+    Description: 'Kullanıcı oluşturma yetkisi.',
+    PermissionGroup: 'UserManagement',
+    PermissionGroupDescription: 'Kullanıcı yönetimi',
+  },
+  {
+    Id: 5,
+    Name: 'List',
+    Description: 'Rol listeleme yetkisi.',
+    PermissionGroup: 'RoleManagement',
+    PermissionGroupDescription: 'Rol yönetimi',
+  },
+  {
+    Id: 6,
+    Name: 'Approve',
+    Description: 'Katalog önerisini onaylama.',
+    PermissionGroup: 'RuleCatalogManagement',
+    PermissionGroupDescription: 'Mağaza kuralları kataloğu',
+  },
 ]
 
 export function role(overrides: Partial<RoleDetailDto> = {}): RoleDetailDto {
@@ -78,7 +116,14 @@ export function role(overrides: Partial<RoleDetailDto> = {}): RoleDetailDto {
 function initialState() {
   return {
     users: [
-      platformUser({ Id: 1, UserName: 'rootuser', Email: '', Name: 'Administrator', Surname: 'User', Roles: [{ Id: 1, Name: 'SuperAdmin' }] }),
+      platformUser({
+        Id: 1,
+        UserName: 'rootuser',
+        Email: '',
+        Name: 'Administrator',
+        Surname: 'User',
+        Roles: [{ Id: 1, Name: 'SuperAdmin' }],
+      }),
       platformUser({ Id: 7, UserName: 'deniz@kuzeylab.dev', Email: 'deniz@kuzeylab.dev', Name: 'Deniz', Surname: 'Arslan' }),
       platformUser({ IsLocked: true, LockoutEnd: '2026-11-18T14:27:00Z' }),
     ] as UserDetailDto[],
@@ -118,6 +163,27 @@ function initialState() {
       { Id: 1, Key: 'Export', IsEnabled: true, Reason: null },
       { Id: 2, Key: 'Studio.AiCaptions', IsEnabled: false, Reason: 'Sağlayıcı kotası doldu' },
     ] as FeatureFlagListDto[],
+    status: {
+      Version: '1.4.2',
+      Commit: '3f9c2ab',
+      Environment: 'Production',
+      CheckedAt: '2026-11-18T14:30:00Z',
+      Database: { Configured: true, Healthy: true, LatencyMs: 8, Provider: 'PostgreSQL', Error: null },
+      Redis: { Configured: true, Healthy: true, LatencyMs: 2, Provider: 'Redis', Error: null },
+      Storage: { Configured: true, Healthy: false, LatencyMs: null, Provider: 'S3', Error: 'Bucket storeasy-assets yanıt vermedi.' },
+      Mail: { Configured: false, Healthy: null, LatencyMs: null, Provider: null, Error: null },
+      SignalRBackplane: 'Redis',
+      EncryptionKeyConfigured: true,
+      GoogleSignInConfigured: false,
+      WebPushConfigured: true,
+      Jobs: { Queued: 3, Running: 2, SucceededLastDay: 41, FailedLastDay: 1, OldestQueuedDate: '2026-11-18T14:29:20Z' },
+      PendingEmails: 4,
+    } as SystemStatusDto,
+    settings: {
+      RegistrationMode: RegistrationMode.Open,
+      RegistrationModeSaved: false,
+      ConfiguredRegistrationMode: RegistrationMode.Open,
+    } as SystemSettingsDto,
     ready: {
       status: 200,
       body: {
@@ -139,7 +205,10 @@ export const platformHandlers: HttpHandler[] = [
     const user = platformState.users.find((item) => item.Id === Number(url.searchParams.get('UserId')))
     return user
       ? json(envelope(user))
-      : HttpResponse.json({ IsSuccess: false, StatusCode: 404, Messages: [{ Key: 'UserNotFound', Message: 'Kullanıcı bulunamadı.' }], Data: null }, { status: 404 })
+      : HttpResponse.json(
+          { IsSuccess: false, StatusCode: 404, Messages: [{ Key: 'UserNotFound', Message: 'Kullanıcı bulunamadı.' }], Data: null },
+          { status: 404 },
+        )
   }),
   endpoint('post', '/Users/user', () => json(envelope(31))),
   endpoint('put', '/Users/user', ({ body }) => json(envelope((body as { Id: number }).Id))),
@@ -147,7 +216,13 @@ export const platformHandlers: HttpHandler[] = [
   endpoint('patch', '/Roles', () => json(listEnvelope(platformState.roles))),
   endpoint('get', '/Roles/role', ({ url }) => {
     const id = Number(url.searchParams.get('RoleId'))
-    return json(envelope(id === 1 ? role({ Id: 1, Name: 'SuperAdmin', Permissions: [{ Id: 1, Name: 'SuperAdmin' }] }) : { ...platformState.roleDetail, Id: id }))
+    return json(
+      envelope(
+        id === 1
+          ? role({ Id: 1, Name: 'SuperAdmin', Permissions: [{ Id: 1, Name: 'SuperAdmin' }] })
+          : { ...platformState.roleDetail, Id: id },
+      ),
+    )
   }),
   endpoint('post', '/Roles/role', () => json(envelope(24))),
   endpoint('put', '/Roles/role', ({ body }) => json(envelope((body as { Id: number }).Id))),
@@ -160,7 +235,15 @@ export const platformHandlers: HttpHandler[] = [
   endpoint('put', '/FeatureFlags/featureFlag', ({ body }) => json(envelope((body as { Id: number }).Id))),
   endpoint('get', '/HealthCheck', () => new HttpResponse('Ok', { headers: { 'Content-Type': 'text/plain' } })),
   endpoint('get', '/HealthCheck/ready', () => HttpResponse.json(platformState.ready.body as never, { status: platformState.ready.status })),
-  endpoint('get', '/Rules/catalog', () => json(envelope({ Version: '1.3.0', PublishedDate: '2026-11-14T00:00:00Z', RuleCount: 84, Source: 'embedded' }))),
+  endpoint('get', '/System/status', () => json(envelope(platformState.status))),
+  endpoint('get', '/System/settings', () => json(envelope(platformState.settings))),
+  endpoint('put', '/System/settings/registration-mode', ({ body }) => {
+    const mode = (body as { Mode: RegistrationMode | null }).Mode
+    return json(envelope(mode ?? platformState.settings.ConfiguredRegistrationMode))
+  }),
+  endpoint('get', '/Rules/platform-catalog', () =>
+    json(envelope({ Catalog: { Version: '1.3.0', PublishedDate: '2026-11-14T00:00:00Z', RuleCount: 84, Source: 'embedded' }, Rules: [] })),
+  ),
 ]
 
 export function setupPlatformApi(): void {

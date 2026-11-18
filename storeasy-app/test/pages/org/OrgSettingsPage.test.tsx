@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { OrgSettingsPage } from '@/pages/org/OrgSettingsPage'
 import { organization, TEST_ORG_ID } from '../../support/factories'
@@ -19,7 +19,7 @@ describe('OrgSettingsPage short name', () => {
     expect(screen.getByText(/kuzey-lab ile başlayan paylaşılmış bağlantılar/)).toBeInTheDocument()
     expect(screen.getByText('1 değişiklik')).toBeInTheDocument()
     testState.organizations = [organization({ Slug: 'kuzey-labs' })]
-    await user.click(screen.getByRole('button', { name: 'Kaydet' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' }))
 
     await waitFor(() =>
       expect(lastRequestTo('/Organizations/organization')?.body).toEqual({
@@ -38,7 +38,7 @@ describe('OrgSettingsPage short name', () => {
     const slug = await screen.findByLabelText('Kısa ad')
     await user.clear(slug)
     await user.type(slug, 'mavi-atolye')
-    await user.click(screen.getByRole('button', { name: 'Kaydet' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' }))
 
     expect(await screen.findByText('Bu kısa ad kullanımda. Başka bir kısa ad seç; ad aynı kalabilir.')).toBeInTheDocument()
     expect(screen.getByText('mavi-atolye başka bir organizasyonda.')).toBeInTheDocument()
@@ -53,7 +53,7 @@ describe('OrgSettingsPage short name', () => {
     const slug = await screen.findByLabelText('Kısa ad')
     await user.clear(slug)
     await user.type(slug, 'ab')
-    await user.click(screen.getByRole('button', { name: 'Kaydet' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' }))
 
     expect(screen.getByText('En az 3 karakter: küçük harf, rakam ve tire.')).toBeInTheDocument()
     expect(requestsTo('/Organizations/organization')).toHaveLength(0)
@@ -64,10 +64,10 @@ describe('OrgSettingsPage short name', () => {
 
     const slug = await screen.findByLabelText('Kısa ad')
     await user.type(slug, '-x')
-    await user.click(screen.getByRole('button', { name: 'Vazgeç' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Vazgeç' }))
 
     expect(slug).toHaveValue('kuzey-lab')
-    expect(screen.getByRole('button', { name: 'Kaydet' })).toBeDisabled()
+    expect(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' })).toBeDisabled()
   })
 
   it('shows another refusal at the top of the form', async () => {
@@ -76,7 +76,7 @@ describe('OrgSettingsPage short name', () => {
 
     const name = await screen.findByLabelText('Ad')
     await user.type(name, ' 2')
-    await user.click(screen.getByRole('button', { name: 'Kaydet' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' }))
 
     expect(await screen.findByText('Yetkin yok.')).toBeInTheDocument()
   })

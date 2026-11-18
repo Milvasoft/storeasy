@@ -1,7 +1,8 @@
 // Platform administration contract (storeasy-api Storeasy.Application UserDtos, RoleDtos, PermissionDtos, ActivityLogDtos,
 // LanguageDtos, FeatureFlagDtos, the Users/Roles/Languages/FeatureFlags commands, HealthCheckController ReadinessReport and
 // the Storeasy.Domain enums). Every endpoint here carries [UserTypeAuth(UserType.Manager)] plus a global permission.
-import type { IsoDateTime, NameIntNavigationDto, UserType } from '@/lib/api/types'
+import type { IsoDateTime, NameIntNavigationDto, RegistrationMode, UserType } from '@/lib/api/types'
+import type { RuleCatalogInfoDto } from '@/features/common/types'
 
 // Seed records (Users, Roles, Permissions: Id 1-20) are protected by a database trigger: never editable (08 section 1.4).
 export const SEED_ID_LIMIT = 21
@@ -166,6 +167,10 @@ export interface FeatureFlagListDto {
   IsEnabled: boolean
   IsEnabledDescription?: string | null
   Reason?: string | null
+  /** What the feature is, in the request language. */
+  Description?: string | null
+  LastModifierUserName?: string | null
+  LastModificationDate?: IsoDateTime | null
 }
 
 export interface UpdateFeatureFlagCommand {
@@ -191,4 +196,56 @@ export interface ReadinessReport {
   Status: HealthState | string
   DurationMs: number
   Checks?: Record<string, ReadinessCheck> | null
+}
+
+// ---- System status and settings (SystemController) -------------------------------------------------------------------
+
+/** One dependency: whether it is configured, whether it answered, how fast; never a secret. */
+export interface DependencyStatusDto {
+  Configured: boolean
+  /** Null when it was not probed (not configured). */
+  Healthy?: boolean | null
+  LatencyMs?: number | null
+  Provider?: string | null
+  Error?: string | null
+}
+
+export interface JobQueueStatusDto {
+  Queued: number
+  Running: number
+  SucceededLastDay: number
+  FailedLastDay: number
+  OldestQueuedDate?: IsoDateTime | null
+}
+
+/** GET system/status (SystemManagement.Status). */
+export interface SystemStatusDto {
+  Version?: string | null
+  Commit?: string | null
+  Environment?: string | null
+  CheckedAt: IsoDateTime
+  Database: DependencyStatusDto
+  Redis: DependencyStatusDto
+  Storage: DependencyStatusDto
+  Mail: DependencyStatusDto
+  /** "Redis" or "None" (a single instance). */
+  SignalRBackplane?: string | null
+  EncryptionKeyConfigured: boolean
+  GoogleSignInConfigured: boolean
+  WebPushConfigured: boolean
+  Jobs: JobQueueStatusDto
+  PendingEmails: number
+}
+
+/** GET system/settings (SystemManagement.Settings): the mode in force, whether it was saved here, the configured one. */
+export interface SystemSettingsDto {
+  RegistrationMode: RegistrationMode
+  RegistrationModeSaved: boolean
+  ConfiguredRegistrationMode: RegistrationMode
+}
+
+/** GET rules/platform-catalog (RuleCatalogManagement.List): the loaded catalog without an organization. */
+export interface PlatformRuleCatalogDto {
+  Catalog: RuleCatalogInfoDto
+  Rules?: unknown[] | null
 }

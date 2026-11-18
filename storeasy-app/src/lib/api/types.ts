@@ -35,7 +35,8 @@ export interface ApiListResponse<T> {
 export const UserType = { Manager: 1, AppUser: 2 } as const
 export type UserType = (typeof UserType)[keyof typeof UserType]
 
-export const OrgRole = { Owner: 1, Admin: 2, Editor: 3, Viewer: 4 } as const
+// Custom (5): the member holds a role the organization defined (CustomRoleId); its permissions are its own set.
+export const OrgRole = { Owner: 1, Admin: 2, Editor: 3, Viewer: 4, Custom: 5 } as const
 export type OrgRole = (typeof OrgRole)[keyof typeof OrgRole]
 
 export const OrgPermission = {
@@ -103,6 +104,17 @@ export type AssetPurpose = (typeof AssetPurpose)[keyof typeof AssetPurpose]
 export const AssetStatus = { Pending: 1, Uploaded: 2, Rejected: 3 } as const
 export type AssetStatus = (typeof AssetStatus)[keyof typeof AssetStatus]
 
+export const ExternalLoginProvider = { Google: 1 } as const
+export type ExternalLoginProvider = (typeof ExternalLoginProvider)[keyof typeof ExternalLoginProvider]
+
+// Who may create an account on this instance (Storeasy:Registration:Mode, or the value a platform manager saved).
+export const RegistrationMode = { Open: 1, InviteOnly: 2, Closed: 3 } as const
+export type RegistrationMode = (typeof RegistrationMode)[keyof typeof RegistrationMode]
+
+// The state of an invitation as its preview reports it.
+export const InvitationStatus = { Pending: 1, Expired: 2, Revoked: 3, Accepted: 4 } as const
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
+
 // ---- Account ----
 
 export interface MilvaToken {
@@ -132,8 +144,71 @@ export interface AccountDetailDto {
   EmailConfirmed?: boolean | null
   Name?: string | null
   Surname?: string | null
+  UserType?: UserType | null
+  /** The interface language the user picked ("tr-TR"); null until one is saved. */
+  PreferredLanguage?: string | null
+  CreationDate?: IsoDateTime | null
   /** Platform roles (Manager users), not organization roles. */
   Roles?: NameIntNavigationDto[] | null
+  /** Platform permissions, "Group.Action", App.SuperAdmin already expanded to every permission. */
+  Permissions?: string[] | null
+  /** Identity providers linked to the account besides the password. */
+  ExternalLogins?: ExternalLoginProvider[] | null
+}
+
+export interface GoogleSignInStartDto {
+  AuthorizationUrl: string
+  State: string
+}
+
+/** A signed in device (a web session); tokens for MCP and the API are not sessions. */
+export interface AccountSessionDto {
+  Id: number
+  DeviceId?: string | null
+  UserAgent?: string | null
+  IpAddress?: string | null
+  LastSeenDate?: IsoDateTime | null
+  ExpiryDate: IsoDateTime
+  IsCurrent: boolean
+}
+
+export interface WebPushSubscriptionDto {
+  Id: number
+  PushServiceHost?: string | null
+  UserAgent?: string | null
+  CreationDate?: IsoDateTime | null
+  LastSuccessDate?: IsoDateTime | null
+}
+
+/** The browser's PushSubscription.toJSON() fields. */
+export interface SaveWebPushSubscriptionInput {
+  Endpoint: string
+  P256dh: string
+  Auth: string
+  UserAgent?: string | null
+}
+
+export interface UpdateProfileInput {
+  Name: string
+  Surname?: string | null
+  Language?: string | null
+}
+
+// ---- System ----
+
+/** Anonymous: what the sign-in and registration screens need before anyone signs in. */
+export interface PublicSettingsDto {
+  RegistrationMode: RegistrationMode
+  GoogleSignInEnabled: boolean
+  Version?: string | null
+  /** The VAPID public key (base64url); null when web push is not configured. */
+  WebPushPublicKey?: string | null
+}
+
+export interface FeatureFlagStateDto {
+  Key: string
+  IsEnabled: boolean
+  Description?: string | null
 }
 
 // ---- Organizations ----
@@ -143,6 +218,9 @@ export interface MyOrganizationDto {
   Name: string
   Slug: string
   Role: OrgRole
+  /** Set when Role is Custom. */
+  CustomRoleId?: number | null
+  CustomRoleName?: string | null
   Permissions: OrgPermission[]
 }
 
@@ -153,6 +231,8 @@ export interface OrganizationMemberDto {
   Name?: string | null
   Surname?: string | null
   Role: OrgRole
+  CustomRoleId?: number | null
+  CustomRoleName?: string | null
   JoinDate?: IsoDateTime | null
 }
 
@@ -160,8 +240,63 @@ export interface OrganizationInvitationDto {
   Id: number
   Email: string
   Role: OrgRole
+  CustomRoleId?: number | null
+  CustomRoleName?: string | null
+  InviterName?: string | null
   ExpiryDate: IsoDateTime
   CreationDate?: IsoDateTime | null
+}
+
+/** One role of the organization: the four locked seeded roles (Id null), then the custom roles. */
+export interface OrgRoleDto {
+  Id?: number | null
+  Role: OrgRole
+  Name: string
+  Description?: string | null
+  Permissions: OrgPermission[]
+  MemberCount: number
+  InvitationCount: number
+  IsLocked: boolean
+  CreationDate?: IsoDateTime | null
+}
+
+export interface OrganizationRoleInput {
+  Name: string
+  Description?: string | null
+  Permissions: OrgPermission[]
+}
+
+/** The invitation behind a link, as much as its state allows (anonymous). */
+export interface InvitationPreviewDto {
+  Status: InvitationStatus
+  OrganizationName?: string | null
+  OrganizationSlug?: string | null
+  InviterName?: string | null
+  Role?: OrgRole | null
+  CustomRoleName?: string | null
+  Permissions?: OrgPermission[] | null
+  MaskedEmail?: string | null
+  ExpiryDate?: IsoDateTime | null
+}
+
+export interface OrganizationSettingsDto {
+  AuditRetentionDays: number
+  ArtifactRetentionDays: number
+  SeenNotificationRetentionDays: number
+  UnseenNotificationRetentionDays: number
+  DefaultLocale?: string | null
+}
+
+/** Only the fields sent change. */
+export interface UpdateOrganizationSettingsInput {
+  AuditRetentionDays?: number | null
+  DefaultLocale?: string | null
+}
+
+/** A role to give: a seeded one, or Custom with the custom role's id. */
+export interface RoleChoice {
+  role: OrgRole
+  customRoleId: number | null
 }
 
 export interface MemberListDto {
@@ -259,9 +394,23 @@ export interface BuildDto {
   ExpiryDate?: IsoDateTime | null
 }
 
+/** What the rules need to know that the stores do not report (UpdateAppProfileCommand); null until it is saved. */
+export interface AppProfileDto {
+  Platforms?: string[] | null
+  DeviceFamilies?: string[] | null
+  Regions?: string[] | null
+  DeveloperRegion?: string | null
+  AppType?: string | null
+  Features?: string[] | null
+  BuildSdkVersion?: string | null
+  TargetSdk?: number | null
+  IsLive?: boolean | null
+}
+
 export interface AppDetailDto extends AppListDto {
   /** Newest first, at most 100 across the stores. */
   Builds?: BuildDto[] | null
+  Profile?: AppProfileDto | null
 }
 
 /** Adding a Google app by hand: the sync job (JobId) confirms the record, or removes it when Play refuses it. */

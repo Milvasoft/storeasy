@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/ui/primitives'
 import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
+import { ServerFeatureFlags } from '@/lib/features/FeatureFlagsContext'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { lazyPage } from '@/lib/utils/lazyPage'
@@ -22,6 +23,7 @@ const VerifyEmailTokenPage = lazyPage(() => import('@/pages/auth/VerifyEmailPage
 const ForgotPasswordPage = lazyPage(() => import('@/pages/auth/PasswordRecoveryPages'), 'ForgotPasswordPage')
 const ResetPasswordPage = lazyPage(() => import('@/pages/auth/PasswordRecoveryPages'), 'ResetPasswordPage')
 const InvitePage = lazyPage(() => import('@/pages/auth/InvitePage'), 'InvitePage')
+const GoogleCallbackPage = lazyPage(() => import('@/features/access/GoogleCallbackPage'), 'GoogleCallbackPage')
 const SetupPage = lazyPage(() => import('@/pages/SetupPage'), 'SetupPage')
 const ActivityPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPage')
 const JobsPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobsPage')
@@ -65,6 +67,7 @@ function ProtectedLayout() {
     <ProtectedRoute>
       <OrganizationGate>
         <ActivityProvider>
+          <ServerFeatureFlags />
           <AppShell>
             {/* Keyed by path: a crash on one page is cleared by navigating away. */}
             <RouteErrorBoundary key={pathname}>
@@ -137,6 +140,15 @@ export function App() {
         element={
           <Lazy>
             <VerifyEmailTokenPage />
+          </Lazy>
+        }
+      />
+      {/* Google sends the browser back here with the code and the state (account/login/google). */}
+      <Route
+        path="/auth/google/callback"
+        element={
+          <Lazy>
+            <GoogleCallbackPage />
           </Lazy>
         }
       />

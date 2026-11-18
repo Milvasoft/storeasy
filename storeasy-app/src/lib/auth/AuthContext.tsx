@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/lib/api/endpoints'
 import { API_REFUSAL_EVENT, AUTH_LOST_EVENT, type ApiRefusal } from '@/lib/api/http'
 import { tokenStore, type AuthTokens } from '@/lib/api/tokenStore'
-import { UserType, type LoginResponseDto } from '@/lib/api/types'
+import { UserType, type ExternalLoginProvider, type LoginResponseDto } from '@/lib/api/types'
 import { removeStorage, StorageKey, writeStorage } from '@/lib/utils/storage'
 
 // The client-side model of the signed-in user (camelCase: it is not a contract type).
@@ -16,6 +16,11 @@ export interface CurrentUser {
   userType: UserType
   // False until the e-mail link is opened; null when unknown (the detail call failed). Platform managers count as verified.
   emailConfirmed: boolean | null
+  // Platform permissions from account/detail ("Group.Action"); null when the detail did not say (then the token is read).
+  permissions: string[] | null
+  // The saved interface language ("tr-TR"); null until one is saved.
+  preferredLanguage: string | null
+  externalLogins: ExternalLoginProvider[]
 }
 
 export const EMAIL_NOT_VERIFIED_KEY = 'EmailNotVerified'
@@ -32,6 +37,8 @@ interface AuthContextValue {
   // Signed in with an e-mail that is not verified yet: organizations and connections are refused (403 EmailNotVerified).
   needsVerification: boolean
   login: (email: string, password: string) => Promise<void>
+  // Completes the Google sign in with the callback's code and state.
+  loginWithGoogle: (code: string, state: string, invitationToken?: string | null) => Promise<void>
   logout: () => Promise<void>
   // Ends the session locally after the API already invalidated it (password changed, account removed).
   endSession: () => void
@@ -59,6 +66,10 @@ function persist(login: LoginResponseDto, userName: string): void {
 async function hydrate(tokens: AuthTokens): Promise<CurrentUser> {
   try {
     const detail = await authApi.accountDetail()
+    // A Google sign in does not know the user name until the detail answers; the logout call needs it.
+    if (!tokens.userName && detail.UserName && tokenStore.get()?.accessToken === tokens.accessToken) {
+      tokenStore.set({ ...tokens, userName: detail.UserName })
+    }
     return {
       id: tokens.userId,
       userName: detail.UserName || tokens.userName,
@@ -67,9 +78,21 @@ async function hydrate(tokens: AuthTokens): Promise<CurrentUser> {
       surname: detail.Surname,
       userType: tokens.userType,
       emailConfirmed: tokens.userType === UserType.Manager ? true : (detail.EmailConfirmed ?? null),
+      permissions: detail.Permissions ?? null,
+      preferredLanguage: detail.PreferredLanguage ?? null,
+      externalLogins: detail.ExternalLogins ?? [],
     }
   } catch {
-    return { id: tokens.userId, userName: tokens.userName, email: tokens.userName, userType: tokens.userType, emailConfirmed: null }
+    return {
+      id: tokens.userId,
+      userName: tokens.userName,
+      email: tokens.userName,
+      userType: tokens.userType,
+      emailConfirmed: null,
+      permissions: null,
+      preferredLanguage: null,
+      externalLogins: [],
+    }
   }
 }
 
@@ -82,7 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const applySession = useCallback(
     async (login: LoginResponseDto, userName: string) => {
       persist(login, userName)
-      writeStorage(StorageKey.LastEmail, userName)
+      if (userName) {
+        writeStorage(StorageKey.LastEmail, userName)
+      }
       // A fresh session must not read the previous one's cached data (another user's organizations on an account
       // switch): drop the whole React Query cache so everything refetches for the new session.
       queryClient.clear()
@@ -97,6 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const userName = email.trim()
       await applySession(await authApi.login(userName, password), userName)
+    },
+    [applySession],
+  )
+
+  const loginWithGoogle = useCallback(
+    async (code: string, state: string, invitationToken?: string | null) => {
+      // The user name comes with the account detail (hydrate stores it).
+      await applySession(await authApi.googleLogin(code, state, invitationToken), '')
     },
     [applySession],
   )
@@ -186,11 +219,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionEnded,
       needsVerification: status === 'authed' && user?.emailConfirmed === false,
       login,
+      loginWithGoogle,
       logout,
       endSession,
       refreshUser,
     }),
-    [status, user, sessionEnded, login, logout, endSession, refreshUser],
+    [status, user, sessionEnded, login, loginWithGoogle, logout, endSession, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
