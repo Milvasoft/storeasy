@@ -4,7 +4,8 @@ namespace Storeasy.Application.Utils.Helpers;
 
 /// <summary>
 /// Removes anything that looks like a credential from text before it is logged, stored or returned: bearer tokens,
-/// JWTs, PEM private keys, Google access tokens, Apple webhook signatures and signed URL query strings.
+/// JWTs, PEM private keys, Google access tokens, Apple webhook signatures, signed URL query strings and
+/// <c>access_token</c> query values (the SignalR websocket token).
 /// Ported from store-ops <c>redact()</c>.
 /// </summary>
 public static partial class SecretRedactor
@@ -23,6 +24,9 @@ public static partial class SecretRedactor
 
     [GeneratedRegex(@"hmacsha256=[0-9a-fA-F]+")]
     private static partial Regex AppleSignatureRegex();
+
+    [GeneratedRegex(@"access_token=[^&\s""']+", RegexOptions.IgnoreCase)]
+    private static partial Regex AccessTokenQueryRegex();
 
     [GeneratedRegex(@"(https://[^\s""'?]+)\?[^\s""']*(?:Signature|signature|X-Amz|sig=|token=|access_token=)[^\s""']*")]
     private static partial Regex SignedUrlRegex();
@@ -43,6 +47,7 @@ public static partial class SecretRedactor
         output = GoogleTokenRegex().Replace(output, "[redacted-token]");
         output = AppleSignatureRegex().Replace(output, "hmacsha256=[redacted]");
         output = SignedUrlRegex().Replace(output, "$1?[redacted-query]");
+        output = AccessTokenQueryRegex().Replace(output, "access_token=[redacted]");
 
         return output;
     }

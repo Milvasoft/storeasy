@@ -11,7 +11,9 @@ using Milvasoft.Identity.Builder;
 using Milvasoft.Localization.Builder;
 using Milvasoft.Localization.Resx;
 using Storeasy.Api.Controllers;
+using Storeasy.Api.Hubs;
 using Storeasy.Api.Utils;
+using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Models;
@@ -26,6 +28,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Sinks.OpenTelemetry;
+using StackExchange.Redis;
 using System.IO.Compression;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -44,6 +47,16 @@ public static partial class StartupExtensions
     /// Shortest signing key HMAC-SHA256 accepts, in UTF-8 bytes (256 bits).
     /// </summary>
     public const int MinTokenSigningKeyLength = 32;
+
+    /// <summary>
+    /// Configuration key of the Redis endpoint (shared with the cache and the SignalR backplane).
+    /// </summary>
+    public const string RedisConnectionStringConfigurationKey = "Milvasoft:Caching:Redis:ConnectionString";
+
+    /// <summary>
+    /// Query key the activity hub's websocket clients send the access token in.
+    /// </summary>
+    public const string AccessTokenQueryKey = "access_token";
 
     /// <summary>
     /// Makes sure the access token signing key (<see cref="TokenSigningKeyConfigurationKey"/>) is configured before the
@@ -157,6 +170,17 @@ public static partial class StartupExtensions
 
             options.Events = new JwtBearerEvents
             {
+                // Browsers cannot set headers on a websocket: the activity hub takes the token from the query string
+                // (only there; the value is redacted in the logs by SecretRedactingEnricher).
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query[AccessTokenQueryKey];
+
+                    if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments(ActivityHub.Path))
+                        context.Token = accessToken;
+
+                    return Task.CompletedTask;
+                },
                 // This event is fired when the token is not provided or after OnForbidden and OnAuthenticationFailed events.
                 OnChallenge = context =>
                 {
@@ -195,6 +219,38 @@ public static partial class StartupExtensions
                 }
             };
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds SignalR for the activity hub (<see cref="ActivityHub"/>) and its event publisher. With a Redis endpoint the
+    /// Redis backplane carries the events between instances, on channels under the application's key prefix; a Redis
+    /// outage only costs live events (the publisher swallows failures).
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddRealtime(this IServiceCollection services, IConfigurationManager configuration)
+    {
+        var signalR = services.AddSignalR();
+
+        var redisConnectionString = configuration[RedisConnectionStringConfigurationKey];
+
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            var prefix = (configuration.GetSection(CacheKeyOptions.SectionName).Get<CacheKeyOptions>() ?? new CacheKeyOptions()).Prefix;
+
+            signalR.AddStackExchangeRedis(options =>
+            {
+                options.Configuration = ConfigurationOptions.Parse(redisConnectionString);
+                options.Configuration.AbortOnConnectFail = false;
+                options.Configuration.ChannelPrefix = RedisChannel.Literal($"{prefix}:signalr");
+            });
+        }
+
+        // Registered before the infrastructure services, which fall back to a publisher that drops events.
+        services.AddSingleton<IActivityPublisher, SignalRActivityPublisher>();
 
         return services;
     }
@@ -412,7 +468,8 @@ public static partial class StartupExtensions
         // OpenTelemetry resource.
         loggerConfig.Enrich.WithProperty("AppName", serviceName)
                     .Enrich.WithProperty("Environment", environment)
-                    .Enrich.With(new RemoveTypeTagEnricher());
+                    .Enrich.With(new RemoveTypeTagEnricher())
+                    .Enrich.With(new SecretRedactingEnricher());
 
         return loggerConfig;
     }

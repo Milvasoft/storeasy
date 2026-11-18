@@ -288,6 +288,16 @@
             <param name="value"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Logging.SecretRedactingEnricher">
+            <summary>
+            Redacts credentials (<see cref="T:Storeasy.Application.Utils.Helpers.SecretRedactor"/>) in the string properties of every log event that look like they
+            carry one: the request logs of the hosting layer write the query string, and the activity hub's websocket requests
+            carry the access token there (<c>?access_token=</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.SecretRedactingEnricher.Enrich(Serilog.Events.LogEvent,Serilog.Core.ILogEventPropertyFactory)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Logging.StoreasyDbLogger">
             <summary>
             Example <see cref="T:Milvasoft.Core.Abstractions.IMilvaLogger"/> implementation.

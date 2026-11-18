@@ -3,6 +3,7 @@ using Milvasoft.Components.Rest;
 using Milvasoft.Core.Utils.Converters;
 using Storeasy.Api;
 using Storeasy.Api.AppStartup;
+using Storeasy.Api.Hubs;
 using Storeasy.Api.Middlewares;
 using Storeasy.Api.Migrations;
 using Storeasy.Api.Utils;
@@ -66,6 +67,9 @@ try
     services.AddAndConfigureResponseCompression();
 
     services.AddApplicationServices(assemblies);
+
+    // SignalR (activity hub) and its event publisher, before the infrastructure that uses the publisher.
+    services.AddRealtime(builder.Configuration);
 
     // Hosted services start in registration order: migrations must complete before the
     // infrastructure background services (scheduled cleanup jobs) touch the database.
@@ -151,6 +155,9 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+
+    // Authenticated like the controllers (deny-by-default fallback policy plus [Authorize] on the hub).
+    app.MapHub<ActivityHub>(ActivityHub.Path);
 
     app.UseScalarWithOpenApi();
 

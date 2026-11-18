@@ -47,6 +47,16 @@
             Shortest signing key HMAC-SHA256 accepts, in UTF-8 bytes (256 bits).
             </summary>
         </member>
+        <member name="F:Storeasy.Api.AppStartup.StartupExtensions.RedisConnectionStringConfigurationKey">
+            <summary>
+            Configuration key of the Redis endpoint (shared with the cache and the SignalR backplane).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.AppStartup.StartupExtensions.AccessTokenQueryKey">
+            <summary>
+            Query key the activity hub's websocket clients send the access token in.
+            </summary>
+        </member>
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.EnsureTokenSigningKey(Microsoft.AspNetCore.Builder.WebApplicationBuilder)">
             <summary>
             Makes sure the access token signing key (<see cref="F:Storeasy.Api.AppStartup.StartupExtensions.TokenSigningKeyConfigurationKey"/>) is configured before the
@@ -74,6 +84,16 @@
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddAuthorization(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds authorization services.
+            </summary>
+            <param name="services"></param>
+            <param name="configuration"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddRealtime(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds SignalR for the activity hub (<see cref="T:Storeasy.Api.Hubs.ActivityHub"/>) and its event publisher. With a Redis endpoint the
+            Redis backplane carries the events between instances, on channels under the application's key prefix; a Redis
+            outage only costs live events (the publisher swallows failures).
             </summary>
             <param name="services"></param>
             <param name="configuration"></param>
@@ -887,6 +907,72 @@
             <param name="request"></param>
             <param name="cancellation"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.ActivityHub">
+            <summary>
+            Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
+            access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
+            websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
+            membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            </summary>
+            <param name="organizationAccess"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.#ctor(Storeasy.Application.Interfaces.IOrganizationAccess)">
+            <summary>
+            Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
+            access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
+            websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
+            membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            </summary>
+            <param name="organizationAccess"></param>
+        </member>
+        <member name="F:Storeasy.Api.Hubs.ActivityHub.Path">
+            <summary>
+            Route of the hub.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.GroupName(System.Int32)">
+            <summary>
+            Group of the connections that follow <paramref name="organizationId"/>.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.JoinOrganizationAsync(System.Int32)">
+            <summary>
+            Starts sending the organization's events to this connection. Returns false (and joins nothing) when the caller is
+            not a member, so organization ids cannot be probed.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.LeaveOrganizationAsync(System.Int32)">
+            <summary>
+            Stops sending the organization's events to this connection.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.SignalRActivityPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: sends each event to its organization's group (through
+            the Redis backplane when several instances run). A failure (Redis down, no hub) is logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.#ctor(Microsoft.AspNetCore.SignalR.IHubContext{Storeasy.Api.Hubs.ActivityHub},Microsoft.Extensions.Logging.ILogger{Storeasy.Api.Hubs.SignalRActivityPublisher})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: sends each event to its organization's group (through
+            the Redis backplane when several instances run). A failure (Redis down, no hub) is logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Api.SharedResource">
             <summary>
