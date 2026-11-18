@@ -148,7 +148,7 @@ function validate(node, value, path) {
 
 // ---------------------------------------------------------------- catalog checks
 
-const DASHES = /[–—]/;
+const DASHES = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']');
 function walkStrings(value, path, fn) {
   if (typeof value === 'string') fn(value, path);
   else if (Array.isArray(value)) value.forEach((v, i) => walkStrings(v, `${path}/${i}`, fn));
