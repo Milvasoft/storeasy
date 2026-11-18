@@ -31,6 +31,7 @@ namespace Storeasy.Infrastructure.Services;
 /// <param name="rulesCatalog"></param>
 /// <param name="options"></param>
 /// <param name="timeProvider"></param>
+/// <param name="extensions"></param>
 public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRepository,
                                      IStoreasyRepositoryBase<StoreJob> jobRepository,
                                      IStoreContentService contentService,
@@ -41,7 +42,8 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
                                      IOrganizationAccess organizationAccess,
                                      IRulesCatalog rulesCatalog,
                                      StoreApiOptions options,
-                                     TimeProvider timeProvider) : IChangePlanService
+                                     TimeProvider timeProvider,
+                                     IEnumerable<IChangePlanExtension> extensions) : IChangePlanService
 {
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
 
@@ -56,6 +58,7 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
     private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly StoreApiOptions _options = options;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IEnumerable<IChangePlanExtension> _extensions = extensions;
 
     /// <inheritdoc/>
     public async Task<Response<ChangePlanDto>> SaveAsync(StoreAppContext app, StoreContentSnapshot snapshot, PlanDraft draft, bool dryRun, string confirm, CancellationToken cancellationToken)
@@ -65,7 +68,7 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
 
         var now = Now();
         var versionString = draft.VersionString ?? snapshot?.VersionString;
-        var permission = ChangePlanRules.RequiredPermission(draft.Kind, app.Store, draft.Track);
+        var permission = draft.RequiredPermission ?? ChangePlanRules.RequiredPermission(draft.Kind, app.Store, draft.Track);
 
         var plan = new ChangePlan
         {
@@ -80,14 +83,14 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
             CreatedByUserId = _currentUser.Id,
             CreatedByUserName = _currentUser.UserName,
             RequiredPermission = permission,
-            ConfirmText = ChangePlanRules.NeedsConfirmation(draft.Kind, draft.Track) ? Trim(ChangePlanRules.ConfirmationText(app.AppName, versionString), ChangePlan.TitleMaxLength) : null,
+            ConfirmText = draft.ConfirmText != null ? Trim(draft.ConfirmText, ChangePlan.TitleMaxLength) : ChangePlanRules.NeedsConfirmation(draft.Kind, draft.Track) ? Trim(ChangePlanRules.ConfirmationText(app.AppName, versionString), ChangePlan.TitleMaxLength) : null,
             VersionId = draft.VersionId ?? snapshot?.VersionId,
             VersionString = Trim(versionString, 100),
             Items = draft.Items,
             Warnings = draft.Warnings,
             Calls = draft.Calls,
             Files = draft.Files,
-            Changes = JsonSerializer.Serialize(draft.Changes, _json),
+            Changes = JsonSerializer.Serialize(draft.CustomChanges ?? draft.Changes, _json),
             BaseKeys = [.. draft.BaseKeys.Distinct()],
             BaseHash = snapshot == null ? null : ContentDiff.Hash(ContentSnapshots.Flatten(snapshot), draft.BaseKeys),
             CatalogVersion = _rulesCatalog.Current.Version,
@@ -162,7 +165,10 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
             if (app == null)
                 return Response<ChangePlanDto>.Error(null, MessageKey.StoreAppNotFound);
 
-            var read = await _contentService.ReadAsync(app, ContentSnapshots.PartsOf(plan.Kind), plan.VersionId, cancellationToken);
+            var extension = _extensions.FirstOrDefault(e => e.Handles(plan.Kind));
+            var read = extension == null
+                ? await _contentService.ReadAsync(app, ContentSnapshots.PartsOf(plan.Kind), plan.VersionId, cancellationToken)
+                : await extension.ReadBaseAsync(app, plan.BaseKeys, cancellationToken);
 
             if (!read.IsSuccess)
                 return Response<ChangePlanDto>.Error(null, read.ErrorKey);

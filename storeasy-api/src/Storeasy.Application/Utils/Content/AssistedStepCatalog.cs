@@ -92,7 +92,7 @@ public static class AssistedStepCatalog
     /// <returns></returns>
     public static AssistedStepDefinition Find(RuleCatalog catalog, StoreKind store, string key)
     {
-        var builtIn = BuiltIn.FirstOrDefault(s => s.Store == store && s.Key == key);
+        var builtIn = BuiltIn.Concat(Monetization.MonetizationAssistedSteps.All).FirstOrDefault(s => s.Store == store && s.Key == key);
 
         if (builtIn != null)
             return builtIn;

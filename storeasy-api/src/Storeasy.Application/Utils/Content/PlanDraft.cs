@@ -63,6 +63,21 @@ public sealed class PlanDraft
     public string VersionString { get; set; }
 
     /// <summary>
+    /// Permission the plan needs, when the planner decides it (e.g. a price change of a product on sale); null: by kind.
+    /// </summary>
+    public OrgPermission? RequiredPermission { get; set; }
+
+    /// <summary>
+    /// Typed confirmation the planner asks for (e.g. a price change for existing subscribers); null: by kind.
+    /// </summary>
+    public string ConfirmText { get; set; }
+
+    /// <summary>
+    /// What the apply job writes when it is not a <see cref="ContentChangeSet"/> (a change plan extension's own set).
+    /// </summary>
+    public object CustomChanges { get; set; }
+
+    /// <summary>
     /// Whether the plan writes nothing.
     /// </summary>
     public bool IsEmpty => Items.Count == 0 && Changes.IsEmpty;

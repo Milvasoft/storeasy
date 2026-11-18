@@ -21,6 +21,7 @@ public sealed class GooglePlayApi(StoreHttp http, GoogleCredentials credentials,
     private readonly StoreHttp _http = http;
     private readonly GoogleCredentials _credentials = credentials;
     private readonly string _appPath = $"/applications/{Uri.EscapeDataString(packageName)}";
+    private readonly string _packageName = packageName;
 
     private string _token;
 
@@ -28,6 +29,11 @@ public sealed class GooglePlayApi(StoreHttp http, GoogleCredentials credentials,
     /// Path of the app (<c>/applications/{package}</c>).
     /// </summary>
     public string AppPath => _appPath;
+
+    /// <summary>
+    /// Package name of the app.
+    /// </summary>
+    public string PackageName => _packageName;
 
     /// <summary>
     /// Opens an edit and returns its id.
