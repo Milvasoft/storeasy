@@ -74,3 +74,27 @@ jobs:
             VITE_SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  redeploy:
+    # Milvasoft hosting: after a master build, ask Dokploy to pull the new images and redeploy (API first, then web).
+    # Runs only when the DOKPLOY_DEPLOY_WEBHOOK_API / _WEB repository secrets hold Dokploy compose webhook URLs;
+    # forks and self-hosters without them skip it.
+    name: redeploy (Milvasoft hosting)
+    needs: image
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Trigger the Dokploy webhooks
+        env:
+          API_HOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK_API }}
+          WEB_HOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK_WEB }}
+        run: |
+          if [ -z "$API_HOOK" ] || [ -z "$WEB_HOOK" ]; then
+            echo "::notice title=Redeploy skipped::DOKPLOY_DEPLOY_WEBHOOK_API and DOKPLOY_DEPLOY_WEBHOOK_WEB are not set."
+            exit 0
+          fi
+          curl -fsS --max-time 30 -X POST "$API_HOOK" > /dev/null
+          echo "API redeploy requested."
+          curl -fsS --max-time 30 -X POST "$WEB_HOOK" > /dev/null
+          echo "Web redeploy requested."
