@@ -270,7 +270,7 @@ bağlantı verir). Faz sütunu bölüm 7'deki fazdır. Kontrol tarihi: 18 Kasım
 | App info lokalizasyonları (ad, alt başlık, gizlilik URL'leri) | API | 2 | |
 | Sürüm lokalizasyonları (açıklama, EULA ve otomatik yenileme metni dahil, anahtar kelimeler, tanıtım metni, destek ve pazarlama URL'si, yenilikler) | API | 2 | en-US app info oluşunca sürüm lokalizasyonu da oluşur: POST yerine PATCH (store-ops'ta çözüldü) |
 | Kategoriler, telif, içerik hakları beyanı | API | 2 | |
-| Yaş derecelendirmesi (yeni sorular dahil) | API | 2 | Yeni descriptor'lar: Shared Location ve Dating and Relationships (18+), App Store Connect'te 16 Kasım 2026'dan beri, bütün uygulamalar için son tarih 12 Ocak 2027. Brezilya'da A16 ve A18. API alan adları canlıda doğrulanacak |
+| Yaş derecelendirmesi (yeni sorular dahil) | API + asistanlı | 2 | Shared Location ve Dating and Relationships soruları API'de yok (18 Kasım 2026: belge ve 7 uygulamada canlı GET); Apple ekleyene kadar asistanlı. Yeni descriptor'lar: Shared Location ve Dating and Relationships (18+), App Store Connect'te 16 Kasım 2026'dan beri, bütün uygulamalar için son tarih 12 Ocak 2027. Brezilya'da A16 ve A18. API alan adları canlıda doğrulanacak |
 | Fiyat ve bölgeler | API | 2 | Fiyat takvimi, bölge seçimi (ör. Çin hariç) |
 | App Privacy etiketleri | Asistanlı | 2 | Resmi API'de karşılığı bulunamadı (18 Kasım 2026); kayıtlı cevaplar + tarayıcı devri. API gelirse matris güncellenir |
 | App Compliance sayfası (ICP, oyun lisansı, tıbbi cihaz, Çin AIGC ve Security Assessment) | Asistanlı | 4 | 16 Kasım 2026'da yeni sayfaya taşındı. Çin'de dağıtılan her uygulama 31 Ocak 2027'ye kadar beyanları tamamlamalı (yeni uygulamalar hemen). Account Holder veya Admin yapar |

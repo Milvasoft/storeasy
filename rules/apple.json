@@ -1,7 +1,7 @@
 {
   "$schema": "./schema/catalog.schema.json",
   "kind": "store-rules",
-  "catalogVersion": "1.0.0",
+  "catalogVersion": "1.0.1",
   "store": "apple",
   "generatedAt": "2026-11-18T12:00:00Z",
   "rules": [
@@ -2764,10 +2764,7 @@
         "minimumAgeIfDating": "18+"
       },
       "check": {
-        "kind": "automatic",
-        "inputs": [
-          "asc.ageRatingDeclarations"
-        ]
+        "kind": "assisted"
       },
       "sources": [
         {
@@ -2775,10 +2772,15 @@
           "title": "Apple Developer News: new age rating content descriptors (2026-11-02)",
           "checkedAt": "2026-11-18",
           "quote": "All apps must have these declarations completed by January 12, 2027."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/appstoreconnectapi/ageratingdeclaration/attributes",
+          "title": "App Store Connect API: AgeRatingDeclaration.Attributes",
+          "checkedAt": "2026-11-18"
         }
       ],
-      "verified": false,
-      "notes": "Dates and descriptors verified. The App Store Connect API attribute names for the two new descriptors are not yet verified; until they are, the readiness check may need to fall back to an assisted step."
+      "verified": true,
+      "notes": "Not available in the App Store Connect API as of 2026-11-18: AgeRatingDeclaration.Attributes lists neither descriptor and live GET /v1/appInfos/{id}/ageRatingDeclaration on 7 apps returned neither. Answered as an assisted browser step until Apple adds the fields; the watcher should re-check the API reference."
     },
     {
       "id": "apple.age-rating.brazil-a16-a18",
