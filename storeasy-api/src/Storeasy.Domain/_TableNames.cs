@@ -32,5 +32,7 @@ public static class TableNames
     public const string SavedAnswers = nameof(SavedAnswers);
     public const string ChangePlans = nameof(ChangePlans);
     public const string AssistedSteps = nameof(AssistedSteps);
+    public const string ProductGroups = nameof(ProductGroups);
+    public const string StoreProducts = nameof(StoreProducts);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

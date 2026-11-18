@@ -108,4 +108,22 @@ public enum ChangePlanKind : byte
     /// </summary>
     [Description("Submit for review")]
     SubmitForReview = 17,
+
+    /// <summary>
+    /// Subscriptions, offers, In-App Purchases and Play products (phase 7).
+    /// </summary>
+    [Description("Monetization")]
+    Monetization = 70,
+
+    /// <summary>
+    /// App Store Server Notifications addresses.
+    /// </summary>
+    [Description("Server notifications")]
+    ServerNotifications = 71,
+
+    /// <summary>
+    /// Sandbox tester settings.
+    /// </summary>
+    [Description("Sandbox testers")]
+    SandboxTesters = 72,
 }

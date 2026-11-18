@@ -18,4 +18,10 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Apply a change plan")]
     ApplyChangePlan = 2,
+
+    /// <summary>
+    /// Reads the subscriptions and In-App Purchases of a store record into storeasy.
+    /// </summary>
+    [Description("Sync store products")]
+    SyncMonetization = 70,
 }
