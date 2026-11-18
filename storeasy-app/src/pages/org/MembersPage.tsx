@@ -96,7 +96,7 @@ export function MembersPage() {
       message: (
         <span className="grid gap-2">
           <span>{interpolate(t.members.roleConfirmBody, { from: roleLabel(member.Role, t), to: roleLabel(role, t) })}</span>
-          {self ? <b className="text-warning">{t.members.selfDemote}</b> : null}
+          {self ? <b className="text-warningText">{t.members.selfDemote}</b> : null}
         </span>
       ),
       confirmLabel: t.members.changeRole,

@@ -3,6 +3,13 @@ import type { ListRequest } from '@/lib/api/list'
 import { getDeviceId } from '@/lib/api/tokenStore'
 import type {
   AccountDetailDto,
+  AppAddedDto,
+  AppDetailDto,
+  AppListDto,
+  AssetDownloadDto,
+  AssetDto,
+  AssetPurpose,
+  AssetUploadDto,
   InvitationCreatedDto,
   LoginResponseDto,
   MemberListDto,
@@ -10,7 +17,11 @@ import type {
   OrgRole,
   StoreAuditLogDto,
   StoreConnectionDto,
+  StoreJobDetailDto,
+  StoreJobListDto,
+  StoreJobStatus,
   StoreKind,
+  UploadedPart,
 } from '@/lib/api/types'
 
 // ---- Account ---------------------------------------------------------------
@@ -30,31 +41,33 @@ export const authApi = {
     apiPut<unknown>('/Account/password/change', { UserName: userName, OldPassword: oldPassword, NewPassword: newPassword }),
 }
 
-// ---- Account: registration and recovery (planned contract) -----------------
-// These endpoints are being built on the API now. The contract below is the agreed plan; when the API lands, this block
-// and its MSW handlers are the only places to adjust.
+// ---- Account: registration and recovery -----------------------------------
 export interface RegisterInput {
   Email: string
   Name: string
-  Surname: string
+  // Optional on the API.
+  Surname?: string | null
   Password: string
+  // Required when the installation is invite only; accepted in the same step.
   InvitationToken?: string | null
 }
 
 export const registrationApi = {
-  // 409 EmailExists; 400 with the password policy messages; 403 RegistrationInviteOnly or RegistrationClosed.
-  register: (input: RegisterInput) => apiPost<unknown>('/Account/register', input, { auth: false, idempotent: true }),
+  // Answers the new user id. The account can sign in at once; organizations and connections wait for the verification.
+  // 409 User.ExistWithSameEmail; 403 RegistrationClosed / RegistrationInvitationRequired; 400 password policy messages.
+  register: (input: RegisterInput) => apiPost<number>('/Account/register', input, { auth: false, idempotent: true }),
 
-  // 400 VerificationTokenExpired / VerificationTokenUsed.
+  // Anonymous: the link may be opened on another device. 400 AccountTokenInvalid for an expired, used or replaced link.
   verifyEmail: (token: string) => apiPost<unknown>('/Account/email/verify', { Token: token }, { auth: false }),
 
-  // Always answers the same, whether or not the address has an account; 429 with Retry-After.
-  resendVerification: (email: string) => apiPost<unknown>('/Account/email/verify/resend', { Email: email }, { auth: false }),
+  // Signed in only: a new link to the caller's own address; the earlier links stop working. 409 EmailAlreadyVerified;
+  // 429 with Retry-After (5 an hour).
+  resendVerification: () => apiPost<unknown>('/Account/email/verify/resend', {}),
 
-  // Always 200: the answer never tells whether the address has an account.
+  // The same answer whether or not the address has an account.
   forgotPassword: (email: string) => apiPost<unknown>('/Account/password/forgot', { Email: email }, { auth: false }),
 
-  // 400 ResetTokenInvalid for an expired, used or replaced token. Signs out every device.
+  // 400 AccountTokenInvalid for an expired, used or replaced token. Signs out every device and verifies the e-mail.
   resetPassword: (token: string, newPassword: string) =>
     apiPost<unknown>('/Account/password/reset', { Token: token, NewPassword: newPassword }, { auth: false }),
 }
@@ -72,9 +85,10 @@ export const organizationsApi = {
   // The caller becomes the owner. 409 OrganizationSlugTaken. Answers the new organization's id.
   create: (input: CreateOrganizationInput) => apiPost<number>('/Organizations/organization', input, { idempotent: true }),
 
-  // Renames (ManageOrganization). The slug cannot change yet (design 15.20 backend gap).
-  update: (organizationId: number, name: string) =>
-    apiPut<number>('/Organizations/organization', { OrganizationId: organizationId, Name: name }),
+  // Renames and, when a slug is sent, changes the URL key (ManageOrganization). 409 OrganizationSlugTaken; 400
+  // OrganizationSlugInvalid. A null slug keeps the current one.
+  update: (organizationId: number, name: string, slug?: string | null) =>
+    apiPut<number>('/Organizations/organization', { OrganizationId: organizationId, Name: name, Slug: slug || null }),
 
   // Invitations are filled only for callers with ManageMembers.
   members: (organizationId: number) => apiGet<MemberListDto>('/Organizations/members', { OrganizationId: organizationId }),
@@ -133,4 +147,68 @@ export const connectionsApi = {
   // Wipes the encrypted secret; cannot be undone.
   remove: (organizationId: number, connectionId: number) =>
     apiDelete<number>('/StoreConnections/connection', undefined, { OrganizationId: organizationId, ConnectionId: connectionId }),
+}
+
+// ---- Apps and builds -------------------------------------------------------
+export const appsApi = {
+  // Every store in one list, with the store records of each app.
+  list: (organizationId: number, request: ListRequest) => apiPatchList<AppListDto>('/Apps', { OrganizationId: organizationId, ...request }),
+
+  // The app with its store records and its newest 100 builds. 404 AppNotFound.
+  detail: (organizationId: number, appId: number) => apiGet<AppDetailDto>('/Apps/app', { OrganizationId: organizationId, AppId: appId }),
+
+  // Play has no API that lists apps, so a Google app is added by its package name. The sync job in the answer confirms
+  // it, or removes it when Play refuses it. 409 StoreAppAlreadyAdded; 400 PackageNameInvalid / StoreConnectionStoreMismatch.
+  addGoogle: (organizationId: number, connectionId: number, packageName: string) =>
+    apiPost<AppAddedDto>('/Apps/google', { OrganizationId: organizationId, ConnectionId: connectionId, PackageName: packageName }),
+
+  // Moves a store record to another app (one record per store there; 409 AppStoreAlreadyLinked). Answers the target app.
+  link: (organizationId: number, appId: number, storeAppId: number) =>
+    apiPost<number>('/Apps/app/link', { OrganizationId: organizationId, AppId: appId, StoreAppId: storeAppId }),
+
+  // Splits a store record off into a new app named after it. Answers the record's app id.
+  unlink: (organizationId: number, storeAppId: number) =>
+    apiPost<number>('/Apps/app/unlink', { OrganizationId: organizationId, StoreAppId: storeAppId }),
+
+  // Queues a sync for one connection, or every App Store and Play connection when null. Answers the job ids.
+  sync: (organizationId: number, connectionId?: number | null) =>
+    apiPost<number[]>('/Apps/sync', { OrganizationId: organizationId, ConnectionId: connectionId ?? null }),
+}
+
+// ---- Store jobs ------------------------------------------------------------
+export const jobsApi = {
+  // Newest first; the standard list filters apply to the DTO fields. AppId narrows to one app.
+  list: (organizationId: number, request: ListRequest, appId?: number | null) =>
+    apiPatchList<StoreJobListDto>('/StoreJobs', { OrganizationId: organizationId, AppId: appId ?? null, ...request }),
+
+  // The job with its steps across attempts. 404 StoreJobNotFound.
+  detail: (organizationId: number, jobId: number) =>
+    apiGet<StoreJobDetailDto>('/StoreJobs/job', { OrganizationId: organizationId, JobId: jobId }),
+
+  // A queued job stops at once (Cancelled); a running one at its next step (Running). 409 StoreJobAlreadyFinished.
+  cancel: (organizationId: number, jobId: number) =>
+    apiPost<StoreJobStatus>('/StoreJobs/job/cancel', { OrganizationId: organizationId, JobId: jobId }),
+}
+
+// ---- Assets ----------------------------------------------------------------
+export interface CreateUploadInput {
+  Purpose: AssetPurpose
+  FileName: string
+  ContentType: string
+  Size: number
+  Sha256?: string | null
+}
+
+export const assetsApi = {
+  // Presigned PUT URLs: one for a small file, one per part over 64 MB. 400 AssetTooLarge; 503 StorageNotConfigured.
+  createUpload: (organizationId: number, input: CreateUploadInput) =>
+    apiPost<AssetUploadDto>('/Assets/upload', { OrganizationId: organizationId, ...input }),
+
+  // Confirms the upload (with the parts' ETags for a multipart one). 409 AssetNotUploaded; 400 AssetSizeMismatch.
+  complete: (organizationId: number, assetId: number, parts: UploadedPart[] = []) =>
+    apiPost<AssetDto>('/Assets/asset/complete', { OrganizationId: organizationId, AssetId: assetId, Parts: parts }),
+
+  // A short lived presigned GET URL.
+  downloadUrl: (organizationId: number, assetId: number) =>
+    apiGet<AssetDownloadDto>('/Assets/asset/download-url', { OrganizationId: organizationId, AssetId: assetId }),
 }

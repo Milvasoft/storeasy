@@ -155,6 +155,17 @@ public sealed class S3FileStorage(IAmazonS3 client, StorageOptions options) : IF
         return response.ResponseStream;
     }
 
+    /// <inheritdoc/>
+    public Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken)
+        => _client.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = _options.Bucket,
+            Key = key,
+            InputStream = content,
+            ContentType = contentType,
+            AutoCloseStream = false,
+        }, cancellationToken);
+
     private static DateTime Expiry(TimeSpan lifetime) => DateTime.UtcNow.Add(lifetime);
 
     private Amazon.S3.Protocol Protocol()

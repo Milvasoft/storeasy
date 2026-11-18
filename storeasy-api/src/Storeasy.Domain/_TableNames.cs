@@ -34,5 +34,8 @@ public static class TableNames
     public const string AssistedSteps = nameof(AssistedSteps);
     public const string ProductGroups = nameof(ProductGroups);
     public const string StoreProducts = nameof(StoreProducts);
+    public const string MockupTemplates = nameof(MockupTemplates);
+    public const string MockupSlots = nameof(MockupSlots);
+    public const string MockupCaptions = nameof(MockupCaptions);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

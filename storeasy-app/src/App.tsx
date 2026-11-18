@@ -6,6 +6,7 @@ import { GuestOnly, ProtectedRoute } from '@/components/common/ProtectedRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { PageSkeleton } from '@/components/ui/primitives'
+import { contentRoutes } from '@/features/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
@@ -22,8 +23,10 @@ const ResetPasswordPage = lazyPage(() => import('@/pages/auth/PasswordRecoveryPa
 const InvitePage = lazyPage(() => import('@/pages/auth/InvitePage'), 'InvitePage')
 const SetupPage = lazyPage(() => import('@/pages/SetupPage'), 'SetupPage')
 const ActivityPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPage')
-const ActivityJobsPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityJobsPage')
-const ActivityPlansPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPlansPage')
+const JobsPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobsPage')
+const JobDetailPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobDetailPage')
+const AppsPage = lazyPage(() => import('@/pages/apps/AppsPage'), 'AppsPage')
+const AppDetailPage = lazyPage(() => import('@/pages/apps/AppDetailPage'), 'AppDetailPage')
 const ConnectionsPage = lazyPage(() => import('@/pages/org/ConnectionsPage'), 'ConnectionsPage')
 const MembersPage = lazyPage(() => import('@/pages/org/MembersPage'), 'MembersPage')
 const AuditPage = lazyPage(() => import('@/pages/org/AuditPage'), 'AuditPage')
@@ -119,12 +122,13 @@ export function App() {
           </Guest>
         }
       />
+      {/* Reached right after sign-up, signed in (the account can sign in at once) or from the e-mail on another device. */}
       <Route
         path="/verify-email"
         element={
-          <Guest>
+          <Lazy>
             <VerifyEmailPage />
-          </Guest>
+          </Lazy>
         }
       />
       {/* The e-mail link works signed in or out: verifying does not sign in (design 5.15). */}
@@ -172,19 +176,20 @@ export function App() {
       />
       <Route element={<ProtectedLayout />}>
         <Route index element={<Navigate to={HOME_PATH} replace />} />
-        <Route path="/apps" element={<SectionPage section="apps" />} />
+        <Route path="/apps" element={<AppsPage />} />
+        <Route path="/apps/:appId" element={<AppDetailPage tab="overview" />} />
+        <Route path="/apps/:appId/builds" element={<AppDetailPage tab="builds" />} />
+        <Route path="/apps/:appId/jobs" element={<AppDetailPage tab="jobs" />} />
         <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/activity/jobs" element={<ActivityJobsPage />} />
-        <Route path="/activity/plans" element={<ActivityPlansPage />} />
+        <Route path="/activity/jobs" element={<JobsPage />} />
+        <Route path="/activity/jobs/:jobId" element={<JobDetailPage />} />
         <Route path="/reviews" element={<SectionPage section="reviews" />} />
-        <Route path="/compliance" element={<SectionPage section="compliance" />} />
         <Route path="/studio" element={<SectionPage section="studio" />} />
         <Route path="/intake" element={<SectionPage section="intake" />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/webhooks" element={<SectionPage section="webhooks" />} />
         <Route path="/members" element={<MembersPage />} />
         <Route path="/audit" element={<AuditPage />} />
-        <Route path="/rules" element={<SectionPage section="rules" />} />
         <Route path="/settings" element={<OrgSettingsPage />} />
         <Route path="/developer" element={<SectionPage section="developer" />} />
         <Route path="/account" element={<AccountPage />} />
@@ -196,6 +201,7 @@ export function App() {
         <Route path="/admin/languages" element={<PlatformPage section="adminLanguages" />} />
         <Route path="/admin/feature-flags" element={<PlatformPage section="adminFlags" />} />
         <Route path="/admin/system" element={<PlatformPage section="adminSystem" />} />
+        {contentRoutes()}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

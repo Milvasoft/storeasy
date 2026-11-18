@@ -17,7 +17,7 @@ import { UserMenu } from './UserMenu'
 function ComingMark({ feature }: { feature?: FeatureFlagKey }) {
   const t = useT()
   // Hooks run in the same order every render: the flag is read even for items that have none.
-  const enabled = useFeature(feature ?? 'Apps')
+  const enabled = useFeature(feature ?? 'Platform')
   if (!feature || enabled) {
     return null
   }

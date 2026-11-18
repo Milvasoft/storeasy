@@ -128,21 +128,41 @@ public enum AuditAction : short
 
     /// <summary>A subscription group or subscription was written to a store.</summary>
     [Description("Subscription changed")]
-    SubscriptionChanged = 70,
+    SubscriptionChanged = 80,
 
     /// <summary>A price or a price schedule was written to a store.</summary>
     [Description("Price scheduled")]
-    PriceScheduled = 71,
+    PriceScheduled = 81,
 
     /// <summary>A subscription offer was written to a store.</summary>
     [Description("Offer changed")]
-    OfferChanged = 72,
+    OfferChanged = 82,
 
     /// <summary>An In-App Purchase or a Play one-time product was written to a store.</summary>
     [Description("In-App Purchase changed")]
-    IapChanged = 73,
+    IapChanged = 83,
 
     /// <summary>A purchase setting (server notifications, sandbox tester) was written to a store.</summary>
     [Description("Purchase settings changed")]
-    PurchaseSettingsChanged = 74,
+    PurchaseSettingsChanged = 84,
+
+    /// <summary>A mockup template was created.</summary>
+    [Description("Mockup template created")]
+    MockupTemplateCreated = 70,
+
+    /// <summary>A mockup template's design, slots or locales changed.</summary>
+    [Description("Mockup template updated")]
+    MockupTemplateUpdated = 71,
+
+    /// <summary>A mockup template was deleted.</summary>
+    [Description("Mockup template deleted")]
+    MockupTemplateDeleted = 72,
+
+    /// <summary>Captions of a mockup template changed.</summary>
+    [Description("Mockup captions updated")]
+    MockupCaptionsUpdated = 73,
+
+    /// <summary>A mockup export job was queued.</summary>
+    [Description("Mockups exported")]
+    MockupExported = 74,
 }

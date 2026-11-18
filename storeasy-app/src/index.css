@@ -29,6 +29,9 @@
   --surface: 255 255 255;
   --border: 228 227 222;
   --border-strong: 206 205 199;
+  /* Boundaries a control is recognized by (inputs, checks, radios, switch track, drop zone): 3:1 on every surface
+     (WCAG 1.4.11). --border-strong stays for decoration, where it is under 3:1 on purpose. */
+  --border-control: 133 132 126;
   --fg: 20 20 22;
   --fg-2: 88 88 94;
   --fg-3: 112 112 118;
@@ -39,6 +42,8 @@
   --accent-fill: 70 54 255;
   --success: 21 128 61;
   --warning: 180 95 6;
+  /* Warning as text: the fill colour is 4.39:1 on white, this one passes AA (4.5:1) on every surface and tint. */
+  --warning-text: 150 78 0;
   --danger: 200 40 40;
   --info: 37 99 200;
   --overlay: 20 20 22;
@@ -52,6 +57,7 @@
   --surface: 18 18 20;
   --border: 38 38 42;
   --border-strong: 58 58 64;
+  --border-control: 108 108 116;
   --fg: 240 240 238;
   --fg-2: 168 168 172;
   --fg-3: 124 124 130;
@@ -61,6 +67,7 @@
   --accent-fill: 133 122 255;
   --success: 62 199 128;
   --warning: 240 176 64;
+  --warning-text: 240 176 64;
   --danger: 255 99 99;
   --info: 110 160 255;
   --overlay: 0 0 0;
@@ -378,7 +385,7 @@ body {
     align-items: center;
     gap: 8px;
     min-height: 40px;
-    border: 1px solid rgb(var(--border-strong));
+    border: 1px solid rgb(var(--border-control));
     border-radius: 10px;
     padding: 0 12px;
     background: rgb(var(--surface));
@@ -463,7 +470,7 @@ body {
     white-space: nowrap;
   }
   .cnt.near {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
   }
   .cnt.over {
     color: rgb(var(--danger));
@@ -472,7 +479,7 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 5px;
-    border: 1.5px solid rgb(var(--border-strong));
+    border: 1.5px solid rgb(var(--border-control));
     display: inline-grid;
     place-items: center;
     flex: none;
@@ -502,7 +509,7 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: 1.5px solid rgb(var(--border-strong));
+    border: 1.5px solid rgb(var(--border-control));
     display: inline-grid;
     place-items: center;
     flex: none;
@@ -532,7 +539,7 @@ body {
     width: 36px;
     height: 22px;
     border-radius: 999px;
-    background: rgb(var(--border-strong));
+    background: rgb(var(--border-control));
     position: relative;
     flex: none;
     display: inline-block;
@@ -655,7 +662,7 @@ body {
     background: rgb(var(--success) / 0.07);
   }
   .bdg.warn {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
     border-color: rgb(var(--warning) / 0.45);
     background: rgb(var(--warning) / 0.08);
   }
@@ -913,7 +920,7 @@ body {
     background: rgb(var(--warning) / 0.07);
   }
   .callout.warn > svg {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
   }
   .callout.dng {
     border-color: rgb(var(--danger) / 0.45);
@@ -1276,7 +1283,7 @@ body {
     background: rgb(var(--danger));
   }
   .tl-d.warn {
-    border-color: rgb(var(--warning));
+    border-color: rgb(var(--warning-text));
   }
   .ck-i {
     display: flex;
@@ -1315,8 +1322,8 @@ body {
   }
   .ck-s.warn {
     background: rgb(var(--warning) / 0.12);
-    border-color: rgb(var(--warning));
-    color: rgb(var(--warning));
+    border-color: rgb(var(--warning-text));
+    color: rgb(var(--warning-text));
   }
   .ck-s.asst {
     border-style: dashed;
@@ -1556,7 +1563,7 @@ body {
     color: rgb(var(--info));
   }
   .toast.warn > svg {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
   }
   .tip {
     z-index: 2200;
@@ -1869,7 +1876,7 @@ body {
     color: rgb(var(--danger));
   }
   .ico-c.warn {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
   }
   .pol {
     display: grid;
@@ -2372,7 +2379,7 @@ body {
     border-color: rgb(var(--accent) / 0.45);
   }
   .dir.wh {
-    color: rgb(var(--warning));
+    color: rgb(var(--warning-text));
     border-color: rgb(var(--warning) / 0.5);
   }
   .dir.err {
@@ -2464,6 +2471,120 @@ body {
     }
     .feed {
       max-height: none;
+    }
+  }
+
+  /* ---------- Apps, app detail, job steps, file drop (design 6.1, 6.7, 11.5, 19 file drop) ---------- */
+  .applist {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .appc {
+    border: 1px solid rgb(var(--border));
+    border-radius: var(--r-lg);
+    background: rgb(var(--surface));
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+  .appc .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+    color: rgb(var(--fg-3));
+    border-top: 1px dashed rgb(var(--border));
+    padding-top: 10px;
+  }
+  .lanes {
+    display: grid;
+    gap: 6px;
+  }
+  .lane {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgb(var(--border));
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    min-width: 0;
+  }
+  .lane .v {
+    font: 600 13px/1.2 var(--font-body);
+    min-width: 0;
+  }
+  .lane .v small {
+    font-weight: 500;
+    color: rgb(var(--fg-3));
+  }
+  .g3 {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .split {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .tstep {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+  .tstep .m {
+    font: 500 11.5px/1.45 var(--font-mono);
+    color: rgb(var(--fg-3));
+    overflow-wrap: anywhere;
+  }
+  .drop {
+    border: 1.5px dashed rgb(var(--border-control));
+    border-radius: var(--r-lg);
+    padding: 22px 16px;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    text-align: center;
+    color: rgb(var(--fg-2));
+    font-size: 13px;
+    min-width: 0;
+  }
+  .drop.over {
+    border-color: rgb(var(--fg));
+    border-style: solid;
+    background: rgb(var(--bg-2));
+    color: rgb(var(--fg));
+  }
+  .drop.up {
+    justify-items: stretch;
+    text-align: left;
+    border-style: solid;
+  }
+  .drop.rej {
+    border-color: rgb(var(--danger));
+    background: rgb(var(--danger) / 0.05);
+  }
+  @screen md {
+    .applist {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .g3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @screen xl {
+    .applist,
+    .g3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .split {
+      grid-template-columns: minmax(0, 1fr) 340px;
     }
   }
 }

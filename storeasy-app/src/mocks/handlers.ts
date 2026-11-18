@@ -1,4 +1,5 @@
 import { delay, http, HttpResponse, type HttpHandler } from 'msw'
+import { appsMockHandlers } from './appsMock'
 import type { FilterCriteria, ListRequest } from '@/lib/api/list'
 import {
   ActionChannel,
@@ -171,7 +172,15 @@ export const mockHandlers: HttpHandler[] = [
   http.post(`${BASE}/Account/login/refresh`, () => envelope({ id: 7, userType: UserType.Manager, token: loginToken })),
   http.post(`${BASE}/Account/logout`, () => envelope(null)),
   http.get(`${BASE}/Account/detail`, () =>
-    envelope({ id: 7, userName: 'deniz@kuzeylab.dev', email: 'deniz@kuzeylab.dev', name: 'Deniz', surname: 'Arslan', roles: [] }),
+    envelope({
+      id: 7,
+      userName: 'deniz@kuzeylab.dev',
+      email: 'deniz@kuzeylab.dev',
+      emailConfirmed: true,
+      name: 'Deniz',
+      surname: 'Arslan',
+      roles: [],
+    }),
   ),
   http.put(`${BASE}/Account/password/change`, async () => {
     await delay(300)
@@ -179,7 +188,7 @@ export const mockHandlers: HttpHandler[] = [
   }),
   http.post(`${BASE}/Account/register`, async () => {
     await delay(400)
-    return envelope(null)
+    return envelope(7)
   }),
   http.post(`${BASE}/Account/email/verify`, () => envelope(null)),
   http.post(`${BASE}/Account/email/verify/resend`, () => envelope(null)),
@@ -197,8 +206,11 @@ export const mockHandlers: HttpHandler[] = [
     return envelope(id)
   }),
   http.put(`${BASE}/Organizations/organization`, async ({ request }) => {
-    const { OrganizationId, Name } = await body<{ OrganizationId: number; Name: string }>(request)
-    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, Name } : item))
+    const { OrganizationId, Name, Slug } = await body<{ OrganizationId: number; Name: string; Slug?: string | null }>(request)
+    if (Slug && db.organizations.some((item) => item.Slug === Slug && item.Id !== OrganizationId)) {
+      return refuse('OrganizationSlugTaken', 'Bu kısa ad kullanımda.', 409)
+    }
+    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, Name, Slug: Slug || item.Slug } : item))
     audit(AuditAction.OrganizationUpdated, `Renamed to ${Name}.`)
     return envelope(OrganizationId)
   }),
@@ -302,6 +314,7 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.ConnectionVerified, `${connection?.Name} verified.`, connection?.Store ?? null)
     return envelope(connection)
   }),
+  ...appsMockHandlers,
   http.delete(`${BASE}/StoreConnections/connection`, async ({ request }) => {
     const { ConnectionId } = await body<{ ConnectionId: number }>(request)
     const connection = db.connections.find((item) => item.Id === ConnectionId)

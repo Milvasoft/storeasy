@@ -1,10 +1,10 @@
 # Storeasy Api
 
-This document is a guide to what you need to know about the project.
+This document is a guide to what you need to know about the project. Running storeasy on a server: [docs/self-host.md](../docs/self-host.md); contributing: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Tech Stack
 
-- .Net 10
+- .NET 11
 - PostgreSql
 - Redis (cache, token revocation stamps, feature flags, rate limits)
 - Serilog (Console, Seq, OpenTelemetry)
@@ -237,7 +237,7 @@ dotnet test --solution Storeasy.slnx --no-build
 The test projects use xunit v3, so each test assembly is also an executable that runs itself, with filters:
 
 ```
-cd tests/Storeasy.UnitTests/bin/Debug/net10.0
+cd tests/Storeasy.UnitTests/bin/Debug/net11.0
 dotnet exec Storeasy.UnitTests.dll -namespace "Storeasy.UnitTests.ArchitectureTests"
 dotnet exec Storeasy.UnitTests.dll -class "*ExceptionMiddlewareTests"
 ```
