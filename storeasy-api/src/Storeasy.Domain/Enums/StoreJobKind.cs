@@ -25,6 +25,46 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Mockup export")]
     MockupExport = 60,
+    /// Processes one inbound webhook event (App Store version state change: state, rejection case, notifications).
+    /// </summary>
+    [Description("Process webhook event")]
+    ProcessWebhookEvent = 400,
+
+    /// <summary>
+    /// Registers, updates or removes the App Store Connect webhooks of an inbound endpoint.
+    /// </summary>
+    [Description("Register webhooks")]
+    RegisterWebhooks = 401,
+
+    /// <summary>
+    /// Reads the App Store version states of a connection's apps (catches what a missed webhook did not report).
+    /// </summary>
+    [Description("Sync version states")]
+    SyncVersionStates = 402,
+
+    /// <summary>
+    /// Reads the customer reviews of one store record.
+    /// </summary>
+    [Description("Sync reviews")]
+    SyncReviews = 403,
+
+    /// <summary>
+    /// Publishes (or replaces) the developer reply of one review.
+    /// </summary>
+    [Description("Reply to review")]
+    ReplyToReview = 404,
+
+    /// <summary>
+    /// Reads the TestFlight groups, testers, builds and beta texts of one store record.
+    /// </summary>
+    [Description("Sync TestFlight")]
+    SyncTestFlight = 405,
+
+    /// <summary>
+    /// Writes one TestFlight change (<see cref="TestFlightOperation"/>) and reads the state back.
+    /// </summary>
+    [Description("Update TestFlight")]
+    UpdateTestFlight = 406,
 
     /// <summary>
     /// Reads the Microsoft Store products of one connection: MSIX apps, MSI/EXE products, submissions and their status,

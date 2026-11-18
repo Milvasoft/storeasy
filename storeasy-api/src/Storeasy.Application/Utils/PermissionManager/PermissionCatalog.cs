@@ -89,6 +89,16 @@ public static partial class PermissionCatalog
         public const string Update = "FeatureFlagManagement.Update";
     }
 
+    [Description("Rule Catalog Management")]
+    public static class RuleCatalogManagement
+    {
+        [Description("Rule watcher sources and catalog proposals list permission.")]
+        public const string List = "RuleCatalogManagement.List";
+
+        [Description("Catalog proposal approve, reject and prepare permission.")]
+        public const string Approve = "RuleCatalogManagement.Approve";
+    }
+
     /// <summary>
     /// Gets all permissions in the system as grouped by permission group.
     /// </summary>

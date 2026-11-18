@@ -21,6 +21,7 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Email;
+using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -92,6 +93,7 @@ public static class InfraServiceCollectionExtensions
 
         services.AddStoreJobServices(configurationManager);
 
+        services.AddEventServices(configurationManager);
         // Microsoft Store (phase 5): client, token cache and job handlers.
         services.AddMicrosoftStoreServices(configurationManager);
 

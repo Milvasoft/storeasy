@@ -1578,6 +1578,60 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.MockupExported">
             <summary>A mockup export job was queued.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WebhookEndpointAdded">
+            <summary>Inbound webhook endpoint added.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WebhookSecretRotated">
+            <summary>Inbound webhook secret rotated.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WebhookEndpointRemoved">
+            <summary>Inbound webhook endpoint removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WebhookEventReprocessed">
+            <summary>Inbound webhook event processed again.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrgWebhookAdded">
+            <summary>Outgoing webhook added.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrgWebhookUpdated">
+            <summary>Outgoing webhook changed (address, events, secret, state).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrgWebhookRemoved">
+            <summary>Outgoing webhook removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RejectionOpened">
+            <summary>Rejection case opened.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RejectionTextAdded">
+            <summary>Rejection text pasted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RejectionChecklistUpdated">
+            <summary>Rejection checklist changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RejectionReplySent">
+            <summary>Resolution Center reply marked as sent.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RejectionClosed">
+            <summary>Rejection case closed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ReviewReplied">
+            <summary>Review reply sent (or edited).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.SavedReplyChanged">
+            <summary>Saved reply added, changed or removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.BetaGroupChanged">
+            <summary>TestFlight group created or changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.BetaTestersChanged">
+            <summary>TestFlight testers added or removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.BetaTextChanged">
+            <summary>TestFlight texts changed (what to test, beta description).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.BetaReviewSubmitted">
+            <summary>Build submitted to beta app review.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MsChangeQueued">
             <summary>A Microsoft Store change was queued (listings, images, packages, pricing, flights, add-ons, rollout).</summary>
         </member>
@@ -1595,6 +1649,57 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MsFlightGroupSaved">
             <summary>A package flight group name was recorded.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.BetaInviteType">
+            <summary>
+            How a TestFlight tester joined. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaInviteType.Email">
+            <summary>E-mail invitation.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaInviteType.PublicLink">
+            <summary>Public link.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.BetaReviewState">
+            <summary>
+            TestFlight beta app review state of a build. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaReviewState.NotSubmitted">
+            <summary>Never submitted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaReviewState.WaitingForReview">
+            <summary>Waiting for review.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaReviewState.InReview">
+            <summary>In review.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaReviewState.Approved">
+            <summary>Approved; external groups can test it.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaReviewState.Rejected">
+            <summary>Rejected.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.BetaTesterState">
+            <summary>
+            TestFlight tester state. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaTesterState.NotInvited">
+            <summary>Added but not invited.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaTesterState.Invited">
+            <summary>Invited.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaTesterState.Accepted">
+            <summary>Accepted the invitation.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaTesterState.Installed">
+            <summary>Installed a build.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BetaTesterState.Revoked">
+            <summary>Access revoked.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.BuildProcessingState">
             <summary>
@@ -1781,6 +1886,20 @@
             <summary>
             Not decided in time; nothing was written.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChecklistItemStatus">
+            <summary>
+            State of one fix item of a rejection case. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChecklistItemStatus.Todo">
+            <summary>Not started.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChecklistItemStatus.InProgress">
+            <summary>Being worked on.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChecklistItemStatus.Done">
+            <summary>Done.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ComplianceStatus">
             <summary>
@@ -2355,10 +2474,88 @@
             Notication related entity types.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.App">
+            <summary>A storeasy app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.StoreJob">
+            <summary>A store job.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.RejectionCase">
+            <summary>A rejection case.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.Review">
+            <summary>A store review.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.Invitation">
+            <summary>An organization invitation.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.StoreConnection">
+            <summary>A store connection.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.ArtifactSession">
+            <summary>A package delivery session.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.Build">
+            <summary>A build.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.RuleProposal">
+            <summary>A rules catalog proposal.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.WebhookEvent">
+            <summary>An inbound webhook event.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.Rule">
+            <summary>A rules catalog rule.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.AppVersionState">
+            <summary>An App Store version state.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.NotificationType">
             <summary>
             Notication types.
             </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.Rejection">
+            <summary>A version was rejected; a rejection case was opened.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.CertificationFailed">
+            <summary>A Microsoft Store submission failed certification.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.JobSucceeded">
+            <summary>A store job the user started finished.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.JobFailed">
+            <summary>A store job the user started failed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.PlanPending">
+            <summary>A change plan waits for approval.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.Deadline">
+            <summary>A deadline is near (compliance timeline, TestFlight build expiry).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.NewReview">
+            <summary>New store reviews arrived.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.ReviewReplyFailed">
+            <summary>A review reply could not be published.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.Invitation">
+            <summary>Organization invitations and joins.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.ConnectionAlert">
+            <summary>Security and connection alerts (rejected key, invalid webhook signature, secret expiry). Cannot be turned off.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.ArtifactRejected">
+            <summary>A delivered package was rejected.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.RuleChanged">
+            <summary>A rules catalog change affects an app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.RuleProposal">
+            <summary>The rule watcher opened a catalog proposal (platform admins).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.VersionState">
+            <summary>An App Store version changed state (in review, approved, ready for sale).</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.OrgPermission">
             <summary>
@@ -2498,6 +2695,56 @@
             Nobody may register; accounts are created by an instance admin.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.RejectionCloseReason">
+            <summary>
+            Why a rejection case was closed. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionCloseReason.Submission">
+            <summary>The version was submitted again.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionCloseReason.Manual">
+            <summary>A member closed it (the version was withdrawn, for example).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RejectionKind">
+            <summary>
+            What the store rejected. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionKind.Rejected">
+            <summary>App Store REJECTED (binary or app).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionKind.MetadataRejected">
+            <summary>App Store METADATA_REJECTED (store listing only, the build stays).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionKind.CertificationFailed">
+            <summary>Microsoft Store certification failed.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RejectionSource">
+            <summary>
+            How a rejection case was opened. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionSource.Webhook">
+            <summary>By an App Store Connect webhook event.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionSource.Sync">
+            <summary>By the periodic version state sync.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionSource.Manual">
+            <summary>By a member.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RejectionState">
+            <summary>
+            State of a rejection case. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionState.Open">
+            <summary>Being worked on.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RejectionState.Closed">
+            <summary>Resubmitted or closed by hand; read only history.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.ReleasePlanKind">
             <summary>
             What a release plan does.
@@ -2532,6 +2779,23 @@
             <summary>
             Released on a date (or on approval, if later).
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ReviewReplyState">
+            <summary>
+            State of the developer reply of a store review. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReviewReplyState.None">
+            <summary>No reply.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReviewReplyState.Sending">
+            <summary>A reply job is on the way.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReviewReplyState.Published">
+            <summary>The store shows the reply.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReviewReplyState.Failed">
+            <summary>The last reply attempt failed.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.RolloutAction">
             <summary>
@@ -2582,6 +2846,65 @@
             <summary>
             The app data needed by a condition is missing.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RuleProposalPreparer">
+            <summary>
+            Who prepared a catalog change proposal. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalPreparer.Watcher">
+            <summary>The rule watcher (source change only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalPreparer.Mcp">
+            <summary>Claude through MCP (catalog patch written).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RuleProposalRejectReason">
+            <summary>
+            Why a platform admin rejected a proposal. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalRejectReason.FormattingOnly">
+            <summary>The page only changed its layout or wording.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalRejectReason.Misread">
+            <summary>The change was read wrong.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalRejectReason.SourceUnstable">
+            <summary>The source keeps changing; wait.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalRejectReason.Other">
+            <summary>Another reason (see the note).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RuleProposalStatus">
+            <summary>
+            State of a catalog change proposal. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalStatus.Pending">
+            <summary>Waiting for a platform admin.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalStatus.Approved">
+            <summary>Approved.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleProposalStatus.Rejected">
+            <summary>Rejected.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RuleSourceStatus">
+            <summary>
+            Result of the last fetch of a watched official source. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleSourceStatus.New">
+            <summary>Never fetched.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleSourceStatus.Unchanged">
+            <summary>Content unchanged.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleSourceStatus.Changed">
+            <summary>Content changed; a proposal was opened.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleSourceStatus.Unreachable">
+            <summary>The source could not be read.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.RuleStatus">
             <summary>
@@ -2679,6 +3002,37 @@
             studio's own band.
             </summary>
         </member>
+        <!-- Badly formed XML comment ignored for member "F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent" -->
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks">
+            <summary>
+            Registers, updates or removes the App Store Connect webhooks of an inbound endpoint.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates">
+            <summary>
+            Reads the App Store version states of a connection's apps (catches what a missed webhook did not report).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncReviews">
+            <summary>
+            Reads the customer reviews of one store record.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ReplyToReview">
+            <summary>
+            Publishes (or replaces) the developer reply of one review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncTestFlight">
+            <summary>
+            Reads the TestFlight groups, testers, builds and beta texts of one store record.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.UpdateTestFlight">
+            <summary>
+            Writes one TestFlight change (<see cref="T:Storeasy.Domain.Enums.TestFlightOperation"/>) and reads the state back.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.MsSync">
             <summary>
             Reads the Microsoft Store products of one connection: MSIX apps, MSI/EXE products, submissions and their status,
@@ -2772,6 +3126,32 @@
             until then the store engine answers "not supported yet".
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.TestFlightOperation">
+            <summary>
+            The TestFlight write a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.UpdateTestFlight"/> job carries. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.CreateGroup">
+            <summary>Create a beta group.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.UpdateGroup">
+            <summary>Rename a group or change its public link.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.UpdateTesters">
+            <summary>Add or remove testers of a group.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.UpdateBuilds">
+            <summary>Add or remove builds of a group.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.WhatToTest">
+            <summary>Write the "what to test" text of a build.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.Localization">
+            <summary>Write the beta app description and feedback e-mail of a language.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TestFlightOperation.SubmitBetaReview">
+            <summary>Submit a build to beta app review.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.UserActivity">
             <summary>
             User activity types. The numeric value is stored in <c>ActivityLogs</c>, so values are explicit and never reused.
@@ -2817,6 +3197,16 @@
             Feature flag updated.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.ApproveRuleProposal">
+            <summary>
+            A rules catalog proposal was approved.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.RejectRuleProposal">
+            <summary>
+            A rules catalog proposal was rejected.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.UserType">
             <summary>
             Determines which screen users will see after logging in to the frontend.
@@ -2830,6 +3220,354 @@
         <member name="F:Storeasy.Domain.Enums.UserType.AppUser">
             <summary>
             Can see user profile and view screens.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WebhookDeliveryStatus">
+            <summary>
+            State of one outgoing webhook delivery. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookDeliveryStatus.Pending">
+            <summary>Waiting for its first attempt.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookDeliveryStatus.Succeeded">
+            <summary>The receiver answered 2xx.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookDeliveryStatus.Failed">
+            <summary>Every attempt failed, or the address was refused.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookDeliveryStatus.Retrying">
+            <summary>An attempt failed; another one is scheduled.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WebhookProcessResult">
+            <summary>
+            Outcome of an inbound webhook event. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.Pending">
+            <summary>Stored, waiting for processing.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.Processed">
+            <summary>Processed (state updated, records opened or closed).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.Ignored">
+            <summary>Valid, but nothing to do (ping, unknown type, unknown app).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.Failed">
+            <summary>Processing failed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.InvalidSignature">
+            <summary>The signature did not match; the event was kept but not processed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookProcessResult.Stale">
+            <summary>The timestamp was outside the accepted window; kept but not processed.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WebhookRegistrationState">
+            <summary>
+            Whether the sender knows the endpoint. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookRegistrationState.Pending">
+            <summary>Registration not done yet (a job is on the way, or a manual one is waiting for its first event).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookRegistrationState.Api">
+            <summary>Registered at the store through its API.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookRegistrationState.Manual">
+            <summary>Registered by hand; the first valid event confirmed it.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookRegistrationState.Failed">
+            <summary>The API registration failed (usually a key without the needed role).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WebhookSource">
+            <summary>
+            Who calls an inbound webhook endpoint and how its signature is checked. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookSource.AppStoreConnect">
+            <summary>
+            App Store Connect: <c>x-apple-signature: hmacsha256=&lt;hex&gt;</c> over the raw body.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookSource.Signed">
+            <summary>
+            Any other sender with storeasy's own scheme: HMAC-SHA256 over <c>{timestamp}.{body}</c> with a timestamp and an event id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Events.AppVersionState">
+            <summary>
+            Last known review state of one store version (an App Store version, later a Microsoft submission), kept so a change is
+            noticed once whether it arrives by webhook or by the periodic sync, and so the submission history of an app can be
+            shown with accepted versions too.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Events.AppVersionState.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.ExternalVersionId">
+            <summary>
+            The store's id of the version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.VersionString">
+            <summary>
+            User facing version (1.4).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.BuildNumber">
+            <summary>
+            Build number attached to the version, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.State">
+            <summary>
+            State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>REJECTED</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.PreviousState">
+            <summary>
+            Previous state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.ChangedDate">
+            <summary>
+            UTC instant of the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.AppVersionState.SubmittedDate">
+            <summary>
+            UTC instant the version was first seen in a submitted state.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Events.WebhookEndpoint">
+            <summary>
+            An inbound webhook address of an organization (docs/urun-plani.md 2.5). The address carries <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PublicId"/>,
+            never the database id; the HMAC secret is envelope encrypted like store secrets. After a rotation the previous secret
+            stays valid until <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousSecretValidUntil"/>, so events signed during the switch are not lost.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Events.WebhookEndpoint.PublicIdMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PublicId"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.StoreConnectionId">
+            <summary>
+            Store connection the endpoint belongs to (App Store Connect endpoints); null for a signed endpoint.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.Source">
+            <summary>
+            Sender and signature scheme.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PublicId">
+            <summary>
+            Random id put into the address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.EncryptedSecret">
+            <summary>
+            The secret sealed with the data key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.EncryptedDataKey">
+            <summary>
+            The data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.KeyVersion">
+            <summary>
+            Master key version of <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousEncryptedSecret">
+            <summary>
+            The secret before the last rotation, sealed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousEncryptedDataKey">
+            <summary>
+            Data key of <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousEncryptedSecret"/>, sealed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousKeyVersion">
+            <summary>
+            Master key version of <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousEncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PreviousSecretValidUntil">
+            <summary>
+            UTC instant until which the previous secret is still accepted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.SecretSetDate">
+            <summary>
+            UTC instant the current secret was set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.Registration">
+            <summary>
+            Whether the sender knows the address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.RegistrationError">
+            <summary>
+            Redacted reason of a failed registration.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.ExternalWebhooks">
+            <summary>
+            Webhooks the store keeps for this endpoint (one per App Store Connect app).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.Events">
+            <summary>
+            Event types the endpoint is registered for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.LastEventDate">
+            <summary>
+            UTC instant of the last event with a valid signature.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.StoreConnection">
+            <summary>
+            Navigation property of the connection.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Events.WebhookEvent">
+            <summary>
+            One request that reached an inbound webhook endpoint, kept as received (raw payload) with the signature verdict and the
+            processing outcome. An event the sender repeats (same <see cref="P:Storeasy.Domain.Events.WebhookEvent.ExternalEventId"/>) is stored once: the unique index is
+            the replay protection.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Events.WebhookEvent.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.WebhookEndpointId">
+            <summary>
+            Endpoint that received the event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.EventType">
+            <summary>
+            Event type as sent (normalized for the App Store version state event).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.ExternalEventId">
+            <summary>
+            The sender's id of the event, or the SHA-256 of the body when the sender gives none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.Payload">
+            <summary>
+            Raw body (JSON). Null when the body was not JSON.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.SignatureHeaderMasked">
+            <summary>
+            Signature header with everything but the first and last 4 hex characters masked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.SignatureValid">
+            <summary>
+            Whether the signature matched the current (or the previous, during a rotation) secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.ReceivedDate">
+            <summary>
+            UTC instant the request arrived.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.ProcessedDate">
+            <summary>
+            UTC instant processing finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.ProcessResult">
+            <summary>
+            Outcome.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.ProcessMessage">
+            <summary>
+            Short, redacted note about the outcome.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.SubjectExternalId">
+            <summary>
+            The store's id of the object the event is about (an App Store version id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.StoreAppId">
+            <summary>
+            Store record the event was matched to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.AppId">
+            <summary>
+            storeasy app the event was matched to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.OldValue">
+            <summary>
+            Previous value (state change events).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.NewValue">
+            <summary>
+            New value (state change events).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.RelatedEntityType">
+            <summary>
+            Kind of the record processing produced or touched.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEvent.RelatedEntityId">
+            <summary>
+            Id of that record.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.FeatureFlag">
@@ -2863,6 +3601,380 @@
         </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
             <summary>All known keys, in display order.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Feedback.RejectionCase">
+            <summary>
+            A store rejection being worked on (docs/urun-plani.md 11.3): opened when a version goes to REJECTED or METADATA_REJECTED,
+            the review text is pasted (no API returns it), the cited guidelines become a checklist, a reply is drafted against the
+            Resolution Center limit and sent by hand (or by an assisted step). A resubmission closes it; it stays as history.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.RejectionCase.ReplyMaxLength">
+            <summary>
+            Longest reply App Review accepts in the Resolution Center (catalog rule <c>apple.review.resolution-center-reply</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.RejectionCase.DraftMaxLength">
+            <summary>
+            Longest draft stored (a draft may exceed <see cref="F:Storeasy.Domain.Feedback.RejectionCase.ReplyMaxLength"/> while it is being shortened).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.RejectionCase.RawTextMaxLength">
+            <summary>
+            Longest pasted review text stored.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.RejectionCase.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ExternalVersionId">
+            <summary>
+            The store's id of the rejected version (or submission).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.VersionString">
+            <summary>
+            User facing version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.BuildNumber">
+            <summary>
+            Build number, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.Kind">
+            <summary>
+            What was rejected.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.OpenedVia">
+            <summary>
+            How the case was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.OpenedDate">
+            <summary>
+            UTC instant the case was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ClosedDate">
+            <summary>
+            UTC instant the case was closed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ClosedVia">
+            <summary>
+            Why it was closed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.CloseNote">
+            <summary>
+            Note given when closed by hand.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.RawText">
+            <summary>
+            The review text as pasted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.RawTextByUserName">
+            <summary>
+            Who pasted the text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.RawTextDate">
+            <summary>
+            UTC instant the text was pasted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.Guidelines">
+            <summary>
+            Guidelines cited in the text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.Checklist">
+            <summary>
+            Fix items.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplyDraft">
+            <summary>
+            Draft of the Resolution Center reply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplyDraftByUserName">
+            <summary>
+            Who wrote the draft last.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplyDraftChannel">
+            <summary>
+            Channel the draft was written from (web or MCP).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplyDraftDate">
+            <summary>
+            UTC instant the draft was saved last.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplySentDate">
+            <summary>
+            UTC instant a member marked the reply as sent in the Resolution Center.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.ReplySentByUserName">
+            <summary>
+            Who marked the reply as sent.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.PreviousCaseId">
+            <summary>
+            The earlier case of the same version, when it was rejected again.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.Timeline">
+            <summary>
+            What happened, in order.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.RejectionCase.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Feedback.ReviewRead">
+            <summary>
+            A member read a review (the read mark is personal).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.ReviewRead.UserId">
+            <summary>
+            Reader.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.ReviewRead.StoreReviewId">
+            <summary>
+            Review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.ReviewRead.ReadDate">
+            <summary>
+            UTC instant it was read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.ReviewRead.StoreReview">
+            <summary>
+            Navigation property of the review.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Feedback.SavedReply">
+            <summary>
+            A reusable review reply of an organization, one text per language. <c>{ad}</c> / <c>{name}</c>, <c>{uygulama}</c> /
+            <c>{app}</c> and <c>{sürüm}</c> / <c>{version}</c> are filled from the review when the reply is picked.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.SavedReply.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Feedback.SavedReply.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.SavedReply.BodyMaxLength">
+            <summary>
+            Longest text of one variant.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.SavedReply.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.SavedReply.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.SavedReply.Variants">
+            <summary>
+            Text per language.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.SavedReply.AppIds">
+            <summary>
+            Apps it is suggested for; empty means every app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.SavedReply.UseCount">
+            <summary>
+            How many replies used it.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Feedback.StoreReview">
+            <summary>
+            A customer review of an app in a store with its developer reply. Google Play's API returns only recent reviews that
+            have text, so every review read is kept: older ones stay here after the store stops listing them.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.StoreReview.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Feedback.StoreReview.BodyMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Feedback.StoreReview.Body"/> and <see cref="P:Storeasy.Domain.Feedback.StoreReview.ReplyBody"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ExternalReviewId">
+            <summary>
+            The store's id of the review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.AuthorName">
+            <summary>
+            Reviewer's nickname.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Rating">
+            <summary>
+            Stars, 1 to 5.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Title">
+            <summary>
+            Title (App Store only).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Body">
+            <summary>
+            Review text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Locale">
+            <summary>
+            Language of the review, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Territory">
+            <summary>
+            Storefront or country, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.AppVersion">
+            <summary>
+            App version reviewed, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Device">
+            <summary>
+            Device, if known (Play).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReviewDate">
+            <summary>
+            UTC instant the review was written or last edited.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyBody">
+            <summary>
+            Developer reply text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyState">
+            <summary>
+            Reply state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyExternalId">
+            <summary>
+            The store's id of the reply (App Store customer review response), when it has one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyDate">
+            <summary>
+            UTC instant of the reply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyByUserName">
+            <summary>
+            Who replied through storeasy.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyError">
+            <summary>
+            Redacted reason of the last failed reply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.ReplyJobId">
+            <summary>
+            Job of the last reply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.DraftBody">
+            <summary>
+            Unsent draft (written by a member or by Claude through MCP; never sent without a person).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.FetchedDate">
+            <summary>
+            UTC instant the review was first read from the store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Feedback.StoreReview.Reads">
+            <summary>
+            Read marks of the members.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.IdempotencyKey">
             <summary>
@@ -2949,6 +4061,11 @@
         <member name="P:Storeasy.Domain.InternalNotification.ActionLink">
             <summary>
             Client-side URL/route to navigate when the notification is clicked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.OrganizationId">
+            <summary>
+            Organization the notification comes from; null for platform notifications.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.AppProfile">
@@ -3044,6 +4161,37 @@
         <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.SecretExpiryDate">
             <summary>
             UTC instant the client secret expires, as entered by the user. Microsoft only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ExternalWebhookRegistration">
+            <summary>
+            One webhook the store keeps for an inbound endpoint. App Store Connect webhooks belong to an app, so an endpoint of a
+            connection has one registration per app of that connection, all pointing at the same address with the same secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ExternalWebhookRegistration.AppExternalId">
+            <summary>
+            The store's id of the app the webhook belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ExternalWebhookRegistration.WebhookId">
+            <summary>
+            The store's id of the webhook.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.LocalizedText">
+            <summary>
+            A text in one language (saved reply variants, TestFlight "what to test").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.LocalizedText.Locale">
+            <summary>
+            Locale (e.g. <c>tr</c>, <c>en-US</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.LocalizedText.Text">
+            <summary>
+            Text.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.MockupExportManifest">
@@ -3762,6 +4910,86 @@
             Keys of the blocking checks.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.RejectionChecklistItem">
+            <summary>
+            One fix item of a rejection case.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.Id">
+            <summary>
+            Stable id of the item inside its case.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.GuidelineCode">
+            <summary>
+            Guideline the item answers; null for an item added by hand without one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.Text">
+            <summary>
+            What to do.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.FixRoute">
+            <summary>
+            Where in storeasy the fix is made (a web app route), if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.AssigneeUserId">
+            <summary>
+            Member responsible for the item.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionChecklistItem.DoneDate">
+            <summary>
+            UTC instant the item was marked done.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.RejectionGuideline">
+            <summary>
+            An App Review guideline cited by a rejection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionGuideline.Code">
+            <summary>
+            Guideline number as cited (e.g. <c>5.1.1</c>, <c>2.3.10</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionGuideline.Title">
+            <summary>
+            Title next to the number in the text (e.g. <c>Legal - Privacy - Data Collection and Storage</c>), if any.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.RejectionTimelineEntry">
+            <summary>
+            One line of the timeline of a rejection case.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionTimelineEntry.Date">
+            <summary>
+            UTC instant.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionTimelineEntry.Kind">
+            <summary>
+            Machine name of what happened (<c>opened</c>, <c>text</c>, <c>checklist</c>, <c>draft</c>, <c>sent</c>, <c>closed</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionTimelineEntry.Text">
+            <summary>
+            Short note (who, what).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RejectionTimelineEntry.Channel">
+            <summary>
+            Where it came from.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.RequestInfo">
             <summary>
             Contains api request information.
@@ -4299,6 +5527,238 @@
         <member name="P:Storeasy.Domain.MsStore.MsSubmission.StoreApp">
             <summary>
             Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Notifications.DeadlineReminder">
+            <summary>
+            A deadline reminder that was sent (TestFlight build expiry, compliance deadline), so each threshold is notified once.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.DeadlineReminder.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.DeadlineReminder.Subject">
+            <summary>
+            What the deadline is about (<c>build:{id}</c>, <c>rule:{ruleId}:app:{appId}:{dueDate}</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.DeadlineReminder.ThresholdDays">
+            <summary>
+            The threshold (days before the deadline) that fired.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.DeadlineReminder.SentDate">
+            <summary>
+            UTC instant the reminder was sent.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Notifications.NotificationPreference">
+            <summary>
+            A user's channels for one notification kind, valid in every organization. A missing row means the kind's defaults.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.UserId">
+            <summary>
+            User.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.Kind">
+            <summary>
+            Notification kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.InApp">
+            <summary>
+            In-app notification center.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.Email">
+            <summary>
+            E-mail.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.WebPush">
+            <summary>
+            Web push (phase 8; stored, not sent yet).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.NotificationPreference.UpdatedDate">
+            <summary>
+            UTC instant of the last change.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Notifications.OrganizationWebhook">
+            <summary>
+            An outgoing webhook subscription of an organization: storeasy posts the subscribed events to <see cref="P:Storeasy.Domain.Notifications.OrganizationWebhook.Url"/>, signed
+            with HMAC-SHA256 of the secret (envelope encrypted at rest).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Notifications.OrganizationWebhook.UrlMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Notifications.OrganizationWebhook.Url"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Notifications.OrganizationWebhook.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Notifications.OrganizationWebhook.Name"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.Url">
+            <summary>
+            HTTPS address the events are posted to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.Events">
+            <summary>
+            Subscribed event types; empty means every event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.IsActive">
+            <summary>
+            Whether deliveries are made.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.EncryptedSecret">
+            <summary>
+            The secret sealed with the data key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.EncryptedDataKey">
+            <summary>
+            The data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.KeyVersion">
+            <summary>
+            Master key version of <see cref="P:Storeasy.Domain.Notifications.OrganizationWebhook.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.LastDeliveryDate">
+            <summary>
+            UTC instant of the last delivery attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.OrganizationWebhook.LastDeliveryStatus">
+            <summary>
+            Result of the last delivery attempt.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Notifications.WebhookDelivery">
+            <summary>
+            One event to post to one outgoing webhook, with its attempts (the delivery log). Claimed by the delivery runner with a
+            short lease (<see cref="P:Storeasy.Domain.Notifications.WebhookDelivery.LockedUntil"/>), retried with backoff until <see cref="P:Storeasy.Domain.Notifications.WebhookDelivery.MaxAttempts"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Notifications.WebhookDelivery.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Notifications.WebhookDelivery.ResponseMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Notifications.WebhookDelivery.ResponseBody"/> and <see cref="P:Storeasy.Domain.Notifications.WebhookDelivery.Error"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.OrganizationWebhookId">
+            <summary>
+            Subscription.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.EventType">
+            <summary>
+            Event type (<c>rejection.opened</c>...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.EventId">
+            <summary>
+            Id of the event, sent as <c>X-Storeasy-Event-Id</c>; the same for every attempt so receivers can deduplicate.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.Payload">
+            <summary>
+            Body posted (JSON).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.Attempt">
+            <summary>
+            Attempts made.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.MaxAttempts">
+            <summary>
+            Attempts allowed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.NextAttemptDate">
+            <summary>
+            UTC instant of the next attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.LockedUntil">
+            <summary>
+            Lease of the runner working on it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.ResponseStatusCode">
+            <summary>
+            HTTP status of the last answer.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.ResponseBody">
+            <summary>
+            Start of the last answer body, redacted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.Error">
+            <summary>
+            Redacted reason of the last failure.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.DurationMilliseconds">
+            <summary>
+            Duration of the last attempt in milliseconds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.IsTest">
+            <summary>
+            Whether a member asked for it as a test.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.CreationDate">
+            <summary>
+            UTC instant it was queued.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.LastAttemptDate">
+            <summary>
+            UTC instant of the last attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Notifications.WebhookDelivery.LeaseId">
+            <summary>
+            Id of the claim that holds the lease (set and read back in one round, cleared after the attempt).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Organizations.Organization">
@@ -5369,6 +6829,188 @@
             <param name="version"></param>
             <param name="minimum"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleProposal">
+            <summary>
+            A proposed change of the rules catalog for a platform admin to decide (nothing is published automatically). The watcher
+            opens it with the source diff; Claude through MCP may add the rule ids and the catalog patch.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleProposal.ExcerptMaxLength">
+            <summary>
+            Longest excerpt or diff stored.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.RuleSourceId">
+            <summary>
+            Source whose change opened it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.ContentHash">
+            <summary>
+            Hash of the source content the proposal is about (a rejected hash never opens a second proposal).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.PreviousContentHash">
+            <summary>
+            Hash before the change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.PreparedBy">
+            <summary>
+            Who prepared it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.PreparedByUserName">
+            <summary>
+            User whose token prepared the patch (MCP).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.RuleIds">
+            <summary>
+            Catalog rules the change affects.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.SourceExcerptBefore">
+            <summary>
+            Removed lines of the source (diff, before).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.SourceExcerptAfter">
+            <summary>
+            Added lines of the source (diff, after).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.CatalogPatch">
+            <summary>
+            Proposed catalog change (JSON patch or the changed rule objects), when prepared.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.PreparerNote">
+            <summary>
+            Note of the preparer.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.CatalogVersionFrom">
+            <summary>
+            Catalog version when the proposal was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.CatalogVersionTo">
+            <summary>
+            Catalog version published by the approval.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.RejectReason">
+            <summary>
+            Why it was rejected.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.DecisionNote">
+            <summary>
+            Decision note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.DecidedByUserName">
+            <summary>
+            Who decided.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.DecidedDate">
+            <summary>
+            UTC instant of the decision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.NotifiedOrganizationCount">
+            <summary>
+            Organizations notified on approval.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleProposal.CreationDate">
+            <summary>
+            UTC instant it was opened.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleWatchSource">
+            <summary>
+            An official page the rule watcher reads (docs/urun-plani.md 12.3). The normalized text of the last read is kept to diff
+            the next one; a change opens a <see cref="T:Storeasy.Domain.Rules.RuleProposal"/>. Platform wide (no organization).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleWatchSource.ContentMaxLength">
+            <summary>
+            Longest normalized text kept.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Store">
+            <summary>
+            Store the source is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Url">
+            <summary>
+            Address (an allow-listed official domain).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.IsActive">
+            <summary>
+            Whether the watcher reads it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Status">
+            <summary>
+            State of the last read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastFetchDate">
+            <summary>
+            UTC instant of the last read attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastChangeDate">
+            <summary>
+            UTC instant the content last changed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.ContentHash">
+            <summary>
+            SHA-256 of the current normalized text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.PreviousContentHash">
+            <summary>
+            SHA-256 of the text before the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Content">
+            <summary>
+            Normalized text of the last read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastError">
+            <summary>
+            Redacted reason of the last failed read.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Stores.StoreAuditLog">
             <summary>
@@ -6660,6 +8302,241 @@
         </member>
         <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.SingleImage">
             <summary>One image per locale (feature graphic).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.TestFlight.BetaAppLocalization">
+            <summary>
+            Beta app description, feedback e-mail and links of one language (App Store Connect beta app localizations).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.TestFlight.BetaAppLocalization.DescriptionMaxLength">
+            <summary>
+            Longest beta description App Store Connect accepts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.ExternalId">
+            <summary>
+            The store's id of the localization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.Locale">
+            <summary>
+            Locale (e.g. <c>en-US</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.Description">
+            <summary>
+            Beta app description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.FeedbackEmail">
+            <summary>
+            Feedback e-mail.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.MarketingUrl">
+            <summary>
+            Marketing URL.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.PrivacyPolicyUrl">
+            <summary>
+            Privacy policy URL.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaAppLocalization.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.TestFlight.BetaBuild">
+            <summary>
+            TestFlight details of a build: beta review state and "what to test" texts. The expiry date stays on the build.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.TestFlight.BetaBuild.WhatToTestMaxLength">
+            <summary>
+            Longest "what to test" text App Store Connect accepts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.BuildId">
+            <summary>
+            Build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.BetaReviewState">
+            <summary>
+            Beta app review state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.BetaReviewSubmittedDate">
+            <summary>
+            UTC instant the build was submitted to beta review through storeasy.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.WhatToTest">
+            <summary>
+            "What to test" per language.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaBuild.Build">
+            <summary>
+            Navigation property of the build.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.TestFlight.BetaGroup">
+            <summary>
+            A TestFlight beta group as last read from App Store Connect (the TestFlight sync replaces the rows of a store record).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.TestFlight.BetaGroup.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.StoreAppId">
+            <summary>
+            Store record (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.ExternalId">
+            <summary>
+            The store's id of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.Name">
+            <summary>
+            Name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.IsInternal">
+            <summary>
+            Internal group (App Store Connect users) or external.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.PublicLinkEnabled">
+            <summary>
+            Whether the public link is on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.PublicLink">
+            <summary>
+            Public link.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.PublicLinkLimit">
+            <summary>
+            Most testers the public link admits.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.PublicLinkLimitEnabled">
+            <summary>
+            Whether the limit is on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.TesterCount">
+            <summary>
+            Testers in the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.BuildExternalIds">
+            <summary>
+            The store's ids of the builds in the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaGroup.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.TestFlight.BetaTester">
+            <summary>
+            A TestFlight tester of an app as last read from App Store Connect.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.TestFlight.BetaTester.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.StoreAppId">
+            <summary>
+            Store record (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.ExternalId">
+            <summary>
+            The store's id of the tester.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.FirstName">
+            <summary>
+            First name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.LastName">
+            <summary>
+            Last name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.Email">
+            <summary>
+            E-mail (null for anonymous public link testers).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.InviteType">
+            <summary>
+            How the tester joined.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.GroupKeys">
+            <summary>
+            The store's ids of the groups the tester is in, as <c>,id1,id2,</c> (searchable with a plain LIKE).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.TestFlight.BetaTester.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.User">
             <summary>

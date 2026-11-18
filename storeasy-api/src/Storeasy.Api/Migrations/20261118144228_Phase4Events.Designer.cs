@@ -14,8 +14,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261118143858_Phase5MicrosoftStore")]
-partial class _20261118143858_Phase5MicrosoftStore
+[Migration("20261118144228_Phase4Events")]
+partial class _20261118144228_Phase4Events
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -590,6 +590,241 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.ToTable("ChangePlans");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Events.AppVersionState", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("BuildNumber")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime>("ChangedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ExternalVersionId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PreviousState")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("State")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("SubmittedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("VersionString")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId", "ExternalVersionId")
+                    .IsUnique();
+
+                b.ToTable("AppVersionStates");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Events.WebhookEndpoint", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DeleterUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("DeletionDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedSecret")
+                    .HasColumnType("bytea");
+
+                b.PrimitiveCollection<string>("Events")
+                    .HasColumnType("jsonb");
+
+                b.Property<List<ExternalWebhookRegistration>>("ExternalWebhooks")
+                    .HasColumnType("jsonb");
+
+                b.Property<bool>("IsDeleted")
+                    .HasColumnType("boolean");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("LastEventDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte[]>("PreviousEncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("PreviousEncryptedSecret")
+                    .HasColumnType("bytea");
+
+                b.Property<int?>("PreviousKeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("PreviousSecretValidUntil")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("PublicId")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<byte>("Registration")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("RegistrationError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime>("SecretSetDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Source")
+                    .HasColumnType("smallint");
+
+                b.Property<int?>("StoreConnectionId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("PublicId")
+                    .IsUnique();
+
+                b.HasIndex("StoreConnectionId");
+
+                b.ToTable("WebhookEndpoints");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Events.WebhookEvent", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int?>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("EventType")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ExternalEventId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("NewValue")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("OldValue")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Payload")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("ProcessMessage")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<byte>("ProcessResult")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("ProcessedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime>("ReceivedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("RelatedEntityId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<byte>("RelatedEntityType")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("SignatureHeaderMasked")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<bool>("SignatureValid")
+                    .HasColumnType("boolean");
+
+                b.Property<int?>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("SubjectExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("WebhookEndpointId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "ReceivedDate")
+                    .IsDescending(false, true);
+
+                b.HasIndex("WebhookEndpointId", "ExternalEventId")
+                    .IsUnique();
+
+                b.ToTable("WebhookEvents");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.FeatureFlag", b =>
             {
                 var id = b.Property<int>("Id")
@@ -636,6 +871,309 @@ partial class _20261118143858_Phase5MicrosoftStore
                     .IsUnique();
 
                 b.ToTable("FeatureFlags");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Feedback.RejectionCase", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("BuildNumber")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<List<RejectionChecklistItem>>("Checklist")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("CloseNote")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("ClosedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte?>("ClosedVia")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("ExternalVersionId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<List<RejectionGuideline>>("Guidelines")
+                    .HasColumnType("jsonb");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime>("OpenedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("OpenedVia")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("PreviousCaseId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("RawText")
+                    .HasMaxLength(50000)
+                    .HasColumnType("character varying(50000)");
+
+                b.Property<string>("RawTextByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("RawTextDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ReplyDraft")
+                    .HasMaxLength(20000)
+                    .HasColumnType("character varying(20000)");
+
+                b.Property<string>("ReplyDraftByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<byte?>("ReplyDraftChannel")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("ReplyDraftDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ReplySentByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("ReplySentDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("State")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<List<RejectionTimelineEntry>>("Timeline")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("VersionString")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId");
+
+                b.HasIndex("OrganizationId", "AppId");
+
+                b.HasIndex("StoreAppId", "State");
+
+                b.ToTable("RejectionCases");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Feedback.ReviewRead", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime>("ReadDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<long>("StoreReviewId")
+                    .HasColumnType("bigint");
+
+                b.Property<int>("UserId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("StoreReviewId");
+
+                b.HasIndex("UserId", "StoreReviewId")
+                    .IsUnique();
+
+                b.ToTable("ReviewReads");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Feedback.SavedReply", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.PrimitiveCollection<string>("AppIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DeleterUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("DeletionDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<bool>("IsDeleted")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int>("UseCount")
+                    .HasColumnType("integer");
+
+                b.Property<List<LocalizedText>>("Variants")
+                    .HasColumnType("jsonb");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.ToTable("SavedReplies");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Feedback.StoreReview", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("AppVersion")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<string>("AuthorName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Body")
+                    .HasMaxLength(10000)
+                    .HasColumnType("character varying(10000)");
+
+                b.Property<string>("Device")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("DraftBody")
+                    .HasMaxLength(10000)
+                    .HasColumnType("character varying(10000)");
+
+                b.Property<string>("ExternalReviewId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime>("FetchedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Locale")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int>("Rating")
+                    .HasColumnType("integer");
+
+                b.Property<string>("ReplyBody")
+                    .HasMaxLength(10000)
+                    .HasColumnType("character varying(10000)");
+
+                b.Property<string>("ReplyByUserName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("ReplyDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ReplyError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("ReplyExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<long?>("ReplyJobId")
+                    .HasColumnType("bigint");
+
+                b.Property<byte>("ReplyState")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime>("ReviewDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Territory")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("Title")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId");
+
+                b.HasIndex("OrganizationId", "ReviewDate")
+                    .IsDescending(false, true);
+
+                b.HasIndex("StoreAppId", "ExternalReviewId")
+                    .IsUnique();
+
+                b.ToTable("StoreReviews");
             });
 
         modelBuilder.Entity("Storeasy.Domain.IdempotencyKey", b =>
@@ -690,6 +1228,9 @@ partial class _20261118143858_Phase5MicrosoftStore
 
                 b.Property<string>("Data")
                     .HasColumnType("text");
+
+                b.Property<int?>("OrganizationId")
+                    .HasColumnType("integer");
 
                 b.Property<int>("RecipientUserId")
                     .HasColumnType("integer");
@@ -757,83 +1298,70 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.ToTable("_MigrationHistory");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsAddon", b =>
+        modelBuilder.Entity("Storeasy.Domain.Notifications.DeadlineReminder", b =>
             {
-                var id = b.Property<int>("Id")
+                var id = b.Property<long>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
+                    .HasColumnType("bigint");
 
                 NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
 
-                b.Property<bool>("ApiWritable")
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SentDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Subject")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
+
+                b.Property<int>("ThresholdDays")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Subject", "ThresholdDays")
+                    .IsUnique();
+
+                b.ToTable("DeadlineReminders");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Notifications.NotificationPreference", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<bool>("Email")
                     .HasColumnType("boolean");
 
-                b.Property<byte?>("AssistedReason")
+                b.Property<bool>("InApp")
+                    .HasColumnType("boolean");
+
+                b.Property<byte>("Kind")
                     .HasColumnType("smallint");
 
-                b.Property<DateTime?>("CreationDate")
+                b.Property<DateTime>("UpdatedDate")
                     .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("CreatorUserName")
-                    .HasColumnType("text");
-
-                b.Property<DateTime?>("LastModificationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("LastModifierUserName")
-                    .HasColumnType("text");
-
-                b.Property<string>("LastPublishedSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<string>("Lifetime")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<int>("OrganizationId")
+                b.Property<int>("UserId")
                     .HasColumnType("integer");
 
-                b.Property<string>("PendingSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<string>("PriceId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<string>("ProductId")
-                    .HasMaxLength(100)
-                    .HasColumnType("character varying(100)");
-
-                b.Property<int>("StoreAppId")
-                    .HasColumnType("integer");
-
-                b.Property<string>("StoreId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<DateTime?>("SyncedDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("Title")
-                    .HasMaxLength(100)
-                    .HasColumnType("character varying(100)");
-
-                b.Property<byte>("Type")
-                    .HasColumnType("smallint");
+                b.Property<bool>("WebPush")
+                    .HasColumnType("boolean");
 
                 b.HasKey("Id");
 
-                b.HasIndex("OrganizationId");
-
-                b.HasIndex("StoreAppId", "StoreId")
+                b.HasIndex("UserId", "Kind")
                     .IsUnique();
 
-                b.ToTable("MsAddons");
+                b.ToTable("NotificationPreferences");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsFlight", b =>
+        modelBuilder.Entity("Storeasy.Domain.Notifications.OrganizationWebhook", b =>
             {
                 var id = b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
@@ -847,79 +1375,41 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.Property<string>("CreatorUserName")
                     .HasColumnType("text");
 
-                b.Property<string>("FlightId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
+                b.Property<string>("DeleterUserName")
+                    .HasColumnType("text");
 
-                b.Property<string>("FriendlyName")
-                    .HasMaxLength(100)
-                    .HasColumnType("character varying(100)");
+                b.Property<DateTime?>("DeletionDate")
+                    .HasColumnType("timestamp with time zone");
 
-                b.PrimitiveCollection<string>("GroupIds")
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedSecret")
+                    .HasColumnType("bytea");
+
+                b.PrimitiveCollection<string>("Events")
                     .HasColumnType("jsonb");
 
-                b.Property<DateTime?>("LastModificationDate")
+                b.Property<bool>("IsActive")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("IsDeleted")
+                    .HasColumnType("boolean");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("LastDeliveryDate")
                     .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("LastModifierUserName")
-                    .HasColumnType("text");
-
-                b.Property<string>("LastPublishedSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<int>("OrganizationId")
-                    .HasColumnType("integer");
-
-                b.Property<string>("PendingSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<int?>("Rank")
-                    .HasColumnType("integer");
-
-                b.Property<int>("StoreAppId")
-                    .HasColumnType("integer");
-
-                b.Property<DateTime?>("SyncedDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.HasKey("Id");
-
-                b.HasIndex("OrganizationId");
-
-                b.HasIndex("StoreAppId", "FlightId")
-                    .IsUnique();
-
-                b.ToTable("MsFlights");
-            });
-
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsFlightGroup", b =>
-            {
-                var id = b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
-
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
-
-                b.Property<DateTime?>("CreationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("CreatorUserName")
-                    .HasColumnType("text");
-
-                b.Property<string>("GroupId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
+                b.Property<byte?>("LastDeliveryStatus")
+                    .HasColumnType("smallint");
 
                 b.Property<DateTime?>("LastModificationDate")
                     .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("LastModifierUserName")
                     .HasColumnType("text");
-
-                b.Property<int?>("MemberCount")
-                    .HasColumnType("integer");
 
                 b.Property<string>("Name")
                     .HasMaxLength(100)
@@ -928,153 +1418,18 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
 
-                b.HasKey("Id");
-
-                b.HasIndex("OrganizationId", "GroupId")
-                    .IsUnique();
-
-                b.ToTable("MsFlightGroups");
-            });
-
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsInstallerPackage", b =>
-            {
-                var id = b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
-
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
-
-                b.PrimitiveCollection<string>("Architectures")
-                    .HasColumnType("jsonb");
-
-                b.Property<DateTime?>("CheckedDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<DateTime?>("CreationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("CreatorUserName")
-                    .HasColumnType("text");
-
-                b.Property<string>("GenericDocUrl")
-                    .HasMaxLength(2048)
-                    .HasColumnType("character varying(2048)");
-
-                b.Property<string>("InstallerParameters")
+                b.Property<string>("Url")
                     .HasMaxLength(1000)
                     .HasColumnType("character varying(1000)");
 
-                b.Property<bool>("IsSilentInstall")
-                    .HasColumnType("boolean");
-
-                b.PrimitiveCollection<string>("Languages")
-                    .HasColumnType("jsonb");
-
-                b.Property<DateTime?>("LastModificationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("LastModifierUserName")
-                    .HasColumnType("text");
-
-                b.Property<int>("OrganizationId")
-                    .HasColumnType("integer");
-
-                b.Property<string>("PackageId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<byte>("PackageType")
-                    .HasColumnType("smallint");
-
-                b.Property<string>("PackageUrl")
-                    .HasMaxLength(2048)
-                    .HasColumnType("character varying(2048)");
-
-                b.Property<string>("SignatureNote")
-                    .HasMaxLength(500)
-                    .HasColumnType("character varying(500)");
-
-                b.Property<byte>("SignatureStatus")
-                    .HasColumnType("smallint");
-
-                b.Property<int>("StoreAppId")
-                    .HasColumnType("integer");
-
-                b.Property<DateTime?>("SyncedDate")
-                    .HasColumnType("timestamp with time zone");
-
                 b.HasKey("Id");
 
                 b.HasIndex("OrganizationId");
 
-                b.HasIndex("StoreAppId");
-
-                b.ToTable("MsInstallerPackages");
+                b.ToTable("OrganizationWebhooks");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsProduct", b =>
-            {
-                var id = b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
-
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
-
-                b.Property<DateTime?>("CreationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("CreatorUserName")
-                    .HasColumnType("text");
-
-                b.Property<bool>("FirstSubmissionDone")
-                    .HasColumnType("boolean");
-
-                b.Property<bool>("HasMandatoryUpdate")
-                    .HasColumnType("boolean");
-
-                b.Property<bool>("IsReady")
-                    .HasColumnType("boolean");
-
-                b.Property<byte>("Kind")
-                    .HasColumnType("smallint");
-
-                b.Property<DateTime?>("LastModificationDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("LastModifierUserName")
-                    .HasColumnType("text");
-
-                b.Property<string>("LastPublishedSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<int>("OrganizationId")
-                    .HasColumnType("integer");
-
-                b.Property<string>("PendingSubmissionId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
-
-                b.Property<bool>("PricingV2")
-                    .HasColumnType("boolean");
-
-                b.Property<int>("StoreAppId")
-                    .HasColumnType("integer");
-
-                b.Property<DateTime?>("SyncedDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.HasKey("Id");
-
-                b.HasIndex("OrganizationId");
-
-                b.HasIndex("StoreAppId")
-                    .IsUnique();
-
-                b.ToTable("MsProducts");
-            });
-
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsSubmission", b =>
+        modelBuilder.Entity("Storeasy.Domain.Notifications.WebhookDelivery", b =>
             {
                 var id = b.Property<long>("Id")
                     .ValueGeneratedOnAdd()
@@ -1082,86 +1437,73 @@ partial class _20261118143858_Phase5MicrosoftStore
 
                 NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
 
-                b.Property<string>("AddonStoreId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
+                b.Property<int>("Attempt")
+                    .HasColumnType("integer");
 
-                b.Property<string>("ContentHash")
-                    .HasMaxLength(64)
-                    .HasColumnType("character varying(64)");
-
-                b.Property<bool>("CreatedByStoreasy")
-                    .HasColumnType("boolean");
-
-                b.Property<DateTime?>("CreationDate")
+                b.Property<DateTime>("CreationDate")
                     .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("CreatorUserName")
-                    .HasColumnType("text");
+                b.Property<int?>("DurationMilliseconds")
+                    .HasColumnType("integer");
 
-                b.Property<string>("ExternalId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
+                b.Property<string>("Error")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
 
-                b.Property<string>("FlightId")
-                    .HasMaxLength(50)
-                    .HasColumnType("character varying(50)");
+                b.Property<string>("EventId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                b.Property<string>("FriendlyName")
-                    .HasMaxLength(255)
-                    .HasColumnType("character varying(255)");
+                b.Property<string>("EventType")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                b.Property<bool>("IsPending")
+                b.Property<bool>("IsTest")
                     .HasColumnType("boolean");
 
-                b.Property<DateTime?>("LastModificationDate")
+                b.Property<DateTime?>("LastAttemptDate")
                     .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("LastModifierUserName")
-                    .HasColumnType("text");
+                b.Property<string>("LeaseId")
+                    .HasMaxLength(40)
+                    .HasColumnType("character varying(40)");
 
-                b.Property<bool>("ModifiedOutsideApi")
-                    .HasColumnType("boolean");
+                b.Property<DateTime?>("LockedUntil")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("MaxAttempts")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("NextAttemptDate")
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
 
-                b.Property<string>("PackageVersion")
-                    .HasMaxLength(100)
-                    .HasColumnType("character varying(100)");
+                b.Property<int>("OrganizationWebhookId")
+                    .HasColumnType("integer");
 
-                b.Property<double?>("RolloutPercentage")
-                    .HasColumnType("double precision");
+                b.Property<string>("Payload")
+                    .HasColumnType("jsonb");
 
-                b.Property<byte?>("RolloutStatus")
-                    .HasColumnType("smallint");
+                b.Property<string>("ResponseBody")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<int?>("ResponseStatusCode")
+                    .HasColumnType("integer");
 
                 b.Property<byte>("Status")
                     .HasColumnType("smallint");
 
-                b.Property<MsStatusDetails>("StatusDetails")
-                    .HasColumnType("jsonb");
-
-                b.Property<List<MsStatusChange>>("StatusHistory")
-                    .HasColumnType("jsonb");
-
-                b.Property<int>("StoreAppId")
-                    .HasColumnType("integer");
-
-                b.Property<DateTime?>("SyncedDate")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<byte>("Target")
-                    .HasColumnType("smallint");
-
                 b.HasKey("Id");
 
-                b.HasIndex("OrganizationId");
+                b.HasIndex("OrganizationWebhookId", "CreationDate")
+                    .IsDescending(false, true);
 
-                b.HasIndex("StoreAppId", "Target", "ExternalId")
-                    .IsUnique();
+                b.HasIndex("Status", "NextAttemptDate");
 
-                b.ToTable("MsSubmissions");
+                b.ToTable("WebhookDeliveries");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.Organization", b =>
@@ -1396,6 +1738,154 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.ToTable("RolePermissionRelations");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Rules.RuleProposal", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("CatalogPatch")
+                    .HasMaxLength(20000)
+                    .HasColumnType("character varying(20000)");
+
+                b.Property<string>("CatalogVersionFrom")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("CatalogVersionTo")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("ContentHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<DateTime>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("DecidedByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("DecidedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("DecisionNote")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<int>("NotifiedOrganizationCount")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("PreparedBy")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("PreparedByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("PreparerNote")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<string>("PreviousContentHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<byte?>("RejectReason")
+                    .HasColumnType("smallint");
+
+                b.PrimitiveCollection<string>("RuleIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<int?>("RuleSourceId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("SourceExcerptAfter")
+                    .HasMaxLength(20000)
+                    .HasColumnType("character varying(20000)");
+
+                b.Property<string>("SourceExcerptBefore")
+                    .HasMaxLength(20000)
+                    .HasColumnType("character varying(20000)");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Title")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Status");
+
+                b.HasIndex("RuleSourceId", "ContentHash")
+                    .IsUnique();
+
+                b.ToTable("RuleProposals");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Rules.RuleWatchSource", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("Content")
+                    .HasMaxLength(200000)
+                    .HasColumnType("character varying(200000)");
+
+                b.Property<string>("ContentHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<bool>("IsActive")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastChangeDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("LastFetchDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("PreviousContentHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Url")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Url")
+                    .IsUnique();
+
+                b.ToTable("RuleSources");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Stores.StoreAuditLog", b =>
             {
                 var id = b.Property<long>("Id")
@@ -1499,9 +1989,6 @@ partial class _20261118143858_Phase5MicrosoftStore
 
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
-
-                b.Property<DateTime?>("SecretExpiryDate")
-                    .HasColumnType("timestamp with time zone");
 
                 b.Property<byte>("Status")
                     .HasColumnType("smallint");
@@ -1790,6 +2277,206 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.HasIndex("OrganizationId", "AppId");
 
                 b.ToTable("MockupTemplates");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaAppLocalization", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("Description")
+                    .HasMaxLength(4000)
+                    .HasColumnType("character varying(4000)");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("FeedbackEmail")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Locale")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("MarketingUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PrivacyPolicyUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId", "Locale")
+                    .IsUnique();
+
+                b.ToTable("BetaAppLocalizations");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaBuild", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<byte>("BetaReviewState")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("BetaReviewSubmittedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<long>("BuildId")
+                    .HasColumnType("bigint");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<List<LocalizedText>>("WhatToTest")
+                    .HasColumnType("jsonb");
+
+                b.HasKey("Id");
+
+                b.HasIndex("BuildId")
+                    .IsUnique();
+
+                b.HasIndex("OrganizationId");
+
+                b.ToTable("BetaBuilds");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaGroup", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.PrimitiveCollection<string>("BuildExternalIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<bool>("IsInternal")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PublicLink")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<bool>("PublicLinkEnabled")
+                    .HasColumnType("boolean");
+
+                b.Property<int?>("PublicLinkLimit")
+                    .HasColumnType("integer");
+
+                b.Property<bool>("PublicLinkLimitEnabled")
+                    .HasColumnType("boolean");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("TesterCount")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId", "ExternalId")
+                    .IsUnique();
+
+                b.ToTable("BetaGroups");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaTester", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("Email")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("FirstName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("GroupKeys")
+                    .HasMaxLength(4000)
+                    .HasColumnType("character varying(4000)");
+
+                b.Property<byte>("InviteType")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("LastName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("State")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId", "ExternalId")
+                    .IsUnique();
+
+                b.ToTable("BetaTesters");
             });
 
         modelBuilder.Entity("Storeasy.Domain.User", b =>
@@ -2107,59 +2794,46 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.Navigation("StoreApp");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsAddon", b =>
+        modelBuilder.Entity("Storeasy.Domain.Events.WebhookEndpoint", b =>
             {
-                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                b.HasOne("Storeasy.Domain.Stores.StoreConnection", "StoreConnection")
                     .WithMany()
-                    .HasForeignKey("StoreAppId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
+                    .HasForeignKey("StoreConnectionId");
 
-                b.Navigation("StoreApp");
+                b.Navigation("StoreConnection");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsFlight", b =>
+        modelBuilder.Entity("Storeasy.Domain.Feedback.RejectionCase", b =>
             {
-                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                b.HasOne("Storeasy.Domain.Apps.App", "App")
                     .WithMany()
-                    .HasForeignKey("StoreAppId")
+                    .HasForeignKey("AppId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
-                b.Navigation("StoreApp");
+                b.Navigation("App");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsInstallerPackage", b =>
+        modelBuilder.Entity("Storeasy.Domain.Feedback.ReviewRead", b =>
             {
-                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
-                    .WithMany()
-                    .HasForeignKey("StoreAppId")
+                b.HasOne("Storeasy.Domain.Feedback.StoreReview", "StoreReview")
+                    .WithMany("Reads")
+                    .HasForeignKey("StoreReviewId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
-                b.Navigation("StoreApp");
+                b.Navigation("StoreReview");
             });
 
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsProduct", b =>
+        modelBuilder.Entity("Storeasy.Domain.Feedback.StoreReview", b =>
             {
-                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                b.HasOne("Storeasy.Domain.Apps.App", "App")
                     .WithMany()
-                    .HasForeignKey("StoreAppId")
+                    .HasForeignKey("AppId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
-                b.Navigation("StoreApp");
-            });
-
-        modelBuilder.Entity("Storeasy.Domain.MsStore.MsSubmission", b =>
-            {
-                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
-                    .WithMany()
-                    .HasForeignKey("StoreAppId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.Navigation("StoreApp");
+                b.Navigation("App");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>
@@ -2285,6 +2959,17 @@ partial class _20261118143858_Phase5MicrosoftStore
                 b.Navigation("Organization");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaBuild", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.Build", "Build")
+                    .WithMany()
+                    .HasForeignKey("BuildId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Build");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.UserRoleRelation", b =>
             {
                 b.HasOne("Storeasy.Domain.Role", "Role")
@@ -2323,6 +3008,11 @@ partial class _20261118143858_Phase5MicrosoftStore
         modelBuilder.Entity("Storeasy.Domain.Apps.StoreApp", b =>
             {
                 b.Navigation("Builds");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Feedback.StoreReview", b =>
+            {
+                b.Navigation("Reads");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.Organization", b =>

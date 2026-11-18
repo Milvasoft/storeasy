@@ -58,4 +58,9 @@ public class InternalNotification : CreationAuditableEntity<long>
     /// Client-side URL/route to navigate when the notification is clicked.
     /// </summary>
     public string ActionLink { get; set; }
+
+    /// <summary>
+    /// Organization the notification comes from; null for platform notifications.
+    /// </summary>
+    public int? OrganizationId { get; set; }
 }

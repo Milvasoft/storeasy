@@ -65,4 +65,27 @@ public static class ActivityEventTypes
     /// The store accepted every change of a plan.
     /// </summary>
     public const string PlanApplied = "plan.applied";
+    /// An inbound webhook event arrived.
+    /// </summary>
+    public const string WebhookReceived = "webhook.received";
+
+    /// <summary>
+    /// A rejection case was opened.
+    /// </summary>
+    public const string RejectionOpened = "rejection.opened";
+
+    /// <summary>
+    /// An App Store version changed state.
+    /// </summary>
+    public const string VersionStateChanged = "version.state";
+
+    /// <summary>
+    /// New store reviews arrived.
+    /// </summary>
+    public const string ReviewReceived = "review.received";
+
+    /// <summary>
+    /// A notification was created for the receiving user (sent to that user only).
+    /// </summary>
+    public const string NotificationCreated = "notification.created";
 }

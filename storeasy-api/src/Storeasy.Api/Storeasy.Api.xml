@@ -433,6 +433,33 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AccountPreferencesController">
+            <summary>
+            The caller's notification preferences (<c>account/preferences</c>): channels per notification kind, valid in every
+            organization. Web push is stored for phase 8 and not sent yet.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountPreferencesController.#ctor(MediatR.IMediator)">
+            <summary>
+            The caller's notification preferences (<c>account/preferences</c>): channels per notification kind, valid in every
+            organization. Web push is stored for phase 8 and not sent yet.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountPreferencesController.GetPreferencesAsync(System.Threading.CancellationToken)">
+            <summary>
+            The caller's channels per notification kind.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountPreferencesController.UpdatePreferenceAsync(Storeasy.Application.Features.Notifications.UpdateNotificationPreference.UpdateNotificationPreferenceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the caller's channels for one kind.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.ActivityLogsController">
             <summary>
             Activity Log endpoints.
@@ -1471,6 +1498,90 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.RejectionsController">
+            <summary>
+            Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
+            review text pasted, the guidelines turned into a checklist, the Resolution Center reply drafted and marked as sent.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
+            review text pasted, the guidelines turned into a checklist, the Resolution Center reply drafted and marked as sent.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.GetCasesAsync(Storeasy.Application.Features.Rejections.GetRejectionCaseList.GetRejectionCaseListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the rejection cases.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.GetCaseAsync(Storeasy.Application.Features.Rejections.GetRejectionCaseDetail.GetRejectionCaseDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one case.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.OpenCaseAsync(Storeasy.Application.Features.Rejections.OpenRejectionCase.OpenRejectionCaseCommand,System.Threading.CancellationToken)">
+            <summary>
+            Opens a case by hand.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.UpdateTextAsync(Storeasy.Application.Features.Rejections.UpdateRejectionText.UpdateRejectionTextCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the pasted review text and builds the checklist from its guidelines.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.UpdateChecklistAsync(Storeasy.Application.Features.Rejections.UpdateRejectionChecklist.UpdateRejectionChecklistCommand,System.Threading.CancellationToken)">
+            <summary>
+            Replaces the checklist.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.UpdateReplyDraftAsync(Storeasy.Application.Features.Rejections.UpdateRejectionReplyDraft.UpdateRejectionReplyDraftCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the Resolution Center reply draft (4,000 character limit shown, not enforced on save).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.MarkReplySentAsync(Storeasy.Application.Features.Rejections.MarkRejectionReplySent.MarkRejectionReplySentCommand,System.Threading.CancellationToken)">
+            <summary>
+            Records that the reply was sent in the Resolution Center (assisted step; no API sends it).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.CloseCaseAsync(Storeasy.Application.Features.Rejections.CloseRejectionCase.CloseRejectionCaseCommand,System.Threading.CancellationToken)">
+            <summary>
+            Closes a case by hand.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RejectionsController.GetHistoryAsync(Storeasy.Application.Features.Rejections.GetRejectionHistory.GetRejectionHistoryQuery,System.Threading.CancellationToken)">
+            <summary>
+            The submission history of an app with its rejections.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.ReleasesController">
             <summary>
             Release endpoints: versions and tracks, release type and phased release, track releases with staged rollout and countries, rollout changes, testers and submission for review (typed confirmation, SubmitForReview).
@@ -1563,6 +1674,88 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.ReviewsController">
+            <summary>
+            The organization's review inbox (App Store and Google Play), replies and saved replies.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.#ctor(MediatR.IMediator)">
+            <summary>
+            The organization's review inbox (App Store and Google Play), replies and saved replies.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.GetReviewsAsync(Storeasy.Application.Features.Reviews.GetReviewList.GetReviewListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the reviews with filters (app, store, rating, language, replied, read).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.ReplyAsync(Storeasy.Application.Features.Reviews.ReplyToReview.ReplyToReviewCommand,System.Threading.CancellationToken)">
+            <summary>
+            Publishes (or replaces) a reply as a store job. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.MarkReadAsync(Storeasy.Application.Features.Reviews.MarkReviewsRead.MarkReviewsReadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Marks reviews as read or unread for the caller.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.SaveReplyDraftAsync(Storeasy.Application.Features.Reviews.SaveReviewReplyDraft.SaveReviewReplyDraftCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves an unsent reply draft.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.SyncAsync(Storeasy.Application.Features.Reviews.SyncReviews.SyncReviewsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Reads new reviews now. Returns the job ids.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.GetSavedRepliesAsync(Storeasy.Application.Features.Reviews.GetSavedReplyList.GetSavedReplyListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the saved replies (the review's language first).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.CreateSavedReplyAsync(Storeasy.Application.Features.Reviews.CreateSavedReply.CreateSavedReplyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds a saved reply.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.UpdateSavedReplyAsync(Storeasy.Application.Features.Reviews.UpdateSavedReply.UpdateSavedReplyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Changes a saved reply.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.DeleteSavedReplyAsync(Storeasy.Application.Features.Reviews.DeleteSavedReply.DeleteSavedReplyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a saved reply.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RolesController">
             <summary>
             Role endpoints.
@@ -1643,6 +1836,72 @@
         <member name="M:Storeasy.Api.Controllers.RulesController.GetRuleAsync(Storeasy.Application.Features.Rules.GetRuleDetail.GetRuleDetailQuery,System.Threading.CancellationToken)">
             <summary>
             Reads one rule with its sources and the organization's matching apps.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.RuleWatcherController">
+            <summary>
+            The rule watcher of the platform admins (docs/urun-plani.md 12.3): watched sources and catalog proposals. The catalog
+            itself (<c>rules</c>, <c>rules/rule</c>, <c>rules/catalog</c>) belongs to the readiness phase.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.#ctor(MediatR.IMediator)">
+            <summary>
+            The rule watcher of the platform admins (docs/urun-plani.md 12.3): watched sources and catalog proposals. The catalog
+            itself (<c>rules</c>, <c>rules/rule</c>, <c>rules/catalog</c>) belongs to the readiness phase.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.GetSourcesAsync(System.Threading.CancellationToken)">
+            <summary>
+            The watched sources and their last read.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.FetchSourcesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Reads every source now.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.GetProposalsAsync(Storeasy.Application.Features.RuleWatcher.GetRuleProposalList.GetRuleProposalListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the catalog proposals.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.GetProposalAsync(Storeasy.Application.Features.RuleWatcher.GetRuleProposalDetail.GetRuleProposalDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one proposal with its diff and impact.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.PrepareProposalAsync(Storeasy.Application.Features.RuleWatcher.PrepareRuleProposal.PrepareRuleProposalCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes the catalog side of a proposal (MCP <c>rules_proposal_prepare</c>).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.ApproveProposalAsync(Storeasy.Application.Features.RuleWatcher.ApproveRuleProposal.ApproveRuleProposalCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a proposal and notifies the affected apps' owners and admins.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RuleWatcherController.RejectProposalAsync(Storeasy.Application.Features.RuleWatcher.RejectRuleProposal.RejectRuleProposalCommand,System.Threading.CancellationToken)">
+            <summary>
+            Rejects a proposal.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1762,6 +2021,114 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.TestFlightController">
+            <summary>
+            TestFlight of an App Store record: builds with their 90 day expiry, beta groups, testers, beta texts and beta app
+            review. Reads come from the last sync; writes are store jobs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.#ctor(MediatR.IMediator)">
+            <summary>
+            TestFlight of an App Store record: builds with their 90 day expiry, beta groups, testers, beta texts and beta app
+            review. Reads come from the last sync; writes are store jobs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.GetBuildsAsync(Storeasy.Application.Features.TestFlight.GetBetaBuildList.GetBetaBuildListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The TestFlight builds with expiry and beta review state.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.GetGroupsAsync(Storeasy.Application.Features.TestFlight.GetBetaGroupList.GetBetaGroupListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The beta groups.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.GetTestersAsync(Storeasy.Application.Features.TestFlight.GetBetaTesterList.GetBetaTesterListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the testers.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.GetLocalizationsAsync(Storeasy.Application.Features.TestFlight.GetBetaLocalizationList.GetBetaLocalizationListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The beta app texts per language.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.SyncAsync(Storeasy.Application.Features.TestFlight.SyncTestFlight.SyncTestFlightCommand,System.Threading.CancellationToken)">
+            <summary>
+            Reads the TestFlight state now. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.CreateGroupAsync(Storeasy.Application.Features.TestFlight.CreateBetaGroup.CreateBetaGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates a beta group. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.UpdateGroupAsync(Storeasy.Application.Features.TestFlight.UpdateBetaGroup.UpdateBetaGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Changes a beta group (name, public link). Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.UpdateGroupTestersAsync(Storeasy.Application.Features.TestFlight.UpdateBetaGroupTesters.UpdateBetaGroupTestersCommand,System.Threading.CancellationToken)">
+            <summary>
+            Invites and removes testers of a group. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.UpdateGroupBuildsAsync(Storeasy.Application.Features.TestFlight.UpdateBetaGroupBuilds.UpdateBetaGroupBuildsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds and removes builds of a group. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.UpdateWhatToTestAsync(Storeasy.Application.Features.TestFlight.UpdateWhatToTest.UpdateWhatToTestCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes the "what to test" text of a build. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.UpdateLocalizationAsync(Storeasy.Application.Features.TestFlight.UpdateBetaLocalization.UpdateBetaLocalizationCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes the beta app texts of a language. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TestFlightController.SubmitBetaReviewAsync(Storeasy.Application.Features.TestFlight.SubmitBetaReview.SubmitBetaReviewCommand,System.Threading.CancellationToken)">
+            <summary>
+            Submits a build to beta app review (confirmation required). Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.UsersController">
             <summary>
             User endpoints.
@@ -1812,6 +2179,159 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.WebhookReceiverController">
+            <summary>
+            Inbound webhook receivers (anonymous; the HMAC signature is the authentication), at <c>/api/webhooks/...</c> so the
+            web container's proxy passes them like any API call. Rate limited per sender address and body size limited.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhookReceiverController.#ctor(MediatR.IMediator)">
+            <summary>
+            Inbound webhook receivers (anonymous; the HMAC signature is the authentication), at <c>/api/webhooks/...</c> so the
+            web container's proxy passes them like any API call. Rate limited per sender address and body size limited.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhookReceiverController.ReceiveAppleAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            App Store Connect events (<c>x-apple-signature: hmacsha256=&lt;hex&gt;</c> over the raw body).
+            </summary>
+            <param name="publicId"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhookReceiverController.ReceiveSignedAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Events of any other sender with storeasy's scheme: <c>X-Storeasy-Signature: sha256=&lt;hex&gt;</c> over
+            <c>{timestamp}.{body}</c>, <c>X-Storeasy-Timestamp</c> (unix seconds, within 5 minutes) and <c>X-Storeasy-Event-Id</c>.
+            </summary>
+            <param name="publicId"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.WebhooksController">
+            <summary>
+            Webhook management (owners and admins): inbound endpoints and their event log, outgoing subscriptions and their
+            delivery log.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.#ctor(MediatR.IMediator)">
+            <summary>
+            Webhook management (owners and admins): inbound endpoints and their event log, outgoing subscriptions and their
+            delivery log.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.GetEndpointsAsync(Storeasy.Application.Features.Webhooks.GetWebhookEndpointList.GetWebhookEndpointListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the inbound endpoints with their addresses.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.CreateEndpointAsync(Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds an inbound endpoint (App Store Connect: registered at Apple by a job). The secret is returned once.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.RotateEndpointSecretAsync(Storeasy.Application.Features.Webhooks.RotateWebhookSecret.RotateWebhookSecretCommand,System.Threading.CancellationToken)">
+            <summary>
+            Rotates the secret of an inbound endpoint (the old one stays valid for 24 hours). The secret is returned once.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.DeleteEndpointAsync(Storeasy.Application.Features.Webhooks.DeleteWebhookEndpoint.DeleteWebhookEndpointCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes an inbound endpoint (its App Store Connect webhooks are deleted by a job).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.GetEventsAsync(Storeasy.Application.Features.Webhooks.GetWebhookEventList.GetWebhookEventListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the inbound event log.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.GetEventAsync(Storeasy.Application.Features.Webhooks.GetWebhookEventDetail.GetWebhookEventDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one inbound event with its raw body.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.ReprocessEventAsync(Storeasy.Application.Features.Webhooks.ReprocessWebhookEvent.ReprocessWebhookEventCommand,System.Threading.CancellationToken)">
+            <summary>
+            Processes an App Store Connect event again. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.GetSubscriptionsAsync(Storeasy.Application.Features.Webhooks.GetOrgWebhookList.GetOrgWebhookListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the outgoing subscriptions.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.CreateSubscriptionAsync(Storeasy.Application.Features.Webhooks.CreateOrgWebhook.CreateOrgWebhookCommand,System.Threading.CancellationToken)">
+            <summary>
+            Subscribes an HTTPS address (public addresses only). The signing secret is returned once.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.UpdateSubscriptionAsync(Storeasy.Application.Features.Webhooks.UpdateOrgWebhook.UpdateOrgWebhookCommand,System.Threading.CancellationToken)">
+            <summary>
+            Changes a subscription.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.DeleteSubscriptionAsync(Storeasy.Application.Features.Webhooks.DeleteOrgWebhook.DeleteOrgWebhookCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a subscription.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.RotateSubscriptionSecretAsync(Storeasy.Application.Features.Webhooks.RotateOrgWebhookSecret.RotateOrgWebhookSecretCommand,System.Threading.CancellationToken)">
+            <summary>
+            Rotates the signing secret of a subscription. The secret is returned once.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.TestSubscriptionAsync(Storeasy.Application.Features.Webhooks.TestOrgWebhook.TestOrgWebhookCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a signed test event now and returns the attempt.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.GetDeliveriesAsync(Storeasy.Application.Features.Webhooks.GetWebhookDeliveryList.GetWebhookDeliveryListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the delivery log of the outgoing webhooks.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Hubs.ActivityHub">
             <summary>
             Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
@@ -1842,6 +2362,20 @@
             Group of the connections that follow <paramref name="organizationId"/>.
             </summary>
             <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.UserGroupName(System.Int32)">
+            <summary>
+            Group of the connections of user <paramref name="userId"/> (events only that user may see, like
+            <c>notification.created</c>).
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.OnConnectedAsync">
+            <summary>
+            Joins the connection to its user's own group.
+            </summary>
             <returns></returns>
         </member>
         <member name="M:Storeasy.Api.Hubs.ActivityHub.JoinOrganizationAsync(System.Int32)">
@@ -1876,6 +2410,25 @@
             <param name="logger"></param>
         </member>
         <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.SignalRUserNotificationPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IUserNotificationPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: each connection joins its user's own group on
+            connect, so an event sent here reaches only its recipient. Failures are logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRUserNotificationPublisher.#ctor(Microsoft.AspNetCore.SignalR.IHubContext{Storeasy.Api.Hubs.ActivityHub},Microsoft.Extensions.Logging.ILogger{Storeasy.Api.Hubs.SignalRUserNotificationPublisher})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IUserNotificationPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: each connection joins its user's own group on
+            connect, so an event sent here reaches only its recipient. Failures are logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRUserNotificationPublisher.PublishAsync(System.Collections.Generic.IReadOnlyCollection{System.Int32},Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Api.SharedResource">
@@ -2042,16 +2595,28 @@
         <member name="M:Storeasy.Api.Migrations._20261118141754_Phase6Studio.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261118143858_Phase5MicrosoftStore">
+        <member name="T:Storeasy.Api.Migrations._20261118144228_Phase4Events">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118143858_Phase5MicrosoftStore.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118143858_Phase5MicrosoftStore.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118143858_Phase5MicrosoftStore.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">
