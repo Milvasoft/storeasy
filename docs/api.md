@@ -77,7 +77,8 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Personal access tokens | `tokens`, `tokens/token`, `tokens/current` | Created and revoked from a web session only; `tokens/current` describes the calling token |
 | Webhooks | `webhooks`, `webhooks/endpoint`, `endpoint/rotate-secret`, `events`, `event/reprocess`, `subscription(s)`, `subscription/rotate-secret`, `subscription/test`, `deliveries` | `ManageWebhooks` |
 | Webhook receivers | `/api/webhooks/apple/{id}`, `/api/webhooks/signed/{id}`, `/api/webhooks/eas/{id}`, `/api/webhooks/artifacts/{id}` (no version segment) | Anonymous, HMAC signature, rate limited, size limited |
-| System | `system/public-settings` | Anonymous: registration mode, Google sign in on or off, web push public key |
+| System | `system/public-settings` | Anonymous: deployment mode (`SingleTeam` or `MultiTenant`), whether the first run setup is required, registration mode, Google sign in on or off, web push public key |
+| System | `system/setup` | Anonymous, single team only, rate limited: with the one time setup code from the API log, creates the administrator and the team and returns the login tokens; 403 wrong code, 409 once a user exists, 404 in multi tenant mode ([self-host.md](self-host.md#51-single-team-default)) |
 | | `system/feature-flags` | Any signed in user (read only) |
 | | `system/status`, `system/settings`, `system/settings/registration-mode` | `SystemManagement.Status`, `SystemManagement.Settings` |
 | Platform admin | `users`, `roles`, `permissions`, `featureflags`, `languages`, `activitylogs`, `rules/sources`, `rules/proposals` | Platform permissions |

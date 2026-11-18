@@ -4,6 +4,20 @@ This guide runs storeasy on one Linux server with Docker: the API, the web app, 
 (S3 compatible object storage). Everything is in [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and
 [`deploy/.env.example`](../deploy/.env.example).
 
+storeasy installs like any self-hosted tool: one team, its own server, no developer steps.
+
+1. Fill in `deploy/.env` ([section 3](#3-install)) and run `docker compose up -d`. The API prepares its database by
+   itself.
+2. Open the site. While the server has no account it shows the **Setup** screen.
+3. Copy the one time setup code from the API log: `docker compose logs storeasy-api | grep "setup code"`.
+4. Enter the code, your name, e-mail, password and the team name. You are signed in as the administrator and the owner
+   of the team.
+5. Invite your team from **Members**.
+
+This is the default mode, `STOREASY_MODE=SingleTeam`. A hosted instance for many customers (open sign-up, many
+organizations, a separate platform administrator) is the advanced `MultiTenant` mode, see
+[section 5.2](#52-multi-tenant-mode-advanced).
+
 ## Contents
 
 1. [What runs where](#1-what-runs-where)
@@ -107,8 +121,10 @@ informational version, and also sets it at runtime. A prebuilt image keeps the c
 `docker build -f storeasy-api/Dockerfile --build-arg STOREASY_COMMIT=$(git rev-parse --short HEAD) -t storeasy-api .`)
 
 Startup order: PostgreSQL and Redis become healthy, `seaweedfs-config` writes the S3 identity from `.env` into a
-volume, SeaweedFS starts, `seaweedfs-init` creates the bucket and exits, then the API starts and applies the database
-migrations, then the web container.
+volume, SeaweedFS starts, `seaweedfs-init` creates the bucket and exits, then the API starts, applies the database
+migrations and creates the data it needs (roles, permissions, languages) when it is missing, then the web container.
+This is idempotent and safe when several API instances start at once (they wait for each other on a PostgreSQL
+advisory lock). Continue with [section 5](#5-first-admin-and-first-account).
 
 ### Images and the rules catalog
 
@@ -190,8 +206,49 @@ Rules for any proxy:
 > **Warning.** Run only `MILVA_ENV=prod` (the image default) on any server that something else can reach. `test` and
 > `dev` are development settings and must never run on a public host, not even for a moment: `dev` opens the API
 > documentation and the developer endpoints (which can reset or seed the database), and `test` is not hardened for
-> production (storeasy versions before this change opened the same features with `test`). The steps below use `dev`
-> only in a temporary container bound to `127.0.0.1`.
+> production (storeasy versions before this change opened the same features with `test`). The multi tenant steps
+> below use `dev` only in a temporary container bound to `127.0.0.1`.
+
+### 5.1 Single team (default)
+
+While the server has no user, the API generates a random one time setup code at startup and writes it to its log once,
+at warning level:
+
+```bash
+docker compose logs storeasy-api | grep "setup code"
+# ... WRN] Storeasy setup code: ABCD-EFGH-JKMN
+```
+
+Open `STOREASY_BASE_URL`. The site shows the **Setup** screen (Kurulum) instead of the sign in. Enter the code, your
+first and last name, e-mail, a password and the team name. In one step the API creates:
+
+- your account, verified, as the administrator of the server (the System pages: status, users, languages, feature
+  switches),
+- the team (the single organization of the server) with you as its **Owner**,
+
+and signs you in. The code is compared in constant time and the endpoint is rate limited; case, spaces and dashes do
+not matter. Once a user exists the setup is closed for good (the endpoint answers 409) and the code is forgotten, so it
+is harmless in old logs. The code keeps a freshly started server that is already reachable from being taken over by
+the first visitor: only someone who can read the server's log can finish the setup.
+
+Then invite your team from **Members**. There is no sign-up in this mode: people join through the invitation e-mail
+(SMTP must work), and "Sign in with Google" works for invited and existing addresses when it is configured. The server
+has exactly one organization, the team; creating another is refused. Everything lives in one **Settings** area: the
+team, its members and roles, store connections and, for you, the System pages.
+
+Automated installs can fix the code instead of reading the log: set `STOREASY_SETUP_CODE` (at least 12 characters) for
+the first start and remove it afterwards; a fixed code is never written to the log.
+
+**An install from before this mode** (initialized with `developer/database/init`, so it has `rootuser` and perhaps no
+organization) keeps working: no setup screen appears because a user exists. Sign in as `rootuser`; without an
+organization you go straight to a one step **Create your team** screen. Create it there, then invite the others.
+
+### 5.2 Multi tenant mode (advanced)
+
+For a hosted instance with many customers set `STOREASY_MODE=MultiTenant`. That mode keeps the original behaviour:
+registration by `STOREASY_REGISTRATION_MODE` (`Open` by default), any number of organizations, an organization switcher
+and a separate platform administrator, `rootuser`, created once with a developer step. The API applies the migrations
+at startup but creates no data and shows no setup screen.
 
 The API image runs with `MILVA_ENV=prod`, which closes the developer endpoints, including database initialization.
 Initialize a new database once with a temporary development instance of the same image, on the server itself. The
@@ -256,7 +313,9 @@ without one keep their default unless you add them to the API's `environment` (o
 | `Milvasoft:Interception:Log:LogDefaultParameters` | | `false` | Logs every argument and result of `[Log]` methods. Keep `false` in production: they can contain personal data. |
 | `Milvasoft:FileOperations:Json:EncryptionKey` | | empty | **Secret.** Not used by storeasy today. |
 | `MILVA_ENV` | | `prod` in the image | `dev`, `test` or `prod`; selects the log sinks. The developer endpoints and the API documentation are open only with exactly `dev`; every other value (`test`, `prod`, empty, unknown) closes them. Use `prod` on every reachable server: `test` and `dev` must never run on a public host. |
-| `Storeasy:Bootstrap:InitKey` | | empty | **Secret.** One-off key that opens `developer/database/init` (only with `MILVA_ENV=dev`, at least 32 characters, sent as `X-Storeasy-Init-Key`). Set it only on the temporary container of [section 5](#5-first-admin-and-first-account), never keep it. |
+| `Storeasy:Mode` | `STOREASY_MODE` | `SingleTeam` | `SingleTeam`: one team on its own server; the API prepares the database, the first visitor with the setup code creates the administrator and the team, one organization, no sign-up ([section 5.1](#51-single-team-default)). `MultiTenant`: a hosted instance for many customers ([section 5.2](#52-multi-tenant-mode-advanced)). |
+| `Storeasy:Bootstrap:SetupCode` | `STOREASY_SETUP_CODE` | empty | **Secret.** Single team only: a fixed first run setup code (at least 12 characters) for automated installs. Empty: a random code is generated and logged once while the server has no user. Remove it after the setup. |
+| `Storeasy:Bootstrap:InitKey` | | empty | **Secret.** Multi tenant only: one-off key that opens `developer/database/init` (only with `MILVA_ENV=dev`, at least 32 characters, sent as `X-Storeasy-Init-Key`). Set it only on the temporary container of [section 5.2](#52-multi-tenant-mode-advanced), never keep it. |
 | `ASPNETCORE_ENVIRONMENT`, `ASPNETCORE_URLS` | | `Production`, `http://+:8080` in the image | Leave as is. |
 
 The remaining `Milvasoft:*`, `ApiHost` and `HealthChecksUI` keys in `appsettings.json` are library settings that need
@@ -271,7 +330,7 @@ affected sessions at once (revocation stamp in Redis, checked on every request).
 | Key | `.env` | Default | Description |
 |---|---|---|---|
 | `Storeasy:App:BaseUrl` | `STOREASY_BASE_URL` | empty | Public address of the web app. E-mail links point at `{BaseUrl}/verify-email`, `/reset-password` and `/invitation`; Google redirects to `{BaseUrl}/auth/google/callback`. Required outside Development. |
-| `Storeasy:Registration:Mode` | `STOREASY_REGISTRATION_MODE` | `Open` | `Open`, `InviteOnly` (a valid invitation for the same e-mail is required) or `Closed`. A mode saved on the admin **System** page wins over this value (see [section 5](#5-first-admin-and-first-account)). |
+| `Storeasy:Registration:Mode` | `STOREASY_REGISTRATION_MODE` | `Open` | Multi tenant only (a single team server is always `InviteOnly`): `Open`, `InviteOnly` (a valid invitation for the same e-mail is required) or `Closed`. A mode saved on the admin **System** page wins over this value (see [section 5.2](#52-multi-tenant-mode-advanced)). |
 | `Storeasy:Email:Provider` | `STOREASY_EMAIL_PROVIDER` | `Smtp` | `Smtp` (self-host) or `Notifike` (Milvasoft hosting). `Log` writes e-mails to the log and is refused outside Development. |
 | `Storeasy:Email:FromName` | `STOREASY_EMAIL_FROM_NAME` | `storeasy` | Sender display name. |
 | `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_FROM`, `SMTP_ENABLE_SSL` | empty, `587`, empty, empty, `true` | SMTP server (`EnableSsl` upgrades with STARTTLS). `Host` and `From` are required with `Smtp`; otherwise the API stops at startup and names the missing key. |
@@ -493,6 +552,10 @@ source secrets replaced.
 
 Run one API instance while a release with schema changes starts; scale out afterwards. New configuration keys come with
 a default that keeps the previous behaviour; compare your `.env` with the new `.env.example` to see the optional ones.
+
+One exception: `STOREASY_MODE` (single team or multi tenant) defaults to `SingleTeam`. An instance that serves several
+customers sets `STOREASY_MODE=MultiTenant` before it upgrades; a server one team uses, initialized earlier with
+`developer/database/init`, needs nothing (see the end of [section 5.1](#51-single-team-default)).
 
 ## 9. Backups
 
