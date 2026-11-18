@@ -104,22 +104,32 @@ A project generated from an earlier template version (Milvasoft 10) needs, after
 dotnet run --project src/Storeasy.Api
 ```
 
-The API documentation (Scalar) is at http://localhost:5000/api/documentation. In Development the startup also reports the localization keys that are missing from a resx file (`MissingResxKeyFinder`).
+The API documentation (Scalar) is at http://localhost:5000/api/documentation. It is served only with `MILVA_ENV=dev` (the launch profiles set it) and carries no token: sign in with `POST /api/v1.0/account/login` and paste the access token into the page. In Development the startup also reports the localization keys that are missing from a resx file (`MissingResxKeyFinder`).
 
 ### 5. Initial data
 
-`POST /api/v1.0/developer/database/init` seeds the root user, the super admin role, permissions, languages, UI data and the seed protection triggers, and returns the generated root password. `database/seed` seeds the same with development data: the root user, `admin` (Manager, SuperAdmin role) and `viewer` (AppUser, a `Viewer` role with every list permission), all with the password `Dev12345!` (`DeveloperService.DevelopmentPassword`, valid under the default password policy). The seed reports the first failing step (e.g. a password a stricter policy rejects) instead of success. Every developer endpoint requires a super admin token and is disabled when `MILVA_ENV=prod` (the Scalar UI sends a super admin token).
+Every developer endpoint runs only when `MILVA_ENV` is exactly `dev` (`StoreasyExtensions.IsCurrentEnvDevelopment`); `test`, `prod`, empty and unknown values answer 404. No token is ever generated for the documentation page.
 
-The documentation token is the root user's (id 1) and carries its current revocation stamp, built each time the page is served. Before the root user exists the stamp cannot be validated, so only `database/init` and `database/seed` (`[SkipSessionStampValidation]`; each one runs only on an empty database) accept it; reload the documentation page after seeding to get a token that works everywhere.
+`POST /api/v1.0/developer/database/init` seeds the root user, the super admin role, permissions, languages, UI data and the seed protection triggers, and returns the generated root password once. It is anonymous (rate limited) and needs a one-off bootstrap key: set `Storeasy:Bootstrap:InitKey` (at least 32 characters; missing or shorter answers 404) and send the same value in the `X-Storeasy-Init-Key` header (missing or wrong answers 401; compared in constant time, never logged). It refuses an initialized database. On a developer machine:
+
+```bash
+dotnet user-secrets set "Storeasy:Bootstrap:InitKey" "$(openssl rand -hex 32)" --project src/Storeasy.Api
+curl -X POST -H "X-Storeasy-Init-Key: <the key>" http://localhost:5000/api/v1.0/developer/database/init
+dotnet user-secrets remove "Storeasy:Bootstrap:InitKey" --project src/Storeasy.Api
+```
+
+`database/seed` then adds development data to the initialized database: `admin` (Manager, SuperAdmin role) and `viewer` (AppUser, a `Viewer` role with every list permission), both with the password `Dev12345!` (`DeveloperService.DevelopmentPassword`, valid under the default password policy). Call it with the root user's token (sign in as `rootuser` with the password `init` returned). The seed reports the first failing step (e.g. a password a stricter policy rejects) instead of success. Every developer endpoint except `init` requires a super admin token; no endpoint skips the token revocation (stamp) check.
 
 ### First production database
 
-The production image sets `MILVA_ENV=prod`, so the developer endpoints (and `database/init`) are closed there. Initialize a new production database once, from a non-production environment pointed at it:
+The production image sets `MILVA_ENV=prod`, so the developer endpoints (and `database/init`) are closed there. Initialize a new production database once with a temporary `MILVA_ENV=dev` container bound to `127.0.0.1` and a one-off bootstrap key, as described in [docs/self-host.md section 5](../docs/self-host.md#5-first-admin-and-first-account):
 
 1. Deploy the image (or run the API once) against the empty database: `MigrationHostedService` applies the migrations (the `InitialCreate` migration must exist).
-2. On a developer machine, run the API with `MILVA_ENV=dev` and `ConnectionStrings__DefaultConnectionString` set to the production database.
-3. Open the documentation page and call `POST /api/v1.0/developer/database/init` with its token. Store the returned root password; it is generated once and never shown again (`init` refuses an initialized database).
-4. Stop the local API. From now on only `MILVA_ENV=prod` instances use that database.
+2. Start a temporary container of the same image with `MILVA_ENV=dev` and `Storeasy__Bootstrap__InitKey=$(openssl rand -hex 32)`, published only on `127.0.0.1`.
+3. Call `POST /api/v1.0/developer/database/init` with the header `X-Storeasy-Init-Key: <the key>`. Store the returned root password; it is generated once and never shown again (`init` refuses an initialized database).
+4. Stop the temporary container and discard the key. From now on only `MILVA_ENV=prod` instances use that database.
+
+Never run `MILVA_ENV=dev` or `test` on a reachable host: `dev` opens the developer endpoints and the documentation, and `test` is not hardened for production either (earlier versions opened the same features with `test`).
 
 The seeded system rows (ids below 21 of `Users`, `Roles`, `Permissions`, `Languages`) are protected by database triggers; every other table starts its ids at 1.
 
@@ -127,10 +137,10 @@ The seeded system rows (ids below 21 of `Users`, `Roles`, `Permissions`, `Langua
 
 | Value | Logs | Notes |
 |---|---|---|
-| `dev` | Console | Local development. |
-| `test` | Seq (`SeqUri`) | Console when `SeqUri` is empty. |
+| `dev` | Console | Local development. The only value that opens the API documentation and the developer endpoints. |
+| `test` | Seq (`SeqUri`) | Console when `SeqUri` is empty. Developer endpoints and the API documentation are disabled. Never on a public host. |
 | `prod` | OpenTelemetry collector (`OpenTelemetry:CollectorUrl`) + Seq (`SeqUri`) | Developer endpoints and the API documentation are disabled. Console when both are empty. Set by the production `Dockerfile`. |
-| not set / other | Console | Treated as non-production: always set `MILVA_ENV=prod` in production. |
+| not set / other | Console | Developer endpoints and the API documentation are disabled. Always set `MILVA_ENV=prod` in production. |
 
 Metrics and traces are exported over OTLP (gRPC) only when `OpenTelemetry:CollectorUrl` is set. The application database never receives logs: requests, exceptions and `[Log]` method logs go to the Serilog sinks above.
 

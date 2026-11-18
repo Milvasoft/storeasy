@@ -11,7 +11,9 @@
         </member>
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.UseScalarWithOpenApi(Microsoft.AspNetCore.Builder.WebApplication)">
             <summary>
-            Adds the required middleware to use the localization. Configures the options before add..
+            Maps the OpenAPI document and the Scalar UI, only when <c>MILVA_ENV</c> is <c>dev</c>
+            (<see cref="M:Storeasy.Application.Utils.Extensions.StoreasyExtensions.IsCurrentEnvDevelopment"/>). The page carries no token: a developer signs in
+            through <c>account/login</c> and pastes the access token into the UI.
             </summary>
             <param name="app"></param>
             <returns></returns>
@@ -1194,12 +1196,16 @@
         </member>
         <member name="T:Storeasy.Api.Controllers.DeveloperController">
             <summary>
-            Developer endpoints. Every endpoint requires a super admin and is disabled in production.
+            Developer endpoints. They run only when <c>MILVA_ENV</c> is exactly <c>dev</c> (404 in <c>test</c>, <c>prod</c> and any
+            other value). Every endpoint requires a super admin, except <c>database/init</c>, which is anonymous and guarded by the
+            bootstrap init key instead (see <see cref="M:Storeasy.Api.Controllers.DeveloperController.InitDatabaseAsync"/>).
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.DeveloperController.#ctor(Storeasy.Application.Interfaces.IDeveloperService)">
             <summary>
-            Developer endpoints. Every endpoint requires a super admin and is disabled in production.
+            Developer endpoints. They run only when <c>MILVA_ENV</c> is exactly <c>dev</c> (404 in <c>test</c>, <c>prod</c> and any
+            other value). Every endpoint requires a super admin, except <c>database/init</c>, which is anonymous and guarded by the
+            bootstrap init key instead (see <see cref="M:Storeasy.Api.Controllers.DeveloperController.InitDatabaseAsync"/>).
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.DeveloperController.MigrateAsync">
@@ -1210,8 +1216,8 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.DeveloperController.SeedDataAsync">
             <summary>
-            Seeds data for development purposes. Accepts the documentation token before the root user exists (no stamp check);
-            it seeds only an empty database ("Already seeded!" otherwise).
+            Seeds the development users and role (<c>admin</c>, <c>viewer</c>) into a database initialized with
+            <c>database/init</c>; call it with the root user's token ("Already seeded!" the second time).
             </summary>
             <returns></returns>
         </member>
@@ -1223,8 +1229,10 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.DeveloperController.InitDatabaseAsync">
             <summary>
-            Initial migration operation. Accepts the documentation token before the root user exists (no stamp check);
-            it initializes only an uninitialized database ("Already initialized!" otherwise).
+            Initial migration operation; returns the generated root password once. Anonymous, and runs only when
+            <c>MILVA_ENV</c> is <c>dev</c>, <c>Storeasy:Bootstrap:InitKey</c> is configured (at least 32 characters; otherwise
+            404), the request carries the same value in the <c>X-Storeasy-Init-Key</c> header (otherwise 401) and the database
+            is not initialized yet ("Already initialized!" otherwise). The header is never logged.
             </summary>
             <returns></returns>
         </member>
@@ -3549,10 +3557,9 @@
             Enforces token revocation. Runs after authentication: for an authenticated request it compares the token's
             session-stamp claim against the user's current stamp (Redis, with a database fallback). A mismatch means the
             token was revoked (password change, role change, lock, deletion) and the request is rejected with 401. A token
-            without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived, documentation)
+            without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived)
             carries one, so a missing claim means a foreign token that could never be revoked.
-            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too.
-            Endpoints marked with <see cref="T:Storeasy.Api.Utils.SkipSessionStampValidationAttribute"/> are not checked.
+            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too. No endpoint is exempt.
             </summary>
             <param name="next"></param>
         </member>
@@ -3561,10 +3568,9 @@
             Enforces token revocation. Runs after authentication: for an authenticated request it compares the token's
             session-stamp claim against the user's current stamp (Redis, with a database fallback). A mismatch means the
             token was revoked (password change, role change, lock, deletion) and the request is rejected with 401. A token
-            without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived, documentation)
+            without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived)
             carries one, so a missing claim means a foreign token that could never be revoked.
-            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too.
-            Endpoints marked with <see cref="T:Storeasy.Api.Utils.SkipSessionStampValidationAttribute"/> are not checked.
+            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too. No endpoint is exempt.
             </summary>
             <param name="next"></param>
         </member>
@@ -3989,14 +3995,6 @@
             </summary>
             <param name="response"></param>
             <returns></returns>
-        </member>
-        <member name="T:Storeasy.Api.Utils.SkipSessionStampValidationAttribute">
-            <summary>
-            Exempts an endpoint from the token revocation check (<c>SecurityStampValidationMiddleware</c>); authentication and
-            authorization still apply. Only for the bootstrap endpoints that must work before the token's user exists: on a
-            fresh database the documentation (Scalar) token names a root user that is not seeded yet, so its stamp cannot be
-            validated. Such an endpoint must be disabled in production and harmless once the database is initialized.
-            </summary>
         </member>
         <member name="T:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler">
             <summary>

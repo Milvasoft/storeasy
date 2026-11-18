@@ -19,10 +19,11 @@ public static partial class StoreasyExtensions
     public static string GetCurrentEnvironment() => Environment.GetEnvironmentVariable("MILVA_ENV") ?? string.Empty;
 
     /// <summary>
-    /// Checks if the current environment is production.
+    /// True only when <c>MILVA_ENV</c> is exactly <c>dev</c>. Developer features (the API documentation, the developer
+    /// endpoints) are allowed by this check alone: <c>test</c>, <c>prod</c>, an empty or an unknown value keeps them closed.
     /// </summary>
     /// <returns></returns>
-    public static bool IsCurrentEnvProduction() => (GetCurrentEnvironment() ?? string.Empty) == "prod";
+    public static bool IsCurrentEnvDevelopment() => string.Equals(GetCurrentEnvironment(), "dev", StringComparison.Ordinal);
 
     /// <summary>
     /// Generates metadata for the request according to header.

@@ -54,6 +54,17 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public const string StoreJobsEnabledKey = "Storeasy:Jobs:Enabled";
 
     /// <summary>
+    /// Environment variable of the Storeasy environment (<c>dev</c>, <c>test</c>, <c>prod</c>). The shared host runs with
+    /// <c>dev</c>; the documentation is mapped at startup from it, the developer endpoints read it on every call.
+    /// </summary>
+    public const string MilvaEnvironmentKey = "MILVA_ENV";
+
+    /// <summary>
+    /// Configuration key of the bootstrap init key that <c>developer/database/init</c> requires. The shared host has none.
+    /// </summary>
+    public const string BootstrapInitKeyKey = "Storeasy:Bootstrap:InitKey";
+
+    /// <summary>
     /// Access token signing key of the test hosts. The appsettings files carry no key, so it is given through the
     /// environment like in a deployment (in Development the application would generate a random one per host).
     /// </summary>
@@ -165,7 +176,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
         // Development: dev-only behaviour (missing resx key report, developer endpoints) as on a developer machine.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
-        Environment.SetEnvironmentVariable("MILVA_ENV", "dev");
+        Environment.SetEnvironmentVariable(MilvaEnvironmentKey, "dev");
 
         // Hard guarantee that no test ever reaches the network: every HttpClient in this process is routed to a closed
         // loopback port and fails immediately instead of hitting a real provider. Postgres/Redis (Npgsql/StackExchange)
@@ -295,6 +306,19 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     }
 
     /// <summary>
+    /// Sets <c>MILVA_ENV</c> to <paramref name="value"/> (empty removes it) until the returned scope is disposed, which
+    /// restores <c>dev</c>. The tests of the collection run one after another, so the process-wide change is safe.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static IDisposable UseMilvaEnvironment(string value)
+    {
+        Environment.SetEnvironmentVariable(MilvaEnvironmentKey, value);
+
+        return new MilvaEnvironmentScope();
+    }
+
+    /// <summary>
     /// Creates a new, empty database (schema only, no seed) in the test PostgreSQL and returns its connection string,
     /// for a test that needs a database nobody initialized yet.
     /// </summary>
@@ -421,6 +445,15 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
         return (System.Buffers.Text.Base64Url.EncodeToString([0x04, .. parameters.Q.X, .. parameters.Q.Y]), System.Buffers.Text.Base64Url.EncodeToString(parameters.D));
     }
+}
+
+/// <summary>
+/// Restores <c>MILVA_ENV=dev</c> when disposed (see <see cref="StoreasyApiFactory.UseMilvaEnvironment"/>).
+/// </summary>
+internal sealed class MilvaEnvironmentScope : IDisposable
+{
+    /// <inheritdoc/>
+    public void Dispose() => Environment.SetEnvironmentVariable(StoreasyApiFactory.MilvaEnvironmentKey, "dev");
 }
 
 /// <summary>

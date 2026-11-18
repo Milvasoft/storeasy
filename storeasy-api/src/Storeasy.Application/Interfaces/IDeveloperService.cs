@@ -4,7 +4,7 @@ using Milvasoft.Core.Abstractions;
 namespace Storeasy.Application.Interfaces;
 
 /// <summary>
-/// Developer service.
+/// Developer service. Every operation runs only when <c>MILVA_ENV</c> is exactly <c>dev</c>.
 /// </summary>
 public interface IDeveloperService : IInterceptable
 {
@@ -29,7 +29,8 @@ public interface IDeveloperService : IInterceptable
     Task<Response> SeedFakeDataAsync(bool sameData = true, string locale = "tr");
 
     /// <summary>
-    /// Initial migration operation.
+    /// Initial migration operation. Also requires the configured bootstrap init key in the request's
+    /// <c>X-Storeasy-Init-Key</c> header and an uninitialized database; returns the generated root password once.
     /// </summary>
     /// <returns></returns>
     Task<Response<string>> InitDatabaseAsync();

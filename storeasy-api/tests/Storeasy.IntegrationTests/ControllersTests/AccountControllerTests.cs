@@ -379,44 +379,6 @@ public class AccountControllerTests(StoreasyApiFactory factory) : IntegrationTes
         httpResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact]
-    public async Task DocumentationToken_ShouldCarryTheRootUsersCurrentStamp()
-    {
-        // Arrange
-        var accessToken = await _factory.CreateClientWithAddress().GetDocumentationTokenAsync();
-
-        var client = _factory.CreateClientWithAddress().UseAccessToken(accessToken);
-
-        // Act
-        var (httpResponse, result) = await client.GetAsync<AccountDetailDto>("account/detail");
-
-        // Assert
-        httpResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Id.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task DocumentationToken_OnAFreshDatabase_ShouldReachOnlyTheBootstrapEndpoints()
-    {
-        // Arrange: a database nobody initialized yet, so there is no root user and the documentation token's stamp cannot be validated.
-        var connectionString = await _factory.CreateEmptyDatabaseAsync();
-
-        await using var freshHost = _factory.CreateHost(new() { [StoreasyApiFactory.ConnectionStringKey] = connectionString });
-
-        var accessToken = await freshHost.CreateClientWithAddress().GetDocumentationTokenAsync();
-
-        var client = freshHost.CreateClientWithAddress().UseAccessToken(accessToken);
-
-        // Act
-        var detailResponse = await client.GetAsync($"{TestApi.Base}/account/detail", TestContext.Current.CancellationToken);
-        var initResponse = await client.PostAsync($"{TestApi.Base}/developer/database/init", null, TestContext.Current.CancellationToken);
-
-        // Assert: the init endpoint runs (the test schema has no migration to initialize, so it reports an error) instead of rejecting the token.
-        detailResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        initResponse.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
-        initResponse.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
-    }
-
     #endregion
 
     #region RefreshLoginAsync

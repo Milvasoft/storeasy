@@ -14,7 +14,8 @@ npm run e2e:down                        # stops the stack and deletes its volume
 `e2e:up` runs `node ../deploy/e2e/stack.mjs up`: it writes a throwaway `.env` with random secrets into the state
 directory (`E2E_STATE_DIR`, default `<os temp>/storeasy-e2e`, never the repository), starts the stack with registration
 open and the schedules on, and initializes the database once like docs/self-host.md section 5 (a temporary
-`MILVA_ENV=dev` container calls `developer/database/init`). `node ../deploy/e2e/stack.mjs env` prints the variables.
+`MILVA_ENV=dev` container on `127.0.0.1:5080` with a bootstrap key generated at runtime, which `developer/database/init`
+requires in the `X-Storeasy-Init-Key` header; the key is never written anywhere and dies with the container). `node ../deploy/e2e/stack.mjs env` prints the variables.
 
 No store is ever called: the override resolves the App Store Connect, Google and Microsoft hosts to a refusing address
 inside the API container, so a connection check or a sync fails fast. Store keys used by the specs are generated per run

@@ -187,19 +187,37 @@ Rules for any proxy:
 
 ## 5. First admin and first account
 
+> **Warning.** Run only `MILVA_ENV=prod` (the image default) on any server that something else can reach. `test` and
+> `dev` are development settings and must never run on a public host, not even for a moment: `dev` opens the API
+> documentation and the developer endpoints (which can reset or seed the database), and `test` is not hardened for
+> production (storeasy versions before this change opened the same features with `test`). The steps below use `dev`
+> only in a temporary container bound to `127.0.0.1`.
+
 The API image runs with `MILVA_ENV=prod`, which closes the developer endpoints, including database initialization.
-Initialize a new database once with a temporary development instance of the same image:
+Initialize a new database once with a temporary development instance of the same image, on the server itself. The
+anonymous `developer/database/init` endpoint opens only when `MILVA_ENV=dev` and a one-off bootstrap key
+(`Storeasy__Bootstrap__InitKey`, at least 32 characters) are both set, and it requires that key in the
+`X-Storeasy-Init-Key` header:
 
 ```bash
 docker compose stop storeasy-api
-docker compose run --rm -e MILVA_ENV=dev -p 127.0.0.1:5080:8080 storeasy-api
+export Storeasy__Bootstrap__InitKey="$(openssl rand -hex 32)"
+# -e with only the name passes the key from this shell, so it never appears on a command line or in a file.
+docker compose run -d --name storeasy-init -e MILVA_ENV=dev -e Storeasy__Bootstrap__InitKey   -p 127.0.0.1:5080:8080 storeasy-api
+curl -fsS http://127.0.0.1:5080/api/v1.0/healthcheck/ready     # repeat until it answers
+curl -fsS -X POST -H "X-Storeasy-Init-Key: $Storeasy__Bootstrap__InitKey"   http://127.0.0.1:5080/api/v1.0/developer/database/init
+docker rm -f storeasy-init
+unset Storeasy__Bootstrap__InitKey
+docker compose up -d storeasy-api
 ```
 
-1. Open `http://127.0.0.1:5080/api/documentation` on the server (use an SSH tunnel from your machine).
-2. Call `POST /api/v1.0/developer/database/init`. It seeds the root user `rootuser` (the instance admin), roles,
-   permissions and languages, and returns the generated root password once. Store it in a password manager. `init`
-   refuses a database that is already initialized.
-3. Stop the temporary container (Ctrl+C) and start the normal one: `docker compose up -d storeasy-api`.
+1. `init` seeds the root user `rootuser` (the instance admin), roles, permissions and languages, and returns the
+   generated root password once (`data` of the response). Store it in a password manager; it is never shown again.
+   `init` refuses a database that is already initialized.
+2. Without the key setting (or with a shorter one) the endpoint answers 404; with a missing or wrong header it answers
+   401. It is rate limited and the header is never logged.
+3. Stop the temporary container right away and never keep the key: do not write it into `.env`, the compose file or
+   any other file. The normal container (`MILVA_ENV=prod`) closes the endpoint whatever the key.
 
 Then create your own account:
 
@@ -237,7 +255,8 @@ without one keep their default unless you add them to the API's `environment` (o
 | `Milvasoft:Identity:Lockout:MaxFailedAccessAttempts`, `DefaultLockoutTimeSpan` | | `5`, `5` | Sign in lockout (minutes). |
 | `Milvasoft:Interception:Log:LogDefaultParameters` | | `false` | Logs every argument and result of `[Log]` methods. Keep `false` in production: they can contain personal data. |
 | `Milvasoft:FileOperations:Json:EncryptionKey` | | empty | **Secret.** Not used by storeasy today. |
-| `MILVA_ENV` | | `prod` in the image | `dev`, `test` or `prod`. `prod` closes the developer endpoints and the API documentation and selects the log sinks. |
+| `MILVA_ENV` | | `prod` in the image | `dev`, `test` or `prod`; selects the log sinks. The developer endpoints and the API documentation are open only with exactly `dev`; every other value (`test`, `prod`, empty, unknown) closes them. Use `prod` on every reachable server: `test` and `dev` must never run on a public host. |
+| `Storeasy:Bootstrap:InitKey` | | empty | **Secret.** One-off key that opens `developer/database/init` (only with `MILVA_ENV=dev`, at least 32 characters, sent as `X-Storeasy-Init-Key`). Set it only on the temporary container of [section 5](#5-first-admin-and-first-account), never keep it. |
 | `ASPNETCORE_ENVIRONMENT`, `ASPNETCORE_URLS` | | `Production`, `http://+:8080` in the image | Leave as is. |
 
 The remaining `Milvasoft:*`, `ApiHost` and `HealthChecksUI` keys in `appsettings.json` are library settings that need

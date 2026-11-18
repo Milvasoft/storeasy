@@ -2,18 +2,12 @@
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.MultiLanguage.Manager;
-using Milvasoft.Identity.Concrete.Options;
-using Milvasoft.Identity.TokenProvider.AuthToken;
 using Milvasoft.Localization;
-using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Extensions;
-using Storeasy.Application.Utils.PermissionManager;
-using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Persistence.Context;
 using Scalar.AspNetCore;
 using System.Globalization;
-using System.Security.Claims;
 
 namespace Storeasy.Api.AppStartup;
 
@@ -23,26 +17,24 @@ namespace Storeasy.Api.AppStartup;
 public static partial class StartupExtensions
 {
     /// <summary>
-    /// Adds the required middleware to use the localization. Configures the options before add..
+    /// Maps the OpenAPI document and the Scalar UI, only when <c>MILVA_ENV</c> is <c>dev</c>
+    /// (<see cref="StoreasyExtensions.IsCurrentEnvDevelopment"/>). The page carries no token: a developer signs in
+    /// through <c>account/login</c> and pastes the access token into the UI.
     /// </summary>
     /// <param name="app"></param>
     /// <returns></returns>
     public static IApplicationBuilder UseScalarWithOpenApi(this WebApplication app)
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
             return app;
 
-        // Documentation is reachable without a token (deny-by-default fallback policy); it is never mapped in production.
+        // Documentation is reachable without a token (deny-by-default fallback policy); it is mapped only in development.
         app.MapOpenApi(GlobalConstant.RoutePrefix + "/docs/{documentName}/docs.json").AllowAnonymous();
 
         app.MapScalarApiReference(endpointPrefix: $"/{GlobalConstant.RoutePrefix}/documentation", options =>
         {
             options.WithOpenApiRoutePattern($"/{GlobalConstant.RoutePrefix}/docs/v1.0/docs.json");
             options.WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Axios);
-            options.AddHttpAuthentication("Bearer", auth =>
-            {
-                auth.Token = GenerateTokenForUI(app);
-            });
 
             //UI
             options.WithTitle("Storeasy Api Reference")
@@ -54,43 +46,6 @@ public static partial class StartupExtensions
         }).AllowAnonymous();
 
         return app;
-
-        static string GenerateTokenForUI(WebApplication app)
-        {
-            var identityOptions = app.Services.GetRequiredService<MilvaIdentityOptions>();
-
-            var tokenManager = new MilvaTokenManager(identityOptions, null);
-
-            var roleClaim = new Claim(ClaimTypes.Role, PermissionCatalog.App.SuperAdmin);
-            var userTypeClaim = new Claim(GlobalConstant.UserTypeClaimName, UserType.Manager.ToString());
-            var userClaim = new Claim(ClaimTypes.Name, GlobalConstant.RootUsername);
-            var userIdClaim = new Claim(GlobalConstant.UserIdClaimName, "1");
-
-            // Tokens without a valid security stamp are rejected by SecurityStampValidationMiddleware, so the documentation
-            // token carries the root user's (id 1) current stamp. The token is built each time the documentation page is
-            // served, so after the root user is seeded (database/init or database/seed, which accept this token without a
-            // stamp check) a reload of the page hands out a working token.
-            var stampClaim = new Claim(GlobalConstant.SessionStampClaimName, ResolveStamp(app));
-
-            var accessToken = tokenManager.GenerateToken(expired: DateTime.UtcNow.AddYears(1), issuer: null, userClaim, userIdClaim, roleClaim, userTypeClaim, stampClaim);
-
-            return accessToken;
-        }
-
-        static string ResolveStamp(WebApplication app)
-        {
-            try
-            {
-                using var scope = app.Services.CreateScope();
-
-                return scope.ServiceProvider.GetRequiredService<ISecurityStampStore>().GetOrCreateAsync(1).GetAwaiter().GetResult();
-            }
-            catch
-            {
-                // No database or schema yet: the token only reaches the endpoints that skip the stamp check.
-                return string.Empty;
-            }
-        }
     }
 
     /// <summary>

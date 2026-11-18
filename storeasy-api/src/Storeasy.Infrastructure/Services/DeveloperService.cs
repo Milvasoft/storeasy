@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Milvasoft.Attributes.Annotations;
@@ -10,11 +11,13 @@ using Storeasy.Application.Features.Users.CreateUser;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Extensions;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Application.Utils.PermissionManager;
 using Storeasy.Domain;
 using Storeasy.Infrastructure.Persistence;
 using Storeasy.Infrastructure.Persistence.Context;
 using Newtonsoft.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -22,7 +25,9 @@ using System.Text.Json.Serialization;
 namespace Storeasy.Infrastructure.Services;
 
 /// <summary>
-/// Developer service.
+/// Developer service. Every operation runs only when <c>MILVA_ENV</c> is exactly <c>dev</c>
+/// (<see cref="StoreasyExtensions.IsCurrentEnvDevelopment"/>); in any other environment (<c>test</c>, <c>prod</c>, empty,
+/// unknown) it answers <see cref="MessageKey.PageNotFound"/>.
 /// </summary>
 /// <param name="serviceProvider"></param>
 public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperService
@@ -38,6 +43,8 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     private readonly IPermissionManager _permissionManager = serviceProvider.GetService<IPermissionManager>();
     private readonly StoreasyDbContext _storeasyDbContext = serviceProvider.GetService<StoreasyDbContext>();
     private readonly DatabaseMigrator _databaseMigrator = new(serviceProvider);
+    private readonly BootstrapOptions _bootstrapOptions = serviceProvider.GetService<BootstrapOptions>() ?? new BootstrapOptions();
+    private readonly IHttpContextAccessor _httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
 
     /// <summary>
     /// Remove, recreates and seed database for development purposes.
@@ -46,30 +53,38 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     [ExcludeFromMetadata]
     public async Task<Response> ResetDatabaseAsync()
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response.Error();
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
+            return Response.Error(MessageKey.PageNotFound);
 
         return await _databaseMigrator.ResetDatabaseAsync(default);
     }
 
     /// <summary>
-    /// Seeds data for development purposes.
+    /// Seeds data for development purposes: the <c>Viewer</c> role and the <c>admin</c> and <c>viewer</c> users. The
+    /// endpoint needs a super admin token, so the database is normally initialized already (<c>database/init</c>, root
+    /// user with its generated password); only when the root user is missing are the defaults seeded here too, with
+    /// <see cref="DevelopmentPassword"/> as the root password.
     /// </summary>
     /// <returns></returns>
     public async Task<Response> SeedDevelopmentDataAsync()
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response.Error();
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
+            return Response.Error(MessageKey.PageNotFound);
 
         try
         {
-            await _databaseMigrator.SeedDefaultDataAsync(DevelopmentPassword);
+            var initialized = await _storeasyDbContext.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == 1);
 
-            await _databaseMigrator.CreateTriggersAsync(default);
+            if (!initialized)
+            {
+                await _databaseMigrator.SeedDefaultDataAsync(DevelopmentPassword);
 
-            await DatabaseMigrator.MigratePermissionsAsync(_permissionManager, default);
+                await _databaseMigrator.CreateTriggersAsync(default);
 
-            await LanguageSeeder.SeedAsync(_storeasyDbContext, default);
+                await DatabaseMigrator.MigratePermissionsAsync(_permissionManager, default);
+
+                await LanguageSeeder.SeedAsync(_storeasyDbContext, default);
+            }
 
             // Viewer role: every list permission of the catalog, looked up by name (the ids depend on the catalog order).
             // Every step below returns its own failure (validation messages included) instead of being ignored.
@@ -145,8 +160,8 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     /// <returns></returns>
     public async Task<Response> SeedFakeDataAsync(bool sameData = true, string locale = "tr")
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response.Error();
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
+            return Response.Error(MessageKey.PageNotFound);
 
         await _databaseMigrator.SeedFakeDataAsync(sameData, locale, default);
 
@@ -154,15 +169,24 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     }
 
     /// <summary>
-    /// Initial migration operation.
+    /// Initial migration operation: seeds the root user and returns its generated password once. Runs only when all of
+    /// these hold: <c>MILVA_ENV</c> is <c>dev</c>, <see cref="BootstrapOptions.InitKey"/> is configured (at least
+    /// <see cref="BootstrapOptions.MinimumInitKeyLength"/> characters), the request carries it in
+    /// <see cref="BootstrapOptions.InitKeyHeaderName"/> and the database is not initialized yet. The key is read from the
+    /// request here (never passed as an argument), so no interceptor or log ever sees it.
     /// </summary>
     /// <returns></returns>
     [ExcludeFromMetadata]
     public async Task<Response<string>> InitDatabaseAsync()
     {
-        // A production database is never initialized from an endpoint (the response carries the generated root password).
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response<string>.Error(null);
+        // Closed (reported as not found) outside development and while no init key is configured.
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment() || !_bootstrapOptions.IsInitKeyConfigured)
+            return Response<string>.Error(null, MessageKey.PageNotFound);
+
+        var providedKey = _httpContextAccessor?.HttpContext?.Request.Headers[BootstrapOptions.InitKeyHeaderName].ToString();
+
+        if (!InitKeyMatches(providedKey, _bootstrapOptions.InitKey))
+            return Response<string>.Error(null, MessageKey.Unauthorized);
 
         return await _databaseMigrator.InitDatabaseAsync(_permissionManager, default);
     }
@@ -173,8 +197,8 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     /// <returns></returns>
     public async Task<Response> ExportExistingDataAsync()
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response.Error();
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
+            return Response.Error(MessageKey.PageNotFound);
 
         var users = _storeasyDbContext.Users.Include(p => p.RoleRelations)
                                              .AsNoTracking()
@@ -229,8 +253,8 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
     /// <returns></returns>
     public async Task<Response> ImportExistingDataAsync()
     {
-        if (StoreasyExtensions.IsCurrentEnvProduction())
-            return Response.Error();
+        if (!StoreasyExtensions.IsCurrentEnvDevelopment())
+            return Response.Error(MessageKey.PageNotFound);
 
         var filePath = Path.Combine(GlobalConstant.JsonFilesPath, "export.json");
 
@@ -267,5 +291,23 @@ public class DeveloperService(IServiceProvider serviceProvider) : IDeveloperServ
 
         await _storeasyDbContext.SaveChangesAsync();
         return Response.Success($"{importedCount} records imported.");
+    }
+
+    /// <summary>
+    /// Compares the provided init key with the configured one in constant time. Both are hashed first, so neither the
+    /// content nor the length of the configured key leaks through the comparison time.
+    /// </summary>
+    /// <param name="providedKey"></param>
+    /// <param name="configuredKey"></param>
+    /// <returns></returns>
+    private static bool InitKeyMatches(string providedKey, string configuredKey)
+    {
+        if (string.IsNullOrEmpty(providedKey) || string.IsNullOrEmpty(configuredKey))
+            return false;
+
+        var providedHash = SHA256.HashData(Encoding.UTF8.GetBytes(providedKey));
+        var configuredHash = SHA256.HashData(Encoding.UTF8.GetBytes(configuredKey));
+
+        return CryptographicOperations.FixedTimeEquals(providedHash, configuredHash);
     }
 }

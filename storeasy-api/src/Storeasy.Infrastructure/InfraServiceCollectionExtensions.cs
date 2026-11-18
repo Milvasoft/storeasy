@@ -180,6 +180,7 @@ public static class InfraServiceCollectionExtensions
         services.AddSingleton(configurationManager.GetSection(RegistrationOptions.SectionName).Get<RegistrationOptions>() ?? new RegistrationOptions());
         services.AddSingleton(configurationManager.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
         services.AddSingleton(configurationManager.GetSection(BuildOptions.SectionName).Get<BuildOptions>() ?? new BuildOptions());
+        services.AddSingleton(configurationManager.GetSection(BootstrapOptions.SectionName).Get<BootstrapOptions>() ?? new BootstrapOptions());
         services.AddScoped<IRegistrationModes, RegistrationModes>();
         services.AddScoped<ISystemStatusProbe, SystemStatusProbe>();
 
