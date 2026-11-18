@@ -3,8 +3,8 @@ export const SortType = { Asc: 0, Desc: 1 } as const
 export type SortType = (typeof SortType)[keyof typeof SortType]
 
 // Milvasoft FilterType (Milvasoft.Components.Rest.Enums, read from the package): enum and bool columns use only EqualTo /
-// NotEqualTo (08 section 3), text uses Contains, dates use Between.
-export const FilterType = { Between: 0, Contains: 1, EqualTo: 5, NotEqualTo: 6 } as const
+// NotEqualTo (08 section 3), text uses Contains, dates use Between (or GreaterThan for "after now").
+export const FilterType = { Between: 0, Contains: 1, EqualTo: 5, NotEqualTo: 6, GreaterThan: 7 } as const
 export type FilterType = (typeof FilterType)[keyof typeof FilterType]
 
 export interface Sorting {

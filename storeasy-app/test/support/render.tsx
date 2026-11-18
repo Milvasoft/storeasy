@@ -33,11 +33,12 @@ export function signIn(
   userId = TEST_USER_ID,
   userType: UserType = UserType.AppUser,
   storedOrganization = true,
+  accessToken = 'access-token',
 ): void {
   localStorage.setItem(
     storageKey(StorageKey.AuthTokens),
     JSON.stringify({
-      accessToken: 'access-token',
+      accessToken,
       refreshToken: 'refresh-token',
       expiresIn: 3600,
       refreshTokenExpiresIn: 86_400,
@@ -60,6 +61,8 @@ export interface RenderOptions {
   /** Sign a user in before rendering (default yes; false for guest screens). */
   authed?: boolean
   userType?: UserType
+  /** The stored access token; a JWT with role claims carries the platform permissions (test/support/platform.ts). */
+  accessToken?: string
   /** Remember an organization as the last used one (default yes). */
   storedOrganization?: boolean
   lang?: 'tr' | 'en'
@@ -130,7 +133,7 @@ export function renderWithProviders(ui: ReactElement, options: RenderOptions = {
   const activity = options.activity ?? createManualSource(activityConnection)
   const factory: ActivitySourceFactory = () => activity
   if (authed) {
-    signIn(TEST_USER_NAME, TEST_USER_ID, userType, options.storedOrganization ?? true)
+    signIn(TEST_USER_NAME, TEST_USER_ID, userType, options.storedOrganization ?? true, options.accessToken)
   }
   localStorage.setItem(storageKey(StorageKey.Lang), lang)
   const user = userEvent.setup()

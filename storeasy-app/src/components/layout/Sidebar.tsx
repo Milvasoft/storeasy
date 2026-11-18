@@ -4,6 +4,7 @@ import { APP_VERSION, SOURCE_URL } from '@/config'
 import { useActivity } from '@/lib/activity/ActivityContext'
 import { activeJobCount } from '@/lib/activity/hatState'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { useGlobalPermissions } from '@/lib/auth/globalPermissions'
 import { useFeature, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -51,6 +52,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const t = useT()
   const { can } = useOrganization()
   const { isManager } = useAuth()
+  const global = useGlobalPermissions()
   const { state } = useActivity()
   const liveCount = activeJobCount(state)
 
@@ -62,7 +64,9 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <OrgSwitcher onNavigate={onNavigate} />
       <nav aria-label={t.nav.label} className="grid gap-0.5">
         {NAV.filter((group) => !group.managerOnly || isManager).map((group) => {
-          const items = group.items.filter((item) => !item.permission || can(item.permission))
+          const items = group.items.filter(
+            (item) => (!item.permission || can(item.permission)) && (!item.globalPermission || global.has(item.globalPermission)),
+          )
           if (items.length === 0) {
             return null
           }

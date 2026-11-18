@@ -55,6 +55,8 @@ export interface NavItem {
   path: string
   icon: LucideIcon
   permission?: OrgPermission
+  // A platform (global) permission, "Group.Action" (design 17.27 menu map); App.SuperAdmin sees every item.
+  globalPermission?: string
   feature?: FeatureFlagKey
 }
 
@@ -101,12 +103,31 @@ export const NAV: NavGroup[] = [
     key: 'platform',
     managerOnly: true,
     items: [
-      { key: 'adminRules', path: '/admin/rules', icon: Radar, feature: 'RuleWatcher' },
-      { key: 'adminUsers', path: '/admin/users', icon: User, feature: 'Platform' },
-      { key: 'adminRoles', path: '/admin/roles', icon: Shield, feature: 'Platform' },
-      { key: 'adminLogs', path: '/admin/activity-logs', icon: History, feature: 'Platform' },
-      { key: 'adminLanguages', path: '/admin/languages', icon: Languages, feature: 'Platform' },
-      { key: 'adminFlags', path: '/admin/feature-flags', icon: Flag, feature: 'Platform' },
+      { key: 'adminRules', path: '/admin/rules', icon: Radar, feature: 'RuleWatcher', globalPermission: 'RuleCatalogManagement.List' },
+      { key: 'adminUsers', path: '/admin/users', icon: User, feature: 'Platform', globalPermission: 'UserManagement.List' },
+      { key: 'adminRoles', path: '/admin/roles', icon: Shield, feature: 'Platform', globalPermission: 'RoleManagement.List' },
+      {
+        key: 'adminLogs',
+        path: '/admin/activity-logs',
+        icon: History,
+        feature: 'Platform',
+        globalPermission: 'ActivityLogManagement.List',
+      },
+      {
+        key: 'adminLanguages',
+        path: '/admin/languages',
+        icon: Languages,
+        feature: 'Platform',
+        globalPermission: 'LanguageManagement.List',
+      },
+      {
+        key: 'adminFlags',
+        path: '/admin/feature-flags',
+        icon: Flag,
+        feature: 'Platform',
+        globalPermission: 'FeatureFlagManagement.List',
+      },
+      // No SystemManagement permission group exists yet (design 17.24 backend gap): every platform administrator sees it.
       { key: 'adminSystem', path: '/admin/system', icon: Server, feature: 'Platform' },
     ],
   },

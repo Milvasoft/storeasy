@@ -334,6 +334,16 @@ export function apiPatchList<T>(path: string, body?: unknown): Promise<ApiListRe
   return send<ApiListResponse<T>>('PATCH', path, { body })
 }
 
+/**
+ * An anonymous probe that is not a Milvasoft envelope (the health checks): the HTTP status and the parsed body, whatever
+ * the status. Only a network failure throws, so a 503 readiness report still reaches the caller.
+ */
+export async function apiProbe<T>(path: string): Promise<{ status: number; body: T | null; text: string }> {
+  const res = await rawFetch('GET', buildUrl(path), undefined, false)
+  const text = await res.text().catch(() => '')
+  return { status: res.status, body: parseBody(text) as T | null, text }
+}
+
 export async function apiDelete<T>(path: string, query?: Query, body?: unknown): Promise<T> {
   const res = await send<ApiResponse<T>>('DELETE', path, { query, body })
   return res.Data
