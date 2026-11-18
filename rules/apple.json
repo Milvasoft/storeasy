@@ -1,0 +1,3192 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.0.0",
+  "store": "apple",
+  "generatedAt": "2026-11-18T12:00:00Z",
+  "rules": [
+    {
+      "id": "apple.screenshots.general",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: general rules",
+        "tr": "Ekran görüntüleri: genel kurallar"
+      },
+      "description": {
+        "en": "At least one screenshot, up to 10 per device size and localization, jpeg/jpg/png, no alpha channel or transparency. If the UI is the same across sizes, only the highest required resolution is needed; App Store Connect scales it down.",
+        "tr": "En az bir, cihaz boyutu ve dil başına en fazla 10 görsel; jpeg, jpg veya png; alfa kanalı ve saydamlık yok."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18",
+          "quote": "Screenshots cannot include alpha channels or transparency (Jul 8, 2026 note)."
+        }
+      ],
+      "verified": true,
+      "notes": "The no-alpha rule was announced in the App Store Connect release notes on 2026-07-08."
+    },
+    {
+      "id": "apple.screenshots.iphone-dynamic-island-medium",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Dynamic Island (medium display)",
+        "tr": "Ekran görüntüleri: Dynamic Island'lı iPhone (orta ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Dynamic Island (medium display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "fallbackTo": [
+          "apple.screenshots.iphone-face-id-large"
+        ],
+        "condition": "At least one screenshot for iPhone with Dynamic Island (medium display) is required for submission when the app runs on iPhone."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1206,
+            "height": 2622
+          },
+          {
+            "width": 1179,
+            "height": 2556
+          },
+          {
+            "width": 2622,
+            "height": 1206
+          },
+          {
+            "width": 2556,
+            "height": 1179
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "App Store Connect can scale Face ID (large) screenshots for this class, but the page still lists this class as the required iPhone size."
+    },
+    {
+      "id": "apple.screenshots.iphone-dynamic-island-large",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Dynamic Island (large display)",
+        "tr": "Ekran görüntüleri: Dynamic Island'lı iPhone (büyük ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Dynamic Island (large display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-face-id-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1260,
+            "height": 2736
+          },
+          {
+            "width": 1290,
+            "height": 2796
+          },
+          {
+            "width": 1320,
+            "height": 2868
+          },
+          {
+            "width": 2736,
+            "height": 1260
+          },
+          {
+            "width": 2796,
+            "height": 1290
+          },
+          {
+            "width": 2868,
+            "height": 1320
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-face-id-large",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Face ID (large display)",
+        "tr": "Ekran görüntüleri: Face ID'li iPhone (büyük ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Face ID (large display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "satisfiedBy": [
+          "apple.screenshots.iphone-dynamic-island-large"
+        ],
+        "fallbackTo": [
+          "apple.screenshots.iphone-dynamic-island-large"
+        ],
+        "condition": "Required if the app runs on iPhone and Dynamic Island (large) screenshots are not provided."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1284,
+            "height": 2778
+          },
+          {
+            "width": 1242,
+            "height": 2688
+          },
+          {
+            "width": 2778,
+            "height": 1284
+          },
+          {
+            "width": 2688,
+            "height": 1242
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-face-id-medium",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Face ID (medium display)",
+        "tr": "Ekran görüntüleri: Face ID'li iPhone (orta ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Face ID (medium display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-dynamic-island-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1170,
+            "height": 2532
+          },
+          {
+            "width": 1125,
+            "height": 2436
+          },
+          {
+            "width": 1080,
+            "height": 2340
+          },
+          {
+            "width": 2532,
+            "height": 1170
+          },
+          {
+            "width": 2436,
+            "height": 1125
+          },
+          {
+            "width": 2340,
+            "height": 1080
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-home-button-large",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Home Button (large display)",
+        "tr": "Ekran görüntüleri: Ana ekran tuşlu iPhone (büyük ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Home Button (large display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-face-id-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1242,
+            "height": 2208
+          },
+          {
+            "width": 2208,
+            "height": 1242
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-home-button-medium",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Home Button (medium display)",
+        "tr": "Ekran görüntüleri: Ana ekran tuşlu iPhone (orta ekran)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Home Button (medium display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-home-button-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 750,
+            "height": 1334
+          },
+          {
+            "width": 1334,
+            "height": 750
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-home-button-4in",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Home Button (4-inch display)",
+        "tr": "Ekran görüntüleri: Ana ekran tuşlu iPhone (4 inç)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Home Button (4-inch display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-home-button-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 640,
+            "height": 1096,
+            "note": "portrait, no status bar"
+          },
+          {
+            "width": 640,
+            "height": 1136,
+            "note": "portrait, with status bar"
+          },
+          {
+            "width": 1136,
+            "height": 600,
+            "note": "landscape, no status bar"
+          },
+          {
+            "width": 1136,
+            "height": 640,
+            "note": "landscape, with status bar"
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-home-button-3.5in",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone with Home Button (3.5-inch display)",
+        "tr": "Ekran görüntüleri: Ana ekran tuşlu iPhone (3,5 inç)"
+      },
+      "description": {
+        "en": "Screenshot set for iPhone with Home Button (3.5-inch display). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.iphone-home-button-4in"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 640,
+            "height": 920,
+            "note": "portrait, no status bar"
+          },
+          {
+            "width": 640,
+            "height": 960,
+            "note": "portrait, with status bar"
+          },
+          {
+            "width": 960,
+            "height": 600,
+            "note": "landscape, no status bar"
+          },
+          {
+            "width": 960,
+            "height": 640,
+            "note": "landscape, with status bar"
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.iphone-duo-outer",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone Duo (outer display)",
+        "tr": "Ekran görüntüleri: iPhone Duo (dış ekran)"
+      },
+      "description": {
+        "en": "iPhone Duo outer display screenshots. Submitting Duo screenshots shows a \"made for iPhone Duo\" badge on the product page. Duo screenshot and preview specifications were added on 2026-09-09; that release note said upload support would follow later in 2026.",
+        "tr": "iPhone Duo dış ekran görüntüleri; gönderilince ürün sayfasında \"made for iPhone Duo\" rozeti çıkar."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ],
+        "build": {
+          "sdkName": "iOS",
+          "sdkVersionAtLeast": "27.1"
+        },
+        "expression": "App runs on iPhone and is built with the iOS 27.1 SDK or later"
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-04-01",
+        "condition": "Starting April 2027, for apps built with the iOS 27.1 SDK or later (screenshot specifications page). See conflicts."
+      },
+      "effectiveDate": "2027-04-01",
+      "deadline": null,
+      "dateNote": "Sources say \"April 2027\" without a day; the catalog uses 2027-04-01.",
+      "params": {
+        "sizes": [
+          {
+            "width": 1398,
+            "height": 2034
+          },
+          {
+            "width": 2034,
+            "height": 1398
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18",
+          "quote": "Starting April 2027, any apps or games submitted will need ... iPhone Duo."
+        }
+      ],
+      "verified": true,
+      "notes": "The specifications page lists no fallback or scaling rule for iPhone Duo and does not list it under \"Required device sizes\" yet.",
+      "conflicts": [
+        {
+          "description": "The screenshot specifications page says Duo screenshots will be required from April 2027 \"for any app using the iOS 27.1 SDK or later\". The App Store Connect release note of 2026-10-05 says from April 2027 \"any apps or games submitted\" will need Duo screenshots, with no SDK condition.",
+          "sources": [
+            "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+            "https://developer.apple.com/help/app-store-connect/release-notes/"
+          ],
+          "catalogChoice": "Condition encoded as build SDK iOS 27.1 or later (specification page). The rule watcher tracks both pages until they agree."
+        }
+      ]
+    },
+    {
+      "id": "apple.screenshots.iphone-duo-inner",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPhone Duo (inner display)",
+        "tr": "Ekran görüntüleri: iPhone Duo (iç ekran)"
+      },
+      "description": {
+        "en": "iPhone Duo inner display screenshots. Submitting Duo screenshots shows a \"made for iPhone Duo\" badge on the product page. Duo screenshot and preview specifications were added on 2026-09-09; that release note said upload support would follow later in 2026.",
+        "tr": "iPhone Duo iç ekran görüntüleri; gönderilince ürün sayfasında \"made for iPhone Duo\" rozeti çıkar."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ],
+        "build": {
+          "sdkName": "iOS",
+          "sdkVersionAtLeast": "27.1"
+        },
+        "expression": "App runs on iPhone and is built with the iOS 27.1 SDK or later"
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-04-01",
+        "condition": "Starting April 2027, for apps built with the iOS 27.1 SDK or later (screenshot specifications page). See conflicts."
+      },
+      "effectiveDate": "2027-04-01",
+      "deadline": null,
+      "dateNote": "Sources say \"April 2027\" without a day; the catalog uses 2027-04-01.",
+      "params": {
+        "sizes": [
+          {
+            "width": 2007,
+            "height": 2853
+          },
+          {
+            "width": 2853,
+            "height": 2007
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18",
+          "quote": "Starting April 2027, any apps or games submitted will need ... iPhone Duo."
+        }
+      ],
+      "verified": true,
+      "notes": "The specifications page lists no fallback or scaling rule for iPhone Duo and does not list it under \"Required device sizes\" yet.",
+      "conflicts": [
+        {
+          "description": "The screenshot specifications page says Duo screenshots will be required from April 2027 \"for any app using the iOS 27.1 SDK or later\". The App Store Connect release note of 2026-10-05 says from April 2027 \"any apps or games submitted\" will need Duo screenshots, with no SDK condition.",
+          "sources": [
+            "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+            "https://developer.apple.com/help/app-store-connect/release-notes/"
+          ],
+          "catalogChoice": "Condition encoded as build SDK iOS 27.1 or later (specification page). The rule watcher tracks both pages until they agree."
+        }
+      ]
+    },
+    {
+      "id": "apple.screenshots.ipad-13",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPad 13-inch display",
+        "tr": "Ekran görüntüleri: iPad 13 inç"
+      },
+      "description": {
+        "en": "Screenshot set for iPad 13-inch display. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required if the app runs on iPad. Base size, no fallback."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 2064,
+            "height": 2752
+          },
+          {
+            "width": 2048,
+            "height": 2732
+          },
+          {
+            "width": 2752,
+            "height": 2064
+          },
+          {
+            "width": 2732,
+            "height": 2048
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.ipad-12.9",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPad 12.9-inch display (iPad Pro 2nd generation)",
+        "tr": "Ekran görüntüleri: iPad 12,9 inç (2. nesil iPad Pro)"
+      },
+      "description": {
+        "en": "Screenshot set for iPad 12.9-inch display (iPad Pro 2nd generation). Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.ipad-13"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 2048,
+            "height": 2732
+          },
+          {
+            "width": 2732,
+            "height": 2048
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.ipad-11",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPad 11-inch display",
+        "tr": "Ekran görüntüleri: iPad 11 inç"
+      },
+      "description": {
+        "en": "Screenshot set for iPad 11-inch display. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.ipad-13"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1488,
+            "height": 2266
+          },
+          {
+            "width": 1512,
+            "height": 2316
+          },
+          {
+            "width": 1668,
+            "height": 2420
+          },
+          {
+            "width": 1668,
+            "height": 2388
+          },
+          {
+            "width": 1640,
+            "height": 2360
+          },
+          {
+            "width": 2266,
+            "height": 1488
+          },
+          {
+            "width": 2316,
+            "height": 1512
+          },
+          {
+            "width": 2420,
+            "height": 1668
+          },
+          {
+            "width": 2388,
+            "height": 1668
+          },
+          {
+            "width": 2360,
+            "height": 1640
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.ipad-10.5",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPad 10.5-inch display",
+        "tr": "Ekran görüntüleri: iPad 10,5 inç"
+      },
+      "description": {
+        "en": "Screenshot set for iPad 10.5-inch display. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.ipad-12.9"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1668,
+            "height": 2224
+          },
+          {
+            "width": 2224,
+            "height": 1668
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.ipad-9.7",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: iPad 9.7-inch display",
+        "tr": "Ekran görüntüleri: iPad 9,7 inç"
+      },
+      "description": {
+        "en": "Screenshot set for iPad 9.7-inch display. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.screenshots.ipad-10.5"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1536,
+            "height": 2008,
+            "note": "portrait, no status bar"
+          },
+          {
+            "width": 1536,
+            "height": 2048,
+            "note": "portrait, with status bar"
+          },
+          {
+            "width": 768,
+            "height": 1004,
+            "note": "portrait, no status bar"
+          },
+          {
+            "width": 768,
+            "height": 1024,
+            "note": "portrait, with status bar"
+          },
+          {
+            "width": 2048,
+            "height": 1496,
+            "note": "landscape, no status bar"
+          },
+          {
+            "width": 2048,
+            "height": 1536,
+            "note": "landscape, with status bar"
+          },
+          {
+            "width": 1024,
+            "height": 748,
+            "note": "landscape, no status bar"
+          },
+          {
+            "width": 1024,
+            "height": 768,
+            "note": "landscape, with status bar"
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.mac",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: Mac",
+        "tr": "Ekran görüntüleri: Mac"
+      },
+      "description": {
+        "en": "Screenshot set for Mac. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "macos"
+        ],
+        "deviceFamilies": [
+          "mac"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required for Mac apps. 16:10 aspect ratio."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1280,
+            "height": 800
+          },
+          {
+            "width": 1440,
+            "height": 900
+          },
+          {
+            "width": 2560,
+            "height": 1600
+          },
+          {
+            "width": 2880,
+            "height": 1800
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class",
+        "aspectRatio": "16:10"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.apple-tv",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: Apple TV",
+        "tr": "Ekran görüntüleri: Apple TV"
+      },
+      "description": {
+        "en": "Screenshot set for Apple TV. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "tvos"
+        ],
+        "deviceFamilies": [
+          "apple-tv"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required for Apple TV apps."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1920,
+            "height": 1080
+          },
+          {
+            "width": 3840,
+            "height": 2160
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.apple-vision-pro",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: Apple Vision Pro",
+        "tr": "Ekran görüntüleri: Apple Vision Pro"
+      },
+      "description": {
+        "en": "Screenshot set for Apple Vision Pro. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "visionos"
+        ],
+        "deviceFamilies": [
+          "apple-vision"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required for Apple Vision Pro apps."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 3840,
+            "height": 2160
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.screenshots.apple-watch",
+      "store": "apple",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: Apple Watch",
+        "tr": "Ekran görüntüleri: Apple Watch"
+      },
+      "description": {
+        "en": "Screenshot set for Apple Watch. Accepted sizes are exact; landscape versions are also accepted."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "watchos"
+        ],
+        "deviceFamilies": [
+          "apple-watch"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required for Apple Watch apps. Use the same screenshot size consistently across all localizations."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 422,
+            "height": 514,
+            "note": "Ultra 4, Ultra 3"
+          },
+          {
+            "width": 410,
+            "height": 502,
+            "note": "Ultra 2, Ultra"
+          },
+          {
+            "width": 416,
+            "height": 496,
+            "note": "Series 12, 11, 10"
+          },
+          {
+            "width": 396,
+            "height": 484,
+            "note": "Series 9, 8, 7"
+          },
+          {
+            "width": 368,
+            "height": 448,
+            "note": "Series 6, 5, 4, SE 3, SE 2, SE"
+          },
+          {
+            "width": 312,
+            "height": 390,
+            "note": "Series 3, 2, 1"
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "jpg",
+          "png"
+        ],
+        "alphaAllowed": false,
+        "minCount": 1,
+        "maxCount": 10,
+        "countScope": "per localization, per display class"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appScreenshotSets",
+          "asc.appScreenshots",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+          "title": "App Store Connect Help: Screenshot specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.general",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: general rules",
+        "tr": "Uygulama önizlemeleri: genel kurallar"
+      },
+      "description": {
+        "en": "Up to 3 app previews per device size and language; 15 to 30 seconds; up to 500 MB; up to 30 fps; H.264 (.mov, .m4v, .mp4) or ProRes 422 HQ (.mov). iOS previews may be portrait or landscape; macOS, tvOS and visionOS previews are landscape only. H.264 target 10 to 12 Mbps, stereo 256 kbps AAC, 44.1 or 48 kHz.",
+        "tr": "Cihaz boyutu ve dil başına en fazla 3 önizleme; 15 ile 30 saniye; en fazla 500 MB; en fazla 30 fps."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minDurationSeconds": 15,
+        "maxDurationSeconds": 30,
+        "maxCount": 3,
+        "maxFileSizeBytes": 500000000,
+        "maxFrameRate": 30,
+        "formats": [
+          "mov",
+          "m4v",
+          "mp4"
+        ],
+        "countScope": "per localization, per device size",
+        "codecs": [
+          "H.264",
+          "ProRes 422 (HQ)"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page says 500MB; the catalog stores it as 500,000,000 bytes. Duo previews use the standard iPhone 886x1920 resolution, not the device resolution."
+    },
+    {
+      "id": "apple.app-previews.iphone-duo",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone Duo",
+        "tr": "Uygulama önizlemeleri: iPhone Duo"
+      },
+      "description": {
+        "en": "App preview video for iPhone Duo. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 886,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 886
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-dynamic-island-large",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Dynamic Island (large display)",
+        "tr": "Uygulama önizlemeleri: Dynamic Island'lı iPhone (büyük)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Dynamic Island (large display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-face-id-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 886,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 886
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-face-id-large",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Face ID (large display)",
+        "tr": "Uygulama önizlemeleri: Face ID'li iPhone (büyük)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Face ID (large display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-dynamic-island-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 886,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 886
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-dynamic-island-medium",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Dynamic Island (medium display)",
+        "tr": "Uygulama önizlemeleri: Dynamic Island'lı iPhone (orta)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Dynamic Island (medium display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-face-id-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 886,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 886
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-face-id-medium",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Face ID (medium display)",
+        "tr": "Uygulama önizlemeleri: Face ID'li iPhone (orta)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Face ID (medium display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-dynamic-island-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 886,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 886
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-home-button-large",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Home Button (large display)",
+        "tr": "Uygulama önizlemeleri: Ana ekran tuşlu iPhone (büyük)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Home Button (large display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-face-id-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1080,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 1080
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-home-button-medium",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Home Button (medium display)",
+        "tr": "Uygulama önizlemeleri: Ana ekran tuşlu iPhone (orta)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Home Button (medium display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-home-button-large"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 750,
+            "height": 1334
+          },
+          {
+            "width": 1334,
+            "height": 750
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.iphone-home-button-4in",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPhone with Home Button (4-inch display)",
+        "tr": "Uygulama önizlemeleri: Ana ekran tuşlu iPhone (4 inç)"
+      },
+      "description": {
+        "en": "App preview video for iPhone with Home Button (4-inch display). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios"
+        ],
+        "deviceFamilies": [
+          "iphone"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.iphone-home-button-medium"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1080,
+            "height": 1920
+          },
+          {
+            "width": 1920,
+            "height": 1080
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "iPhone with Home Button (3.5-inch) does not support app previews."
+    },
+    {
+      "id": "apple.app-previews.ipad-13",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPad 13-inch display",
+        "tr": "Uygulama önizlemeleri: iPad 13 inç"
+      },
+      "description": {
+        "en": "App preview video for iPad 13-inch display. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1200,
+            "height": 1600
+          },
+          {
+            "width": 1600,
+            "height": 1200
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.ipad-12.9",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPad 12.9-inch display (2nd generation only)",
+        "tr": "Uygulama önizlemeleri: iPad 12,9 inç (yalnız 2. nesil)"
+      },
+      "description": {
+        "en": "App preview video for iPad 12.9-inch display (2nd generation only). Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.ipad-13"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1200,
+            "height": 1600
+          },
+          {
+            "width": 900,
+            "height": 1200
+          },
+          {
+            "width": 1600,
+            "height": 1200
+          },
+          {
+            "width": 1200,
+            "height": 900
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.ipad-11",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPad 11-inch display",
+        "tr": "Uygulama önizlemeleri: iPad 11 inç"
+      },
+      "description": {
+        "en": "App preview video for iPad 11-inch display. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.ipad-13"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1200,
+            "height": 1600
+          },
+          {
+            "width": 1600,
+            "height": 1200
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.ipad-10.5",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPad 10.5-inch display",
+        "tr": "Uygulama önizlemeleri: iPad 10,5 inç"
+      },
+      "description": {
+        "en": "App preview video for iPad 10.5-inch display. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.ipad-12.9"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1200,
+            "height": 1600
+          },
+          {
+            "width": 1600,
+            "height": 1200
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.ipad-9.7",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: iPad 9.7-inch display",
+        "tr": "Uygulama önizlemeleri: iPad 9,7 inç"
+      },
+      "description": {
+        "en": "App preview video for iPad 9.7-inch display. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ipados",
+          "ios"
+        ],
+        "deviceFamilies": [
+          "ipad"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "apple.app-previews.ipad-10.5"
+        ]
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 900,
+            "height": 1200
+          },
+          {
+            "width": 1200,
+            "height": 900
+          }
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.mac",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: Mac",
+        "tr": "Uygulama önizlemeleri: Mac"
+      },
+      "description": {
+        "en": "App preview video for Mac. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "macos"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1920,
+            "height": 1080
+          }
+        ],
+        "landscapeAllowed": true,
+        "orientations": [
+          "landscape"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.apple-tv",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: Apple TV",
+        "tr": "Uygulama önizlemeleri: Apple TV"
+      },
+      "description": {
+        "en": "App preview video for Apple TV. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "tvos"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1920,
+            "height": 1080
+          }
+        ],
+        "orientations": [
+          "landscape"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.app-previews.apple-vision-pro",
+      "store": "apple",
+      "category": "app-previews",
+      "title": {
+        "en": "App previews: Apple Vision Pro",
+        "tr": "Uygulama önizlemeleri: Apple Vision Pro"
+      },
+      "description": {
+        "en": "App preview video for Apple Vision Pro. Use the accepted resolution, not the device resolution."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "visionos"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 3840,
+            "height": 2160
+          }
+        ],
+        "orientations": [
+          "landscape"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appPreviewSets",
+          "asc.appPreviews",
+          "app.deviceFamilies"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/",
+          "title": "App Store Connect Help: App preview specifications",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.listing-limits.name",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "App name: 2 to 30 characters",
+        "tr": "Uygulama adı: 2 ile 30 karakter"
+      },
+      "description": {
+        "en": "App name: 2 to 30 characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minChars": 2,
+        "maxChars": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appInfoLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/",
+          "title": "App Store Connect Help: App information",
+          "checkedAt": "2026-11-18",
+          "quote": "at least two characters and no more than 30 characters"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.listing-limits.subtitle",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "Subtitle: up to 30 characters",
+        "tr": "Alt başlık: en fazla 30 karakter"
+      },
+      "description": {
+        "en": "Subtitle: up to 30 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appInfoLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/",
+          "title": "App Store Connect Help: App information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.listing-limits.keywords",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "Keywords: up to 100 bytes",
+        "tr": "Anahtar kelimeler: en fazla 100 bayt"
+      },
+      "description": {
+        "en": "Keywords: up to 100 bytes."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxBytes": 100,
+        "minCharsPerKeyword": 3
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appStoreVersionLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The limit is in bytes (UTF-8), not characters: Turkish letters like ş or ğ take 2 bytes. Each keyword must be longer than two characters."
+    },
+    {
+      "id": "apple.listing-limits.promotional-text",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "Promotional text: up to 170 characters",
+        "tr": "Tanıtım metni: en fazla 170 karakter"
+      },
+      "description": {
+        "en": "Promotional text: up to 170 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 170
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appStoreVersionLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.listing-limits.description",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "Description: up to 4000 characters",
+        "tr": "Açıklama: en fazla 4000 karakter"
+      },
+      "description": {
+        "en": "Description: up to 4000 characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 4000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appStoreVersionLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.listing-limits.whats-new",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "What's New: up to 4000 characters",
+        "tr": "Yenilikler: en fazla 4000 karakter"
+      },
+      "description": {
+        "en": "What's New: up to 4000 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 4000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appStoreVersionLocalizations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "Not shown for the first version of an app."
+    },
+    {
+      "id": "apple.listing-limits.review-notes",
+      "store": "apple",
+      "category": "listing-limits",
+      "title": {
+        "en": "App Review notes: up to 4000 bytes",
+        "tr": "App Review notları: en fazla 4000 bayt"
+      },
+      "description": {
+        "en": "App Review notes: up to 4000 bytes."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxBytes": 4000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.appStoreReviewDetails"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/",
+          "title": "App Store Connect Help: Platform version information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.review.resolution-center-reply",
+      "store": "apple",
+      "category": "review",
+      "title": {
+        "en": "Reply to App Review messages: up to 4000 characters",
+        "tr": "App Review mesajına yanıt: en fazla 4000 karakter"
+      },
+      "description": {
+        "en": "Replies to App Review in App Store Connect (Resolution Center) are limited to 4000 characters. Attachments are allowed until the next resubmission; the page gives no attachment size limit."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 4000
+      },
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.rejectionReplyDraft"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/reply-to-app-review-messages",
+          "title": "App Store Connect Help: Reply to App Review messages",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "There is no API for App Review messages; storeasy only counts characters in the draft."
+    },
+    {
+      "id": "apple.age-rating.shared-location-dating",
+      "store": "apple",
+      "category": "age-rating",
+      "title": {
+        "en": "Age rating: answer Shared Location and Dating and Relationships questions",
+        "tr": "Yaş derecelendirmesi: Shared Location ve Dating and Relationships soruları"
+      },
+      "description": {
+        "en": "New age rating content descriptors in App Store Connect since 2026-11-16. Dating and Relationships gives a minimum rating of 18+. Shared Location may not change the minimum rating in some regions. Declarations are required when submitting an update or changing the questionnaire, and every app must complete them by 2027-01-12.",
+        "tr": "Yeni descriptor'lar 16 Kasım 2026'dan beri; Dating and Relationships en az 18+. Bütün uygulamalar 12 Ocak 2027'ye kadar cevaplamalı; güncelleme gönderirken hemen gerekir."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios",
+          "ipados",
+          "macos",
+          "tvos",
+          "visionos",
+          "watchos"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required now for updates and questionnaire changes; required for all apps by the deadline."
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": "2027-01-12",
+      "params": {
+        "descriptors": [
+          "Shared Location",
+          "Dating and Relationships"
+        ],
+        "minimumAgeIfDating": "18+"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.ageRatingDeclarations"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/news/?id=yxkh08us",
+          "title": "Apple Developer News: new age rating content descriptors (2026-11-02)",
+          "checkedAt": "2026-11-18",
+          "quote": "All apps must have these declarations completed by January 12, 2027."
+        }
+      ],
+      "verified": false,
+      "notes": "Dates and descriptors verified. The App Store Connect API attribute names for the two new descriptors are not yet verified; until they are, the readiness check may need to fall back to an assisted step."
+    },
+    {
+      "id": "apple.age-rating.brazil-a16-a18",
+      "store": "apple",
+      "category": "age-rating",
+      "title": {
+        "en": "Brazil: A16 for Shared Location, A18 for Dating and Relationships",
+        "tr": "Brezilya: Shared Location için A16, Dating and Relationships için A18"
+      },
+      "description": {
+        "en": "In Brazil, local regulations require an A16 rating for Shared Location and an A18 rating for Dating and Relationships. Developers who believe a lower rating applies (for example parent and child location sharing) can request an official rating from Brazil's Ministry of Justice and Public Security (MJSP); once verified it is shown on the Brazil App Store."
+      },
+      "appliesWhen": {
+        "regions": [
+          "BR"
+        ],
+        "features": [
+          "shared-location",
+          "dating-relationships"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": "2027-01-12",
+      "params": {
+        "ratings": {
+          "shared-location": "A16",
+          "dating-relationships": "A18"
+        }
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/news/?id=yxkh08us",
+          "title": "Apple Developer News: new age rating content descriptors (2026-11-02)",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.compliance.app-compliance-page",
+      "store": "apple",
+      "category": "compliance",
+      "title": {
+        "en": "App Compliance page holds permits and declarations",
+        "tr": "İzinler ve beyanlar App Compliance sayfasında"
+      },
+      "description": {
+        "en": "Since 2026-11-16 regulations and permits (ICP, game licenses, medical device declarations) moved from App Information to the App Compliance page, which also holds the China mainland AIGC and Security Assessment declarations."
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Where a permit or declaration applies to the app."
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": null,
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The individual ICP, game license and medical device requirements are not modeled as separate rules in v1."
+    },
+    {
+      "id": "apple.compliance.china-declarations",
+      "store": "apple",
+      "category": "compliance",
+      "title": {
+        "en": "China mainland: complete AIGC and Security Assessment declarations",
+        "tr": "Çin anakarası: AIGC ve Security Assessment beyanlarını tamamla"
+      },
+      "description": {
+        "en": "Every app on the China mainland App Store must answer the declarations (Yes if the features are offered there, No if not offered, disabled or geoblocked). Until compliance information is verified the app is released elsewhere but not in China mainland. Existing apps must have verified declarations by 2027-01-31 to remain available. Account Holder or Admin completes it.",
+        "tr": "Çin'de dağıtılan her uygulama beyanları (Evet/Hayır) yapmalı; mevcut uygulamalar 31 Ocak 2027'ye kadar. Yeni uygulamalar doğrulanmadan Çin'de yayınlanmaz."
+      },
+      "appliesWhen": {
+        "regions": [
+          "CN"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": "2027-01-31",
+      "params": {
+        "roles": [
+          "Account Holder",
+          "Admin"
+        ],
+        "statuses": [
+          "Missing Info",
+          "Pending Verification",
+          "Verification Failed",
+          "Active"
+        ]
+      },
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "app.regions",
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information",
+          "title": "App Store Connect Help: China mainland compliance information",
+          "checkedAt": "2026-11-18",
+          "quote": "By January 31, 2027, all existing apps in China mainland must have completed..."
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.compliance.china-aigc",
+      "store": "apple",
+      "category": "compliance",
+      "title": {
+        "en": "China mainland: AI-generated or synthetic content filing",
+        "tr": "Çin anakarası: yapay zekâ üretimli içerik (AIGC) kaydı"
+      },
+      "description": {
+        "en": "Apps offering AI or synthetic services in China mainland (chatbots, image or video generation, voice or face alteration) must provide the filing number and registered filing name of the LLM or algorithm; for third-party AI also an authorization or usage agreement."
+      },
+      "appliesWhen": {
+        "regions": [
+          "CN"
+        ],
+        "features": [
+          "aigc"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": "2027-01-31",
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information",
+          "title": "App Store Connect Help: China mainland compliance information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.compliance.china-security-assessment",
+      "store": "apple",
+      "category": "compliance",
+      "title": {
+        "en": "China mainland: Security Assessment documents",
+        "tr": "Çin anakarası: Security Assessment belgeleri"
+      },
+      "description": {
+        "en": "Apps with features such as distributing AI-generated or synthetic content or end-to-end encrypted instant messaging must upload proof of a passed assessment (screenshot from the National Internet Security Management Service Platform) and the sealed Security Assessment report."
+      },
+      "appliesWhen": {
+        "regions": [
+          "CN"
+        ],
+        "features": [
+          "aigc",
+          "e2ee-messaging"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-11-16",
+      "deadline": "2027-01-31",
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information",
+          "title": "App Store Connect Help: China mainland compliance information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.compliance.china-developer-identity",
+      "store": "apple",
+      "category": "compliance",
+      "title": {
+        "en": "China mainland organizations: company name and USCI",
+        "tr": "Çin merkezli kuruluşlar: şirket adı ve USCI"
+      },
+      "description": {
+        "en": "Organizations based in China mainland must confirm their Chinese company name and Unified Social Credit Identifier (Anti Telecom Fraud Law, Cybersecurity Law) under Business > Agreements > Compliance. Account Holder or Admin."
+      },
+      "appliesWhen": {
+        "developerRegions": [
+          "CN"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information",
+          "title": "App Store Connect Help: China mainland compliance information",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page gives no date for this item."
+    },
+    {
+      "id": "apple.sdk.xcode-26",
+      "store": "apple",
+      "category": "sdk",
+      "title": {
+        "en": "Build with Xcode 26 and the 26 SDKs",
+        "tr": "Xcode 26 ve 26 SDK ile derle"
+      },
+      "description": {
+        "en": "Apps uploaded to App Store Connect must be built with Xcode 26 or later using an SDK for iOS 26, iPadOS 26, tvOS 26, visionOS 26 or watchOS 26."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "ipa"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-04-28",
+      "deadline": null,
+      "params": {
+        "minXcodeVersion": "26",
+        "minSdkVersion": "26"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.xcodeVersion",
+          "build.sdkVersion"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/news/upcoming-requirements/",
+          "title": "Apple Developer: Upcoming requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.sdk.deployment-target-ios-13",
+      "store": "apple",
+      "category": "sdk",
+      "title": {
+        "en": "Deployment target iOS 13 or later",
+        "tr": "Dağıtım hedefi iOS 13 veya üstü"
+      },
+      "description": {
+        "en": "iOS and iPadOS apps uploaded to App Store Connect must target iOS 13 or later."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "ios",
+          "ipados"
+        ],
+        "packageTypes": [
+          "ipa"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-09-09",
+      "deadline": null,
+      "params": {
+        "minDeploymentTarget": "13"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.minimumOsVersion"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/news/upcoming-requirements/",
+          "title": "Apple Developer: Upcoming requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.packages.on-demand-resources",
+      "store": "apple",
+      "category": "packages",
+      "title": {
+        "en": "On-Demand Resources no longer accepted for new adopters",
+        "tr": "On-Demand Resources yeni kullananlardan kabul edilmiyor"
+      },
+      "description": {
+        "en": "Starting in early 2027, App Store Connect will no longer accept uploads containing On-Demand Resources from new apps or from apps that have never used the feature. Migrating to Background Assets is recommended."
+      },
+      "appliesWhen": {
+        "features": [
+          "on-demand-resources"
+        ],
+        "expression": "Build contains On-Demand Resources and the app is new or never shipped On-Demand Resources before"
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-01",
+        "condition": "Approximate start; see dateNote."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "dateNote": "Source says \"early 2027\" with no exact day. requirement.from uses 2027-01-01 as the earliest possible date so the timeline warns early.",
+      "check": {
+        "kind": "info",
+        "inputs": [
+          "build.usesOnDemandResources"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/release-notes/",
+          "title": "App Store Connect release notes",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": false,
+      "notes": "Unverified: the exact start date. Statement itself is from the 2026-11-12 release note."
+    },
+    {
+      "id": "apple.testflight.build-expiry",
+      "store": "apple",
+      "category": "testflight",
+      "title": {
+        "en": "TestFlight builds expire after 90 days",
+        "tr": "TestFlight build'leri 90 gün sonra sona erer"
+      },
+      "description": {
+        "en": "A build can be tested for up to 90 days after upload; after that it is unavailable to testers."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxDays": 90,
+        "warnDaysBefore": 14
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.builds.uploadedDate",
+          "asc.builds.expirationDate"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/test-a-beta-version/overview-of-testflight/",
+          "title": "App Store Connect Help: Overview of TestFlight",
+          "checkedAt": "2026-11-18",
+          "quote": "You can test a build for up to 90 days."
+        }
+      ],
+      "verified": true,
+      "notes": "warnDaysBefore is a storeasy default, not a store rule."
+    }
+  ]
+}
