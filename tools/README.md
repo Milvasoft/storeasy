@@ -6,7 +6,7 @@ of the plan (`docs/urun-plani.md` sections 2.6, 11.7, 11.8; design files 13 and 
 | Folder | What | Ships as |
 |---|---|---|
 | `storeasy-cli/` | `storeasy` CLI (login, whoami, apps list, jobs get, upload) and the `storeasy-mcp` stdio bridge | npm package `storeasy` (bins `storeasy`, `storeasy-mcp`) |
-| `upload-action/` | GitHub Action, OIDC or CI token | `storeasy/upload-action@v1` (node24, `dist/index.cjs`) |
+| `upload-action/` | GitHub Action, OIDC or CI token | `Milvasoft/storeasy/tools/upload-action@v0` (node24, `dist/index.cjs`) |
 | `azure-devops-task/` | Azure DevOps task `StoreasyUpload@1`, workload identity or CI token | Marketplace extension (`vss-extension.json`, Node20_1 handler) |
 | `CONTRACT.md` | The HTTP contract these tools need from `storeasy-api` | |
 | `scripts/` | Shared bundling and repository checks | |
@@ -58,5 +58,4 @@ npm run lint     # eslint, text rules (SPDX headers, no em or en dashes), bundle
 After changing `storeasy-cli/src` or an action or task source, run `npm run build` and commit the bundles; `npm run
 lint` fails on a stale bundle.
 
-Nothing here is published: npm, the GitHub Marketplace and the Visual Studio Marketplace need their own release steps
-(package names, publisher ids, a dedicated `storeasy/upload-action` repository with a `v1` tag).
+Releases run from `.github/workflows/release.yml` on a `v*` tag: the GitHub Action is used by path at the moving major tag (`Milvasoft/storeasy/tools/upload-action@v0`), the npm package `storeasy` is published when the `NPM_TOKEN` secret exists, and the Azure DevOps extension when `AZURE_DEVOPS_EXT_PAT` exists (publisher id in `vss-extension.json`).

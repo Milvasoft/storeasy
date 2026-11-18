@@ -12,7 +12,7 @@ submission are never automatic.
 
 | Way | Identity | Use when |
 |---|---|---|
-| [GitHub Action](#github-actions) `storeasy/upload-action@v1` | OIDC trusted publisher (no secret) or CI token | GitHub Actions |
+| [GitHub Action](#github-actions) `Milvasoft/storeasy/tools/upload-action@v0` | OIDC trusted publisher (no secret) or CI token | GitHub Actions |
 | [Azure DevOps task](#azure-pipelines) `StoreasyUpload@1` | Workload identity (OIDC) or CI token | Azure Pipelines |
 | [CLI](#cli) `storeasy upload` | CI token, OIDC, or your PAT | Any CI, a laptop |
 | [EAS webhook](#eas-build-webhook) | HMAC signature | Expo EAS Build tells storeasy a build is ready; storeasy downloads it |
@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./gradlew bundleRelease
-      - uses: storeasy/upload-action@v1
+      - uses: Milvasoft/storeasy/tools/upload-action@v0
         with:
           url: https://storeasy.example.com # self-hosted instance
           app: 3
@@ -69,8 +69,7 @@ jobs:
           wait: true # fail the job if the package is rejected or the store refuses it
 ```
 
-Inputs, outputs and the CI token variant: [upload-action README](../tools/upload-action/README.md). Until the action
-has its own repository, reference it by path: `uses: <owner>/storeasy/tools/upload-action@<ref>`.
+Inputs, outputs and the CI token variant: [upload-action README](../tools/upload-action/README.md). `@v0` follows the latest 0.x release; pin a release tag such as `@v0.1.0` or a commit SHA for stricter control.
 
 ## Azure Pipelines
 

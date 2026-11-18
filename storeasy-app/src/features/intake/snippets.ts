@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./gradlew bundleRelease
-      - uses: storeasy/upload-action@v1
+      - uses: Milvasoft/storeasy/tools/upload-action@v0
         with:
           url: ${publicOrigin()}
           app: ${appId}

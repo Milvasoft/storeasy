@@ -34,22 +34,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./gradlew bundleRelease
-      - uses: storeasy/upload-action@v1
+      - uses: Milvasoft/storeasy/tools/upload-action@v0
         with:
           app: 3
           file: app/build/outputs/bundle/release/app-release.aab
           wait: true # fail the job if the package is rejected or the store refuses it
 ```
 
-Until the action has its own repository, reference it from the storeasy repository by path:
-`uses: <owner>/storeasy/tools/upload-action@<ref>`.
+The action lives in the storeasy repository and is referenced by path. `@v0` follows the latest 0.x release; pin a release tag such as `@v0.1.0` or a commit SHA for stricter control.
 
 ### Without OIDC
 
 Create a CI token (`sci_...`) in storeasy under Intake > CI tokens, store it as a secret and pass it:
 
 ```yaml
-      - uses: storeasy/upload-action@v1
+      - uses: Milvasoft/storeasy/tools/upload-action@v0
         with:
           app: 3
           file: build/ios/ipa/Pusula.ipa

@@ -1,0 +1,119 @@
+# Release on a `v*` tag (container images are built by images.yml on the same tag):
+# - GitHub release with generated notes;
+# - the moving major tag (for example `v0`) that `Milvasoft/storeasy/tools/upload-action@v0` users follow;
+# - the npm package `storeasy` (CLI and the local MCP bridge) with provenance, when the NPM_TOKEN secret exists;
+# - the Azure DevOps extension (StoreasyUpload@1), when the AZURE_DEVOPS_EXT_PAT secret exists.
+# Missing secrets skip that target with a notice instead of failing the release.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  tools:
+    name: tools (test and build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - run: npm ci
+        working-directory: tools
+      - run: npm run lint
+        working-directory: tools
+      - run: npm test
+        working-directory: tools
+      - run: npm run build
+        working-directory: tools
+
+  github:
+    name: GitHub release and action tag
+    needs: tools
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=""
+          case "$TAG" in v0.*|*-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" --verify-tag --generate-notes --title "storeasy $TAG" $prerelease
+      - name: Move the major tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          major="${TAG%%.*}"
+          git tag -f "$major" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$major"
+
+  npm:
+    name: npm (storeasy)
+    needs: tools
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - run: npm ci
+        working-directory: tools
+      - run: npm run build -w storeasy-cli
+        working-directory: tools
+      - name: Set the package version from the tag
+        working-directory: tools/storeasy-cli
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+      - name: Publish
+        working-directory: tools/storeasy-cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::notice title=npm skipped::Add the NPM_TOKEN repository secret (an npm automation or granular token for the storeasy package) to publish."
+            exit 0
+          fi
+          npm publish --provenance --access public
+
+  azure-devops:
+    name: Azure DevOps extension
+    needs: tools
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Publish
+        working-directory: tools/azure-devops-task
+        env:
+          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_EXT_PAT }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ -z "$AZURE_DEVOPS_EXT_PAT" ]; then
+            echo "::notice title=Azure DevOps extension skipped::Add the AZURE_DEVOPS_EXT_PAT repository secret (Marketplace publish scope) and set the publisher id in vss-extension.json to publish."
+            exit 0
+          fi
+          npx --yes tfx-cli@0.24.2 extension publish --manifest-globs vss-extension.json --override "{\"version\": \"${TAG#v}\"}" --token "$AZURE_DEVOPS_EXT_PAT"

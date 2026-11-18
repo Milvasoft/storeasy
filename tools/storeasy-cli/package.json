@@ -3,8 +3,28 @@
   "version": "0.1.0",
   "description": "storeasy CLI and storeasy-mcp bridge: upload builds from any CI, and give local MCP clients file access to the remote storeasy MCP.",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Milvasoft/storeasy.git",
+    "directory": "tools/storeasy-cli"
+  },
+  "homepage": "https://github.com/Milvasoft/storeasy#readme",
+  "bugs": {
+    "url": "https://github.com/Milvasoft/storeasy/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
-  "keywords": ["app-store-connect", "google-play", "microsoft-store", "ci", "mcp", "storeasy"],
+  "keywords": [
+    "app-store-connect",
+    "google-play",
+    "microsoft-store",
+    "ci",
+    "mcp",
+    "storeasy"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -18,7 +38,10 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
