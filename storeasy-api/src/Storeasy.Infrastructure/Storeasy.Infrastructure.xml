@@ -108,6 +108,292 @@
         <member name="M:Storeasy.Infrastructure.Email.SmtpEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Events.EventsServiceCollectionExtensions">
+            <summary>
+            Registrations of the events phase (docs/urun-plani.md phase 4): inbound webhooks, notifications and outgoing webhooks,
+            rejection tracking, reviews, TestFlight, the rule watcher and the deadline reminders.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.EventsServiceCollectionExtensions.AddEventServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the events phase services. The rules catalog source defaults to one that knows no rules; phase 2 registers
+            its catalog as <see cref="T:Storeasy.Application.Interfaces.IRulesCatalogSource"/> before this call (or replaces it).
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.ProcessWebhookEventJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent"/> job: reads the App Store version the event names (the event carries
+            only its id), matches it to a store record and applies the new state (<see cref="T:Storeasy.Application.Interfaces.IVersionStateTracker"/>).
+            </summary>
+            <param name="eventRepository"></param>
+            <param name="endpointRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="tracker"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ProcessWebhookEventJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreEventGateway,Storeasy.Application.Interfaces.IVersionStateTracker,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent"/> job: reads the App Store version the event names (the event carries
+            only its id), matches it to a store record and applies the new state (<see cref="T:Storeasy.Application.Interfaces.IVersionStateTracker"/>).
+            </summary>
+            <param name="eventRepository"></param>
+            <param name="endpointRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="tracker"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Events.ProcessWebhookEventJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ProcessWebhookEventJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.RegisterWebhooksJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job. App Store Connect webhooks belong to an app, so an endpoint of a
+            connection gets one webhook per App Store record of that connection, all with the endpoint's address and secret.
+            A key without the right role fails the registration (the endpoint shows the manual steps then).
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="secretProtector"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="webhookOptions"></param>
+            <param name="appOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.RegisterWebhooksJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreEventGateway,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.WebhookOptions,Storeasy.Application.Utils.Models.AppOptions)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job. App Store Connect webhooks belong to an app, so an endpoint of a
+            connection gets one webhook per App Store record of that connection, all with the endpoint's address and secret.
+            A key without the right role fails the registration (the endpoint shows the manual steps then).
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="secretProtector"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="webhookOptions"></param>
+            <param name="appOptions"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Events.RegisterWebhooksJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.RegisterWebhooksJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.ScheduledStoreSyncs">
+            <summary>
+            Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
+            and TestFlight per store record. A target that already has a queued or running job of the same kind is skipped.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
+            and TestFlight per store record. A target that already has a queued or running job of the same kind is skipped.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueVersionStateSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a version state sync for every verified App Store Connect connection.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueReviewSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a review sync for every App Store and Google Play record with a connection.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueTestFlightSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a TestFlight sync for every App Store record with a connection.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.SyncVersionStatesJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates"/> job: reads the newest App Store versions of every App Store record of
+            one connection and applies their states, so a rejection is caught even when no webhook arrived.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="tracker"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.SyncVersionStatesJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreEventGateway,Storeasy.Application.Interfaces.IVersionStateTracker)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates"/> job: reads the newest App Store versions of every App Store record of
+            one connection and applies their states, so a rejection is caught even when no webhook arrived.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="tracker"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Events.SyncVersionStatesJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.SyncVersionStatesJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.VersionStateTracker">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IVersionStateTracker"/>. Reads everything it needs in a few queries, decides in memory, writes in
+            bulk, then notifies: a rejection to the owners and admins (in-app and e-mail by default), a state change to the
+            editors (in-app by default; not for versions the first sync only discovers), and the outgoing webhooks.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="stateRepository"></param>
+            <param name="caseRepository"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="auditTrail"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.VersionStateTracker.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.RejectionCase},Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IVersionStateTracker"/>. Reads everything it needs in a few queries, decides in memory, writes in
+            bulk, then notifies: a rejection to the owners and admins (in-app and e-mail by default), a state change to the
+            editors (in-app by default; not for versions the first sync only discovers), and the outgoing webhooks.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="stateRepository"></param>
+            <param name="caseRepository"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="auditTrail"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.VersionStateTracker.ApplyAsync(System.Int32,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.VersionStateChange},Storeasy.Domain.Enums.RejectionSource,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.VersionStateTracker.CloseForSubmissionAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.WebhookEndpointSecrets">
+            <summary>
+            Opens the secrets of an inbound endpoint: the current one, and the previous one while its grace period lasts.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.WebhookEndpointSecrets.Valid(Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Domain.Events.WebhookEndpoint,System.DateTime)">
+            <summary>
+            The secrets a signature may be checked against, current first. A secret that does not open is skipped.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.WebhookEndpointSecrets.Current(Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Domain.Events.WebhookEndpoint)">
+            <summary>
+            The current secret, or null when it does not open.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.WebhookInbox">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebhookInbox"/>. Replay protection: an event id is accepted once per endpoint (unique index), an
+            App Store Connect event older than <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.MaxEventAgeHours"/> and a signed event whose timestamp is
+            further than <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.SignedToleranceSeconds"/> from now are kept as stale and not processed. Events
+            with an invalid signature or a stale timestamp are kept without an event id, so they can never block a real one.
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="eventRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.WebhookInbox.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.WebhookOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebhookInbox"/>. Replay protection: an event id is accepted once per endpoint (unique index), an
+            App Store Connect event older than <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.MaxEventAgeHours"/> and a signed event whose timestamp is
+            further than <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.SignedToleranceSeconds"/> from now are kept as stale and not processed. Events
+            with an invalid signature or a stale timestamp are kept without an event id, so they can never block a real one.
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="eventRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.WebhookInbox.ReceiveAsync(Storeasy.Application.Interfaces.InboundWebhookRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ReplyToReview"/> job: publishes the reply and records the outcome on the review. A failed
+            attempt shows "failed" with the store's reason; a permanent failure tells the member who sent it.
+            </summary>
+            <param name="reviewRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ReplyToReview"/> job: publishes the reply and records the outcome on the review. A failed
+            attempt shows "failed" with the store's reason; a permanent failure tells the member who sent it.
+            </summary>
+            <param name="reviewRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncReviews"/> job: reads the recent reviews of one store record and keeps every one (Play
+            returns only recent reviews with text, so older ones stay in storeasy). New reviews are announced once per run, except
+            on the first import of a record.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="reviewRepository"></param>
+            <param name="gateway"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncReviews"/> job: reads the recent reviews of one store record and keeps every one (Play
+            returns only recent reviews with text, so older ones stay in storeasy). New reviews are announced once per run, except
+            on the first import of a record.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="reviewRepository"></param>
+            <param name="gateway"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.InfraServiceCollectionExtensions">
             <summary>
             Infrastructure service collection extensions.
@@ -181,6 +467,51 @@
         <member name="P:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.DeadlineReminderJob">
+            <summary>
+            Daily: TestFlight build expiry reminders (14, 7, 1 days) and compliance deadline reminders (30, 7, 1 days).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.DeadlineReminderJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Daily: TestFlight build expiry reminders (14, 7, 1 days) and compliance deadline reminders (30, 7, 1 days).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.DeadlineReminderJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.EventScheduleJob">
+            <summary>
+            Base of the scheduled jobs of the events phase: runs <see cref="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)"/> in a fresh scope when
+            <see cref="P:Storeasy.Application.Utils.Models.EventScheduleOptions.SchedulesEnabled"/>, logs and swallows a failure (the next run tries again).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Base of the scheduled jobs of the events phase: runs <see cref="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)"/> in a fresh scope when
+            <see cref="P:Storeasy.Application.Utils.Models.EventScheduleOptions.SchedulesEnabled"/>, logs and swallows a failure (the next run tries again).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <summary>
+            The work of one run; returns the number of items it handled (for the log).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob">
             <summary>
             Deletes the idempotency keys whose retry window has passed (<c>idempotencyKey_cleanup.sql</c>). A key only exists to
@@ -221,6 +552,46 @@
         <member name="P:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.ReviewSyncJob">
+            <summary>
+            Every 30 minutes: queues the review syncs.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.ReviewSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 30 minutes: queues the review syncs.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.ReviewSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.RuleWatcherJob">
+            <summary>
+            Daily: reads the watched official sources and opens catalog proposals for the changes.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="watcherOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RuleWatcherJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions,Storeasy.Application.Utils.Models.RuleWatcherOptions)">
+            <summary>
+            Daily: reads the watched official sources and opens catalog proposals for the changes.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="watcherOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RuleWatcherJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.SqlCleanupJob">
             <summary>
             Base of the cleanup jobs: on every run executes one SQL file of <see cref="P:Storeasy.Application.Utils.Constants.GlobalConstant.SqlFilesPath"/> against the
@@ -247,6 +618,44 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.SqlCleanupJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.TestFlightSyncJob">
+            <summary>
+            Every 6 hours: queues the TestFlight syncs (groups, testers, beta review states, build expiry).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.TestFlightSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 6 hours: queues the TestFlight syncs (groups, testers, beta review states, build expiry).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.TestFlightSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.VersionStateSyncJob">
+            <summary>
+            Every 15 minutes: queues the App Store version state syncs (catches rejections a missed webhook did not report).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.VersionStateSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 15 minutes: queues the App Store version state syncs (catches rejections a missed webhook did not report).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.VersionStateSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1">
@@ -394,6 +803,244 @@
             sends an entry without the method name, arguments and result; such an entry carries nothing worth a log line.
             </summary>
             <param name="logEntry"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.DeadlineNotifier">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IDeadlineNotifier"/>. Each run sends, per subject, only the nearest threshold not sent yet (a build
+            first seen 5 days before expiry gets the 7 day reminder, not the 14 day one). The sent reminders are written before
+            the notifications go out, so two runs never send one twice (unique subject and threshold).
+            </summary>
+            <param name="buildRepository"></param>
+            <param name="appRepository"></param>
+            <param name="reminderRepository"></param>
+            <param name="catalogSource"></param>
+            <param name="notificationDispatcher"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.DeadlineReminder},Storeasy.Application.Interfaces.IRulesCatalogSource,Storeasy.Application.Interfaces.INotificationDispatcher)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IDeadlineNotifier"/>. Each run sends, per subject, only the nearest threshold not sent yet (a build
+            first seen 5 days before expiry gets the 7 day reminder, not the 14 day one). The sent reminders are written before
+            the notifications go out, so two runs never send one twice (unique subject and threshold).
+            </summary>
+            <param name="buildRepository"></param>
+            <param name="appRepository"></param>
+            <param name="reminderRepository"></param>
+            <param name="catalogSource"></param>
+            <param name="notificationDispatcher"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.DeadlineNotifier.BuildThresholds">
+            <summary>
+            TestFlight expiry thresholds in days.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.DeadlineNotifier.ComplianceThresholds">
+            <summary>
+            Compliance deadline thresholds in days.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.NotifyBuildExpiryAsync(System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.NotifyComplianceDeadlinesAsync(System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.DnsHostResolver">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IHostResolver"/> over the system resolver.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.DnsHostResolver.ResolveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.GuardedConnection">
+            <summary>
+            The connect step of the outgoing webhook client: the host is resolved again at connection time and a blocked address
+            is refused there, so a name that resolves to a public address when the subscription is saved and to a private one
+            later (DNS rebinding) is still not reached.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.GuardedConnection.CreateHandler(Storeasy.Application.Interfaces.IWebhookUrlGuard,Storeasy.Application.Interfaces.IHostResolver)">
+            <summary>
+            A handler that connects only to addresses <paramref name="guard"/> allows and never follows redirects.
+            </summary>
+            <param name="guard"></param>
+            <param name="hostResolver"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.NotificationDispatcher">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.INotificationDispatcher"/>: resolves the recipients (organization roles, named users, platform
+            admins), applies each user's preference for the kind, writes the in-app notifications in one insert, pushes
+            <c>notification.created</c> to each recipient, sends the e-mails, and queues the outgoing webhook and the live event
+            when the notification names them.
+            </summary>
+            <param name="memberRepository"></param>
+            <param name="userRepository"></param>
+            <param name="preferenceRepository"></param>
+            <param name="notificationRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="userNotificationPublisher"></param>
+            <param name="activityPublisher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.NotificationPreference},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IEmailSender,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IUserNotificationPublisher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.INotificationDispatcher"/>: resolves the recipients (organization roles, named users, platform
+            admins), applies each user's preference for the kind, writes the in-app notifications in one insert, pushes
+            <c>notification.created</c> to each recipient, sends the e-mails, and queues the outgoing webhook and the live event
+            when the notification names them.
+            </summary>
+            <param name="memberRepository"></param>
+            <param name="userRepository"></param>
+            <param name="preferenceRepository"></param>
+            <param name="notificationRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="userNotificationPublisher"></param>
+            <param name="activityPublisher"></param>
+            <param name="orgWebhookPublisher"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.DispatchAsync(Storeasy.Application.Dtos.NotificationDtos.OrgNotification,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.NotificationEmailTemplate">
+            <summary>
+            The notification e-mail: the notification text, a button to the record in the web app and the preferences hint. The
+            text never carries secrets, review or rejection contents; links need a session and carry no token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.NotificationEmailTemplate.Render(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String)">
+            <summary>
+            Subject and HTML body of one notification.
+            </summary>
+            <param name="localizer"></param>
+            <param name="text"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.NullUserNotificationPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IUserNotificationPublisher"/> that drops the events (a host without SignalR).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.NullUserNotificationPublisher.PublishAsync(System.Collections.Generic.IReadOnlyCollection{System.Int32},Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.OrgWebhookPublisher">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrgWebhookPublisher"/>: one delivery row per matching active subscription, due now.
+            </summary>
+            <param name="webhookRepository"></param>
+            <param name="deliveryRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookPublisher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.OrganizationWebhook},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.WebhookDelivery},Storeasy.Application.Utils.Models.OrgWebhookOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrgWebhookPublisher"/>: one delivery row per matching active subscription, due now.
+            </summary>
+            <param name="webhookRepository"></param>
+            <param name="deliveryRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookPublisher.EnqueueAsync(System.Int32,System.String,System.Object,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.OrgWebhookSender">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrgWebhookSender"/>. A batch is claimed with a lease id in one update; the attempts are made one
+            by one and their results written back in one update. Backoff: <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.RetryBaseDelaySeconds"/>
+            doubled per attempt, at most an hour; a 410 Gone stops the retries.
+            </summary>
+            <param name="deliveryRepository"></param>
+            <param name="webhookRepository"></param>
+            <param name="httpClientFactory"></param>
+            <param name="urlGuard"></param>
+            <param name="secretProtector"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookSender.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.WebhookDelivery},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.OrganizationWebhook},System.Net.Http.IHttpClientFactory,Storeasy.Application.Interfaces.IWebhookUrlGuard,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Utils.Models.OrgWebhookOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrgWebhookSender"/>. A batch is claimed with a lease id in one update; the attempts are made one
+            by one and their results written back in one update. Backoff: <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.RetryBaseDelaySeconds"/>
+            doubled per attempt, at most an hour; a 410 Gone stops the retries.
+            </summary>
+            <param name="deliveryRepository"></param>
+            <param name="webhookRepository"></param>
+            <param name="httpClientFactory"></param>
+            <param name="urlGuard"></param>
+            <param name="secretProtector"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.OrgWebhookSender.HttpClientName">
+            <summary>
+            Name of the HTTP client of the deliveries (no redirects, connections to private addresses refused).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookSender.SendDueAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookSender.SendNowAsync(System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebhookDeliveryRunner">
+            <summary>
+            Posts the due outgoing webhook deliveries in the background (<see cref="M:Storeasy.Application.Interfaces.IOrgWebhookSender.SendDueAsync(System.Threading.CancellationToken)"/>), pausing
+            <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.PollIntervalMilliseconds"/> when nothing is due. Survives any error of one round.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebhookDeliveryRunner.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.OrgWebhookOptions,System.TimeProvider)">
+            <summary>
+            Posts the due outgoing webhook deliveries in the background (<see cref="M:Storeasy.Application.Interfaces.IOrgWebhookSender.SendDueAsync(System.Threading.CancellationToken)"/>), pausing
+            <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.PollIntervalMilliseconds"/> when nothing is due. Survives any error of one round.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebhookDeliveryRunner.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebhookUrlGuard">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebhookUrlGuard"/>. Blocked: 0.0.0.0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.0.0/24,
+            192.0.2/24, 192.168/16, 198.18/15, 198.51.100/24, 203.0.113/24, 224/4 and above; IPv6 unspecified, loopback,
+            link-local, site-local, unique local, multicast, documentation, and the IPv4 ranges inside mapped, NAT64 and 6to4
+            addresses.
+            </summary>
+            <param name="hostResolver"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebhookUrlGuard.#ctor(Storeasy.Application.Interfaces.IHostResolver,Storeasy.Application.Utils.Models.OrgWebhookOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebhookUrlGuard"/>. Blocked: 0.0.0.0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.0.0/24,
+            192.0.2/24, 192.168/16, 198.18/15, 198.51.100/24, 203.0.113/24, 224/4 and above; IPv6 unspecified, loopback,
+            link-local, site-local, unique local, multicast, documentation, and the IPv4 ranges inside mapped, NAT64 and 6to4
+            addresses.
+            </summary>
+            <param name="hostResolver"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebhookUrlGuard.CheckAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebhookUrlGuard.IsBlocked(System.Net.IPAddress)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext">
             <summary>
@@ -603,6 +1250,258 @@
             Base repository of the application entities.
             </summary>
             <param name="dbContext"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Rules.ContentNormalizer">
+            <summary>
+            Turns a page (HTML, RSS or text) into stable lines of text for hashing and diffing: scripts, styles and markup are
+            dropped, entities decoded, whitespace collapsed, one block per line.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.ContentNormalizer.Normalize(System.String,System.Int32)">
+            <summary>
+            The normalized text of <paramref name="content"/>, at most <paramref name="maxLength"/> characters.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.ContentNormalizer.DroppedRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;(script|style|noscript|svg|template)\b[^&gt;]*&gt;.*?&lt;/\1\s*&gt;|&lt;!--.*?--&gt;</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.Singleline</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '&lt;'.<br/>
+            ○ Match with 2 alternative expressions, atomically.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ 1st capture group.<br/>
+                        ○ Match with 4 alternative expressions.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ss].<br/>
+                                ○ Match with 2 alternative expressions.<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match a character in the set [Cc].<br/>
+                                        ○ Match a character in the set [Rr].<br/>
+                                        ○ Match a character in the set [Ii].<br/>
+                                        ○ Match a character in the set [Pp].<br/>
+                                        ○ Match a character in the set [Tt].<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match a character in the set [Tt].<br/>
+                                        ○ Match a character in the set [Yy].<br/>
+                                        ○ Match a character in the set [Ll].<br/>
+                                        ○ Match a character in the set [Ee].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Nn].<br/>
+                                ○ Match a character in the set [Oo].<br/>
+                                ○ Match a character in the set [Ss].<br/>
+                                ○ Match a character in the set [Cc].<br/>
+                                ○ Match a character in the set [Rr].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Pp].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ss].<br/>
+                                ○ Match a character in the set [Vv].<br/>
+                                ○ Match a character in the set [Gg].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                                ○ Match a character in the set [Mm].<br/>
+                                ○ Match a character in the set [Pp].<br/>
+                                ○ Match a character in the set [Ll].<br/>
+                                ○ Match a character in the set [Aa].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                    ○ Match if at a word boundary.<br/>
+                    ○ Match a character other than '&gt;' atomically any number of times.<br/>
+                    ○ Match '&gt;'.<br/>
+                    ○ Match any character lazily any number of times.<br/>
+                    ○ Match the string "&lt;/".<br/>
+                    ○ Match the same text as matched by the 1st capture group.<br/>
+                    ○ Match a whitespace character atomically any number of times.<br/>
+                    ○ Match '&gt;'.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match the string "!--".<br/>
+                    ○ Match any character lazily any number of times.<br/>
+                    ○ Match the string "--&gt;".<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.ContentNormalizer.BlockRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;\s*(br|/p|/div|/li|/h[1-6]|/tr|/item|/entry|/title|/section|/article|/td|/th)\b[^&gt;]*&gt;</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '&lt;'.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                        ○ Match a character in the set [Rr].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match '/'.<br/>
+                        ○ Match with 11 alternative expressions.<br/>
+                            ○ Match a character in the set [Pp].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Dd].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Vv].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ll].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Hh].<br/>
+                                ○ Match a character in the set [1-6].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Rr].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                                ○ Match a character in the set [Mm].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                                ○ Match a character in the set [Nn].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Rr].<br/>
+                                ○ Match a character in the set [Yy].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ll].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ss].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                                ○ Match a character in the set [Cc].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Oo].<br/>
+                                ○ Match a character in the set [Nn].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Aa].<br/>
+                                ○ Match a character in the set [Rr].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Cc].<br/>
+                                ○ Match a character in the set [Ll].<br/>
+                                ○ Match a character in the set [Ee].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [DHdh].<br/>
+            ○ Match if at a word boundary.<br/>
+            ○ Match a character other than '&gt;' atomically any number of times.<br/>
+            ○ Match '&gt;'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.ContentNormalizer.TagRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;[^&gt;]+&gt;</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '&lt;'.<br/>
+            ○ Match a character other than '&gt;' atomically at least once.<br/>
+            ○ Match '&gt;'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.ContentNormalizer.SpaceRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\s+</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a whitespace character atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Rules.NullRulesCatalogSource">
+            <summary>
+            The <see cref="T:Storeasy.Application.Interfaces.IRulesCatalogSource"/> used until the phase 2 catalog loader is wired: it knows no rules, so the
+            compliance reminders stay silent and approvals notify nobody (the watcher and the proposals work regardless).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.NullRulesCatalogSource.GetCatalogVersionAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.NullRulesCatalogSource.GetDeadlinesAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.CatalogAppContext},System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.NullRulesCatalogSource.FindAffectedAppsAsync(System.Collections.Generic.IReadOnlyList{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.NullRulesCatalogSource.ApplyChangeAsync(Storeasy.Application.Interfaces.CatalogChange,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Rules.RuleSourceFetcher">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRuleSourceFetcher"/>: HTTPS only, allow-listed official hosts only (every redirect hop checked
+            again, at most three), at most <see cref="P:Storeasy.Application.Utils.Models.RuleWatcherOptions.MaxBytes"/> read.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleSourceFetcher.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.RuleWatcherOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRuleSourceFetcher"/>: HTTPS only, allow-listed official hosts only (every redirect hop checked
+            again, at most three), at most <see cref="P:Storeasy.Application.Utils.Models.RuleWatcherOptions.MaxBytes"/> read.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Rules.RuleSourceFetcher.HttpClientName">
+            <summary>
+            Name of the HTTP client of the watcher (no automatic redirects).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleSourceFetcher.IsAllowed(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleSourceFetcher.FetchAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Rules.RuleWatcher">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRuleWatcher"/>. The first read of a source only records its baseline; a later read with another
+            hash opens one proposal per new content (a hash already proposed, approved or rejected never opens another) and tells
+            the platform admins.
+            </summary>
+            <param name="sourceRepository"></param>
+            <param name="proposalRepository"></param>
+            <param name="fetcher"></param>
+            <param name="catalogSource"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleWatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Rules.RuleSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Rules.RuleProposal},Storeasy.Application.Interfaces.IRuleSourceFetcher,Storeasy.Application.Interfaces.IRulesCatalogSource,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.RuleWatcherOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRuleWatcher"/>. The first read of a source only records its baseline; a later read with another
+            hash opens one proposal per new content (a hash already proposed, approved or rejected never opens another) and tells
+            the platform admins.
+            </summary>
+            <param name="sourceRepository"></param>
+            <param name="proposalRepository"></param>
+            <param name="fetcher"></param>
+            <param name="catalogSource"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleWatcher.EnsureSourcesAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Rules.RuleWatcher.RunAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Security.EnvelopeSecretProtector">
             <summary>
@@ -1204,6 +2103,168 @@
         <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.StoreClients.StoreApiClient">
+            <summary>
+            Small JSON client of the events phase gateways over the <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/> client: bearer
+            tokens from the stored secrets, JSON bodies, App Store Connect pagination and errors as <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>
+            (429 and 5xx transient). Every returned element is a clone, safe after the document is gone.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider)">
+            <summary>
+            Small JSON client of the events phase gateways over the <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/> client: bearer
+            tokens from the stored secrets, JSON bodies, App Store Connect pagination and errors as <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>
+            (429 and 5xx transient). Every returned element is a clone, safe after the document is gone.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreClients.StoreApiClient.MaxPages">
+            <summary>
+            Most pages read from one App Store Connect list.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.AppleToken(System.String)">
+            <summary>
+            A short lived App Store Connect token for the stored secret.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.GoogleTokenAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            A Google access token for the stored service account.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.JsonAsync(System.Net.Http.HttpMethod,System.String,System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            Sends a request with an optional JSON body (an object is serialized) and returns the parsed answer (<c>{}</c> when empty).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.JsonOrNotFoundAsync(System.Net.Http.HttpMethod,System.String,System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            Like <see cref="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.JsonAsync(System.Net.Http.HttpMethod,System.String,System.String,System.Object,System.Threading.CancellationToken)"/>, but a 404 answer returns null instead of throwing.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.AppleListAsync(System.String,System.String,System.Threading.CancellationToken,System.Int32)">
+            <summary>
+            Reads an App Store Connect list following its <c>links.next</c>, at most <paramref name="maxPages"/> pages.
+            Returns the <c>data</c> items and the <c>included</c> items of every page.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Items(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            The array items of <paramref name="name"/>, or none.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Text(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            A string property, or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Flag(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            A boolean property, or false.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Number(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            An integer property, or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Date(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            An ISO date property as UTC, or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Child(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            A nested object, or an undefined element.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.RelationshipId(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            The id of a to-one relationship (<c>relationships.{name}.data.id</c>), or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.RelationshipIds(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            The ids of a to-many relationship, or none.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreClients.StoreEventsGateway">
+            <summary>
+            App Store Connect webhooks and App Store versions (<see cref="T:Storeasy.Application.Interfaces.IStoreEventGateway"/>), customer reviews of both stores
+            (<see cref="T:Storeasy.Application.Interfaces.IStoreReviewGateway"/>) and TestFlight (<see cref="T:Storeasy.Application.Interfaces.ITestFlightGateway"/>), over <see cref="T:Storeasy.Infrastructure.StoreClients.StoreApiClient"/>.
+            The endpoints follow the store-ops engine where it has them.
+            </summary>
+            <param name="client"></param>
+            <summary>
+            Customer reviews: App Store Connect <c>customerReviews</c> and <c>customerReviewResponses</c>, Google Play
+            <c>reviews</c> and <c>reviews:reply</c>.
+            </summary>
+            <summary>
+            TestFlight: <c>betaGroups</c>, <c>betaTesters</c>, builds with their <c>betaAppReviewSubmission</c> and
+            <c>betaBuildLocalizations</c>, <c>betaAppLocalizations</c> and <c>betaAppReviewSubmissions</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.#ctor(Storeasy.Infrastructure.StoreClients.StoreApiClient)">
+            <summary>
+            App Store Connect webhooks and App Store versions (<see cref="T:Storeasy.Application.Interfaces.IStoreEventGateway"/>), customer reviews of both stores
+            (<see cref="T:Storeasy.Application.Interfaces.IStoreReviewGateway"/>) and TestFlight (<see cref="T:Storeasy.Application.Interfaces.ITestFlightGateway"/>), over <see cref="T:Storeasy.Infrastructure.StoreClients.StoreApiClient"/>.
+            The endpoints follow the store-ops engine where it has them.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.AppleBase">
+            <summary>
+            App Store Connect API base address.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.UpsertWebhookAsync(System.String,System.String,System.String,Storeasy.Application.Interfaces.StoreWebhookRegistration,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.DeleteWebhookAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.GetVersionAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ListVersionsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ParseVersion(System.Text.Json.JsonElement,System.Collections.Generic.List{System.Text.Json.JsonElement},System.String)">
+            <summary>
+            Maps an <c>appStoreVersions</c> resource (the build number comes from the included build).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ListReviewsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ReplyAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ParseAppleReview(System.Text.Json.JsonElement,System.Collections.Generic.List{System.Text.Json.JsonElement})">
+            <summary>
+            Maps an App Store <c>customerReviews</c> resource with its included response.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ParseGoogleReview(System.Text.Json.JsonElement)">
+            <summary>
+            Maps a Google Play review (the user comment and the developer comment); null when it has no user comment.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ReadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ApplyAsync(System.String,System.String,Storeasy.Application.Interfaces.TestFlightChange,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.ParseBetaBuild(System.Text.Json.JsonElement,System.Collections.Generic.List{System.Text.Json.JsonElement})">
+            <summary>
+            Maps a build with its included beta review submission and beta build localizations.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> of a host without live clients: drops every event. The API replaces it with its
@@ -1720,6 +2781,98 @@
             (and no record in this store yet), otherwise a new storeasy app named after it.
             </summary>
         </member>
+        <member name="T:Storeasy.Infrastructure.TestFlight.SyncTestFlightJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncTestFlight"/> job: reads and saves the TestFlight state of one App Store record.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="testFlightStore"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.SyncTestFlightJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Infrastructure.TestFlight.TestFlightStore)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncTestFlight"/> job: reads and saves the TestFlight state of one App Store record.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="testFlightStore"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.TestFlight.SyncTestFlightJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.SyncTestFlightJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.TestFlight.TestFlightJobs">
+            <summary>
+            Shared start of the TestFlight jobs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.TestFlightJobs.OpenAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreJobContext,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            The App Store record of the job with its opened connection; a missing record or connection fails the job.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.TestFlight.TestFlightStore">
+            <summary>
+            Saves a TestFlight snapshot of one App Store record: groups, testers and localizations are upserted by the store's id
+            (ids stay stable for the web app) and the missing ones removed; the beta details of the known builds are upserted and
+            the builds' expiry refreshed. All writes are set based or bulk.
+            </summary>
+            <param name="groupRepository"></param>
+            <param name="testerRepository"></param>
+            <param name="localizationRepository"></param>
+            <param name="betaBuildRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.TestFlightStore.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.TestFlight.BetaGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.TestFlight.BetaTester},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.TestFlight.BetaAppLocalization},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.TestFlight.BetaBuild},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},System.TimeProvider)">
+            <summary>
+            Saves a TestFlight snapshot of one App Store record: groups, testers and localizations are upserted by the store's id
+            (ids stay stable for the web app) and the missing ones removed; the beta details of the known builds are upserted and
+            the builds' expiry refreshed. All writes are set based or bulk.
+            </summary>
+            <param name="groupRepository"></param>
+            <param name="testerRepository"></param>
+            <param name="localizationRepository"></param>
+            <param name="betaBuildRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.TestFlightStore.SaveAsync(System.Int32,System.Int32,Storeasy.Application.Interfaces.TestFlightSnapshot,System.Threading.CancellationToken)">
+            <summary>
+            Saves <paramref name="snapshot"/> and returns a one line summary.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.TestFlightStore.MarkSubmittedAsync(System.Int32,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Marks a build as submitted to beta review (the store may report the new state only a moment later).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.TestFlight.UpdateTestFlightJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.UpdateTestFlight"/> job: writes one TestFlight change and reads the state back. A beta
+            review submission is a real submission to Apple; the tests use a fake gateway.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="testFlightStore"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.UpdateTestFlightJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Infrastructure.TestFlight.TestFlightStore)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.UpdateTestFlight"/> job: writes one TestFlight change and reads the state back. A beta
+            review submission is a real submission to Apple; the tests use a fake gateway.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="gateway"></param>
+            <param name="testFlightStore"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.TestFlight.UpdateTestFlightJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.TestFlight.UpdateTestFlightJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer">
             <summary>
             Api info transformer to set metadata for the OpenAPI document.
@@ -1747,98 +2900,201 @@
         <member name="M:Storeasy.Infrastructure.Utils.OpenApi.NullableEnumSchemaTransformer.TransformAsync(Microsoft.OpenApi.OpenApiSchema,Microsoft.AspNetCore.OpenApi.OpenApiSchemaTransformerContext,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0">
+        <member name="T:System.Text.RegularExpressions.Generated.DroppedRegex_0">
+            <summary>Caches a <see cref="T:System.Text.RegularExpressions.Regex"/> instance for the DroppedRegex method.</summary>
+            <remarks>A custom Regex-derived type could not be generated because the expression contains case-insensitive backreferences which are not supported by the source generator.</remarks>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.DroppedRegex_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BlockRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BlockRegex_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TagRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.TagRegex_2.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SpaceRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.SpaceRegex_3.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DisplayFormatRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1">
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_5">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IssuerIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_6">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_2.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_6.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_6.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -1852,11 +3108,28 @@
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
             <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
         </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsBoundaryWordChar(System.Char)">
+            <summary>Determines whether the specified index is a boundary word character.</summary>
+            <remarks>This is the same as \w plus U+200C ZERO WIDTH NON-JOINER and U+200D ZERO WIDTH JOINER.</remarks>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsPostWordCharBoundary(System.ReadOnlySpan{System.Char},System.Int32)">
+            <summary>Determines whether the specified index is a boundary.</summary>
+            <remarks>This variant is only employed when the previous character has already been validated as a word character.</remarks>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.WordCategoriesMask">
+            <summary>Provides a mask of Unicode categories that combine to form [\w].</summary>
+        </member>
+        <member name="P:System.Text.RegularExpressions.Generated.Utilities.WordCharBitmap">
+            <summary>Gets a bitmap for whether each character 0 through 127 is in [\w]</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiHexDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFabcdef".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersUpperAndDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_whitespace">
+            <summary>Supports searching for characters in or not in "\t\n\v\f\r \u0085             \u2028\u2029  　".</summary>
         </member>
         <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type)">
             <summary>

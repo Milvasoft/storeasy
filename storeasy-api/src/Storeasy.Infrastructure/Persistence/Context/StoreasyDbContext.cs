@@ -6,6 +6,11 @@ using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
+using Storeasy.Domain.Events;
+using Storeasy.Domain.Feedback;
+using Storeasy.Domain.Notifications;
+using Storeasy.Domain.Rules;
+using Storeasy.Domain.TestFlight;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
 
@@ -48,6 +53,23 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<App> Apps { get; set; }
     public DbSet<StoreApp> StoreApps { get; set; }
     public DbSet<Build> Builds { get; set; }
+    public DbSet<WebhookEndpoint> WebhookEndpoints { get; set; }
+    public DbSet<WebhookEvent> WebhookEvents { get; set; }
+    public DbSet<AppVersionState> AppVersionStates { get; set; }
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
+    public DbSet<OrganizationWebhook> OrganizationWebhooks { get; set; }
+    public DbSet<WebhookDelivery> WebhookDeliveries { get; set; }
+    public DbSet<DeadlineReminder> DeadlineReminders { get; set; }
+    public DbSet<RejectionCase> RejectionCases { get; set; }
+    public DbSet<StoreReview> StoreReviews { get; set; }
+    public DbSet<ReviewRead> ReviewReads { get; set; }
+    public DbSet<SavedReply> SavedReplies { get; set; }
+    public DbSet<BetaGroup> BetaGroups { get; set; }
+    public DbSet<BetaTester> BetaTesters { get; set; }
+    public DbSet<BetaBuild> BetaBuilds { get; set; }
+    public DbSet<BetaAppLocalization> BetaAppLocalizations { get; set; }
+    public DbSet<RuleSource> RuleSources { get; set; }
+    public DbSet<RuleProposal> RuleProposals { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
