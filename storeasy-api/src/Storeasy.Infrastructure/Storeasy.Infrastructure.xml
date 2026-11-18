@@ -4,6 +4,110 @@
         <name>Storeasy.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Infrastructure.Email.EmailTemplates">
+            <summary>
+            The account e-mails as simple, inline styled HTML. Every text comes from the resx files in the culture of the current
+            request (<see cref="T:Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer"/>); every value put into the HTML is encoded.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.EmailVerification(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String)">
+            <summary>
+            The e-mail verification message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="name"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.PasswordReset(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String)">
+            <summary>
+            The password reset message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="name"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.Invitation(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String,System.String,System.String)">
+            <summary>
+            The organization invitation message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="organizationName"></param>
+            <param name="inviterName"></param>
+            <param name="roleName"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.LogEmailSender">
+            <summary>
+            Sends nothing: writes that an e-mail would have been sent, and in Development the link it carries, so a developer can
+            register and reset passwords without a mail server. The startup refuses this provider outside Development; the link
+            is still only written in Development as a second guard.
+            </summary>
+            <param name="logger"></param>
+            <param name="environment"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.LogEmailSender.#ctor(Milvasoft.Core.Abstractions.IMilvaLogger,Microsoft.Extensions.Hosting.IHostEnvironment)">
+            <summary>
+            Sends nothing: writes that an e-mail would have been sent, and in Development the link it carries, so a developer can
+            register and reset passwords without a mail server. The startup refuses this provider outside Development; the link
+            is still only written in Development as a second guard.
+            </summary>
+            <param name="logger"></param>
+            <param name="environment"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.LogEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.NotifikeEmailSender">
+            <summary>
+            Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
+            provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.EmailOptions)">
+            <summary>
+            Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
+            provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName">
+            <summary>
+            Name of the HTTP client used for Notifike calls.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.EmailChannel">
+            <summary>
+            Notifike channel number of e-mail.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.SmtpEmailSender">
+            <summary>
+            Sends e-mails through an SMTP server (<c>Storeasy:Email:Smtp</c>), the self-host provider. Throws when the server
+            refuses or cannot be reached.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.SmtpEmailSender.#ctor(Storeasy.Application.Utils.Models.EmailOptions)">
+            <summary>
+            Sends e-mails through an SMTP server (<c>Storeasy:Email:Smtp</c>), the self-host provider. Throws when the server
+            refuses or cannot be reached.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.SmtpEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.InfraServiceCollectionExtensions">
             <summary>
             Infrastructure service collection extensions.
@@ -12,6 +116,15 @@
         <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddInfrastructureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds infrastructure services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddAccountServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds registration, e-mail and account mail services. The sender is chosen by <c>Storeasy:Email:Provider</c>; the
+            startup (Api) refuses the log provider outside Development and a provider with missing settings.
             </summary>
             <param name="services"></param>
             <param name="configurationManager"></param>
@@ -491,6 +604,39 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.Unprotect(Storeasy.Application.Interfaces.ProtectedSecret,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.AccountMailer">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IEmailSender,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendEmailVerificationAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendPasswordResetAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendInvitationAsync(System.String,System.String,System.String,Storeasy.Domain.Enums.OrgRole,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.AccountManager">

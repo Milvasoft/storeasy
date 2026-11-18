@@ -52,6 +52,9 @@ try
     // The signing key is a secret and not in the appsettings files: fail fast outside Development, generate one in Development.
     builder.EnsureTokenSigningKey();
 
+    // The log e-mail provider is Development only; a deployment needs a working SMTP or Notifike configuration.
+    builder.EnsureEmailProvider();
+
     services.AddAuthorization(builder.Configuration);
 
     services.AddHttpContextAccessor();

@@ -8,6 +8,7 @@ namespace Storeasy.Application.Features.StoreConnections.AddStoreConnection;
 /// Apple: <c>{"issuerId","keyId","privateKey"}</c>. Google: the service account JSON key file content.
 /// </summary>
 [OrgAuth(OrgPermission.ManageConnections)]
+[VerifiedEmailRequired]
 public record AddStoreConnectionCommand : ICommand<int>, IOrganizationRequest
 {
     /// <inheritdoc/>

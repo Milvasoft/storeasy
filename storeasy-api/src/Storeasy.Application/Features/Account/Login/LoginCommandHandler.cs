@@ -28,7 +28,11 @@ public record LoginCommandHandler(IStoreasyRepositoryBase<User> UserRepository,
     /// <inheritdoc/>
     public async Task<Response<LoginResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetFirstOrDefaultAsync(i => i.UserName == request.UserName, User.Projections.Login, cancellationToken: cancellationToken);
+        // Sign in is by e-mail (registered accounts use the lower case e-mail as user name) or by user name (accounts an
+        // admin created), case insensitive through the unique normalized user name.
+        var normalizedUserName = request.UserName?.Trim().ToUpperInvariant();
+
+        var user = await _userRepository.GetFirstOrDefaultAsync(i => i.NormalizedUserName == normalizedUserName, User.Projections.Login, cancellationToken: cancellationToken);
 
         if (user == null)
             return Response<LoginResponseDto>.Error(null, MessageKey.Unauthorized);

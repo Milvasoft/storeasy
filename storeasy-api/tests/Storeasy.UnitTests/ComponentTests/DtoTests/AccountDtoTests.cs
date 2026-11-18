@@ -56,6 +56,7 @@ public class AccountDtoTests
             Id = u.Id,
             UserName = u.UserName,
             Email = u.Email,
+            EmailConfirmed = u.EmailConfirmed,
             Name = u.Name,
             Surname = u.Surname,
             Roles = u.RoleRelations.Select(rr => new NameIntNavigationDto { Id = rr.Role.Id, Name = rr.Role.Name }).ToList()

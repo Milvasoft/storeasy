@@ -4,6 +4,60 @@
         <name>Storeasy.Domain</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Domain.AccountToken">
+            <summary>
+            A one time token sent to a user's e-mail address (verification, password reset). Only the SHA-256 hash is stored;
+            the token itself exists only in the e-mail. A token is used once (<see cref="P:Storeasy.Domain.AccountToken.UseDate"/>) and expires after
+            <see cref="M:Storeasy.Domain.AccountToken.LifetimeOf(Storeasy.Domain.Enums.AccountTokenPurpose)"/>. Issuing a new token of the same purpose retires the older ones.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.AccountToken.EmailVerificationLifetime">
+            <summary>
+            How long an e-mail verification link stays valid.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.AccountToken.PasswordResetLifetime">
+            <summary>
+            How long a password reset link stays valid.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.UserId">
+            <summary>
+            Owner of the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.Purpose">
+            <summary>
+            What the token proves.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.TokenHash">
+            <summary>
+            Hex SHA-256 hash of the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.ExpiryDate">
+            <summary>
+            UTC instant after which the token is rejected.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.UseDate">
+            <summary>
+            UTC instant the token was used or retired. Null while usable.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.AccountToken.User">
+            <summary>
+            Navigation property of the user.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.AccountToken.LifetimeOf(Storeasy.Domain.Enums.AccountTokenPurpose)">
+            <summary>
+            Lifetime of a token of <paramref name="purpose"/>.
+            </summary>
+            <param name="purpose"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.ActivityLog">
             <summary>
             Entity of the ActivityLogs table.
@@ -32,6 +86,21 @@
         <member name="P:Storeasy.Domain.ActivityLog.RelatedData">
             <summary>
             Optional related detail in JSON format (extra routing/display context for the related record).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AccountTokenPurpose">
+            <summary>
+            What a one time account token proves. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AccountTokenPurpose.EmailVerification">
+            <summary>
+            The holder owns the e-mail address of the account.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AccountTokenPurpose.PasswordReset">
+            <summary>
+            The holder may set a new password for the account.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ActionChannel">
@@ -120,6 +189,26 @@
         <member name="F:Storeasy.Domain.Enums.ConnectionStatus.Unreachable">
             <summary>
             The check could not reach a verdict (network error, store 5xx).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.EmailProvider">
+            <summary>
+            How e-mails leave the application (<c>Storeasy:Email:Provider</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EmailProvider.Smtp">
+            <summary>
+            An SMTP server (self-host).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EmailProvider.Notifike">
+            <summary>
+            The Notifike notification API (Milvasoft hosting).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EmailProvider.Log">
+            <summary>
+            Nothing is sent, the e-mail is only logged. Development only.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.NotificationEntity">
@@ -213,6 +302,26 @@
         <member name="F:Storeasy.Domain.Enums.OrgRole.Viewer">
             <summary>
             Read only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RegistrationMode">
+            <summary>
+            Who may create an account on this instance (<c>Storeasy:Registration:Mode</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistrationMode.Open">
+            <summary>
+            Anyone may register.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistrationMode.InviteOnly">
+            <summary>
+            Only the holder of a valid organization invitation for the same e-mail may register.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistrationMode.Closed">
+            <summary>
+            Nobody may register; accounts are created by an instance admin.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreKind">

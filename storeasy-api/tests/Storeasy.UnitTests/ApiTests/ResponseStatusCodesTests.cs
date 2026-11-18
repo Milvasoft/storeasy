@@ -32,6 +32,11 @@ public class ResponseStatusCodesTests
     [InlineData(MessageKey.UnhandledException, 500)]
     [InlineData(MessageKey.PostgreBasedException, 500)]
     [InlineData(MessageKey.FeatureDisabled, 503)]
+    [InlineData(MessageKey.RegistrationClosed, 403)]
+    [InlineData(MessageKey.RegistrationInvitationRequired, 403)]
+    [InlineData(MessageKey.EmailNotVerified, 403)]
+    [InlineData(MessageKey.EmailAlreadyVerified, 409)]
+    [InlineData(MessageKey.AccountTokenInvalid, 400)]
     public void FromKey_ShouldMapKnownKeysToTheirStatus(string key, int expected)
     {
         ResponseStatusCodes.FromKey(key).Should().Be(expected);

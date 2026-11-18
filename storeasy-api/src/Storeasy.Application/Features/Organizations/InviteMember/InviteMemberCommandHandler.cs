@@ -10,10 +10,12 @@ namespace Storeasy.Application.Features.Organizations.InviteMember;
 
 /// <summary>
 /// Handles <see cref="InviteMemberCommand"/>. A previous pending invitation for the same e-mail is revoked, so only the
-/// newest link works.
+/// newest link works. The invitation e-mail goes out after the writes (best effort; the token is also returned).
 /// </summary>
 /// <param name="InvitationRepository"></param>
 /// <param name="MemberRepository"></param>
+/// <param name="OrganizationRepository"></param>
+/// <param name="AccountMailer"></param>
 /// <param name="OrganizationAccess"></param>
 /// <param name="CurrentUser"></param>
 /// <param name="AuditTrail"></param>
@@ -21,6 +23,8 @@ namespace Storeasy.Application.Features.Organizations.InviteMember;
 [Log]
 public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInvitation> InvitationRepository,
                                          IStoreasyRepositoryBase<OrganizationMember> MemberRepository,
+                                         IStoreasyRepositoryBase<Organization> OrganizationRepository,
+                                         IAccountMailer AccountMailer,
                                          IOrganizationAccess OrganizationAccess,
                                          ICurrentUser CurrentUser,
                                          IAuditTrail AuditTrail,
@@ -30,6 +34,8 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
 
     private readonly IStoreasyRepositoryBase<OrganizationInvitation> _invitationRepository = InvitationRepository;
     private readonly IStoreasyRepositoryBase<OrganizationMember> _memberRepository = MemberRepository;
+    private readonly IStoreasyRepositoryBase<Organization> _organizationRepository = OrganizationRepository;
+    private readonly IAccountMailer _accountMailer = AccountMailer;
     private readonly IOrganizationAccess _organizationAccess = OrganizationAccess;
     private readonly ICurrentUser _currentUser = CurrentUser;
     private readonly IAuditTrail _auditTrail = AuditTrail;
@@ -73,6 +79,10 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
         await _invitationRepository.AddAsync(invitation, cancellationToken);
 
         await _auditTrail.WriteAsync(request.OrganizationId, AuditAction.MemberInvited, invitation.Id.ToString(), $"{email} invited as {request.Role}.", cancellationToken: cancellationToken);
+
+        var organizationName = await _organizationRepository.GetFirstOrDefaultAsync(o => o.Id == request.OrganizationId, projection: o => o.Name, cancellationToken: cancellationToken);
+
+        await _accountMailer.SendInvitationAsync(email, organizationName, _currentUser.UserName, request.Role, token, cancellationToken);
 
         return Response<InvitationCreatedDto>.Success(new InvitationCreatedDto { Id = invitation.Id, Token = token, ExpiryDate = invitation.ExpiryDate });
     }

@@ -25,6 +25,9 @@ public static class ResponseStatusCodes
         [MessageKey.LockedIndefinite] = StatusCodes.Status403Forbidden,
         [MessageKey.InvitationEmailMismatch] = StatusCodes.Status403Forbidden,
         [MessageKey.OrganizationForbidden] = StatusCodes.Status403Forbidden,
+        [MessageKey.RegistrationClosed] = StatusCodes.Status403Forbidden,
+        [MessageKey.RegistrationInvitationRequired] = StatusCodes.Status403Forbidden,
+        [MessageKey.EmailNotVerified] = StatusCodes.Status403Forbidden,
 
         // 404 - the target does not exist (or is invisible to the caller, which is reported the same way).
         [MessageKey.UserNotFound] = StatusCodes.Status404NotFound,
@@ -46,6 +49,7 @@ public static class ResponseStatusCodes
         [MessageKey.OrganizationLastOwner] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationAlreadyMember] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationSlugTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.EmailAlreadyVerified] = StatusCodes.Status409Conflict,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,

@@ -47,6 +47,14 @@ docker compose up -d
 | `OpenTelemetry:CollectorUrl` | `OpenTelemetry__CollectorUrl` | OTLP gRPC endpoint of the collector (e.g. `http://otel-collector:4317`). Empty disables OpenTelemetry. |
 | `Milvasoft:Identity:Token:SymmetricPublicKey` | `Milvasoft__Identity__Token__SymmetricPublicKey` | Secret. HMAC-SHA256 signing key of the access tokens (at least 32 characters), see [Secrets](#secrets). |
 | `Milvasoft:FileOperations:Json:EncryptionKey` | `Milvasoft__FileOperations__Json__EncryptionKey` | Secret. AES key of Milvasoft's encrypted JSON file operations (exactly 16, 24 or 32 characters); only read once a project adds `Milvasoft.FileOperations`. |
+| `Storeasy:Registration:Mode` | `Storeasy__Registration__Mode` | Who may register: `Open` (default), `InviteOnly` (a valid organization invitation for the same e-mail is required and accepted) or `Closed`. |
+| `Storeasy:App:BaseUrl` | `Storeasy__App__BaseUrl` | Public address of the web app; e-mail links point at `{BaseUrl}/verify-email`, `/reset-password` and `/invitation` with a `token` query value. Required outside Development. |
+| `Storeasy:Email:Provider` | `Storeasy__Email__Provider` | `Smtp` (self-host), `Notifike` (Milvasoft hosting) or `Log` (Development only: writes the e-mail and its link to the log). |
+| `Storeasy:Email:FromName` | `Storeasy__Email__FromName` | Sender display name. |
+| `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | `Storeasy__Email__Smtp__Host` ... | SMTP server; `Host` and `From` are required with the `Smtp` provider outside Development. |
+| `Storeasy:Email:Smtp:Password` | `Storeasy__Email__Smtp__Password` | Secret. SMTP password. |
+| `Storeasy:Email:Notifike:BaseUrl` | `Storeasy__Email__Notifike__BaseUrl` | Notifike API base address (`POST {BaseUrl}/notifications/send`). |
+| `Storeasy:Email:Notifike:ApiKey` | `Storeasy__Email__Notifike__ApiKey` | Secret. Notifike API key (`X-Api-Key` header). |
 | - | `MILVA_ENV` | `dev`, `test` or `prod`, see [Environment](#environment-milva_env). |
 
 #### Secrets
@@ -176,6 +184,14 @@ The Visual Studio container profile builds `Dockerfile-dev`.
 `tests/Storeasy.UnitTests/ArchitectureTests` enforces the code standards in every unit test run: layer and library dependencies (`LayerDependencyTests`), the CQRS feature layout (`FeatureConventionTests`), controllers (`ControllerConventionTests`), primary constructor fields and configuration access (`DependencyConventionTests`), no database call in a loop and projection on reads (`DataAccessConventionTests`), no duplicated method bodies (`DuplicationTests`), no hard coded user facing text (`LocalizationConventionTests`), complete resx files (`ResxTests`), UTC clock and no console (`RuntimeConventionTests`) and formatting, naming and XML documentation (`CodeStyleTests`). A failing rule lists every offending `Project/File.cs(line)`. The few deliberate exceptions live in the test class, each with its reason; adding one is a rule change.
 
 ## Usage
+
+### Accounts and e-mail
+
+- `POST account/register` (anonymous) creates an account that signs in with its e-mail; the user name is the lower case e-mail and `account/login` accepts it in any case. `Storeasy:Registration:Mode` decides who may register; an `invitationToken` in the body accepts that invitation in the same step (required in `InviteOnly`).
+- A new account is unverified. It can sign in, read and accept invitations, but creating an organization or a store connection answers 403 (`EmailNotVerified`) until the e-mail is verified (`[VerifiedEmailRequired]` + `VerifiedEmailBehavior`; instance admins are exempt). `account/detail` returns `emailConfirmed`.
+- `POST account/email/verify` (anonymous, token valid 48 hours), `POST account/email/verify/resend` (signed in; earlier links stop working), `POST account/password/forgot` (anonymous, always 200 so it reveals no account) and `POST account/password/reset` (anonymous, token valid 1 hour; rotates the session stamp, so every access and refresh token of the account dies, clears a lockout and marks the e-mail verified).
+- Tokens are random (`SecureTokens`), single use and stored only as SHA-256 hashes (`AccountTokens`). Every anonymous account endpoint is rate limited per client address.
+- E-mails (verification, reset, invitation) are localized (tr-TR, en-US, the request culture) HTML built from resx texts (`EmailTemplates`). A delivery failure is logged and never fails the request; the user can ask again.
 
 ### Health checks
 

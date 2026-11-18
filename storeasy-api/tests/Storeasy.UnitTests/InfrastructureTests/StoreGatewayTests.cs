@@ -3,6 +3,7 @@ using Milvasoft.Core.Abstractions;
 using Moq;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Stores;
+using Storeasy.UnitTests.TestSupport;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -215,16 +216,5 @@ public class StoreGatewayTests
         var padded = value.Replace('-', '+').Replace('_', '/');
 
         return padded.PadRight(padded.Length + ((4 - (padded.Length % 4)) % 4), '=');
-    }
-
-    private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
-    {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            if (request.Content != null)
-                await request.Content.LoadIntoBufferAsync(cancellationToken);
-
-            return respond(request);
-        }
     }
 }

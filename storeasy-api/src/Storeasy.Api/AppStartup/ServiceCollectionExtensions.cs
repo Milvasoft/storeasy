@@ -14,7 +14,9 @@ using Storeasy.Api.Controllers;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Extensions;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Logging;
 using Storeasy.Infrastructure.Utils.OpenApi;
 using OpenTelemetry.Exporter;
@@ -74,6 +76,39 @@ public static partial class StartupExtensions
         // Serilog is not built yet at this point of the startup, so the warning goes to the console.
         Console.WriteLine($"[Warning] '{TokenSigningKeyConfigurationKey}' is not set: a random signing key is used for this run, issued tokens stop working on restart. "
                           + $"Set a stable one with: dotnet user-secrets set \"{TokenSigningKeyConfigurationKey}\" \"<random value of at least {MinTokenSigningKeyLength} characters>\" (see README).");
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Makes sure the e-mail provider (<c>Storeasy:Email</c>) and the link base address (<c>Storeasy:App:BaseUrl</c>) can
+    /// work before anything is registered. The log provider
+    /// only writes the mail (and in Development its link) and is refused outside Development, so a deployment can never
+    /// silently drop verification and reset e-mails. Outside Development a provider whose required setting is missing
+    /// stops the startup with a message naming the setting; in Development it is only reported.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static WebApplicationBuilder EnsureEmailProvider(this WebApplicationBuilder builder)
+    {
+        var options = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+
+        if (options.Provider == EmailProvider.Log && !builder.Environment.IsDevelopment())
+            throw new InvalidOperationException($"The e-mail provider '{EmailProvider.Log}' only logs e-mails and is allowed in Development only. Set '{EmailOptions.SectionName}:Provider' to '{EmailProvider.Smtp}' or '{EmailProvider.Notifike}'.");
+
+        var missing = options.FindMissingSetting();
+
+        if (missing == null && string.IsNullOrWhiteSpace(builder.Configuration[$"{AppOptions.SectionName}:{nameof(AppOptions.BaseUrl)}"]))
+            missing = $"{AppOptions.SectionName}:{nameof(AppOptions.BaseUrl)}";
+
+        if (missing == null)
+            return builder;
+
+        if (!builder.Environment.IsDevelopment())
+            throw new InvalidOperationException($"The e-mail provider '{options.Provider}' needs '{missing}'. Set the environment variable '{missing.Replace(":", "__")}'.");
+
+        // Serilog is not built yet at this point of the startup, so the warning goes to the console.
+        Console.WriteLine($"[Warning] The e-mail provider '{options.Provider}' needs '{missing}': e-mails will fail until it is set (or use the '{EmailProvider.Log}' provider in Development).");
 
         return builder;
     }

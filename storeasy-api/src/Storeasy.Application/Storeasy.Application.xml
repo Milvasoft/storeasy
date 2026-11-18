@@ -306,6 +306,29 @@
         <member name="M:Storeasy.Application.Behaviours.ValidationBehaviorForResponse`2.Handle(`0,MediatR.RequestHandlerDelegate{`1},System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Behaviours.VerifiedEmailBehavior`2">
+            <summary>
+            Checks <see cref="T:Storeasy.Application.Utils.Attributes.VerifiedEmailRequiredAttribute"/> before the handler runs. The flag is read from the database on
+            each such request (one primary key read; these requests are rare writes), so a verification takes effect at once.
+            </summary>
+            <typeparam name="TRequest"></typeparam>
+            <typeparam name="TResponse"></typeparam>
+            <param name="currentUser"></param>
+            <param name="userRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.VerifiedEmailBehavior`2.#ctor(Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User})">
+            <summary>
+            Checks <see cref="T:Storeasy.Application.Utils.Attributes.VerifiedEmailRequiredAttribute"/> before the handler runs. The flag is read from the database on
+            each such request (one primary key read; these requests are rare writes), so a verification takes effect at once.
+            </summary>
+            <typeparam name="TRequest"></typeparam>
+            <typeparam name="TResponse"></typeparam>
+            <param name="currentUser"></param>
+            <param name="userRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.VerifiedEmailBehavior`2.Handle(`0,MediatR.RequestHandlerDelegate{`1},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto">
             <summary>
             Data transfer object for account details.
@@ -319,6 +342,12 @@
         <member name="P:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto.Email">
             <summary>
             Email of the user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto.EmailConfirmed">
+            <summary>
+            Whether the e-mail address was verified. Unverified users can sign in but cannot create organizations or store
+            connections.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto.Name">
@@ -1608,6 +1637,48 @@
         <member name="M:Storeasy.Application.Features.Account.DeleteNotifications.DeleteNotificationsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Account.DeleteNotifications.DeleteNotificationsCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand">
+            <summary>
+            Sends a password reset link to the e-mail address when an account uses it. The answer is the same whether or not an
+            account exists, so the endpoint cannot be used to find out who has an account.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand.Email">
+            <summary>
+            E-mail address of the account.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand"/>. Always succeeds; an unknown address is silently ignored.
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="AccountMailer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IAccountMailer)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand"/>. Always succeeds; an unknown address is silently ignored.
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="AccountMailer"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandHandler.AccountMailer">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandHandler.Handle(Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Account.GetAccountNotifications.GetAccountNotificationsQuery">
             <summary>
             Query of the caller's own notifications (the recipient is taken from the token).
@@ -1651,7 +1722,7 @@
         </member>
         <member name="P:Storeasy.Application.Features.Account.Login.LoginCommand.UserName">
             <summary>
-            Username to log in.
+            E-mail address (registered accounts) or user name (accounts an admin created) to log in with; case insensitive.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Account.Login.LoginCommand.Password">
@@ -1826,6 +1897,289 @@
         </member>
         <member name="M:Storeasy.Application.Features.Account.RefreshLogin.RefreshLoginCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Account.Logout.LogoutCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.Register.RegisterCommand">
+            <summary>
+            Creates an account that signs in with its e-mail address (the user name is the lower case e-mail). Allowed by
+            <c>Storeasy:Registration:Mode</c>: Open (anyone), InviteOnly (a valid invitation for the same e-mail is required),
+            Closed (nobody). An invitation token, when given, is accepted in the same step. A verification e-mail is sent; the
+            account can sign in right away but cannot create organizations or store connections until the e-mail is verified.
+            Returns the new user id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommand.Email">
+            <summary>
+            E-mail address; it is also the sign in name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommand.Password">
+            <summary>
+            Password.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommand.Name">
+            <summary>
+            First name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommand.Surname">
+            <summary>
+            Last name (optional).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommand.InvitationToken">
+            <summary>
+            Organization invitation token from the invitation link. Required in InviteOnly mode, optional otherwise.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.Register.RegisterCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.Register.RegisterCommand"/>. The user and, with an invitation, the membership are written in one
+            transaction; the verification e-mail goes out after the commit (best effort, the user can ask for it again).
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="InvitationRepository"></param>
+            <param name="MemberRepository"></param>
+            <param name="UserManager"></param>
+            <param name="OrganizationAccess"></param>
+            <param name="AuditTrail"></param>
+            <param name="AccountMailer"></param>
+            <param name="TransactionRunner"></param>
+            <param name="RegistrationOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32},Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IAccountMailer,Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Utils.Models.RegistrationOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.Register.RegisterCommand"/>. The user and, with an invitation, the membership are written in one
+            transaction; the verification e-mail goes out after the commit (best effort, the user can ask for it again).
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="InvitationRepository"></param>
+            <param name="MemberRepository"></param>
+            <param name="UserManager"></param>
+            <param name="OrganizationAccess"></param>
+            <param name="AuditTrail"></param>
+            <param name="AccountMailer"></param>
+            <param name="TransactionRunner"></param>
+            <param name="RegistrationOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.InvitationRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.MemberRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.UserManager">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.OrganizationAccess">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.AccountMailer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.RegistrationOptions">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.Register.RegisterCommandHandler.Handle(Storeasy.Application.Features.Account.Register.RegisterCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.Register.RegisterCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Account.Register.RegisterCommand"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Account.Register.RegisterCommandValidator.EmailMaxLength">
+            <summary>
+            Longest accepted e-mail address (the user name column limit).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.Register.RegisterCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32})">
+            <inheritdoc cref="T:Storeasy.Application.Features.Account.Register.RegisterCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand">
+            <summary>
+            Sends a new verification e-mail to the signed in user; the links sent before stop working.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand"/>. The account is always the caller's own (from the token).
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="CurrentUser"></param>
+            <param name="AccountMailer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAccountMailer)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand"/>. The account is always the caller's own (from the token).
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="CurrentUser"></param>
+            <param name="AccountMailer"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler.CurrentUser">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler.AccountMailer">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandHandler.Handle(Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandValidator.#ctor">
+            <inheritdoc cref="T:Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand">
+            <summary>
+            Sets a new password with the token from the password reset e-mail. Every session and access token of the account
+            stops working, other reset links are retired, a lockout is cleared and the e-mail counts as verified (the link
+            reached its owner).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand.Token">
+            <summary>
+            Token from the reset link.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand.NewPassword">
+            <summary>
+            New password.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand"/>. The token is used first (single use, conditional update). The password,
+            the cleared lockout, the session revocation and the retirement of the other reset links commit together; the
+            revocation stamp is rotated after the commit, so every access token issued before stops working at once.
+            </summary>
+            <param name="TokenRepository"></param>
+            <param name="UserRepository"></param>
+            <param name="UserSessionRepository"></param>
+            <param name="UserSessionHistoriesRepository"></param>
+            <param name="UserManager"></param>
+            <param name="SecurityStampStore"></param>
+            <param name="TransactionRunner"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.UserSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.UserSessionHistory},Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32},Storeasy.Application.Interfaces.ISecurityStampStore,Storeasy.Application.Interfaces.ITransactionRunner,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand"/>. The token is used first (single use, conditional update). The password,
+            the cleared lockout, the session revocation and the retirement of the other reset links commit together; the
+            revocation stamp is rotated after the commit, so every access token issued before stops working at once.
+            </summary>
+            <param name="TokenRepository"></param>
+            <param name="UserRepository"></param>
+            <param name="UserSessionRepository"></param>
+            <param name="UserSessionHistoriesRepository"></param>
+            <param name="UserManager"></param>
+            <param name="SecurityStampStore"></param>
+            <param name="TransactionRunner"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.TokenRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.UserSessionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.UserSessionHistoriesRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.UserManager">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.SecurityStampStore">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandHandler.Handle(Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand"/>. The password policy is checked before the token is used, so a
+            weak password does not burn the link.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32})">
+            <inheritdoc cref="T:Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand">
+            <summary>
+            Marks the account's e-mail address as verified with the token from the verification e-mail. Anonymous: the link may
+            be opened on a device that is not signed in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand.Token">
+            <summary>
+            Token from the verification link.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand"/>. The token is single use (<see cref="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.ConsumeAccountTokenAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},System.String,Storeasy.Domain.Enums.AccountTokenPurpose,System.DateTime,System.Threading.CancellationToken)"/>).
+            </summary>
+            <param name="TokenRepository"></param>
+            <param name="UserRepository"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand"/>. The token is single use (<see cref="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.ConsumeAccountTokenAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},System.String,Storeasy.Domain.Enums.AccountTokenPurpose,System.DateTime,System.Threading.CancellationToken)"/>).
+            </summary>
+            <param name="TokenRepository"></param>
+            <param name="UserRepository"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler.TokenRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandHandler.Handle(Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQuery">
             <summary>
@@ -2016,7 +2370,8 @@
         <member name="T:Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommandHandler">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommand"/>. The invitation is consumed with a conditional update first, so two
-            concurrent accepts of the same token cannot both add a membership.
+            concurrent accepts of the same token cannot both add a membership
+            (<see cref="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.JoinOrganizationAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},System.Int32,System.Int32,System.Int32,Storeasy.Domain.Enums.OrgRole,System.DateTime,System.Threading.CancellationToken)"/>).
             </summary>
             <param name="InvitationRepository"></param>
             <param name="MemberRepository"></param>
@@ -2029,7 +2384,8 @@
         <member name="M:Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommand"/>. The invitation is consumed with a conditional update first, so two
-            concurrent accepts of the same token cannot both add a membership.
+            concurrent accepts of the same token cannot both add a membership
+            (<see cref="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.JoinOrganizationAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},System.Int32,System.Int32,System.Int32,Storeasy.Domain.Enums.OrgRole,System.DateTime,System.Threading.CancellationToken)"/>).
             </summary>
             <param name="InvitationRepository"></param>
             <param name="MemberRepository"></param>
@@ -2127,7 +2483,7 @@
         </member>
         <member name="T:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommand">
             <summary>
-            Creates an organization; the caller becomes its owner.
+            Creates an organization; the caller becomes its owner. Requires a verified e-mail address.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommand.Name">
@@ -2248,22 +2604,26 @@
         <member name="T:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommand"/>. A previous pending invitation for the same e-mail is revoked, so only the
-            newest link works.
+            newest link works. The invitation e-mail goes out after the writes (best effort; the token is also returned).
             </summary>
             <param name="InvitationRepository"></param>
             <param name="MemberRepository"></param>
+            <param name="OrganizationRepository"></param>
+            <param name="AccountMailer"></param>
             <param name="OrganizationAccess"></param>
             <param name="CurrentUser"></param>
             <param name="AuditTrail"></param>
             <param name="TimeProvider"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+        <member name="M:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IAccountMailer,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommand"/>. A previous pending invitation for the same e-mail is revoked, so only the
-            newest link works.
+            newest link works. The invitation e-mail goes out after the writes (best effort; the token is also returned).
             </summary>
             <param name="InvitationRepository"></param>
             <param name="MemberRepository"></param>
+            <param name="OrganizationRepository"></param>
+            <param name="AccountMailer"></param>
             <param name="OrganizationAccess"></param>
             <param name="CurrentUser"></param>
             <param name="AuditTrail"></param>
@@ -2273,6 +2633,12 @@
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.MemberRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.OrganizationRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.AccountMailer">
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.InviteMember.InviteMemberCommandHandler.OrganizationAccess">
@@ -3147,6 +3513,45 @@
         <member name="M:Storeasy.Application.Features.Users.UpdateUser.UpdateUserCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32})">
             <inheritdoc cref="T:Storeasy.Application.Features.Users.UpdateUser.UpdateUserCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IAccountMailer">
+            <summary>
+            Issues the one time account tokens and sends the account e-mails (verification, password reset, invitation) in the
+            current request culture. Best effort: a delivery failure is logged and reported as false, never thrown, so the
+            calling flow (registration, forgot password, invitation) completes and the user can ask for the mail again.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IAccountMailer.SendEmailVerificationAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retires the user's unused verification tokens, issues a new one and mails the verification link.
+            </summary>
+            <param name="userId"></param>
+            <param name="email"></param>
+            <param name="name"></param>
+            <param name="cancellationToken"></param>
+            <returns>Whether the e-mail was handed to the provider.</returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IAccountMailer.SendPasswordResetAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retires the user's unused reset tokens, issues a new one and mails the password reset link.
+            </summary>
+            <param name="userId"></param>
+            <param name="email"></param>
+            <param name="name"></param>
+            <param name="cancellationToken"></param>
+            <returns>Whether the e-mail was handed to the provider.</returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IAccountMailer.SendInvitationAsync(System.String,System.String,System.String,Storeasy.Domain.Enums.OrgRole,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Mails an organization invitation link carrying <paramref name="token"/>.
+            </summary>
+            <param name="email"></param>
+            <param name="organizationName"></param>
+            <param name="inviterName"></param>
+            <param name="role"></param>
+            <param name="token"></param>
+            <param name="cancellationToken"></param>
+            <returns>Whether the e-mail was handed to the provider.</returns>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IAccountManager">
             <summary>
             Account manager for user account operations.
@@ -3259,6 +3664,61 @@
             Imports existing data.
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IEmailSender">
+            <summary>
+            Sends one e-mail through the provider selected by <c>Storeasy:Email:Provider</c> (SMTP, Notifike, or the
+            Development only log sender). Implementations throw when the provider refuses or cannot be reached; callers that
+            must not fail on mail (registration, password reset) catch and log.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <summary>
+            Sends <paramref name="message"/>.
+            </summary>
+            <param name="message"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.EmailMessage">
+            <summary>
+            One e-mail to one recipient.
+            </summary>
+            <param name="To">Recipient address.</param>
+            <param name="ToName">Recipient display name; may be empty.</param>
+            <param name="Language">Culture the text is written in (e.g. tr-TR).</param>
+            <param name="Subject">Subject line.</param>
+            <param name="HtmlBody">HTML body.</param>
+            <param name="ActionUrl">The link the e-mail carries, if any. Only the Development log sender prints it.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.EmailMessage.#ctor(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            One e-mail to one recipient.
+            </summary>
+            <param name="To">Recipient address.</param>
+            <param name="ToName">Recipient display name; may be empty.</param>
+            <param name="Language">Culture the text is written in (e.g. tr-TR).</param>
+            <param name="Subject">Subject line.</param>
+            <param name="HtmlBody">HTML body.</param>
+            <param name="ActionUrl">The link the e-mail carries, if any. Only the Development log sender prints it.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.To">
+            <summary>Recipient address.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.ToName">
+            <summary>Recipient display name; may be empty.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.Language">
+            <summary>Culture the text is written in (e.g. tr-TR).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.Subject">
+            <summary>Subject line.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.HtmlBody">
+            <summary>HTML body.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.EmailMessage.ActionUrl">
+            <summary>The link the e-mail carries, if any. Only the Development log sender prints it.</summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IExportService">
             <summary>
@@ -3728,6 +4188,14 @@
         </member>
         <member name="M:Storeasy.Application.Utils.Attributes.UserTypeAuthAttribute.OnAuthorization(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Attributes.VerifiedEmailRequiredAttribute">
+            <summary>
+            Declares on a request type that the caller's e-mail address must be verified (instance admins, the
+            <see cref="F:Storeasy.Domain.Enums.UserType.Manager"/> users, are exempt). Unverified users can sign in, browse and accept invitations, but
+            cannot create what costs or exposes something: organizations and store connections. Checked by
+            <see cref="T:Storeasy.Application.Behaviours.VerifiedEmailBehavior`2"/>; a failure is <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.EmailNotVerified"/> (403).
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Constants.GlobalConstant">
             <summary>
@@ -4268,6 +4736,47 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.ConsumeAccountTokenAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},System.String,Storeasy.Domain.Enums.AccountTokenPurpose,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Uses a one time account token: the token must match <paramref name="purpose"/>, be unused and unexpired. The use
+            is a conditional update, so two concurrent requests with the same token cannot both succeed.
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="token">The token as received (only its hash is compared).</param>
+            <param name="purpose"></param>
+            <param name="now"></param>
+            <param name="cancellationToken"></param>
+            <returns>The owner's user id, or null when the token is unknown, expired, used or of another purpose.</returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.RetireAccountTokensAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},System.Int32,Storeasy.Domain.Enums.AccountTokenPurpose,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Retires every unused token of <paramref name="purpose"/> of the user (a new link replaces the old ones, and a
+            password reset kills the reset links still in the mailbox).
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="userId"></param>
+            <param name="purpose"></param>
+            <param name="now"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.RepositoryExtensions.JoinOrganizationAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},System.Int32,System.Int32,System.Int32,Storeasy.Domain.Enums.OrgRole,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Consumes a pending invitation and adds the membership it grants. The invitation is consumed first with a
+            conditional update, so two concurrent accepts of the same invitation cannot both add a member. Run it inside a
+            transaction when the caller writes more (registration). The caller invalidates the cached role and writes the
+            audit entry.
+            </summary>
+            <param name="invitationRepository"></param>
+            <param name="memberRepository"></param>
+            <param name="invitationId"></param>
+            <param name="organizationId"></param>
+            <param name="userId"></param>
+            <param name="role"></param>
+            <param name="now"></param>
+            <param name="cancellationToken"></param>
+            <returns>The new membership id, or null when the invitation was consumed meanwhile.</returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Extensions.UserActivityContextExtensions">
             <summary>
             Stashes and reads the "related record" of the current request so the <see cref="T:Storeasy.Application.Utils.Aspects.UserActivityLogAspect.UserActivityLogInterceptor"/> can
@@ -4626,6 +5135,45 @@
         <member name="M:Storeasy.Application.Utils.LinkedWithFormatters.YesNoFormatter.Format(System.Object)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Utils.Models.AppOptions">
+            <summary>
+            Public facing settings of the web app (configuration section <see cref="F:Storeasy.Application.Utils.Models.AppOptions.SectionName"/>), bound once and registered as
+            a singleton. Links in e-mails point at <see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AppOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AppOptions.VerifyEmailPath">
+            <summary>
+            Path of the web app page that verifies an e-mail address (<c>?token=</c> is appended).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AppOptions.ResetPasswordPath">
+            <summary>
+            Path of the web app page that sets a new password (<c>?token=</c> is appended).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AppOptions.InvitationPath">
+            <summary>
+            Path of the web app page that accepts an organization invitation (<c>?token=</c> is appended).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl">
+            <summary>
+            Public address of the web app, e.g. <c>https://storeasy.example.com</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AppOptions.BuildTokenLink(System.String,System.String)">
+            <summary>
+            Builds a web app link to <paramref name="path"/> carrying <paramref name="token"/> as the <c>token</c> query value.
+            </summary>
+            <param name="path"></param>
+            <param name="token"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Models.CacheKeyOptions">
             <summary>
             Settings of the application's Redis keys (configuration section <see cref="F:Storeasy.Application.Utils.Models.CacheKeyOptions.SectionName"/>).
@@ -4640,6 +5188,94 @@
             <summary>
             Prefix of every Redis key the application writes (the project name by default). Two applications that share one
             Redis (an API and its admin API, two environments on one server) must use different prefixes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.EmailOptions">
+            <summary>
+            E-mail delivery settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.EmailOptions.SectionName"/>), bound once and registered as a singleton.
+            Secrets (SMTP password, Notifike API key) come only from user secrets or the environment
+            (<c>Storeasy__Email__Smtp__Password</c>, <c>Storeasy__Email__Notifike__ApiKey</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.EmailOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.EmailOptions.Provider">
+            <summary>
+            Which sender is used. <see cref="F:Storeasy.Domain.Enums.EmailProvider.Log"/> is accepted only in Development.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.EmailOptions.FromName">
+            <summary>
+            Display name of the sender.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.EmailOptions.Smtp">
+            <summary>
+            SMTP settings, used when <see cref="P:Storeasy.Application.Utils.Models.EmailOptions.Provider"/> is <see cref="F:Storeasy.Domain.Enums.EmailProvider.Smtp"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.EmailOptions.Notifike">
+            <summary>
+            Notifike settings, used when <see cref="P:Storeasy.Application.Utils.Models.EmailOptions.Provider"/> is <see cref="F:Storeasy.Domain.Enums.EmailProvider.Notifike"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.EmailOptions.FindMissingSetting">
+            <summary>
+            Name of the first missing required setting of the selected provider, or null when it can send.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.SmtpEmailOptions">
+            <summary>
+            SMTP server settings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.Host">
+            <summary>
+            Server host name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.Port">
+            <summary>
+            Server port.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.UserName">
+            <summary>
+            Login user name. Empty for an unauthenticated relay.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.Password">
+            <summary>
+            Login password (secret, set through the environment).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.From">
+            <summary>
+            Sender address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.SmtpEmailOptions.EnableSsl">
+            <summary>
+            Whether the connection is upgraded with STARTTLS.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.NotifikeEmailOptions">
+            <summary>
+            Notifike API settings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.NotifikeEmailOptions.BaseUrl">
+            <summary>
+            API base address, e.g. <c>https://notifike.example.com/api/v1</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.NotifikeEmailOptions.ApiKey">
+            <summary>
+            API key sent in the <c>X-Api-Key</c> header (secret, set through the environment).
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.EncryptionOptions">
@@ -4683,6 +5319,22 @@
         </member>
         <member name="P:Storeasy.Application.Utils.Models.IdempotencyClaim.ResponseData">
             <summary>The first attempt's stored response envelope (JSON) when it already finished; null otherwise.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.RegistrationOptions">
+            <summary>
+            Self service registration settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.RegistrationOptions.SectionName"/>), bound once and registered as a
+            singleton.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.RegistrationOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistrationOptions.Mode">
+            <summary>
+            Who may register. <see cref="F:Storeasy.Domain.Enums.RegistrationMode.Open"/> by default.
+            </summary>
         </member>
         <member name="M:Storeasy.Application.Utils.PermissionManager.PermissionCatalog.GetPermissionsAndGroups">
             <summary>

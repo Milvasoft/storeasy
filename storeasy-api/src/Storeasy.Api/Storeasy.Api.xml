@@ -60,6 +60,17 @@
             <param name="builder"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.EnsureEmailProvider(Microsoft.AspNetCore.Builder.WebApplicationBuilder)">
+            <summary>
+            Makes sure the e-mail provider (<c>Storeasy:Email</c>) and the link base address (<c>Storeasy:App:BaseUrl</c>) can
+            work before anything is registered. The log provider
+            only writes the mail (and in Development its link) and is refused outside Development, so a deployment can never
+            silently drop verification and reset e-mails. Outside Development a provider whose required setting is missing
+            stops the startup with a message naming the setting; in Development it is only reported.
+            </summary>
+            <param name="builder"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddAuthorization(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds authorization services.
@@ -290,7 +301,7 @@
         </member>
         <member name="P:Storeasy.Api.Controllers.AccountController.LoginEndpointPaths">
             <summary>
-            Not validate token endpoint paths.
+            Anonymous endpoint paths where a stale or invalid bearer token is ignored instead of answered with 401/419.
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.AccountController.LoginAsync(Storeasy.Application.Features.Account.Login.LoginCommand,System.Threading.CancellationToken)">
@@ -304,6 +315,51 @@
         <member name="M:Storeasy.Api.Controllers.AccountController.RefreshLoginAsync(Storeasy.Application.Features.Account.RefreshLogin.RefreshLoginCommand,System.Threading.CancellationToken)">
             <summary>
             User refresh login operation.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.RegisterAsync(Storeasy.Application.Features.Account.Register.RegisterCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates an account that signs in with its e-mail (anonymous). Allowed by <c>Storeasy:Registration:Mode</c>: Open,
+            InviteOnly (an invitation token for the same e-mail is required and accepted) or Closed. A verification e-mail is
+            sent; until it is verified the account can sign in but cannot create organizations or store connections.
+            Returns the new user id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.VerifyEmailAsync(Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand,System.Threading.CancellationToken)">
+            <summary>
+            Verifies the e-mail address with the token from the verification e-mail (anonymous, single use, valid 48 hours).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ResendEmailVerificationAsync(Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a new verification e-mail to the signed in user; earlier links stop working.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ForgotPasswordAsync(Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a password reset link when an account uses the e-mail (anonymous). Always answers success, so it does not
+            reveal who has an account.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ResetPasswordAsync(Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sets a new password with the token from the reset e-mail (anonymous, single use, valid 1 hour). Every session and
+            access token of the account stops working.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -885,6 +941,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118082902_InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118115551_AddAccountTokens">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

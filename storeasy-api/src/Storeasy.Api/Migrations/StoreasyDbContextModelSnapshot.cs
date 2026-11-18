@@ -17,7 +17,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118082902_InitialCreate";
+    public override string LastMigrationId => "20261118115551_AddAccountTokens";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -27,6 +27,46 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
             .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
         NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+        modelBuilder.Entity("Storeasy.Domain.AccountToken", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime>("ExpiryDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Purpose")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("TokenHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<DateTime?>("UseDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("UserId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TokenHash")
+                    .IsUnique();
+
+                b.HasIndex("UserId", "Purpose");
+
+                b.ToTable("AccountTokens");
+            });
 
         modelBuilder.Entity("Storeasy.Domain.ActivityLog", b =>
             {
@@ -800,6 +840,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.HasKey("Id");
 
                 b.ToTable("UserSessionHistories");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.AccountToken", b =>
+            {
+                b.HasOne("Storeasy.Domain.User", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("User");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>

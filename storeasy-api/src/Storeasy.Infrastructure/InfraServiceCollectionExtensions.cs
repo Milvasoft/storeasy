@@ -18,6 +18,8 @@ using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Domain.Enums;
+using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -67,6 +69,8 @@ public static class InfraServiceCollectionExtensions
         // One client for App Store Connect and Google Play calls; tests replace its handler.
         services.AddHttpClient(StoreGateway.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
 
+        services.AddAccountServices(configurationManager);
+
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 
@@ -112,6 +116,42 @@ public static class InfraServiceCollectionExtensions
                 {
                     opt.DbContextType = typeof(StoreasyDbContext);
                 });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds registration, e-mail and account mail services. The sender is chosen by <c>Storeasy:Email:Provider</c>; the
+    /// startup (Api) refuses the log provider outside Development and a provider with missing settings.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddAccountServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        services.AddSingleton(configurationManager.GetSection(RegistrationOptions.SectionName).Get<RegistrationOptions>() ?? new RegistrationOptions());
+        services.AddSingleton(configurationManager.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
+
+        var emailOptions = configurationManager.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+
+        services.AddSingleton(emailOptions);
+
+        switch (emailOptions.Provider)
+        {
+            case EmailProvider.Notifike:
+                services.AddScoped<IEmailSender, NotifikeEmailSender>();
+                break;
+            case EmailProvider.Log:
+                services.AddScoped<IEmailSender, LogEmailSender>();
+                break;
+            default:
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+                break;
+        }
+
+        services.AddHttpClient(NotifikeEmailSender.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+
+        services.AddScoped<IAccountMailer, AccountMailer>();
 
         return services;
     }

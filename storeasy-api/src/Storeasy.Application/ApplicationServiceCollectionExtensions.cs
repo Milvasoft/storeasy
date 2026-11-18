@@ -37,6 +37,7 @@ public static class ApplicationServiceCollectionExtensions
         {
             opt.RegisterServicesFromAssemblies(assemblies);
             opt.AddOpenBehavior(typeof(OrganizationAccessBehavior<,>));
+            opt.AddOpenBehavior(typeof(VerifiedEmailBehavior<,>));
             opt.AddOpenBehavior(typeof(ValidationBehaviorForResponse<,>));
         });
 

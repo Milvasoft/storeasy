@@ -62,6 +62,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeStoreGateway StoreGateway { get; } = new();
 
+    /// <summary>
+    /// The e-mail provider fake every test host uses (no e-mail ever leaves the test).
+    /// </summary>
+    public FakeEmailSender EmailSender { get; } = new();
+
     private static int _databaseSequence;
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("app_tests")
@@ -127,6 +132,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IStoreGateway>();
             services.AddSingleton<IStoreGateway>(StoreGateway);
+
+            services.RemoveAll<IEmailSender>();
+            services.AddSingleton<IEmailSender>(EmailSender);
         });
     }
 

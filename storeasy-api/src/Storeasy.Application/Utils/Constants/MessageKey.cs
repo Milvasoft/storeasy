@@ -84,5 +84,24 @@ public static class MessageKey
     public const string GoogleSecretInvalid = nameof(GoogleSecretInvalid);
     public const string GoogleKeyInvalid = nameof(GoogleKeyInvalid);
     public const string StoreSecret = "Global.StoreSecret";
+    public const string RegistrationClosed = nameof(RegistrationClosed);
+    public const string RegistrationInvitationRequired = nameof(RegistrationInvitationRequired);
+    public const string EmailNotVerified = nameof(EmailNotVerified);
+    public const string EmailAlreadyVerified = nameof(EmailAlreadyVerified);
+    public const string AccountTokenInvalid = nameof(AccountTokenInvalid);
+    public const string EmailVerifySubject = "Email.Verify.Subject";
+    public const string EmailVerifyTitle = "Email.Verify.Title";
+    public const string EmailVerifyBody = "Email.Verify.Body";
+    public const string EmailVerifyAction = "Email.Verify.Action";
+    public const string EmailResetSubject = "Email.Reset.Subject";
+    public const string EmailResetTitle = "Email.Reset.Title";
+    public const string EmailResetBody = "Email.Reset.Body";
+    public const string EmailResetAction = "Email.Reset.Action";
+    public const string EmailInvitationSubject = "Email.Invitation.Subject";
+    public const string EmailInvitationTitle = "Email.Invitation.Title";
+    public const string EmailInvitationBody = "Email.Invitation.Body";
+    public const string EmailInvitationAction = "Email.Invitation.Action";
+    public const string EmailLinkHint = "Email.LinkHint";
+    public const string EmailIgnoreHint = "Email.IgnoreHint";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

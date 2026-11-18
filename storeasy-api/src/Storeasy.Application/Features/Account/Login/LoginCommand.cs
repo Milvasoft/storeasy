@@ -10,7 +10,7 @@ namespace Storeasy.Application.Features.Account.Login;
 public record LoginCommand : ICommand<LoginResponseDto>
 {
     /// <summary>
-    /// Username to log in.
+    /// E-mail address (registered accounts) or user name (accounts an admin created) to log in with; case insensitive.
     /// </summary>
     public string UserName { get; set; }
 
