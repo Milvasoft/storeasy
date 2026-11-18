@@ -1,8 +1,14 @@
 import { HttpResponse, http, type HttpHandler } from 'msw'
-import { loginResponse } from './factories'
+import { asset, loginResponse } from './factories'
 import { testState } from './state'
 
 const BASE = '*/api/v1.0'
+
+/** The id POST register answers. */
+export const TEST_NEW_USER_ID = 42
+
+/** The presigned storage the asset handlers point at; tests answer its PUTs themselves. */
+export const STORAGE_URL = 'https://storage.test/bucket'
 
 /** The API's success envelope (Response<T>), camelCase on the wire like the real API. */
 export function envelope<T>(data: T, statusCode = 200) {
@@ -84,8 +90,8 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('get', '/Account/detail', () => json(envelope(testState.account))),
   endpoint('put', '/Account/password/change', () => json(envelope(null))),
 
-  // ---- account: registration and recovery (planned contract) --------------
-  endpoint('post', '/Account/register', () => json(envelope(null))),
+  // ---- account: registration and recovery ---------------------------------
+  endpoint('post', '/Account/register', () => json(envelope(TEST_NEW_USER_ID))),
   endpoint('post', '/Account/email/verify', () => json(envelope(null))),
   endpoint('post', '/Account/email/verify/resend', () => json(envelope(null))),
   endpoint('post', '/Account/password/forgot', () => json(envelope(null))),
@@ -114,4 +120,34 @@ export const defaultHandlers: HttpHandler[] = [
     return json(envelope({ ...known, Status: 2, LastVerifiedDate: '2026-11-18T10:00:00Z' }))
   }),
   endpoint('delete', '/StoreConnections/connection', () => json(envelope(11))),
+
+  // ---- apps and builds ----------------------------------------------------
+  endpoint('patch', '/Apps', () => json(listEnvelope(testState.apps))),
+  endpoint('get', '/Apps/app', ({ url }) =>
+    Number(url.searchParams.get('AppId')) === testState.appDetail.Id
+      ? json(envelope(testState.appDetail))
+      : errorResponse('AppNotFound', 'Uygulama bulunamadı.', 404),
+  ),
+  endpoint('post', '/Apps/google', () => json(envelope({ AppId: 103, StoreAppId: 230, JobId: 48400 }))),
+  endpoint('post', '/Apps/app/link', ({ body }) => json(envelope((body as { AppId: number }).AppId))),
+  endpoint('post', '/Apps/app/unlink', () => json(envelope(104))),
+  endpoint('post', '/Apps/sync', () => json(envelope(testState.syncJobIds))),
+
+  // ---- store jobs ---------------------------------------------------------
+  endpoint('patch', '/StoreJobs', () => json(listEnvelope(testState.jobs))),
+  endpoint('get', '/StoreJobs/job', ({ url }) =>
+    Number(url.searchParams.get('JobId')) === testState.jobDetail.Id
+      ? json(envelope(testState.jobDetail))
+      : errorResponse('StoreJobNotFound', 'İş bulunamadı.', 404),
+  ),
+  endpoint('post', '/StoreJobs/job/cancel', () => json(envelope(5))),
+
+  // ---- assets -------------------------------------------------------------
+  endpoint('post', '/Assets/upload', () =>
+    json(envelope({ AssetId: 501, UploadUrl: `${STORAGE_URL}/single`, PartSize: null, Parts: [], ExpiryDate: '2026-11-18T11:00:00Z' })),
+  ),
+  endpoint('post', '/Assets/asset/complete', () => json(envelope(asset()))),
+  endpoint('get', '/Assets/asset/download-url', () =>
+    json(envelope({ Url: `${STORAGE_URL}/download`, ExpiryDate: '2026-11-18T11:00:00Z' })),
+  ),
 ]
