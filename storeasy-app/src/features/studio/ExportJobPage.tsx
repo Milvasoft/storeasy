@@ -18,17 +18,19 @@ import { isJobActive } from '@/lib/jobs/labels'
 import { useCancelJob } from '@/lib/jobs/useCancelJob'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
+import { mediaApi } from '@/features/common/api'
+import type { ChangePlanDto } from '@/features/common/types'
 import { studioApi } from './api'
 import { useStudioT } from './i18n'
 import { studioKeys } from './keys'
 import { warningText } from './labels'
-import type { ChangePlanListDto, MockupExportManifest, MockupExportSet } from './types'
+import type { MockupExportManifest, MockupExportSet } from './types'
 import { useZipDownload } from './useZipDownload'
 
 export const RENDER_STEP = 'render.size'
 
 type PlanOutcome =
-  | { kind: 'planned'; plan: ChangePlanListDto }
+  | { kind: 'planned'; plan: ChangePlanDto }
   | { kind: 'failed'; message: string }
   | { kind: 'noRecord' }
 
@@ -36,9 +38,9 @@ function setKey(set: MockupExportSet): string {
   return `${set.ClassKey}|${set.Locale}`
 }
 
-/** Where a screenshot plan opens (design 07: the screenshot upload plan of the app's listing). */
+/** Where a screenshot plan opens (the listing's plan detail, features/routes.tsx). */
 export function planPath(appId: number, planId: number): string {
-  return `/apps/${appId}/listing/screenshots/plans/${planId}`
+  return `/apps/${appId}/listing/plans/${planId}`
 }
 
 function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; canEdit: boolean }) {
@@ -72,10 +74,11 @@ function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; c
           continue
         }
         try {
-          const plan = await studioApi.planScreenshots(organization.Id, {
-            StoreAppId: record.StoreAppId,
+          const plan = await mediaApi.planScreenshots(organization.Id, record.StoreAppId, {
             Locale: set.Locale,
             ClassKey: set.StoreClassKey ?? '',
+            Order: [],
+            Deletes: [],
             AssetIds: [...(set.Images ?? [])].sort((a, b) => a.SlotOrder - b.SlotOrder).map((image) => image.AssetId),
           })
           result[setKey(set)] = { kind: 'planned', plan }

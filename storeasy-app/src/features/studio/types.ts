@@ -1,4 +1,4 @@
-import type { ActionChannel, DateOnly, IsoDateTime, OrgPermission, StoreKind } from '@/lib/api/types'
+import type { DateOnly, IsoDateTime, StoreKind } from '@/lib/api/types'
 
 // The studio's backend contract (storeasy-api docs/studio.md, MockupsController, Storeasy.Application Dtos/MockupDtos,
 // Storeasy.Domain JsonModels/MockupSpec and MockupExportManifest). Keys are PascalCase (pascalizeKeys), enums numeric.
@@ -16,9 +16,6 @@ export type MockupRequirement = (typeof MockupRequirement)[keyof typeof MockupRe
 
 /** StoreJobKind of an export job (the shared StoreJobKind lists only the kinds the shell knows). */
 export const MOCKUP_EXPORT_JOB_KIND = 60
-
-export const ChangePlanStatus = { Pending: 1, Approved: 2, Applied: 3, Failed: 4, Rejected: 5, Discarded: 6, Expired: 7 } as const
-export type ChangePlanStatus = (typeof ChangePlanStatus)[keyof typeof ChangePlanStatus]
 
 // ---- Template spec (MockupSpec, schemaVersion 1) ----
 // The spec's string fields are the schema's lower case tokens; lengths are fractions of the canvas (see docs/studio.md).
@@ -313,27 +310,4 @@ export interface MockupExportManifest {
   Sets?: MockupExportSet[] | null
   Failures?: MockupExportIssue[] | null
   Warnings?: MockupExportIssue[] | null
-}
-
-// ---- Screenshot change plan (Storeasy.Application Dtos/ContentDtos ChangePlanListDto) ----
-
-/** The fields of ChangePlanDto the studio reads after POST screenshots/plan. */
-export interface ChangePlanListDto {
-  PlanId: number
-  Kind: number
-  Title?: string | null
-  AppId: number
-  AppName?: string | null
-  StoreAppId: number
-  Store: StoreKind
-  Source: ActionChannel
-  CreatedByUserName?: string | null
-  RequiredPermission: OrgPermission
-  ConfirmRequired: boolean
-  ItemCount: number
-  WarningCount: number
-  Status: ChangePlanStatus
-  CreationDate?: IsoDateTime | null
-  ExpiryDate: IsoDateTime
-  JobId?: number | null
 }

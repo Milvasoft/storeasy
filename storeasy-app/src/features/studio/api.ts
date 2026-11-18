@@ -3,7 +3,6 @@ import type { ListRequest } from '@/lib/api/list'
 import type { AssetDownloadDto } from '@/lib/api/types'
 import { normalizeSpec } from './spec'
 import type {
-  ChangePlanListDto,
   MockupCaptionDto,
   MockupCaptionsSavedDto,
   MockupCaptionSuggestionDto,
@@ -70,14 +69,6 @@ export interface SuggestInput {
   SlotOrders?: number[] | null
 }
 
-/** PlanMediaSetCommand: one screenshot set of a store, planned from uploaded assets. */
-export interface PlanMediaSetInput {
-  StoreAppId: number
-  Locale: string
-  ClassKey: string
-  AssetIds: number[]
-}
-
 function withSpec(detail: MockupTemplateDetailDto): MockupTemplateDetailDto {
   return { ...detail, Spec: normalizeSpec(detail.Spec) }
 }
@@ -133,8 +124,4 @@ export const studioApi = {
 
   zip: (organizationId: number, jobId: number) =>
     apiGet<AssetDownloadDto>('/Mockups/export/zip', { OrganizationId: organizationId, JobId: jobId }),
-
-  // ScreenshotsController: the change plan of one set (nothing is written to the store before it is approved).
-  planScreenshots: (organizationId: number, input: PlanMediaSetInput) =>
-    apiPost<ChangePlanListDto>('/Screenshots/plan', { OrganizationId: organizationId, ...input }),
 }
