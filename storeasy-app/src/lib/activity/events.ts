@@ -30,6 +30,15 @@ export const ActivityEventType = {
 } as const
 export type ActivityEventType = (typeof ActivityEventType)[keyof typeof ActivityEventType]
 
+// Phase 4 events that are not job activity: records the screens refresh on (rejection cases, reviews) and the user's own
+// notifications. notification.created comes from the user's own group, whatever organization is open (OrganizationId 0
+// for none).
+export const RecordEventType = {
+  RejectionOpened: 'rejection.opened',
+  ReviewReceived: 'review.received',
+  NotificationCreated: 'notification.created',
+} as const
+
 export const JOB_FINISHED_TYPES: readonly string[] = [
   ActivityEventType.JobSucceeded,
   ActivityEventType.JobFailed,
@@ -57,6 +66,10 @@ export interface ActivityEvent {
   ConnectionStatus?: ConnectionStatus | null
   Message?: string | null
   Date: IsoDateTime
+  // The record the event is about (NotificationEntity) and its id; the notification of notification.created.
+  RelatedEntityType?: number | null
+  RelatedEntityId?: string | null
+  NotificationId?: number | null
 }
 
 // 'connecting' on start, 'reconnecting' between retries, 'disconnected' when the retries gave up (design 18.12).

@@ -11,7 +11,14 @@ import { jobKindLabel } from '@/lib/jobs/labels'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
-import { ActivityEventType, JOB_FINISHED_TYPES, type ActivityEvent, type ActivitySource, type ConnectionInfo } from './events'
+import {
+  ActivityEventType,
+  createEmitter,
+  JOB_FINISHED_TYPES,
+  type ActivityEvent,
+  type ActivitySource,
+  type ConnectionInfo,
+} from './events'
 import { hatReducer, initialHatState, type HatAction, type HatState } from './hatState'
 import { createMockActivitySource } from './mockSource'
 import { createSignalRSource } from './signalrSource'
@@ -78,6 +85,8 @@ interface ActivityContextValue {
   appName: (appId: number | null | undefined) => string | null
   // Jobs this screen started (a sync, an added app): their end is announced with a toast wherever the user is.
   watchJobs: (jobIds: number[]) => void
+  // Every live event as it arrives (frozen or not), for screens that refresh on their own event types.
+  subscribe: (listener: (event: ActivityEvent) => void) => () => void
 }
 
 const ActivityContext = createContext<ActivityContextValue | null>(null)
@@ -102,6 +111,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   const userRef = useRef(user)
   userRef.current = user
   const watched = useRef(new Set<number>())
+  const [listeners] = useState(() => createEmitter<ActivityEvent>())
   const organizationId = current?.Id ?? null
 
   const apps = useQuery({
@@ -159,6 +169,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.connections.all })
       }
       dispatch(event)
+      listeners.emit(event)
     })
     const offConnection = source.onConnection(setConnection)
     source.start().catch(() => {
@@ -181,7 +192,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       offConnection()
       void source.stop()
     }
-  }, [organizationId, sourceFactory, generation, queryClient])
+  }, [organizationId, sourceFactory, generation, queryClient, listeners])
 
   const setFrozen = useCallback(
     (next: boolean) => {
@@ -200,8 +211,17 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<ActivityContextValue>(
-    () => ({ state: frozen && snapshot ? snapshot : state, connection, frozen, setFrozen, reconnect, appName, watchJobs }),
-    [frozen, snapshot, state, connection, setFrozen, reconnect, appName, watchJobs],
+    () => ({
+      state: frozen && snapshot ? snapshot : state,
+      connection,
+      frozen,
+      setFrozen,
+      reconnect,
+      appName,
+      watchJobs,
+      subscribe: listeners.subscribe,
+    }),
+    [frozen, snapshot, state, connection, setFrozen, reconnect, appName, watchJobs, listeners],
   )
 
   return <ActivityContext.Provider value={value}>{children}</ActivityContext.Provider>

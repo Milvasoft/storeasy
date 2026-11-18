@@ -14,6 +14,7 @@ import {
   ACTIVITY_CLIENT_METHOD,
   createEmitter,
   JOIN_ORGANIZATION_METHOD,
+  RecordEventType,
   type ActivityEvent,
   type ActivitySource,
   type ConnectionInfo,
@@ -89,8 +90,9 @@ export function createSignalRSource(organizationId: number, options: SignalRSour
     hub = current
     current.on(ACTIVITY_CLIENT_METHOD, (payload: unknown) => {
       const event = readActivityEvent(payload)
-      // The group is the organization's, but a stray event of another organization never reaches its state.
-      if (event && event.OrganizationId === organizationId) {
+      // The group is the organization's, but a stray event of another organization never reaches its state. A
+      // notification comes from the user's own group and belongs to the user, whatever organization it is about.
+      if (event && (event.OrganizationId === organizationId || event.Type === RecordEventType.NotificationCreated)) {
         events.emit(event)
       }
     })

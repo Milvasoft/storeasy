@@ -21,18 +21,13 @@ import { useOrganization } from '@/lib/org/OrganizationContext'
 import { roleLabel } from '@/lib/org/roles'
 import { queryKeys } from '@/lib/query/keys'
 import { passwordError } from '@/lib/validation'
+import { accountTabItems } from '@/features/account-preferences/NotificationPreferencesPage'
+import { useNotificationsText } from '@/features/notifications/i18n'
 
 function AccountTabs() {
   const { t } = useI18n()
-  return (
-    <Tabs
-      label={t.account.title}
-      items={[
-        { value: 'profile', label: t.account.profile, to: '/account' },
-        { value: 'security', label: t.account.security, to: '/account/security' },
-      ]}
-    />
-  )
+  const notifications = useNotificationsText()
+  return <Tabs label={t.account.title} items={accountTabItems(t.account, notifications.prefs.tab)} />
 }
 
 /** Profile (design 16.3): read from account/detail. Editing the profile needs PUT account/profile (planned). */

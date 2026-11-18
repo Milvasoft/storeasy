@@ -27,6 +27,8 @@ export type WorkspaceSection =
   | 'listing'
   | 'media'
   | 'release'
+  | 'reviews'
+  | 'rejections'
   | 'money'
   | 'answers'
   | 'assisted'
@@ -48,6 +50,7 @@ export type WorkspaceSub =
   | 'subscriptions'
   | 'iap'
   | 'purchaseSettings'
+  | 'testflight'
 
 interface SubItem {
   key: WorkspaceSub
@@ -75,6 +78,7 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
   release: [
     { key: 'versions', path: 'release/versions', stores: BOTH },
     { key: 'testers', path: 'release/testers', stores: GOOGLE },
+    { key: 'testflight', path: 'release/testflight', stores: APPLE },
     { key: 'reviewInfo', path: 'release/review-info', stores: APPLE },
   ],
   money: [
@@ -90,6 +94,8 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   media: 'listing/screenshots',
   release: 'release/versions',
   money: 'money/subscriptions',
+  reviews: 'reviews',
+  rejections: 'rejections',
   answers: 'answers',
   assisted: 'assisted',
   compliance: 'compliance',
@@ -114,6 +120,8 @@ const SECTIONS: WorkspaceSection[] = [
   'media',
   'release',
   'money',
+  'reviews',
+  'rejections',
   'answers',
   'assisted',
   'compliance',

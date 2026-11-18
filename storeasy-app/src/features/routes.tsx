@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
+import { useFeature, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
 import { lazyPage } from '@/lib/utils/lazyPage'
 
 // The phase 2 screens' routes, as one fragment App.tsx places inside the signed in shell (before the catch-all route).
@@ -32,6 +34,31 @@ const BasePlanPricesPage = lazyPage(() => import('@/features/monetization/PlayPa
 const IapListPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'IapListPage')
 const IapDetailPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'IapDetailPage')
 const PurchaseSettingsPage = lazyPage(() => import('@/features/monetization/PurchaseSettingsPage'), 'PurchaseSettingsPage')
+
+// Phase 4: reviews, rejections, TestFlight, webhooks, notifications, rule watcher.
+const SectionPage = lazyPage(() => import('@/pages/SectionPages'), 'SectionPage')
+const PlatformPage = lazyPage(() => import('@/pages/SectionPages'), 'PlatformPage')
+const ReviewsPage = lazyPage(() => import('@/features/reviews/ReviewsPage'), 'ReviewsPage')
+const AppReviewsPage = lazyPage(() => import('@/features/reviews/ReviewsPage'), 'AppReviewsPage')
+const SavedRepliesPage = lazyPage(() => import('@/features/reviews/SavedRepliesPage'), 'SavedRepliesPage')
+const RejectionsPage = lazyPage(() => import('@/features/rejections/RejectionsPages'), 'RejectionsPage')
+const RejectionCasePage = lazyPage(() => import('@/features/rejections/RejectionsPages'), 'RejectionCasePage')
+const TestFlightPage = lazyPage(() => import('@/features/testflight/TestFlightPages'), 'TestFlightPage')
+const TestFlightGroupPage = lazyPage(() => import('@/features/testflight/TestFlightPages'), 'TestFlightGroupPage')
+const TestFlightBuildPage = lazyPage(() => import('@/features/testflight/TestFlightPages'), 'TestFlightBuildPage')
+const WebhooksPage = lazyPage(() => import('@/features/webhooks/WebhooksPage'), 'WebhooksPage')
+const NotificationsPage = lazyPage(() => import('@/features/notifications/NotificationsPage'), 'NotificationsPage')
+const NotificationPreferencesPage = lazyPage(
+  () => import('@/features/account-preferences/NotificationPreferencesPage'),
+  'NotificationPreferencesPage',
+)
+const RuleWatcherPage = lazyPage(() => import('@/features/rules-watcher/RuleWatcherPages'), 'RuleWatcherPage')
+const RuleProposalPage = lazyPage(() => import('@/features/rules-watcher/RuleWatcherPages'), 'RuleProposalPage')
+
+// A section behind its feature flag: while the flag is off the route keeps its designed "coming" page (kill switch).
+function Flagged({ flag, off, children }: { flag: FeatureFlagKey; off: ReactNode; children: ReactNode }) {
+  return <>{useFeature(flag) ? children : off}</>
+}
 
 export function contentRoutes() {
   return (
@@ -68,6 +95,47 @@ export function contentRoutes() {
       <Route path="/apps/:appId/money/iap/:iapId" element={<IapDetailPage tab="general" />} />
       <Route path="/apps/:appId/money/iap/:iapId/prices" element={<IapDetailPage tab="prices" />} />
       <Route path="/apps/:appId/money/settings" element={<PurchaseSettingsPage />} />
+      <Route
+        path="/reviews"
+        element={
+          <Flagged flag="Reviews" off={<SectionPage section="reviews" />}>
+            <ReviewsPage />
+          </Flagged>
+        }
+      />
+      <Route
+        path="/reviews/saved-replies"
+        element={
+          <Flagged flag="Reviews" off={<SectionPage section="reviews" />}>
+            <SavedRepliesPage />
+          </Flagged>
+        }
+      />
+      <Route path="/apps/:appId/reviews" element={<AppReviewsPage />} />
+      <Route path="/apps/:appId/rejections" element={<RejectionsPage />} />
+      <Route path="/apps/:appId/rejections/:caseId" element={<RejectionCasePage />} />
+      <Route path="/apps/:appId/release/testflight" element={<TestFlightPage />} />
+      <Route path="/apps/:appId/release/testflight/groups/:groupId" element={<TestFlightGroupPage />} />
+      <Route path="/apps/:appId/release/testflight/builds/:buildId" element={<TestFlightBuildPage />} />
+      <Route
+        path="/webhooks"
+        element={
+          <Flagged flag="Webhooks" off={<SectionPage section="webhooks" />}>
+            <WebhooksPage />
+          </Flagged>
+        }
+      />
+      <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/account/notifications" element={<NotificationPreferencesPage />} />
+      <Route
+        path="/admin/rules"
+        element={
+          <Flagged flag="RuleWatcher" off={<PlatformPage section="adminRules" />}>
+            <RuleWatcherPage />
+          </Flagged>
+        }
+      />
+      <Route path="/admin/rules/proposals/:proposalId" element={<RuleProposalPage />} />
     </>
   )
 }

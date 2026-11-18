@@ -19,23 +19,26 @@ export type FeatureFlagKey =
   | 'OrganizationRetention'
   | 'AccountSessions'
   | 'Platform'
+  | 'RuleWatcher'
 
 export type FeatureFlags = Record<FeatureFlagKey, boolean>
 
 export const DEFAULT_FLAGS: FeatureFlags = {
   Compliance: true,
-  Reviews: false,
+  Reviews: true,
   Studio: true,
   StudioAiCaptions: false,
   Intake: false,
-  Webhooks: false,
+  Webhooks: true,
   Rules: true,
   Developer: false,
-  Notifications: false,
+  Notifications: true,
   Plans: true,
   OrganizationRetention: false,
   AccountSessions: false,
   Platform: false,
+  // The rule watcher's proposals and sources (platform administrators, phase 4); the other platform screens wait.
+  RuleWatcher: true,
 }
 
 interface FeatureFlagsValue {

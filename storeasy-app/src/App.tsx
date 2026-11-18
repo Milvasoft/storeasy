@@ -185,18 +185,15 @@ export function App() {
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/activity/jobs" element={<JobsPage />} />
         <Route path="/activity/jobs/:jobId" element={<JobDetailPage />} />
-        <Route path="/reviews" element={<SectionPage section="reviews" />} />
         <Route path="/studio/*" element={<StudioRoutes />} />
         <Route path="/intake" element={<SectionPage section="intake" />} />
         <Route path="/connections" element={<ConnectionsPage />} />
-        <Route path="/webhooks" element={<SectionPage section="webhooks" />} />
         <Route path="/members" element={<MembersPage />} />
         <Route path="/audit" element={<AuditPage />} />
         <Route path="/settings" element={<OrgSettingsPage />} />
         <Route path="/developer" element={<SectionPage section="developer" />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/account/security" element={<SecurityPage />} />
-        <Route path="/admin/rules" element={<PlatformPage section="adminRules" />} />
         <Route path="/admin/users" element={<PlatformPage section="adminUsers" />} />
         <Route path="/admin/roles" element={<PlatformPage section="adminRoles" />} />
         <Route path="/admin/activity-logs" element={<PlatformPage section="adminLogs" />} />

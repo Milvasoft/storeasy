@@ -55,9 +55,9 @@ describe('app shell and routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })).toBeInTheDocument()
     expect(within(menu()).getByRole('link', { name: /Mağaza bağlantıları/ })).toBeInTheDocument()
-    expect(within(menu()).getByRole('link', { name: /Yorumlar/ })).toHaveTextContent('Yakında')
-    await user.click(within(menu()).getByRole('link', { name: /Yorumlar/ }))
-    expect(await screen.findByRole('heading', { name: 'Henüz yorum yok' })).toBeInTheDocument()
+    expect(within(menu()).getByRole('link', { name: /Paket alma/ })).toHaveTextContent('Yakında')
+    await user.click(within(menu()).getByRole('link', { name: /Paket alma/ }))
+    expect(await screen.findByRole('heading', { name: 'Henüz paket gelmedi' })).toBeInTheDocument()
   })
 
   it('hides connections and webhooks from an editor (design kit ROLE_HIDE)', async () => {
