@@ -31,7 +31,7 @@ services:
 
   redis:
     <<: *restart
-    image: redis:7-alpine
+    image: redis:8-alpine
     # Cache, token revocation stamps, feature flags, rate limits and the SignalR backplane. Internal network only.
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
