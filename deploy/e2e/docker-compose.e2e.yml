@@ -1,0 +1,61 @@
+# End-to-end override of deploy/docker-compose.yml (storeasy-app/e2e/README.md). Never for a real instance.
+#   docker compose -f deploy/docker-compose.yml -f deploy/e2e/docker-compose.e2e.yml --env-file <e2e .env> up -d --build --wait
+# Adds a mail catcher (Mailpit, MIT) that every e-mail of the API goes to, opens registration and keeps the jobs and
+# the schedules on. The secrets still come from the --env-file (generate a throwaway one; node deploy/e2e/stack.mjs
+# does all of this). The Mailpit web UI and API listen on 127.0.0.1:${MAILPIT_PORT:-8025}.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.28.0
+    restart: "no"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      retries: 10
+    networks: [storeasy]
+
+  # Browsers and the API reach the S3 API under one name: s3.localhost resolves to the loopback address in the browser
+  # (the published port) and to this container inside the network (S3_PUBLIC_URL=http://s3.localhost:8333).
+  seaweedfs:
+    restart: "no"
+    networks:
+      storeasy:
+        aliases: [s3.localhost]
+
+  storeasy-api:
+    restart: "no"
+    # No store is ever called from an e2e run: the store and identity hosts resolve to an address that refuses, so a
+    # connection check or sync fails fast (and gracefully) instead of reaching Apple, Google or Microsoft.
+    extra_hosts:
+      - "api.appstoreconnect.apple.com:127.0.0.1"
+      - "appstoreconnect.apple.com:127.0.0.1"
+      - "oauth2.googleapis.com:127.0.0.1"
+      - "androidpublisher.googleapis.com:127.0.0.1"
+      - "www.googleapis.com:127.0.0.1"
+      - "accounts.google.com:127.0.0.1"
+      - "login.microsoftonline.com:127.0.0.1"
+      - "manage.devcenter.microsoft.com:127.0.0.1"
+      - "api.store.microsoft.com:127.0.0.1"
+    environment:
+      Storeasy__Registration__Mode: Open
+      Storeasy__Email__Provider: Smtp
+      Storeasy__Email__Smtp__Host: mailpit
+      Storeasy__Email__Smtp__Port: "1025"
+      Storeasy__Email__Smtp__UserName: ""
+      Storeasy__Email__Smtp__Password: ""
+      Storeasy__Email__Smtp__From: storeasy@e2e.test
+      Storeasy__Email__Smtp__EnableSsl: "false"
+      Storeasy__Email__Outbox__Enabled: "true"
+      Storeasy__Jobs__Enabled: "true"
+      Storeasy__Events__SchedulesEnabled: "true"
+    depends_on:
+      mailpit:
+        condition: service_healthy
+
+  storeasy-web:
+    restart: "no"

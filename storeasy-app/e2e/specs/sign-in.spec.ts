@@ -1,17 +1,13 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '../support/fixtures'
 
-// The first critical journey: sign in with an existing account, land in the app, sign out. The account comes from the
-// environment (a seeded user of the API under test); the test is skipped when none is given.
-const EMAIL = process.env.E2E_USER_EMAIL
-const PASSWORD = process.env.E2E_USER_PASSWORD
-
-test.skip(!EMAIL || !PASSWORD, 'E2E_USER_EMAIL and E2E_USER_PASSWORD name a seeded account of the API under test')
-
-test('signs in by e-mail and signs out again', async ({ page }) => {
+// Sign in with an existing account, land in the app, sign out. The account is a fresh verified account with an
+// organization, made over the API (support/fixtures.ts).
+test('signs in by e-mail and signs out again', async ({ page, user, organization }) => {
+  expect(organization.id).toBeGreaterThan(0)
   await page.goto('/login')
 
-  await page.getByLabel('E-posta').fill(EMAIL!)
-  await page.getByLabel('Şifre').fill(PASSWORD!)
+  await page.getByLabel('E-posta').fill(user.email)
+  await page.getByLabel('Şifre', { exact: true }).fill(user.password)
   await page.getByRole('button', { name: 'Giriş yap' }).click()
 
   await expect(page).not.toHaveURL(/\/login/)
