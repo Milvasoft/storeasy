@@ -48,6 +48,11 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MonetizationProductNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MonetizationGroupNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MonetizationOfferNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MonetizationBasePlanNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MonetizationTesterNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
@@ -69,6 +74,11 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotUploaded] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
         [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
+        [MessageKey.MonetizationProductIdTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.MonetizationGroupExists] = StatusCodes.Status409Conflict,
+        [MessageKey.MonetizationOfferExists] = StatusCodes.Status409Conflict,
+        [MessageKey.MonetizationBasePlanExists] = StatusCodes.Status409Conflict,
+        [MessageKey.MonetizationFamilySharingLocked] = StatusCodes.Status409Conflict,
 
         // 410 - the plan expired.
         [MessageKey.PlanExpired] = StatusCodes.Status410Gone,
