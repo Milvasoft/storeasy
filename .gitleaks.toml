@@ -1,0 +1,8 @@
+# gitleaks configuration used by CI (.github/workflows/ci.yml). The default rules apply; the allowlist below covers
+# only values that are public on purpose. Never add a real secret here: rotate it and remove it from history instead.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Local development credentials of the SeaweedFS in storeasy-api/docker-compose.yml (local only, never used elsewhere)"
+regexes = ['''storeasy-local-(access-key|secret-key-not-for-production)''']

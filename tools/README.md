@@ -11,6 +11,8 @@ of the plan (`docs/urun-plani.md` sections 2.6, 11.7, 11.8; design files 13 and 
 | `CONTRACT.md` | The HTTP contract these tools need from `storeasy-api` | |
 | `scripts/` | Shared bundling and repository checks | |
 
+User guides: [docs/mcp.md](../docs/mcp.md) and [docs/ci-intake.md](../docs/ci-intake.md).
+
 All of it is AGPL-3.0-only, Node 22+ for development. Runtime dependencies: `@modelcontextprotocol/sdk` (MIT) in the
 npm package only; the action and the task bundle nothing but storeasy's own code.
 

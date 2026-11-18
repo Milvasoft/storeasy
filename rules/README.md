@@ -2,7 +2,8 @@
 
 Store rules for App Store Connect, Google Play and Microsoft Store, kept as data rather than code.
 The storeasy API loads the catalog, the readiness check and the per-app compliance timeline evaluate it,
-and the rule watcher proposes changes to it. See `docs/urun-plani.md` section 12.
+and the rule watcher proposes changes to it. See `docs/urun-plani.md` section 12 and
+[docs/rules-catalog.md](../docs/rules-catalog.md).
 
 ## Structure
 

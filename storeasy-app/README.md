@@ -5,6 +5,7 @@ live activity hub under `/hubs/activity` (SignalR), remote MCP under `/mcp`. Eve
 `Response<T>` `{ isSuccess, statusCode, messages[{ key, message, type }], data }` (lists add `currentPageNumber`,
 `totalPageCount`, `totalDataCount`); the client turns camelCase keys into PascalCase (`pascalizeKeys`) and enums are
 numeric. Built to `app-standarts/02-frontend-standartlari.md`; the design is `docs/storeasy uygulaması tasarımı/`.
+Self-hosting (image, nginx, `VITE_SOURCE_URL`): [docs/self-host.md](../docs/self-host.md).
 
 ## Stack
 
