@@ -28,12 +28,23 @@ describe('app shell and routing', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/setup')
   })
 
-  it('takes a platform administrator without an organization to the admin area instead of the setup', async () => {
+  it('lands a platform administrator without an organization on the admin area', async () => {
     testState.organizations = []
 
-    await renderApp({ route: '/apps', userType: UserType.Manager, storedOrganization: false })
+    await renderApp({ route: '/', userType: UserType.Manager, storedOrganization: false })
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/admin/system'))
+  })
+
+  it('explains an organization page to a platform administrator without an organization instead of bouncing back', async () => {
+    testState.organizations = []
+
+    await renderApp({ route: '/members', userType: UserType.Manager, storedOrganization: false })
+
+    expect(await screen.findByRole('heading', { name: 'Bu bölüm bir organizasyon ister' })).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent('/members')
+    expect(screen.getByRole('link', { name: 'Organizasyon oluştur' })).toHaveAttribute('href', '/setup')
+    expect(screen.getByRole('link', { name: 'Platform yönetimine dön' })).toHaveAttribute('href', '/admin/system')
   })
 
   it('opens an admin page for a platform administrator without an organization', async () => {

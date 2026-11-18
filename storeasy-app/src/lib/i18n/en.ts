@@ -237,6 +237,12 @@ export const en = {
     body: 'Your membership was removed and you have no other organization. Your account stays: create a new organization or wait for an invitation.',
     create: 'Create a new organization',
   },
+  platformNoOrg: {
+    title: 'This section needs an organization',
+    body: 'As a platform administrator you are not a member of any organization. Apps, connections and the rest of the store work happen inside an organization. For daily work, create one with your own account.',
+    create: 'Create an organization',
+    admin: 'Back to platform administration',
+  },
   setup: {
     label: 'Setup',
     stepOf: 'Step {step} / {total}',

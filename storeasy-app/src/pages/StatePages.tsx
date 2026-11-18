@@ -1,5 +1,5 @@
 import { Link, Navigate } from 'react-router-dom'
-import { SearchX, UserX } from 'lucide-react'
+import { Building2, SearchX, UserX } from 'lucide-react'
 import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
 import { StateView } from '@/components/ui/ScreenState'
 import { Avatar, Button } from '@/components/ui/primitives'
@@ -26,6 +26,24 @@ export function NotFoundPage() {
 }
 
 /** Design 5.32 / 18.23: every membership is gone. The account stays; a new organization or an invitation is the way on. */
+/** A platform administrator without an organization opened an organization page: say why instead of bouncing back. */
+export function PlatformNoOrganizationPage({ adminPath }: { adminPath: string }) {
+  const t = useT()
+  return (
+    <SoloLayout>
+      <AuthCard icon={<Building2 aria-hidden />} title={t.platformNoOrg.title}>
+        <p className="m-0 text-sm text-fg2">{t.platformNoOrg.body}</p>
+        <Link className="btn pri blk" to="/setup">
+          {t.platformNoOrg.create}
+        </Link>
+        <Link className="btn blk" to={adminPath}>
+          {t.platformNoOrg.admin}
+        </Link>
+      </AuthCard>
+    </SoloLayout>
+  )
+}
+
 export function NoAccessPage() {
   const t = useT()
   const { user, logout } = useAuth()

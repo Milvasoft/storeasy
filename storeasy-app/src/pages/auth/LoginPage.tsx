@@ -10,7 +10,6 @@ import { useAuth } from '@/lib/auth/AuthContext'
 import { formatCountdown, useCountdown } from '@/lib/hooks/useCountdown'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
-import { HOME_PATH } from '@/lib/nav/nav'
 import { emailError, requiredError } from '@/lib/validation'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
 import { GoogleSignInButton } from '@/features/access/GoogleSignIn'
@@ -58,7 +57,7 @@ export function LoginPage() {
     setProblem(null)
     try {
       await login(email, password)
-      navigate(returnTo ?? HOME_PATH, { replace: true })
+      navigate(returnTo ?? '/', { replace: true })
     } catch (error) {
       if (apiStatus(error) === 429) {
         throttle.start((error as ApiError).retryAfterSeconds ?? DEFAULT_RETRY_SECONDS)

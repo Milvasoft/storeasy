@@ -17,7 +17,7 @@ import { useOrganization } from '@/lib/org/OrganizationContext'
 import { lazyPage } from '@/lib/utils/lazyPage'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
 import { LoginPage } from '@/pages/auth/LoginPage'
-import { NotFoundPage, NoAccessPage } from '@/pages/StatePages'
+import { NotFoundPage, NoAccessPage, PlatformNoOrganizationPage } from '@/pages/StatePages'
 
 const RegisterPage = lazyPage(() => import('@/pages/auth/RegisterPage'), 'RegisterPage')
 const VerifyEmailPage = lazyPage(() => import('@/pages/auth/VerifyEmailPage'), 'VerifyEmailPage')
@@ -63,8 +63,16 @@ function OrganizationGate({ children }: { children: JSX.Element }) {
       </div>
     )
   }
+  // A platform administrator without an organization lands on the admin area; an organization page (a sidebar link,
+  // an old bookmark) explains why it cannot open instead of silently bouncing back, which looked like dead links.
   if (organizations.length === 0 && user?.userType === UserType.Manager) {
-    return pathname.startsWith('/admin/') ? children : <Navigate to={PLATFORM_HOME_PATH} replace />
+    if (pathname.startsWith('/admin/')) {
+      return children
+    }
+    if (pathname === '/') {
+      return <Navigate to={PLATFORM_HOME_PATH} replace />
+    }
+    return <PlatformNoOrganizationPage adminPath={PLATFORM_HOME_PATH} />
   }
   if (organizations.length === 0) {
     return <Navigate to={readStorage(StorageKey.CurrentOrganization) ? '/no-access' : '/setup'} replace />

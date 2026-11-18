@@ -15,12 +15,12 @@ async function fillAndSubmit(user: ReturnType<typeof renderWithProviders>['user'
 }
 
 describe('LoginPage', () => {
-  it('signs in with the e-mail as user name and opens the apps', async () => {
+  it('signs in with the e-mail as user name and opens the start page', async () => {
     const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
 
     await fillAndSubmit(user)
 
-    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps'))
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/'))
     expect(lastRequestTo('/Account/login')?.body).toEqual({
       UserName: 'deniz@kuzeylab.dev',
       Password: 'Kuzey!2026',
@@ -41,7 +41,7 @@ describe('LoginPage', () => {
 
     await fillAndSubmit(user)
 
-    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps'))
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/'))
   })
 
   it('shows the API message above the form and clears the password when the credentials are wrong', async () => {

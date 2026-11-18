@@ -238,6 +238,12 @@ export const tr: Dictionary = {
     body: 'Organizasyondaki üyeliğin kaldırıldı ve başka bir organizasyonun yok. Hesabın duruyor: yeni bir organizasyon kurabilir ya da bir davet bekleyebilirsin.',
     create: 'Yeni organizasyon oluştur',
   },
+  platformNoOrg: {
+    title: 'Bu bölüm bir organizasyon ister',
+    body: 'Platform yöneticisi olarak bir organizasyonun üyesi değilsin. Uygulamalar, bağlantılar ve diğer mağaza işleri bir organizasyonda yapılır. Günlük iş için kendi hesabınla bir organizasyon kurman önerilir.',
+    create: 'Organizasyon oluştur',
+    admin: 'Platform yönetimine dön',
+  },
   setup: {
     label: 'Kurulum',
     stepOf: 'Adım {step} / {total}',

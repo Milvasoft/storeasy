@@ -6,7 +6,6 @@ import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
 import { SpinnerCenter } from '@/components/ui/primitives'
 import { apiErrorMessage } from '@/lib/api/http'
 import { useAuth } from '@/lib/auth/AuthContext'
-import { HOME_PATH } from '@/lib/nav/nav'
 import { readPending, writePending } from './GoogleSignIn'
 import { useAccessText } from './i18n'
 
@@ -44,7 +43,7 @@ export function GoogleCallbackPage() {
     }
     writePending(null)
     loginWithGoogle(code, state, pending?.invitationToken)
-      .then(() => navigate(safeReturnPath(pending?.returnTo) ?? HOME_PATH, { replace: true }))
+      .then(() => navigate(safeReturnPath(pending?.returnTo) ?? '/', { replace: true }))
       .catch((error: unknown) => setFailure(apiErrorMessage(error, t.google.failedTitle)))
     // Runs once for the address Google sent the browser back to.
     // eslint-disable-next-line react-hooks/exhaustive-deps
