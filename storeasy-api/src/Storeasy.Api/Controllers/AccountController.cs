@@ -46,7 +46,7 @@ public class AccountController(IMediator mediator) : ControllerBase
     /// <summary>
     /// Anonymous endpoint paths where a stale or invalid bearer token is ignored instead of answered with 401/419.
     /// </summary>
-    public static List<string> LoginEndpointPaths { get; } = ["login", "refresh", "register", "email/verify", "password/forgot", "password/reset", "login/google/start", "login/google", "invitation/preview", "public-settings"];
+    public static List<string> LoginEndpointPaths { get; } = ["login", "refresh", "register", "email/verify", "password/forgot", "password/reset", "login/google/start", "login/google", "invitation/preview", "public-settings", "system/setup"];
 
     private readonly IMediator _mediator = mediator;
 

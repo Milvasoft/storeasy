@@ -134,6 +134,13 @@ public static class MessageKey
     public const string GlobalStoreConnection = "Global.StoreConnection";
     public const string RegistrationClosed = nameof(RegistrationClosed);
     public const string RegistrationInvitationRequired = nameof(RegistrationInvitationRequired);
+    public const string RegistrationModeFixedInSingleTeam = nameof(RegistrationModeFixedInSingleTeam);
+    public const string SetupCodeInvalid = nameof(SetupCodeInvalid);
+    public const string SetupAlreadyCompleted = nameof(SetupAlreadyCompleted);
+    public const string SetupNotReady = nameof(SetupNotReady);
+    public const string SingleTeamOrganizationExists = nameof(SingleTeamOrganizationExists);
+    public const string GlobalSetupCode = "Global.SetupCode";
+    public const string GlobalOrganization = "Global.Organization";
     public const string EmailNotVerified = nameof(EmailNotVerified);
     public const string EmailAlreadyVerified = nameof(EmailAlreadyVerified);
     public const string AccountTokenInvalid = nameof(AccountTokenInvalid);

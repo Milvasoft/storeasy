@@ -11,6 +11,16 @@ public class PublicSettingsDto
     public RegistrationMode RegistrationMode { get; set; }
 
     /// <summary>
+    /// Deployment mode (<c>Storeasy:Mode</c>): a single team instance has one organization and no sign up.
+    /// </summary>
+    public DeploymentMode Mode { get; set; }
+
+    /// <summary>
+    /// True while a single team instance has no user: the web app shows the first run setup instead of the sign in.
+    /// </summary>
+    public bool SetupRequired { get; set; }
+
+    /// <summary>
     /// Whether "Sign in with Google" is configured.
     /// </summary>
     public bool GoogleSignInEnabled { get; set; }

@@ -6,7 +6,9 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.FeatureFlagDtos;
 using Storeasy.Application.Dtos.SettingsDtos;
+using Storeasy.Application.Dtos.AccountDtos;
 using Storeasy.Application.Features.FeatureFlags.GetFeatureFlagStates;
+using Storeasy.Application.Features.Settings.CompleteSetup;
 using Storeasy.Application.Features.Settings.GetPublicSettings;
 using Storeasy.Application.Features.Settings.GetSystemSettings;
 using Storeasy.Application.Features.Settings.GetSystemStatus;
@@ -31,7 +33,8 @@ public class SystemController(IMediator mediator) : ControllerBase
     private readonly IMediator _mediator = mediator;
 
     /// <summary>
-    /// Registration mode, whether Google sign in is on and the web push public key (anonymous).
+    /// Registration mode, deployment mode, whether the first run setup is pending, whether Google sign in is on and the web
+    /// push public key (anonymous).
     /// </summary>
     /// <param name="cancellation"></param>
     /// <returns></returns>
@@ -39,6 +42,20 @@ public class SystemController(IMediator mediator) : ControllerBase
     [AllowAnonymous]
     [RateLimit(120, 60, "system-public-settings")]
     public Task<Response<PublicSettingsDto>> GetPublicSettingsAsync(CancellationToken cancellation) => _mediator.Send(new GetPublicSettingsQuery(), cancellation);
+
+    /// <summary>
+    /// First run setup of a single team instance (anonymous): with the one time setup code from the API log, creates the
+    /// administrator (platform manager, verified e-mail) and the team with that user as its owner in one transaction, and
+    /// returns the same token pair as the login. 403 <c>SetupCodeInvalid</c> for a wrong code, 409
+    /// <c>SetupAlreadyCompleted</c> once a user exists, 404 in multi tenant mode.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("setup")]
+    [AllowAnonymous]
+    [RateLimit(10, 600, "system-setup")]
+    public Task<Response<LoginResponseDto>> CompleteSetupAsync(CompleteSetupCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Whether each feature is on (read only, every signed in user; managing the flags is <c>featureFlags</c>).

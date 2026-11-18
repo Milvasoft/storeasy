@@ -1905,6 +1905,7 @@
             by one and their results written back in one update. Backoff: <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.RetryBaseDelaySeconds"/>
             doubled per attempt, at most an hour; a 410 Gone stops the retries.
             </summary>
+            <param name="dbContext"></param>
             <param name="deliveryRepository"></param>
             <param name="webhookRepository"></param>
             <param name="httpClientFactory"></param>
@@ -1914,12 +1915,13 @@
             <param name="timeProvider"></param>
             <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookSender.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.WebhookDelivery},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.OrganizationWebhook},System.Net.Http.IHttpClientFactory,Storeasy.Application.Interfaces.IWebhookUrlGuard,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Utils.Models.OrgWebhookOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Notifications.OrgWebhookSender.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.WebhookDelivery},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.OrganizationWebhook},System.Net.Http.IHttpClientFactory,Storeasy.Application.Interfaces.IWebhookUrlGuard,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Utils.Models.OrgWebhookOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IOrgWebhookSender"/>. A batch is claimed with a lease id in one update; the attempts are made one
             by one and their results written back in one update. Backoff: <see cref="P:Storeasy.Application.Utils.Models.OrgWebhookOptions.RetryBaseDelaySeconds"/>
             doubled per attempt, at most an hour; a 410 Gone stops the retries.
             </summary>
+            <param name="dbContext"></param>
             <param name="deliveryRepository"></param>
             <param name="webhookRepository"></param>
             <param name="httpClientFactory"></param>
@@ -2233,6 +2235,24 @@
             <summary>
             Seeds default production data.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Persistence.DatabaseMigrator.StaticDataLockKey">
+            <summary>
+            Key of the session level advisory lock that serializes <see cref="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.EnsureStaticDataAsync(Storeasy.Application.Interfaces.IPermissionManager,System.Threading.CancellationToken)"/> across instances.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.EnsureStaticDataAsync(Storeasy.Application.Interfaces.IPermissionManager,System.Threading.CancellationToken)">
+            <summary>
+            Prepares a database for a single team instance on startup, without a developer step and without the root user:
+            the SuperAdmin permission and role, the seed protection triggers, the languages and the permissions of the
+            catalog, then marks the database initialized like <see cref="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.InitDatabaseAsync(Storeasy.Application.Interfaces.IPermissionManager,System.Threading.CancellationToken)"/> does. Every part is created
+            only when it is missing, so it is idempotent and safe on a database that <c>database/init</c> initialized.
+            Instances that start together wait for each other on a PostgreSQL advisory lock held on this context's
+            connection. Returns true when the database was initialized by this call.
+            </summary>
+            <param name="permissionManager"></param>
+            <param name="cancellationToken"></param>
             <returns></returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.SeedFakeDataAsync(System.Boolean,System.String,System.Threading.CancellationToken)">
@@ -3064,6 +3084,51 @@
             Returns the switched off keys from the cache, falling back to the database (and repopulating the cache) on a miss.
             </summary>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.FirstRunSetup">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IFirstRunSetup"/>. The setup runs in one transaction that first takes a PostgreSQL transaction
+            level advisory lock, so two requests (on one or on several instances) cannot both create an administrator: the
+            second one waits, then finds the user of the first and is refused.
+            </summary>
+            <param name="dbContext"></param>
+            <param name="transactionRunner"></param>
+            <param name="userRepository"></param>
+            <param name="organizationRepository"></param>
+            <param name="userManager"></param>
+            <param name="setupCodeStore"></param>
+            <param name="deploymentOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FirstRunSetup.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32},Storeasy.Infrastructure.Services.SetupCodeStore,Storeasy.Application.Utils.Models.DeploymentOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IFirstRunSetup"/>. The setup runs in one transaction that first takes a PostgreSQL transaction
+            level advisory lock, so two requests (on one or on several instances) cannot both create an administrator: the
+            second one waits, then finds the user of the first and is refused.
+            </summary>
+            <param name="dbContext"></param>
+            <param name="transactionRunner"></param>
+            <param name="userRepository"></param>
+            <param name="organizationRepository"></param>
+            <param name="userManager"></param>
+            <param name="setupCodeStore"></param>
+            <param name="deploymentOptions"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.FirstRunSetup.SetupLockKey">
+            <summary>
+            Key of the advisory lock that serializes the first run setup.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FirstRunSetup.IsRequiredAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FirstRunSetup.PrepareAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FirstRunSetup.VerifyCodeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FirstRunSetup.CompleteAsync(Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.GoogleSignInService">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IGoogleSignIn"/>. The discovery document and the signing keys are read from
@@ -3460,18 +3525,24 @@
         <member name="T:Storeasy.Infrastructure.Services.RegistrationModes">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IRegistrationModes"/>: one <see cref="T:Storeasy.Domain.SystemSetting"/> row read per call (registration and the
-            public settings are rare and rate limited), the configuration when there is none or it does not parse.
+            public settings are rare and rate limited), the configuration when there is none or it does not parse. A single team
+            instance (<see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/>) is always <see cref="F:Storeasy.Domain.Enums.RegistrationMode.InviteOnly"/>: people join the
+            team by invitation, whatever is configured or saved.
             </summary>
             <param name="settingRepository"></param>
             <param name="registrationOptions"></param>
+            <param name="deploymentOptions"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.SystemSetting},Storeasy.Application.Utils.Models.RegistrationOptions)">
+        <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.SystemSetting},Storeasy.Application.Utils.Models.RegistrationOptions,Storeasy.Application.Utils.Models.DeploymentOptions)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IRegistrationModes"/>: one <see cref="T:Storeasy.Domain.SystemSetting"/> row read per call (registration and the
-            public settings are rare and rate limited), the configuration when there is none or it does not parse.
+            public settings are rare and rate limited), the configuration when there is none or it does not parse. A single team
+            instance (<see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/>) is always <see cref="F:Storeasy.Domain.Enums.RegistrationMode.InviteOnly"/>: people join the
+            team by invitation, whatever is configured or saved.
             </summary>
             <param name="settingRepository"></param>
             <param name="registrationOptions"></param>
+            <param name="deploymentOptions"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.GetAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -3645,6 +3716,79 @@
             <summary>
             Generates a new stamp and persists it to the user row.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.SetupCodeStore">
+            <summary>
+            Holds the first run setup code of a single team instance for the life of the process (singleton). The generated
+            code is also put into Redis with "set if missing", so every instance that starts while the database has no user
+            shares the first instance's code; this instance's own copy is the fallback while Redis is unreachable. A configured
+            <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.SetupCode"/> replaces both and is never written to the log.
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="bootstrapOptions"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Utils.Helpers.CacheKeys,Storeasy.Application.Utils.Models.BootstrapOptions,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Services.SetupCodeStore})">
+            <summary>
+            Holds the first run setup code of a single team instance for the life of the process (singleton). The generated
+            code is also put into Redis with "set if missing", so every instance that starts while the database has no user
+            shares the first instance's code; this instance's own copy is the fallback while Redis is unreachable. A configured
+            <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.SetupCode"/> replaces both and is never written to the log.
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="bootstrapOptions"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.SetupCodeStore._alphabet">
+            <summary>
+            Letters and digits of a generated code: no 0/O and 1/I/L, so a code copied by hand from a log is not misread.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.SetupCodeStore.Completed">
+            <summary>
+            True once a user is known to exist: the setup never runs again in this process.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.PrepareAsync">
+            <summary>
+            Generates the code (or takes the configured one) and writes it to the log once. Does nothing when a code is
+            already held or the setup was completed.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.VerifyAsync(System.String)">
+            <summary>
+            Compares <paramref name="code"/> with the configured code, or with the shared and the local generated code, in
+            constant time. Case, spaces and dashes are ignored.
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.CompleteAsync">
+            <summary>
+            Forgets the code (here and in Redis) for good: a user exists.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.MarkCompleted">
+            <summary>
+            Marks the setup as completed without touching Redis (a user was found in the database).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.Normalize(System.String)">
+            <summary>
+            Normalizes a code for the comparison: upper case, without spaces and dashes.
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SetupCodeStore.Generate">
+            <summary>
+            A new random code, <c>XXXX-XXXX-XXXX</c>.
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.StoreContentService">
             <summary>

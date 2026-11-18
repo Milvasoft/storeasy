@@ -87,34 +87,12 @@ public class DatabaseMigrator(IServiceProvider serviceProvider)
     /// <returns></returns>
     public async Task<string> SeedDefaultDataAsync(string rootPass = null, CancellationToken cancellationToken = default)
     {
-        var superAdminPermission = new Permission
-        {
-            Id = 1,
-            Name = nameof(PermissionCatalog.App.SuperAdmin),
-            Description = "Provides access to the entire system.",
-            NormalizedName = nameof(PermissionCatalog.App.SuperAdmin).MilvaNormalize(),
-            PermissionGroup = nameof(PermissionCatalog.App),
-            PermissionGroupDescription = "Application-wide permissions."
-        };
+        var superAdminPermission = CreateSuperAdminPermission();
 
         await _dbContext.Permissions.AddAsync(superAdminPermission, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        var superAdminRole = new Role
-        {
-            Id = 1,
-            Name = nameof(PermissionCatalog.App.SuperAdmin),
-            CreationDate = DateTime.UtcNow,
-            CreatorUserName = GlobalConstant.SystemUsername,
-            RolePermissionRelations =
-            [
-                new()
-                {
-                    PermissionId = superAdminPermission.Id,
-                    RoleId = 1
-                }
-            ]
-        };
+        var superAdminRole = CreateSuperAdminRole(superAdminPermission.Id);
 
         await _dbContext.Roles.AddAsync(superAdminRole, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -162,6 +140,130 @@ public class DatabaseMigrator(IServiceProvider serviceProvider)
 
         return rootPass;
     }
+
+    /// <summary>
+    /// Key of the session level advisory lock that serializes <see cref="EnsureStaticDataAsync"/> across instances.
+    /// </summary>
+    public const long StaticDataLockKey = 0x53544F5245415330; // "STOREAS0"
+
+    /// <summary>
+    /// Prepares a database for a single team instance on startup, without a developer step and without the root user:
+    /// the SuperAdmin permission and role, the seed protection triggers, the languages and the permissions of the
+    /// catalog, then marks the database initialized like <see cref="InitDatabaseAsync"/> does. Every part is created
+    /// only when it is missing, so it is idempotent and safe on a database that <c>database/init</c> initialized.
+    /// Instances that start together wait for each other on a PostgreSQL advisory lock held on this context's
+    /// connection. Returns true when the database was initialized by this call.
+    /// </summary>
+    /// <param name="permissionManager"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<bool> EnsureStaticDataAsync(IPermissionManager permissionManager, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.Database.OpenConnectionAsync(cancellationToken);
+
+        try
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync("SELECT pg_advisory_lock({0})", [StaticDataLockKey], cancellationToken);
+
+            try
+            {
+                return await EnsureStaticDataLockedAsync(permissionManager, cancellationToken);
+            }
+            finally
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync("SELECT pg_advisory_unlock({0})", [StaticDataLockKey], CancellationToken.None);
+            }
+        }
+        finally
+        {
+            await _dbContext.Database.CloseConnectionAsync();
+        }
+    }
+
+    private async Task<bool> EnsureStaticDataLockedAsync(IPermissionManager permissionManager, CancellationToken cancellationToken)
+    {
+        var initialMigrationSql = await File.ReadAllTextAsync(Path.Combine(GlobalConstant.SqlFilesPath, "initial_migration_fetch.sql"), cancellationToken);
+
+        var initialMigration = await _dbContext.Database.SqlQueryRaw<EfMigrationHistory>(initialMigrationSql).FirstOrDefaultAsync(cancellationToken)
+                               ?? throw new InvalidOperationException("The initial migration is not applied; the database cannot be prepared.");
+
+        var migrationLog = await _dbContext.MigrationHistory.AsNoTracking().FirstOrDefaultAsync(m => m.MigrationId == initialMigration.MigrationId, cancellationToken);
+
+        if (migrationLog?.MigrationCompleted ?? false)
+        {
+            // Initialized before (by an earlier start or database/init): only the catalog may have new permissions.
+            await MigratePermissionsAsync(permissionManager, cancellationToken);
+
+            return false;
+        }
+
+        // The seed rows have fixed ids below 21, so they go in before the triggers that protect that band.
+        if (!await _dbContext.Permissions.IgnoreQueryFilters().AnyAsync(p => p.Id == 1, cancellationToken))
+        {
+            await _dbContext.Permissions.AddAsync(CreateSuperAdminPermission(), cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        if (!await _dbContext.Roles.IgnoreQueryFilters().AnyAsync(r => r.Id == 1, cancellationToken))
+        {
+            await _dbContext.Roles.AddAsync(CreateSuperAdminRole(1), cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var triggersExist = await _dbContext.Database.SqlQueryRaw<bool>("SELECT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'prevent_seed_modification_trigger') AS \"Value\"")
+                                                     .SingleAsync(cancellationToken);
+
+        if (!triggersExist)
+            await CreateTriggersAsync(cancellationToken);
+
+        await LanguageSeeder.SeedAsync(_dbContext, cancellationToken);
+
+        await MigratePermissionsAsync(permissionManager, cancellationToken);
+
+        if (migrationLog is null)
+        {
+            await _dbContext.MigrationHistory.AddAsync(new MigrationHistory
+            {
+                MigrationId = initialMigration.MigrationId,
+                MigrationCompleted = true
+            }, cancellationToken);
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            await _dbContext.MigrationHistory.Where(m => m.MigrationId == migrationLog.MigrationId)
+                                             .ExecuteUpdateAsync(i => i.SetProperty(x => x.MigrationCompleted, true), cancellationToken: cancellationToken);
+        }
+
+        return true;
+    }
+
+    private static Permission CreateSuperAdminPermission() => new()
+    {
+        Id = 1,
+        Name = nameof(PermissionCatalog.App.SuperAdmin),
+        Description = "Provides access to the entire system.",
+        NormalizedName = nameof(PermissionCatalog.App.SuperAdmin).MilvaNormalize(),
+        PermissionGroup = nameof(PermissionCatalog.App),
+        PermissionGroupDescription = "Application-wide permissions."
+    };
+
+    private static Role CreateSuperAdminRole(int permissionId) => new()
+    {
+        Id = 1,
+        Name = nameof(PermissionCatalog.App.SuperAdmin),
+        CreationDate = DateTime.UtcNow,
+        CreatorUserName = GlobalConstant.SystemUsername,
+        RolePermissionRelations =
+        [
+            new()
+            {
+                PermissionId = permissionId,
+                RoleId = 1
+            }
+        ]
+    };
 
     /// <summary>
     /// Seeds fake data.

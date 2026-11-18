@@ -2,21 +2,27 @@
 using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
 using Milvasoft.Interception.Interceptors.Logging;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Organizations;
 
 namespace Storeasy.Application.Features.Organizations.CreateOrganization;
 
 /// <summary>
-/// Handles organization creation. The organization and the owner membership are written together.
+/// Handles organization creation. The organization and the owner membership are written together. A single team
+/// instance has exactly one organization: once it exists, another one is refused with
+/// <see cref="MessageKey.SingleTeamOrganizationExists"/>.
 /// </summary>
 /// <param name="OrganizationRepository"></param>
 /// <param name="CurrentUser"></param>
 /// <param name="AuditTrail"></param>
+/// <param name="DeploymentOptions"></param>
 [Log]
 public record CreateOrganizationCommandHandler(IStoreasyRepositoryBase<Organization> OrganizationRepository,
                                                ICurrentUser CurrentUser,
-                                               IAuditTrail AuditTrail) : IInterceptable, ICommandHandler<CreateOrganizationCommand, int>
+                                               IAuditTrail AuditTrail,
+                                               DeploymentOptions DeploymentOptions) : IInterceptable, ICommandHandler<CreateOrganizationCommand, int>
 {
+    private readonly DeploymentOptions _deploymentOptions = DeploymentOptions;
     private readonly IStoreasyRepositoryBase<Organization> _organizationRepository = OrganizationRepository;
     private readonly ICurrentUser _currentUser = CurrentUser;
     private readonly IAuditTrail _auditTrail = AuditTrail;
@@ -25,6 +31,14 @@ public record CreateOrganizationCommandHandler(IStoreasyRepositoryBase<Organizat
     public async Task<Response<int>> Handle(CreateOrganizationCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredId();
+
+        if (_deploymentOptions.IsSingleTeam)
+        {
+            var existing = await _organizationRepository.GetFirstOrDefaultAsync(o => o.Id > 0, projection: o => (int?)o.Id, cancellationToken: cancellationToken);
+
+            if (existing.HasValue)
+                return Response<int>.Error(0, MessageKey.SingleTeamOrganizationExists);
+        }
 
         var slug = OrgRoleRules.ToSlug(string.IsNullOrWhiteSpace(request.Slug) ? request.Name : request.Slug);
 

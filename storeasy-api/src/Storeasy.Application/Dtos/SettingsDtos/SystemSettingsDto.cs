@@ -19,4 +19,9 @@ public class SystemSettingsDto
     /// The configured registration mode (what applies when the saved one is removed).
     /// </summary>
     public RegistrationMode ConfiguredRegistrationMode { get; set; }
+
+    /// <summary>
+    /// Deployment mode of the instance (<c>Storeasy:Mode</c>); in single team mode the registration mode is fixed.
+    /// </summary>
+    public DeploymentMode Mode { get; set; }
 }
