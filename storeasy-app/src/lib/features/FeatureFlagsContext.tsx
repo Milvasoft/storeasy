@@ -21,15 +21,15 @@ export type FeatureFlagKey =
 export type FeatureFlags = Record<FeatureFlagKey, boolean>
 
 export const DEFAULT_FLAGS: FeatureFlags = {
-  Compliance: false,
+  Compliance: true,
   Reviews: false,
   Studio: false,
   Intake: false,
   Webhooks: false,
-  Rules: false,
+  Rules: true,
   Developer: false,
   Notifications: false,
-  Plans: false,
+  Plans: true,
   OrganizationRetention: false,
   AccountSessions: false,
   Platform: false,
