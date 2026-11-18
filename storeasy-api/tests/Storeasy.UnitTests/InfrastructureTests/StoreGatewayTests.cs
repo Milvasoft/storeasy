@@ -78,7 +78,7 @@ public class StoreGatewayTests
     }
 
     [Fact]
-    public async Task Microsoft_ShouldBeRejectedAsNotSupportedWithoutANetworkCall()
+    public async Task Microsoft_WithMalformedSecret_ShouldBeRejectedWithoutANetworkCall()
     {
         var (gateway, requests) = CreateGateway(_ => throw new InvalidOperationException("no network"));
 
@@ -86,7 +86,7 @@ public class StoreGatewayTests
         var verification = await gateway.VerifyAsync(StoreKind.Microsoft, "{}", null, TestContext.Current.CancellationToken);
 
         inspection.IsValid.Should().BeFalse();
-        inspection.ErrorKey.Should().Be(Storeasy.Application.Utils.Constants.MessageKey.StoreNotSupported);
+        inspection.ErrorKey.Should().Be(Storeasy.Application.Utils.Constants.MessageKey.MsSecretInvalid);
         verification.Status.Should().Be(ConnectionStatus.Rejected);
         requests.Should().BeEmpty();
     }

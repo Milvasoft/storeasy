@@ -32,6 +32,8 @@ public static class TableNames
     public const string SavedAnswers = nameof(SavedAnswers);
     public const string ChangePlans = nameof(ChangePlans);
     public const string AssistedSteps = nameof(AssistedSteps);
+    public const string ProductGroups = nameof(ProductGroups);
+    public const string StoreProducts = nameof(StoreProducts);
     public const string MockupTemplates = nameof(MockupTemplates);
     public const string MockupSlots = nameof(MockupSlots);
     public const string MockupCaptions = nameof(MockupCaptions);
@@ -52,5 +54,11 @@ public static class TableNames
     public const string BetaAppLocalizations = nameof(BetaAppLocalizations);
     public const string RuleSources = nameof(RuleSources);
     public const string RuleProposals = nameof(RuleProposals);
+    public const string MsProducts = nameof(MsProducts);
+    public const string MsSubmissions = nameof(MsSubmissions);
+    public const string MsFlights = nameof(MsFlights);
+    public const string MsFlightGroups = nameof(MsFlightGroups);
+    public const string MsAddons = nameof(MsAddons);
+    public const string MsInstallerPackages = nameof(MsInstallerPackages);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

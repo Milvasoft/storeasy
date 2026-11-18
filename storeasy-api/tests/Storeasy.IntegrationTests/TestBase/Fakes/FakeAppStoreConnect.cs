@@ -157,6 +157,9 @@ public sealed partial class FakeAppStoreConnect
     {
         Match m;
 
+        if (method == "GET" && (m = Path("^/v1/apps/([^/]+)$", path)).Success && query["fields[apps]"]?.Contains("subscriptionStatusUrl") == true)
+            return Apps.TryGetValue(m.Groups[1].Value, out var moneyApp) ? Ok(new JsonObject { ["data"] = Resource("apps", m.Groups[1].Value, moneyApp) }) : NotFound();
+
         if (method == "GET" && (m = Path("^/v1/apps/([^/]+)$", path)).Success)
             return Apps.TryGetValue(m.Groups[1].Value, out var app) ? Ok(Resource("apps", m.Groups[1].Value, app)) : NotFound();
 

@@ -471,7 +471,8 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.DeadlineReminderJob">
             <summary>
-            Daily: TestFlight build expiry reminders (14, 7, 1 days) and compliance deadline reminders (30, 7, 1 days).
+            Daily: TestFlight build expiry reminders (14, 7, 1 days), compliance deadline reminders (30, 7, 1 days) and Microsoft
+            Entra client secret expiry reminders (30, 7, 1 days).
             </summary>
             <param name="scheduleConfig"></param>
             <param name="scopeFactory"></param>
@@ -479,7 +480,8 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.DeadlineReminderJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
             <summary>
-            Daily: TestFlight build expiry reminders (14, 7, 1 days) and compliance deadline reminders (30, 7, 1 days).
+            Daily: TestFlight build expiry reminders (14, 7, 1 days), compliance deadline reminders (30, 7, 1 days) and Microsoft
+            Entra client secret expiry reminders (30, 7, 1 days).
             </summary>
             <param name="scheduleConfig"></param>
             <param name="scopeFactory"></param>
@@ -819,8 +821,9 @@
             <param name="readinessService"></param>
             <param name="rulesCatalog"></param>
             <param name="notificationDispatcher"></param>
+            <param name="msConnectionExpiryReader"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.DeadlineReminder},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IReadinessService,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.INotificationDispatcher)">
+        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.DeadlineReminder},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IReadinessService,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IMsConnectionExpiryReader)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IDeadlineNotifier"/>. Each run sends, per subject, only the nearest threshold not sent yet (a build
             first seen 5 days before expiry gets the 7 day reminder, not the 14 day one). The sent reminders are written before
@@ -833,6 +836,7 @@
             <param name="readinessService"></param>
             <param name="rulesCatalog"></param>
             <param name="notificationDispatcher"></param>
+            <param name="msConnectionExpiryReader"></param>
         </member>
         <member name="F:Storeasy.Infrastructure.Notifications.DeadlineNotifier.BuildThresholds">
             <summary>
@@ -844,10 +848,18 @@
             Compliance deadline thresholds in days.
             </summary>
         </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.DeadlineNotifier.MsSecretThresholds">
+            <summary>
+            Microsoft Entra client secret expiry thresholds in days (catalog rule microsoft.api-access.client-secret-lifetime).
+            </summary>
+        </member>
         <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.NotifyBuildExpiryAsync(System.DateTime,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.NotifyComplianceDeadlinesAsync(System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.DeadlineNotifier.NotifyMsSecretExpiryAsync(System.DateTime,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Notifications.DnsHostResolver">
@@ -1668,8 +1680,9 @@
             <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension})">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>. Approval is a single conditional UPDATE (pending and not expired), so two
             members approving at once queue one job; the store is read again before it and a changed fingerprint refuses the
@@ -1686,6 +1699,7 @@
             <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.SaveAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,Storeasy.Application.Utils.Content.PlanDraft,System.Boolean,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -1924,6 +1938,153 @@
         <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.ReleaseAsync(System.Int32,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationReadiness">
+            <summary>
+            Readiness items of the products an app sells (docs/urun-plani.md 11.1 and 11.2): on the App Store every subscription
+            and In-App Purchase needs a review screenshot and a localization, and the app's first ones cannot be submitted on
+            their own (they go to review with the version); on Play a subscription without an active base plan cannot be bought
+            and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
+            read becomes one unknown item and never fails the check.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="stepRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Readiness items of the products an app sells (docs/urun-plani.md 11.1 and 11.2): on the App Store every subscription
+            and In-App Purchase needs a review screenshot and a localization, and the app's first ones cannot be submitted on
+            their own (they go to review with the version); on Play a subscription without an active base plan cannot be bought
+            and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
+            read becomes one unknown item and never fails the check.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="stepRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.EvaluateAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IMonetizationService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>. Planning reads only the touched products, asks the store for equalized price
+            points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
+            apply job are the same as for content plans.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="groupRepository"></param>
+            <param name="productRepository"></param>
+            <param name="planRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.ProductGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.StoreProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IStoreJobQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IMonetizationService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>. Planning reads only the touched products, asks the store for equalized price
+            points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
+            apply job are the same as for content plans.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="groupRepository"></param>
+            <param name="productRepository"></param>
+            <param name="planRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreAppContext,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.PlanAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.ChangePlanKind,System.Collections.Generic.List{Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto},System.Boolean,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ApproveAsync(System.Int32,System.Int64,System.String,System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.ChangePlanKind},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.SaveAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Utils.Monetization.MonetizationSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.QueueSyncAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ResolvePricePointsAsync(Storeasy.Application.Interfaces.IMonetizationGateway,Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationSnapshot,System.Collections.Generic.List{Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto},System.Threading.CancellationToken)">
+            <summary>
+            Equalized price points of the requested base prices (subscriptions) and the price points of the other requested
+            territory prices, for the diff. Store calls only, no database.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.Upsert``1(System.Collections.Generic.List{``0},System.Collections.Generic.List{``0},System.Func{``0,System.String},System.Action{``0,``0})">
+            <summary>
+            Matches stored rows to a read by the store's id: existing rows to update, new rows to add, ids no longer in the
+            store to delete.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationStoreAccess">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Reads the record's products live; failures come back as a message key.
+            </summary>
+            <param name="app"></param>
+            <param name="parts"></param>
+            <param name="productIds"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.OpenAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <summary>
+            The store's gateway and a target with the connection secret opened (the decrypted bytes are cleared at once).
+            </summary>
+            <param name="app"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.Failure(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreCallException)">
+            <summary>
+            Logs a failed store call (redacted) and maps it to a message key and a redacted detail.
+            </summary>
+            <param name="app"></param>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.NotificationService">
             <summary>
             Provides functionality for managing and delivering notifications to users.
@@ -2046,8 +2207,9 @@
             <param name="rulesCatalog"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
+            <param name="contributors"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IRulesCatalog,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IRulesCatalog,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IReadinessContributor})">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IReadinessService"/>.
             </summary>
@@ -2058,6 +2220,7 @@
             <param name="rulesCatalog"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
+            <param name="contributors"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ReadinessService.CheckAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -2848,8 +3011,9 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: writes an approved plan to its store through the store's
             <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
@@ -2865,6 +3029,7 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.Kind">
             <inheritdoc/>
@@ -3062,6 +3227,11 @@
         <member name="P:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.AppPath">
             <summary>
             Path of the app (<c>/applications/{package}</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.PackageName">
+            <summary>
+            Package name of the app.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.OpenEditAsync(System.Threading.CancellationToken)">
@@ -3325,6 +3495,1091 @@
         <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Range">
             <summary><c>Range</c> header (resumable upload progress).</summary>
         </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.AuthenticodeProbe">
+            <summary>
+            Structural Authenticode check of an installer, read once as a stream (nothing is stored):
+            <list type="bullet">
+            <item>EXE (PE): the security data directory must point at a <c>WIN_CERTIFICATE</c> of revision 2.0 and type
+            PKCS#7 signed data.</item>
+            <item>MSI (compound file): the <c>\u0005DigitalSignature</c> stream must exist.</item>
+            </list>
+            This proves a signature is present, not that it is valid or trusted; Microsoft validates the chain at certification.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.AuthenticodeProbe.InspectAsync(System.IO.Stream,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Reads <paramref name="stream"/> (at most <paramref name="maxBytes"/>) and says whether it carries a signature, with
+            a short note.
+            </summary>
+            <param name="stream"></param>
+            <param name="maxBytes"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.DownloadGuard">
+            <summary>
+            SSRF guard of user typed download addresses (MSI/EXE installer URLs): the host must resolve only to public addresses,
+            never to loopback, private, link local, carrier grade NAT or unique local ones.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.DownloadGuard.EnsurePublicAsync(System.Uri,System.Threading.CancellationToken)">
+            <summary>
+            Throws a permanent <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/> unless every address of the host of <paramref name="uri"/> is
+            public.
+            </summary>
+            <param name="uri"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.DownloadGuard.IsPublic(System.Net.IPAddress)">
+            <summary>
+            Whether <paramref name="address"/> is a public unicast address.
+            </summary>
+            <param name="address"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway">
+            <summary>
+            The Microsoft Store side of the shared content engine (<see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>), used by change plans of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>:
+            <list type="bullet">
+            <item>Read: the plan's version id carries the encoded read (<see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>); the snapshot holds
+            the fingerprint of that content under <see cref="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey"/>, so the shared approval
+            compares it with the fingerprint the plan was made on. Without an encoded read the snapshot carries the listing
+            languages only.</item>
+            <item>Apply: the change set's Microsoft part is written by <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier"/>, which plans again and refuses a
+            changed fingerprint.</item>
+            </list>
+            </summary>
+            <param name="microsoftStoreClient"></param>
+            <param name="applier"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.#ctor(Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier)">
+            <summary>
+            The Microsoft Store side of the shared content engine (<see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>), used by change plans of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>:
+            <list type="bullet">
+            <item>Read: the plan's version id carries the encoded read (<see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>); the snapshot holds
+            the fingerprint of that content under <see cref="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey"/>, so the shared approval
+            compares it with the fingerprint the plan was made on. Without an encoded read the snapshot carries the listing
+            languages only.</item>
+            <item>Apply: the change set's Microsoft part is written by <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier"/>, which plans again and refuses a
+            changed fingerprint.</item>
+            </list>
+            </summary>
+            <param name="microsoftStoreClient"></param>
+            <param name="applier"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials">
+            <summary>
+            Microsoft Entra application credentials of a Partner Center account.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials.TenantId">
+            <summary>
+            Entra tenant id (GUID).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials.ClientId">
+            <summary>
+            Application (client) id (GUID).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials.ClientSecret">
+            <summary>
+            Client secret value (not the secret id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials.SellerId">
+            <summary>
+            Partner Center seller id, sent as <c>X-Seller-Account-Id</c> to the MSI/EXE API.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentialParser">
+            <summary>
+            Parses the pasted Microsoft secret. Returns null and an error key instead of throwing.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentialParser.ClientSecretMaxLength">
+            <summary>
+            Longest client secret accepted.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentialParser.GuidRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a hexadecimal digit exactly 8 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 12 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentialParser.SellerIdRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[0-9]{1,20}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9] atomically at least 1 and at most 20 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentialParser.Parse(System.String,System.String@)">
+            <summary>
+            Parses a Microsoft secret <c>{"tenantId","clientId","clientSecret","sellerId"}</c>.
+            </summary>
+            <param name="json"></param>
+            <param name="errorKey"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/> over the named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.HttpClientName"/> (tests replace its handler
+            with a fake Microsoft). Tokens come from the Entra v2.0 client credentials endpoint, one per API scope, cached per
+            connection in <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache"/>. Every call is retried on 429 (honouring Retry-After), 5xx and network
+            failures with exponential backoff; a 401 drops the cached token and tries once more. Log lines carry the method, the
+            path without its query (SAS signatures live there) and the status; error texts are redacted.
+            </summary>
+            <param name="HttpClientFactory"></param>
+            <param name="TokenCache"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/> over the named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.HttpClientName"/> (tests replace its handler
+            with a fake Microsoft). Tokens come from the Entra v2.0 client credentials endpoint, one per API scope, cached per
+            connection in <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache"/>. Every call is retried on 429 (honouring Retry-After), 5xx and network
+            failures with exponential backoff; a 401 drops the cached token and tries once more. Log lines carry the method, the
+            path without its query (SAS signatures live there) and the status; error texts are redacted.
+            </summary>
+            <param name="HttpClientFactory"></param>
+            <param name="TokenCache"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.HttpClientName">
+            <summary>
+            Name of the HTTP client used for Microsoft calls, blob uploads and downloads.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.VerifyAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ListApplicationsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetApplicationAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CreateSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.UpdateSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CommitSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetSubmissionStatusAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.DeleteSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetRolloutAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ChangeRolloutAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,Storeasy.Domain.Enums.MsRolloutAction,System.Nullable{System.Double},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ListFlightsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CreateFlightAsync(System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ListAddonIdsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetAddonAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CreateAddonAsync(System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.UploadSubmissionFilesAsync(System.String,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.DownloadAsync``1(System.String,System.Boolean,System.Func{System.IO.Stream,System.Nullable{System.Int64},System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetProductStatusAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetInstallerPackagesAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ReplaceInstallerPackagesAsync(System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsInstallerPackageRecord},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CommitInstallerPackagesAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetProductMetadataAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.UpdateProductMetadataAsync(System.String,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.SubmitProductAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetProductSubmissionStatusAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.ListAllAsync(Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Follows <c>@nextLink</c> pages of a list and returns the items of <c>value</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.SendAsync(Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.Api,Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials,System.Net.Http.HttpMethod,System.String,System.Text.Json.Nodes.JsonNode,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Calls one API with a bearer token of its scope and parses the answer. The MSI/EXE API wraps answers in
+            <c>{ isSuccess, errors, responseData }</c>: with <paramref name="unwrap"/> a false <c>isSuccess</c> throws and
+            <c>responseData</c> is returned.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.SendWithRetryAsync(System.Func{System.Net.Http.HttpRequestMessage},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Sends the request <paramref name="build"/> makes, again on 429, 5xx and network failures while attempts remain.
+            Returns a successful response (the caller disposes it); any other answer becomes a permanent
+            <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.DescribeError(System.String)">
+            <summary>
+            Extracts the readable part of a Microsoft error body: Entra (<c>error_description</c>), MSIX API (<c>message</c>,
+            <c>error.message</c>) or MSI/EXE API (<c>errors[].message</c>); falls back to the raw text.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreServiceCollectionExtensions">
+            <summary>
+            Registers the Microsoft Store engine: options, the token cache, the typed client with its named HTTP client, the
+            expiry reader and the store job handlers.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreServiceCollectionExtensions.AddMicrosoftStoreServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the Microsoft Store services (configuration section <see cref="F:Storeasy.Application.Utils.Models.MicrosoftStoreOptions.SectionName"/>).
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache">
+            <summary>
+            Caches Microsoft Entra access tokens per connection and scope, in process memory only (singleton). The key is a hash of
+            the tenant, client, secret and scope, so a rotated secret gets a new token and no secret is kept as a key. A token is
+            reused until <see cref="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.RefreshMargin"/> before it expires; concurrent callers of one key wait for one request.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.RefreshMargin">
+            <summary>
+            How long before its expiry a token is replaced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.Count">
+            <summary>
+            Number of cached tokens (tests).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.Key(Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials,System.String)">
+            <summary>
+            Cache key of a connection and scope.
+            </summary>
+            <param name="credentials"></param>
+            <param name="scope"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.GetAsync(System.String,System.DateTimeOffset,System.Func{System.Threading.Tasks.Task{System.ValueTuple{System.String,System.DateTimeOffset}}},System.Threading.CancellationToken)">
+            <summary>
+            Returns the cached token of <paramref name="key"/>, or asks <paramref name="acquire"/> for a new one.
+            </summary>
+            <param name="key"></param>
+            <param name="now"></param>
+            <param name="acquire">Gets a new token and its expiry.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftTokenCache.Remove(System.String)">
+            <summary>
+            Forgets the token of <paramref name="key"/> (after the API refused it).
+            </summary>
+            <param name="key"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier">
+            <summary>
+            Writes one Microsoft Store change of an approved change plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>), called by the
+            Microsoft content gateway inside the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. It reads the store and plans again;
+            when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits go into
+            the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files uploaded
+            as one ZIP to the SAS address of the draft; the draft is sent to certification only by <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>.
+            A 409 marks the product, add-on or submission as Partner Center only and records the assisted step.
+            </summary>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="flightRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="fileStorage"></param>
+            <param name="rulesCatalog"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider)">
+            <summary>
+            Writes one Microsoft Store change of an approved change plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>), called by the
+            Microsoft content gateway inside the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. It reads the store and plans again;
+            when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits go into
+            the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files uploaded
+            as one ZIP to the SAS address of the draft; the draft is sent to certification only by <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>.
+            A 409 marks the product, add-on or submission as Partner Center only and records the assisted step.
+            </summary>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="flightRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="fileStorage"></param>
+            <param name="rulesCatalog"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.ApplyAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,System.String,Storeasy.Application.Dtos.MsStoreDtos.MsPlannedChange,System.Threading.CancellationToken)">
+            <summary>
+            Plans <paramref name="planned"/> again on fresh content and writes it. Returns one line per write.
+            </summary>
+            <param name="context"></param>
+            <param name="secretJson"></param>
+            <param name="productId"></param>
+            <param name="planned"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.EditSubmissionAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Application.Utils.MsStore.MsChangeEvaluation,System.Threading.CancellationToken)">
+            <summary>
+            Edits the pending draft (or a new one): listings, images, packages, pricing (MSIX) and add-on content.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.ApplyContentAsync(System.Int32,System.Text.Json.Nodes.JsonObject,Storeasy.Domain.Enums.MsSubmissionTarget,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto)">
+            <summary>
+            Writes the change into the submission document and returns the assets to upload (ZIP entry name, object key).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.SaveDraftAsync(System.Int32,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <summary>
+            Records the draft as storeasy's own, with the fingerprint of what was written, and makes it the owner's pending
+            submission.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.CallAsync(System.Func{System.Threading.Tasks.Task{System.Text.Json.Nodes.JsonObject}},Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,System.String)">
+            <summary>
+            Runs one write; a 409 records the Partner Center rule that caused it and fails the job permanently.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsCheckInstallerJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsCheckInstaller"/> job: downloads the installers of an MSI/EXE product (or the given
+            addresses) and records their Authenticode check. Only the product's own package rows are updated.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsCheckInstallerJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsCheckInstaller"/> job: downloads the installers of an MSI/EXE product (or the given
+            addresses) and records their Authenticode check. Only the product's own package rows are updated.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsCheckInstallerJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsCheckInstallerJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsConnectionExpiryReader">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMsConnectionExpiryReader"/> over the connection rows.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsConnectionExpiryReader.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IMsConnectionExpiryReader"/> over the connection rows.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsConnectionExpiryReader.GetExpiringAsync(System.DateTime,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsJobSupport">
+            <summary>
+            File work of the Microsoft write jobs: the ZIP archive of a submission's new files, built from storeasy's uploaded
+            assets, and the Authenticode check of MSI/EXE installers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Microsoft.MsJobSupport.AssetUrlLifetime">
+            <summary>
+            Lifetime of the storage download addresses the job reads assets with.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsJobSupport.BuildZipAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IFileStorage,System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.String,System.String}},System.Threading.CancellationToken)">
+            <summary>
+            Builds the submission ZIP in a temporary file: every asset is downloaded from storage and stored under its entry
+            name. The caller deletes the returned file.
+            </summary>
+            <param name="client"></param>
+            <param name="storage"></param>
+            <param name="entries">Entry name and object key of each asset.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsJobSupport.CheckInstallerAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.String,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Downloads an installer from its own address (public HTTPS hosts only) and checks its Authenticode signature.
+            A download failure is <see cref="F:Storeasy.Domain.Enums.MsSignatureStatus.Unreachable"/>.
+            </summary>
+            <param name="client"></param>
+            <param name="url"></param>
+            <param name="maxBytes"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsJobSupport.Ref(Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.String,System.String,System.String)">
+            <summary>
+            The submission address of an owner with a submission id.
+            </summary>
+            <param name="target"></param>
+            <param name="productId"></param>
+            <param name="flightId"></param>
+            <param name="addonStoreId"></param>
+            <param name="submissionId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsRowWriter">
+            <summary>
+            Row writes of the Microsoft write jobs: storeasy's record of a submission it wrote, the pending submission of its owner,
+            and the marks of the Partner Center rules.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsRowWriter.UpsertSubmissionAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},System.Int32,System.Int32,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.Action{Storeasy.Domain.MsStore.MsSubmission},System.Threading.CancellationToken)">
+            <summary>
+            Saves what storeasy knows of a submission after writing or reading it: status (with history), pending flag and,
+            when storeasy wrote the content, its fingerprint.
+            </summary>
+            <param name="submissionRepository"></param>
+            <param name="organizationId"></param>
+            <param name="storeAppId"></param>
+            <param name="target"></param>
+            <param name="submissionId"></param>
+            <param name="change">Applies the new values to the row.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsRowWriter.MarkModifiedOutsideApiAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},System.Int32,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Records that a submission storeasy created was changed in Partner Center (the API refused it or its content changed).
+            </summary>
+            <param name="submissionRepository"></param>
+            <param name="storeAppId"></param>
+            <param name="target"></param>
+            <param name="submissionId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsRowWriter.Observe(Storeasy.Domain.MsStore.MsSubmission,Storeasy.Domain.Enums.MsSubmissionStatus,Storeasy.Domain.JsonModels.MsStatusDetails,System.DateTime)">
+            <summary>
+            Applies a status read to a row.
+            </summary>
+            <param name="row"></param>
+            <param name="status"></param>
+            <param name="details"></param>
+            <param name="now"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/> job (queued only after the typed confirmation and
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.SubmitForReview"/>). MSIX: reads the draft again, refuses when its content is no longer what
+            storeasy wrote (changed in Partner Center), commits it and polls the status until the commit is taken in. MSI/EXE:
+            requires a ready draft and signed installers, submits and reads the publishing status. Runs once (no retry): a commit
+            is not repeated blindly.
+            </summary>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/> job (queued only after the typed confirmation and
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.SubmitForReview"/>). MSIX: reads the draft again, refuses when its content is no longer what
+            storeasy wrote (changed in Partner Center), commits it and polls the status until the commit is taken in. MSI/EXE:
+            requires a ready draft and signed installers, submits and reads the publishing status. Runs once (no retry): a commit
+            is not repeated blindly.
+            </summary>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
+            <list type="bullet">
+            <item>MSIX apps: every app the Entra application sees (<c>GET applications</c>), each with its app, flight and add-on
+            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app.</item>
+            <item>MSI/EXE products: no list API, so the products added by id are read one by one (readiness, ongoing submission,
+            installers). A product the store refuses that was never confirmed is removed with its empty app.</item>
+            </list>
+            Submission rows keep a status history; a submission storeasy created whose content changed since storeasy wrote it is
+            flagged <see cref="P:Storeasy.Domain.MsStore.MsSubmission.ModifiedOutsideApi"/>. Packages and installers become builds. Writes are bulk.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="flightRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="timeProvider"></param>
+            <param name="stepRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep})">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
+            <list type="bullet">
+            <item>MSIX apps: every app the Entra application sees (<c>GET applications</c>), each with its app, flight and add-on
+            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app.</item>
+            <item>MSI/EXE products: no list API, so the products added by id are read one by one (readiness, ongoing submission,
+            installers). A product the store refuses that was never confirmed is removed with its empty app.</item>
+            </list>
+            Submission rows keep a status history; a submission storeasy created whose content changed since storeasy wrote it is
+            flagged <see cref="P:Storeasy.Domain.MsStore.MsSubmission.ModifiedOutsideApi"/>. Packages and installers become builds. Writes are bulk.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="productRepository"></param>
+            <param name="submissionRepository"></param>
+            <param name="flightRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="timeProvider"></param>
+            <param name="stepRepository"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.SaveProductsAsync(System.Int32,System.Int32,System.Collections.Generic.List{Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsProduct},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsProduct},System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Updates the known records and product rows, adds the new MSIX apps (app, record and product row in one insert) and
+            removes never confirmed MSI/EXE products the store refused. Returns the store record id of every snapshot.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.AssistedStepsOf(System.Int32,Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot)">
+            <summary>
+            The Partner Center tasks a product read shows: first submission, Pricing Version 2, mandatory updates, refused
+            add-ons, drafts changed in Partner Center and failed certification.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.RankFlights(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsFlightRecord})">
+            <summary>
+            Ranks of the flights (1 is the highest), from the <c>rankHigherThan</c> chain the API reports.
+            </summary>
+            <param name="flights"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.SaveInstallerRowsAsync(System.ValueTuple{System.Collections.Generic.List{Storeasy.Domain.MsStore.MsInstallerPackage},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsInstallerPackage},System.Collections.Generic.List{System.Int32}},System.Threading.CancellationToken)">
+            <summary>
+            Writes the outcome of <see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MsInstallerRows.Merge(System.Int32,System.Collections.Generic.IEnumerable{System.ValueTuple{System.Int32,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsInstallerPackageRecord}}},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsInstallerPackage},System.DateTime)"/>: updates, inserts and deletes of the installer rows.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionRows">
+            <summary>
+            Pure updates of submission rows shared by the sync and the write jobs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionRows.Observe(Storeasy.Domain.MsStore.MsSubmission,Storeasy.Domain.Enums.MsSubmissionStatus,Storeasy.Domain.JsonModels.MsStatusDetails,System.DateTime)">
+            <summary>
+            Records a status read: appends it to the history when it changed and keeps the details.
+            </summary>
+            <param name="row"></param>
+            <param name="status"></param>
+            <param name="details"></param>
+            <param name="now"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsInstallerRows">
+            <summary>
+            Merges installer packages read from the store into storeasy's rows, keeping the signature check of an unchanged URL.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsInstallerRows.Merge(System.Int32,System.Collections.Generic.IEnumerable{System.ValueTuple{System.Int32,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsInstallerPackageRecord}}},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsInstallerPackage},System.DateTime)">
+            <summary>
+            Returns the rows to update, to add and the ids to delete.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="products"></param>
+            <param name="existing"></param>
+            <param name="now"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot">
+            <summary>
+            What the sync read of one Microsoft Store product.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.ProductId">
+            <summary>Store id.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Kind">
+            <summary>Which API manages it.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Name">
+            <summary>Name in the store, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.PackageFamilyName">
+            <summary>Package family name (MSIX).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.FirstSubmissionDone">
+            <summary>Whether a submission was published.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.HasMandatoryUpdate">
+            <summary>Whether the app uses mandatory updates.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.PricingV2">
+            <summary>Whether the price is on Pricing Version 2.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.IsReady">
+            <summary>MSI/EXE draft readiness.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.LastPublishedSubmissionId">
+            <summary>Last published app submission.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.PendingSubmissionId">
+            <summary>Pending app (or ongoing MSI/EXE) submission.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Submissions">
+            <summary>Submissions read.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Flights">
+            <summary>Flights.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Addons">
+            <summary>Add-ons.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Installers">
+            <summary>MSI/EXE installers.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Builds">
+            <summary>Packages as builds.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot.Problems">
+            <summary>Non fatal problems of the read (redacted).</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot">
+            <summary>
+            A submission as the sync read it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.Target">
+            <summary>Target.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.ExternalId">
+            <summary>Submission id.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.FlightId">
+            <summary>Flight.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.AddonStoreId">
+            <summary>Add-on.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.FriendlyName">
+            <summary>Partner Center name.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.Status">
+            <summary>Status.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.Details">
+            <summary>Errors, warnings, reports.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.IsPending">
+            <summary>Whether it is the pending one.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.ContentHash">
+            <summary>Content fingerprint.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.PackageVersion">
+            <summary>Highest package version.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.RolloutPercentage">
+            <summary>Rollout percentage.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.RolloutStatus">
+            <summary>Rollout state.</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot">
+            <summary>
+            An add-on as the sync read it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot.Record">
+            <summary>The API record.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot.Title">
+            <summary>Title of the first listing.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot.PriceId">
+            <summary>Price tier.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot.Lifetime">
+            <summary>Lifetime.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot.Refused">
+            <summary>Whether the API refused it (409).</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader">
+            <summary>
+            Reads everything the sync stores about a product. A 409 marks the product or add-on as Partner Center only; other
+            permanent failures of a detail are collected as problems; transient failures fail the attempt (the job retries).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader.ReadAppAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.String,Storeasy.Application.Utils.MsStore.MsApplicationRecord,System.Threading.CancellationToken)">
+            <summary>
+            Reads an MSIX app: its app, flight and add-on submissions, flights and add-ons.
+            </summary>
+            <param name="client"></param>
+            <param name="secretJson"></param>
+            <param name="app"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader.ReadProductAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads an MSI/EXE product: readiness, ongoing submission, installers. Throws when the store refuses the product.
+            </summary>
+            <param name="client"></param>
+            <param name="secretJson"></param>
+            <param name="productId"></param>
+            <param name="name"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway">
+            <summary>
+            App Store Connect monetization engine (App Store Connect API 4.4.1 paths):
+            <list type="bullet">
+            <item>Subscription groups and subscriptions (<c>/v1/subscriptionGroups</c>, <c>/v1/subscriptions</c>), In-App
+            Purchases v2 (<c>/v2/inAppPurchases</c>).</item>
+            <item>Localizations through versions: a draft version (<c>PREPARE_FOR_SUBMISSION</c>) of the group, subscription or
+            In-App Purchase holds the localizations (<c>/v2/...Localizations</c>); when there is none a version is created and the
+            localizations of the latest version are copied into it first. The pre 4.4.1 endpoints are not used.</item>
+            <item>Subscription prices per territory (<c>/v1/subscriptionPrices</c>, equalized with
+            <c>/v1/subscriptionPricePoints/{id}/equalizations</c>); In-App Purchase price schedules with a base territory.</item>
+            <item>Introductory, promotional, offer code and win-back offers; availability; review screenshots (reserve, upload,
+            commit with the MD5); retention message names and multiseat status are read.</item>
+            <item>App Store Server Notifications addresses (<c>subscriptionStatusUrl</c> attributes of the app) and sandbox
+            testers (<c>/v2/sandboxTesters</c>).</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.UpsertLocalizationAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned,System.String,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <summary>
+            Writes a localization into the draft version of a resource: the draft is reused, or created with the
+            localizations of the newest version copied first; an existing locale is patched, a new one created.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ProductIdAsync(Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun,Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto,System.Threading.CancellationToken)">
+            <summary>
+            The store id of the product of an operation: planned, created earlier in this run, or looked up by product id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun">
+            <summary>
+            State of one apply run: store ids of groups and products created by earlier operations.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun.#ctor(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String)">
+            <summary>
+            State of one apply run: store ids of groups and products created by earlier operations.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IFileStorage)">
+            <summary>
+            App Store Connect monetization engine (App Store Connect API 4.4.1 paths):
+            <list type="bullet">
+            <item>Subscription groups and subscriptions (<c>/v1/subscriptionGroups</c>, <c>/v1/subscriptions</c>), In-App
+            Purchases v2 (<c>/v2/inAppPurchases</c>).</item>
+            <item>Localizations through versions: a draft version (<c>PREPARE_FOR_SUBMISSION</c>) of the group, subscription or
+            In-App Purchase holds the localizations (<c>/v2/...Localizations</c>); when there is none a version is created and the
+            localizations of the latest version are copied into it first. The pre 4.4.1 endpoints are not used.</item>
+            <item>Subscription prices per territory (<c>/v1/subscriptionPrices</c>, equalized with
+            <c>/v1/subscriptionPricePoints/{id}/equalizations</c>); In-App Purchase price schedules with a base territory.</item>
+            <item>Introductory, promotional, offer code and win-back offers; availability; review screenshots (reserve, upload,
+            commit with the MD5); retention message names and multiseat status are read.</item>
+            <item>App Store Server Notifications addresses (<c>subscriptionStatusUrl</c> attributes of the app) and sandbox
+            testers (<c>/v2/sandboxTesters</c>).</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.EqualizeAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.LatestVersionAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned,System.String,System.Threading.CancellationToken)">
+            <summary>
+            The draft version of a resource when it has one, otherwise the newest; null when there is no version.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned">
+            <summary>
+            A resource whose localizations live in versions.
+            </summary>
+            <param name="VersionsPath">Versions of a parent (format item 0: parent id).</param>
+            <param name="VersionType">JSON:API type of a version.</param>
+            <param name="ParentRelation">Relationship of a version to its parent.</param>
+            <param name="ParentType">JSON:API type of the parent.</param>
+            <param name="LocalizationsPath">Localizations of a version (format item 0: version id).</param>
+            <param name="LocalizationType">JSON:API type of a localization (v2 path).</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.#ctor(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            A resource whose localizations live in versions.
+            </summary>
+            <param name="VersionsPath">Versions of a parent (format item 0: parent id).</param>
+            <param name="VersionType">JSON:API type of a version.</param>
+            <param name="ParentRelation">Relationship of a version to its parent.</param>
+            <param name="ParentType">JSON:API type of the parent.</param>
+            <param name="LocalizationsPath">Localizations of a version (format item 0: version id).</param>
+            <param name="LocalizationType">JSON:API type of a localization (v2 path).</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.VersionsPath">
+            <summary>Versions of a parent (format item 0: parent id).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.VersionType">
+            <summary>JSON:API type of a version.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.ParentRelation">
+            <summary>Relationship of a version to its parent.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.ParentType">
+            <summary>JSON:API type of the parent.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.LocalizationsPath">
+            <summary>Localizations of a version (format item 0: version id).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.LocalizationType">
+            <summary>JSON:API type of a localization (v2 path).</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway">
+            <summary>
+            Google Play monetization engine (Play Developer API v3, <c>monetization</c> resources): subscriptions with base plans
+            and offers (<c>/subscriptions</c>), regional prices and Play's price conversion (<c>pricing:convertRegionPrices</c>),
+            base plan and offer activation, price migration of existing subscribers (<c>basePlans:migratePrices</c>) and one-time
+            products with purchase options (<c>/oneTimeProducts</c>; the older <c>inappproducts</c> resource is not used). Prices
+            are what the member entered or Play converted; storeasy never computes one.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp)">
+            <summary>
+            Google Play monetization engine (Play Developer API v3, <c>monetization</c> resources): subscriptions with base plans
+            and offers (<c>/subscriptions</c>), regional prices and Play's price conversion (<c>pricing:convertRegionPrices</c>),
+            base plan and offer activation, price migration of existing subscribers (<c>basePlans:migratePrices</c>) and one-time
+            products with purchase options (<c>/oneTimeProducts</c>; the older <c>inappproducts</c> resource is not used). Prices
+            are what the member entered or Play converted; storeasy never computes one.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.DefaultRegionsVersion">
+            <summary>
+            Regions version used when a plan does not carry the one of a price conversion.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.EqualizeAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Amount(System.Text.Json.JsonElement)">
+            <summary>
+            Amount text of a Play Money ("59.99"), or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Money(System.String,System.String)">
+            <summary>
+            A Play Money of an amount text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension">
+            <summary>
+            Change plans of subscriptions, In-App Purchases and purchase settings (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization"/>,
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications"/>, <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters"/>): on approval the touched
+            products are read again for the fingerprint; the apply job writes through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Change plans of subscriptions, In-App Purchases and purchase settings (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization"/>,
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications"/>, <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters"/>): on approval the touched
+            products are read again for the fingerprint; the apply job writes through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncMonetization"/> job: reads every subscription group, subscription and In-App Purchase
+            (Play subscriptions and one-time products) of a store record with all their details and saves them, so the money
+            screens show the last read state when the store cannot be reached. A store that cannot be reached fails the step
+            transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="monetizationService"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IMonetizationService)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncMonetization"/> job: reads every subscription group, subscription and In-App Purchase
+            (Play subscriptions and one-time products) of a store record with all their details and saves them, so the money
+            screens show the last read state when the store cannot be reached. A store that cannot be reached fails the step
+            transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="monetizationService"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">
             <summary>
             App Store Connect API key.
@@ -3453,13 +4708,18 @@
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
+            <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
             <summary>
             App and build reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
             Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
             deleted afterwards). Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
             </summary>
+            <summary>
+            Microsoft Store side of the store gateway: offline inspection of the Entra secret. Verification and reads delegate to
+            <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/>.
+            </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Interfaces.IMicrosoftStoreClient)">
             <summary>
             Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
             <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/>; tests replace its handler.
@@ -3467,6 +4727,7 @@
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
+            <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
         </member>
         <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName">
             <summary>
@@ -3534,6 +4795,14 @@
             <summary>
             Sends <paramref name="request"/> (and disposes it) and parses the JSON answer; an empty answer parses as <c>{}</c>.
             </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.InspectMicrosoft(System.String)">
+            <summary>
+            Parses a Microsoft secret and returns its fingerprint: tenant and client id suffixes and the seller id. The expiry
+            date is not part of the secret; the caller adds it.
+            </summary>
+            <param name="secretJson"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.StoreJwt">
             <summary>
@@ -4473,66 +5742,98 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_6">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IssuerIdRegex method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GuidRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.GuidRegex_6.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_7">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SellerIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_7.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SellerIdRegex_7.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_7.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_8.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>

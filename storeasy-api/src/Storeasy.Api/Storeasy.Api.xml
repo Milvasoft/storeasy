@@ -981,6 +981,67 @@
         <member name="P:Storeasy.Api.Controllers.ReadinessCheck.Description">
             <summary>Short detail (never secrets or exception text).</summary>
         </member>
+        <member name="T:Storeasy.Api.Controllers.IapController">
+            <summary>
+            In-App Purchases (App Store consumables, non-consumables, non-renewing subscriptions) and Play one-time products.
+            Reads show the last sync; every write is a change plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.#ctor(MediatR.IMediator)">
+            <summary>
+            In-App Purchases (App Store consumables, non-consumables, non-renewing subscriptions) and Play one-time products.
+            Reads show the last sync; every write is a change plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.GetProductsAsync(Storeasy.Application.Features.Iap.GetIapList.GetIapListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the In-App Purchases or one-time products of a store record, filtered and paged. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.GetProductAsync(Storeasy.Application.Features.Iap.GetIapDetail.GetIapDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads an In-App Purchase or one-time product as last synced. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.GetPricesAsync(Storeasy.Application.Features.Iap.GetIapPrices.GetIapPricesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the territory prices of a product (one Play purchase option with PlanId), searched, filtered and paged. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.GetPricePointsAsync(Storeasy.Application.Features.Iap.GetIapPricePoints.GetIapPricePointsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the App Store price points of an In-App Purchase in one territory, live. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.PlanAsync(Storeasy.Application.Features.Iap.PlanIapChanges.PlanIapChangesCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans In-App Purchase changes (dry run by default). Editor and above; a price change of a product on sale needs
+            ReleaseProduction (Owner, Admin).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.IapController.ApplyAsync(Storeasy.Application.Features.Iap.ApplyIapPlan.ApplyIapPlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves an In-App Purchase or subscription plan and queues its store job. Retry safe with an Idempotency-Key header.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.LanguagesController">
             <summary>
             Language endpoints.
@@ -1190,6 +1251,130 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.MsController">
+            <summary>
+            Microsoft Store endpoints (route prefix <c>ms</c>): MSIX apps and MSI/EXE products, submissions and certification
+            status, package flights, add-ons, installer packages, the plan and apply flow of every write, submitting, and the Entra
+            connection's secret expiry. Reads of storeasy's rows never call Microsoft; <c>ms/content</c> and <c>ms/change</c>
+            read the store in the request; every write runs as a store job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Microsoft Store endpoints (route prefix <c>ms</c>): MSIX apps and MSI/EXE products, submissions and certification
+            status, package flights, add-ons, installer packages, the plan and apply flow of every write, submitting, and the Entra
+            connection's secret expiry. Reads of storeasy's rows never call Microsoft; <c>ms/content</c> and <c>ms/change</c>
+            read the store in the request; every write runs as a store job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.AddProductAsync(Storeasy.Application.Features.MsStore.AddMsProduct.AddMsProductCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds an MSI/EXE product by its Store id (editors and above). A sync job confirms it; follow the returned job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetProductAsync(Storeasy.Application.Features.MsStore.GetMsProductDetail.GetMsProductDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads a Microsoft Store product with its active submission, the Partner Center rules and its assisted steps (any
+            member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetSubmissionsAsync(Storeasy.Application.Features.MsStore.GetMsSubmissionList.GetMsSubmissionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the submissions of a product with status history and the "changed in Partner Center" flag (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetFlightsAsync(Storeasy.Application.Features.MsStore.GetMsFlightList.GetMsFlightListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the package flights of an MSIX app with their group names (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetAddonsAsync(Storeasy.Application.Features.MsStore.GetMsAddonList.GetMsAddonListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the add-ons of an MSIX app; Partner Center only ones are marked (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetPackagesAsync(Storeasy.Application.Features.MsStore.GetMsInstallerPackageList.GetMsInstallerPackageListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the installer packages of an MSI/EXE product with their Authenticode check (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetContentAsync(Storeasy.Application.Features.MsStore.GetMsContent.GetMsContentQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the current store content of a product, flight or add-on from Microsoft (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.ApplyChangeAsync(Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a change (DryRun true, the default) or applies it with the plan's BaseHash (editors and above; rollout of an
+            app submission needs ReleaseProduction, flights ReleaseTest). Applying queues a store job; drafts are sent with
+            <c>ms/submission/submit</c>.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.SubmitAsync(Storeasy.Application.Features.MsStore.SubmitMsSubmission.SubmitMsSubmissionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a draft to certification (owners and admins: SubmitForReview), with the product id typed as confirmation.
+            Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.VerifyPackagesAsync(Storeasy.Application.Features.MsStore.CheckMsInstaller.CheckMsInstallerCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues the Authenticode check of an MSI/EXE product's installers (editors and above). Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.SaveFlightGroupAsync(Storeasy.Application.Features.MsStore.SaveMsFlightGroup.SaveMsFlightGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Records the name of a Partner Center flight group (ReleaseTest).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.RotateSecretAsync(Storeasy.Application.Features.MsStore.RotateMsConnectionSecret.RotateMsConnectionSecretCommand,System.Threading.CancellationToken)">
+            <summary>
+            Replaces the client secret of a Microsoft connection after verifying the new one (owners and admins).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetExpiringConnectionsAsync(Storeasy.Application.Features.MsStore.GetExpiringMsConnectionList.GetExpiringMsConnectionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the Microsoft connections whose client secret expires within the given days (owners and admins).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.OrganizationsController">
             <summary>
             Organization, member, invitation and audit log endpoints. Any signed in user may call them; the organization role
@@ -1369,6 +1554,50 @@
         <member name="M:Storeasy.Api.Controllers.PricingController.PlanPricingAsync(Storeasy.Application.Features.Listings.PlanPricing.PlanPricingCommand,System.Threading.CancellationToken)">
             <summary>
             Plans the base price and territory availability (DryRun false approves at once).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.PurchaseSettingsController">
+            <summary>
+            Purchase settings of an app: App Store Server Notifications addresses (Play Real-time developer notifications are an
+            assisted step) and App Store sandbox testers.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PurchaseSettingsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Purchase settings of an app: App Store Server Notifications addresses (Play Real-time developer notifications are an
+            assisted step) and App Store sandbox testers.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PurchaseSettingsController.GetServerNotificationsAsync(Storeasy.Application.Features.PurchaseSettings.GetServerNotifications.GetServerNotificationsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the server notification addresses live (Play: the assisted step). Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PurchaseSettingsController.PlanServerNotificationsAsync(Storeasy.Application.Features.PurchaseSettings.PlanServerNotifications.PlanServerNotificationsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans the App Store Server Notifications addresses (dry run by default). Owner and Admin (ManageWebhooks).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PurchaseSettingsController.GetSandboxTestersAsync(Storeasy.Application.Features.PurchaseSettings.GetSandboxTesterList.GetSandboxTesterListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the App Store sandbox testers of the developer account, live. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PurchaseSettingsController.PlanSandboxTestersAsync(Storeasy.Application.Features.PurchaseSettings.PlanSandboxTesters.PlanSandboxTestersCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans sandbox tester changes (storefront, interrupted purchases, renewal rate, purchase history). Editor and above.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1892,6 +2121,93 @@
             <summary>
             Cancels a queued job at once, or asks a running job to stop at its next step (editors and above). Returns the state
             after the request.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.SubscriptionsController">
+            <summary>
+            Subscriptions: App Store subscription groups, subscriptions, prices and offers; Play subscriptions, base plans and
+            offers. Reads show the last sync; every write is a change plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Subscriptions: App Store subscription groups, subscriptions, prices and offers; Play subscriptions, base plans and
+            offers. Reads show the last sync; every write is a change plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.GetGroupsAsync(Storeasy.Application.Features.Subscriptions.GetSubscriptionGroups.GetSubscriptionGroupsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the subscription groups (App Store) or subscriptions (Play) of a store record as last synced. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.GetSubscriptionAsync(Storeasy.Application.Features.Subscriptions.GetSubscriptionDetail.GetSubscriptionDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads a subscription as last synced. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.GetPricesAsync(Storeasy.Application.Features.Subscriptions.GetSubscriptionPrices.GetSubscriptionPricesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the territory prices of a subscription (one Play base plan with PlanId), searched, filtered and paged. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.GetPricePointsAsync(Storeasy.Application.Features.Subscriptions.GetSubscriptionPricePoints.GetSubscriptionPricePointsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the App Store price points of a subscription in one territory, live. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.GetOffersAsync(Storeasy.Application.Features.Subscriptions.GetSubscriptionOffers.GetSubscriptionOffersQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the offers of a subscription by kind. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.ConvertPricesAsync(Storeasy.Application.Features.Subscriptions.ConvertSubscriptionPrices.ConvertSubscriptionPricesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Converts a price to every Play region with Play's conversion (nothing is saved). Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.PlanAsync(Storeasy.Application.Features.Subscriptions.PlanSubscriptionChanges.PlanSubscriptionChangesCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans subscription changes (dry run by default; DryRun false approves at once). Editor and above; a price change of
+            a product on sale needs ReleaseProduction (Owner, Admin) and, when it reaches existing subscribers, the typed
+            confirmation.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.ApplyAsync(Storeasy.Application.Features.Subscriptions.ApplySubscriptionPlan.ApplySubscriptionPlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a subscription or In-App Purchase plan and queues its store job. The plan's own permission and typed
+            confirmation are checked. Retry safe with an Idempotency-Key header.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SubscriptionsController.SyncAsync(Storeasy.Application.Features.Subscriptions.SyncStoreProducts.SyncStoreProductsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of the subscriptions and In-App Purchases of a store record; returns the job id. Editor and above.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -2481,6 +2797,30 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118151224_Phase7Monetization">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118151224_Phase7Monetization.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118151224_Phase7Monetization.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118151224_Phase7Monetization.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

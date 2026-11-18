@@ -126,6 +126,26 @@ public enum AuditAction : short
     [Description("Assisted step completed")]
     AssistedStepCompleted = 63,
 
+    /// <summary>A subscription group or subscription was written to a store.</summary>
+    [Description("Subscription changed")]
+    SubscriptionChanged = 80,
+
+    /// <summary>A price or a price schedule was written to a store.</summary>
+    [Description("Price scheduled")]
+    PriceScheduled = 81,
+
+    /// <summary>A subscription offer was written to a store.</summary>
+    [Description("Offer changed")]
+    OfferChanged = 82,
+
+    /// <summary>An In-App Purchase or a Play one-time product was written to a store.</summary>
+    [Description("In-App Purchase changed")]
+    IapChanged = 83,
+
+    /// <summary>A purchase setting (server notifications, sandbox tester) was written to a store.</summary>
+    [Description("Purchase settings changed")]
+    PurchaseSettingsChanged = 84,
+
     /// <summary>A mockup template was created.</summary>
     [Description("Mockup template created")]
     MockupTemplateCreated = 70,
@@ -217,4 +237,27 @@ public enum AuditAction : short
     /// <summary>Build submitted to beta app review.</summary>
     [Description("Submitted for beta review")]
     BetaReviewSubmitted = 443,
+    /// <summary>A Microsoft Store change was queued (listings, images, packages, pricing, flights, add-ons, rollout).</summary>
+    [Description("Microsoft Store change queued")]
+    MsChangeQueued = 150,
+
+    /// <summary>A Microsoft Store change was written to Partner Center.</summary>
+    [Description("Microsoft Store change applied")]
+    MsChangeApplied = 151,
+
+    /// <summary>A Microsoft Store submission was committed (sent to certification) or an MSI/EXE product submitted.</summary>
+    [Description("Microsoft Store submission sent")]
+    MsSubmitted = 152,
+
+    /// <summary>An MSI/EXE product was added by its product id.</summary>
+    [Description("Microsoft Store product added")]
+    MsProductAdded = 153,
+
+    /// <summary>The client secret of a Microsoft Entra connection was replaced.</summary>
+    [Description("Microsoft connection secret rotated")]
+    MsConnectionSecretRotated = 154,
+
+    /// <summary>A package flight group name was recorded.</summary>
+    [Description("Microsoft flight group saved")]
+    MsFlightGroupSaved = 155,
 }

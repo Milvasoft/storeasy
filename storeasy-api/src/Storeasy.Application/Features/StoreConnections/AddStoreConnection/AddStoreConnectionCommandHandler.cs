@@ -34,6 +34,10 @@ public record AddStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreConn
         if (!inspection.IsValid)
             return Response<int>.Error(0, inspection.ErrorKey);
 
+        var expiryDate = request.Store == StoreKind.Microsoft ? request.CredentialExpiryDate : null;
+
+        inspection.Fingerprint.SecretExpiryDate = expiryDate;
+
         var sealedSecret = _secretProtector.Protect(Encoding.UTF8.GetBytes(inspection.NormalizedSecret), StoreSecretContext.Connection(request.OrganizationId, request.Store));
 
         var connection = new StoreConnection
@@ -46,6 +50,7 @@ public record AddStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreConn
             EncryptedDataKey = sealedSecret.EncryptedDataKey,
             KeyVersion = sealedSecret.KeyVersion,
             Status = ConnectionStatus.NotVerified,
+            SecretExpiryDate = expiryDate,
         };
 
         await _connectionRepository.AddAsync(connection, cancellationToken);

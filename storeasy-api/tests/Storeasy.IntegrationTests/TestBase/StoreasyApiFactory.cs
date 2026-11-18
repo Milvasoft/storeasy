@@ -8,7 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Storeasy.Api.AppStartup;
 using Storeasy.Application.Interfaces;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Infrastructure.Stores.Microsoft;
 using Storeasy.Infrastructure.Persistence;
 using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.IntegrationTests.TestBase.Fakes;
@@ -102,6 +104,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeWebhookReceiver WebhookReceiver { get; } = new();
 
+    /// <summary>
+    /// The Microsoft every test host talks to (Entra, both Microsoft Store APIs, blob uploads, installer downloads).
+    /// </summary>
+    public FakeMicrosoftStore MicrosoftStore { get; } = new();
+
     private static int _databaseSequence;
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("app_tests")
@@ -176,6 +183,12 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IFileStorage>();
             services.AddSingleton<IFileStorage>(FileStorage);
+
+            // Microsoft Store client: real code over a fake Microsoft, no waiting between retries or polls; the fake
+            // download host resolves nowhere, so the public address guard is off.
+            services.AddHttpClient(MicrosoftStoreClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => MicrosoftStore);
+            services.RemoveAll<MicrosoftStoreOptions>();
+            services.AddSingleton(new MicrosoftStoreOptions { RetryBaseDelayMilliseconds = 0, MaxRetryDelaySeconds = 0, StatusPollIntervalMilliseconds = 0, StatusPollAttempts = 3, BlockPrivateDownloadAddresses = false });
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();

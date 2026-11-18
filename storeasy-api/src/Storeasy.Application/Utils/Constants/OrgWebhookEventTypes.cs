@@ -27,11 +27,16 @@ public static class OrgWebhookEventTypes
     /// <summary>A compliance deadline is near.</summary>
     public const string ComplianceDeadline = "compliance.deadline";
 
+    /// <summary>
+    /// A store connection secret (Microsoft Entra client secret) expires soon.
+    /// </summary>
+    public const string ConnectionSecretExpiring = "connection.secret_expiring";
+
     /// <summary>A test delivery asked for by a member.</summary>
     public const string Test = "webhook.test";
 
     /// <summary>
     /// Every event type a subscription may name.
     /// </summary>
-    public static IReadOnlyList<string> All { get; } = [RejectionOpened, RejectionClosed, VersionStateChanged, ReviewReceived, ReviewReplied, BuildExpiring, ComplianceDeadline, Test];
+    public static IReadOnlyList<string> All { get; } = [RejectionOpened, RejectionClosed, VersionStateChanged, ReviewReceived, ReviewReplied, BuildExpiring, ComplianceDeadline, ConnectionSecretExpiring, Test];
 }
