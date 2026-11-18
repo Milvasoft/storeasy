@@ -4,10 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.RuleDtos;
+using Storeasy.Application.Features.Rules.GetPlatformRuleCatalog;
 using Storeasy.Application.Features.Rules.GetRuleCatalog;
 using Storeasy.Application.Features.Rules.GetRuleDetail;
 using Storeasy.Application.Features.Rules.GetRuleList;
+using Storeasy.Application.Utils.Attributes;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Application.Utils.PermissionManager;
+using Storeasy.Domain.Enums;
 
 namespace Storeasy.Api.Controllers;
 
@@ -30,6 +34,17 @@ public class RulesController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpGet("catalog")]
     public Task<Response<RuleCatalogInfoDto>> GetCatalogAsync([FromQuery] GetRuleCatalogQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The loaded catalog and its active rules without an organization (platform managers).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("platform-catalog")]
+    [Auth(PermissionCatalog.RuleCatalogManagement.List)]
+    [UserTypeAuth(UserType.Manager)]
+    public Task<Response<PlatformRuleCatalogDto>> GetPlatformCatalogAsync([FromQuery] GetPlatformRuleCatalogQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Lists the catalog rules with the number of the organization's apps each applies to.

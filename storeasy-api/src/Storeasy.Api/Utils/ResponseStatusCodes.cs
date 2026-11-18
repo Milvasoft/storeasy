@@ -16,6 +16,7 @@ public static class ResponseStatusCodes
     private static readonly FrozenDictionary<string, int> _byKey = new Dictionary<string, int>(StringComparer.Ordinal)
     {
         // 401 - the caller is not (or no longer) authenticated.
+        [MessageKey.GoogleSignInFailed] = StatusCodes.Status401Unauthorized,
         [MessageKey.Unauthorized] = StatusCodes.Status401Unauthorized,
         [MessageKey.SessionTimeout] = StatusCodes.Status401Unauthorized,
         [MessageKey.TokenExpired] = StatusCodes.Status401Unauthorized,
@@ -25,6 +26,8 @@ public static class ResponseStatusCodes
         [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,
 
         // 403 - authenticated but not allowed (permissions, lockout).
+        [MessageKey.GoogleEmailNotVerified] = StatusCodes.Status403Forbidden,
+        [MessageKey.PermissionEscalation] = StatusCodes.Status403Forbidden,
         [MessageKey.Forbidden] = StatusCodes.Status403Forbidden,
         [MessageKey.Locked] = StatusCodes.Status403Forbidden,
         [MessageKey.LockedIndefinite] = StatusCodes.Status403Forbidden,
@@ -37,6 +40,11 @@ public static class ResponseStatusCodes
         [MessageKey.OidcClaimMismatch] = StatusCodes.Status403Forbidden,
 
         // 404 - the target does not exist (or is invisible to the caller, which is reported the same way).
+        [MessageKey.OrganizationRoleNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.SessionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.GoogleSignInDisabled] = StatusCodes.Status404NotFound,
+        [MessageKey.WebPushDisabled] = StatusCodes.Status404NotFound,
+        [MessageKey.WebPushSubscriptionNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.RuleNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.ChangePlanNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.VersionNotFound] = StatusCodes.Status404NotFound,
@@ -70,6 +78,12 @@ public static class ResponseStatusCodes
         [MessageKey.ArtifactSourceNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
+        [MessageKey.OrganizationRoleInUse] = StatusCodes.Status409Conflict,
+        [MessageKey.UserIsLastOwner] = StatusCodes.Status409Conflict,
+        [MessageKey.DefaultLanguageRequired] = StatusCodes.Status409Conflict,
+        [MessageKey.UnsupportedLanguageCannotBeDefault] = StatusCodes.Status409Conflict,
+        [MessageKey.OrganizationRoleNameExists] = StatusCodes.Status409Conflict,
+        [MessageKey.OrganizationRoleLimitReached] = StatusCodes.Status409Conflict,
         [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
         [MessageKey.PlanNotPending] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppNotConnected] = StatusCodes.Status409Conflict,
@@ -131,6 +145,7 @@ public static class ResponseStatusCodes
         [MessageKey.PostgreBasedException] = StatusCodes.Status500InternalServerError,
 
         // 503 - the feature is switched off by an admin (see FeatureFlagAttribute).
+        [MessageKey.GoogleSignInUnavailable] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.FeatureDisabled] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.StorageNotConfigured] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.StorageUnavailable] = StatusCodes.Status503ServiceUnavailable,

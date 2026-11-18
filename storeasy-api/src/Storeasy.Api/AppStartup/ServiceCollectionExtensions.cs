@@ -252,6 +252,10 @@ public static partial class StartupExtensions
         // Registered before the infrastructure services, which fall back to a publisher that drops events.
         services.AddSingleton<IActivityPublisher, SignalRActivityPublisher>();
         services.AddSingleton<IUserNotificationPublisher, SignalRUserNotificationPublisher>();
+        services.AddSingleton<HubConnectionRegistry>();
+        services.AddSingleton<SignalRRealtimeConnections>();
+        services.AddSingleton<IRealtimeConnections>(provider => provider.GetRequiredService<SignalRRealtimeConnections>());
+        services.AddHostedService(provider => provider.GetRequiredService<SignalRRealtimeConnections>());
 
         return services;
     }

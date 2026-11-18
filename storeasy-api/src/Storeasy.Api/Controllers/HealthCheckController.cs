@@ -9,7 +9,8 @@ using System.Net;
 namespace Storeasy.Api.Controllers;
 
 /// <summary>
-/// Health check endpoints: a liveness probe and a readiness probe that checks the database and Redis.
+/// Health check endpoints: a liveness probe and a readiness probe that checks the database and Redis, also at
+/// <c>/health/live</c> and <c>/health/ready</c> (docs/urun-plani.md).
 /// </summary>
 [ApiController]
 [Route(GlobalConstant.FullRoute)]
@@ -23,6 +24,7 @@ public class HealthCheckController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [HttpGet("/health/live")]
     [ProducesResponseType<string>((int)HttpStatusCode.OK)]
     public IActionResult HealthCheck() => Ok("Ok");
 
@@ -33,6 +35,7 @@ public class HealthCheckController : ControllerBase
     /// <param name="cancellation"></param>
     /// <returns></returns>
     [HttpGet("ready")]
+    [HttpGet("/health/ready")]
     [ProducesResponseType<ReadinessReport>((int)HttpStatusCode.OK)]
     [ProducesResponseType<ReadinessReport>((int)HttpStatusCode.ServiceUnavailable)]
     public async Task<IActionResult> ReadyAsync([FromServices] HealthCheckService healthCheckService, CancellationToken cancellation)
