@@ -18,6 +18,11 @@ public static class ResponseStatusCodes
         // 401 - the caller is not (or no longer) authenticated.
         [MessageKey.Unauthorized] = StatusCodes.Status401Unauthorized,
         [MessageKey.SessionTimeout] = StatusCodes.Status401Unauthorized,
+        [MessageKey.TokenExpired] = StatusCodes.Status401Unauthorized,
+        [MessageKey.CiTokenExpired] = StatusCodes.Status401Unauthorized,
+        [MessageKey.TokenRevoked] = StatusCodes.Status401Unauthorized,
+        [MessageKey.OidcTokenInvalid] = StatusCodes.Status401Unauthorized,
+        [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,
 
         // 403 - authenticated but not allowed (permissions, lockout).
         [MessageKey.Forbidden] = StatusCodes.Status403Forbidden,
@@ -28,6 +33,8 @@ public static class ResponseStatusCodes
         [MessageKey.RegistrationClosed] = StatusCodes.Status403Forbidden,
         [MessageKey.RegistrationInvitationRequired] = StatusCodes.Status403Forbidden,
         [MessageKey.EmailNotVerified] = StatusCodes.Status403Forbidden,
+        [MessageKey.AppForbidden] = StatusCodes.Status403Forbidden,
+        [MessageKey.OidcClaimMismatch] = StatusCodes.Status403Forbidden,
 
         // 404 - the target does not exist (or is invisible to the caller, which is reported the same way).
         [MessageKey.RuleNotFound] = StatusCodes.Status404NotFound,
@@ -56,6 +63,11 @@ public static class ResponseStatusCodes
         [MessageKey.MsSubmissionNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MsFlightNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MsAddonNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.ArtifactSessionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.PersonalAccessTokenNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.CiTokenNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.TrustedPublisherNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.ArtifactSourceNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
@@ -95,6 +107,9 @@ public static class ResponseStatusCodes
         [MessageKey.MsInstallerNotReady] = StatusCodes.Status409Conflict,
         [MessageKey.MsFlightNameTaken] = StatusCodes.Status409Conflict,
         [MessageKey.MsAddonProductIdTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.DeliveryStoreMismatch] = StatusCodes.Status409Conflict,
+        [MessageKey.TokenNameExists] = StatusCodes.Status409Conflict,
+        [MessageKey.ArtifactNotHeld] = StatusCodes.Status409Conflict,
 
         // 410 - the plan expired.
         [MessageKey.PlanExpired] = StatusCodes.Status410Gone,
@@ -102,6 +117,8 @@ public static class ResponseStatusCodes
         // 422 - the store refused, or nothing usable was sent.
         [MessageKey.StoreRejected] = StatusCodes.Status422UnprocessableEntity,
         [MessageKey.MediaRejected] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.WebhookPayloadInvalid] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.DownloadHostNotAllowed] = StatusCodes.Status422UnprocessableEntity,
 
         // 502 - the store did not answer.
         [MessageKey.StoreUnreachable] = StatusCodes.Status502BadGateway,
@@ -116,6 +133,7 @@ public static class ResponseStatusCodes
         // 503 - the feature is switched off by an admin (see FeatureFlagAttribute).
         [MessageKey.FeatureDisabled] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.StorageNotConfigured] = StatusCodes.Status503ServiceUnavailable,
+        [MessageKey.StorageUnavailable] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.RulesCatalogUnavailable] = StatusCodes.Status503ServiceUnavailable,
 
         // Mockup studio (phase 6).
@@ -128,7 +146,6 @@ public static class ResponseStatusCodes
         [MessageKey.TitleTranslatorUnavailable] = StatusCodes.Status503ServiceUnavailable,
 
         // Phase 4 (events and tracking).
-        [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,
         [MessageKey.WebhookEndpointNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.WebhookEventNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.OrgWebhookNotFound] = StatusCodes.Status404NotFound,
@@ -137,7 +154,6 @@ public static class ResponseStatusCodes
         [MessageKey.SavedReplyNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.BetaGroupNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.BetaTesterNotFound] = StatusCodes.Status404NotFound,
-        [MessageKey.BuildNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.RuleProposalNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.WebhookEndpointExists] = StatusCodes.Status409Conflict,
         [MessageKey.WebhookEventNotReprocessable] = StatusCodes.Status409Conflict,

@@ -37,6 +37,28 @@
             <param name="app">The <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/> instance.</param>
             <returns>The <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/> instance.</returns>
         </member>
+        <member name="F:Storeasy.Api.AppStartup.StartupExtensions.McpPolicy">
+            <summary>
+            Authorization policy of <c>/mcp</c>: a personal access token (authenticated by the storeasy token scheme only, so a
+            web session JWT is a 401).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddStoreasyMcp(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds the remote MCP server (docs/urun-plani.md 2.6, K9): Streamable HTTP, stateless (no session affinity, no
+            <c>Mcp-Session-Id</c>), tools from <see cref="T:Storeasy.Api.Mcp.McpToolCatalog"/>, every call a MediatR request in the HTTP request's
+            scope.
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.MapStoreasyMcp(Microsoft.AspNetCore.Builder.WebApplication)">
+            <summary>
+            Maps the remote MCP at <c>/mcp</c> behind <see cref="F:Storeasy.Api.AppStartup.StartupExtensions.McpPolicy"/>.
+            </summary>
+            <param name="app"></param>
+            <returns></returns>
+        </member>
         <member name="F:Storeasy.Api.AppStartup.StartupExtensions.TokenSigningKeyConfigurationKey">
             <summary>
             Configuration key of the access token signing key (HMAC-SHA256).
@@ -146,6 +168,15 @@
             <param name="serviceName"></param>
             <param name="collectorUrl"></param>
             <param name="seqUri"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddStoreasyTokenAuthentication(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds the storeasy token authentication (personal access, CI and upload tokens) next to the JWT bearer of the web
+            sessions: a policy scheme becomes the default and sends a <c>Bearer</c> value with a storeasy token prefix to
+            <see cref="T:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler"/>, anything else to JWT bearer. Call after <c>AddAuthorization</c>.
+            </summary>
+            <param name="services"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Api.AppStartup.IApiMarker">
@@ -627,6 +658,231 @@
             Plans sending the Play Data safety form generated from the saved answers (editors and above).
             </summary>
             <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ArtifactsController">
+            <summary>
+            Package intake (docs/urun-plani.md 11.8, design 13, tools/CONTRACT.md 3): upload sessions with presigned multipart
+            uploads, CI tokens, trusted publishers, delivery rules, pull sources and settings. The upload endpoints accept CI
+            tokens and upload tokens for their apps; the organization of a token wins over any organization id in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Package intake (docs/urun-plani.md 11.8, design 13, tools/CONTRACT.md 3): upload sessions with presigned multipart
+            uploads, CI tokens, trusted publishers, delivery rules, pull sources and settings. The upload endpoints accept CI
+            tokens and upload tokens for their apps; the organization of a token wins over any organization id in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.OpenSessionAsync(System.Int32,Storeasy.Application.Features.Artifacts.OpenArtifactSession.OpenArtifactSessionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Opens an upload session, resumes the open one of the same file, or reports a duplicate (ReleaseTest, CI and upload
+            tokens of the app).
+            </summary>
+            <param name="appId"></param>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.CompleteSessionAsync(System.Int64,Storeasy.Application.Features.Artifacts.CompleteArtifactSession.CompleteArtifactSessionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Completes the multipart upload with every part's ETag and starts processing. Idempotent.
+            </summary>
+            <param name="sessionId"></param>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSessionAsync(Storeasy.Application.Features.Artifacts.GetArtifactSessionDetail.GetArtifactSessionDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one session with its steps, package, checks and CI result.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSessionsAsync(Storeasy.Application.Features.Artifacts.GetArtifactSessionList.GetArtifactSessionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's sessions.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSummaryAsync(Storeasy.Application.Features.Artifacts.GetArtifactSummary.GetArtifactSummaryQuery,System.Threading.CancellationToken)">
+            <summary>
+            The last package of every app with its delivery rules.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.DeliverSessionAsync(Storeasy.Application.Features.Artifacts.DeliverArtifactSession.DeliverArtifactSessionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Delivers a held session (ReleaseTest).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.DeleteSessionAsync(Storeasy.Application.Features.Artifacts.DeleteArtifactSession.DeleteArtifactSessionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Deletes the stored package of a finished session (ReleaseTest).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetCiTokensAsync(Storeasy.Application.Features.CiTokens.GetCiTokenList.GetCiTokenListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the organization's CI tokens (values are never returned).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.CreateCiTokenAsync(Storeasy.Application.Features.CiTokens.CreateCiToken.CreateCiTokenCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates a CI token (ManageConnections); the value is in this response only.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.RevokeCiTokenAsync(Storeasy.Application.Features.CiTokens.RevokeCiToken.RevokeCiTokenCommand,System.Threading.CancellationToken)">
+            <summary>
+            Revokes a CI token (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetTrustedPublishersAsync(Storeasy.Application.Features.TrustedPublishers.GetTrustedPublisherList.GetTrustedPublisherListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the trusted publisher rules.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetTrustedPublisherAsync(Storeasy.Application.Features.TrustedPublishers.GetTrustedPublisherDetail.GetTrustedPublisherDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one rule with the claims of its last exchange (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.CreateTrustedPublisherAsync(Storeasy.Application.Features.TrustedPublishers.CreateTrustedPublisher.CreateTrustedPublisherCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds a trusted publisher rule (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.DeleteTrustedPublisherAsync(Storeasy.Application.Features.TrustedPublishers.DeleteTrustedPublisher.DeleteTrustedPublisherCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a trusted publisher rule (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.TestTrustedPublisherAsync(Storeasy.Application.Features.TrustedPublishers.TestTrustedPublisher.TestTrustedPublisherCommand,System.Threading.CancellationToken)">
+            <summary>
+            Checks an OIDC token against a rule without issuing anything (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetDeliveryRulesAsync(Storeasy.Application.Features.DeliveryRules.GetDeliveryRules.GetDeliveryRulesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the delivery rules of an app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.UpdateDeliveryRulesAsync(Storeasy.Application.Features.DeliveryRules.UpdateDeliveryRules.UpdateDeliveryRulesCommand,System.Threading.CancellationToken)">
+            <summary>
+            Replaces the delivery rules of an app (ManageConnections). Test channels only.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSourcesAsync(Storeasy.Application.Features.ArtifactSources.GetArtifactSourceList.GetArtifactSourceListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the pull sources (EAS, generic webhook).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.SaveSourceAsync(Storeasy.Application.Features.ArtifactSources.SaveArtifactSource.SaveArtifactSourceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates or updates a pull source (ManageConnections); the secret is returned on creation and rotation only.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.DeleteSourceAsync(Storeasy.Application.Features.ArtifactSources.DeleteArtifactSource.DeleteArtifactSourceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a pull source (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSettingsAsync(Storeasy.Application.Features.IntakeSettings.GetIntakeSettings.GetIntakeSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the intake settings (retention, size limit).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.UpdateSettingsAsync(Storeasy.Application.Features.IntakeSettings.UpdateIntakeSettings.UpdateIntakeSettingsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Changes the intake settings (ManageConnections).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ArtifactWebhooksController">
+            <summary>
+            Anonymous receivers of the pull sources (design 13.19, 13.20): <c>/api/webhooks/eas/{sourceId}</c> and
+            <c>/api/webhooks/artifacts/{sourceId}</c> (the web container's proxy passes <c>/api</c>, like the store webhooks), also
+            answered at <c>/webhooks/...</c> as the design names them. The signature is checked on the raw body, which is limited
+            to 1 MiB; an accepted package answers 202 with its session.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactWebhooksController.#ctor(MediatR.IMediator)">
+            <summary>
+            Anonymous receivers of the pull sources (design 13.19, 13.20): <c>/api/webhooks/eas/{sourceId}</c> and
+            <c>/api/webhooks/artifacts/{sourceId}</c> (the web container's proxy passes <c>/api</c>, like the store webhooks), also
+            answered at <c>/webhooks/...</c> as the design names them. The signature is checked on the raw body, which is limited
+            to 1 MiB; an accepted package answers 202 with its session.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactWebhooksController.ReceiveEasAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            EAS build webhook (expo-signature, HMAC-SHA1 of the raw body).
+            </summary>
+            <param name="sourceId"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactWebhooksController.ReceiveArtifactAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Generic signed webhook (X-Storeasy-Timestamp, X-Storeasy-Signature: HMAC-SHA256 of "timestamp.body").
+            </summary>
+            <param name="sourceId"></param>
             <param name="cancellation"></param>
             <returns></returns>
         </member>
@@ -1370,6 +1626,26 @@
         <member name="M:Storeasy.Api.Controllers.MsController.GetExpiringConnectionsAsync(Storeasy.Application.Features.MsStore.GetExpiringMsConnectionList.GetExpiringMsConnectionListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists the Microsoft connections whose client secret expires within the given days (owners and admins).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.OidcController">
+            <summary>
+            Trusted publishing (tools/CONTRACT.md 3.1): a CI run exchanges its provider's OIDC token for a 15 minute upload token.
+            Anonymous; the OIDC token is the credential.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OidcController.#ctor(MediatR.IMediator)">
+            <summary>
+            Trusted publishing (tools/CONTRACT.md 3.1): a CI run exchanges its provider's OIDC token for a 15 minute upload token.
+            Anonymous; the OIDC token is the credential.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OidcController.ExchangeAsync(Storeasy.Application.Features.Artifacts.ExchangeOidcToken.ExchangeOidcTokenCommand,System.Threading.CancellationToken)">
+            <summary>
+            Exchanges an OIDC token for an upload token: 401 OidcTokenInvalid, 403 OidcClaimMismatch, 404 AppNotFound.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -2321,6 +2597,48 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.TokensController">
+            <summary>
+            Personal access tokens (sea_) for the REST API and the remote MCP (design 16.11-16.14), and the description of the
+            token of the request (tools/CONTRACT.md 2.1). Tokens are created and revoked from a web session only.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TokensController.#ctor(MediatR.IMediator)">
+            <summary>
+            Personal access tokens (sea_) for the REST API and the remote MCP (design 16.11-16.14), and the description of the
+            token of the request (tools/CONTRACT.md 2.1). Tokens are created and revoked from a web session only.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TokensController.GetTokensAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists the caller's personal access tokens of every organization.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TokensController.CreateTokenAsync(Storeasy.Application.Features.Tokens.CreatePersonalAccessToken.CreatePersonalAccessTokenCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates a personal access token; the value is in this response only.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TokensController.RevokeTokenAsync(Storeasy.Application.Features.Tokens.RevokePersonalAccessToken.RevokePersonalAccessTokenCommand,System.Threading.CancellationToken)">
+            <summary>
+            Revokes one of the caller's personal access tokens.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.TokensController.GetCurrentAsync(System.Threading.CancellationToken)">
+            <summary>
+            Describes the token of the request (personal access, CI or upload token). Never returns the value.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.UsersController">
             <summary>
             User endpoints.
@@ -2628,6 +2946,214 @@
             Dummy class for localization
             </summary>
         </member>
+        <member name="T:Storeasy.Api.Mcp.McpCustomTools">
+            <summary>
+            Tools that compose requests: approving a plan (with the confirmation rules), submitting for review, a screenshot folder
+            upload and turning a studio export into screenshot plans.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpCustomTools.All">
+            <summary>
+            The composed tools.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpSchemaBuilder">
+            <summary>
+            Builds the input schema of a tool from its MediatR request type (System.Text.Json schema export, enums as names),
+            with property descriptions from the XML documentation of the Application assembly, the hidden properties removed and
+            the file arguments marked with <c>x-storeasy-upload</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.Mcp.McpSchemaBuilder.UploadKeyword">
+            <summary>
+            JSON Schema extension keyword of file arguments.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpSchemaBuilder.Json">
+            <summary>
+            Serializer options of tool arguments and results: camelCase, enums as names (numbers accepted too).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpSchemaBuilder.Build(Storeasy.Api.Mcp.McpToolDefinition)">
+            <summary>
+            Input schema of <paramref name="tool"/>.
+            </summary>
+            <param name="tool"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpToolCatalog">
+            <summary>
+            The tools of the remote MCP (docs/urun-plani.md 2.6, 11.7): every API row of the coverage matrix that exists, named
+            after the store-ops tools where they overlap (one storeasy tool covers both stores). Store writes are plans only: a plan
+            tool returns the diff and the plan id, <c>plans_approve</c> applies it with the same permission and typed confirmation as
+            the web (<c>confirm: true</c> plus <c>confirmText</c> for review submission and production). Connections are read only
+            here; tokens and secrets are never handled by MCP. <c>artifact_upload</c> belongs to the local bridge only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolCatalog.Tools">
+            <summary>
+            Every tool, in listing order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolCatalog.Find(System.String)">
+            <summary>
+            Tool by name, or null.
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpToolKind">
+            <summary>
+            What a remote MCP tool does to the stores.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.Mcp.McpToolKind.Read">
+            <summary>
+            Reads only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.Mcp.McpToolKind.Plan">
+            <summary>
+            Makes a change plan (always a dry run); nothing reaches a store until <c>plans_approve</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.Mcp.McpToolKind.Write">
+            <summary>
+            Writes storeasy data (saved answers, assisted steps, delivery of a held package, a plan decision).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpUploadSpec">
+            <summary>
+            A file argument of a tool, advertised with the <c>x-storeasy-upload</c> JSON Schema keyword (tools/CONTRACT.md 6.1).
+            </summary>
+            <param name="Kind"><c>file</c>, <c>files</c> or <c>folder</c>.</param>
+            <param name="Purpose">Asset purpose (1 Screenshot, 2 Graphic, 3 MockupOutput, 4 BuildArtifact).</param>
+            <param name="Accept">Lower case extensions.</param>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpUploadSpec.#ctor(System.String,System.Int32,System.String[])">
+            <summary>
+            A file argument of a tool, advertised with the <c>x-storeasy-upload</c> JSON Schema keyword (tools/CONTRACT.md 6.1).
+            </summary>
+            <param name="Kind"><c>file</c>, <c>files</c> or <c>folder</c>.</param>
+            <param name="Purpose">Asset purpose (1 Screenshot, 2 Graphic, 3 MockupOutput, 4 BuildArtifact).</param>
+            <param name="Accept">Lower case extensions.</param>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpUploadSpec.Kind">
+            <summary><c>file</c>, <c>files</c> or <c>folder</c>.</summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpUploadSpec.Purpose">
+            <summary>Asset purpose (1 Screenshot, 2 Graphic, 3 MockupOutput, 4 BuildArtifact).</summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpUploadSpec.Accept">
+            <summary>Lower case extensions.</summary>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpToolDefinition">
+            <summary>
+            A remote MCP tool. Most tools are one MediatR request (<see cref="P:Storeasy.Api.Mcp.McpToolDefinition.RequestType"/>): the arguments are the request's
+            properties except the hidden ones, so organization authorization, validation and audit run exactly like the REST
+            endpoint. A plan tool always sends <c>DryRun = true</c>. A tool with <see cref="P:Storeasy.Api.Mcp.McpToolDefinition.Handler"/> composes requests itself.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Name">
+            <summary>
+            Tool name (snake_case).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Description">
+            <summary>
+            English description for the model.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Kind">
+            <summary>
+            What the tool does.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.RequestType">
+            <summary>
+            MediatR request sent by a plain tool.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Hidden">
+            <summary>
+            Request properties that are not arguments (the organization always comes from the token).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Fixed">
+            <summary>
+            Values a plain tool always sends (property name to value).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Uploads">
+            <summary>
+            File arguments by property name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Schema">
+            <summary>
+            Input schema of a tool with its own <see cref="P:Storeasy.Api.Mcp.McpToolDefinition.Handler"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Handler">
+            <summary>
+            Own implementation: arguments, request services, cancellation; returns the result envelope.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Api.Mcp.McpToolInvoker">
+            <summary>
+            The list and call handlers of the remote MCP. A call runs in the HTTP request of <c>/mcp</c>: the request's services
+            (current user from the personal access token, organization access, audit trail with the MCP channel) handle the
+            MediatR request, so the tool is checked and audited exactly like the REST endpoint. Results are the response envelope as
+            JSON text; a failed envelope or a refused request is a tool error.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolInvoker.ProtocolTools">
+            <summary>
+            The tools as the protocol lists them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolInvoker.ListToolsAsync(ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken)">
+            <summary>
+            Handles <c>tools/list</c>.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolInvoker.CallToolAsync(ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CallToolRequestParams},System.Threading.CancellationToken)">
+            <summary>
+            Handles <c>tools/call</c>.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolInvoker.CreateRequest(Storeasy.Api.Mcp.McpToolDefinition,System.Text.Json.Nodes.JsonObject)">
+            <summary>
+            Builds the MediatR request of a plain tool from its arguments, with the tool's fixed values.
+            </summary>
+            <param name="tool"></param>
+            <param name="arguments"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolInvoker.SendAsync(System.IServiceProvider,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            Sends a request through MediatR with the request's services.
+            </summary>
+            <param name="services"></param>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolInvoker.Failure(System.IServiceProvider,System.String,System.Object[])">
+            <summary>
+            A failed envelope with a localized message.
+            </summary>
+            <param name="services"></param>
+            <param name="key"></param>
+            <param name="arguments"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Middlewares.ExceptionMiddleware">
             <summary>
             Catches errors occurring elsewhere in the project.
@@ -2699,6 +3225,36 @@
         <member name="M:Storeasy.Api.Middlewares.SecurityStampValidationMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
             <summary>
             Validates the session stamp of the authenticated caller, then invokes the next middleware.
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Middlewares.StoreasyTokenMiddleware">
+            <summary>
+            Runs after authentication for requests made with a storeasy token: refuses CI and upload tokens on endpoints not
+            marked <see cref="T:Storeasy.Application.Utils.Attributes.AllowMachineTokenAttribute"/> and every token on endpoints marked
+            <see cref="T:Storeasy.Application.Utils.Attributes.WebSessionOnlyAttribute"/> (403), and records the audit channel of the request: MCP for <c>/mcp</c>, API for
+            a personal access token, CI for a CI or upload token.
+            </summary>
+            <param name="next"></param>
+        </member>
+        <member name="M:Storeasy.Api.Middlewares.StoreasyTokenMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate)">
+            <summary>
+            Runs after authentication for requests made with a storeasy token: refuses CI and upload tokens on endpoints not
+            marked <see cref="T:Storeasy.Application.Utils.Attributes.AllowMachineTokenAttribute"/> and every token on endpoints marked
+            <see cref="T:Storeasy.Application.Utils.Attributes.WebSessionOnlyAttribute"/> (403), and records the audit channel of the request: MCP for <c>/mcp</c>, API for
+            a personal access token, CI for a CI or upload token.
+            </summary>
+            <param name="next"></param>
+        </member>
+        <member name="F:Storeasy.Api.Middlewares.StoreasyTokenMiddleware.McpPath">
+            <summary>
+            Path of the remote MCP endpoint.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Middlewares.StoreasyTokenMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Checks the token against the endpoint and sets the audit channel, then invokes the next middleware.
             </summary>
             <param name="context"></param>
             <returns></returns>
@@ -2821,6 +3377,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118151224_Phase7Monetization.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118154640_Phase3McpIntake">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118154640_Phase3McpIntake.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118154640_Phase3McpIntake.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118154640_Phase3McpIntake.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">
@@ -3058,6 +3626,51 @@
             fresh database the documentation (Scalar) token names a root user that is not seeded yet, so its stamp cannot be
             validated. Such an endpoint must be disabled in production and harmless once the database is initialized.
             </summary>
+        </member>
+        <member name="T:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler">
+            <summary>
+            Authenticates <c>Authorization: Bearer</c> values with a storeasy token prefix (<c>sea_</c>, <c>sci_</c>, <c>sut_</c>)
+            through <see cref="T:Storeasy.Application.Interfaces.IApiTokenAuthenticator"/>. The principal carries the owner of a personal access token (<c>uid</c>,
+            name, user type, but no platform permissions) and the token's claims (<see cref="T:Storeasy.Application.Utils.Constants.TokenClaimNames"/>). A failed token is
+            a 401 envelope whose key says why (<c>Unauthorized</c>, <c>TokenExpired</c>, <c>CiTokenExpired</c>,
+            <c>TokenRevoked</c>); the value itself never appears in a response or a log.
+            </summary>
+            <param name="options"></param>
+            <param name="logger"></param>
+            <param name="encoder"></param>
+        </member>
+        <member name="M:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.#ctor(Microsoft.Extensions.Options.IOptionsMonitor{Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions},Microsoft.Extensions.Logging.ILoggerFactory,System.Text.Encodings.Web.UrlEncoder)">
+            <summary>
+            Authenticates <c>Authorization: Bearer</c> values with a storeasy token prefix (<c>sea_</c>, <c>sci_</c>, <c>sut_</c>)
+            through <see cref="T:Storeasy.Application.Interfaces.IApiTokenAuthenticator"/>. The principal carries the owner of a personal access token (<c>uid</c>,
+            name, user type, but no platform permissions) and the token's claims (<see cref="T:Storeasy.Application.Utils.Constants.TokenClaimNames"/>). A failed token is
+            a 401 envelope whose key says why (<c>Unauthorized</c>, <c>TokenExpired</c>, <c>CiTokenExpired</c>,
+            <c>TokenRevoked</c>); the value itself never appears in a response or a log.
+            </summary>
+            <param name="options"></param>
+            <param name="logger"></param>
+            <param name="encoder"></param>
+        </member>
+        <member name="F:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.SelectorScheme">
+            <summary>
+            Policy scheme that forwards to this handler for storeasy tokens and to JWT bearer otherwise.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.HasStoreasyToken(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Whether the request carries a storeasy token (selects this handler).
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.HandleAuthenticateAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.HandleChallengeAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Utils.StoreasyTokenAuthenticationHandler.HandleForbiddenAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <inheritdoc/>
         </member>
         <member name="T:Program">
             <summary>

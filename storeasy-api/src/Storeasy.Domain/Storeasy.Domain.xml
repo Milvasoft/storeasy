@@ -1393,6 +1393,206 @@
             A CI pipeline or build service (package intake).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactPlatform">
+            <summary>
+            Platform of a package. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPlatform.Ios">
+            <summary>
+            Apple platforms (IPA).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPlatform.Android">
+            <summary>
+            Android (AAB, APK).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPlatform.Windows">
+            <summary>
+            Windows (MSIX, APPX).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactPullSourceKind">
+            <summary>
+            Kind of a pull source (a build service that says "ready" and lets storeasy download). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPullSourceKind.Eas">
+            <summary>
+            EAS build webhook (expo-signature, HMAC-SHA1).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPullSourceKind.Webhook">
+            <summary>
+            Generic signed webhook (X-Storeasy-Signature, HMAC-SHA256).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactSessionStatus">
+            <summary>
+            State of a package upload session. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Uploading">
+            <summary>
+            Parts are being uploaded.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Parsing">
+            <summary>
+            The package is being read.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Checking">
+            <summary>
+            The package is checked against the rules catalog.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Delivering">
+            <summary>
+            The package is being delivered to the store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Delivered">
+            <summary>
+            The store has the package on the rule's target.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Rejected">
+            <summary>
+            The package was refused (wrong app, failed check, size mismatch).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Duplicate">
+            <summary>
+            The same file was already received for this app.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Held">
+            <summary>
+            Delivery waits for a member (a warning held it, or no rule applies).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Failed">
+            <summary>
+            The store refused the delivery or it could not complete.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactSource">
+            <summary>
+            Where a package came from. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.GitHubActions">
+            <summary>
+            The GitHub Action.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.AzureDevOps">
+            <summary>
+            The Azure DevOps task.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.GitLab">
+            <summary>
+            GitLab CI.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Cli">
+            <summary>
+            The storeasy CLI on a developer machine.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Rest">
+            <summary>
+            The REST API directly.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Eas">
+            <summary>
+            Pulled after an EAS build webhook.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Webhook">
+            <summary>
+            Pulled after a signed generic webhook.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Manual">
+            <summary>
+            Uploaded in the web app or through MCP.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactSource.Sync">
+            <summary>
+            Seen in the store by the build sync (uploaded by the CI itself).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactStepKind">
+            <summary>
+            A step of package processing. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Upload">
+            <summary>
+            Upload to storage.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Parse">
+            <summary>
+            Reading the package.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Check">
+            <summary>
+            Readiness checks.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Rule">
+            <summary>
+            Choosing the delivery target.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Deliver">
+            <summary>
+            Delivery to the store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepKind.Report">
+            <summary>
+            The result for the CI.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ArtifactStepStatus">
+            <summary>
+            State of a processing step. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepStatus.Pending">
+            <summary>
+            Not started.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepStatus.Running">
+            <summary>
+            In progress.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepStatus.Done">
+            <summary>
+            Finished.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepStatus.Failed">
+            <summary>
+            Failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactStepStatus.Skipped">
+            <summary>
+            Not run.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AssetPurpose">
             <summary>
             What a stored file is for; decides its folder and size limit. Values are explicit and never reused.
@@ -1664,6 +1864,48 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MsFlightGroupSaved">
             <summary>A package flight group name was recorded.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.TokenCreated">
+            <summary>A personal access token was created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.TokenRevoked">
+            <summary>A personal access token was revoked.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.CiTokenCreated">
+            <summary>A CI token was created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.CiTokenRevoked">
+            <summary>A CI token was revoked.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.TrustedPublisherAdded">
+            <summary>A trusted publisher rule was added.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.TrustedPublisherRemoved">
+            <summary>A trusted publisher rule was removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.DeliveryRulesUpdated">
+            <summary>The delivery rules of an app changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactSourceUpdated">
+            <summary>A pull source (EAS or generic webhook) was saved or its secret rotated.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactReceived">
+            <summary>A package upload was completed and queued for processing.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactDelivered">
+            <summary>A package was delivered to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactRejected">
+            <summary>A package was rejected (wrong app, failed check).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactHeld">
+            <summary>A package was held for a member before delivery.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ArtifactDeleted">
+            <summary>A stored package was deleted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.IntakeSettingsUpdated">
+            <summary>The package intake settings (retention) changed.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
@@ -2046,6 +2288,46 @@
             Everything.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.DeliveryTarget">
+            <summary>
+            Where a delivery rule sends a package. Only test channels: production and review submission are never automatic. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryTarget.TestFlightGroup">
+            <summary>
+            An internal TestFlight group.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryTarget.PlayTrack">
+            <summary>
+            A Google Play testing track (internal, alpha, beta or a closed track).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryTarget.MsFlight">
+            <summary>
+            A Microsoft Store package flight.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryTarget.None">
+            <summary>
+            Upload only, no target (or no automatic delivery).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.DeliveryWarningAction">
+            <summary>
+            What a delivery rule does when the checks pass with warnings. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryWarningAction.Deliver">
+            <summary>
+            Deliver anyway.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeliveryWarningAction.Hold">
+            <summary>
+            Hold the session for a member.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.EmailProvider">
             <summary>
             How e-mails leave the application (<c>Storeasy:Email:Provider</c>).
@@ -2064,6 +2346,26 @@
         <member name="F:Storeasy.Domain.Enums.EmailProvider.Log">
             <summary>
             Nothing is sent, the e-mail is only logged. Development only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.IdentityKind">
+            <summary>
+            How a package upload was authenticated. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.IdentityKind.Oidc">
+            <summary>
+            A trusted publisher (OIDC exchange).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.IdentityKind.CiToken">
+            <summary>
+            A CI token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.IdentityKind.User">
+            <summary>
+            A member (web, personal access token).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.MediaKind">
@@ -2808,6 +3110,46 @@
             One payment for the whole duration.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.OidcExchangeResult">
+            <summary>
+            Outcome of the last OIDC exchange against a trusted publisher rule. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcExchangeResult.Succeeded">
+            <summary>
+            An upload token was issued.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcExchangeResult.ClaimMismatch">
+            <summary>
+            The token was valid but its claims did not match the rule.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcExchangeResult.InvalidToken">
+            <summary>
+            The token failed validation (signature, expiry, audience, issuer).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.OidcProvider">
+            <summary>
+            CI provider of a trusted publisher rule (OIDC token issuer family). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcProvider.GitHub">
+            <summary>
+            GitHub Actions (issuer https://token.actions.githubusercontent.com).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcProvider.AzureDevOps">
+            <summary>
+            Azure Pipelines workload identity federation (issuer https://vstoken.dev.azure.com/{organization id}).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OidcProvider.GitLab">
+            <summary>
+            GitLab CI (gitlab.com or a self-managed instance).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.OrgPermission">
             <summary>
             An action inside an organization. Requests declare the permission they need and the organization access behaviour
@@ -2889,6 +3231,31 @@
         <member name="F:Storeasy.Domain.Enums.OrgRole.Viewer">
             <summary>
             Read only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PackageKind">
+            <summary>
+            Package format. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.Ipa">
+            <summary>
+            iOS app archive.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.Aab">
+            <summary>
+            Android App Bundle.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.Msix">
+            <summary>
+            MSIX or APPX package or bundle.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.Apk">
+            <summary>
+            Android package.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.PriceSource">
@@ -3386,6 +3753,9 @@
             Downloads MSI/EXE installers and checks their Authenticode signature.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact">
+            <summary>Reads, checks and delivers an uploaded package (build intake).</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.StoreJobStatus">
             <summary>
             State of a store job. Queued and Running are open; the others are final. Values are explicit and never reused (the
@@ -3519,6 +3889,26 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.TestFlightOperation.SubmitBetaReview">
             <summary>Submit a build to beta app review.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.TokenKind">
+            <summary>
+            Kind of a bearer token storeasy issues (tools/CONTRACT.md section 7). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TokenKind.PersonalAccessToken">
+            <summary>
+            A personal access token (sea_), bound to a user and an organization.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TokenKind.CiToken">
+            <summary>
+            A CI token (sci_), bound to an organization and some apps, not to a person.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TokenKind.UploadToken">
+            <summary>
+            A 15 minute upload token (sut_) issued by the OIDC exchange for one app.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.UserActivity">
             <summary>
@@ -4378,6 +4768,1177 @@
         </member>
         <member name="P:Storeasy.Domain.IdempotencyKey.CreationDate">
             <summary>When the key was claimed. Drives both the abandoned-claim takeover and the cleanup job.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactSourceRef">
+            <summary>
+            CI details of a package's source. Every field is optional.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.Provider">
+            <summary>
+            Provider name (github, azure-devops, gitlab, eas, codemagic...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.RunId">
+            <summary>
+            Run id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.RunAttempt">
+            <summary>
+            Run attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.RunUrl">
+            <summary>
+            Link to the run.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.Repository">
+            <summary>
+            Repository.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.Branch">
+            <summary>
+            Branch.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.Commit">
+            <summary>
+            Commit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSourceRef.Actor">
+            <summary>
+            Who started the run.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactDeliveryOverride">
+            <summary>
+            A delivery target given for one session, overriding the app's delivery rule (tools/CONTRACT.md 3.2).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.Store">
+            <summary>
+            Store; must match the package's platform.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.Track">
+            <summary>
+            Play testing track.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.Group">
+            <summary>
+            Internal TestFlight group name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.Notes">
+            <summary>
+            Release notes or "What to Test" text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactStep">
+            <summary>
+            One processing step of a session.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.Kind">
+            <summary>
+            Step.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.Message">
+            <summary>
+            Short note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.Bytes">
+            <summary>
+            Bytes done (upload, delivery).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.Total">
+            <summary>
+            Bytes in total.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.ResumeCount">
+            <summary>
+            Resumes of the upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.StartDate">
+            <summary>
+            UTC start.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactStep.EndDate">
+            <summary>
+            UTC end.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactPackageInfo">
+            <summary>
+            What was read from a package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.Kind">
+            <summary>
+            Format.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.Identifier">
+            <summary>
+            Bundle id, package name or package identity name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.VersionName">
+            <summary>
+            User facing version (CFBundleShortVersionString, versionName, MSIX version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.VersionCode">
+            <summary>
+            Build number (CFBundleVersion, versionCode).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.MinOs">
+            <summary>
+            Minimum OS (MinimumOSVersion, minSdkVersion, MinVersion).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.TargetSdk">
+            <summary>
+            Android target SDK.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.Signature">
+            <summary>
+            Signature summary when it could be read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.XcodeVersion">
+            <summary>
+            Xcode version that built an IPA (e.g. 26.1).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.SdkVersion">
+            <summary>
+            Platform SDK version an IPA was built with (e.g. 26.1).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.ApplePlatform">
+            <summary>
+            Apple platform of an IPA (IOS, TV_OS, VISION_OS) for the App Store Connect upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.UsesNonExemptEncryption">
+            <summary>
+            Whether the IPA declares ITSAppUsesNonExemptEncryption (null when it does not say).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.Publisher">
+            <summary>
+            MSIX publisher.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.DisplayName">
+            <summary>
+            Display name, when the package has one.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactCheck">
+            <summary>
+            Result of one catalog check of a package (same shape as a readiness item).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.Key">
+            <summary>
+            Stable key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.Group">
+            <summary>
+            Group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.Status">
+            <summary>
+            Outcome: Ok, Missing (blocks) or Warning.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.RuleId">
+            <summary>
+            Catalog rule, when the check comes from one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactCheck.Message">
+            <summary>
+            Detail.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactAppliedRule">
+            <summary>
+            The delivery target applied to a session.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.Platform">
+            <summary>
+            Platform.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.Target">
+            <summary>
+            Target kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.TargetId">
+            <summary>
+            Target id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.TargetName">
+            <summary>
+            Target name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.RolloutFraction">
+            <summary>
+            Staged rollout fraction of a Play release.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.Notes">
+            <summary>
+            Release notes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.OnWarning">
+            <summary>
+            What happens on a warning.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.Override">
+            <summary>
+            Whether the session's own delivery override was used instead of the rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.RuleUpdatedByUserName">
+            <summary>
+            Who changed the rule last.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactAppliedRule.RuleUpdatedDate">
+            <summary>
+            When the rule was changed last.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.OidcClaim">
+            <summary>
+            One claim of an OIDC token (kept from the last exchange of a trusted publisher rule; never the token itself).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.OidcClaim.Name">
+            <summary>
+            Claim name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.OidcClaim.Value">
+            <summary>
+            Claim value.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactPullSource">
+            <summary>
+            A pull source of an app (design 13.19-13.20): a build service (EAS, Codemagic, Bitrise) calls
+            <c>/webhooks/eas/{PublicId}</c> or <c>/webhooks/artifacts/{PublicId}</c> when a build is ready, and storeasy downloads the
+            package from one of <see cref="P:Storeasy.Domain.Intake.ArtifactPullSource.AllowedDomains"/>. The signing secret must be read back to check signatures, so it is
+            envelope encrypted like the store connections (never in a DTO after creation).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.ArtifactPullSource.MaxDomains">
+            <summary>
+            Most allowed download domains of a source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.AppId">
+            <summary>
+            App the packages belong to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.Kind">
+            <summary>
+            EAS or generic webhook.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.PublicId">
+            <summary>
+            Public id in the webhook URL (<c>src_...</c>); not a secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.EncryptedSecret">
+            <summary>
+            The signing secret sealed with the data key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.EncryptedDataKey">
+            <summary>
+            The data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.KeyVersion">
+            <summary>
+            Master key version of <see cref="P:Storeasy.Domain.Intake.ArtifactPullSource.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.AllowedDomains">
+            <summary>
+            Host names packages may be downloaded from (exact, or <c>*.example.com</c> for subdomains). https only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.Platforms">
+            <summary>
+            Platforms whose builds are taken.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.IncludeApk">
+            <summary>
+            Whether APK builds are taken as well (EAS internal distribution builds).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.SecretSetDate">
+            <summary>
+            UTC instant the secret was set or rotated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.SecretSetByUserName">
+            <summary>
+            Member who set the secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.LastCallDate">
+            <summary>
+            UTC instant of the last call.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.LastCallResult">
+            <summary>
+            Outcome of the last call.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPullSource.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ArtifactSession">
+            <summary>
+            One package received for an app (design 13.13-13.17, tools/CONTRACT.md 3): the presigned multipart upload into the
+            bucket, then parsing, the catalog checks, the delivery rule and the delivery to the store, each recorded in
+            <see cref="P:Storeasy.Domain.Intake.ArtifactSession.Steps"/>. The result for the CI is <see cref="P:Storeasy.Domain.Intake.ArtifactSession.CiExitCode"/> and <see cref="P:Storeasy.Domain.Intake.ArtifactSession.CiSummary"/>. The same SHA-256 of
+            the same app is processed once: a later session becomes <see cref="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Duplicate"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.ArtifactSession.FileNameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Intake.ArtifactSession.FileName"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.ArtifactSession.TextMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Intake.ArtifactSession.StatusDescription"/>, <see cref="P:Storeasy.Domain.Intake.ArtifactSession.CiSummary"/> and <see cref="P:Storeasy.Domain.Intake.ArtifactSession.HoldReason"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.AppId">
+            <summary>
+            App the package was sent to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Platform">
+            <summary>
+            Platform from the file extension (and confirmed by parsing).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.FileName">
+            <summary>
+            File name as sent.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Size">
+            <summary>
+            Declared size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Sha256">
+            <summary>
+            Declared lower case hex SHA-256 of the whole file.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.ContentType">
+            <summary>
+            MIME type as sent.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Source">
+            <summary>
+            Where the package came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.SourceRef">
+            <summary>
+            CI details of the source (run, repository, branch, commit).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Delivery">
+            <summary>
+            Target given for this session only, overriding the delivery rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StatusDescription">
+            <summary>
+            One line, human readable state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StartDate">
+            <summary>
+            UTC instant the session was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.EndDate">
+            <summary>
+            UTC instant the session became final.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StoreJobId">
+            <summary>
+            Store job that processes the package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.OriginalSessionId">
+            <summary>
+            The earlier session with the same file (for <see cref="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Duplicate"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.ObjectKey">
+            <summary>
+            Object key of the package in the bucket.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.UploadId">
+            <summary>
+            Multipart upload id while uploading.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.PartSize">
+            <summary>
+            Part size of the multipart upload (constant for the session).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.ResumeCount">
+            <summary>
+            How often the client resumed the upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.PackageDeleted">
+            <summary>
+            Whether the stored file was deleted (retention, member, rejection).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Steps">
+            <summary>
+            Processing steps.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Package">
+            <summary>
+            What was read from the package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.Checks">
+            <summary>
+            Results of the catalog checks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.AppliedRule">
+            <summary>
+            The delivery target that was applied.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StoreAppId">
+            <summary>
+            Store record the package belongs to (matched by parsing).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.IdentityKind">
+            <summary>
+            How the upload was authenticated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.TrustedPublisherId">
+            <summary>
+            Trusted publisher rule of an OIDC upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.CiTokenId">
+            <summary>
+            CI token of the upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.CiTokenPrefix">
+            <summary>
+            Prefix of that CI token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.UserId">
+            <summary>
+            Member who uploaded (web, personal access token).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.UserName">
+            <summary>
+            Name of that member.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.HoldReason">
+            <summary>
+            Why delivery waits for a member (<see cref="F:Storeasy.Domain.Enums.ArtifactSessionStatus.Held"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.CiExitCode">
+            <summary>
+            Exit code for the CI once final (0 delivered, duplicate or held; 2 rejected; 3 identity; 4 store error).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.CiSummary">
+            <summary>
+            One line result for the CI.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StoreBuildId">
+            <summary>
+            Store's id of the delivered build (App Store Connect build id, Play version code), when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.StoreUploadId">
+            <summary>
+            Store upload of the package (App Store Connect build upload id), while the store processes it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.PullSourceId">
+            <summary>
+            Pull source of a pulled package (EAS, generic webhook).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.DownloadUrl">
+            <summary>
+            Address a pulled package is downloaded from (checked against the source's allowed domains); cleared after the
+            download. Never shown, it may carry a signed query.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactSession.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.CiToken">
+            <summary>
+            A CI token (<c>sci_</c>) for build services that cannot show an OIDC token (docs/urun-plani.md 11.8, design 13.8). It
+            belongs to the organization, not to a person, is limited to some apps (or all) and to the scopes in
+            <see cref="P:Storeasy.Domain.Intake.CiToken.Scopes"/> (today only <see cref="F:Storeasy.Domain.Intake.CiToken.ArtifactsWriteScope"/>), and always expires. Only the SHA-256 hash of the
+            value is stored.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.CiToken.ArtifactsWriteScope">
+            <summary>
+            The only scope today: upload packages.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.CiToken.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Intake.CiToken.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.CiToken.MaxExpiryDays">
+            <summary>
+            Longest lifetime of a CI token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.Name">
+            <summary>
+            Name (unique among the organization's active CI tokens).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.TokenHash">
+            <summary>
+            Lower case hex SHA-256 of the token value.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.Prefix">
+            <summary>
+            First characters of the value (<c>sci_7f2</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.AllApps">
+            <summary>
+            Whether the token may upload to every app of the organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.AppIds">
+            <summary>
+            Apps the token may upload to when <see cref="P:Storeasy.Domain.Intake.CiToken.AllApps"/> is false.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.Scopes">
+            <summary>
+            Scopes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.ExpiryDate">
+            <summary>
+            UTC instant the token stops working.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.LastUseDate">
+            <summary>
+            UTC instant of the last use.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.LastUseSource">
+            <summary>
+            Client of the last use (User-Agent).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.RevokeDate">
+            <summary>
+            UTC instant of revocation; null while active.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.CreatedByUserId">
+            <summary>
+            Member who created the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.CreatedByUserName">
+            <summary>
+            Name of that member.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.CiToken.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.DeliveryRule">
+            <summary>
+            Where a package of one platform of an app goes after it passed the checks (design 13.18). One rule per app and
+            platform. Targets are test channels only (<see cref="M:Storeasy.Domain.Intake.IntakeRules.IsTargetAllowed(Storeasy.Domain.Enums.ArtifactPlatform,Storeasy.Domain.Enums.DeliveryTarget,System.String)"/>): production and review
+            submission are never automatic.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.Platform">
+            <summary>
+            Platform the rule is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.Enabled">
+            <summary>
+            Whether packages are delivered automatically.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.Target">
+            <summary>
+            Target kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.TargetId">
+            <summary>
+            Target id: TestFlight group id, Play track name, flight id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.TargetName">
+            <summary>
+            Target display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.OnWarning">
+            <summary>
+            What to do when the checks pass with warnings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.RolloutFraction">
+            <summary>
+            Staged rollout fraction (0-1) of a Play testing track release; null releases to every tester.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.UpdatedByUserId">
+            <summary>
+            Member who changed the rule last.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.UpdatedByUserName">
+            <summary>
+            Name of that member.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.UpdatedDate">
+            <summary>
+            UTC instant of the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.DeliveryRule.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.IntakeRules">
+            <summary>
+            The pure rules of package intake (tools/CONTRACT.md 3, design 13): accepted files, part layout, delivery targets, CI
+            exit codes, claim patterns and download host checks. No database, no network.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.MinPartSize">
+            <summary>
+            Smallest part (S3 minimum).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.MaxPartSize">
+            <summary>
+            Largest part.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.DefaultPartSize">
+            <summary>
+            Preferred part size.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.MaxParts">
+            <summary>
+            Most parts of an S3 multipart upload.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.NotesMaxLength">
+            <summary>
+            Longest release notes text.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.ExitOk">
+            <summary>
+            CI exit code: delivered, duplicate or held.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.ExitRejected">
+            <summary>
+            CI exit code: the package was rejected.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.ExitIdentity">
+            <summary>
+            CI exit code: identity failure.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.ExitStoreError">
+            <summary>
+            CI exit code: the store refused or failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeRules.ProductionTracks">
+            <summary>
+            Play tracks storeasy never releases to automatically.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.Classify(System.String)">
+            <summary>
+            Platform and format of <paramref name="fileName"/> by its extension; null for an unsupported file.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.StoreOf(Storeasy.Domain.Enums.ArtifactPlatform)">
+            <summary>
+            Store a platform's packages go to.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.PartSizeFor(System.Int64)">
+            <summary>
+            Part size for a file of <paramref name="size"/> bytes: <see cref="F:Storeasy.Domain.Intake.IntakeRules.DefaultPartSize"/>, grown in whole MiB until the
+            file fits in <see cref="F:Storeasy.Domain.Intake.IntakeRules.MaxParts"/> parts, never above <see cref="F:Storeasy.Domain.Intake.IntakeRules.MaxPartSize"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.PartCount(System.Int64,System.Int64)">
+            <summary>
+            Number of parts of a file (ceil(size / partSize)).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsTargetAllowed(Storeasy.Domain.Enums.ArtifactPlatform,Storeasy.Domain.Enums.DeliveryTarget,System.String)">
+            <summary>
+            Whether a delivery rule may send packages to <paramref name="target"/> automatically: test channels only (no
+            production track, no external TestFlight group, no review submission).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsFinal(Storeasy.Domain.Enums.ArtifactSessionStatus)">
+            <summary>
+            Whether a session in <paramref name="status"/> is final for the CI.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.ExitCodeOf(Storeasy.Domain.Enums.ArtifactSessionStatus)">
+            <summary>
+            CI exit code of a final status.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsSha256(System.String)">
+            <summary>
+            Whether <paramref name="sha256"/> is 64 lower case hex characters.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.GlobMatches(System.String,System.String)">
+            <summary>
+            Glob match of a claim value against a rule pattern: <c>*</c> matches any run of characters (including <c>/</c>),
+            everything else literally and case sensitively. An empty pattern matches anything.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.BranchOf(System.String)">
+            <summary>
+            Branch name of a git ref (<c>refs/heads/main</c> to <c>main</c>); other refs stay as they are.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsHostAllowed(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Whether <paramref name="host"/> is one of <paramref name="allowedDomains"/> (exact, or a subdomain of a
+            <c>*.domain</c> entry).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsValidDomainEntry(System.String)">
+            <summary>
+            Whether an allowed domain entry is well formed (a host name or <c>*.host</c>, no scheme, path, port or IP).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.IsBlockedAddress(System.Net.IPAddress)">
+            <summary>
+            Whether an address must never be downloaded from: loopback, private, link local, unique local, multicast,
+            unspecified, carrier grade NAT and the IPv4 mapped forms of those.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.IntakeSetting">
+            <summary>
+            Package intake settings of an organization. An organization without a row uses the defaults.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeSetting.DefaultRetentionDays">
+            <summary>
+            Days a package is kept by default.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.IntakeSetting.DefaultMaxArtifactBytes">
+            <summary>
+            Largest package by default (4 GiB).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.IntakeSetting.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.IntakeSetting.ArtifactRetentionDays">
+            <summary>
+            Days a stored package (and its session's file) is kept.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.IntakeSetting.MaxArtifactBytes">
+            <summary>
+            Largest package accepted, in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.IntakeSetting.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.TrustedPublisher">
+            <summary>
+            A trusted publisher rule of an app (docs/urun-plani.md 11.8, design 13.4-13.7): a CI run whose OIDC token comes from
+            <see cref="P:Storeasy.Domain.Intake.TrustedPublisher.Provider"/> and carries the claims described here may exchange it for a 15 minute upload token. The raw
+            OIDC token is never stored; only the claims of the last exchange are kept for the diagnosis drawer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisher.FieldMaxLength">
+            <summary>
+            Column length of the claim pattern fields.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.AppId">
+            <summary>
+            App the rule lets packages into.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Provider">
+            <summary>
+            CI provider.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Repository">
+            <summary>
+            GitHub <c>owner/repo</c> or GitLab <c>group/project</c> path.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Workflow">
+            <summary>
+            GitHub workflow file (<c>.github/workflows/release.yml</c>), optional.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Branch">
+            <summary>
+            Branch pattern (<c>main</c>, <c>release/*</c>); not available for Azure DevOps.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Environment">
+            <summary>
+            Deployment environment, optional.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.AzureOrganization">
+            <summary>
+            Azure DevOps organization name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.AzureProject">
+            <summary>
+            Azure DevOps project.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.ServiceConnection">
+            <summary>
+            Azure DevOps service connection name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.Issuer">
+            <summary>
+            Issuer of a self-managed GitLab (https URL); null for gitlab.com and the other providers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.LastExchangeDate">
+            <summary>
+            UTC instant of the last exchange attempt that named this app and matched this rule's provider.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.LastExchangeResult">
+            <summary>
+            Outcome of that attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.LastExchangeRunUrl">
+            <summary>
+            CI run of that attempt.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.LastClaims">
+            <summary>
+            Claims of that attempt (never the token itself).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.CreatedByUserId">
+            <summary>
+            Member who added the rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.CreatedByUserName">
+            <summary>
+            Name of that member.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.TrustedPublisher.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.TrustedPublisherMatcher">
+            <summary>
+            Compares a validated OIDC token with a trusted publisher rule (tools/CONTRACT.md 3.1, design 13.5-13.7). GitHub:
+            <c>repository</c>, <c>ref</c> (branch glob, checked separately from <c>sub</c> because an environment job has no branch in
+            <c>sub</c>), <c>environment</c>, optional <c>job_workflow_ref</c>, audience <see cref="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.StoreasyAudience"/>. Azure DevOps:
+            <c>sub</c> = <c>sc://org/project/service connection</c>, audience <see cref="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.AzureAudience"/>. GitLab: <c>project_path</c>,
+            <c>ref</c>, <c>ref_type</c>, <c>environment</c>, audience <see cref="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.StoreasyAudience"/>. No database, no network.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.GitHubIssuer">
+            <summary>
+            Issuer of GitHub Actions tokens.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.AzureIssuerPrefix">
+            <summary>
+            Issuer prefix of Azure DevOps workload identity tokens (followed by the organization id).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.GitLabIssuer">
+            <summary>
+            Issuer of gitlab.com tokens.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.StoreasyAudience">
+            <summary>
+            Audience GitHub and GitLab tokens are requested with.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.TrustedPublisherMatcher.AzureAudience">
+            <summary>
+            Fixed audience of Azure DevOps workload identity tokens.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.AudienceOf(Storeasy.Domain.Enums.OidcProvider)">
+            <summary>
+            Audience a rule's tokens must carry.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.IsAzureIssuer(System.String)">
+            <summary>
+            Whether <paramref name="issuer"/> is an Azure DevOps token issuer (<c>https://vstoken.dev.azure.com/{guid}</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.IssuerOf(Storeasy.Domain.Intake.TrustedPublisher)">
+            <summary>
+            Issuer a rule's tokens come from; for Azure DevOps a pattern (the organization id is not known to the rule).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.ExpectedClaims(Storeasy.Domain.Intake.TrustedPublisher)">
+            <summary>
+            The claims a matching token carries (shown to members when they set up the CI), in display order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.Compare(Storeasy.Domain.Intake.TrustedPublisher,System.String,System.Collections.Generic.IReadOnlyCollection{System.String},System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            Claim by claim comparison of a validated token with <paramref name="rule"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.Matches(Storeasy.Domain.Intake.TrustedPublisher,System.String,System.Collections.Generic.IReadOnlyCollection{System.String},System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            Whether every claim matches.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.TrustedPublisherMatcher.RunUrlOf(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            Link to the CI run named by the claims, if any.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.ClaimComparison">
+            <summary>
+            One claim of a comparison.
+            </summary>
+            <param name="Claim">Claim name.</param>
+            <param name="Expected">Expected value or pattern.</param>
+            <param name="Actual">Value in the token.</param>
+            <param name="Matches">Whether it matches.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.ClaimComparison.#ctor(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            One claim of a comparison.
+            </summary>
+            <param name="Claim">Claim name.</param>
+            <param name="Expected">Expected value or pattern.</param>
+            <param name="Actual">Value in the token.</param>
+            <param name="Matches">Whether it matches.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ClaimComparison.Claim">
+            <summary>Claim name.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ClaimComparison.Expected">
+            <summary>Expected value or pattern.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ClaimComparison.Actual">
+            <summary>Value in the token.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ClaimComparison.Matches">
+            <summary>Whether it matches.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.UploadToken">
+            <summary>
+            A short lived upload token (<c>sut_</c>) issued by the OIDC exchange: one app, scope
+            <see cref="F:Storeasy.Domain.Intake.CiToken.ArtifactsWriteScope"/>, <see cref="F:Storeasy.Domain.Intake.UploadToken.Lifetime"/>. Only the SHA-256 hash is stored; expired rows are
+            deleted by the intake cleanup job.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.UploadToken.Lifetime">
+            <summary>
+            How long an upload token works.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.AppId">
+            <summary>
+            The one app the token may upload to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.TrustedPublisherId">
+            <summary>
+            Trusted publisher rule the OIDC token matched.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.TokenHash">
+            <summary>
+            Lower case hex SHA-256 of the token value.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.Prefix">
+            <summary>
+            First characters of the value.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.ExpiryDate">
+            <summary>
+            UTC instant the token stops working.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.UploadToken.RunUrl">
+            <summary>
+            CI run that exchanged the token, if the claims named one.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.InternalNotification">
             <summary>
@@ -9699,6 +11260,115 @@
         <member name="P:Storeasy.Domain.TestFlight.BetaTester.SyncedDate">
             <summary>
             UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Tokens.PersonalAccessToken">
+            <summary>
+            A personal access token (<c>sea_</c>) for the REST API and the remote MCP (docs/urun-plani.md 2.6, 8). It belongs to
+            one user in one organization; its effective permission is the user's current role in that organization, capped to
+            view only when <see cref="P:Storeasy.Domain.Tokens.PersonalAccessToken.ReadOnly"/>, and is computed again on every request. Only the SHA-256 hash of the value is
+            stored; the value is shown once, at creation.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Tokens.PersonalAccessToken.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Tokens.PersonalAccessToken.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Tokens.PersonalAccessToken.PrefixLength">
+            <summary>
+            Length of <see cref="P:Storeasy.Domain.Tokens.PersonalAccessToken.Prefix"/> (the kind prefix and three characters).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.UserId">
+            <summary>
+            Owner of the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.OrganizationId">
+            <summary>
+            Organization the token acts in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.Name">
+            <summary>
+            Name the owner gave the token (unique among the owner's active tokens of the organization).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.TokenHash">
+            <summary>
+            Lower case hex SHA-256 of the token value.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.Prefix">
+            <summary>
+            First characters of the value, shown in lists (<c>sea_9c1</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.ReadOnly">
+            <summary>
+            Whether the token may only read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.ExpiryDate">
+            <summary>
+            UTC instant the token stops working.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.LastUseDate">
+            <summary>
+            UTC instant of the last use (updated at most every few minutes).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.LastClientName">
+            <summary>
+            Client name of the last use (from the User-Agent header).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.RevokeDate">
+            <summary>
+            UTC instant of revocation; null while active.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.User">
+            <summary>
+            Navigation property of the owner.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Tokens.PersonalAccessToken.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Tokens.TokenPrefixes">
+            <summary>
+            Value prefixes of the bearer tokens storeasy issues (tools/CONTRACT.md 2). The prefix tells the authentication which
+            table to look in and lets log redaction recognize a token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Tokens.TokenPrefixes.PersonalAccessToken">
+            <summary>
+            Personal access token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Tokens.TokenPrefixes.CiToken">
+            <summary>
+            CI token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Tokens.TokenPrefixes.UploadToken">
+            <summary>
+            Upload token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Tokens.TokenPrefixes.KindOf(System.String)">
+            <summary>
+            Kind of <paramref name="token"/> by its prefix; null for anything else (a JWT).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Tokens.TokenPrefixes.DisplayPrefixOf(System.String)">
+            <summary>
+            The displayable prefix of a token value (the kind prefix and three characters).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.User">

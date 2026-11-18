@@ -60,5 +60,13 @@ public static class TableNames
     public const string MsFlightGroups = nameof(MsFlightGroups);
     public const string MsAddons = nameof(MsAddons);
     public const string MsInstallerPackages = nameof(MsInstallerPackages);
+    public const string PersonalAccessTokens = nameof(PersonalAccessTokens);
+    public const string CiTokens = nameof(CiTokens);
+    public const string UploadTokens = nameof(UploadTokens);
+    public const string TrustedPublishers = nameof(TrustedPublishers);
+    public const string DeliveryRules = nameof(DeliveryRules);
+    public const string ArtifactPullSources = nameof(ArtifactPullSources);
+    public const string IntakeSettings = nameof(IntakeSettings);
+    public const string ArtifactSessions = nameof(ArtifactSessions);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

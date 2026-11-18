@@ -131,7 +131,8 @@ public class ExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFact
 
             var message = exceptionObject is null ? localizer[messageKey] : localizer[messageKey, exceptionObject];
 
-            var response = Response.Error(message, messageType);
+            // The key travels with the message, so clients can branch on it (tools/CONTRACT.md 1: messages[].key).
+            var response = Response.Error(new ResponseMessage(messageKey, message, messageType));
 
             response.StatusCode = statusCode;
             context.Response.StatusCode = statusCode;

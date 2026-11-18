@@ -58,6 +58,12 @@ try
 
     services.AddAuthorization(builder.Configuration);
 
+    // Personal access, CI and upload tokens next to the JWT of the web sessions.
+    services.AddStoreasyTokenAuthentication();
+
+    // Remote MCP at /mcp (personal access tokens, tools call the same MediatR requests as the controllers).
+    services.AddStoreasyMcp();
+
     services.AddHttpContextAccessor();
 
     services.AddMultiLanguageSupport(builder.Configuration);
@@ -149,6 +155,9 @@ try
 
     app.UseAuthentication();
 
+    // Storeasy tokens: endpoint restrictions (machine tokens, web session only) and the audit channel (API, CI, MCP).
+    app.UseMiddleware<StoreasyTokenMiddleware>();
+
     // Token revocation: an authenticated request whose session stamp no longer matches the user's current one is a 401.
     app.UseMiddleware<SecurityStampValidationMiddleware>();
 
@@ -158,6 +167,8 @@ try
 
     // Authenticated like the controllers (deny-by-default fallback policy plus [Authorize] on the hub).
     app.MapHub<ActivityHub>(ActivityHub.Path);
+
+    app.MapStoreasyMcp();
 
     app.UseScalarWithOpenApi();
 
