@@ -66,4 +66,24 @@ public enum AuditAction : short
     /// <summary>A store record was split off into its own storeasy app.</summary>
     [Description("Store record unlinked")]
     StoreAppUnlinked = 42,
+
+    /// <summary>A mockup template was created.</summary>
+    [Description("Mockup template created")]
+    MockupTemplateCreated = 70,
+
+    /// <summary>A mockup template's design, slots or locales changed.</summary>
+    [Description("Mockup template updated")]
+    MockupTemplateUpdated = 71,
+
+    /// <summary>A mockup template was deleted.</summary>
+    [Description("Mockup template deleted")]
+    MockupTemplateDeleted = 72,
+
+    /// <summary>Captions of a mockup template changed.</summary>
+    [Description("Mockup captions updated")]
+    MockupCaptionsUpdated = 73,
+
+    /// <summary>A mockup export job was queued.</summary>
+    [Description("Mockups exported")]
+    MockupExported = 74,
 }

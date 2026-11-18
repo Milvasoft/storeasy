@@ -566,6 +566,21 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.StoreAppUnlinked">
             <summary>A store record was split off into its own storeasy app.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateCreated">
+            <summary>A mockup template was created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateUpdated">
+            <summary>A mockup template's design, slots or locales changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateDeleted">
+            <summary>A mockup template was deleted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupCaptionsUpdated">
+            <summary>Captions of a mockup template changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupExported">
+            <summary>A mockup export job was queued.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BuildProcessingState">
             <summary>
             Processing state of a build in its store, the same scale for every store.
@@ -639,6 +654,84 @@
         <member name="F:Storeasy.Domain.Enums.EmailProvider.Log">
             <summary>
             Nothing is sent, the e-mail is only logged. Development only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupDeviceFamily">
+            <summary>
+            Device family of a raw screenshot in a mockup slot. A class without a raw screenshot of its own family falls back to the
+            phone screenshot (see <see cref="M:Storeasy.Domain.Studio.MockupExportRules.PickSlotAsset(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupSlot},System.Int32,Storeasy.Domain.Enums.MockupDeviceFamily,System.String)"/>). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Phone">
+            <summary>
+            Phone screenshot (also used for foldable classes).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Tablet">
+            <summary>
+            Tablet screenshot.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Desktop">
+            <summary>
+            Desktop screenshot (window content).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupFrameKind">
+            <summary>
+            storeasy's own parametric device frames, drawn in code (no manufacturer artwork). A screenshot class names the frame
+            its images are drawn with; a template can turn the frame off. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.None">
+            <summary>
+            No device: the screenshot (or only the caption, for a feature graphic) on the background.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Phone">
+            <summary>
+            Phone body with a bezel and an island, notch, hole or no cutout.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Tablet">
+            <summary>
+            Tablet body with an even bezel and a camera dot.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.FoldableOuter">
+            <summary>
+            Foldable, folded: the narrow outer display with a hinge edge.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.FoldableInner">
+            <summary>
+            Foldable, open: the wide inner display with a crease hint along the fold.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Desktop">
+            <summary>
+            Desktop window with a title bar.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupRequirement">
+            <summary>
+            How much a store wants a screenshot class, read from the rules catalog for the export plan. Values are explicit and
+            never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Required">
+            <summary>
+            The store requires the class (selected for export by default).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Recommended">
+            <summary>
+            The store recommends the class, or will require it from a future date (selected by default).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Optional">
+            <summary>
+            The store accepts the class; another class already covers it (not selected by default).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.NotificationEntity">
@@ -782,6 +875,12 @@
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps">
             <summary>
             Pulls the apps and builds of one store connection and links them to storeasy apps.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport">
+            <summary>
+            Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
+            studio's own band.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreJobStatus">
@@ -947,6 +1046,9 @@
         <member name="F:Storeasy.Domain.FeatureFlagKeys.Export">
             <summary>Excel exports (one export reads up to the export row limit in a single request).</summary>
         </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.StudioAiCaptions">
+            <summary>Mockup studio caption suggestions (a paid translation provider when one is configured; 503 when off).</summary>
+        </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
             <summary>All known keys, in display order.</summary>
         </member>
@@ -1060,6 +1162,474 @@
         <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.ProjectId">
             <summary>
             Google Cloud project id of the service account. Null for Apple.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportManifest">
+            <summary>
+            Result of a mockup export job (the job's <c>Result</c>, also <c>manifest.json</c> in the zip): the produced images as
+            sets by store, screenshot class and locale, in slot order. This is the hand over to the screenshot upload plan: one
+            <see cref="T:Storeasy.Domain.JsonModels.MockupExportSet"/> is one screenshot set of a store (an App Store display type in a localization, a Play
+            image type in a language, a Microsoft Store device family in a language). Documented in storeasy-api/docs/studio.md;
+            <see cref="P:Storeasy.Domain.JsonModels.MockupExportManifest.SchemaVersion"/> changes when a field changes meaning.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.SchemaVersion">
+            <summary>
+            Version of this shape.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.JobId">
+            <summary>
+            Export job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TemplateId">
+            <summary>
+            Template the images were drawn from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.AppId">
+            <summary>
+            App of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TemplateVersion">
+            <summary>
+            Template version that was drawn.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.CatalogVersion">
+            <summary>
+            Rules catalog version the classes and sizes came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.CreatedDate">
+            <summary>
+            UTC instant the export finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.ZipAssetId">
+            <summary>
+            Asset of the zip with every image and this manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.ImageCount">
+            <summary>
+            Images produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TotalBytes">
+            <summary>
+            Bytes of the images produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Sets">
+            <summary>
+            Image sets by store, class and locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Failures">
+            <summary>
+            Images that could not be produced (they are not in any set).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Warnings">
+            <summary>
+            Warnings of produced images.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportSet">
+            <summary>
+            The images of one store screenshot set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.ClassKey">
+            <summary>
+            Screenshot class key (= rules catalog id, e.g. <c>apple.screenshots.iphone-dynamic-island-medium</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Width">
+            <summary>
+            Pixel width of every image of the set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Height">
+            <summary>
+            Pixel height of every image of the set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Images">
+            <summary>
+            Images in slot order.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportImage">
+            <summary>
+            One produced image.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.SlotOrder">
+            <summary>
+            Slot position, from 1 (the display order in the store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.AssetId">
+            <summary>
+            The PNG asset (purpose MockupOutput, uploaded, no alpha channel).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Size">
+            <summary>
+            Size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Sha256">
+            <summary>
+            Lower case hex SHA-256 of the PNG.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Md5">
+            <summary>
+            Lower case hex MD5 of the PNG (App Store Connect compares checksums with it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.ZipPath">
+            <summary>
+            Path inside the zip.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportIssue">
+            <summary>
+            A failure or warning of one image.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.ClassKey">
+            <summary>
+            Screenshot class key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.SlotOrder">
+            <summary>
+            Slot position.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Code">
+            <summary>
+            Code (see <see cref="T:Storeasy.Domain.Studio.MockupWarningCodes"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Message">
+            <summary>
+            English detail.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupSpec">
+            <summary>
+            The design of a mockup template, stored as jsonb and versioned by <see cref="P:Storeasy.Domain.JsonModels.MockupSpec.SchemaVersion"/>. It is the single source
+            of the preview and of the export (docs/urun-plani.md K8): the server renders both from it. Every length is a fraction,
+            so one design renders at every catalog size: horizontal values of the canvas width, vertical values of the canvas
+            height, type and frame sizes of the shorter canvas side (the "unit"). Text content is not here: titles and subtitles
+            live per locale and slot in <see cref="T:Storeasy.Domain.Studio.MockupCaption"/>. See <see cref="T:Storeasy.Domain.Studio.MockupSpecRules"/> for the
+            allowed values and the defaults, and storeasy-api/docs/studio.md for the documented schema.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.SchemaVersion">
+            <summary>
+            Schema version of this document. Readers upgrade older versions (<see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Upgrade(Storeasy.Domain.JsonModels.MockupSpec)"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Canvas">
+            <summary>
+            Design canvas.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Background">
+            <summary>
+            Background.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Frame">
+            <summary>
+            Device frame and the placement of the screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Text">
+            <summary>
+            Caption styling.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Layers">
+            <summary>
+            Badges and shapes, drawn in order.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupCanvasSpec">
+            <summary>
+            The canvas a template is designed on. Exports render to every selected class; this is the class the editor opens with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupCanvasSpec.ClassKey">
+            <summary>
+            Screenshot class key (a rules catalog id, e.g. <c>apple.screenshots.iphone-dynamic-island-medium</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupBackgroundSpec">
+            <summary>
+            Background of a mockup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Kind">
+            <summary>
+            <c>solid</c>, <c>gradient</c> or <c>image</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Colors">
+            <summary>
+            Colors as <c>#RRGGBB</c>: one for solid, two to five for a gradient (the first is also the fill under an image).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Angle">
+            <summary>
+            Gradient angle in degrees (0 = left to right, 90 = top to bottom).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.AssetId">
+            <summary>
+            Image asset of the organization for <c>image</c>, drawn to cover the canvas.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupFrameSpec">
+            <summary>
+            Device frame parameters and screenshot placement. The frame drawn depends on the class (phone, tablet, foldable, desktop
+            window) unless <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind"/> forces one; radius and bezel are fractions of the body width and scale the other
+            kinds' defaults by the same ratio.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind">
+            <summary>
+            <c>auto</c> (by class), <c>none</c> (screenshot without a device), or a fixed <c>phone</c>, <c>tablet</c>,
+            <c>foldable</c>, <c>desktop</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Cutout">
+            <summary>
+            Phone cutout: <c>island</c>, <c>notch</c>, <c>hole</c> or <c>none</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Color">
+            <summary>
+            Body color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.CornerRadius">
+            <summary>
+            Corner radius as a fraction of the body width; null for the frame's default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Bezel">
+            <summary>
+            Bezel thickness as a fraction of the body width; null for the frame's default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Scale">
+            <summary>
+            Body width as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.OffsetX">
+            <summary>
+            Horizontal shift of the device center as a fraction of the canvas width (0 = centered).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.OffsetY">
+            <summary>
+            Top of the device as a fraction of the canvas height. Negative or large values let the device bleed off the canvas.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Rotation">
+            <summary>
+            Rotation in degrees around the device center (clockwise).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Shadow">
+            <summary>
+            Soft shadow under the device.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupTextSpec">
+            <summary>
+            Caption block: where it sits and how the title and subtitle look.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Font">
+            <summary>
+            <c>inter</c> or <c>noto-sans</c>. Scripts the family lacks (Arabic, Hebrew, Thai, Devanagari, CJK) fall back to the
+            embedded Noto Sans fonts of that script.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Color">
+            <summary>
+            Default text color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Position">
+            <summary>
+            <c>top</c> or <c>bottom</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Alignment">
+            <summary>
+            <c>center</c>, <c>start</c> or <c>end</c> (start is right for right to left text).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Margin">
+            <summary>
+            Distance of the block from the canvas edges, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Gap">
+            <summary>
+            Space between title and subtitle, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Uppercase">
+            <summary>
+            Upper case the captions with the rules of their locale (Turkish dotted and dotless i included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Title">
+            <summary>
+            Title style.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Subtitle">
+            <summary>
+            Subtitle style.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupTextStyleSpec">
+            <summary>
+            Style of one caption line group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Size">
+            <summary>
+            Font size as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Weight">
+            <summary>
+            Font weight, 100 to 900. A weight the embedded fonts lack is drawn with the nearest one (with a warning).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MaxLines">
+            <summary>
+            Most lines before the text counts as overflowing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.AutoFit">
+            <summary>
+            Shrink the size (down to <see cref="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MinSize"/>) until the text fits in <see cref="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MaxLines"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MinSize">
+            <summary>
+            Smallest size auto fit may use, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.LineHeight">
+            <summary>
+            Line height as a multiple of the font size.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Color">
+            <summary>
+            Color as <c>#RRGGBB</c>; null for the block's color.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupLayerSpec">
+            <summary>
+            A badge (a pill with a short localized text) or a shape (rectangle, rounded rectangle, ellipse).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Type">
+            <summary>
+            <c>badge</c> or <c>shape</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Shape">
+            <summary>
+            For shapes: <c>rect</c>, <c>round-rect</c> or <c>ellipse</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.X">
+            <summary>
+            Left edge (shape) or center (badge) as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Y">
+            <summary>
+            Top edge (shape) or center (badge) as a fraction of the canvas height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Width">
+            <summary>
+            Shape width as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Height">
+            <summary>
+            Shape height as a fraction of the canvas height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Radius">
+            <summary>
+            Corner radius of a rounded rectangle as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Color">
+            <summary>
+            Fill color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Opacity">
+            <summary>
+            Opacity, 0 to 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Above">
+            <summary>
+            Draw over the device and the captions instead of under the device.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Texts">
+            <summary>
+            Badge text by locale; the <c>*</c> entry is used for locales without their own.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.TextSize">
+            <summary>
+            Badge font size as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.TextColor">
+            <summary>
+            Badge text color as <c>#RRGGBB</c>.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.RequestInfo">
@@ -1723,6 +2293,935 @@
             Navigation property of the job.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Studio.CaptionLineBreaker">
+            <summary>
+            Greedy line breaking of captions, independent of the font engine: the caller measures. Break opportunities are spaces,
+            a hyphen inside a word, and any boundary next to a Chinese or Japanese character, except before closing punctuation
+            and small kana and after opening brackets (basic kinsoku). Korean breaks at spaces like Latin text. A piece that does
+            not fit on a line on its own (a long word, Thai text without spaces) is split between grapheme clusters, so combining
+            marks never leave their base letter. A new line in the text is a manual break.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.Break(System.String,System.Single,System.Func{System.String,System.Single})">
+            <summary>
+            Breaks <paramref name="text"/> into lines no wider than <paramref name="maxWidth"/> as measured by
+            <paramref name="measure"/>. Lines are trimmed; an empty text gives no lines.
+            </summary>
+            <param name="text"></param>
+            <param name="maxWidth"></param>
+            <param name="measure">Width of a string in the caller's units.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.Segment(System.String)">
+            <summary>
+            Pieces of <paramref name="paragraph"/> that end at a break opportunity (each keeps its trailing spaces).
+            </summary>
+            <param name="paragraph"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.IsIdeographic(System.String)">
+            <summary>
+            Whether <paramref name="element"/> starts with a Chinese or Japanese character (Han ideographs, kana, CJK symbols,
+            full width forms), the characters that may break anywhere.
+            </summary>
+            <param name="element"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupCaption">
+            <summary>
+            Title and subtitle of one slot of a <see cref="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplate"/> in one locale. An empty caption is drawn with the
+            template's primary locale.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupCaption.TitleMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupCaption.Title"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupCaption.SubtitleMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupCaption.Subtitle"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplateId">
+            <summary>
+            Owning template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.SlotOrder">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Title">
+            <summary>
+            Title (a new line is a manual line break).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplate">
+            <summary>
+            Navigation property of the template.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupExportRules">
+            <summary>
+            Pure rules of the studio export: requirement of a class for an app, images per locale, accepted sizes, the frame a
+            class is drawn with, which raw screenshot and caption a slot uses, and the names of the produced files.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupExportRules.MaxUpscale">
+            <summary>
+            Largest upscale of a raw screenshot that is still drawn; above it the image fails with
+            <see cref="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetTooSmall"/> (the result would be blurry).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupExportRules.WarnUpscale">
+            <summary>
+            Upscale above which a warning is written.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.Requirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <summary>
+            Requirement of <paramref name="screenshotClass"/> on <paramref name="today"/>, given the classes the export provides
+            (<paramref name="providedKeys"/>): a required class that another provided class satisfies is optional; a class
+            required from a later date is recommended until then.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="today"></param>
+            <param name="providedKeys"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.DefaultProvided(System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Studio.ScreenshotClass})">
+            <summary>
+            Classes an export provides by default from <paramref name="classes"/>: every class the catalog does not call
+            optional, plus the optional classes that stand in for a required one (the 6.9" iPhone class satisfies the Face ID
+            large class, so storeasy renders the newer class instead).
+            </summary>
+            <param name="classes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PlanRequirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String},System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <summary>
+            <see cref="M:Storeasy.Domain.Studio.MockupExportRules.Requirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String})"/> for a plan: an optional class the default selection provides in place of a required one
+            is recommended.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="today"></param>
+            <param name="providedKeys"></param>
+            <param name="defaultProvided"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ImagesPerLocale(Storeasy.Domain.Studio.ScreenshotClass,System.Int32)">
+            <summary>
+            Images one locale gets in <paramref name="screenshotClass"/> from a template with <paramref name="slotCount"/> slots.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="slotCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.Accepts(Storeasy.Domain.Studio.ScreenshotClass,Storeasy.Domain.Studio.PixelSize)">
+            <summary>
+            Whether the store accepts <paramref name="size"/> for <paramref name="screenshotClass"/>: one of its listed sizes, or
+            inside its range.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ResolveFrame(Storeasy.Domain.Studio.ScreenshotClass,System.String)">
+            <summary>
+            Frame a class is drawn with under the template's <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind"/>. A class without a device (the
+            feature graphic) never gets one.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="frameKind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PickSlotAsset(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupSlot},System.Int32,Storeasy.Domain.Enums.MockupDeviceFamily,System.String)">
+            <summary>
+            The raw screenshot of slot <paramref name="order"/> for <paramref name="family"/> and <paramref name="locale"/>:
+            the locale's own image of the family, the family's shared image, then the same two for the phone. Returns null when
+            the slot has no image; <c>FellBack</c> tells that a phone image stands in for another family.
+            </summary>
+            <param name="slots"></param>
+            <param name="order"></param>
+            <param name="family"></param>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PickCaption(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupCaption},System.String,System.String,System.Int32)">
+            <summary>
+            Title and subtitle of slot <paramref name="slotOrder"/> in <paramref name="locale"/>; when the locale has no title
+            for the slot, the primary locale's caption is used and <c>FellBack</c> is true.
+            </summary>
+            <param name="captions"></param>
+            <param name="locale"></param>
+            <param name="primaryLocale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ZipEntryPath(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Int32)">
+            <summary>
+            Path of an image inside the export zip: <c>{store}/{class}/{locale}/{slot:00}.png</c>.
+            </summary>
+            <param name="store"></param>
+            <param name="classKey"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.OutputFileName(System.String,System.String,System.Int32)">
+            <summary>
+            File name of a produced image: <c>{class}-{locale}-{slot:00}.png</c>.
+            </summary>
+            <param name="classKey"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ShortClassName(System.String)">
+            <summary>
+            The class key without its store and category (<c>apple.screenshots.ipad-13</c> is <c>ipad-13</c>).
+            </summary>
+            <param name="classKey"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupWarningCodes">
+            <summary>
+            Codes of render warnings and failures (documented in storeasy-api/docs/studio.md).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.CaptionOverflow">
+            <summary>A caption needs more lines than its style allows, even at the smallest auto fit size.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.CaptionFallback">
+            <summary>The locale has no caption for the slot; the primary locale's caption was drawn.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.FontMissing">
+            <summary>The requested font weight is not embedded; the nearest weight was drawn.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AlphaFlattened">
+            <summary>The raw screenshot had transparent pixels; they were flattened onto the screen color.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetUpscaled">
+            <summary>The raw screenshot was enlarged up to <see cref="F:Storeasy.Domain.Studio.MockupExportRules.MaxUpscale"/>.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetTooSmall">
+            <summary>The raw screenshot is too small for the class (failure).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.ScreenshotMissing">
+            <summary>The slot has no raw screenshot; the screen is drawn empty.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.FamilyFallback">
+            <summary>A phone screenshot stands in for the class's own family.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AspectMismatch">
+            <summary>The raw screenshot's aspect differs from the screen's; it is fitted inside instead of cropped.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.BackgroundMissing">
+            <summary>The background image is missing or unreadable; the first background color was used.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetUnreadable">
+            <summary>The raw screenshot could not be decoded (failure).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupFrameDefaults">
+            <summary>
+            Default proportions of storeasy's device frames, as fractions of the body width. A template's
+            <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.CornerRadius"/> and <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Bezel"/> are given for
+            the phone and scale every other kind by the same ratio.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupFrameDefaults.PhoneRadius">
+            <summary>
+            Corner radius of the phone frame.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupFrameDefaults.PhoneBezel">
+            <summary>
+            Bezel of the phone frame.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupFrameDefaults.Of(Storeasy.Domain.Enums.MockupFrameKind)">
+            <summary>
+            Default corner radius and bezel of <paramref name="kind"/>.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSlot">
+            <summary>
+            The raw screenshot of one slot of a <see cref="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplate"/> for one device family, optionally for one locale (a
+            locale's own screenshot wins over the shared one). Rows are replaced as a set when the template is saved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplateId">
+            <summary>
+            Owning template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Order">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Family">
+            <summary>
+            Device family of the screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Locale">
+            <summary>
+            Locale the screenshot is for; null for every locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.AssetId">
+            <summary>
+            The uploaded screenshot (an asset of the template's organization).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplate">
+            <summary>
+            Navigation property of the template.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules">
+            <summary>
+            Pure rules of the mockup template schema (<see cref="T:Storeasy.Domain.JsonModels.MockupSpec"/>): the allowed values, the defaults, validation and
+            upgrades between schema versions. Validation returns readable problems with their JSON path; the API answers them as
+            one 400.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.CurrentSchemaVersion">
+            <summary>
+            Schema version this build writes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.MaxLayers">
+            <summary>
+            Most layers (badges and shapes) in one template.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.MaxBadgeTextLength">
+            <summary>
+            Longest badge text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds">
+            <summary>
+            Background kinds.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Solid">
+            <summary>One color.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Gradient">
+            <summary>Linear gradient.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Image">
+            <summary>Image asset covering the canvas.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.All">
+            <summary>All kinds.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds">
+            <summary>
+            Frame kinds a template may ask for.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Auto">
+            <summary>The class decides (phone, tablet, foldable, desktop window).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.None">
+            <summary>No device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Phone">
+            <summary>Always a phone.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Tablet">
+            <summary>Always a tablet.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Foldable">
+            <summary>Always a foldable (outer or inner display by the class's aspect).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Desktop">
+            <summary>Always a desktop window.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.All">
+            <summary>All kinds.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Cutouts">
+            <summary>
+            Phone cutouts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Island">
+            <summary>A floating pill at the top of the screen.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Notch">
+            <summary>A notch attached to the top edge.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Hole">
+            <summary>A single camera hole.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.None">
+            <summary>No cutout.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.All">
+            <summary>All cutouts.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Fonts">
+            <summary>
+            Embedded font families (SIL OFL 1.1).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.Inter">
+            <summary>Inter.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.NotoSans">
+            <summary>Noto Sans.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.All">
+            <summary>All families a template may choose.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Positions">
+            <summary>
+            Caption positions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.Top">
+            <summary>Above the device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.Bottom">
+            <summary>Below the device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.All">
+            <summary>All positions.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Alignments">
+            <summary>
+            Caption alignments.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.Center">
+            <summary>Centered.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.Start">
+            <summary>Start edge (left, or right for right to left text).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.End">
+            <summary>End edge.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.All">
+            <summary>All alignments.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Layers">
+            <summary>
+            Layer types and shapes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Badge">
+            <summary>A pill with a localized text.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Shape">
+            <summary>A plain shape.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Rect">
+            <summary>Rectangle.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.RoundRect">
+            <summary>Rounded rectangle.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Ellipse">
+            <summary>Ellipse.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Types">
+            <summary>Layer types.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Shapes">
+            <summary>Shapes.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.AnyLocale">
+            <summary>Key of the badge text used for locales without their own.</summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.CreateDefault">
+            <summary>
+            The default design: storeasy's ultramarine gradient, a phone with an island, Inter captions on top.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Upgrade(Storeasy.Domain.JsonModels.MockupSpec)">
+            <summary>
+            Upgrades <paramref name="spec"/> to <see cref="F:Storeasy.Domain.Studio.MockupSpecRules.CurrentSchemaVersion"/> and fills missing parts with the defaults, so
+            renderers never see a null section. A newer version than this build knows is returned as is (validation refuses it).
+            </summary>
+            <param name="spec"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Validate(Storeasy.Domain.JsonModels.MockupSpec)">
+            <summary>
+            Problems of <paramref name="spec"/> (empty when valid), each as <c>path: problem</c>.
+            </summary>
+            <param name="spec"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.IsColor(System.String)">
+            <summary>
+            Whether <paramref name="color"/> is <c>#RRGGBB</c> or <c>#RRGGBBAA</c>.
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.IsLocale(System.String)">
+            <summary>
+            Whether <paramref name="locale"/> is a language tag as the stores use them (<c>tr</c>, <c>en-US</c>, <c>zh-Hans</c>).
+            </summary>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Culture(System.String)">
+            <summary>
+            The locale's casing culture for <see cref="P:Storeasy.Domain.JsonModels.MockupTextSpec.Uppercase"/>; invariant when the tag is not a culture.
+            </summary>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.ColorPattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match '#'.<br/>
+            ○ Match a hexadecimal digit exactly 6 times.<br/>
+            ○ Optional (greedy).<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match a hexadecimal digit exactly 2 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.LocalePattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [a-z] greedily at least 2 and at most 3 times.<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match '-'.<br/>
+                    ○ Match an ASCII letter or digit atomically at least 2 and at most 8 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupTemplate">
+            <summary>
+            A mockup template of one app (docs/urun-plani.md 2.4): the design (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Spec"/>, the single source of preview and
+            export), its slots' raw screenshots (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Slots"/>) and its captions per locale (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Captions"/>).
+            <see cref="P:Storeasy.Domain.Studio.MockupTemplate.Version"/> guards concurrent edits: an update names the version it started from and loses with 409 when
+            someone saved in between.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupTemplate.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.LocaleMaxLength">
+            <summary>
+            Column length of a locale tag.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.MaxSlotCount">
+            <summary>
+            Most slots (screenshots per locale) of a template; the stores accept at most 10 per class.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.MaxLocaleCount">
+            <summary>
+            Most locales of a template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.AppId">
+            <summary>
+            App the template belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Name">
+            <summary>
+            Name, unique within the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.PrimaryLocale">
+            <summary>
+            Locale whose captions stand in for an empty caption of another locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Locales">
+            <summary>
+            Locales the template is exported in (BCP 47 tags as the stores use them, e.g. <c>tr</c>, <c>en-US</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.SlotCount">
+            <summary>
+            Number of slots (screenshots per locale and class).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.StarterKey">
+            <summary>
+            Built in starter the template was created from, if any.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Version">
+            <summary>
+            Concurrency version, increased by every update.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportJobId">
+            <summary>
+            Last export job that produced images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportDate">
+            <summary>
+            UTC instant the last export finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportImageCount">
+            <summary>
+            Images the last export produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Slots">
+            <summary>
+            Raw screenshots of the slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Captions">
+            <summary>
+            Captions per locale and slot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.ScreenshotSizeCatalog">
+            <summary>
+            The screenshot classes the studio exports to, read from the store rules catalog (rules/*.json): sizes, counts and how
+            much each store wants them. Built once by the size source; immutable.
+            </summary>
+            <param name="catalogVersion">Version of the rules catalog the classes were read from.</param>
+            <param name="classes">Classes in export order (required first within a store).</param>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.ScreenshotSizeCatalog.#ctor(System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Domain.Studio.ScreenshotClass})">
+            <summary>
+            The screenshot classes the studio exports to, read from the store rules catalog (rules/*.json): sizes, counts and how
+            much each store wants them. Built once by the size source; immutable.
+            </summary>
+            <param name="catalogVersion">Version of the rules catalog the classes were read from.</param>
+            <param name="classes">Classes in export order (required first within a store).</param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotSizeCatalog.CatalogVersion">
+            <summary>
+            Version of the rules catalog.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotSizeCatalog.Classes">
+            <summary>
+            Classes in export order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.ScreenshotSizeCatalog.Find(System.String)">
+            <summary>
+            The class with <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.ScreenshotClass">
+            <summary>
+            One screenshot class of a store (a display type in App Store Connect, a device type in Play, a device family in the
+            Microsoft Store), as the studio uses it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Key">
+            <summary>
+            Class key: the id of its rule in the catalog (e.g. <c>apple.screenshots.ipad-13</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Store">
+            <summary>
+            Store of the class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.LabelEn">
+            <summary>
+            English label (catalog title).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.LabelTr">
+            <summary>
+            Turkish label (catalog title).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Frame">
+            <summary>
+            Frame its images are drawn with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Family">
+            <summary>
+            Raw screenshot family it prefers; others fall back to the phone screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.ExportSize">
+            <summary>
+            Pixel size the export renders (portrait for devices, landscape for desktop and the feature graphic).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.AcceptedSizes">
+            <summary>
+            Every size the store accepts for the class (both orientations). Empty when the store gives ranges instead.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MinDimension">
+            <summary>
+            Smallest accepted side for range based classes (Play, Microsoft); 0 when the store lists exact sizes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MaxDimension">
+            <summary>
+            Largest accepted side for range based classes; 0 when the store lists exact sizes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Level">
+            <summary>
+            Catalog requirement level: <c>required</c>, <c>required-from</c>, <c>recommended</c> or <c>optional</c>. For a class
+            that is the store's main class it is the level of the store's general screenshot rule when that is stricter.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.RequiredFrom">
+            <summary>
+            Date the class becomes required (for <c>required-from</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.SatisfiedBy">
+            <summary>
+            Classes that meet this class's requirement when they are provided.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MinCount">
+            <summary>
+            Fewest images per locale the store expects.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MaxCount">
+            <summary>
+            Most images per locale the store accepts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.SingleImage">
+            <summary>
+            The class takes one image per locale (a feature graphic), drawn from the first slot's caption without a device.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Note">
+            <summary>
+            Short note of the catalog (condition of the requirement).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.PixelSize">
+            <summary>
+            A pixel size.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.PixelSize.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Creates a size.
+            </summary>
+            <param name="width"></param>
+            <param name="height"></param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Width">
+            <summary>
+            Width in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Height">
+            <summary>
+            Height in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Aspect">
+            <summary>
+            Width divided by height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.IsLandscape">
+            <summary>
+            Whether the size is landscape.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.PixelSize.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StarterTemplate">
+            <summary>
+            A built in starting point for a new mockup template: an original storeasy design with sample captions. Starters are
+            data that ships with the application (seeded from embedded JSON), not rows; a template copies one when it is created.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Key">
+            <summary>
+            Stable key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.NameEn">
+            <summary>
+            English name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.NameTr">
+            <summary>
+            Turkish name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.DescriptionEn">
+            <summary>
+            English description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.DescriptionTr">
+            <summary>
+            Turkish description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Captions">
+            <summary>
+            Sample captions by language (<c>en</c>, <c>tr</c>), in slot order. A template locale gets the samples of its
+            language (<c>en-US</c> takes <c>en</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StarterCaption">
+            <summary>
+            A sample caption of a starter.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterCaption.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterCaption.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StudioClassMap">
+            <summary>
+            Which rules of the store rules catalog the studio exports to, and how it draws them. Sizes, counts and requirement
+            levels are never kept here: they are read from the catalog. Only rules that give a range instead of sizes (Play phone
+            and tablets, Microsoft desktop) carry a preset, and the preset is checked against the catalog's range when the catalog
+            loads. Order is the export order: required classes first, then by store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.StudioClassMap.DefaultClassKey">
+            <summary>
+            The class the editor opens with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassMap.Definitions">
+            <summary>
+            Studio classes in export order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.StudioClassMap.IsKnown(System.String)">
+            <summary>
+            Whether <paramref name="classKey"/> is a studio class.
+            </summary>
+            <param name="classKey"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StudioClassDefinition">
+            <summary>
+            How the studio uses one catalog rule.
+            </summary>
+            <param name="RuleId">Rule id in the catalog; also the class key.</param>
+            <param name="Frame">Frame the images are drawn with.</param>
+            <param name="Family">Raw screenshot family the class prefers.</param>
+            <param name="PresetSize">Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</param>
+            <param name="GeneralRuleId">The store's general screenshot rule whose level applies to this main class.</param>
+            <param name="SingleImage">One image per locale (feature graphic).</param>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.StudioClassDefinition.#ctor(System.String,Storeasy.Domain.Enums.MockupFrameKind,Storeasy.Domain.Enums.MockupDeviceFamily,System.Nullable{Storeasy.Domain.Studio.PixelSize},System.String,System.Boolean)">
+            <summary>
+            How the studio uses one catalog rule.
+            </summary>
+            <param name="RuleId">Rule id in the catalog; also the class key.</param>
+            <param name="Frame">Frame the images are drawn with.</param>
+            <param name="Family">Raw screenshot family the class prefers.</param>
+            <param name="PresetSize">Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</param>
+            <param name="GeneralRuleId">The store's general screenshot rule whose level applies to this main class.</param>
+            <param name="SingleImage">One image per locale (feature graphic).</param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.RuleId">
+            <summary>Rule id in the catalog; also the class key.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.Frame">
+            <summary>Frame the images are drawn with.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.Family">
+            <summary>Raw screenshot family the class prefers.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.PresetSize">
+            <summary>Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.GeneralRuleId">
+            <summary>The store's general screenshot rule whose level applies to this main class.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.SingleImage">
+            <summary>One image per locale (feature graphic).</summary>
+        </member>
         <member name="T:Storeasy.Domain.User">
             <summary>
             Entity of the Users table.
@@ -1954,6 +3453,82 @@
             <summary>
             Id of migration
             </summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ColorPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ColorPattern_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LocalePattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.LocalePattern_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
+            <summary>Pushes 2 values onto the backtracking stack.</summary>
         </member>
     </members>
 </doc>
