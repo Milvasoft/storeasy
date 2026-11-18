@@ -118,6 +118,11 @@ public static partial class StartupExtensions
         CultureInfo.CurrentUICulture = defaultCulture;
         CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
 
+        // Background work (jobs, notifications, the e-mail outbox) runs outside a request, so the request localization
+        // middleware never sets its UI culture. Without this default it falls back to the host's, which is the
+        // invariant culture in Linux containers: resource lookups then return the bare keys instead of texts.
+        CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
         _ = new CultureSwitcher(defaultLanguageCode);
 
         return app.UseRequestLocalization(options);
