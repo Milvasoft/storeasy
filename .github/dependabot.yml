@@ -1,5 +1,5 @@
-# Dependency updates. Minor and patch updates are grouped per ecosystem to keep the pull request count low; major
-# updates come one by one.
+# Dependency updates: minor and patch only, grouped per ecosystem to keep the pull request count low. Major updates are
+# ignored here and done by hand when a release plan calls for them (they need code changes and a full test run).
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -9,6 +9,9 @@ updates:
     groups:
       actions:
         patterns: ['*']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: nuget
     directory: /storeasy-api
@@ -18,6 +21,9 @@ updates:
     groups:
       nuget-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /storeasy-app
@@ -27,6 +33,9 @@ updates:
     groups:
       web-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /tools
@@ -36,13 +45,22 @@ updates:
     groups:
       tools-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: docker
     directories: [/storeasy-api, /storeasy-app]
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: docker-compose
     directories: [/deploy, /storeasy-api]
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
