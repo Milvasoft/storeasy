@@ -16,7 +16,7 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
-    "lint": "eslint . && node scripts/check-text.mjs && npm run typecheck --workspaces",
+    "lint": "eslint . && node scripts/check-text.mjs && node scripts/check-bundles.mjs && node scripts/check-licenses.mjs && npm run typecheck --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "licenses": "node scripts/check-licenses.mjs"
   },
