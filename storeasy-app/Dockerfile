@@ -4,7 +4,7 @@
 # The build stage runs on the builder's own platform (the output is static files), only nginx is the target platform.
 # Build context = storeasy-app/. Every VITE_* value is baked in at build time; CI passes them as --build-arg.
 # The checkout has no .env, so every value is an arg.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

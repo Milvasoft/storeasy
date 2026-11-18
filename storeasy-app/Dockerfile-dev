@@ -1,6 +1,6 @@
 # Local image: the same as Dockerfile without the platform pin. The API runs next to it in docker compose; the browser
 # reaches everything through this container's nginx (one origin), so VITE_API_URL stays empty.
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
