@@ -113,6 +113,9 @@ public static class InfraServiceCollectionExtensions
         // Mockup studio (phase 6): renderer, fonts, screenshot sizes, export job.
         services.AddStudioServices(configurationManager);
 
+        // Personal access, CI and upload tokens; package intake (OIDC exchange, upload sessions, processing, cleanup).
+        services.AddIntakeServices(configurationManager, storageOptions);
+
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 

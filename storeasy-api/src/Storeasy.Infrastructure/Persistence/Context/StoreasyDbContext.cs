@@ -6,6 +6,7 @@ using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Content;
 using Storeasy.Domain.Monetization;
+using Storeasy.Domain.Intake;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
 using Storeasy.Domain.Studio;
@@ -15,6 +16,7 @@ using Storeasy.Domain.Notifications;
 using Storeasy.Domain.Rules;
 using Storeasy.Domain.TestFlight;
 using Storeasy.Domain.MsStore;
+using Storeasy.Domain.Tokens;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
 
@@ -88,6 +90,14 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<MsFlightGroup> MsFlightGroups { get; set; }
     public DbSet<MsAddon> MsAddons { get; set; }
     public DbSet<MsInstallerPackage> MsInstallerPackages { get; set; }
+    public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; }
+    public DbSet<CiToken> CiTokens { get; set; }
+    public DbSet<UploadToken> UploadTokens { get; set; }
+    public DbSet<TrustedPublisher> TrustedPublishers { get; set; }
+    public DbSet<DeliveryRule> DeliveryRules { get; set; }
+    public DbSet<ArtifactPullSource> ArtifactPullSources { get; set; }
+    public DbSet<IntakeSetting> IntakeSettings { get; set; }
+    public DbSet<ArtifactSession> ArtifactSessions { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
