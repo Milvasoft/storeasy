@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Code, KeyRound, Languages, LogOut, Monitor, Moon, MoreHorizontal, Sun, UserRound } from 'lucide-react'
+import { Code, KeyRound, Languages, LogOut, Monitor, Moon, MoreHorizontal, Sun, Terminal, UserRound } from 'lucide-react'
 import { useTheme } from '@/components/common/ThemeSwitcher'
 import { Menu } from '@/components/ui/Menu'
 import { Avatar } from '@/components/ui/primitives'
@@ -44,6 +44,7 @@ export function UserMenu({ onNavigate }: { onNavigate?: () => void }) {
       entries={[
         { key: 'account', icon: <UserRound aria-hidden />, label: t.userMenu.profile, onSelect: () => go('/account') },
         { key: 'security', icon: <KeyRound aria-hidden />, label: t.userMenu.security, onSelect: () => go('/account/security') },
+        { key: 'developer', icon: <Terminal aria-hidden />, label: t.nav.developer, onSelect: () => go('/developer') },
         { key: 'theme-separator', separator: true },
         { key: 'theme-heading', heading: t.theme.label },
         ...THEMES.map((value) => {

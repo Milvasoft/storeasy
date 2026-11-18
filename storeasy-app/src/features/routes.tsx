@@ -55,6 +55,11 @@ const NotificationPreferencesPage = lazyPage(
 const RuleWatcherPage = lazyPage(() => import('@/features/rules-watcher/RuleWatcherPages'), 'RuleWatcherPage')
 const RuleProposalPage = lazyPage(() => import('@/features/rules-watcher/RuleWatcherPages'), 'RuleProposalPage')
 
+// Phase 3: personal access tokens, MCP setup and package intake.
+const TokensPage = lazyPage(() => import('@/features/tokens/TokensPage'), 'TokensPage')
+const McpSetupPage = lazyPage(() => import('@/features/mcp/McpSetupPage'), 'McpSetupPage')
+const IntakeRoutes = lazyPage(() => import('@/features/intake/IntakeRoutes'), 'IntakeRoutes')
+
 // A section behind its feature flag: while the flag is off the route keeps its designed "coming" page (kill switch).
 function Flagged({ flag, off, children }: { flag: FeatureFlagKey; off: ReactNode; children: ReactNode }) {
   return <>{useFeature(flag) ? children : off}</>
@@ -136,6 +141,30 @@ export function contentRoutes() {
         }
       />
       <Route path="/admin/rules/proposals/:proposalId" element={<RuleProposalPage />} />
+      <Route
+        path="/developer"
+        element={
+          <Flagged flag="Developer" off={<SectionPage section="developer" />}>
+            <TokensPage />
+          </Flagged>
+        }
+      />
+      <Route
+        path="/developer/setup"
+        element={
+          <Flagged flag="Developer" off={<SectionPage section="developer" />}>
+            <McpSetupPage />
+          </Flagged>
+        }
+      />
+      <Route
+        path="/intake/*"
+        element={
+          <Flagged flag="Intake" off={<SectionPage section="intake" />}>
+            <IntakeRoutes />
+          </Flagged>
+        }
+      />
     </>
   )
 }

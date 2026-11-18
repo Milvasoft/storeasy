@@ -51,7 +51,7 @@ describe('app shell and routing', () => {
   })
 
   it('shows the menu with the not-yet-built sections marked and opens their designed first-use state', async () => {
-    const { user } = await renderApp({ route: '/apps' })
+    const { user } = await renderApp({ route: '/apps', flags: { Intake: false } })
 
     expect(await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })).toBeInTheDocument()
     expect(within(menu()).getByRole('link', { name: /Mağaza bağlantıları/ })).toBeInTheDocument()
