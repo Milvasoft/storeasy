@@ -1,0 +1,541 @@
+<!--
+title: Durum ekranları
+kicker: 18 · Ortak durumlar
+desc: Bütün ekranların paylaştığı durumlar: iskelet ve sonraki sayfa yüklemesi, boş liste, arama sonucu yok, 500, 403, 404, kayıt bulunamadı, bağlantı kopması, SignalR yeniden bağlanma, mağaza erişilemiyor, 503, 429, oturum sonlandı, form hataları, onay diyalogları, toast yığını, açılış ve bakım ekranı, erişimin kalmadı. Her çerçevenin notunda tetikleyen durum kodu ve 08 bölüm 2.4 kuralı yazar.
+-->
+<style>
+.codes{width:100%;border-collapse:collapse;font-size:13px}
+.codes th{text-align:left;font:600 12px/1.2 var(--font-body);color:rgb(var(--fg-3));padding:9px 12px;border-bottom:1px solid rgb(var(--border))}
+.codes td{padding:9px 12px;border-bottom:1px solid rgb(var(--border));vertical-align:top}
+.codes tr:last-child td{border-bottom:0}
+.codes td:first-child{font:600 13px/1.4 var(--font-mono);white-space:nowrap}
+.codes-w{overflow-x:auto}
+.skg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.skc{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:12px;display:grid;gap:10px;min-width:0}
+.stale{opacity:.5;filter:grayscale(1);pointer-events:none}
+.boot{height:100%;display:grid;place-items:center;background:rgb(var(--bg))}
+.boot-c{display:grid;justify-items:center;gap:18px;text-align:center;padding:24px}
+.boot-c .wm{font-size:28px}
+.boot-f{position:absolute;left:0;right:0;bottom:24px;text-align:center;font:500 11px/1.4 var(--font-mono);color:rgb(var(--fg-3))}
+.cd{font:800 44px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.orgpick{display:grid;gap:8px;width:100%;max-width:420px;text-align:left}
+.orgpick .lst-i{border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--surface))}
+.solo{height:100%;display:flex;flex-direction:column;background:rgb(var(--bg))}
+.solo-h{display:flex;align-items:center;gap:9px;padding:20px 28px;border-bottom:1px solid rgb(var(--border))}
+.solo-h svg.mk{width:26px;height:26px}
+.solo-b{flex:1;overflow:auto;display:grid;place-items:center;padding:24px}
+.jobsteps .tl-i{padding-bottom:16px}
+@container scr (max-width:760px){
+  .skg{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .solo-h{padding:14px 16px}
+  .cd{font-size:36px}
+}
+@container scr (max-width:760px){.apphead .f1{flex:1 1 calc(100% - 64px)}}
+</style>
+
+<!-- ============ 0. KURAL TABLOSU ============ -->
+<section class="sec" id="kurallar">
+<div class="sec-h"><span class="k">08 bölüm 2.4 ve 3.6</span><h2>Durum kodu → arayüz kuralı</h2><p>Her istek aynı yanıt zarfıyla döner (<code>{ IsSuccess, StatusCode, Messages[{Key, Message, Type}], Data }</code>); mesaj metni sunucudan gelir ve olduğu gibi gösterilir. İstemci durumu koda göre seçer, sayfa sayfa yeniden karar verilmez. Aşağıdaki tablo bu dosyadaki çerçevelerin dizini.</p></div>
+<div class="doc-card codes-w">
+<table class="codes">
+  <thead><tr><th>Kod / koşul</th><th>Anlam</th><th>Arayüz</th><th>Çerçeve</th></tr></thead>
+  <tbody>
+    <tr><td>200</td><td>Başarılı</td><td>Mutasyonda sunucu mesajıyla başarı toast'ı; liste ve detay sorgusu geçersizlenir.</td><td>18.20</td></tr>
+    <tr><td>400</td><td>Doğrulama, iş kuralı</td><td>Formda form üstü hata listesi + alan hataları; satır eyleminde hata toast'ı.</td><td>18.17</td></tr>
+    <tr><td>401</td><td>Token geçersiz, oturum kapatıldı</td><td>Oturum kapanır, girişte "Oturumun sonlandı" şeridi; girişten sonra kalınan sayfaya dönülür.</td><td>18.16</td></tr>
+    <tr><td>419</td><td>Token süresi doldu</td><td>Kullanıcı görmez; istemci <code>login/refresh</code> ile sessizce yeniler, başarısızsa 401 gibi.</td><td>-</td></tr>
+    <tr><td>403</td><td>İzin yok</td><td>Ekranda kalkan ikonlu "Yetkin yok"; "Tekrar dene" yok. Eylemde hata toast'ı.</td><td>18.8</td></tr>
+    <tr><td>403 · üyelik yok</td><td>Organizasyondan çıkarıldı</td><td>"Erişimin kalmadı" ekranı ve diğer organizasyonlar.</td><td>18.23</td></tr>
+    <tr><td>404</td><td>Kayıt yok, bilinmeyen yol</td><td>Detayda "Kayıt bulunamadı" + listeye dön; bilinmeyen rota için 404 sayfası. Başka organizasyonun kaydı da 404.</td><td>18.9, 18.10</td></tr>
+    <tr><td>409</td><td>Çakışma</td><td>Form üstü uyarı, form kapanmaz.</td><td>18.17</td></tr>
+    <tr><td>429</td><td>Çok fazla deneme</td><td><code>Retry-After</code> kadar geri sayım, düğme pasif.</td><td>18.15</td></tr>
+    <tr><td>500</td><td>Beklenmeyen hata</td><td>Ekranda genel hata + "Tekrar dene"; mutasyonda hata toast'ı.</td><td>18.7</td></tr>
+    <tr><td>503 · FeatureDisabled</td><td>Özellik kapalı</td><td>"Bu özellik geçici olarak kapalı" toast'ı; düğme gizlenmez, ekran normal kalır.</td><td>18.14</td></tr>
+    <tr><td>503 · bakım</td><td>Sistem hazır değil</td><td>Tam ekran bakım, kendiliğinden yeniden dener.</td><td>18.22</td></tr>
+    <tr><td>Ağ hatası</td><td>İstek sunucuya ulaşmadı</td><td>Bağlantı şeridi, önbellekteki veri soluk, yazma eylemleri pasif. Oturum kapanmaz.</td><td>18.11</td></tr>
+    <tr><td>SignalR koptu</td><td><code>/hubs/activity</code></td><td>Canlı rozetin yerine "yeniden bağlanılıyor"; bağlanınca kaçan olaylar listeden tamamlanır.</td><td>18.12</td></tr>
+    <tr><td>Mağaza 5xx</td><td>Apple / Google / Microsoft yanıt vermiyor</td><td>Mağaza işi iki yeniden denemeden sonra durur, adımda hata ve "Tekrar dene".</td><td>18.13</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+<!-- ============ 1. YÜKLEME ============ -->
+<section class="sec" id="yukleme">
+<div class="sec-h"><span class="k">Bölüm 18.1-18.4</span><h2>Yükleme</h2><p>İlk yüklemede iskelet gerçek düzenin şeklindedir (tablo satırı, detay başlığı, kart ızgarası). Sonraki yüklemelerde (sayfa, sıralama, filtre) eski veri yerinde kalır, üstte ince ilerleme çizgisi akar; tetikleyen düğme kendi spinner'ını taşır. Hareket azaltmada parıltı ve çizgi durur, gri bloklar kalır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-1">
+  <figcaption class="fr-h"><b class="fr-n">18.1</b><span class="fr-t">Liste sayfası iskeleti</span><code class="fr-r">/audit</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> sorgunun ilk isteği sürerken (önbellekte veri yok). <b>Kural:</b> 08 bölüm 3.6, iskelet tablo satırı biçiminde; başlık, araç çubuğu ve kolon adları gerçek, yalnız veri yerleri gri. Satır sayısı seçili sayfa boyutu kadar değil, ekranı dolduracak kadar (8). <code>aria-busy="true"</code>, ekran okuyucuya "Yükleniyor" ayrıca verilir. <b>Telefonda</b> satırlar kart iskeletine döner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı">
+      <div class="content" aria-busy="true">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1><p class="pg-s">Organizasyonda yapılan her değişiklik: kim, ne zaman, hangi kanaldan.</p></div><div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar"><div class="inp" style="max-width:280px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Özette ara</span></div><span class="chip"><svg class="ic"><use href="#i-filter"/></svg>Kanal</span><span class="chip"><svg class="ic"><use href="#i-calendar"/></svg>Tarih</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Tarih</th><th>Kullanıcı</th><th>Kanal</th><th>İşlem</th><th>Özet</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="sk" style="width:110px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:90px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:44px"></span></td><td data-l="İşlem"><span class="sk" style="width:120px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:80%"></span></td></tr>
+            <tr><td class="tm"><span class="sk" style="width:100px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:70px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:40px"></span></td><td data-l="İşlem"><span class="sk" style="width:100px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:60%"></span></td></tr>
+            <tr><td class="tm"><span class="sk" style="width:110px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:84px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:48px"></span></td><td data-l="İşlem"><span class="sk" style="width:130px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:72%"></span></td></tr>
+            <tr><td class="tm"><span class="sk" style="width:96px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:76px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:40px"></span></td><td data-l="İşlem"><span class="sk" style="width:110px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:55%"></span></td></tr>
+            <tr class="hide-ph"><td class="tm"><span class="sk" style="width:110px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:90px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:44px"></span></td><td data-l="İşlem"><span class="sk" style="width:120px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:66%"></span></td></tr>
+            <tr class="hide-ph"><td class="tm"><span class="sk" style="width:100px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:70px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:40px"></span></td><td data-l="İşlem"><span class="sk" style="width:90px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:78%"></span></td></tr>
+            <tr class="hide-ph"><td class="tm"><span class="sk" style="width:110px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:84px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:48px"></span></td><td data-l="İşlem"><span class="sk" style="width:120px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:50%"></span></td></tr>
+            <tr class="hide-ph"><td class="tm"><span class="sk" style="width:96px"></span></td><td data-l="Kullanıcı"><span class="r gp8"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk" style="width:76px"></span></span></td><td data-l="Kanal"><span class="sk" style="width:40px"></span></td><td data-l="İşlem"><span class="sk" style="width:110px"></span></td><td data-l="Özet" class="tx"><span class="sk" style="width:62%"></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span class="sk" style="width:150px"></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-2">
+  <figcaption class="fr-h"><b class="fr-n">18.2</b><span class="fr-t">Detay sayfası iskeleti</span><code class="fr-r">/apps/:appId</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>GET /api/v1.0/apps/app</code> sürüyor. <b>Kural:</b> kabuk ve yol hemen çizilir (yoldaki ad bilinmiyorsa iskelet), uygulama başlığı, mağaza seçici, yedi sekme ve kartlar gerçek boyutlarında gri. Sekmeler iskelet sırasında tıklanamaz. Kayıt yoksa iskelet 18.10'a döner, arada boş ekran görünmez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|...">
+      <div class="content" aria-busy="true">
+        <div class="r gp16 wrap mb16"><span class="sk" style="width:64px;height:64px;border-radius:17px"></span><div class="c gp8 f1"><div class="r gp10 wrap"><span class="sk t" style="width:160px;height:28px"></span><span class="sk" style="width:130px;height:24px;border-radius:999px"></span><span class="sk hide-ph" style="width:150px;height:24px;border-radius:999px"></span></div><span class="sk" style="width:180px"></span></div><span class="sk b hide-ph" style="width:260px"></span></div>
+        <div class="tabs"><span class="tab"><span class="sk" style="width:80px"></span></span><span class="tab"><span class="sk" style="width:64px"></span></span><span class="tab"><span class="sk" style="width:90px"></span></span><span class="tab hide-ph"><span class="sk" style="width:48px"></span></span><span class="tab hide-ph"><span class="sk" style="width:40px"></span></span><span class="tab hide-ph"><span class="sk" style="width:96px"></span></span></div>
+        <div class="g3">
+          <div class="card"><div class="card-h"><span class="sk" style="width:110px"></span></div><div class="card-b c gp12"><span class="sk" style="width:90%"></span><span class="sk" style="width:70%"></span><span class="sk" style="width:80%"></span></div></div>
+          <div class="card"><div class="card-h"><span class="sk" style="width:120px"></span></div><div class="card-b c gp12"><span class="sk" style="width:85%"></span><span class="sk" style="width:60%"></span><span class="sk" style="width:75%"></span></div></div>
+          <div class="card hide-ph"><div class="card-h"><span class="sk" style="width:130px"></span></div><div class="card-b c gp12"><span class="sk" style="width:80%"></span><span class="sk" style="width:65%"></span><span class="sk" style="width:70%"></span></div></div>
+        </div>
+        <div class="split mt16">
+          <div class="card"><div class="card-h"><span class="sk" style="width:120px"></span></div><div class="lst"><div class="lst-i"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk f1"></span></div><div class="lst-i"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk f1"></span></div><div class="lst-i"><span class="sk ci" style="width:24px;height:24px"></span><span class="sk f1"></span></div></div></div>
+          <div class="card hide-ph"><div class="card-h"><span class="sk" style="width:90px"></span></div><div class="card-b c gp12"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-3">
+  <figcaption class="fr-h"><b class="fr-n">18.3</b><span class="fr-t">Kart ızgarası iskeleti</span><code class="fr-r">/studio</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>PATCH /api/v1.0/mockups/templates</code> ilk sayfası sürüyor. <b>Kural:</b> kart oranı gerçek önizleme oranında (dikey ekran görüntüsü 9:19,5), başlık ve rozet yerleri gri. Görseller yüklenince kart kart açılır, ızgara zıplamaz (sabit oran). <b>Telefonda</b> iki sütun.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo" data-act="">
+      <div class="content" aria-busy="true">
+        <div class="pg-h"><div><h1 class="pg-t">Stüdyo</h1><p class="pg-s">Ekran görüntüsü şablonları ve cihaz çerçeveleri.</p></div><div class="pg-a"><span class="btn pri dis"><svg class="ic"><use href="#i-plus"/></svg>Yeni şablon</span></div></div>
+        <div class="skg">
+          <div class="skc"><span class="sk" style="height:auto;aspect-ratio:9/12;border-radius:10px"></span><span class="sk t" style="width:70%"></span><span class="sk" style="width:45%"></span></div>
+          <div class="skc"><span class="sk" style="height:auto;aspect-ratio:9/12;border-radius:10px"></span><span class="sk t" style="width:60%"></span><span class="sk" style="width:50%"></span></div>
+          <div class="skc"><span class="sk" style="height:auto;aspect-ratio:9/12;border-radius:10px"></span><span class="sk t" style="width:75%"></span><span class="sk" style="width:40%"></span></div>
+          <div class="skc"><span class="sk" style="height:auto;aspect-ratio:9/12;border-radius:10px"></span><span class="sk t" style="width:55%"></span><span class="sk" style="width:48%"></span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-4">
+  <figcaption class="fr-h"><b class="fr-n">18.4</b><span class="fr-t">Sonraki sayfa yükleniyor</span><code class="fr-r">/audit?page=3</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> önbellekte veri varken yeni istek (sayfa, sıralama, filtre, arka plan yenilemesi). <b>Kural:</b> 08 bölüm 3.6: eski satırlar kalır, tablonun üstünde 2 px <code>.topline</code> akar (vurgu rengi, ilerleme sayılır); tıklanan "Sonraki" kendi spinner'ını taşır ve pasiftir, diğer kontroller çalışır. Yanıt gelince satırlar yerinde değişir, sayfa en üste kaydırılmaz. Hareket azaltmada çizgi sabit bir şerit olarak görünmez, yalnız düğme spinner'ı durur ve "Yükleniyor" metni ekran okuyucuya verilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1></div><div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="tbl-w" style="position:relative"><span class="topline" role="progressbar" aria-label="Yükleniyor"></span><table class="tbl">
+          <thead><tr><th class="srt">Tarih <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Kullanıcı</th><th>Kanal</th><th>İşlem</th><th>Özet</th></tr></thead>
+          <tbody>
+            <tr><td class="tm mono t-s">17 Kas 2026, 16:40</td><td data-l="Kullanıcı"><span class="r gp8"><span class="av s">DA</span>Deniz Arslan</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İşlem">İncelemeye gönderildi</td><td data-l="Özet" class="tx t-s fg2">Pusula 2.3 (118) · App Store</td></tr>
+            <tr><td class="tm mono t-s">17 Kas 2026, 11:12</td><td data-l="Kullanıcı"><span class="r gp8"><span class="av s">EY</span>Ece Yılmaz</span></td><td data-l="Kanal"><span class="tag">Mcp</span></td><td data-l="İşlem">Metin güncellendi</td><td data-l="Özet" class="tx t-s fg2">Pusula · de-DE anahtar kelimeler</td></tr>
+            <tr><td class="tm mono t-s">16 Kas 2026, 18:05</td><td data-l="Kullanıcı"><span class="r gp8"><span class="av s">MK</span>Mert Kaya</span></td><td data-l="Kanal"><span class="tag">Api</span></td><td data-l="İşlem">Build bağlandı</td><td data-l="Özet" class="tx t-s fg2">Halka 1.0.0 (42) · internal</td></tr>
+            <tr><td class="tm mono t-s">16 Kas 2026, 09:31</td><td data-l="Kullanıcı"><span class="r gp8"><span class="av s">EY</span>Ece Yılmaz</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İşlem">Üye davet edildi</td><td data-l="Özet" class="tx t-s fg2 mono">can@kuzeylab.dev · Editor</td></tr>
+            <tr class="hide-ph"><td class="tm mono t-s">15 Kas 2026, 14:20</td><td data-l="Kullanıcı"><span class="r gp8"><span class="av s">SY</span>Sistem</span></td><td data-l="Kanal"><span class="tag">System</span></td><td data-l="İşlem">Bağlantı doğrulandı</td><td data-l="Özet" class="tx t-s fg2">Play servis hesabı</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 2 / 9 · Toplam: 168</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm ld" aria-busy="true">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. BOŞ VE ARAMA ============ -->
+<section class="sec" id="bos">
+<div class="sec-h"><span class="k">Bölüm 18.5-18.6</span><h2>Boş liste ve arama sonucu yok</h2><p>İlk kullanım boşlukları (henüz bağlantı yok, henüz webhook yok) kendi bölümlerinde, tek ana eylemle çizildi. Burada filtreli listenin boşluğu ve aramanın boşluğu var: ikisi de kesik çizgili kutu, ikon, kısa başlık ve geri dönüş eylemi.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-5">
+  <figcaption class="fr-h"><b class="fr-n">18.5</b><span class="fr-t">Boş liste (filtreli)</span><code class="fr-r">/audit?channel=Api&amp;from=2026-11-18</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> liste ucu 200 döndü, <code>TotalDataCount = 0</code>. <b>Kural:</b> 08 bölüm 3.6: ikon + "Kayıt bulunamadı"; filtre varsa "Filtreleri temizle". Etkin filtreler çip olarak üstte kalır, kullanıcı neden boş olduğunu görür. Sayfalama gizlenir. Filtre yoksa ve liste hiç dolmadıysa bölümün kendi ilk kullanım boşluğu gösterilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1></div></div>
+        <div class="toolbar"><span class="chip on"><svg class="ic"><use href="#i-filter"/></svg>Kanal: Api<svg class="ic x"><use href="#i-x"/></svg></span><span class="chip on"><svg class="ic"><use href="#i-calendar"/></svg>18 Kas 2026<svg class="ic x"><use href="#i-x"/></svg></span><span class="t-s fg3 ml hide-ph">2 filtre etkin</span></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-inbox"/></svg></span><h4>Kayıt bulunamadı</h4><p>Bugün Api kanalından yapılmış bir değişiklik yok. CI token'ları ve PAT ile yapılan işler bu kanalda görünür.</p><span class="btn">Filtreleri temizle</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-6">
+  <figcaption class="fr-h"><b class="fr-n">18.6</b><span class="fr-t">Arama sonucu yok</span><code class="fr-r">/reviews?q=iade</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> arama terimiyle <code>TotalDataCount = 0</code>. <b>Kural:</b> 08 bölüm 3.6: "'{terim}' için sonuç yok" + "Aramayı temizle". Arama 400 ms gecikmeyle tetiklenir, sayfa 1'e döner; Türkçe katlama sunucuda (İ/i, I/ı). Arama alanı odakta kalır, Escape aramayı temizler.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Yorumlar</h1></div><div class="pg-a"><div class="inp foc" style="width:260px"><svg class="ic"><use href="#i-search"/></svg><span class="f1">iade</span><svg class="ic"><use href="#i-x"/></svg></div></div></div>
+        <div class="toolbar"><div class="seg"><span class="on">Okunmamış · 14</span><span>Tümü</span></div><span class="chip"><span class="aic s" style="--c:#15803D;width:18px;height:18px;font-size:9px;border-radius:5px">M</span>Mola</span></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-search"/></svg></span><h4>"iade" için sonuç yok</h4><p>Okunmamış 14 yorumun hiçbirinde bu kelime geçmiyor. Tümü sekmesinde de arayabilirsin.</p><div class="r gp8 wrap jc"><span class="btn">Aramayı temizle</span><span class="btn ghost">Tümünde ara</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. HATA EKRANLARI ============ -->
+<section class="sec" id="hata">
+<div class="sec-h"><span class="k">Bölüm 18.7-18.10</span><h2>Hata, yetki ve bulunamadı</h2><p>Ekran durumu yalnız sorgu (okuma) başarısız olunca çizilir; mutasyon hataları toast'tır. 403'te "Tekrar dene" yoktur, çünkü tekrar denemek sonucu değiştirmez. Başka organizasyonun kaydına gelen istek varlığı sızdırmamak için 403 değil 404 döner (plan bölüm 8).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-7">
+  <figcaption class="fr-h"><b class="fr-n">18.7</b><span class="fr-t">Genel hata (500)</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> liste sorgusu 500 ya da yanıt zarfı <code>IsSuccess = false</code> ve bilinmeyen <code>StatusCode</code>. <b>Kural:</b> 08 bölüm 2.4 ve 3.6: uyarı ikonu + "Bir şeyler ters gitti" + "Tekrar dene". Sunucu mesajı varsa açıklamada gösterilir. İz kimliği kopyalanabilir, destek isteğine eklenir. Sorgu kendiliğinden bir kez yeniden dener; ekran ikinci başarısızlıktan sonra çıkar. <span class="gap">Backend boşluğu:</span> yanıt başlığında iz kimliği (<code>X-Request-Id</code>) planda yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Yorumlar</h1></div></div>
+        <div class="state" role="alert"><span class="sic"><svg class="ic"><use href="#i-alert-t"/></svg></span><h3>Bir şeyler ters gitti</h3><p>Yorumlar şu an yüklenemedi. Sorun bizde; birkaç saniye sonra tekrar dene.</p><span class="btn inv"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span><span class="t-xs fg3 mono r gp6">İz kimliği 0HN8K2Q4T1M7:00000012<svg class="ic s14"><use href="#i-copy"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-8">
+  <figcaption class="fr-h"><b class="fr-n">18.8</b><span class="fr-t">Yetkin yok (403)</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> İzleyici (Viewer) adres çubuğundan <code>/connections</code>'a gelir; menüde bu öğe zaten gizli. <code>GET /api/v1.0/storeConnections</code> 403 döner. <b>Kural:</b> 08 bölüm 3.6: kalkan ikonu + "Yetkin yok" + açıklama, "Tekrar dene" yok. Gereken izin (<code>ManageConnections</code>) ve kullanıcının rolü metinde. Eylem düğmesinde 403 olursa ekran değişmez, hata toast'ı çıkar. Rol değişince istemci <code>organizations/mine</code> ile izinleri yeniler.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="" data-role="Viewer" data-crumbs="Mağaza bağlantıları">
+      <div class="content">
+        <div class="state"><span class="sic"><svg class="ic"><use href="#i-shield-x"/></svg></span><h3>Yetkin yok</h3><p>Mağaza bağlantılarını görmek için <b>bağlantıları yönetme</b> izni gerekir. Kuzey Lab'deki rolün <b>İzleyici</b>.</p><div class="r gp8 wrap jc"><span class="btn"><svg class="ic"><use href="#i-arrow-l"/></svg>Uygulamalara dön</span></div><span class="t-xs fg3">İzin için organizasyon sahibi Deniz Arslan ya da yönetici Ece Yılmaz ile konuş.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-9">
+  <figcaption class="fr-h"><b class="fr-n">18.9</b><span class="fr-t">Sayfa bulunamadı (404)</span><code class="fr-r">/aplications</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> istemci yönlendiricisinde eşleşmeyen rota (sunucuya istek gitmez). <b>Kural:</b> 08 E17: "Sayfa bulunamadı" + ana sayfaya dönüş; storeasy'de ana sayfa uygulamalar listesi, düğme "Uygulamalara dön". Kabuk ve menü yerinde kalır, menüde seçili öğe yok. "Yapım aşamasında" yer tutucu sayfası kullanılmaz. Çizim markanın hattı: rota kopuk, durak boş.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="" data-crumbs="Bulunamadı">
+      <div class="content">
+        <div class="state" style="padding-top:72px">
+          <svg viewBox="0 0 240 90" width="240" height="90" aria-hidden="true"><path d="M58 45 H120" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><path d="M140 45 H182" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><rect x="14" y="23" width="44" height="44" rx="13" fill="rgb(var(--fg))"/><use href="#logo" x="21" y="30" width="30" height="30" class="mk" style="--m1:rgb(var(--bg));--m2:rgb(var(--bg)/.55)"/><rect x="182" y="25" width="44" height="40" rx="12" fill="none" stroke="rgb(var(--border-strong))" stroke-width="1.5" stroke-dasharray="4 4"/><text x="204" y="49" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="rgb(var(--fg-3))">404</text><path d="M124 39 l12 12 M136 39 l-12 12" stroke="rgb(var(--fg-3))" stroke-width="2" stroke-linecap="round"/></svg>
+          <h3>Sayfa bulunamadı</h3><p>Aradığın adres storeasy'de yok ya da taşındı. <span class="mono t-s">/aplications</span></p><span class="btn inv"><svg class="ic"><use href="#i-grid"/></svg>Uygulamalara dön</span>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-10">
+  <figcaption class="fr-h"><b class="fr-n">18.10</b><span class="fr-t">Kayıt bulunamadı (detayda 404)</span><code class="fr-r">/apps/41</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>GET /api/v1.0/apps/app?AppId=41</code> 404. Kayıt silinmiş olabilir ya da başka bir organizasyona ait olabilir; ikisinde de yanıt ve ekran aynı, varlık sızdırılmaz (plan bölüm 8, <code>[OrgAuth]</code> kapsam dışı kaydı bulunmamış sayar). <b>Kural:</b> 08 bölüm 3.6: "Kayıt bulunamadı" + "Listeye dön". Yol satırı son öğeyi "Bulunamadı" gösterir. Bağlantı başka organizasyondan paylaşıldıysa ipucu olarak organizasyon değiştirici önerilir; hangi organizasyonda olduğu söylenmez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Bulunamadı">
+      <div class="content">
+        <div class="state" style="padding-top:72px"><span class="sic"><svg class="ic"><use href="#i-file"/></svg></span><h3>Kayıt bulunamadı</h3><p>Bu uygulama silinmiş ya da Kuzey Lab'de değil. Bağlantıyı başka bir organizasyondan aldıysan, sol üstten organizasyon değiştirip tekrar aç.</p><div class="r gp8 wrap jc"><span class="btn inv"><svg class="ic"><use href="#i-arrow-l"/></svg>Uygulamalara dön</span><span class="btn ghost"><svg class="ic"><use href="#i-chevs"/></svg>Organizasyon değiştir</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. BAĞLANTI ============ -->
+<section class="sec" id="baglanti">
+<div class="sec-h"><span class="k">Bölüm 18.11-18.13</span><h2>Bağlantı ve mağaza erişimi</h2><p>Üç ayrı kopukluk var ve her biri farklı yerde gösterilir: tarayıcı ile storeasy arası (ağ), canlı akış kanalı (SignalR) ve storeasy ile mağaza arası (Apple, Google, Microsoft). Ağ hatası oturumu kapatmaz; yalnız 401 kapatır (08 E17).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-11">
+  <figcaption class="fr-h"><b class="fr-n">18.11</b><span class="fr-t">Bağlantı yok (çevrimdışı)</span><code class="fr-r">/apps</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>navigator.onLine = false</code> ya da istek ağ hatasıyla döndü (yanıt yok, durum kodu yok). <b>Kural:</b> içeriğin üstünde tehlike şeridi; önbellekteki son veri soluk ve gri kalır, saat yazar; yazma eylemleri (ana eylem dahil) pasif ve ipucunda "Bağlantı yok". "Tekrar dene" bütün aktif sorguları yeniden çalıştırır; bağlantı dönünce şerit kendiliğinden kapanır ve "Bağlantı geri geldi" bilgi toast'ı bir kez çıkar. Form doldururken bağlantı koparsa yazılan metin korunur, gönderim bağlantı dönünce elle yapılır (kendiliğinden gönderilmez).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar" data-act="">
+      <div class="banner dng" role="alert"><svg class="ic s18 dng-t"><use href="#i-wifi-off"/></svg><span class="f1"><b>Bağlantı yok.</b> <span class="fg2">Gösterilen veriler 14:02'deki hali; değişiklik yapılamaz.</span></span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span></div>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Uygulamalar</h1><p class="pg-s">Son senkron 14:02 · bağlantı yok</p></div><div class="pg-a"><span class="btn pri dis" title="Bağlantı yok"><svg class="ic"><use href="#i-plus"/></svg>Uygulama ekle</span></div></div>
+        <div class="g3 stale" aria-hidden="true">
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#0F766E">P</span><div class="f1"><div class="h3">Pusula</div><div class="t-xs mono fg3">com.kuzeylab.pusula</div></div></div><div class="r bt t-s"><span class="st sm"><b>AS</b></span><span class="bdg warn sm">İncelemede</span></div><div class="r bt t-s"><span class="st sm"><b>GP</b></span><span class="bdg info sm">%20 yayında</span></div></div></div>
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#B45309">D</span><div class="f1"><div class="h3">Defter</div><div class="t-xs mono fg3">com.kuzeylab.defter</div></div></div><div class="r bt t-s"><span class="st sm"><b>AS</b></span><span class="bdg dng sm">Reddedildi</span></div><div class="r bt t-s"><span class="st sm"><b>GP</b></span><span class="bdg sm">Testte</span></div></div></div>
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#DB2777">H</span><div class="f1"><div class="h3">Halka</div><div class="t-xs mono fg3">com.kuzeylab.halka</div></div></div><div class="r bt t-s"><span class="st sm"><b>AS</b></span><span class="bdg info sm">TestFlight</span></div><div class="r bt t-s"><span class="st sm"><b>GP</b></span><span class="bdg sm">Internal</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-12">
+  <figcaption class="fr-h"><b class="fr-n">18.12</b><span class="fr-t">Canlı akış yeniden bağlanıyor</span><code class="fr-r">/activity</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> SignalR <code>/hubs/activity</code> bağlantısı koptu (<code>onreconnecting</code>). <b>Kural:</b> üst bardaki yeşil "canlı" rozeti kalkar, içerikte bilgi şeridi: deneme sırası ve sonraki deneme süresi (0, 2, 10, 30 sn, sonra her 30 sn). Bu sürede işler kaybolmaz, satırlar son bilinen haliyle durur ve "son olay 14:06" yazar. Yeniden bağlanınca (<code>onreconnected</code>) istemci <code>PATCH /api/v1.0/jobs</code> ile listeyi tazeler, kaçan <code>job.step</code> olayları böylece tamamlanır; şerit "Canlı akış geri geldi" diye bir saniye kalıp kapanır. 5 dakika sonra deneme durur, şerit "Tekrar bağlan" düğmesine döner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış">
+      <div class="banner info" role="status"><span class="spinner" style="width:16px;height:16px;border-width:2px"></span><span class="f1"><b>SignalR bağlantısı koptu, yeniden bağlanılıyor.</b> <span class="fg2 hide-ph">3. deneme · 10 sn sonra tekrar · son olay 14:06</span></span><span class="btn sm ghost">Şimdi dene</span></div>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1><p class="pg-s">Mağazaya giden ve mağazadan gelen her şey.</p></div><div class="pg-a"><span class="bdg sm"><span class="dot"></span>Bağlantı bekleniyor</span></div></div>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="st sm"><b>AS</b></span><div class="f1"><b class="t-m">Pusula · iPad 13" ekran görüntüleri · tr</b><div class="t-xs fg3 mono">asset.upload · 04-takvim.png · son olay 14:06</div><div class="stp mt8" style="max-width:320px"><span class="d"></span><span class="d"></span><span class="d"></span><span class="n" style="animation:none"></span><span></span><span></span><span></span></div></div><span class="mono t-s">4 / 7</span></div>
+          <div class="lst-i"><span class="st sm"><b>GP</b></span><div class="f1"><b class="t-m">Halka · AAB internal</b><div class="t-xs fg3 mono">bundle.upload · halka-1.0.0-42.aab · son olay 14:05</div><span class="prog mt8" style="max-width:320px"><i style="width:65%"></i></span></div><span class="mono t-s">31,4 / 48,0 MB</span></div>
+          <div class="lst-i"><span class="st sm"><b>AS</b></span><div class="f1"><b class="t-m">Defter · red kaydı yanıtı</b><div class="t-xs fg3">Tamamlandı · 13:48</div></div><span class="bdg ok sm"><span class="dot"></span>Bitti</span></div>
+        </div></div>
+        <p class="t-xs fg3 mt12">Yükleme sunucuda sürüyor; tarayıcı bağlantısı yalnız ilerlemenin görünmesini etkiler.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-13" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">18.13</b><span class="fr-t">Mağaza erişilemiyor (Apple 5xx)</span><code class="fr-r">/activity/:jobId</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> mağaza işinin bir adımı App Store Connect'ten 5xx aldı; iş iki kez yeniden denedi (30 sn, 2 dk) ve durdu. Bağlantının <code>Status</code>'u <code>Unreachable</code> olur. <b>API:</b> <code>GET /api/v1.0/jobs/job?JobId=</code> → <code>StoreJobDto { Id, Kind, Status (Queued, Running, Succeeded, Failed, Canceled), Steps[{ Order, Name, Status, StartedDate, FinishedDate, Attempts, Error { Code, HttpStatus, Message, Store } }] }</code>; <code>POST /api/v1.0/jobs/retry { JobId }</code> (<code>Idempotency-Key</code>; tamamlanan adımlar tekrar edilmez). <b>İzin:</b> tekrar deneme işin kendi izni (burada <code>EditContent</code>). <b>Kural:</b> hata storeasy'nin değil mağazanın; metin bunu söyler, mağazada değişmeyen şeyi açıkça yazar. Uygulama listesinde ve kartlarda bu mağaza şeridi "Mağaza yanıt vermiyor" rozetiyle görünür; diğer mağazalar etkilenmez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|İş 88412" data-live="1 iş sürüyor">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Canlı akış</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng sm"><span class="dot"></span>Durdu</span></div><h1 class="pg-t">Pusula 2.3 · en-US metinleri</h1><p class="pg-s">Ece Yılmaz başlattı · bugün 14:10 · Web</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Apple sistem durumu</span><span class="btn pri"><svg class="ic"><use href="#i-replay"/></svg>Tekrar dene</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="callout dng"><svg class="ic"><use href="#i-server"/></svg><div><b>App Store Connect yanıt vermiyor</b><div class="t-s fg2 mt4">Apple iki denemede de <span class="mono">503 Service Unavailable</span> döndü. Sorun Apple tarafında; Kuzey Lab ASC bağlantın geçerli. Mağazada hiçbir metin değişmedi.</div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Adımlar</span><span class="t-s fg3 ml">2 / 4</span></div><div class="card-b jobsteps" style="padding-bottom:2px">
+              <div class="tl">
+                <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Değişiklik planı onaylandı</b><div class="t-xs fg3 mono">plan 3301 · 3 alan · 14:10</div></div></div>
+                <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Bağlantı doğrulandı</b><div class="t-xs fg3 mono">Key ID 7QX2M4K9PL · 14:10</div></div></div>
+                <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-m">Sürüm yerelleştirmesi güncelleniyor</b><div class="t-s fg2 mt4">3 deneme: 14:10, 14:11, 14:13 · son yanıt 503</div><div class="code mt8" style="white-space:pre-wrap">PATCH /v1/appStoreVersionLocalizations/{id}
+503 · Service Unavailable · 2 yeniden deneme</div></div></div>
+                <div class="tl-i"><span class="tl-d"></span><div><b class="t-m fg3">Denetim kaydına yaz</b><div class="t-xs fg3">Bekliyor</div></div></div>
+              </div>
+            </div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">İş</span></div><div class="card-b"><dl class="kv"><dt>Tür</dt><dd class="mono">listing.apply</dd><dt>Uygulama</dt><dd>Pusula</dd><dt>Bağlantı</dt><dd>Kuzey Lab ASC <span class="bdg warn sm">Erişilemiyor</span></dd><dt>Yeniden deneme</dt><dd>2 / 2 · otomatik bitti</dd><dt>Sonraki</dt><dd>Elle</dd></dl><p class="t-xs fg3 mt12">"Tekrar dene" yalnız kalan adımları çalıştırır; planı yeniden onaylamak gerekmez.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. SINIRLAR VE OTURUM ============ -->
+<section class="sec" id="sinir">
+<div class="sec-h"><span class="k">Bölüm 18.14-18.16</span><h2>Özellik kapalı, hız sınırı, oturum sonlandı</h2><p>Bu üç durumda ekran bozulmaz: 503'te düğme yerinde kalır ve toast çıkar, 429'da düğme süre bitene kadar pasif, 401'de kullanıcı giriş ekranına bilgiyle düşer ve girişten sonra kaldığı yere döner.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-14">
+  <figcaption class="fr-h"><b class="fr-n">18.14</b><span class="fr-t">Özellik geçici olarak kapalı (503)</span><code class="fr-r">/apps → Mağazadan çek</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>POST /api/v1.0/apps/sync</code> → 503, <code>Messages[{ Key: "FeatureDisabled" }]</code>; özellik anahtarı Platform &gt; Özellik anahtarları ekranından kapatılmış. <b>Kural:</b> 08 bölüm 2.4: "Bu özellik geçici olarak kapalı" toast'ı (metin sunucudan), düğme gizlenmez ve pasif de olmaz; ekran normal kalır. Aynı mesaj art arda gösterilmez (aynı anahtar 4 sn içinde tekrar gelirse yeni toast açılmaz).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Uygulamalar</h1><p class="pg-s">Son senkron 3 dk önce</p></div><div class="pg-a"><span class="btn focus"><svg class="ic"><use href="#i-refresh"/></svg>Mağazadan çek</span></div></div>
+        <div class="g3">
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#15803D">M</span><div class="f1"><div class="h3">Mola</div><div class="t-xs mono fg3">com.kuzeylab.mola</div></div></div><div class="r bt t-s"><span class="st sm"><b>AS</b></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div><div class="r bt t-s"><span class="st sm"><b>GP</b></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div></div></div>
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#9A3412">T</span><div class="f1"><div class="h3">Tarla</div><div class="t-xs mono fg3">com.kuzeylab.tarla</div></div></div><div class="r bt t-s"><span class="st sm"><b>GP</b></span><span class="bdg sm">Testte</span></div><div class="r bt t-s"><span class="st sm"><b>MS</b></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div></div></div>
+          <div class="card"><div class="card-b c gp10"><div class="r gp12"><span class="aic" style="--c:#475569">K</span><div class="f1"><div class="h3">Kumbara</div><div class="t-xs mono fg3">com.kuzeylab.kumbara</div></div></div><div class="r bt t-s"><span class="st sm"><b>AS</b></span><span class="bdg sm">Hazırlanıyor</span></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast warn" role="status" aria-live="polite"><svg class="ic"><use href="#i-ban"/></svg><div class="f1"><b>Bu özellik geçici olarak kapalı</b><div class="fg2">Mağaza senkronu bakım için durduruldu. Mevcut veriler güncel kalır.</div></div><span class="ib sm ghost" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-15">
+  <figcaption class="fr-h"><b class="fr-n">18.15</b><span class="fr-t">Çok fazla deneme (429)</span><code class="fr-r">/login</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>POST /api/v1.0/account/login</code> → 429, <code>Retry-After: 42</code>. <b>Kural:</b> 08 bölüm 2.4: "{n} saniye sonra tekrar dene" + giriş düğmesi geri sayım bitene kadar pasif; sayaç saniye saniye azalır (<code>aria-live="polite"</code>, ekran okuyucuya her 10 sn'de bir). Alanlar düzenlenebilir kalır, şifre silinmez. Sayfa yenilense de süre <code>Retry-After</code>'dan yeniden okunur. Uygulama içindeki eylemlerde (ör. <code>storeConnections/connection/verify</code>) 429 aynı metinle hata toast'ı olur ve düğme süre boyunca pasif kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <a class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></a>
+        <div class="auth-c">
+          <h1>Giriş yap</h1>
+          <div class="callout warn" role="alert"><svg class="ic"><use href="#i-hourglass"/></svg><div class="f1"><b>Çok fazla deneme yapıldı</b><div class="t-s fg2 mt4">Güvenliğin için girişi kısa bir süre durdurduk.</div></div><span class="cd" aria-live="polite">42</span></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <label class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 mono">••••••••••</span><svg class="ic"><use href="#i-eye"/></svg></span></label>
+          <span class="btn pri lg blk dis" aria-disabled="true">42 saniye sonra tekrar dene</span>
+          <span class="t-s fg2" style="text-align:center"><span class="lnk">Şifremi unuttum</span></span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · Kaynak kod</span><span>v1.0.0</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 8"><path d="M300 410 C 420 410, 440 250, 600 250"/><path d="M300 410 H600"/><path d="M300 410 C 420 410, 440 570, 600 570"/></g><rect x="220" y="330" width="160" height="160" rx="44" fill="rgb(var(--accent))"/><use href="#logo" x="252" y="362" width="96" height="96" class="mk inv"/><g font-family="JetBrains Mono" font-size="15" font-weight="700" fill="rgb(var(--fg-2))"><rect x="590" y="226" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="255" text-anchor="middle">AS</text><rect x="590" y="386" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="415" text-anchor="middle">GP</text><rect x="590" y="546" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="575" text-anchor="middle">MS</text></g></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-16">
+  <figcaption class="fr-h"><b class="fr-n">18.16</b><span class="fr-t">Oturum sonlandı (401)</span><code class="fr-r">/login?returnUrl=/apps/3/listing</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> herhangi bir istek 401 döndü (şifre başka cihazda değişti, oturum "Oturumlarım"dan kapatıldı, <code>sstamp</code> geçersiz) ya da 419 sonrası <code>POST /api/v1.0/account/login/refresh</code> başarısız. <b>Kural:</b> 08 bölüm 2.4 ve E17: yerel token silinir, giriş ekranına <code>returnUrl</code> ile gidilir; formun üstünde bilgi şeridi "Oturumun sonlandı, tekrar giriş yap." E-posta önceden doldurulur. Girişten sonra kalınan sayfa açılır; organizasyon seçimi korunur. Kaydedilmemiş form taslağı varsa (uzun metin) yerel taslaktan geri yüklenir.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <a class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></a>
+        <div class="auth-c">
+          <div class="callout info" role="status"><svg class="ic"><use href="#i-logout"/></svg><div><b>Oturumun sonlandı, tekrar giriş yap.</b><div class="t-s fg2 mt4">Girişten sonra Pusula · Metinler sayfasına döneceksin.</div></div></div>
+          <h1>Tekrar hoş geldin</h1>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <label class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1 ph">Şifren</span><svg class="ic"><use href="#i-eye"/></svg></span></label>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <span class="t-s fg2" style="text-align:center"><span class="lnk">Şifremi unuttum</span> · <span class="lnk">Başka hesapla gir</span></span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · Kaynak kod</span><span>v1.0.0</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 8"><path d="M300 410 C 420 410, 440 250, 600 250"/><path d="M300 410 H600"/><path d="M300 410 C 420 410, 440 570, 600 570"/></g><rect x="220" y="330" width="160" height="160" rx="44" fill="rgb(var(--accent))"/><use href="#logo" x="252" y="362" width="96" height="96" class="mk inv"/><g font-family="JetBrains Mono" font-size="15" font-weight="700" fill="rgb(var(--fg-2))"><rect x="590" y="226" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="255" text-anchor="middle">AS</text><rect x="590" y="386" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="415" text-anchor="middle">GP</text><rect x="590" y="546" width="72" height="48" rx="14" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/><text x="626" y="575" text-anchor="middle">MS</text></g></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. FORM, ONAY, TOAST ============ -->
+<section class="sec" id="form">
+<div class="sec-h"><span class="k">Bölüm 18.17-18.20</span><h2>Form hataları, onay diyalogları ve toast</h2><p>Form hatası iki katmanlı: sunucunun bütün mesajları formun üstünde liste, alanla eşleşenler ayrıca alanın altında. Onay diyaloğu tarayıcının <code>confirm</code>'ü değil, kitin modalı; tehlikeli eylemde kırmızı düğme, oturum kapatan eylemde metin bunu açıkça söyler.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-17" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">18.17</b><span class="fr-t">Form hataları (400 ve 409)</span><code class="fr-r">/connections/new?store=apple</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>POST /api/v1.0/storeConnections/connection { Store, Name, Secret }</code> → 400 (<code>Messages[]</code>, her biri <code>Key</code> ile alana eşlenir) ve ad için 409 (<code>ConnectionNameExists</code>). <b>Kural:</b> 08 bölüm 2.4 ve 02 bölüm 9.5: istemci doğrulaması önce, alanın altında; sunucu hataları formun üstünde liste (<code>.ferr</code>, odak buraya taşınır, maddeler alana bağlantı), eşleşen alanlarda kırmızı kenar + metin (<code>aria-invalid</code>, <code>aria-describedby</code>). 409 form üstü uyarıdır, form kapanmaz ve girilen değerler silinmez. Yalnız gizli değer (.p8) güvenlik için yeniden seçtirilir. Gönder düğmesi istek sürerken kendi spinner'ını taşır. <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları|Yeni Apple bağlantısı" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">App Store Connect bağla</h1><p class="pg-s">Users and Access &gt; Integrations &gt; App Store Connect API'den oluşturduğun anahtar.</p></div></div>
+        <div style="max-width:640px" class="c gp16">
+          <div class="ferr" role="alert" tabindex="-1"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Bağlantı kaydedilemedi, 3 sorun var</b><ul><li><span class="lnk">Bağlantı adı</span>: "Kuzey Lab ASC" adında bir bağlantı zaten var.</li><li><span class="lnk">Issuer ID</span>: UUID biçiminde olmalı.</li><li><span class="lnk">Özel anahtar</span>: Dosya App Store Connect API anahtarı değil.</li></ul></div></div>
+          <label class="fld"><span class="lbl">Bağlantı adı</span><span class="inp err" aria-invalid="true">Kuzey Lab ASC</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>Bu adla bir bağlantı zaten var. Farklı bir ad yaz ya da mevcut bağlantıyı düzenle.</span></label>
+          <div class="g2">
+            <label class="fld"><span class="lbl">Key ID</span><span class="inp mono">7QX2M4K9PL</span></label>
+            <label class="fld"><span class="lbl">Issuer ID</span><span class="inp mono err" aria-invalid="true">69a6de7e-…-a91f-x</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>UUID biçiminde olmalı (8-4-4-4-12).</span></label>
+          </div>
+          <div class="fld"><span class="lbl">Özel anahtar (.p8)</span><div class="secret" style="border-color:rgb(var(--danger));border-style:solid"><svg class="ic s16 dng-t"><use href="#i-file"/></svg><span class="f1">AuthKey_7QX2M4K9PL.txt · 1 KB</span><span class="btn sm">Başka dosya seç</span></div><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>Dosya App Store Connect API anahtarı değil. "-----BEGIN PRIVATE KEY-----" ile başlayan .p8 dosyasını seç.</span></div>
+          <div class="callout"><svg class="ic"><use href="#i-lock"/></svg><div class="t-s">Anahtar şifreli saklanır ve hiçbir ekranda geri gösterilmez. Kaydettikten sonra storeasy anahtarı bir kez doğrular.</div></div>
+          <div class="r gp8 je"><span class="btn ghost">Vazgeç</span><span class="btn pri">Bağla ve doğrula</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-18">
+  <figcaption class="fr-h"><b class="fr-n">18.18</b><span class="fr-t">Tehlikeli onay: bağlantıyı sil</span><code class="fr-r">/connections → sil</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/storeConnections/connection?Id=</code>. <b>İzin:</b> <code>ManageConnections</code>. <b>Kural:</b> 08 bölüm 3.5 ve 02 <code>useConfirm({ danger: true })</code>: başlık soru, gövde etkilenen kayıtlar ve geri alınamazlık, onay düğmesi kırmızı ve eylemi adıyla söyler ("Bağlantıyı sil"), odak "Vazgeç"te açılır, Escape kapatır. Bağlantıyı kullanan iş sürüyorsa düğme pasif ve gerekçesi altında. Başarıda toast + denetim kaydı <code>ConnectionRemoved</code>. <b>Telefonda</b> alt sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları"><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div><div class="card" style="height:220px"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="alertdialog" aria-modal="true" aria-labelledby="m1818" aria-describedby="m1818d">
+      <div class="mdl-h"><span class="ib" style="border-color:rgb(var(--danger)/.4);color:rgb(var(--danger));background:rgb(var(--danger)/.08)"><svg class="ic"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1818">"Kuzey Lab ASC" silinsin mi?</h2></div></div>
+      <div class="mdl-b" id="m1818d">
+        <p class="t-s fg2" style="margin:0">Anahtar storeasy'den kalıcı olarak silinir. App Store Connect'teki anahtar silinmez; onu ayrıca iptal etmen önerilir.</p>
+        <div class="card"><div class="lst"><div class="lst-i"><span class="aic s" style="--c:#0F766E">P</span><span class="f1 t-s">Pusula, Defter, Halka, Kumbara</span><span class="t-xs fg3">4 uygulama</span></div><div class="lst-i"><svg class="ic s16 fg3"><use href="#i-webhook"/></svg><span class="f1 t-s">App Store webhook'u</span><span class="t-xs fg3">durur</span></div></div></div>
+        <p class="t-s dng-t b6" style="margin:0">Bu işlem geri alınamaz.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost focus">Vazgeç</span><span class="btn dng"><svg class="ic"><use href="#i-trash"/></svg>Bağlantıyı sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-19">
+  <figcaption class="fr-h"><b class="fr-n">18.19</b><span class="fr-t">Oturum kapatan onay: şifre değiştir</span><code class="fr-r">/account/security → şifre</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PUT /api/v1.0/account/password/change { CurrentPassword, NewPassword }</code>; başarıda sunucu <code>sstamp</code>'i yeniler, diğer bütün oturumlar bir sonraki istekte 401 alır. <b>Kural:</b> 08 bölüm 3.5: oturum kapatan eylemde bu sonuç metinde açıkça söylenir ve kaç cihazın etkileneceği yazar (<code>GET /api/v1.0/account/sessions</code>). Onay düğmesi tehlike değil ana eylem (veri silinmiyor); bu cihazdaki oturum açık kalır. <b>Telefonda</b> alt sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="" data-crumbs="Hesap|Güvenlik"><div class="content"><div class="pg-h"><h1 class="pg-t">Güvenlik</h1></div><div class="card" style="height:260px"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="alertdialog" aria-modal="true" aria-labelledby="m1819">
+      <div class="mdl-h"><span class="ib" style="border:0"><svg class="ic s24"><use href="#i-logout"/></svg></span><div class="f1"><h2 class="h2" id="m1819">Şifren değiştirilsin mi?</h2></div></div>
+      <div class="mdl-b">
+        <p class="t-s fg2" style="margin:0">Şifre değişince <b>diğer 3 cihazdaki oturumun kapanır</b>. Bu tarayıcıda açık kalırsın.</p>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-monitor"/></svg><span class="f1 t-s">Firefox · Windows<div class="t-xs fg3">İstanbul · 2 saat önce</div></span></div>
+          <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-phone"/></svg><span class="f1 t-s">Safari · iPhone<div class="t-xs fg3">İstanbul · dün</div></span></div>
+          <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-terminal"/></svg><span class="f1 t-s">MCP istemcisi · Claude<div class="t-xs fg3">PAT'ler etkilenmez, ayrı yönetilir</div></span></div>
+        </div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Şifreyi değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-20">
+  <figcaption class="fr-h"><b class="fr-n">18.20</b><span class="fr-t">Toast yığını</span><code class="fr-r">her ekran</code></figcaption>
+  <p class="fr-note"><b>Kural:</b> 08 bölüm 3.7: sağ altta, en çok 360 px, 4 sn (hata toast'ı 8 sn ve fareyle üstüne gelince durur), kapatılabilir; dört ton başarı, hata, bilgi, uyarı, rengi yalnız ikon taşır, metin her zaman var. Mesaj metni sunucudan (<code>Messages[].Message</code>). En yeni altta, en çok 4 toast; beşinci gelince en eskisi düşer; aynı mesaj art arda gösterilmez. <code>role="status"</code>, <code>aria-live="polite"</code> (hata <code>assertive</code>). Toast içinde en çok bir eylem ("Geri al", "Ayrıntı"). <b>Telefonda</b> alt kenarda tam genişlik, yüzen ana eylemin üstünde.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler"><div class="content"><div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div><div class="card" style="height:280px"></div></div></div>
+    <div class="toasts">
+      <div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Metinler kaydedildi</b><div class="fg2">en-US · 3 alan · mağazaya gönderim kuyrukta</div></div><span class="ib sm ghost" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="toast info" role="status"><svg class="ic"><use href="#i-info"/></svg><div class="f1"><b>Mert Kaya da bu sayfada</b><div class="fg2">Kaydetmeden önce değişikliklerini görürsün.</div></div><span class="ib sm ghost" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="toast warn" role="status"><svg class="ic"><use href="#i-alert-t"/></svg><div class="f1"><b>Anahtar kelimeler 100 karakteri aştı</b><div class="fg2">de-DE · 104 / 100. Apple kabul etmez.</div></div><span class="ib sm ghost" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="toast dng" role="alert"><svg class="ic"><use href="#i-x-c"/></svg><div class="f1"><b>Yorum yanıtı gönderilemedi</b><div class="fg2">Google Play yanıtı 350 karakterle sınırlıyor.</div><span class="lnk t-s">Ayrıntı</span></div><span class="ib sm ghost" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 7. AÇILIŞ, BAKIM, ERİŞİM ============ -->
+<section class="sec" id="acilis">
+<div class="sec-h"><span class="k">Bölüm 18.21-18.23</span><h2>Açılış, bakım ve erişimin kalmadı</h2><p>Kabuk çizilmeden önceki durumlar. Açılışta işaret döner (logonun dönmesine izin verilen tek yer yükleme); hareket azaltmada işaret durur ve "Yükleniyor" metni görünür. Organizasyon erişimi kalmayan kullanıcı boş bir kabuğa değil, gidebileceği organizasyonlara yönlendirilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f18-21">
+  <figcaption class="fr-h"><b class="fr-n">18.21</b><span class="fr-t">Açılış yüklemesi</span><code class="fr-r">her rota, ilk boyama</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> saklı token var, <code>GET /api/v1.0/account/detail</code> ve <code>GET /api/v1.0/organizations/mine</code> sürüyor. <b>Kural:</b> 08 E17: tam ekran, ortada dönen işaret (1,6 sn tam tur, doğrusal). 400 ms'den kısa sürerse hiç gösterilmez (parlama yok). Ağ hatası oturumu kapatmaz: 18.11 şeridiyle kabuk açılır; yalnız 401/403 girişe gönderir. Tema bu ekrandan önce uygulanır. Hareket azaltmada işaret sabit, altında "Yükleniyor" yazar.</p>
+  <div class="vp"><div class="scr">
+    <div class="boot" role="status" aria-label="Yükleniyor">
+      <div class="boot-c">
+        <svg class="mk spin-mk" width="64" height="64" aria-hidden="true"><use href="#logo"/></svg>
+        <span class="wm">stor<i>e</i>asy</span>
+        <span class="t-s fg3 rm-hide">Oturum doğrulanıyor</span>
+        <span class="t-s fg3 rm-only">Yükleniyor</span>
+      </div>
+      <div class="boot-f">v1.0.0</div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-22">
+  <figcaption class="fr-h"><b class="fr-n">18.22</b><span class="fr-t">Bakım ve sistem hazır değil</span><code class="fr-r">her rota</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> <code>/health/ready</code> başarısız ya da API bakım yanıtı veriyor (503, <code>Key: "Maintenance"</code>). <b>Kural:</b> tam ekran, kabuk yok; işaret sabit, hat kopuk çizilir. Sayfa 30 sn'de bir kendiliğinden yeniden dener (geri sayım görünür), "Şimdi dene" elle. Kuyruktaki mağaza işleri kaybolmaz; metin bunu söyler. Bakım bitince açılış akışı (18.21) devam eder, oturum korunur. <span class="gap">Backend boşluğu:</span> planlı bakım bilgisi (<code>GET /api/v1.0/system/status</code> → <code>Maintenance { Active, Message, EndsAt }</code>) planda yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="boot">
+      <div class="boot-c">
+        <svg viewBox="0 0 260 90" width="260" height="90" aria-hidden="true"><path d="M70 45 H128" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><path d="M150 45 H200" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><rect x="14" y="17" width="56" height="56" rx="16" fill="rgb(var(--accent))"/><use href="#logo" x="24" y="27" width="36" height="36" class="mk inv"/><g font-family="JetBrains Mono" font-size="9" font-weight="700" fill="rgb(var(--fg-3))"><rect x="200" y="27" width="46" height="36" rx="10" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))"/><text x="223" y="48" text-anchor="middle">API</text></g><circle cx="139" cy="45" r="7" fill="none" stroke="rgb(var(--fg-3))" stroke-width="2"/></svg>
+        <h1 class="pg-t">storeasy kısa bir bakımda</h1>
+        <p class="fg2" style="margin:0;max-width:440px">Veritabanı güncellemesi yapılıyor, tahmini bitiş 14:30. Kuyruktaki mağaza işlerin bekliyor, kaybolmaz.</p>
+        <div class="r gp12 ac"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Şimdi dene</span><span class="t-s fg3 tnum">28 sn sonra kendiliğinden</span></div>
+      </div>
+      <div class="boot-f">Durum: /health/ready · 503</div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f18-23">
+  <figcaption class="fr-h"><b class="fr-n">18.23</b><span class="fr-t">Erişimin kalmadı</span><code class="fr-r">/o/ada-studyo/apps</code></figcaption>
+  <p class="fr-note"><b>Koşul:</b> kullanıcı Ada Stüdyo'dan çıkarıldı ya da organizasyon silindi; o organizasyona giden istek 403 döner ve <code>GET /api/v1.0/organizations/mine</code> listesinde artık yok. <b>Kural:</b> kabuk açılmaz; kullanıcının kalan organizasyonları listelenir, son kullanılan önce. Hiç organizasyonu kalmadıysa "Yeni organizasyon oluştur" (<code>POST /api/v1.0/organizations/organization</code>) ve "Davet bekliyorum" bilgisi çıkar. Yerelde saklanan son organizasyon seçimi silinir. <span class="gap">Backend boşluğu:</span> "izin yok" ile "üye değil" ayrımı için ayrı mesaj anahtarı (<code>OrganizationMembershipNotFound</code>) planda yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <div class="solo-h"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm" style="font-size:19px">stor<i>e</i>asy</span><span class="ml r gp8 t-s fg2"><span class="av s">DA</span><span class="hide-ph">deniz@kuzeylab.dev</span></span></div>
+      <div class="solo-b">
+        <div class="state" style="padding:24px 0">
+          <span class="sic"><svg class="ic"><use href="#i-building"/></svg></span>
+          <h3>Ada Stüdyo'ya erişimin kalmadı</h3>
+          <p>Bu organizasyondaki üyeliğin sona erdi. Bir yanlışlık olduğunu düşünüyorsan organizasyon sahibinden yeniden davet iste.</p>
+          <div class="orgpick">
+            <span class="eb">Organizasyonların</span>
+            <div class="lst-i"><span class="oav" style="width:32px;height:32px;border-radius:9px;background:rgb(var(--fg));color:rgb(var(--bg));display:grid;place-items:center;font:800 13px/1 var(--font-display)">K</span><div class="f1"><b class="t-m">Kuzey Lab</b><div class="t-xs fg3">Sahip · 6 uygulama · son kullanılan</div></div><span class="btn sm inv">Aç</span></div>
+            <div class="lst-i"><span class="oav" style="width:32px;height:32px;border-radius:9px;background:rgb(var(--bg-2));color:rgb(var(--fg));border:1px solid rgb(var(--border));display:grid;place-items:center;font:800 13px/1 var(--font-display)">D</span><div class="f1"><b class="t-m">Deniz'in projeleri</b><div class="t-xs fg3">Sahip · kişisel</div></div><span class="btn sm">Aç</span></div>
+          </div>
+          <span class="t-s fg3"><span class="lnk">Çıkış yap</span></span>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

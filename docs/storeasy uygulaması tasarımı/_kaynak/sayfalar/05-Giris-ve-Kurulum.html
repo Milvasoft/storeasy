@@ -1,0 +1,978 @@
+<!--
+title: Giriş ve kurulum
+kicker: 05 · Web uygulaması
+desc: Giriş ve bütün durumları, kayıt ve sözleşme onayı, e-posta doğrulama, şifre sıfırlama, davet kabulü, organizasyon değiştirici ve oluşturma, yeni kullanıcının üç adımlı kurulumu, erişimin kalmadığı durum, yasal metin okuyucu ve depolama notu. Giriş sayfasında fotoğraf yok: storeasy'nin kendi "Hat" çizimi.
+-->
+<style>
+.auth-c .lead{display:grid;justify-items:center;gap:12px;text-align:center;margin-bottom:4px}
+.auth-c .lead p{margin:0;color:rgb(var(--fg-2));font-size:14px}
+.solo>.brand,.setup-top .brand,.legal-top .brand{padding:0}
+.h-a{font:800 28px/1.1 var(--font-display);letter-spacing:-.025em;margin:0}
+.tc{text-align:center}
+.pwd{letter-spacing:.16em}
+.lang b{color:rgb(var(--fg))}
+.inp .ib.sm{margin-right:-6px}
+.pol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:12px;color:rgb(var(--fg-3))}
+.pol span{display:flex;align-items:center;gap:6px}
+.pol .ic{width:14px;height:14px}
+.pol .ok{color:rgb(var(--success))}
+.pol .no{color:rgb(var(--danger))}
+.otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.otp span{height:52px;border:1px solid rgb(var(--border-strong));border-radius:10px;background:rgb(var(--surface));display:grid;place-items:center;font:600 22px/1 var(--font-mono)}
+.otp .foc{border-color:rgb(var(--fg));box-shadow:0 0 0 3px rgb(var(--fg)/.10)}
+.solo{height:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:24px;padding:36px 24px 24px;background:rgb(var(--bg))}
+.solo>.auth-foot{width:100%;max-width:1100px}
+.solo-c{margin:auto 0;width:100%;max-width:440px;display:grid;gap:16px}
+.solo-c.w{max-width:1000px}
+.ico-c{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:rgb(var(--bg-2));border:1px solid rgb(var(--border));color:rgb(var(--fg-2));margin:0 auto}
+.ico-c .ic{width:26px;height:26px}
+.ico-c.ok{color:rgb(var(--success))}.ico-c.dng{color:rgb(var(--danger))}.ico-c.warn{color:rgb(var(--warning))}
+.oav{width:30px;height:30px;border-radius:9px;background:rgb(var(--fg));color:rgb(var(--bg));display:grid;place-items:center;font:800 13px/1 var(--font-display);flex:none}
+.oav.l{width:52px;height:52px;border-radius:15px;font-size:22px}
+.oav.s{width:26px;height:26px;border-radius:8px;font-size:12px}
+.oav.alt{background:rgb(var(--bg-2));color:rgb(var(--fg));border:1px solid rgb(var(--border-strong))}
+.ticks{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:13.5px}
+.ticks li{display:flex;gap:8px;align-items:flex-start}
+.ticks .ic{width:16px;height:16px;margin-top:2px;color:rgb(var(--fg-2))}
+.rolebox{border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--bg-2)/.5);padding:14px 16px;display:grid;gap:10px}
+.who{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:10px 12px;min-width:0}
+.orgpop{top:114px;left:12px;width:300px}
+.orgpop .mi small{display:block;font-size:11px;color:rgb(var(--fg-3));line-height:1.3}
+.orgpop .mi .acc-t{color:rgb(var(--accent-text))}
+.orgpop .inp{min-height:34px;margin:2px 0 4px}
+.dim{display:none}
+.boot{height:100%;display:grid;place-items:center;background:rgb(var(--bg))}
+.boot .mk{width:64px;height:64px}
+.setup,.legal{height:100%;display:flex;flex-direction:column;background:rgb(var(--bg))}
+.setup-top,.legal-top{height:64px;flex:none;display:flex;align-items:center;gap:12px;padding:0 28px;border-bottom:1px solid rgb(var(--border))}
+.setup-b{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;padding:36px 48px 40px;align-content:start}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:4px;align-self:start}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:12px;align-items:start}
+.steps .n{width:28px;height:28px;border-radius:50%;border:1.5px solid rgb(var(--border-strong));display:grid;place-items:center;font:600 12px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.steps .n .ic{width:14px;height:14px}
+.steps li.on{background:rgb(var(--bg-2))}
+.steps li.on .n{border-color:rgb(var(--accent));color:rgb(var(--accent-text))}
+.steps li.d .n{background:rgb(var(--fg));border-color:rgb(var(--fg));color:rgb(var(--bg))}
+.steps b{display:block;font:600 14px/1.3 var(--font-body)}
+.steps small{display:block;font-size:12px;color:rgb(var(--fg-3));margin-top:2px}
+.pick{display:grid;gap:12px;padding:18px;align-content:start}
+.pick p{margin:0}
+.setup-f{display:flex;align-items:center;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid rgb(var(--border))}
+.legal-b{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:220px minmax(0,700px);gap:48px;padding:36px 48px;justify-content:center;align-content:start}
+.legal-toc{display:grid;gap:2px;align-self:start}
+.legal-toc a{padding:7px 10px;border-radius:8px;font-size:13px;color:rgb(var(--fg-2))}
+.legal-toc a.on{background:rgb(var(--bg-2));color:rgb(var(--fg));font-weight:600}
+.legal-a h2{font:700 19px/1.25 var(--font-display);letter-spacing:-.01em;margin:28px 0 8px}
+.legal-a p{margin:0 0 12px;font-size:15px;line-height:1.7;color:rgb(var(--fg-2))}
+.legal-f{flex:none;padding:12px 48px;border-top:1px solid rgb(var(--border))}
+.stpop{bottom:52px;left:72px;width:360px}
+.stpop .mi{white-space:normal;align-items:flex-start}
+.stpop .mi small{display:block;font-size:11.5px;color:rgb(var(--fg-3));line-height:1.4}
+@container scr (max-width:760px){
+  .solo{padding:24px 16px 20px}
+  .h-a{font-size:24px}
+  .pol{grid-template-columns:1fr}
+  .orgpop{top:auto;left:0;right:0;bottom:0;width:auto;border-radius:20px 20px 0 0;padding:12px 10px 28px}
+  .dim{display:block;position:absolute;inset:0;background:rgb(var(--overlay)/.45);z-index:65}
+  .setup-top,.legal-top{padding:0 16px}
+  .setup-b{grid-template-columns:1fr;gap:20px;padding:20px 16px 40px}
+  .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .steps li{grid-template-columns:1fr;justify-items:center;text-align:center;padding:8px 4px;gap:6px}
+  .steps small{display:none}
+  .steps b{font-size:12px}
+  .setup-f{flex-wrap:wrap}
+  .legal-b{grid-template-columns:1fr;padding:20px 16px 40px}
+  .legal-f{padding:12px 16px}
+  .stpop{left:16px;right:16px;width:auto;bottom:64px}
+  .otp{gap:6px}.otp span{height:46px;font-size:20px}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="p-hat" viewBox="0 0 720 820">
+  <g fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 8" stroke-linecap="round">
+    <path d="M-40 518 H250"/>
+    <path d="M346 518 C 410 518, 400 346, 470 346"/>
+    <path d="M346 518 H470"/>
+    <path d="M346 518 C 410 518, 400 690, 470 690"/>
+  </g>
+  <text x="250" y="168" font-family="Bricolage Grotesque" font-weight="800" font-size="56" letter-spacing="-2" fill="rgb(var(--fg))">Üç mağaza,</text>
+  <text x="250" y="228" font-family="Bricolage Grotesque" font-weight="800" font-size="56" letter-spacing="-2" fill="rgb(var(--accent-text))">tek hat.</text>
+  <text x="252" y="268" font-family="Onest" font-size="15" fill="rgb(var(--fg-2))">Metin, görsel, build ve yorum. Her yazma önce diff.</text>
+  <rect x="250" y="470" width="96" height="96" rx="26" fill="rgb(var(--accent))"/>
+  <g transform="translate(268 488) scale(1.25)">
+    <path d="M24 24H43a9.5 9.5 0 0 0-19 0z" fill="rgb(var(--accent-fg))"/>
+    <path d="M24 24V5a9.5 9.5 0 0 0 0 19z" fill="rgb(var(--accent-fg))" opacity=".55"/>
+    <path d="M24 24H5a9.5 9.5 0 0 0 19 0z" fill="rgb(var(--accent-fg))"/>
+  </g>
+  <g font-family="JetBrains Mono" font-size="11" letter-spacing="1">
+    <rect x="470" y="300" width="220" height="92" rx="20" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/>
+    <text x="490" y="334" fill="rgb(var(--fg-3))">APP STORE CONNECT</text>
+    <rect x="470" y="472" width="220" height="92" rx="20" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/>
+    <text x="490" y="506" fill="rgb(var(--fg-3))">GOOGLE PLAY</text>
+    <rect x="470" y="644" width="220" height="92" rx="20" fill="rgb(var(--bg))" stroke="rgb(var(--border-strong))"/>
+    <text x="490" y="678" fill="rgb(var(--fg-3))">MICROSOFT STORE</text>
+  </g>
+  <g font-family="Bricolage Grotesque" font-weight="700" font-size="18" fill="rgb(var(--fg))">
+    <text x="490" y="364">2.3 · incelemede</text>
+    <text x="490" y="536">internal · 42</text>
+    <text x="490" y="708">MSIX · sertifikasyon</text>
+  </g>
+  <text x="252" y="790" font-family="JetBrains Mono" font-size="11" fill="rgb(var(--fg-3))">AÇIK KAYNAK · KENDİ SUNUCUNDA DA ÇALIŞIR</text>
+</symbol>
+</defs></svg>
+
+<!-- ============ 1. GİRİŞ ============ -->
+<section class="sec" id="giris">
+<div class="sec-h"><span class="k">Bölüm 5.1-5.9</span><h2>Giriş</h2><p>Giriş e-postayla (K11). Sayfa ikiye bölünür: solda logoyla ortalanmış form, sağda storeasy'nin kendi "Hat" çizimi. Karar: standart (09 bölüm 2) tam yükseklik fotoğraf istiyor; burada fotoğraf yerine markanın hat çizimi kullanılır, çünkü ürünün kimliği "üç mağaza, tek hat" ve açık kaynak bir ürün için lisansı tartışmasız bir görsel gerekir. Hatalar formun içinde kırmızı kutuda gösterilir, toast değil.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-1">
+  <figcaption class="fr-h"><b class="fr-n">5.1</b><span class="fr-t">Giriş</span><code class="fr-r">/login</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/account/login { UserName = e-posta, Password, DeviceId }</code> (anonim, dakikada 10 istek / istemci adresi) → <code>LoginResponseDto { Id, UserType, Token { AccessToken, ExpiresIn, RefreshToken, RefreshTokenExpiresIn } }</code>. <code>DeviceId</code> istemcide üretilir ve saklanır. Başarıda <code>GET /api/v1.0/organizations/mine</code>: organizasyon yoksa kurulum (5.29), varsa son kullanılan organizasyonun <code>/apps</code> sayfası; <code>returnUrl</code> varsa oraya. "Giriş yap" istek sürerken pasif ve yükleniyor (<code>.btn.ld</code>). Sağdaki çizim SMIL ile akar (<code>svg.anim</code>); hareket azaltmada paketler durur, raylar ve sabit paketler kalır. Dil seçimi (TR · EN) giriş yapmadan da değişir, tarayıcıda saklanır. <b>İzin:</b> anonim. <b>Telefonda</b> çizim gizlenir, logo üstte ortalı tek kolon (5.35). <span class="gap">Backend boşluğu:</span> "Beni hatırla": yenileme token'ının süresi config'te sabit; öneri <code>LoginCommand.RememberMe</code> (işaretliyse 30 gün, değilse tarayıcı oturumu). Eklenmezse kutu tasarımdan çıkarılır.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp foc">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 pwd">••••••••••••</span><span class="ib sm ghost" title="Şifreyi göster" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <p class="t-s fg2 tc" style="margin:0">Hesabın yok mu? <span class="lnk">Kayıt ol</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art">
+        <svg class="anim" viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <use href="#p-hat" width="720" height="820"/>
+          <g class="rm-hide" fill="rgb(var(--accent))">
+            <circle r="6"><animateMotion dur="3.2s" repeatCount="indefinite" path="M346 518 C 410 518, 400 346, 470 346"/></circle>
+            <circle r="6"><animateMotion dur="2.6s" begin="-1s" repeatCount="indefinite" path="M346 518 H470"/></circle>
+            <circle r="6"><animateMotion dur="3.6s" begin="-2s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M346 518 C 410 518, 400 690, 470 690"/></circle>
+            <circle r="5" opacity=".6"><animateMotion dur="4s" begin="-.5s" repeatCount="indefinite" path="M-40 518 H250"/></circle>
+          </g>
+          <g class="rm-only" fill="rgb(var(--accent))"><circle cx="420" cy="380" r="6"/><circle cx="410" cy="518" r="6"/><circle cx="430" cy="670" r="6"/></g>
+        </svg>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-2">
+  <figcaption class="fr-h"><b class="fr-n">5.2</b><span class="fr-t">Hatalı e-posta ya da şifre</span><code class="fr-r">/login · 401</code></figcaption>
+  <p class="fr-note">Sunucu hangi alanın yanlış olduğunu söylemez; kutu formun üstünde, alanlar kırmızıya boyanmaz. E-posta kalır, şifre alanı temizlenir ve odaklanır. Metin sunucudan gelir (<code>Messages[].Message</code>). <b>API:</b> <code>POST account/login</code> → 401. Telefonda aynı kutu, logonun altında.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>E-posta veya şifre hatalı.</b><div class="fg2 mt4">Büyük-küçük harfe dikkat et ya da şifreni sıfırla.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <p class="t-s fg2 tc" style="margin:0">Hesabın yok mu? <span class="lnk">Kayıt ol</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-3">
+  <figcaption class="fr-h"><b class="fr-n">5.3</b><span class="fr-t">Kalan deneme hakkı</span><code class="fr-r">/login · 401</code></figcaption>
+  <p class="fr-note">Şablonun kilitleme kuralı (08 E1): birkaç hatalı denemeden sonra sunucu mesajı kalan hakkı söyler; metin olduğu gibi gösterilir, istemci sayı hesaplamaz. Kutu kırmızı, "Şifremi unuttum" kutunun içinde de önerilir. <b>API:</b> <code>POST account/login</code> → 401, <code>Messages[{ Key, Message }]</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>E-posta veya şifre hatalı. 2 deneme hakkın kaldı.</b><div class="fg2 mt4">Hakların bitince hesap 15 dakika kilitlenir. Emin değilsen <span class="lnk">şifreni sıfırla</span>.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-4">
+  <figcaption class="fr-h"><b class="fr-n">5.4</b><span class="fr-t">Hesap kilitli</span><code class="fr-r">/login · 401 kilitli</code></figcaption>
+  <p class="fr-note">Kilit metni sunucudan olduğu gibi gelir (süreli: "{süre} sonra tekrar dene"; süresiz: "Hesabın kilitlendi, yöneticine başvur"). Düğme pasif değildir: süre dolmadan deneme yine aynı yanıtı alır. Platform yöneticisi kilidi Kullanıcılar ekranından kaldırır (08 E6). <b>API:</b> <code>POST account/login</code> → 401, kilit mesajı.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-lock"/></svg><div><b>Hesabın çok sayıda hatalı deneme nedeniyle kilitlendi.</b><div class="fg2 mt4">14 dakika sonra tekrar deneyebilirsin.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-5">
+  <figcaption class="fr-h"><b class="fr-n">5.5</b><span class="fr-t">Çok fazla deneme (429)</span><code class="fr-r">/login · 429</code></figcaption>
+  <p class="fr-note">Sınır istemci adresine göre (dakikada 10). <code>Retry-After</code> başlığındaki süre geri sayılır; sayım bitene kadar "Giriş yap" pasif ve süreyi gösterir, bitince kutu kendiliğinden kalkar. Geri sayım ekran okuyucuya her saniye değil, başta ve sonda duyurulur. <b>API:</b> <code>POST account/login</code> → 429.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-hourglass"/></svg><div><b>Çok fazla deneme yapıldı.</b><div class="fg2 mt4"><span class="mono">42</span> saniye sonra tekrar dene.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 pwd">••••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk dis" aria-disabled="true"><svg class="ic"><use href="#i-clock"/></svg>Giriş yap · <span class="mono">0:42</span></span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-6">
+  <figcaption class="fr-h"><b class="fr-n">5.6</b><span class="fr-t">Oturumun sonlandı</span><code class="fr-r">/login?returnUrl=/apps/pusula</code></figcaption>
+  <p class="fr-note">401 (token geçersiz, <code>sstamp</code> değişti: şifre değişti, oturum başka cihazdan kapatıldı) ya da yenileme başarısız (<code>POST /api/v1.0/account/login/refresh</code> 401) olunca oturum kapanır ve giriş ekranı bu bilgi şeridiyle açılır (08 E17). 419 kullanıcıya görünmez, istemci sessizce yeniler. Girişten sonra <code>returnUrl</code>'e dönülür; yalnız uygulama içi yollar kabul edilir (açık yönlendirme yok). E-posta son oturumdan dolu gelir.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1></div>
+          <div class="callout info" role="status"><svg class="ic"><use href="#i-info"/></svg><div><b>Oturumun sonlandı, tekrar giriş yap.</b><div class="fg2 t-s mt4">Girişten sonra kaldığın sayfaya döneceksin: Pusula · Genel bakış.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <p class="t-s fg2 tc" style="margin:0">Hesabın yok mu? <span class="lnk">Kayıt ol</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-7">
+  <figcaption class="fr-h"><b class="fr-n">5.7</b><span class="fr-t">E-posta henüz doğrulanmadı</span><code class="fr-r">/login · 403</code></figcaption>
+  <p class="fr-note">Şifre doğru ama e-posta doğrulanmamış: oturum açılmaz, uyarı kutusunda yeniden gönderme var. Gönderince düğme 60 sn geri sayar ve kutu "Bağlantıyı yeniden gönderdik" olur. <b>API:</b> <code>POST account/login</code> → 403 <code>EmailNotVerified</code>; <code>POST /api/v1.0/account/email/verify/resend { Email }</code> (planlanan, anonim, sınırlı). <span class="gap">Backend boşluğu:</span> girişte doğrulanmamış e-posta kontrolü ve <code>EmailNotVerified</code> mesaj anahtarı yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1></div>
+          <div class="callout warn" role="alert"><svg class="ic"><use href="#i-mail"/></svg><div class="f1"><b>E-posta adresin henüz doğrulanmadı.</b><div class="fg2 t-s mt4"><b>deniz@kuzeylab.dev</b> adresine gönderdiğimiz bağlantıyı aç ya da e-postadaki 6 haneli kodu gir.</div><div class="r gp8 wrap mt8"><span class="btn sm inv"><svg class="ic"><use href="#i-send"/></svg>Bağlantıyı yeniden gönder</span><span class="btn sm ghost">Kodu gir</span></div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 pwd">••••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-8">
+  <figcaption class="fr-h"><b class="fr-n">5.8</b><span class="fr-t">Kayıt kapalı kurulum</span><code class="fr-r">/login · Registration:Mode=Closed</code></figcaption>
+  <p class="fr-note">Self-host kurulumda <code>Registration:Mode = Closed</code> ise "Kayıt ol" bağlantısı gizlenir, yerine kısa açıklama gelir; <code>/register</code> doğrudan açılırsa 5.13'ün kapalı metni görünür. Davet bağlantısıyla gelen kişi yine hesap açabilir (davet token'ı kaydı açar). Mod giriş yapılmadan bilinmeli. <b>API:</b> <code>GET /api/v1.0/system/public-settings</code> (yeni ad, anonim) → <code>PublicSettingsDto { RegistrationMode (Open, InviteOnly, Closed), InstanceName, SourceCodeUrl, Languages[], TermsVersion, PrivacyVersion, PasswordPolicy { MinLength, RequireUpper, RequireLower, RequireDigit, RequireSymbol } }</code>. <span class="gap">Backend boşluğu:</span> planda yalnız yönetici ucu <code>GET system/settings</code> var; anonim okuma ucu eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Kuzey Lab'in storeasy kurulumu</p></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp"><span class="ph">ornek@kuzeylab.dev</span></span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <div class="r gp8 t-s fg2 jc"><svg class="ic s16"><use href="#i-lock"/></svg><span>Bu kurulumda yeni kayıt kapalı. Hesap için yöneticine başvur.</span></div>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-9">
+  <figcaption class="fr-h"><b class="fr-n">5.9</b><span class="fr-t">Açılış yüklemesi</span><code class="fr-r">/ (saklı oturum doğrulanıyor)</code></figcaption>
+  <p class="fr-note">Saklı token doğrulanırken tam ekran logo: markanın kanatları döner (08 E17). Hareket azaltmada logo durur, metin kalır. 10 sn'den uzun sürerse altına "Bağlantı yavaş, bekleniyor" eklenir. Ağ hatası oturumu kapatmaz (tekrar dener); yalnız 401/403 kapatır ve 5.6'ya gider. <b>API:</b> <code>POST /api/v1.0/account/login/refresh</code>, ardından <code>GET /api/v1.0/organizations/mine</code> → <code>MyOrganizationDto { Id, Name, Slug, Role, Permissions[] }</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="boot" role="status" aria-live="polite">
+      <div class="c ac gp16">
+        <svg class="mk spin-mk" aria-hidden="true"><use href="#logo"/></svg>
+        <span class="wm">stor<i>e</i>asy</span>
+        <span class="t-s fg3">Oturumun doğrulanıyor</span>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. KAYIT ============ -->
+<section class="sec" id="kayit">
+<div class="sec-h"><span class="k">Bölüm 5.10-5.13</span><h2>Kayıt</h2><p>Kayıt herkese açık (K10); self-host'ta <code>Registration:Mode</code> ile <code>Open</code>, <code>InviteOnly</code> ya da <code>Closed</code>. Şifre kuralı form yazılırken canlı gösterilir; kural listesi sunucunun politikasıyla aynı kaynaktan gelir. Sözleşme onayı zorunlu ve onaylanan metin sürümü kaydedilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-10" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.10</b><span class="fr-t">Kayıt formu</span><code class="fr-r">/register</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/account/register { Name, Surname, Email, Password, AcceptedTermsVersion, AcceptedPrivacyVersion, Language, InvitationToken? }</code> (planlanan, anonim, sınırlı) → 200; ardından 5.14. Şifre ipuçları <code>PublicSettingsDto.PasswordPolicy</code>'den (5.8) çizilir; karşılanan kural yeşil tik, karşılanmayan nötr. Karar: şablon varsayılanı 6 karakter, storeasy için config'te 8 önerilir. "Hesap oluştur" onay kutusu işaretlenmeden pasif değil; basılınca kutunun altında alan hatası çıkar (pasif düğme nedenini söylemez). Sunucu tarafında kullanıcı adı e-postadan türetilir, arayüzde gösterilmez. <b>Telefonda</b> Ad ve Soyad alt alta. <span class="gap">Backend boşluğu:</span> kayıt ucu, e-posta doğrulama token'ı ve mail gönderimi şablonda yok (K10); onaylanan sözleşme sürümünü tutan alan (<code>User.AcceptedTermsVersion</code>, <code>AcceptedPrivacyVersion</code>, tarih) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Hesap oluştur</h1><p>Mağaza bağlantılarını kurmak birkaç dakika sürer.</p></div>
+          <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Deniz</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Arslan</span></label></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1 pwd">•••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span>
+            <div class="pol" aria-live="polite"><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>En az 8 karakter</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Büyük ve küçük harf</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Rakam</span><span><svg class="ic"><use href="#i-circle"/></svg>Özel karakter</span></div></div>
+          <div class="r rt gp10 t-s fg2"><span class="chk on" style="margin-top:1px"></span><span><span class="lnk">Kullanım şartlarını</span> ve <span class="lnk">Gizlilik bildirimini</span> okudum, kabul ediyorum.</span></div>
+          <div class="callout"><svg class="ic"><use href="#i-code"/></svg><div class="t-s fg2">storeasy açık kaynaktır (AGPL-3.0). Bu kurulumu <b>storeasy.app</b> işletiyor; aynı yazılımı kendi sunucunda tek <span class="mono">docker compose up</span> ile çalıştırabilirsin.</div></div>
+          <span class="btn pri lg blk">Hesap oluştur</span>
+          <p class="t-s fg2 tc" style="margin:0">Zaten hesabın var mı? <span class="lnk">Giriş yap</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-11" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.11</b><span class="fr-t">E-posta zaten kayıtlı (409)</span><code class="fr-r">/register · 409</code></figcaption>
+  <p class="fr-note">08 bölüm 2.4: 409 form üstü uyarı, form kapanmaz, girilenler kalır. E-posta alanı hata kenarlığı alır. Kutuda girişe ve şifre sıfırlamaya kısa yol. Not: bu yanıt bir e-postanın kayıtlı olduğunu söyler; ucun sıkı hız sınırı (istemci adresi başına dakikada 5) bunu dengeler. <b>API:</b> <code>POST account/register</code> → 409 <code>EmailExists</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Hesap oluştur</h1></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Bu e-posta ile bir hesap var.</b><div class="fg2 mt4"><span class="lnk">Giriş yap</span> ya da <span class="lnk">şifreni sıfırla</span>.</div></div></div>
+          <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Deniz</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Arslan</span></label></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp err">deniz@kuzeylab.dev</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>Bu adres kullanımda.</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 pwd">••••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r rt gp10 t-s fg2"><span class="chk on" style="margin-top:1px"></span><span><span class="lnk">Kullanım şartlarını</span> ve <span class="lnk">Gizlilik bildirimini</span> okudum, kabul ediyorum.</span></div>
+          <span class="btn pri lg blk">Hesap oluştur</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-12" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.12</b><span class="fr-t">Şifre politikası hataları (400)</span><code class="fr-r">/register · 400</code></figcaption>
+  <p class="fr-note">İstemci ipuçları sunucu doğrulamasının yerini tutmaz: sunucu 400 döndürürse mesajlar form üstünde liste olarak, ilgili alan hata kenarlığıyla gösterilir; odak ilk hatalı alana gider. Onay kutusu işaretlenmeden gönderilirse aynı listede "Kullanım şartlarını kabul etmelisin" çıkar. <b>API:</b> <code>POST account/register</code> → 400, <code>Messages[{ Key, Message }]</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Hesap oluştur</h1></div>
+          <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Hesap oluşturulamadı, 3 sorun var:</b><ul><li>Şifre en az 8 karakter olmalı.</li><li>Şifre en az bir özel karakter içermeli.</li><li>Kullanım şartlarını ve Gizlilik bildirimini kabul etmelisin.</li></ul></div></div>
+          <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Deniz</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Arslan</span></label></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp err foc"><span class="f1 pwd">••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span>
+            <div class="pol"><span class="no"><svg class="ic"><use href="#i-x-c"/></svg>En az 8 karakter</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Büyük ve küçük harf</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Rakam</span><span class="no"><svg class="ic"><use href="#i-x-c"/></svg>Özel karakter</span></div></div>
+          <div class="fld"><div class="r rt gp10 t-s fg2"><span class="chk" style="margin-top:1px;border-color:rgb(var(--danger))"></span><span><span class="lnk">Kullanım şartlarını</span> ve <span class="lnk">Gizlilik bildirimini</span> okudum, kabul ediyorum.</span></div><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>Devam etmek için onay gerekli.</span></div>
+          <span class="btn pri lg blk">Hesap oluştur</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-13">
+  <figcaption class="fr-h"><b class="fr-n">5.13</b><span class="fr-t">Yalnız davetle kayıt</span><code class="fr-r">/register · Registration:Mode=InviteOnly</code></figcaption>
+  <p class="fr-note"><code>InviteOnly</code> modunda form yerine açıklama gelir; davet bağlantısıyla (<code>/invite/:token</code> → "Hesap oluştur ve katıl") gelen kişi formu e-postası kilitli olarak görür ve kaydı yapar. <code>Closed</code> modunda başlık "Bu kurulumda yeni kayıt kapalı" olur ve davet satırı çıkmaz. <b>API:</b> <code>GET system/public-settings</code> → <code>RegistrationMode</code>; davetsiz <code>POST account/register</code> → 403 <code>RegistrationInviteOnly</code>. <span class="gap">Backend boşluğu:</span> kayıt ucunun <code>InvitationToken</code> ile modu aşması ve davetle gelen e-postayı doğrulanmış sayması eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span></div>
+          <div class="state" style="padding:8px 0"><span class="sic"><svg class="ic"><use href="#i-mail"/></svg></span><h3>Bu kurulum yalnız davetle kayıt alıyor</h3><p>Bir organizasyondan davet aldıysan e-postandaki bağlantıyı aç; hesabını oradan oluşturursun.</p></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <p class="t-s fg3 tc" style="margin:0">Kendi kurulumunu açmak istersen <span class="lnk">self-host dokümanı</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. E-POSTA DOĞRULAMA ============ -->
+<section class="sec" id="dogrulama">
+<div class="sec-h"><span class="k">Bölüm 5.14-5.16</span><h2>E-posta doğrulama</h2><p>Kayıttan sonra oturum açılmaz; e-posta doğrulanınca giriş yapılır. Doğrulama iki yoldan: bağlantı ya da e-postadaki 6 haneli kod. Karar: kod alternatifi eklendi, çünkü kayıt çoğu zaman masaüstünde yapılır, e-posta telefonda açılır; bağlantı telefonda açılınca masaüstündeki sekme beklemede kalırdı.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-14">
+  <figcaption class="fr-h"><b class="fr-n">5.14</b><span class="fr-t">E-postanı kontrol et</span><code class="fr-r">/verify-email?email=…</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/account/email/verify { Token }</code> (bağlantı) ya da <code>{ Email, Code }</code> (kod); <code>POST /api/v1.0/account/email/verify/resend { Email }</code> (planlanan; yanıt hep aynı, 429'da <code>Retry-After</code>). Bağlantı 24 saat, kod 15 dakika geçerli; yeni gönderim eskisini geçersiz kılar. Yeniden gönderme 60 sn geri sayar. Kod 6 kutuya yapıştırılabilir, altıncı hanede kendiliğinden gönderilir. "Adresi değiştir" kayıt formuna döner (e-posta düzenlenebilir). <b>Telefonda</b> kutular daralır, sayısal klavye açılır. <span class="gap">Backend boşluğu:</span> kod ile doğrulama (<code>Email, Code</code> gövdesi) planda yok, eklenecek; doğrulanmamış hesapların 7 gün sonra silinmesi için temizleme işi eklenecek. Kod eklenmezse kod alanı tasarımdan çıkarılır.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <span class="ico-c"><svg class="ic"><use href="#i-mail"/></svg></span>
+          <div class="tc"><h1 class="h-a">E-postanı kontrol et</h1><p class="t-m fg2 mt8" style="margin-bottom:0">Doğrulama bağlantısını <b>deniz@kuzeylab.dev</b> adresine gönderdik. Bağlantı 24 saat geçerli.</p></div>
+          <div class="hr d" style="margin:0"></div>
+          <div class="fld"><span class="lbl">Ya da e-postadaki 6 haneli kodu gir</span><div class="otp" aria-label="Doğrulama kodu"><span>4</span><span>8</span><span>1</span><span class="foc"></span><span></span><span></span></div></div>
+          <div class="r bt t-s wrap gp8"><span class="fg3">E-posta gelmedi mi? Spam klasörüne de bak.</span><span class="btn sm dis" aria-disabled="true">Yeniden gönder · <span class="mono">0:48</span></span></div>
+        </div></div>
+        <p class="t-s fg2 tc" style="margin:0">Yanlış adres mi yazdın? <span class="lnk">Adresi değiştir</span></p>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-15">
+  <figcaption class="fr-h"><b class="fr-n">5.15</b><span class="fr-t">Bağlantı açıldı: doğrulandı</span><code class="fr-r">/verify-email/:token</code></figcaption>
+  <p class="fr-note">Bağlantı açılınca istek kendiliğinden gider; o sırada aynı kartta logo dönen yükleme görünür. Başarıda tek ana eylem girişe götürür, e-posta dolu gelir; kayıt bir davetle başladıysa eylem "Kuzey Lab'e katıl" olur ve davet sayfasına döner. Karar: doğrulama oturum açmaz (bağlantı başka cihazda açılabilir). <b>API:</b> <code>POST account/email/verify { Token }</code> → 200.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <span class="ico-c ok"><svg class="ic"><use href="#i-mail-check"/></svg></span>
+          <div class="tc"><h1 class="h-a">E-postan doğrulandı</h1><p class="t-m fg2 mt8" style="margin-bottom:0"><b>deniz@kuzeylab.dev</b> hazır. Giriş yap, ilk organizasyonunu kurmaya oradan başlarsın.</p></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div></div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-16">
+  <figcaption class="fr-h"><b class="fr-n">5.16</b><span class="fr-t">Süresi dolmuş ya da kullanılmış bağlantı</span><code class="fr-r">/verify-email/:token · 400</code></figcaption>
+  <p class="fr-note">İki durum aynı kartın iki metniyle: süresi dolmuşsa yeni bağlantı istenir (e-posta alanı boş gelir, token'dan adres çıkarılmaz); daha önce kullanılmışsa hesap zaten doğrulanmıştır, giriş önerilir. <b>API:</b> <code>POST account/email/verify</code> → 400 <code>VerificationTokenExpired</code> / <code>VerificationTokenUsed</code>; <code>POST account/email/verify/resend</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c w">
+        <div class="g2">
+          <div class="card"><div class="card-b c gp16">
+            <span class="eb">Süresi doldu</span>
+            <span class="ico-c warn"><svg class="ic"><use href="#i-hourglass"/></svg></span>
+            <div class="tc"><h1 class="h-a">Bağlantının süresi dolmuş</h1><p class="t-m fg2 mt8" style="margin-bottom:0">Doğrulama bağlantıları 24 saat geçerli. E-postanı yaz, yenisini gönderelim.</p></div>
+            <label class="fld"><span class="lbl">E-posta</span><span class="inp foc"><span class="ph">ornek@kuzeylab.dev</span></span></label>
+            <span class="btn pri lg blk">Yeni bağlantı gönder</span>
+          </div></div>
+          <div class="card"><div class="card-b c gp16">
+            <span class="eb">Kullanılmış</span>
+            <span class="ico-c"><svg class="ic"><use href="#i-check-c"/></svg></span>
+            <div class="tc"><h1 class="h-a">Bu bağlantı zaten kullanıldı</h1><p class="t-m fg2 mt8" style="margin-bottom:0">E-posta adresin daha önce doğrulandı. Giriş yapabilirsin.</p></div>
+            <span class="btn lg blk">Giriş yap</span>
+          </div></div>
+        </div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. ŞİFRE SIFIRLAMA ============ -->
+<section class="sec" id="sifre">
+<div class="sec-h"><span class="k">Bölüm 5.17-5.21</span><h2>Şifremi unuttum ve sıfırla</h2><p>08 E2b'deki dört ekran ve başarı. Hesabın var olup olmadığı hiçbir yanıtta söylenmez. Sıfırlama bağlantısı tek kullanımlık ve 1 saat geçerli; şifre değişince güvenlik damgası döner ve bütün cihazlardaki oturumlar kapanır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-17">
+  <figcaption class="fr-h"><b class="fr-n">5.17</b><span class="fr-t">E-posta gir</span><code class="fr-r">/forgot-password</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/account/password/forgot { Email }</code> (planlanan, anonim, istemci adresi ve e-posta başına sınırlı) → hep 200. Girişten gelinirse e-posta dolu gelir. 429'da 5.5'teki geri sayım. <span class="gap">Backend boşluğu:</span> 08 E2b: uç, tek kullanımlık süreli token tablosu ve mail gönderimi şablonda yok; uçtan uca eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <div><h1 class="h-a">Şifreni mi unuttun?</h1><p class="t-m fg2 mt8" style="margin-bottom:0">Hesabının e-posta adresini yaz; şifre sıfırlama bağlantısını gönderelim.</p></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp foc">deniz@kuzeylab.dev</span></label>
+          <span class="btn pri lg blk">Bağlantı gönder</span>
+        </div></div>
+        <span class="r gp8 t-s fg2 jc"><svg class="ic s16"><use href="#i-arrow-l"/></svg><span class="lnk">Girişe dön</span></span>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-18">
+  <figcaption class="fr-h"><b class="fr-n">5.18</b><span class="fr-t">Gelen kutunu kontrol et</span><code class="fr-r">/forgot-password/sent</code></figcaption>
+  <p class="fr-note">Hesap olsa da olmasa da aynı metin ("kayıtlı bir hesap varsa"). Yeniden gönderme 60 sn geri sayar. Adres yazım hatası için "Başka adres dene" 5.17'ye döner. <b>API:</b> <code>POST account/password/forgot</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <span class="ico-c"><svg class="ic"><use href="#i-inbox"/></svg></span>
+          <div class="tc"><h1 class="h-a">Gelen kutunu kontrol et</h1><p class="t-m fg2 mt8" style="margin-bottom:0"><b>deniz@kuzeylab.dev</b> adresine kayıtlı bir hesap varsa sıfırlama bağlantısını gönderdik. Bağlantı 1 saat geçerli ve yalnız bir kez kullanılır.</p></div>
+          <div class="r bt t-s wrap gp8"><span class="lnk">Başka adres dene</span><span class="btn sm dis" aria-disabled="true">Yeniden gönder · <span class="mono">0:51</span></span></div>
+        </div></div>
+        <span class="r gp8 t-s fg2 jc"><svg class="ic s16"><use href="#i-arrow-l"/></svg><span class="lnk">Girişe dön</span></span>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-19" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">5.19</b><span class="fr-t">Yeni şifre belirle</span><code class="fr-r">/reset-password?token=…</code></figcaption>
+  <p class="fr-note">Sayfa açılınca token önceden denetlenir; geçersizse form hiç gösterilmez (5.20). Tekrar alanı yalnız istemcide karşılaştırılır. Kaydetmeden önce oturum etkisi söylenir (08 E2). <b>API:</b> <code>GET /api/v1.0/account/password/reset/check?Token=</code> (yeni ad) → <code>{ MaskedEmail, ExpiryDate }</code>; <code>POST /api/v1.0/account/password/reset { Token, NewPassword }</code> (planlanan) → 200, güvenlik damgası döner. 400'de politika mesajları form üstünde (5.12 deseni). <span class="gap">Backend boşluğu:</span> token önden denetleme ucu planda yok; eklenecek (yoksa form gösterilir, hata gönderimde çıkar).</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <div><h1 class="h-a">Yeni şifre belirle</h1><p class="t-m fg2 mt8" style="margin-bottom:0"><span class="mono">d••••@kuzeylab.dev</span> hesabı için.</p></div>
+          <div class="fld"><span class="lbl">Yeni şifre</span><span class="inp foc"><span class="f1 pwd">•••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span>
+            <div class="pol"><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>En az 8 karakter</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Büyük ve küçük harf</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Rakam</span><span class="ok"><svg class="ic"><use href="#i-check-c"/></svg>Özel karakter</span></div></div>
+          <div class="fld"><span class="lbl">Yeni şifre tekrar</span><span class="inp"><span class="f1 pwd">•••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Şifren değişince bütün cihazlardaki oturumların kapanır; MCP ve kişisel erişim token'ların etkilenmez.</div></div>
+          <span class="btn pri lg blk">Şifreyi kaydet</span>
+        </div></div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-20">
+  <figcaption class="fr-h"><b class="fr-n">5.20</b><span class="fr-t">Süresi dolmuş sıfırlama bağlantısı</span><code class="fr-r">/reset-password?token=… · 400</code></figcaption>
+  <p class="fr-note">Süresi dolmuş, kullanılmış ya da daha yeni bir bağlantıyla geçersiz kalmış token için tek metin; nedeni ayrıştırılmaz. <b>API:</b> <code>GET account/password/reset/check</code> → 400 <code>ResetTokenInvalid</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card"><div class="card-b c gp16">
+          <span class="ico-c warn"><svg class="ic"><use href="#i-hourglass"/></svg></span>
+          <div class="tc"><h1 class="h-a">Bu bağlantı artık geçerli değil</h1><p class="t-m fg2 mt8" style="margin-bottom:0">Sıfırlama bağlantıları 1 saat geçerli ve yalnız bir kez kullanılır. Yeni bir bağlantı iste.</p></div>
+          <span class="btn pri lg blk">Yeni bağlantı iste</span>
+        </div></div>
+        <span class="r gp8 t-s fg2 jc"><svg class="ic s16"><use href="#i-arrow-l"/></svg><span class="lnk">Girişe dön</span></span>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-21">
+  <figcaption class="fr-h"><b class="fr-n">5.21</b><span class="fr-t">Şifre değişti</span><code class="fr-r">/login?reset=ok</code></figcaption>
+  <p class="fr-note">Başarıda giriş ekranına dönülür; bilgi kutusu bütün oturumların kapandığını söyler, e-posta dolu gelir. Aynı tarayıcıdaki eski oturum da kapanmıştır. Sıfırlama yapılınca kilit (5.4) de kalkar. <span class="gap">Backend boşluğu:</span> sıfırlamada hesap kilidinin kaldırılması ve hesap sahibine "şifren değişti" bilgi e-postası eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1></div>
+          <div class="callout ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div><b>Şifren değişti.</b><div class="fg2 t-s mt4">Bütün cihazlardaki oturumların kapatıldı. Yeni şifrenle giriş yap.</div></div></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp foc"><span class="f1"></span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. DAVET ============ -->
+<section class="sec" id="davet">
+<div class="sec-h"><span class="k">Bölüm 5.22-5.25</span><h2>Davet kabulü</h2><p>Davet e-postayla, rol seçilerek gelir; 7 gün geçerli ve tek kullanımlık (plan 2.1). Bağlantıyı açan kişi önce neye katıldığını görür: organizasyon, davet eden, rol ve rolün neler yapabildiği. Davet bir e-posta adresine bağlıdır; başka hesapla kabul edilemez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-22" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">5.22</b><span class="fr-t">Davet önizleme (giriş yapılmamış)</span><code class="fr-r">/invite/:token</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/invitation?Token=</code> (planlanan, anonim) → <code>InvitationPreviewDto { OrganizationName, OrganizationSlug, InviterName, Role, MaskedEmail, ExpiryDate, Status (Pending, Expired, Revoked, Accepted) }</code>. Anonim yanıtta e-posta maskeli. "Giriş yap ve katıl" girişe <code>returnUrl=/invite/:token</code> ile gider; "Hesap oluştur ve katıl" kayıt formunu e-postası kilitli açar ve token'ı taşır, böylece e-posta doğrulaması atlanır (5.13 boşluğu). Rol açıklaması rol matrisinden (plan 6). <b>Telefonda</b> kart tam genişlik, düğmeler alt alta. <span class="gap">Backend boşluğu:</span> önizleme ucu ve <code>Status</code> alanı eklenecek; davet eden adının dönmesi için davete <code>InvitedByUserId</code> gerekiyor.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card">
+          <div class="card-b c gp16">
+            <div class="r gp12"><span class="oav l">K</span><div class="f1"><div class="eb">Organizasyon daveti</div><h1 class="h-a mt4">Kuzey Lab</h1><div class="t-xs mono fg3 mt4">kuzey-lab</div></div></div>
+            <p class="t-m" style="margin:0"><b>Deniz Arslan</b> seni <b>Editör</b> rolüyle davet etti. Davet <span class="mono">c**@kuzeylab.dev</span> adresine gönderildi.</p>
+            <div class="rolebox"><span class="eb">Editör neler yapar</span>
+              <ul class="ticks"><li><svg class="ic"><use href="#i-check"/></svg>Metin, ekran görüntüsü ve mockup düzenler; her değişiklik önce diff olarak görünür.</li><li><svg class="ic"><use href="#i-check"/></svg>Test track'lerine ve TestFlight'a build gönderir.</li><li><svg class="ic"><use href="#i-check"/></svg>Mağaza yorumlarına yanıt yazar.</li></ul>
+              <span class="t-xs fg3">Production yayını, incelemeye gönderme ve mağaza bağlantıları Sahip ve Yönetici rolünde.</span></div>
+            <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-clock"/></svg>25 Kasım 2026'ya kadar geçerli · 7 gün kaldı</div>
+          </div>
+          <div class="card-f c gp8" style="align-items:stretch"><span class="btn pri lg blk">Giriş yap ve katıl</span><span class="btn lg blk">Hesap oluştur ve katıl</span></div>
+        </div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-23" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">5.23</b><span class="fr-t">Doğru hesapla giriş yapılmış</span><code class="fr-r">/invite/:token</code></figcaption>
+  <p class="fr-note">Giriş yapan e-posta davetle eşleşiyor: tek ana eylem "Kuzey Lab'e katıl". Kabulden sonra organizasyon değiştirici bu organizasyona geçer ve <code>/apps</code> açılır; toast "Kuzey Lab'e katıldın". Denetim kaydına <code>MemberJoined</code> düşer. <b>API:</b> <code>POST /api/v1.0/organizations/invitation/accept { Token }</code> (var olan) → ardından <code>GET organizations/mine</code>. Kullanıcı zaten üyeyse yanıt 409 ve doğrudan organizasyona gidilir. <span class="gap">Backend boşluğu:</span> daveti reddetme ucu yok; "Şimdi değil" yalnız sayfadan çıkar, davet süresi dolana kadar açık kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card">
+          <div class="card-b c gp16">
+            <div class="r gp12"><span class="oav l">K</span><div class="f1"><div class="eb">Organizasyon daveti</div><h1 class="h-a mt4">Kuzey Lab</h1><div class="t-xs mono fg3 mt4">kuzey-lab</div></div></div>
+            <p class="t-m" style="margin:0"><b>Deniz Arslan</b> seni <b>Editör</b> rolüyle davet etti.</p>
+            <div class="rolebox"><span class="eb">Editör neler yapar</span>
+              <ul class="ticks"><li><svg class="ic"><use href="#i-check"/></svg>Metin, ekran görüntüsü ve mockup düzenler; her değişiklik önce diff olarak görünür.</li><li><svg class="ic"><use href="#i-check"/></svg>Test track'lerine ve TestFlight'a build gönderir.</li><li><svg class="ic"><use href="#i-check"/></svg>Mağaza yorumlarına yanıt yazar.</li></ul></div>
+            <div class="who"><span class="av">C</span><div class="f1"><div class="t-xs fg3">Giriş yapan hesap</div><b class="t-m">can@kuzeylab.dev</b></div><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg></div>
+          </div>
+          <div class="card-f"><span class="btn ghost">Şimdi değil</span><span class="btn pri ml">Kuzey Lab'e katıl</span></div>
+        </div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-24">
+  <figcaption class="fr-h"><b class="fr-n">5.24</b><span class="fr-t">Başka hesapla giriş yapılmış</span><code class="fr-r">/invite/:token</code></figcaption>
+  <p class="fr-note">Giriş yapan e-posta davetle eşleşmiyor: katıl düğmesi yok. "Hesap değiştir" oturumu kapatır ve girişi <code>returnUrl=/invite/:token</code>, e-posta alanı davet adresiyle dolu açar. Giriş yapmış kişiye adres maskesiz gösterilir. <b>API:</b> <code>GET organizations/invitation?Token=</code>; kabul denenirse <code>POST organizations/invitation/accept</code> → 400 <code>InvitationEmailMismatch</code>. <span class="gap">Backend boşluğu:</span> kabul ucunda e-posta eşleşmesi denetimi doğrulanacak, yoksa eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="card">
+          <div class="card-b c gp16">
+            <div class="r gp12"><span class="oav l">K</span><div class="f1"><div class="eb">Organizasyon daveti</div><h1 class="h-a mt4">Kuzey Lab</h1></div><span class="bdg sm">Editör</span></div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>Bu davet başka bir adres için.</b><div class="t-s fg2 mt4">Davet <b>can@kuzeylab.dev</b> adresine gönderildi. Şu an <b>can@adastudyo.dev</b> ile giriş yapmışsın. Daveti kabul etmek için o hesaba geç.</div></div></div>
+            <div class="who"><span class="av">C</span><div class="f1"><div class="t-xs fg3">Giriş yapan hesap</div><b class="t-m">can@adastudyo.dev</b></div></div>
+          </div>
+          <div class="card-f"><span class="btn ghost">Uygulamaya dön</span><span class="btn pri ml"><svg class="ic"><use href="#i-switch"/></svg>Hesap değiştir</span></div>
+        </div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-25" data-h="760">
+  <figcaption class="fr-h"><b class="fr-n">5.25</b><span class="fr-t">Geçersiz davet: süresi dolmuş, geri alınmış, kullanılmış</span><code class="fr-r">/invite/:token</code></figcaption>
+  <p class="fr-note">Önizleme <code>Status</code>'a göre üç metin; hiçbirinde katılma düğmesi yok. Süresi dolmuşta davet edenin adı gösterilir ki kişi yenisini isteyebilsin; geri alınmışta organizasyon adı da gösterilmez. Bilinmeyen token 404 ile "geri alınmış" metnini kullanır (token tahminine bilgi vermez). Kullanılmışta kişi zaten üyedir, organizasyona gider. <b>API:</b> <code>GET organizations/invitation?Token=</code> → <code>Status</code> ya da 404. <b>Telefonda</b> kartlar alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c w">
+        <div class="g3">
+          <div class="card"><div class="card-b c gp12 tc">
+            <span class="ico-c warn"><svg class="ic"><use href="#i-hourglass"/></svg></span>
+            <h2 class="h2">Davetin süresi dolmuş</h2>
+            <p class="t-s fg2" style="margin:0">Kuzey Lab daveti 11 Kasım 2026'da sona erdi. <b>Deniz Arslan</b>'dan yeni bir davet iste.</p>
+            <span class="btn blk mt8">Giriş sayfasına git</span>
+          </div></div>
+          <div class="card"><div class="card-b c gp12 tc">
+            <span class="ico-c"><svg class="ic"><use href="#i-ban"/></svg></span>
+            <h2 class="h2">Davet geri alınmış</h2>
+            <p class="t-s fg2" style="margin:0">Bu bağlantı artık geçerli değil. Bir hata olduğunu düşünüyorsan seni davet eden kişiye yaz.</p>
+            <span class="btn blk mt8">Giriş sayfasına git</span>
+          </div></div>
+          <div class="card"><div class="card-b c gp12 tc">
+            <span class="ico-c ok"><svg class="ic"><use href="#i-user-check"/></svg></span>
+            <h2 class="h2">Davet zaten kullanıldı</h2>
+            <p class="t-s fg2" style="margin:0">Bu davetle Kuzey Lab'e katılındı. Hesabınla giriş yapıp organizasyona geç.</p>
+            <span class="btn pri blk mt8">Kuzey Lab'i aç</span>
+          </div></div>
+        </div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. ORGANİZASYON ============ -->
+<section class="sec" id="organizasyon">
+<div class="sec-h"><span class="k">Bölüm 5.26-5.32</span><h2>Organizasyon ve ilk kurulum</h2><p>Kullanıcı birden çok organizasyona üye olabilir; kenar çubuğundaki değiştiriciden geçer. Organizasyonu olmayan yeni kullanıcı üç adımlı kurulumla başlar: organizasyon oluştur, mağaza bağla, uygulamaları eşle. Her adım atlanabilir; kurulum ilerlemesi ayrı tutulmaz, var olan veriden (organizasyon, bağlantı, uygulama sayısı) çıkarılır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-26">
+  <figcaption class="fr-h"><b class="fr-n">5.26</b><span class="fr-t">Organizasyon değiştirici</span><code class="fr-r">kenar çubuğu → organizasyon</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/mine</code> → <code>MyOrganizationDto { Id, Name, Slug, Role, Permissions[] }</code>. Liste istemcide süzülür (arama 5 organizasyondan fazlaysa görünür; burada örnek için açık). Seçilen organizasyon tarayıcıda saklanır ve sonraki isteklerin <code>OrganizationId</code>'si olur; geçişte açık sayfa o organizasyonun aynı bölümüne gider (uygulama detayı ise <code>/apps</code>'e). Seçili satır vurgu tiki taşır. Klavye: yukarı/aşağı, Enter, Esc. "Yeni organizasyon" herkese açık (5.27). <b>Telefonda</b> menü çekmecesindeki değiştiriciden alt sayfa olarak açılır. <span class="gap">Backend boşluğu:</span> satırdaki uygulama sayısı için <code>MyOrganizationDto.AppCount</code> eklenecek (yoksa satırda yalnız rol).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Uygulamalar</h1><p class="pg-s">Üç mağazadaki her şey tek kartta.</p></div></div>
+        <div class="g3"><div class="card" style="height:190px"></div><div class="card" style="height:190px"></div><div class="card hide-ph" style="height:190px"></div></div>
+      </div>
+    </div>
+    <div class="dim"></div>
+    <div class="pop orgpop" role="dialog" aria-label="Organizasyon değiştir">
+      <div class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Organizasyon ara</span></div>
+      <div class="mh">Organizasyonların · 3</div>
+      <div class="mi on"><span class="oav s">K</span><span class="f1">Kuzey Lab<small>Sahip · 6 uygulama</small></span><svg class="ic acc-t"><use href="#i-check"/></svg></div>
+      <div class="mi"><span class="oav s alt">A</span><span class="f1">Ada Stüdyo<small>Editör · 3 uygulama</small></span></div>
+      <div class="mi"><span class="oav s alt">D</span><span class="f1">Deniz'in projeleri<small>Sahip · kişisel · 1 uygulama</small></span></div>
+      <div class="ms"></div>
+      <div class="mi"><svg class="ic"><use href="#i-plus"/></svg>Yeni organizasyon</div>
+      <div class="mi"><svg class="ic"><use href="#i-settings"/></svg>Organizasyon ayarları</div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-27">
+  <figcaption class="fr-h"><b class="fr-n">5.27</b><span class="fr-t">Yeni organizasyon</span><code class="fr-r">→ yeni organizasyon</code></figcaption>
+  <p class="fr-note">Kısa ad addan önerilir (Türkçe karakterler sadeleşir: "Mavi Atölye" → <code>mavi-atolye</code>), elle değiştirilebilir; yazma bittikten 400 ms sonra uygunluk denetlenir. Oluşturan Sahip olur; organizasyon açılınca boş Uygulamalar ekranı (06 6.4) gelir. <b>API:</b> <code>POST /api/v1.0/organizations/organization { Name, Slug }</code> (var olan) → <code>Id</code>; <code>GET /api/v1.0/organizations/slug-availability?Slug=</code> (yeni ad) → <code>{ Available, Suggestion }</code>. <b>İzin:</b> giriş yapmış her kullanıcı. Denetim kaydına <code>OrganizationCreated</code>. <b>Telefonda</b> alttan açılan tam sayfa. <span class="gap">Backend boşluğu:</span> uygunluk ucu yok; eklenecek (yoksa çakışma yalnız gönderimde 5.28 ile görünür).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar"><div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m527">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m527">Yeni organizasyon</h2><p class="t-s fg2 mt4">Mağaza bağlantıları, uygulamalar ve üyeler organizasyona aittir.</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Ad</span><span class="inp">Mavi Atölye</span></label>
+        <label class="fld"><span class="lbl">Kısa ad</span><span class="inp mono foc">mavi-atolye</span><span class="hint r gp6"><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg><span><span class="ok-t b6">Uygun.</span> Adreslerde ve MCP'de organizasyonu tanır: küçük harf, rakam ve tire.</span></span></label>
+        <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s fg2">Organizasyonu oluşturan <b>Sahip</b> olur. Diğer kişileri sonra Üyeler'den davet edersin.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-28">
+  <figcaption class="fr-h"><b class="fr-n">5.28</b><span class="fr-t">Kısa ad kullanımda (409)</span><code class="fr-r">→ yeni organizasyon · 409</code></figcaption>
+  <p class="fr-note">Uygunluk denetimi ile gönderim arasında başkası aynı adı alırsa sunucu 409 döner (08 2.4: form üstü uyarı, modal kapanmaz). Alanın altında öneri çipi, tıklayınca alana yazılır. <b>API:</b> <code>POST organizations/organization</code> → 409 <code>SlugExists</code>; öneri <code>slug-availability</code>'den.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar"><div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m528">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m528">Yeni organizasyon</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Bu kısa ad kullanımda.</b><div class="fg2 mt4">Başka bir kısa ad seç; ad aynı kalabilir.</div></div></div>
+        <label class="fld"><span class="lbl">Ad</span><span class="inp">Mavi Atölye</span></label>
+        <label class="fld"><span class="lbl">Kısa ad</span><span class="inp mono err">mavi-atolye</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>mavi-atolye başka bir organizasyonda.</span></label>
+        <div class="r gp8 wrap t-s fg2">Öneri: <span class="chip mono">mavi-atolye-2</span><span class="chip mono">mavi-atolye-studyo</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-29" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.29</b><span class="fr-t">İlk kurulum: mağaza bağla (adım 2 / 3)</span><code class="fr-r">/setup?step=connect</code></figcaption>
+  <p class="fr-note">Organizasyonu olmayan kullanıcı girişten sonra buraya gelir. Adım 1 organizasyon oluşturur (5.27'deki alanlar, sayfa içinde); adım 2 mağaza seçtirir ve "Devam et" o mağazanın bağlantı formunu açar (Mağaza bağlantıları dosyası); adım 3 senkron ve eşleme (5.30, 5.31). Kenar çubuğu yok, odak tek iş. Kart seçimi radyo gibi davranır, kartın tamamı tıklanır. "Sonra yap" boş Uygulamalar ekranına (06 6.4) gider ve kurulum bir daha zorla açılmaz. <b>API:</b> adım durumu <code>GET organizations/mine</code> + <code>GET /api/v1.0/storeConnections</code> + <code>PATCH /api/v1.0/apps</code> sayılarından; bağlantı <code>POST /api/v1.0/storeConnections/connection { Store, Name, Secret }</code> (var olan). "Sonra yap" tercihi <code>PUT account/preferences</code>. <b>İzin:</b> <code>ManageConnections</code> (kurulumu yapan Sahip). <b>Telefonda</b> adımlar üstte yatay, kartlar alt alta. <span class="gap">Backend boşluğu:</span> <code>StoreConnectionDto.Store</code> bugün <code>Apple, Google</code>; <code>Microsoft</code> değeri ve Entra parmak izi alanları (tenant, client id son 4, satıcı kimliği, sır bitişi) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="setup">
+      <header class="setup-top"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><span class="t-s fg3 hide-ph" style="margin-left:8px">Kurulum</span><span class="ml t-s fg2 hide-ph">Deniz Arslan</span><span class="av">DA</span></header>
+      <div class="setup-b">
+        <ol class="steps" aria-label="Kurulum adımları">
+          <li class="d"><span class="n"><svg class="ic"><use href="#i-check"/></svg></span><span><b>Organizasyon oluştur</b><small>Kuzey Lab · kuzey-lab</small></span></li>
+          <li class="on" aria-current="step"><span class="n">2</span><span><b>Mağaza bağla</b><small>Anahtarlar şifreli saklanır</small></span></li>
+          <li><span class="n">3</span><span><b>Uygulamaları eşle</b><small>Senkronla gelen kayıtlar</small></span></li>
+        </ol>
+        <div>
+          <div class="eb">Adım 2 / 3</div>
+          <h1 class="pg-t mt8">İlk mağazanı bağla</h1>
+          <p class="pg-s">storeasy mağazaya senin anahtarınla bağlanır, uygulamalarını ve build'lerini kendisi çeker. Diğer mağazaları sonra Mağaza bağlantıları'ndan eklersin.</p>
+          <div class="g3 mt24">
+            <div class="card sel pick" role="radio" aria-checked="true"><div class="r bt"><span class="st"><b>AS</b>App Store</span><span class="rad on"></span></div><b class="t-l">App Store Connect API anahtarı</b><p class="t-s fg2">.p8 dosyası, Key ID ve Issuer ID. "App Manager" rolünde bir anahtar yeter.</p><span class="t-xs fg3 mono">~5 dk</span></div>
+            <div class="card pick" role="radio" aria-checked="false"><div class="r bt"><span class="st"><b>GP</b>Google Play</span><span class="rad"></span></div><b class="t-l">Google Play servis hesabı</b><p class="t-s fg2">Servis hesabı JSON'u. Play Console'da uygulamalara erişim izni verilmiş olmalı.</p><span class="t-xs fg3 mono">~10 dk</span></div>
+            <div class="card pick" role="radio" aria-checked="false"><div class="r bt"><span class="st"><b>MS</b>Microsoft Store</span><span class="rad"></span></div><b class="t-l">Microsoft Entra uygulaması</b><p class="t-s fg2">Tenant ID, client ID, client secret ve Partner Center satıcı kimliği.</p><span class="t-xs fg3 mono">~10 dk</span></div>
+          </div>
+          <div class="callout mt16"><svg class="ic"><use href="#i-shield"/></svg><div class="t-s fg2">Anahtarlar zarf şifrelemeyle saklanır ve hiçbir ekranda geri gösterilmez; arayüzde yalnız parmak izi (Key ID, Issuer ID'nin son 4 hanesi) görünür.</div></div>
+          <div class="setup-f"><span class="btn ghost">Sonra yap</span><span class="t-s fg3 hide-ph">Uygulamalar ekranından istediğin zaman devam edersin.</span><span class="btn pri ml">Devam et<svg class="ic"><use href="#i-arrow-r"/></svg></span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-30" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">5.30</b><span class="fr-t">İlk senkron sürüyor</span><code class="fr-r">/setup?step=apps</code></figcaption>
+  <p class="fr-note">Bağlantı doğrulanınca ilk senkron bir mağaza işi olarak başlar; uygulamalar geldikçe listeye düşer (SignalR <code>/hubs/activity</code> <code>job.step</code>). Sayfadan çıkmak işi durdurmaz; "Arka planda sürsün" Uygulamalar ekranına geçer, iş Canlı akışta görünür. Hareket azaltmada dönen gösterge durur, metin "okunuyor" kalır. <b>API:</b> <code>POST /api/v1.0/storeConnections/connection/verify</code> (var olan), <code>POST /api/v1.0/apps/sync</code> (planlanan) → <code>StoreJobId</code>; <code>GET /api/v1.0/jobs/job</code> (+ adımlar). <b>Telefonda</b> liste tam genişlik.</p>
+  <div class="vp"><div class="scr">
+    <div class="setup">
+      <header class="setup-top"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><span class="t-s fg3 hide-ph" style="margin-left:8px">Kurulum</span><span class="ml t-s fg2 hide-ph">Deniz Arslan</span><span class="av">DA</span></header>
+      <div class="setup-b">
+        <ol class="steps" aria-label="Kurulum adımları">
+          <li class="d"><span class="n"><svg class="ic"><use href="#i-check"/></svg></span><span><b>Organizasyon oluştur</b><small>Kuzey Lab</small></span></li>
+          <li class="d"><span class="n"><svg class="ic"><use href="#i-check"/></svg></span><span><b>Mağaza bağla</b><small>Kuzey Lab ASC · doğrulandı</small></span></li>
+          <li class="on" aria-current="step"><span class="n">3</span><span><b>Uygulamaları eşle</b><small>Senkron sürüyor</small></span></li>
+        </ol>
+        <div>
+          <div class="eb">Adım 3 / 3</div>
+          <h1 class="pg-t mt8">Uygulamaların geliyor</h1>
+          <p class="pg-s">App Store Connect'teki uygulamalar, sürümler ve build'ler okunuyor. Bu ilk seferde birkaç dakika sürebilir.</p>
+          <div class="card mt24">
+            <div class="card-b c gp8"><div class="r bt t-s"><span class="r gp8"><span class="st sm"><b>AS</b></span><b>Kuzey Lab ASC</b></span><span class="mono">3 / 5 uygulama</span></div><span class="prog"><i style="width:60%"></i></span></div>
+            <div class="lst" aria-live="polite">
+              <div class="lst-i"><span class="aic s" style="--c:#0F766E">P</span><div class="f1"><b class="t-m">Pusula</b><div class="t-xs mono fg3">6740012345 · com.kuzeylab.pusula · 2.3 (118)</div></div><span class="bdg ok sm"><span class="dot"></span>Geldi</span></div>
+              <div class="lst-i"><span class="aic s" style="--c:#B45309">D</span><div class="f1"><b class="t-m">Defter</b><div class="t-xs mono fg3">6740023456 · com.kuzeylab.defter · 1.4 (52)</div></div><span class="bdg ok sm"><span class="dot"></span>Geldi</span></div>
+              <div class="lst-i"><span class="aic s" style="--c:#DB2777">H</span><div class="f1"><b class="t-m">Halka</b><div class="t-xs mono fg3">6740034567 · com.kuzeylab.halka · TestFlight 1.0 (37)</div></div><span class="bdg ok sm"><span class="dot"></span>Geldi</span></div>
+              <div class="lst-i"><span class="aic s" style="--c:#15803D">M</span><div class="f1"><b class="t-m">Mola</b><div class="t-xs mono fg3">6740045678 · build'ler okunuyor</div></div><span class="r gp8 t-s fg2"><span class="spinner" style="width:14px;height:14px;border-width:2px"></span>Okunuyor</span></div>
+              <div class="lst-i"><span class="sk" style="width:24px;height:24px;border-radius:7px"></span><div class="f1 c gp6"><span class="sk" style="width:30%"></span><span class="sk" style="width:55%"></span></div><span class="t-xs fg3">Sırada</span></div>
+            </div>
+          </div>
+          <div class="setup-f"><span class="btn ghost">Arka planda sürsün</span><span class="btn pri ml dis" aria-disabled="true">Eşlemeye geç</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-31" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.31</b><span class="fr-t">Senkron bitti: uygulamaları eşle</span><code class="fr-r">/setup?step=apps</code></figcaption>
+  <p class="fr-note">Senkronla gelen her mağaza kaydı için bir storeasy uygulaması önerilir; aynı bundle id / paket adı sonra başka mağazadan gelirse aynı uygulamaya eklenmesi önerilir (06 6.3). Ad satırda düzenlenebilir. Tek ana eylem seçilenleri ekler, ardından <code>/apps</code> ve toast "5 uygulama eklendi". <b>API:</b> <code>GET /api/v1.0/apps/unlinked-store-apps</code> → <code>UnlinkedStoreAppDto { StoreConnectionId, ConnectionName, Store, ExternalId, BundleId, Name, IconUrl }</code>; her seçim için <code>POST /api/v1.0/apps/app { Name, StoreAppIds[] }</code> (<code>Idempotency-Key</code>, istemci sırayla gönderir; biri düşerse satırda hata ve "Tekrar dene"). <b>İzin:</b> <code>EditContent</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="setup">
+      <header class="setup-top"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><span class="t-s fg3 hide-ph" style="margin-left:8px">Kurulum</span><span class="ml t-s fg2 hide-ph">Deniz Arslan</span><span class="av">DA</span></header>
+      <div class="setup-b">
+        <ol class="steps" aria-label="Kurulum adımları">
+          <li class="d"><span class="n"><svg class="ic"><use href="#i-check"/></svg></span><span><b>Organizasyon oluştur</b><small>Kuzey Lab</small></span></li>
+          <li class="d"><span class="n"><svg class="ic"><use href="#i-check"/></svg></span><span><b>Mağaza bağla</b><small>Kuzey Lab ASC · doğrulandı</small></span></li>
+          <li class="on" aria-current="step"><span class="n">3</span><span><b>Uygulamaları eşle</b><small>5 kayıt hazır</small></span></li>
+        </ol>
+        <div>
+          <div class="eb">Adım 3 / 3</div>
+          <h1 class="pg-t mt8">5 uygulama geldi</h1>
+          <p class="pg-s">Eklemek istediklerini seç. Google Play ve Microsoft Store'u bağladığında aynı uygulamaların kayıtları bu kartlara eklenir.</p>
+          <div class="card mt24"><div class="lst">
+            <div class="lst-i"><span class="chk mix"></span><b class="t-s f1">Hepsini seç</b><span class="t-xs fg3">5 / 5 seçili</span></div>
+            <div class="lst-i"><span class="chk on"></span><span class="aic s" style="--c:#0F766E">P</span><div class="f1"><b class="t-m">Pusula</b><div class="t-xs mono fg3">com.kuzeylab.pusula</div></div><span class="st sm"><b>AS</b>App Store</span></div>
+            <div class="lst-i"><span class="chk on"></span><span class="aic s" style="--c:#B45309">D</span><div class="f1"><b class="t-m">Defter</b><div class="t-xs mono fg3">com.kuzeylab.defter</div></div><span class="st sm"><b>AS</b>App Store</span></div>
+            <div class="lst-i"><span class="chk on"></span><span class="aic s" style="--c:#DB2777">H</span><div class="f1"><b class="t-m">Halka</b><div class="t-xs mono fg3">com.kuzeylab.halka</div></div><span class="st sm"><b>AS</b>App Store</span></div>
+            <div class="lst-i"><span class="chk on"></span><span class="aic s" style="--c:#15803D">M</span><div class="f1"><b class="t-m">Mola</b><div class="t-xs mono fg3">com.kuzeylab.mola</div></div><span class="st sm"><b>AS</b>App Store</span></div>
+            <div class="lst-i"><span class="chk on"></span><span class="aic s" style="--c:#475569">K</span><div class="f1"><b class="t-m">Kumbara</b><div class="t-xs mono fg3">com.kuzeylab.kumbara · henüz yayında değil</div></div><span class="st sm"><b>AS</b>App Store</span></div>
+          </div></div>
+          <div class="setup-f"><span class="btn ghost">Sonra yap</span><span class="btn hide-ph"><svg class="ic"><use href="#i-plug"/></svg>Başka mağaza bağla</span><span class="btn pri ml">5 uygulamayı ekle</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-32">
+  <figcaption class="fr-h"><b class="fr-n">5.32</b><span class="fr-t">Erişimin kalmadı</span><code class="fr-r">/no-access</code></figcaption>
+  <p class="fr-note">Organizasyona bağlı bir istek üyelik yok diye 403 dönünce istemci <code>GET organizations/mine</code>'ı yeniler: başka organizasyon varsa ona geçer ve toast "Kuzey Lab'e erişimin kalmadı" gösterir; liste boşsa bu ekran. Hesap durur; davet bekleyen kişi e-postadaki bağlantıyı açar. <b>API:</b> <code>GET organizations/mine</code> → <code>[]</code>; "Yeni organizasyon oluştur" kurulumun 1. adımına gider. <span class="gap">Backend boşluğu:</span> üyelik kaldırılmasını izin yokluğundan ayıran mesaj anahtarı (<code>NotOrganizationMember</code>) eklenecek; üyeye "organizasyondan çıkarıldın" e-postası eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="solo">
+      <span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span>
+      <div class="solo-c">
+        <div class="state" style="padding:0"><span class="sic"><svg class="ic"><use href="#i-building"/></svg></span><h3>Erişimin kalmadı</h3><p>Kuzey Lab organizasyonundaki üyeliğin kaldırıldı ve başka bir organizasyonun yok. Hesabın duruyor: yeni bir organizasyon kurabilir ya da bir davet bekleyebilirsin.</p></div>
+        <span class="btn pri lg blk"><svg class="ic"><use href="#i-plus"/></svg>Yeni organizasyon oluştur</span>
+        <div class="who"><span class="av">MK</span><div class="f1"><div class="t-xs fg3">Giriş yapan hesap</div><b class="t-m">mert@kuzeylab.dev</b></div><span class="btn sm ghost"><svg class="ic"><use href="#i-logout"/></svg>Çıkış yap</span></div>
+      </div>
+      <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 7. YASAL ============ -->
+<section class="sec" id="yasal">
+<div class="sec-h"><span class="k">Bölüm 5.33-5.34</span><h2>Yasal metinler ve depolama</h2><p>Kullanım şartları ve gizlilik bildirimi giriş yapmadan okunur, sürüm ve yürürlük tarihi her zaman görünür. Metinler kurulumu işleten tarafındır; storeasy yazılımının lisansı (AGPL-3.0) ayrıca bağlantılıdır. Karar: storeasy yalnız zorunlu depolama kullanır (oturum, cihaz kimliği, tema ve dil); izleme, analitik ya da reklam çerezi yok, bu yüzden çerez bandı da yok. Yerine alt bilgide kısa bir depolama notu var.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-33" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">5.33</b><span class="fr-t">Yasal metin okuyucu</span><code class="fr-r">/legal/terms</code></figcaption>
+  <p class="fr-note">Okunur düzen: 700 px metin sütunu, solda belgeler ve başlıklar. Sürüm ve yürürlük tarihi başlığın altında; "Önceki sürümler" aynı sayfada sürüm seçtirir. Self-host kurulumda metni platform yöneticisi girer; boşsa sayfa "Bu kurulum için metin girilmemiş" der ve kayıt formundaki onay kutusu gizlenir. <b>API:</b> <code>GET /api/v1.0/legal/document?Key=Terms&amp;Language=tr</code> (yeni ad, anonim) → <code>LegalDocumentDto { Key (Terms, Privacy), Version, EffectiveDate, Markdown, PreviousVersions[{ Version, EffectiveDate }] }</code>. <b>Telefonda</b> sol menü gizlenir, belge seçimi başlığın üstünde çip olur. <span class="gap">Backend boşluğu:</span> yasal belge saklama ve okuma ucu, yönetici düzenleme ekranı ve sürüm değişince yeniden onay (<code>POST account/consents { Key, Version }</code>, girişte "Şartlar güncellendi" diyaloğu) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="legal">
+      <header class="legal-top"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><span class="ml btn sm">Giriş yap</span></header>
+      <div class="legal-b">
+        <nav class="legal-toc hide-ph" aria-label="Belgeler"><span class="eb" style="padding:0 10px 8px">Belgeler</span><a class="on" href="#">Kullanım şartları</a><a href="#">Gizlilik bildirimi</a><a href="#">Açık kaynak lisansı</a><span class="eb" style="padding:16px 10px 8px">Bu belgede</span><a href="#">1. Hizmet</a><a href="#">2. Hesap</a><a href="#">3. Mağaza anahtarları</a><a href="#">4. Sorumluluk</a><a href="#">5. Değişiklikler</a></nav>
+        <article class="legal-a">
+          <div class="r gp6 wrap only-ph mb12"><span class="chip on">Kullanım şartları</span><span class="chip">Gizlilik</span><span class="chip">Lisans</span></div>
+          <h1 class="pg-t">Kullanım şartları</h1>
+          <div class="r gp8 wrap mt8"><span class="tag">Sürüm 1.2</span><span class="t-s fg2">Yürürlük: 1 Kasım 2026</span><span class="t-s fg3">·</span><span class="lnk t-s">Önceki sürümler</span></div>
+          <div class="callout mt16"><svg class="ic"><use href="#i-code"/></svg><div class="t-s fg2">Bu şartlar bu kurulumun hizmetini kapsar. storeasy yazılımı AGPL-3.0 ile lisanslıdır; kaynak kodu herkese açıktır.</div></div>
+          <h2>1. Hizmet</h2>
+          <p>storeasy, organizasyonunun App Store Connect, Google Play ve Microsoft Store hesaplarını senin verdiğin anahtarlarla yönetmeni sağlar. Mağazaya giden her değişiklik önce sana gösterilir ve onayınla gönderilir.</p>
+          <h2>2. Hesap</h2>
+          <p>Hesabının güvenliğinden sen sorumlusun. Şifreni başkasıyla paylaşma; bir organizasyona davet ettiğin kişilerin rollerini sen belirlersin.</p>
+          <h2>3. Mağaza anahtarları</h2>
+          <p>Bağladığın anahtarlar şifreli saklanır ve yalnız senin başlattığın ya da onayladığın işlerde kullanılır. Bir bağlantıyı istediğin zaman silebilirsin; silinen anahtar geri getirilemez.</p>
+        </article>
+      </div>
+      <div class="legal-f auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span> · Yalnız zorunlu depolama</span><span class="lang"><b>TR</b> · EN</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f5-34">
+  <figcaption class="fr-h"><b class="fr-n">5.34</b><span class="fr-t">Depolama notu (çerez bandı yok)</span><code class="fr-r">/login → alt bilgi</code></figcaption>
+  <p class="fr-note">Karar: çerez bandı çizilmez. storeasy yalnız işlemesi için zorunlu olanı saklar; rıza gerektiren izleme, analitik ya da reklam depolaması yok. Alt bilgideki "Yalnız zorunlu depolama" bağlantısı bu küçük paneli açar ve Gizlilik bildirimine götürür. Self-host kuran kişi analitik eklerse bant gereksinimi ona geçer (self-host dokümanında yazılır). <b>API:</b> yok; liste sabit metin (sözlük anahtarları). <b>Telefonda</b> panel yanlardan 16 px boşlukla tam genişlik.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp"><span class="ph">ornek@kuzeylab.dev</span></span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1"></span></span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span> · <span class="lnk">Yalnız zorunlu depolama</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+    <div class="pop stpop" role="dialog" aria-label="Depolama">
+      <div class="mh">Bu sitenin sakladıkları</div>
+      <div class="mi"><svg class="ic"><use href="#i-key"/></svg><span class="f1">Oturum<small>Giriş ve yenileme token'ı. Çıkışta silinir.</small></span><span class="bdg sm">Zorunlu</span></div>
+      <div class="mi"><svg class="ic"><use href="#i-fingerprint"/></svg><span class="f1">Cihaz kimliği<small>Oturumlarını cihaz bazında listelemek için.</small></span><span class="bdg sm">Zorunlu</span></div>
+      <div class="mi"><svg class="ic"><use href="#i-sun"/></svg><span class="f1">Tema, dil, son organizasyon<small>Tercihlerin; yalnız bu tarayıcıda.</small></span><span class="bdg sm">Zorunlu</span></div>
+      <div class="ms"></div>
+      <div class="mi"><svg class="ic"><use href="#i-ban"/></svg><span class="f1">İzleme, analitik ve reklam çerezi yok<small>Bu yüzden onay bandı da yok. <span class="lnk">Gizlilik bildirimi</span></small></span></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 8. TELEFON ============ -->
+<section class="sec" id="telefon">
+<div class="sec-h"><span class="k">Bölüm 5.35</span><h2>Telefonda giriş</h2><p>Telefonda hat çizimi gösterilmez; logo ve başlık üstte ortalı, form tek kolon, alt bilgi en altta. Klavye açılınca "Giriş yap" görünür kalır (sayfa kayar, sabit alt düğme yok).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f5-35" data-view="phone">
+  <figcaption class="fr-h"><b class="fr-n">5.35</b><span class="fr-t">Giriş (telefon)</span><code class="fr-r">/login</code></figcaption>
+  <p class="fr-note">Aynı uç ve durumlar (5.1-5.9). E-posta alanı <code>type="email"</code>, <code>autocomplete="username"</code>; şifre <code>autocomplete="current-password"</code>, böylece şifre yöneticisi doldurur. Dokunma hedefleri en az 44 px (<code>.btn.lg</code> 46 px). Hata kutusu logonun altında, alanların üstünde.</p>
+  <div class="vp"><div class="scr">
+    <div class="auth">
+      <div class="auth-f">
+        <div class="auth-c">
+          <div class="lead"><span class="brand"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></span><h1>Tekrar hoş geldin</h1><p>Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+          <label class="fld"><span class="lbl">E-posta</span><span class="inp foc">deniz@kuzeylab.dev</span></label>
+          <div class="fld"><span class="lbl">Şifre</span><span class="inp"><span class="f1 pwd">••••••••••••</span><span class="ib sm ghost" aria-label="Şifreyi göster"><svg class="ic"><use href="#i-eye"/></svg></span></span></div>
+          <div class="r bt t-s"><span class="r gp8 fg2"><span class="chk on"></span>Beni hatırla</span><span class="lnk">Şifremi unuttum</span></div>
+          <span class="btn pri lg blk">Giriş yap</span>
+          <p class="t-s fg2 tc" style="margin:0">Hesabın yok mu? <span class="lnk">Kayıt ol</span></p>
+        </div>
+        <div class="auth-foot"><span>AGPL-3.0 · <span class="lnk">Kaynak kod</span></span><span class="lang"><b>TR</b> · EN</span></div>
+      </div>
+      <div class="auth-art"><svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#p-hat" width="720" height="820"/></svg></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

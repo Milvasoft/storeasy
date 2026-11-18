@@ -1,0 +1,1414 @@
+<!doctype html>
+<html lang="tr" data-theme="dark" data-view="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy · Organizasyon, üyeler ve denetim kaydı</title>
+<meta name="description" content="Üyeler ve bekleyen davetler, davet akışı, rol değiştirme ve sahiplik devri, dört kilitli rolün izinleri, organizasyonun denetim kaydı ve organizasyon ayarları. Organizasyon oluşturma 05'te.">
+<script>(function(){var r=document.documentElement;try{var s=JSON.parse(localStorage.getItem('storeasy.design')||'{}');if(s.theme)r.setAttribute('data-theme',s.theme);if(s.view)r.setAttribute('data-view',s.view);}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+/* ===== storeasy tasarım kiti v1 =====
+   Bütün tasarım dosyalarında aynen kullanılır (build.mjs gömer). Token adları 02 standardının src/index.css
+   adlarıyla aynıdır (RGB üçlüleri): kodda Tailwind `rgb(var(--x) / <alpha-value>)` ile okunur. */
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --r-xs:6px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-pill:999px;
+  --ease:cubic-bezier(.2,.7,.2,1);--dur-1:120ms;--dur-2:220ms;--dur-3:420ms;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.28),0 2px 6px rgb(0 0 0/.08);
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:250 250 248;--bg-2:244 244 241;--surface:255 255 255;--border:228 227 222;--border-strong:206 205 199;
+  --fg:20 20 22;--fg-2:88 88 94;--fg-3:112 112 118;
+  --accent:70 54 255;--accent-fg:255 255 255;--accent-text:70 54 255;
+  --success:21 128 61;--warning:180 95 6;--danger:200 40 40;--info:37 99 200;
+  --overlay:20 20 22;--page:236 236 232;--frame:214 213 207;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:10 10 11;--bg-2:26 26 29;--surface:18 18 20;--border:38 38 42;--border-strong:58 58 64;
+  --fg:240 240 238;--fg-2:168 168 172;--fg-3:124 124 130;
+  --accent:133 122 255;--accent-fg:10 10 11;--accent-text:150 141 255;
+  --success:62 199 128;--warning:240 176 64;--danger:255 99 99;--info:110 160 255;
+  --overlay:0 0 0;--page:4 4 5;--frame:44 44 50;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.7),0 2px 6px rgb(0 0 0/.5);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:rgb(var(--page));color:rgb(var(--fg));font:400 15px/1.5 var(--font-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.mono{font-family:var(--font-mono);font-feature-settings:"zero" 1}
+.disp{font-family:var(--font-display)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Doküman kabuğu ---------- */
+.doc-top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 24px;background:rgb(var(--page)/.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgb(var(--border))}
+.doc-top .home{display:flex;align-items:center;gap:8px;font:700 14px/1 var(--font-display);white-space:nowrap}
+.doc-top .home svg{width:22px;height:22px}
+.doc-top .ttl{font:500 13px/1.2 var(--font-body);color:rgb(var(--fg-2));min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-top .sp{flex:1}
+.doc-top .pn{display:flex;gap:4px}
+.doc-top .pn a{font:500 12px/1 var(--font-mono);padding:8px 10px;border:1px solid rgb(var(--border));border-radius:var(--r-pill);color:rgb(var(--fg-2));white-space:nowrap}
+.dseg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:var(--r-pill);padding:3px;gap:2px;background:rgb(var(--surface))}
+.dseg button{border:0;background:none;color:rgb(var(--fg-2));font:500 12px/1 var(--font-body);padding:7px 11px;border-radius:var(--r-pill);cursor:pointer;white-space:nowrap}
+.dseg button[aria-pressed="true"]{background:rgb(var(--fg));color:rgb(var(--bg))}
+.doc{max-width:1400px;margin:0 auto;padding:40px 24px 120px}
+.doc-hero{display:grid;gap:10px;margin-bottom:12px}
+.doc-hero .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.doc-hero h1{font:800 44px/1.02 var(--font-display);letter-spacing:-.035em;margin:0}
+.doc-hero p{margin:0;max-width:820px;color:rgb(var(--fg-2));font-size:16px}
+.doc-toc{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.doc-toc a{font:500 12px/1 var(--font-body);padding:7px 10px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));color:rgb(var(--fg-2));background:rgb(var(--surface))}
+.sec{margin-top:72px;scroll-margin-top:72px}
+.sec-h{margin:0 0 24px;display:grid;gap:6px}
+.sec-h .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.sec-h h2{font:800 32px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.sec-h p{margin:0;max-width:860px;color:rgb(var(--fg-2))}
+.frames{display:grid;gap:56px}
+html[data-view="phone"] .frames{grid-template-columns:repeat(auto-fill,minmax(min(390px,100%),1fr));gap:48px 32px}
+.fr{margin:0;min-width:0;scroll-margin-top:72px}
+.fr-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.fr-n{font:600 11px/1 var(--font-mono);background:rgb(var(--fg));color:rgb(var(--bg));border-radius:5px;padding:4px 6px}
+.fr-t{font:700 16px/1.2 var(--font-display)}
+.fr-r{font:500 12px/1 var(--font-mono);color:rgb(var(--fg-3));word-break:break-all}
+.fr-note{font-size:13px;line-height:1.55;color:rgb(var(--fg-2));margin:4px 0 12px;max-width:980px}
+.fr-note b{color:rgb(var(--fg))}
+.fr-note .gap{display:inline;color:rgb(var(--warning));font-weight:600}
+.vp{position:relative;width:100%;overflow:hidden;border-radius:var(--r-lg);box-shadow:0 0 0 1px rgb(var(--frame)),0 30px 60px -36px rgb(0 0 0/.45)}
+html[data-view="phone"] .fr:not([data-view="desktop"]) .vp{max-width:390px;border-radius:40px}
+.fr[data-view="phone"] .vp{max-width:390px;border-radius:40px}
+.scr{position:absolute;left:0;top:0;width:1280px;height:820px;transform-origin:0 0;background:rgb(var(--bg));color:rgb(var(--fg));overflow:hidden;container-type:inline-size;container-name:scr;font:400 14px/1.5 var(--font-body)}
+.doc-note{font-size:13px;color:rgb(var(--fg-2));border-left:2px solid rgb(var(--border-strong));padding:2px 0 2px 12px;margin:16px 0;max-width:900px}
+.doc-card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);padding:22px}
+
+/* ---------- Uygulama kabuğu ---------- */
+.shell{display:flex;height:100%;position:relative}
+.side{width:248px;flex:none;border-right:1px solid rgb(var(--border));background:rgb(var(--surface));display:flex;flex-direction:column;padding:16px 12px 12px;gap:4px;overflow:hidden}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px}
+.brand svg{width:28px;height:28px;flex:none}
+.wm{font:800 21px/1 var(--font-display);letter-spacing:-.035em;color:rgb(var(--fg))}
+.wm i{font-style:normal;color:rgb(var(--accent))}
+.orgsw{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:8px 10px;margin-bottom:8px;background:rgb(var(--bg));text-align:left;width:100%;cursor:pointer}
+.orgsw .oav{width:30px;height:30px;border-radius:9px;background:rgb(var(--fg));color:rgb(var(--bg));display:grid;place-items:center;font:800 13px/1 var(--font-display);flex:none}
+.orgsw b{display:block;font:600 13px/1.25 var(--font-body)}
+.orgsw small{display:block;color:rgb(var(--fg-3));font-size:11px;line-height:1.3}
+.side .act{margin-bottom:8px}
+.nav-g{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:14px 10px 6px}
+.nav-i{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;color:rgb(var(--fg-2));font:500 13.5px/1.2 var(--font-body)}
+.nav-i .ic{width:18px;height:18px}
+.nav-i.on{background:rgb(var(--bg-2));color:rgb(var(--fg));font-weight:600}
+.nav-i.on::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:rgb(var(--accent))}
+.nav-i.on .ic{color:rgb(var(--accent))}
+.nav-i .cnt{margin-left:auto;font:600 11px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.nav-i .cnt.live{color:rgb(var(--success))}
+.nav-i .cnt.dng{color:rgb(var(--danger))}
+.side-f{margin-top:auto;border-top:1px solid rgb(var(--border));padding-top:10px;display:grid;gap:8px}
+.me{display:flex;align-items:center;gap:10px;padding:4px 6px}
+.me b{display:block;font:600 13px/1.25 var(--font-body)}
+.me small{display:block;font-size:11px;color:rgb(var(--fg-3))}
+.lic{font:500 10.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));padding:0 6px;display:flex;justify-content:space-between;gap:8px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.bar{height:60px;flex:none;border-bottom:1px solid rgb(var(--border));display:flex;align-items:center;gap:10px;padding:0 24px;background:rgb(var(--bg))}
+.crumb{display:flex;align-items:center;gap:6px;color:rgb(var(--fg-3));font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.crumb b{color:rgb(var(--fg));font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.crumb .sep{opacity:.6}
+.search{margin-left:auto;width:300px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:flex;align-items:center;gap:8px;padding:0 10px;color:rgb(var(--fg-3));font-size:13px;background:rgb(var(--surface));flex:none}
+.livepill{display:inline-flex;align-items:center;gap:6px;font:600 11px/1 var(--font-mono);color:rgb(var(--success));border:1px solid rgb(var(--success)/.35);border-radius:var(--r-pill);padding:6px 9px;white-space:nowrap}
+.content{flex:1;min-height:0;overflow:auto;padding:24px 28px 40px}
+.content.flush{padding:0}
+.menu-btn{display:none}
+
+/* ---------- Telefon (kapsayıcı sorgusu: aynı ekran 390 px'te) ---------- */
+@container scr (max-width:760px){
+  .side{display:none}
+  .shell.drawer .side{display:flex;position:absolute;inset:0 auto 0 0;width:300px;z-index:40;box-shadow:var(--sh-float)}
+  .shell.drawer::after{content:"";position:absolute;inset:0;background:rgb(var(--overlay)/.45);z-index:39}
+  .menu-btn{display:grid}
+  .bar{padding:0 12px;height:56px;gap:6px}
+  .bar .search{width:36px;padding:0;justify-content:center;margin-left:auto}
+  .bar .search span,.bar .search .kbd{display:none}
+  .bar .livepill .lt{display:none}
+  .lst-i{flex-wrap:wrap}
+  .apphead .seg{max-width:100%;overflow-x:auto}
+  .apphead .f1{flex:1 1 calc(100% - 64px)}
+  .apphead .aic.l{width:48px;height:48px;font-size:20px;border-radius:13px}
+  .apphead .bdg{white-space:normal;line-height:1.2}
+  .subnav{flex-wrap:nowrap !important;overflow-x:auto}
+  .crumb .pre{display:none}
+  .content{padding:16px 16px 96px}
+  .scr .hide-ph{display:none !important}
+  .scr .only-ph{display:revert !important}
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr !important}
+  .split,.split-r,.split-l{grid-template-columns:1fr !important}
+  .pg-h{flex-wrap:wrap}
+  .pg-t{font-size:24px}
+  .pg-a{width:100%;flex-wrap:wrap}
+  .tbl-w{border:0;background:none;overflow:visible}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--surface));padding:12px 14px;margin-bottom:10px}
+  .tbl td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;grid-column:1 / -1;font-size:13px}
+  .tbl td[data-l]::before{content:attr(data-l);color:rgb(var(--fg-3));font-size:12px;flex:none}
+  .tbl td.tm{grid-column:1;font-size:14px;justify-content:flex-start}
+  .tbl td.ta{grid-column:2;grid-row:1;justify-content:flex-end}
+  .tbl td.tx{display:none}
+  .tbl tr.sel{outline:2px solid rgb(var(--fg))}
+  .pager{flex-wrap:wrap;justify-content:center}
+  .pager .ps{display:none}
+  .ovl{align-items:flex-end;padding:0}
+  .mdl{width:100% !important;max-height:92%;border-radius:20px 20px 0 0}
+  .drw{width:100% !important}
+  .toasts{left:12px;right:12px;bottom:84px}
+  .toast{width:auto}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .scr .fab{display:inline-flex !important}
+}
+.only-ph{display:none !important}
+.fab{display:none !important;position:absolute;right:16px;bottom:24px;z-index:20;box-shadow:var(--sh-float)}
+
+/* ---------- Tipografi ---------- */
+.pg-h{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.pg-t{font:800 30px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.pg-s{color:rgb(var(--fg-2));font-size:14px;margin:6px 0 0;max-width:720px}
+.pg-h>:first-child{flex:1 1 auto;min-width:0}
+.pg-a{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.h2{font:700 20px/1.2 var(--font-display);letter-spacing:-.015em;margin:0}
+.h3{font:700 16px/1.25 var(--font-display);letter-spacing:-.01em;margin:0}
+.eb{font:600 11px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.t-xs{font-size:11.5px;line-height:1.4}.t-s{font-size:12.5px;line-height:1.45}.t-m{font-size:14px}.t-l{font-size:16px}
+.fg2{color:rgb(var(--fg-2))}.fg3{color:rgb(var(--fg-3))}
+.b5{font-weight:500}.b6{font-weight:600}.b7{font-weight:700}
+.ok-t{color:rgb(var(--success))}.warn-t{color:rgb(var(--warning))}.dng-t{color:rgb(var(--danger))}.info-t{color:rgb(var(--info))}.acc-t{color:rgb(var(--accent-text))}
+.tnum{font-variant-numeric:tabular-nums}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.nowrap{white-space:nowrap}
+.num{font:800 28px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* ---------- Yardımcılar ---------- */
+.r{display:flex;align-items:center}.rt{display:flex;align-items:flex-start}.c{display:flex;flex-direction:column}
+.bt{justify-content:space-between}.je{justify-content:flex-end}.jc{justify-content:center}.ac{align-items:center}.wrap{flex-wrap:wrap}
+.f1{flex:1;min-width:0}.fn{flex:none}.ml{margin-left:auto}
+.gp4{gap:4px}.gp6{gap:6px}.gp8{gap:8px}.gp10{gap:10px}.gp12{gap:12px}.gp16{gap:16px}.gp20{gap:20px}.gp24{gap:24px}.gp32{gap:32px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}
+.grid{display:grid;gap:16px}
+.g2{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{display:grid;gap:12px;grid-template-columns:repeat(5,minmax(0,1fr))}
+.split{display:grid;gap:20px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.split-l{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr);align-items:start}
+.split-r{display:grid;gap:20px;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+.hr{height:1px;background:rgb(var(--border));border:0;margin:16px 0}
+.hr.d{background:none;border-top:1px dashed rgb(var(--border))}
+
+/* ---------- İkon, logo ---------- */
+.ic{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ic.s12{width:12px;height:12px}.ic.s14{width:14px;height:14px}.ic.s16{width:16px;height:16px}.ic.s18{width:18px;height:18px}.ic.s24{width:24px;height:24px}.ic.s28{width:28px;height:28px}.ic.s32{width:32px;height:32px}.ic.s40{width:40px;height:40px}.ic.s48{width:48px;height:48px}
+.mk{--m1:rgb(var(--accent));--m2:rgb(var(--accent)/.5);flex:none}
+.mk.inv{--m1:rgb(var(--accent-fg));--m2:rgb(var(--accent-fg)/.55)}
+.mk.mono-m{--m1:rgb(var(--fg));--m2:rgb(var(--fg)/.45)}
+.spin-mk{animation:spin 1.6s linear infinite}
+
+/* ---------- Butonlar ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 15px;border-radius:10px;font:600 13.5px/1 var(--font-body);border:1px solid rgb(var(--border-strong));background:rgb(var(--surface));color:rgb(var(--fg));white-space:nowrap;cursor:pointer;flex:none}
+.btn .ic{width:16px;height:16px}
+.btn.pri{background:rgb(var(--accent));border-color:transparent;color:rgb(var(--accent-fg))}
+.btn.inv{background:rgb(var(--fg));border-color:transparent;color:rgb(var(--bg))}
+.btn.ghost{background:none;border-color:transparent;color:rgb(var(--fg-2))}
+.btn.dng{background:rgb(var(--danger));border-color:transparent;color:#fff}
+html[data-theme="dark"] .btn.dng{color:rgb(10 10 11)}
+.btn.dng-o{background:none;border-color:rgb(var(--danger)/.5);color:rgb(var(--danger))}
+.btn.sm{height:30px;padding:0 11px;font-size:12.5px;border-radius:8px}
+.btn.lg{height:46px;padding:0 20px;font-size:15px;border-radius:12px}
+.btn.blk{display:flex;width:100%}
+.btn[disabled],.btn.dis{opacity:.45;cursor:not-allowed}
+.btn.ld{color:transparent !important;position:relative}
+.btn.ld::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid rgb(var(--fg)/.25);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite}
+.btn.pri.ld::after{border-color:rgb(var(--accent-fg)/.3);border-top-color:rgb(var(--accent-fg))}
+.ib{width:36px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:grid;place-items:center;color:rgb(var(--fg-2));background:rgb(var(--surface));position:relative;flex:none;cursor:pointer;padding:0}
+.ib .ic{width:18px;height:18px}
+.ib.sm{width:30px;height:30px;border-radius:8px}.ib.sm .ic{width:16px;height:16px}
+.ib.ghost{border-color:transparent;background:none}
+.pip{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:rgb(var(--danger));box-shadow:0 0 0 2px rgb(var(--surface))}
+.lnk{font-weight:600;color:rgb(var(--fg));text-decoration:underline;text-decoration-color:rgb(var(--fg)/.3);text-underline-offset:3px}
+.kbd{font:500 11px/1 var(--font-mono);border:1px solid rgb(var(--border));border-bottom-width:2px;border-radius:5px;padding:2px 5px;color:rgb(var(--fg-3));margin-left:auto}
+:where(.scr) .focus{outline:2px solid rgb(var(--fg));outline-offset:2px}
+
+/* ---------- Form ---------- */
+.fld{display:grid;gap:6px;min-width:0}
+.lbl{font:600 12.5px/1.2 var(--font-body);color:rgb(var(--fg-2));display:flex;align-items:center;gap:6px}
+.lbl .opt{font-weight:500;color:rgb(var(--fg-3))}
+.inp{display:flex;align-items:center;gap:8px;min-height:40px;border:1px solid rgb(var(--border-strong));border-radius:10px;padding:0 12px;background:rgb(var(--surface));color:rgb(var(--fg));font:400 14px/1.4 var(--font-body);width:100%;min-width:0}
+.inp .ph{color:rgb(var(--fg-3))}
+.inp .ic{width:16px;height:16px;color:rgb(var(--fg-3))}
+.inp.ta{align-items:flex-start;padding:10px 12px;min-height:96px;white-space:pre-wrap}
+.inp.foc{border-color:rgb(var(--fg));box-shadow:0 0 0 3px rgb(var(--fg)/.10)}
+.inp.err{border-color:rgb(var(--danger));box-shadow:0 0 0 3px rgb(var(--danger)/.12)}
+.inp.ro{background:rgb(var(--bg-2));color:rgb(var(--fg-2));border-style:dashed}
+.inp.dis{opacity:.55}
+.inp.mono,.inp .mono{font-family:var(--font-mono);font-size:13px}
+.inp.sel::after{content:"";margin-left:auto;width:8px;height:8px;border-right:1.8px solid rgb(var(--fg-3));border-bottom:1.8px solid rgb(var(--fg-3));transform:rotate(45deg) translate(-2px,-2px);flex:none}
+.hint{font-size:12px;color:rgb(var(--fg-3));line-height:1.45}
+.err-t{font-size:12px;color:rgb(var(--danger));display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.cnt{font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3));margin-left:auto;white-space:nowrap}
+.cnt.near{color:rgb(var(--warning))}.cnt.over{color:rgb(var(--danger))}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.chk.on{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.on::after{content:"";width:9px;height:5px;border-left:2px solid rgb(var(--accent-fg));border-bottom:2px solid rgb(var(--accent-fg));transform:rotate(-45deg) translate(1px,-1px)}
+.chk.mix{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.mix::after{content:"";width:9px;height:2px;background:rgb(var(--accent-fg));border-radius:2px}
+.chk.dis{opacity:.45}
+.rad{width:18px;height:18px;border-radius:50%;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.rad.on{border-color:rgb(var(--accent))}
+.rad.on::after{content:"";width:9px;height:9px;border-radius:50%;background:rgb(var(--accent))}
+.sw{width:36px;height:22px;border-radius:999px;background:rgb(var(--border-strong));position:relative;flex:none;display:inline-block}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgb(0 0 0/.25);transition:left var(--dur-2) var(--ease)}
+.sw.on{background:rgb(var(--accent))}
+.sw.on::after{left:17px}
+.sw.dis{opacity:.45}
+.opt-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0}
+.seg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:10px;padding:3px;gap:2px;background:rgb(var(--bg-2));flex:none}
+.seg>*{border:0;background:none;color:rgb(var(--fg-2));font:500 12.5px/1 var(--font-body);padding:7px 11px;border-radius:7px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.seg>.on{background:rgb(var(--surface));color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--border))}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));background:rgb(var(--surface));font:500 12.5px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.chip .ic{width:14px;height:14px}
+.chip.on{border-color:rgb(var(--accent));color:rgb(var(--accent-text));background:rgb(var(--accent)/.08)}
+.chip .x{opacity:.6}
+.ferr{border:1px solid rgb(var(--danger)/.45);background:rgb(var(--danger)/.07);border-radius:var(--r-md);padding:12px 14px;display:flex;gap:10px;font-size:13px}
+.ferr ul{margin:4px 0 0;padding-left:18px}
+
+/* ---------- Rozet, mağaza etiketi ---------- */
+.bdg{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1 var(--font-body);padding:5px 9px;border-radius:var(--r-pill);border:1px solid rgb(var(--border-strong));color:rgb(var(--fg-2));white-space:nowrap;background:rgb(var(--surface))}
+.bdg .dot,.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;display:inline-block}
+.bdg.ok{color:rgb(var(--success));border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.07)}
+.bdg.warn{color:rgb(var(--warning));border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.08)}
+.bdg.dng{color:rgb(var(--danger));border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.07)}
+.bdg.info{color:rgb(var(--info));border-color:rgb(var(--info)/.45);background:rgb(var(--info)/.07)}
+.bdg.acc{color:rgb(var(--accent-text));border-color:rgb(var(--accent)/.45);background:rgb(var(--accent)/.08)}
+.bdg.sol{background:rgb(var(--fg));color:rgb(var(--bg));border-color:transparent}
+.bdg.sm{font-size:10.5px;padding:3px 7px}
+.bdg.live .dot{animation:pulse 1.6s infinite}
+.st{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.st b{display:inline-grid;place-items:center;min-width:24px;height:18px;padding:0 4px;border-radius:5px;font:700 9.5px/1 var(--font-mono);letter-spacing:.02em;border:1.5px solid currentColor;color:rgb(var(--fg))}
+.st.sm{font-size:11px}.st.sm b{height:16px;min-width:22px;font-size:9px}
+.st.only b{margin:0}
+.plat{font:600 10.5px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.tag{display:inline-flex;align-items:center;font:500 11.5px/1 var(--font-mono);padding:4px 7px;border-radius:6px;background:rgb(var(--bg-2));color:rgb(var(--fg-2));border:1px solid rgb(var(--border));white-space:nowrap}
+
+/* ---------- Avatar, uygulama ikonu ---------- */
+.av{width:30px;height:30px;border-radius:50%;background:rgb(var(--bg-2));border:1px solid rgb(var(--border));display:inline-grid;place-items:center;font:600 11.5px/1 var(--font-body);color:rgb(var(--fg-2));flex:none}
+.av.s{width:24px;height:24px;font-size:10px}.av.l{width:44px;height:44px;font-size:15px}.av.xl{width:72px;height:72px;font-size:22px}
+.aic{--c:#555;width:44px;height:44px;border-radius:12px;background:var(--c);display:inline-grid;place-items:center;font:800 18px/1 var(--font-display);color:#fff;flex:none;position:relative;overflow:hidden}
+.aic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgb(255 255 255/.12)}
+.aic.s{width:28px;height:28px;border-radius:8px;font-size:12px}.aic.m{width:36px;height:36px;border-radius:10px;font-size:15px}.aic.l{width:64px;height:64px;border-radius:17px;font-size:26px}
+
+/* ---------- Kart, panel, liste ---------- */
+.card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.card-h .h3{font-size:15px}
+.card-b{padding:18px}
+.card-f{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid rgb(var(--border))}
+.card.dash{border-style:dashed;background:none}
+.card.warn{border-color:rgb(var(--warning)/.5)}
+.card.dng{border-color:rgb(var(--danger)/.5)}
+.card.sel{border-color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--fg))}
+.lst{display:grid}
+.lst-i{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgb(var(--border));min-width:0}
+.lst-i:last-child{border-bottom:0}
+.lst-i.on{background:rgb(var(--bg-2))}
+.lst-i .f1{overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:10px 20px;margin:0;font-size:13.5px}
+.kv dt{color:rgb(var(--fg-3))}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.stat{display:grid;gap:6px;padding:16px 18px}
+.stat .lb{font-size:12.5px;color:rgb(var(--fg-2))}
+.callout{display:flex;gap:12px;align-items:flex-start;border:1px solid rgb(var(--border));background:rgb(var(--bg-2));border-radius:var(--r-md);padding:12px 14px;font-size:13px;line-height:1.5}
+.callout .ic{width:18px;height:18px;margin-top:1px}
+.callout.info{border-color:rgb(var(--info)/.4);background:rgb(var(--info)/.06)}.callout.info>.ic{color:rgb(var(--info))}
+.callout.warn{border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.07)}.callout.warn>.ic{color:rgb(var(--warning))}
+.callout.dng{border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.06)}.callout.dng>.ic{color:rgb(var(--danger))}
+.callout.ok{border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.06)}.callout.ok>.ic{color:rgb(var(--success))}
+
+/* ---------- Sekmeler ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid rgb(var(--border));margin-bottom:20px}
+.tab{display:inline-flex;align-items:center;gap:7px;padding:10px 12px;font:500 13.5px/1 var(--font-body);color:rgb(var(--fg-2));border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab .ic{width:16px;height:16px}
+.tab.on{color:rgb(var(--fg));font-weight:600;border-bottom-color:rgb(var(--accent))}
+.tab .n{font:600 10.5px/1 var(--font-mono);padding:3px 5px;border-radius:5px;background:rgb(var(--bg-2));color:rgb(var(--fg-3))}
+.tab .n.dng{background:rgb(var(--danger)/.12);color:rgb(var(--danger))}
+
+/* ---------- Tablo, sayfalama ---------- */
+.tbl-w{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;min-width:0}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}
+.tbl th{text-align:left;font:600 12px/1.2 var(--font-body);color:rgb(var(--fg-3));padding:11px 14px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2)/.6);white-space:nowrap}
+.tbl th .ic{width:12px;height:12px;vertical-align:-1px;margin-left:3px}
+.tbl th.srt{color:rgb(var(--fg))}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgb(var(--border));vertical-align:middle;overflow-wrap:anywhere}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.sel td{background:rgb(var(--accent)/.06)}
+.tbl tr.hov td{background:rgb(var(--bg-2)/.7)}
+.tbl td.ta{text-align:right;white-space:nowrap}
+.tbl .w1{width:1%;white-space:nowrap}
+.pager{display:flex;align-items:center;gap:10px;padding:12px 2px 0;font-size:13px;color:rgb(var(--fg-2))}
+.pager .ml{margin-left:auto}
+.bulk{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);background:rgb(var(--fg));color:rgb(var(--bg));font-size:13px;margin-bottom:12px}
+.bulk .btn{background:rgb(var(--bg)/.12);border-color:transparent;color:rgb(var(--bg))}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+
+/* ---------- Boş, iskelet, durum ---------- */
+.empty{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:40px 24px;display:grid;justify-items:center;text-align:center;gap:10px;color:rgb(var(--fg-2))}
+.empty .eic{width:56px;height:56px;border-radius:16px;background:rgb(var(--bg-2));display:grid;place-items:center;color:rgb(var(--fg-2))}
+.empty .eic .ic{width:26px;height:26px}
+.empty h4{margin:4px 0 0;font:700 17px/1.2 var(--font-display);color:rgb(var(--fg))}
+.empty p{margin:0;max-width:420px;font-size:13.5px}
+.state{display:grid;justify-items:center;text-align:center;gap:12px;padding:56px 24px}
+.state .sic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:rgb(var(--bg-2));color:rgb(var(--fg-2))}
+.state .sic .ic{width:30px;height:30px}
+.state h3{margin:0;font:800 24px/1.1 var(--font-display);letter-spacing:-.02em}
+.state p{margin:0;max-width:440px;color:rgb(var(--fg-2))}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,rgb(var(--bg-2)) 0%,rgb(var(--border)/.7) 50%,rgb(var(--bg-2)) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;height:12px}
+.sk.t{height:18px}.sk.b{height:36px;border-radius:10px}.sk.ci{border-radius:50%}
+.topline{position:absolute;left:0;right:0;top:0;height:2px;overflow:hidden;z-index:5}
+.topline::after{content:"";position:absolute;inset:0 60% 0 0;background:rgb(var(--accent));animation:slide 1.2s var(--ease) infinite}
+.spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid rgb(var(--fg)/.15);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite;display:inline-block}
+
+/* ---------- İlerleme, adım, zaman çizelgesi ---------- */
+.prog{height:6px;border-radius:3px;background:rgb(var(--bg-2));overflow:hidden;min-width:40px}
+.prog>i{display:block;height:100%;background:rgb(var(--accent));border-radius:3px}
+.prog.ok>i{background:rgb(var(--success))}.prog.warn>i{background:rgb(var(--warning))}.prog.dng>i{background:rgb(var(--danger))}.prog.neu>i{background:rgb(var(--fg-2))}
+.prog.sm{height:4px}
+.stp{display:flex;gap:6px}
+.stp>span{flex:1;height:6px;border-radius:3px;background:rgb(var(--bg-2))}
+.stp>.d{background:rgb(var(--fg-2))}.stp>.n{background:rgb(var(--accent));animation:breathe 1.4s ease-in-out infinite}.stp>.x{background:rgb(var(--danger))}
+.tl{display:grid;position:relative}
+.tl-i>*{min-width:0;overflow-wrap:anywhere}
+.tl-i{display:grid;grid-template-columns:18px minmax(0,1fr);gap:12px;position:relative;padding-bottom:18px}
+.tl-i::before{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:rgb(var(--border))}
+.tl-i:last-child::before{display:none}
+.tl-d{width:18px;height:18px;border-radius:50%;border:2px solid rgb(var(--border-strong));background:rgb(var(--surface));margin-top:1px}
+.tl-d.ok{border-color:rgb(var(--success));background:rgb(var(--success))}
+.tl-d.now{border-color:rgb(var(--accent));box-shadow:0 0 0 4px rgb(var(--accent)/.18)}
+.tl-d.dng{border-color:rgb(var(--danger));background:rgb(var(--danger))}
+.tl-d.warn{border-color:rgb(var(--warning))}
+.ck{display:grid}
+.ck-i{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed rgb(var(--border))}
+.ck-i:last-child{border-bottom:0}
+.ck-s{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;border:1.5px solid rgb(var(--border-strong));margin-top:1px}
+.ck-s .ic{width:13px;height:13px;stroke-width:2.6}
+.ck-s.ok{background:rgb(var(--success));border-color:rgb(var(--success));color:#fff}
+.ck-s.dng{background:rgb(var(--danger)/.12);border-color:rgb(var(--danger));color:rgb(var(--danger))}
+.ck-s.warn{background:rgb(var(--warning)/.12);border-color:rgb(var(--warning));color:rgb(var(--warning))}
+.ck-s.asst{border-style:dashed}
+
+/* ---------- Diff, kod ---------- */
+.diff{border:1px solid rgb(var(--border));border-radius:var(--r-md);overflow:hidden;font-size:13px;background:rgb(var(--surface))}
+.diff-h{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgb(var(--bg-2));border-bottom:1px solid rgb(var(--border));font:600 12px/1.2 var(--font-body)}
+.dl{display:grid;grid-template-columns:22px 1fr;padding:6px 12px 6px 6px;line-height:1.55;border-bottom:1px solid rgb(var(--border)/.6)}
+.dl:last-child{border-bottom:0}
+.dl::before{font:700 12px/1.55 var(--font-mono);text-align:center;color:rgb(var(--fg-3));content:" "}
+.dl.del{background:rgb(var(--danger)/.07)}.dl.del::before{content:"-";color:rgb(var(--danger))}
+.dl.add{background:rgb(var(--success)/.08)}.dl.add::before{content:"+";color:rgb(var(--success))}
+.diff del{background:rgb(var(--danger)/.2);text-decoration:line-through;text-decoration-color:rgb(var(--danger)/.6);border-radius:3px;padding:0 2px}
+.diff ins{background:rgb(var(--success)/.22);text-decoration:none;border-radius:3px;padding:0 2px}
+.code{margin:0;font:500 12.5px/1.6 var(--font-mono);background:rgb(var(--bg-2));border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:14px 16px;overflow:auto;white-space:pre;color:rgb(var(--fg))}
+.code .c1{color:rgb(var(--fg-3))}.code .k1{color:rgb(var(--accent-text))}.code .s1{color:rgb(var(--success))}
+.secret{display:flex;align-items:center;gap:8px;font:500 13px/1.3 var(--font-mono);background:rgb(var(--bg-2));border:1px dashed rgb(var(--border-strong));border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}
+
+/* ---------- Yüzen öğeler: menü, modal, çekmece, toast ---------- */
+.ovl{position:absolute;inset:0;background:rgb(var(--overlay)/.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60}
+.mdl{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-xl);box-shadow:var(--sh-float);width:520px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.mdl.sm{width:420px}.mdl.lg{width:720px}.mdl.xl{width:960px}
+.mdl-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.mdl-h .h2{font-size:19px}
+.mdl-b{padding:16px 22px;overflow:auto;display:grid;gap:14px;min-height:0}
+.mdl-f{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 22px;border-top:1px solid rgb(var(--border));background:rgb(var(--bg)/.5)}
+.drw{position:absolute;top:0;right:0;bottom:0;width:480px;background:rgb(var(--surface));border-left:1px solid rgb(var(--border));box-shadow:var(--sh-float);display:flex;flex-direction:column;z-index:61}
+.drw .mdl-b{flex:1}
+.pop{position:absolute;z-index:70;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:6px;min-width:200px;display:grid;gap:1px}
+.pop .mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13.5px;color:rgb(var(--fg));white-space:nowrap}
+.pop .mi .ic{width:16px;height:16px;color:rgb(var(--fg-2))}
+.pop .mi.on{background:rgb(var(--bg-2))}
+.pop .mi.dng,.pop .mi.dng .ic{color:rgb(var(--danger))}
+.pop .ms{height:1px;background:rgb(var(--border));margin:4px 2px}
+.pop .mh{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:8px 10px 4px}
+.toasts{position:absolute;right:20px;bottom:20px;display:grid;gap:8px;z-index:80}
+.toast{width:360px;display:flex;gap:10px;align-items:flex-start;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:12px 14px;font-size:13px}
+.toast>.ic{width:18px;height:18px;margin-top:1px}
+.toast.ok>.ic{color:rgb(var(--success))}.toast.dng>.ic{color:rgb(var(--danger))}.toast.info>.ic{color:rgb(var(--info))}.toast.warn>.ic{color:rgb(var(--warning))}
+.tip{position:absolute;z-index:75;background:rgb(var(--fg));color:rgb(var(--bg));font-size:12px;padding:6px 9px;border-radius:7px;white-space:nowrap}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:13px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2))}
+.banner.warn{background:rgb(var(--warning)/.1);border-color:rgb(var(--warning)/.35)}
+.banner.dng{background:rgb(var(--danger)/.08);border-color:rgb(var(--danger)/.35)}
+.banner.info{background:rgb(var(--info)/.08);border-color:rgb(var(--info)/.35)}
+
+/* ---------- Giriş sayfası düzeni ---------- */
+.auth{display:grid;grid-template-columns:560px 1fr;height:100%}
+.auth-f{padding:48px 72px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:2;background:rgb(var(--bg));overflow:auto}
+.auth-f .brand{padding:0}
+.auth-c{margin:auto 0;display:grid;gap:16px;width:100%;max-width:400px}
+.auth-c h1{font:800 34px/1.05 var(--font-display);letter-spacing:-.03em;margin:0}
+.auth-foot{display:flex;justify-content:space-between;gap:12px;font:500 11px/1.4 var(--font-mono);color:rgb(var(--fg-3))}
+.auth-art{position:relative;overflow:hidden;background:rgb(var(--surface))}
+.auth-art::before{content:"";position:absolute;inset:0 auto 0 0;width:220px;background:linear-gradient(90deg,rgb(var(--bg)),rgb(var(--bg)/0));z-index:1}
+.auth-art svg{position:absolute;inset:0;width:100%;height:100%}
+@container scr (max-width:760px){
+  .auth{grid-template-columns:1fr}
+  .auth-art{display:none}
+  .auth-f{padding:28px 20px}
+}
+
+/* ---------- Hareket ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation:none !important;transition:none !important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+.rm-only{display:none}
+html[data-motion="reduce"] .rm-only{display:revert}
+html[data-motion="reduce"] .rm-hide{display:none !important}
+
+/* ---------- Doküman: telefon genişliğinde okuma ---------- */
+@media (max-width:720px){
+  .doc{padding:24px 16px 80px}
+  .doc-top{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .doc-top .ttl,.doc-top .pn{display:none}
+  .doc-hero h1{font-size:32px}
+  .sec-h h2{font-size:26px}
+  .vp{border-radius:var(--r-md)}
+}
+
+</style>
+<style>
+
+.typecheck{font:600 15px/1 var(--font-mono)}
+.tsel{min-height:32px;width:150px;font-size:13px;padding:0 10px}
+.tsel.dis{opacity:.5}
+.rwrap{position:relative;display:inline-flex}
+.tip.wr{white-space:normal;width:230px;line-height:1.4;right:0;top:38px}
+.rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rc{border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
+.rc.on{border-color:rgb(var(--accent));box-shadow:0 0 0 1px rgb(var(--accent)) inset}
+.rc ul{margin:0;padding-left:16px;font-size:12px;color:rgb(var(--fg-2));line-height:1.5}
+.emails{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:44px;padding:6px 10px}
+.rolel{display:grid;gap:6px}
+.rolei{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:10px 12px;background:rgb(var(--surface))}
+.rolei.on{border-color:rgb(var(--fg));background:rgb(var(--bg-2))}
+.pgrp{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px dashed rgb(var(--border))}
+.pgrp:last-child{border-bottom:0}
+.pgrp-h{display:grid;gap:4px;align-content:start}
+.prow{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;padding:6px 0}
+.prow .chk{margin-top:2px}
+.fullp{border:1px dashed rgb(var(--danger)/.5);border-radius:var(--r-md);padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.tbl tr.xp td{background:rgb(var(--bg-2)/.6)}
+.chn{font:600 11px/1 var(--font-mono);letter-spacing:.02em}
+.dz{display:flex;gap:16px;align-items:center;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.dz:last-child{border-bottom:0}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.consq{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:rgb(var(--fg-2))}
+@container scr (max-width:760px){
+  .rcards{grid-template-columns:1fr}
+  .pgrp{grid-template-columns:1fr;gap:8px}
+  .pgrp.cl .prow{display:none}
+  .tbl td.xd{display:block}
+  .dz{flex-wrap:wrap}
+  .tsel{width:100%}
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<!-- Logo K3 "Dört kanat e": --m1 ana ton, --m2 ikinci ton (renkler .mk sınıfından) -->
+<symbol id="logo" viewBox="0 0 48 48"><path d="M24 24H43a9.5 9.5 0 0 0-19 0z" fill="var(--m1)"/><path d="M24 24V5a9.5 9.5 0 0 0 0 19z" fill="var(--m2)"/><path d="M24 24H5a9.5 9.5 0 0 0 19 0z" fill="var(--m1)"/></symbol>
+
+<!-- İkonlar: 24x24, stroke 1.9 (.ic sınıfı), kodda lucide karşılığı adın yanında -->
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><!-- layout-grid -->
+<symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol><!-- activity -->
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol><!-- image -->
+<symbol id="i-images" viewBox="0 0 24 24"><rect x="7" y="3" width="14" height="14" rx="2.5"/><path d="M3 7v11a3 3 0 0 0 3 3h11"/><path d="m21 13-4-4-6 6"/><circle cx="12" cy="8" r="1.5"/></symbol><!-- images -->
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><!-- message-square -->
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></symbol><!-- key -->
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/></symbol><!-- users -->
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><!-- user -->
+<symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></symbol><!-- user-plus -->
+<symbol id="i-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 11l2 2 4-4"/></symbol><!-- user-check -->
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol><!-- list -->
+<symbol id="i-list-check" viewBox="0 0 24 24"><path d="M11 6h10M11 12h10M11 18h10M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></symbol><!-- list-checks -->
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><!-- search -->
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><!-- bell -->
+<symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.7.5 4.6 1.1 6M17 17H3s3-2 3-9c0-.8.1-1.5.4-2.2M10.3 21a1.9 1.9 0 0 0 3.4 0M2 2l20 20"/></symbol><!-- bell-off -->
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><!-- plus -->
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><!-- minus -->
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol><!-- chevron-down -->
+<symbol id="i-chev-u" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5"/></symbol><!-- chevron-up -->
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m10 7 5 5-5 5"/></symbol><!-- chevron-right -->
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5"/></symbol><!-- chevron-left -->
+<symbol id="i-chevs" viewBox="0 0 24 24"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></symbol><!-- chevrons-up-down -->
+<symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><!-- arrow-right -->
+<symbol id="i-arrow-l" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol><!-- arrow-left -->
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol><!-- arrow-up -->
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol><!-- arrow-down -->
+<symbol id="i-arrows-lr" viewBox="0 0 24 24"><path d="M4 8h16M16 4l4 4-4 4M20 16H4M8 12l-4 4 4 4"/></symbol><!-- arrow-left-right -->
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol><!-- arrow-up-down -->
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><!-- x -->
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol><!-- check -->
+<symbol id="i-check-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></symbol><!-- circle-check -->
+<symbol id="i-x-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol><!-- circle-x -->
+<symbol id="i-alert-t" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><!-- triangle-alert -->
+<symbol id="i-alert-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></symbol><!-- circle-alert -->
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol><!-- info -->
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 1c0 1.8-2.5 2.2-2.5 4M12 17h.01"/></symbol><!-- circle-help -->
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol><!-- lock -->
+<symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.7-1.5"/></symbol><!-- lock-open -->
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol><!-- eye -->
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.6 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></symbol><!-- eye-off -->
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></symbol><!-- mail -->
+<symbol id="i-mail-check" viewBox="0 0 24 24"><path d="M21 12V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v9A2.5 2.5 0 0 0 5.5 19H12"/><path d="m3 7 9 6 9-6M15 18l2 2 4-4"/></symbol><!-- mail-check -->
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- upload -->
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- download -->
+<symbol id="i-cloud-up" viewBox="0 0 24 24"><path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.3 4.3 0 0 1-1 8.5M12 12v9M8.5 15.5 12 12l3.5 3.5"/></symbol><!-- cloud-upload -->
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></symbol><!-- refresh-cw -->
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol><!-- settings -->
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><!-- sliders-horizontal -->
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol><!-- log-out -->
+<symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></symbol><!-- log-in -->
+<symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-4h6v4M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></symbol><!-- building -->
+<symbol id="i-switch" viewBox="0 0 24 24"><path d="M16 3l4 4-4 4M20 7H8M8 21l-4-4 4-4M4 17h12"/></symbol><!-- arrow-right-left -->
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8"/></symbol><!-- copy -->
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol><!-- external-link -->
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><!-- link -->
+<symbol id="i-unlink" viewBox="0 0 24 24"><path d="M18.8 13.2l1.7-1.7a5 5 0 0 0-7-7l-1.7 1.7M5.2 10.8l-1.7 1.7a5 5 0 0 0 7 7l1.7-1.7M8 2v3M2 8h3M16 22v-3M22 16h-3"/></symbol><!-- unlink -->
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol><!-- trash-2 -->
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></symbol><!-- pencil-line -->
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol><!-- ellipsis -->
+<symbol id="i-more-v" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></symbol><!-- ellipsis-vertical -->
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></symbol><!-- funnel -->
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><!-- calendar -->
+<symbol id="i-cal-clock" viewBox="0 0 24 24"><path d="M21 10V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v11A2.5 2.5 0 0 0 5.5 21H10M3 10h18M8 3v4M16 3v4"/><circle cx="17" cy="17" r="4.5"/><path d="M17 15v2l1.3 1.3"/></symbol><!-- calendar-clock -->
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><!-- clock -->
+<symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v3a5 5 0 0 0 10 0V3M7 21v-3a5 5 0 0 1 10 0v3"/></symbol><!-- hourglass -->
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol><!-- history -->
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol><!-- play -->
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol><!-- pause -->
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol><!-- square -->
+<symbol id="i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/><path d="M10 9v6l5-3z"/></symbol><!-- rotate-ccw + play -->
+<symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol><!-- rocket -->
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol><!-- send -->
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></symbol><!-- shield -->
+<symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol><!-- shield-check -->
+<symbol id="i-shield-x" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/></symbol><!-- shield-x -->
+<symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.3-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5M2 2l20 20"/></symbol><!-- wifi-off -->
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol><!-- server -->
+<symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol><!-- database -->
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol><!-- globe -->
+<symbol id="i-lang" viewBox="0 0 24 24"><path d="M4 5h9M8.5 3v2M11 5c-1 4-4 7-7 8.5M6 9c1.4 2 3.6 3.6 6 4.5M13 21l4-9 4 9M14.5 18h5"/></symbol><!-- languages -->
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></symbol><!-- flag -->
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></symbol><!-- star -->
+<symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 17 4 12l5-5M20 18v-2a4 4 0 0 0-4-4H4"/></symbol><!-- reply -->
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol><!-- tag -->
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></symbol><!-- layers -->
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol><!-- package -->
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol><!-- file -->
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol><!-- file-text -->
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><!-- folder -->
+<symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol><!-- code-xml -->
+<symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol><!-- square-terminal -->
+<symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="7" r="2"/><path d="M6 7v10M18 9c0 5-6 4-11.5 8.5"/></symbol><!-- git-branch -->
+<symbol id="i-compare" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M13 6h3a2 2 0 0 1 2 2v7.5M11 18H8a2 2 0 0 1-2-2V8.5M15 3l-2 3 2 3M9 21l2-3-2-3"/></symbol><!-- git-compare -->
+<symbol id="i-webhook" viewBox="0 0 24 24"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2M6 17l3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06M12 6l3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/></symbol><!-- webhook -->
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol><!-- zap -->
+<symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></symbol><!-- hash -->
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><!-- smartphone -->
+<symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M11 18h2"/></symbol><!-- tablet -->
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2.5"/><path d="M8 21h8M12 17v4"/></symbol><!-- monitor -->
+<symbol id="i-fold" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 3v18" stroke-dasharray="2 2.4"/></symbol><!-- katlanır cihaz (kendi çizimimiz) -->
+<symbol id="i-frame" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3.5"/><rect x="10" y="4" width="4" height="1.6" rx=".8"/></symbol><!-- cihaz çerçevesi (kendi çizimimiz) -->
+<symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></symbol><!-- type -->
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A1.6 1.6 0 0 1 12 22z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15.5" cy="7.5" r="1"/></symbol><!-- palette -->
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></symbol><!-- move -->
+<symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/></symbol><!-- crop -->
+<symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol><!-- maximize -->
+<symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 11h6M9 15h4"/></symbol><!-- clipboard-list -->
+<symbol id="i-clip-check" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 13l2 2 4-4"/></symbol><!-- clipboard-check -->
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol><!-- bookmark -->
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/></symbol><!-- sparkles (MCP/Claude önerisi) -->
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol><!-- cpu -->
+<symbol id="i-workflow" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v3.5a2 2 0 0 0 2 2H14"/></symbol><!-- workflow -->
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol><!-- inbox -->
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1.5"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol><!-- archive -->
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><!-- sun -->
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol><!-- moon -->
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol><!-- menu -->
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><!-- house -->
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.1 0 2.9 6 1.6 6 4.3 0 1.3-1.3 2.1-3 2.1-1.4 0-2.6-.6-3.1-1.6M12 6v2M12 16v2"/></symbol><!-- circle-dollar-sign -->
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol><!-- repeat (abonelik) -->
+<symbol id="i-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol><!-- percent -->
+<symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-4M3.3 19a10 10 0 1 1 17.4 0z"/></symbol><!-- gauge -->
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7 15h10"/></symbol><!-- flask-conical (beta, TestFlight) -->
+<symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol><!-- plane (paket uçuşu) -->
+<symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol><!-- grip-vertical -->
+<symbol id="i-fingerprint" viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1 0 4-1 6M14 13.1c0 2.5 0 5-1 7.9M17.3 21c.3-1 .6-3 .7-4M2 12a10 10 0 0 1 18-6M2 16h.01M21.8 16c.2-2 .1-5.3 0-6M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .3-2M8.7 22c.2-.7.5-1.3.6-2M9 6.8a6 6 0 0 1 9 5.2v2"/></symbol><!-- fingerprint -->
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a6 6 0 0 1-12 0V8z"/></symbol><!-- plug -->
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol><!-- ban -->
+<symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="14" rx="5"/><path d="M12 20v-9M9 3l1.5 3M15 3l-1.5 3M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 19l3-2M20 19l-3-2"/></symbol><!-- bug -->
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+<symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol><!-- circle -->
+<symbol id="i-circle-dash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></symbol><!-- circle-dashed -->
+<symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/></symbol><!-- loader-circle -->
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol><!-- map-pin -->
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0zM8 21h8"/></symbol><!-- scale (politika, uyum) -->
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5 2.5 2.5 0 0 0 6.5 24"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></symbol><!-- book -->
+<symbol id="i-radar" viewBox="0 0 24 24"><path d="M19.1 4.9A10 10 0 1 0 22 12M16.2 7.8A6 6 0 1 0 18 12M12 12l7-7"/><circle cx="12" cy="12" r="1.5"/></symbol><!-- radar (kural izleyici) -->
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v4M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 8 8h2a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0"/></symbol><!-- hand (asistanlı adım, el ile) -->
+<symbol id="i-wand" viewBox="0 0 24 24"><path d="m15 4 5 5M3 21 14.5 9.5M14 3v2M20 9h2M18 3l-1.5 1.5M10.5 6.5 9 5"/></symbol><!-- wand -->
+<symbol id="i-cursor" viewBox="0 0 24 24"><path d="M4 3l7 18 2.5-7.5L21 11z"/></symbol><!-- mouse-pointer-2 (tarayıcı devri) -->
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7M12 8v13M12 8S10.5 3 8 3a2.5 2.5 0 0 0 0 5M12 8s1.5-5 4-5a2.5 2.5 0 0 1 0 5"/></symbol><!-- gift (teklif) -->
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 7H6"/></symbol><!-- shopping-cart (IAP) -->
+<symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol><!-- keyboard -->
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol><!-- qr-code -->
+<symbol id="i-cookie" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5z"/><path d="M8.5 8.5h.01M16 15.5h.01M12 12h.01M11 17h.01M7 14h.01"/></symbol><!-- cookie -->
+<symbol id="i-scroll" viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4M19 17V5a2 2 0 0 0-2-2H4"/></symbol><!-- scroll-text (yasal metin) -->
+</defs>
+</svg>
+
+<header class="doc-top"><a class="home" href="04-Icindekiler.html"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm" style="font-size:17px">stor<i>e</i>asy</span></a><span class="ttl">Organizasyon, üyeler ve denetim kaydı</span><span class="sp"></span><nav class="pn"><a href="14-Baglantilar-Webhook-Bildirim.html" title="Önceki dosya">14</a><a href="04-Icindekiler.html">İçindekiler</a><a href="16-Hesap-ve-MCP.html" title="Sonraki dosya">16</a></nav><div class="dseg" role="group"><button type="button" data-set="view" data-v="desktop" aria-pressed="false">Masaüstü</button><button type="button" data-set="view" data-v="phone" aria-pressed="false">Telefon</button></div><div class="dseg" role="group"><button type="button" data-set="theme" data-v="light" aria-pressed="false">Açık</button><button type="button" data-set="theme" data-v="dark" aria-pressed="false">Koyu</button></div><div class="dseg" role="group"><button type="button" data-set="motion" data-v="full" aria-pressed="false">Hareket</button><button type="button" data-set="motion" data-v="reduce" aria-pressed="false">Azaltılmış</button></div></header>
+<main class="doc">
+<section class="doc-hero"><span class="k">15 · Organizasyon</span><h1>Organizasyon, üyeler ve denetim kaydı</h1><p>Üyeler ve bekleyen davetler, davet akışı, rol değiştirme ve sahiplik devri, dört kilitli rolün izinleri, organizasyonun denetim kaydı ve organizasyon ayarları. Organizasyon oluşturma 05'te.</p><nav class="doc-toc" aria-label="Bölümler"></nav></section>
+<!-- ============ 1. ÜYELER ============ -->
+<section class="sec" id="uyeler">
+<div class="sec-h"><span class="k">Bölüm 15.1-15.4</span><h2>Üyeler ve bekleyen davetler</h2><p>Organizasyonun üyeleri ve henüz kabul edilmemiş davetler tek sayfada. Rol tablo satırında değiştirilir; değişiklik onaydan sonra hemen etkili olur, çünkü yetki her istekte üyelikten okunur (K3). Kurallar arayüzde görünür: en az bir Sahip kalır, Sahip başka Sahip atanmadan kendini düşüremez, Yönetici Sahip'e dokunamaz.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-1" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">15.1</b><span class="fr-t">Üyeler (Sahip görünümü)</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/members?OrganizationId=7</code> → <code>MemberListDto { Members[OrganizationMemberDto { Id, UserId, Email, Name, Surname, Role, JoinDate }], Invitations[OrganizationInvitationDto { Id, Email, Role, ExpiryDate, CreationDate }] }</code>. Liste sayfalı değil (üye sayısı küçük); arama istemcide. Rol değişikliği <code>PUT /api/v1.0/organizations/member/role { OrganizationId, MemberId, Role }</code> (onay 15.9), davet geri alma <code>DELETE /api/v1.0/organizations/invitation { OrganizationId, InvitationId }</code>. <b>İzin:</b> liste <code>View</code>; rol seçimi, davet ve davetler bölümü <code>ManageMembers</code>. Kendi satırında rol seçimi pasif: tek Sahip olduğun için düşemezsin (<code>OrganizationLastOwner</code>). <b>Telefonda</b> tablolar karta döner, "Üye davet et" sağ altta yüzen düğme. <span class="gap">Backend boşluğu:</span> "Son etkinlik" (<code>LastActivityDate</code>) <code>OrganizationMemberDto</code>'da yok; davet eden kişi (<code>InviterUserId</code> tabloda var, DTO'da yok); "Yeniden gönder" için ayrı uç yok (aynı e-postaya yeni davet eskisini iptal eder, yeni bağlantı üretir) ve davet e-postası gönderilmiyor.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler ve rolleri. Rol değişikliği bir sonraki istekte geçerli olur.</p></div>
+          <div class="pg-a"><div class="inp hide-ph" style="width:240px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad ya da e-posta</span></div><span class="btn pri hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Üyeler <span class="n">4</span></a><a class="tab" href="#">Roller</a></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Ad soyad <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>E-posta</th><th>Rol</th><th>Katılım</th><th>Son etkinlik</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol"><span class="c gp4"><span class="inp sel tsel dis" aria-disabled="true"><svg class="ic s14"><use href="#i-lock"/></svg>Sahip</span><span class="t-xs fg3">Tek Sahip: önce başka Sahip ata</span></span></td><td data-l="Katılım">2 Eyl 2026</td><td data-l="Son etkinlik">Şimdi</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Yönetici</span></td><td data-l="Katılım">4 Eyl 2026</td><td data-l="Son etkinlik">14:02</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Editör</span></td><td data-l="Katılım">12 Eyl 2026</td><td data-l="Son etkinlik">11:48 · CI</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">İzleyici</span></td><td data-l="Katılım">3 Kas 2026</td><td data-l="Son etkinlik" class="fg3">9 gün önce</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+
+        <div class="r gp8 mt24 mb12"><h2 class="h3">Bekleyen davetler</h2><span class="bdg sm">1</span><span class="t-s fg3 ml hide-ph">Davet bağlantısı 7 gün geçerli, tek kullanımlık</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>E-posta</th><th>Rol</th><th>Gönderildi</th><th>Bitiş</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s"><svg class="ic s14"><use href="#i-mail"/></svg></span><b class="mono t-s">can@kuzeylab.dev</b></span></td><td data-l="Rol">Editör</td><td data-l="Gönderildi">18 Kas 2026, 09:30</td><td data-l="Bitiş"><span class="bdg warn sm">25 Kas · 7 gün</span></td><td class="ta"><span class="r gp6 je"><span class="btn sm ghost"><svg class="ic"><use href="#i-refresh"/></svg>Yeniden gönder</span><span class="btn sm dng-o">Geri al</span></span></td></tr>
+          </tbody></table></div>
+        <p class="t-xs fg3 mt12">"Yeniden gönder" eski bağlantıyı geçersiz kılar ve yeni bir bağlantı üretir.</p>
+      </div>
+    </div>
+    <span class="btn pri fab"><svg class="ic"><use href="#i-user-plus"/></svg>Davet et</span>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-2" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.2</b><span class="fr-t">Yönetici görünümü: Sahip satırı kilitli, rol menüsü açık</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">Ece Yılmaz (Yönetici) olarak. Sahip satırında rol seçimi ve "..." menüsü pasif; üstüne gelince ipucu: "Yönetici, Sahip rolündeki üyeyi değiştiremez." Rol menüsünde "Sahip" seçeneği kilitli (yalnız Sahip atar, <code>OrgRoleRules.CanAssign</code>). Kendi satırında rolünü düşürebilir (onayda "kendi yetkini kaybedersin" uyarısı) ama yükseltemez. <b>API:</b> sunucu aynı kuralı uygular, istemci kuralı yalnız görünürlük içindir; ihlalde 403 <code>OrganizationForbidden</code> toast'ı. <b>İzin:</b> <code>ManageMembers</code>. <b>Telefonda</b> menü ekranın altından açılan seçim sayfası olur, ipucu yerine satırın altında açıklama metni.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-role="Admin" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler ve rolleri.</p></div>
+          <div class="pg-a"><span class="btn pri hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Üyeler <span class="n">4</span></a><a class="tab" href="#">Roller</a></div>
+        <div class="tbl-w" style="overflow:visible"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol"><span class="c gp4"><span class="rwrap"><span class="inp sel tsel dis" aria-disabled="true"><svg class="ic s14"><use href="#i-lock"/></svg>Sahip</span><span class="tip wr hide-ph" role="tooltip">Yönetici, Sahip rolündeki üyeyi değiştiremez ve organizasyondan çıkaramaz.</span></span><span class="t-xs fg3 only-ph">Sahip'i yalnız bir Sahip değiştirir</span></span></td><td data-l="Katılım">2 Eyl 2026</td><td class="ta"><span class="ib sm ghost" aria-disabled="true" style="opacity:.4"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Yönetici</span></td><td data-l="Katılım">4 Eyl 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel foc">Editör</span></td><td data-l="Katılım">12 Eyl 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">İzleyici</span></td><td data-l="Katılım">3 Kas 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+    <div class="pop hide-ph" style="top:416px;left:781px;width:290px" role="listbox" aria-label="Rol">
+      <div class="mh">Mert Kaya için rol</div>
+      <div class="mi"><span class="f1"><b>Yönetici</b><div class="t-xs fg3" style="white-space:normal">Yayın, gönderim, bağlantı ve üye yönetimi</div></span></div>
+      <div class="mi on"><span class="f1"><b>Editör</b><div class="t-xs fg3" style="white-space:normal">İçerik, test track'leri, yorum yanıtı</div></span><svg class="ic"><use href="#i-check"/></svg></div>
+      <div class="mi"><span class="f1"><b>İzleyici</b><div class="t-xs fg3" style="white-space:normal">Yalnız görür</div></span></div>
+      <div class="ms"></div>
+      <div class="mi" aria-disabled="true" style="opacity:.5"><svg class="ic"><use href="#i-lock"/></svg><span class="f1"><b>Sahip</b><div class="t-xs fg3" style="white-space:normal">Yalnız bir Sahip atayabilir</div></span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-3">
+  <figcaption class="fr-h"><b class="fr-n">15.3</b><span class="fr-t">İzleyici görünümü: salt okunur liste</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">Selin Demir (İzleyici) olarak. Sunucu <code>Invitations</code>'ı yalnız <code>ManageMembers</code> iznine dolu döner; izleyici için bölüm hiç çizilmez. Rol sütunu düz metin, satırda eylem yok; "Üye davet et" gizli (eylem hiç yapılamadığı için pasif değil, gizli). Kendi satırında yalnız "Organizasyondan ayrıl" var (<code>DELETE /api/v1.0/organizations/member</code> kendi <code>MemberId</code>'siyle, izin <code>View</code>). <b>Telefonda</b> kart listesi.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-role="Viewer">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler.</p></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol">Sahip</td><td data-l="Katılım">2 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol">Yönetici</td><td data-l="Katılım">4 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol">Editör</td><td data-l="Katılım">12 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol">İzleyici</td><td data-l="Katılım">3 Kas 2026</td><td class="ta"><span class="btn sm ghost"><svg class="ic"><use href="#i-logout"/></svg>Ayrıl</span></td></tr>
+          </tbody></table></div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-lock"/></svg><span>Üyeleri ve davetleri yalnız <b>Sahip</b> ve <b>Yönetici</b> yönetir.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-4">
+  <figcaption class="fr-h"><b class="fr-n">15.4</b><span class="fr-t">İlk yükleme (iskelet)</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">İskelet tablo satırı biçiminde (08 bölüm 3.6). Rol değişikliği sonrası yeniden yüklemede satırlar kalır, üstte ince ilerleme çizgisi akar; yalnız değişen satırın rol seçimi kendi spinner'ını gösterir. Hata olursa tablo yerine "Bir şeyler ters gitti" + "Tekrar dene".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div class="c gp8"><span class="sk t" style="width:140px;height:28px"></span><span class="sk" style="width:320px;max-width:100%"></span></div><div class="pg-a"><span class="btn pri dis hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th>Son etkinlik</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:120px"></span></span></td><td data-l=""><span class="sk" style="width:150px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:100px"></span></span></td><td data-l=""><span class="sk" style="width:140px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:110px"></span></span></td><td data-l=""><span class="sk" style="width:150px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. DAVET ============ -->
+<section class="sec" id="davet">
+<div class="sec-h"><span class="k">Bölüm 15.5-15.8</span><h2>Üye davet et</h2><p>Davet e-postayla ve rol seçerek yapılır; bağlantı 7 gün geçerli ve tek kullanımlık. Token sunucuda yalnız hash olarak tutulur, bağlantı bu yüzden yalnız davet anında bir kez gösterilir. Sahip rolüyle davet edilmez: önce üye olarak davet edilir, sonra sahiplik devredilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-5" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">15.5</b><span class="fr-t">Davet formu: e-postalar ve rol kartları</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/organizations/invitation { OrganizationId, Email, Role }</code> (<code>Idempotency-Key</code>, <code>[RateLimit(30, 3600)]</code>) → <code>InvitationCreatedDto { Id, Token, ExpiryDate }</code>. Uç tek e-posta alır; birden çok adres yazılınca istemci adres başına bir istek atar ve her biri saatlik 30 sınırına sayılır. Rol kartları rol matrisinden (plan bölüm 6): Yönetici kartı yalnız davet edenin atayabileceği rollerdir; <code>Role = Owner</code> doğrulayıcıda reddedilir (<code>OrganizationRoleInvalid</code>). <b>İzin:</b> <code>ManageMembers</code>. <b>Telefonda</b> modal tam ekran, kartlar alt alta, alt bar sabit.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m155">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m155">Kuzey Lab'e üye davet et</h2><p class="t-s fg2 mt4">Her adres için tek kullanımlık bir bağlantı üretilir.</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">E-posta adresleri</span>
+          <div class="inp foc emails"><span class="chip on">can@kuzeylab.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="chip">ayse@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="t-s">burak@ornek</span></div>
+          <span class="hint">Virgül, boşluk ya da Enter ile ayır. En çok 10 adres; saatte en çok 30 davet.</span></div>
+        <div class="fld"><span class="lbl">Rol</span>
+          <div class="rcards">
+            <div class="rc"><div class="r gp8"><span class="rad"></span><b class="t-m">Yönetici</b></div><ul><li>Editör'ün yaptığı her şey</li><li>Production yayını ve incelemeye gönderme</li><li>Mağaza bağlantıları, webhook'lar</li><li>Üye davet, rol değiştirme (Sahip hariç)</li></ul></div>
+            <div class="rc on"><div class="r gp8"><span class="rad on"></span><b class="t-m">Editör</b></div><ul><li>Metin, görsel, mockup, build bağlama</li><li>Test track'lerine ve TestFlight'a yayın</li><li>Yorum yanıtlama</li><li>Kendi token'ı (rolünü aşamaz)</li></ul></div>
+            <div class="rc"><div class="r gp8"><span class="rad"></span><b class="t-m">İzleyici</b></div><ul><li>Uygulamaları, işleri ve denetim kaydını görür</li><li>Hiçbir şeyi değiştiremez</li><li>Yalnız salt okunur token</li></ul></div>
+          </div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>Sahip rolü davetle verilmez. Üye katıldıktan sonra <span class="lnk">sahipliği devredebilirsin</span>.</span></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1 hide-ph">2 adres hazır · 1 adres eksik</span><span class="btn ghost">İptal</span><span class="btn pri dis" aria-disabled="true">2 davet oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-6">
+  <figcaption class="fr-h"><b class="fr-n">15.6</b><span class="fr-t">Davet oluşturuldu: bağlantı bir kez gösterilir</span><code class="fr-r">/members → davet sonucu</code></figcaption>
+  <p class="fr-note"><code>InvitationCreatedDto.Token</code> yalnız bu yanıtta döner; bağlantı <code>https://storeasy.milvasoft.com/invite?token=…</code>. Kapatınca bir daha gösterilmez, yeni bağlantı için "Yeniden gönder". Davet alan kişi hesabı yoksa kayıt olur, varsa doğrudan kabul eder (<code>POST /api/v1.0/organizations/invitation/accept { Token }</code>; önizleme 05'te, <code>GET /api/v1.0/organizations/invitation?Token=</code> planlanan). Denetim kaydına <code>MemberInvited</code> düşer. <span class="gap">Backend boşluğu:</span> davet e-postası gönderilmiyor (<code>IEmailSender</code> bağlı değil); e-posta gidene kadar bağlantıyı kopyalayıp iletmek tek yol.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m156">
+      <div class="mdl-h"><span class="ck-s ok" style="width:32px;height:32px"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><h2 class="h2" id="m156">2 davet oluşturuldu</h2><p class="t-s fg2 mt4">Bağlantılar yalnız şimdi görünür. Kopyala ve kişiye ilet.</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">can@kuzeylab.dev · Editör</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/invite?token=Hq7vX2mK…f81c</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyalandı</span></div></div>
+        <div class="fld"><span class="lbl">ayse@ornek.dev · Editör</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/invite?token=P0aZr9cW…22be</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Bağlantılar <b>25 Kasım 2026, 09:30</b>'a kadar geçerli ve tek kullanımlık. Bağlantıyı alan herkes daveti kabul edebilir; yalnız kişinin kendisine gönder.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Başka davet</span><span class="btn pri">Tamam</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-7">
+  <figcaption class="fr-h"><b class="fr-n">15.7</b><span class="fr-t">409: adres zaten üye</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note">Çoklu davette başarılı olanlar oluşturulur, başarısız adresler formda kalır; form kapanmaz (08 bölüm 2.4). Hata metni sunucudan gelir (<code>OrganizationAlreadyMember</code>), ilgili adres çipi hata kenarlığıyla işaretlenir. Bekleyen davet varken aynı adrese yeni davet hata vermez: eski davet iptal edilir, yeni bağlantı üretilir (formda bilgi notu).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m157">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m157">Kuzey Lab'e üye davet et</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>1 davet oluşturulamadı</b><ul><li>mert@kuzeylab.dev bu organizasyonun zaten üyesi.</li></ul><div class="t-xs fg2 mt4">ayse@ornek.dev için davet oluşturuldu.</div></div></div>
+        <div class="fld"><span class="lbl">E-posta adresleri</span><div class="inp err emails"><span class="chip" style="border-color:rgb(var(--danger))">mert@kuzeylab.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span></div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>can@kuzeylab.dev için bekleyen bir davet var; yeniden davet edersen eski bağlantı geçersiz olur.</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri dis" aria-disabled="true">Davet oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-8">
+  <figcaption class="fr-h"><b class="fr-n">15.8</b><span class="fr-t">429: saatlik davet sınırı</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note"><code>[RateLimit(30, 3600, "org-invite")]</code> aşılınca 429 ve <code>Retry-After</code>. Form üstünde süre gösterilir, "Davet oluştur" geri sayım bitene kadar pasif; yazılan adresler korunur. Sayaç organizasyon başına değil istek kapsamı başına tutulur; metin sunucunun mesajıdır, süre başlıktan.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m158">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m158">Kuzey Lab'e üye davet et</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-hourglass"/></svg><div><b>Saatlik davet sınırına ulaşıldı</b><div class="t-s fg2 mt4">Saatte en çok 30 davet oluşturulabilir. <b class="tnum">23 dakika</b> sonra tekrar dene.</div></div></div>
+        <div class="fld"><span class="lbl">E-posta adresleri</span><div class="inp emails"><span class="chip">deniz.y@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="chip">ops@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span></div></div>
+        <div class="fld"><span class="lbl">Rol</span><span class="inp sel">İzleyici</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri dis tnum" aria-disabled="true">23:00 sonra</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. ONAYLAR ============ -->
+<section class="sec" id="onaylar">
+<div class="sec-h"><span class="k">Bölüm 15.9-15.12</span><h2>Rol değiştirme, çıkarma, ayrılma ve sahiplik devri</h2><p>Kullanıcıyı kısıtlayan her eylem onay ister; diyalog neyin olacağını somut söyler. Sahiplik devri yalnız Sahip'e açık ve organizasyon adını yazmayı ister.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-9">
+  <figcaption class="fr-h"><b class="fr-n">15.9</b><span class="fr-t">Rol değiştirme onayı</span><code class="fr-r">/members → rol</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PUT /api/v1.0/organizations/member/role { OrganizationId, MemberId, Role }</code>; son Sahip düşürülürse 400 <code>OrganizationLastOwner</code>. Etki anında: yetki token'dan değil her istekte üyelikten okunur (K3, Redis önbelleği değişiklikte temizlenir). Rol düşünce kişinin bu organizasyondaki token'ları yeni rolün üstüne çıkamaz; yazma token'ı İzleyici'ye düşen kişide salt okunur çalışır. Denetim kaydına <code>MemberRoleChanged</code>. <b>İzin:</b> <code>ManageMembers</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m159">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m159">Mert Kaya Yönetici olsun mu?</h2></div></div>
+      <div class="mdl-b">
+        <div class="r gp8 wrap t-m"><span class="bdg">Editör</span><svg class="ic s16 fg3"><use href="#i-arrow-r"/></svg><span class="bdg acc">Yönetici</span></div>
+        <p class="t-s fg2" style="margin:0">Değişiklik hemen geçerli olur: Mert bir sonraki işleminde production'a yayın yapabilir, incelemeye gönderebilir, mağaza bağlantılarını ve üyeleri yönetebilir. Açık oturumu ve MCP token'ları da yeni rolle çalışır.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Rolü değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-10">
+  <figcaption class="fr-h"><b class="fr-n">15.10</b><span class="fr-t">Üyeyi çıkar</span><code class="fr-r">/members → çıkar</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/organizations/member { OrganizationId, MemberId }</code>; Sahip'i yalnız Sahip çıkarır, son Sahip çıkarılamaz. Denetim kaydı silinmez; kişinin geçmiş kayıtları adıyla kalır (<code>MemberRemoved</code>). <span class="gap">Backend boşluğu:</span> üye çıkarılınca o organizasyona bağlı kişisel token'larının iptali (<code>PersonalAccessTokens</code> henüz yok).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1510">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1510">Selin Demir çıkarılsın mı?</h2></div></div>
+      <div class="mdl-b">
+        <ul class="consq"><li>Kuzey Lab'e erişimi hemen kesilir.</li><li>Bu organizasyon için oluşturduğu 1 token iptal edilir.</li><li>Denetim kaydındaki geçmiş işlemleri adıyla kalır.</li></ul>
+        <p class="t-s fg3" style="margin:0">Geri almak için yeniden davet etmen gerekir.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng"><svg class="ic"><use href="#i-trash"/></svg>Üyeyi çıkar</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-11">
+  <figcaption class="fr-h"><b class="fr-n">15.11</b><span class="fr-t">Organizasyondan ayrıl: tek Sahip engeli</span><code class="fr-r">/members → ayrıl</code></figcaption>
+  <p class="fr-note">Ayrılma aynı uç: <code>DELETE /api/v1.0/organizations/member</code> kendi <code>MemberId</code>'siyle (izin <code>View</code>). Deniz tek Sahip olduğu için diyalog engeli önceden söyler ve ayrılma düğmesi yerine "Sahipliği devret" sunar; sunucu yine <code>OrganizationLastOwner</code> döner. Başka Sahip varsa diyalog sade: "Kuzey Lab'den ayrılırsan erişimin hemen kesilir; bu organizasyondaki token'ların iptal edilir." + kırmızı "Ayrıl".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1511">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1511">Kuzey Lab'den ayrılamazsın</h2></div></div>
+      <div class="mdl-b">
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Organizasyonun tek <b>Sahip</b>'i sensin. Her organizasyonda en az bir Sahip kalır. Önce sahipliği bir üyeye devret, sonra ayrıl.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn inv"><svg class="ic"><use href="#i-switch"/></svg>Sahipliği devret</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-12" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.12</b><span class="fr-t">Sahipliği devret</span><code class="fr-r">/members → sahiplik</code></figcaption>
+  <p class="fr-note">Yalnız Sahip. Yeni Sahip mevcut bir üyeden seçilir; devreden kişinin yeni rolü seçilir (varsayılan Yönetici); onay için organizasyon adı aynen yazılır. <b>API:</b> <code>PUT /api/v1.0/organizations/owner { OrganizationId, NewOwnerMemberId, PreviousOwnerRole }</code> (planlanan, iki rol değişikliğini tek işlemde yapar). Bugün aynı sonuç iki <code>PUT member/role</code> çağrısıyla alınabilir (önce yeni Sahip, sonra kendini düşür) ama ikisinin arasında hata olursa iki Sahip kalır. <b>İzin:</b> <code>ManageOrganization</code>. Denetim kaydına iki <code>MemberRoleChanged</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1512">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24"><use href="#i-switch"/></svg></span><div class="f1"><h2 class="h2" id="m1512">Kuzey Lab sahipliğini devret</h2><p class="t-s fg2 mt4">Organizasyonu silme ve sahip atama yetkisi yeni Sahip'e geçer.</p></div></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Yeni Sahip</span><span class="inp sel"><span class="av s">EY</span>Ece Yılmaz <span class="fg3 t-s">· şu an Yönetici</span></span><span class="hint">Yalnız mevcut üyeler. Yeni biri için önce davet et.</span></label>
+        <div class="fld"><span class="lbl">Senin yeni rolün</span><div class="seg"><span class="on">Yönetici</span><span>Editör</span><span>İzleyici</span><span>Sahip kal</span></div><span class="hint">"Sahip kal" seçilirse iki Sahip olur; sonra ayrılabilirsin.</span></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kuzey Lab</span> yaz</span><span class="inp foc typecheck mono">Kuzey Lab</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg>Metin eşleşti.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Sahipliği devret</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. ROLLER ============ -->
+<section class="sec" id="roller">
+<div class="sec-h"><span class="k">Bölüm 15.13-15.14</span><h2>Roller</h2><p>Dört seed rol (Sahip, Yönetici, Editör, İzleyici) kilitli; izinleri koddaki matristen gelir (<code>OrgRoleRules</code>) ve burada salt okunur görünür. İzinler matris değil dikey gruplu liste (09: kolonlar sağa büyümez). Özel roller Faz 8'de.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-13" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">15.13</b><span class="fr-t">Roller ve izinleri (salt okunur)</span><code class="fr-r">/members/roles</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/mine</code> → <code>MyOrganizationDto { Id, Name, Slug, Role, Permissions[] }</code> yalnız kendi rolünün izinlerini verir. Bütün rollerin matrisini dönen uç yok. <span class="gap">Backend boşluğu:</span> <code>GET /api/v1.0/organizations/roles</code> → <code>OrgRoleDto { Role, Permissions[], MemberCount, IsLocked }</code> (matrisi sunucudan okumak için; frontend'e kopyalanmaz). İzin açıklamaları <code>OrgPermission</code> <code>Description</code>'larından, sözlükte Türkçesi. Üst satır: rol adı, izin arama, "yalnız seçili olanlar", "{n} izin seçili". Grup başlığında "n / m seçili"; onay kutuları kilitli (<code>.chk</code> pasif değil, salt okunur: düzenleme Faz 8). "Özel rol" pasif, gerekçesiyle. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler|Roller" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1></div><div class="pg-a"><span class="btn dis" aria-disabled="true"><svg class="ic"><use href="#i-plus"/></svg>Özel rol</span><span class="bdg sm">Faz 8</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Üyeler <span class="n">4</span></a><a class="tab on" href="#">Roller</a></div>
+        <div class="split-l">
+          <div class="rolel">
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Sahip</b><div class="t-xs fg3">10 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Yönetici</b><div class="t-xs fg3">9 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei on"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Editör</b><div class="t-xs fg3">4 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">İzleyici</b><div class="t-xs fg3">1 / 10 izin · 1 üye</div></div></div>
+            <div class="card dash mt8"><div class="card-b t-s fg2">Özel roller (ad ve izinleri düzenlenebilir) Faz 8'de gelecek. Seed rollerin adı ve izinleri değişmez.</div></div>
+          </div>
+          <div class="card"><div class="card-h"><svg class="ic s18 fg3"><use href="#i-lock"/></svg><span class="h3">Editör</span><span class="bdg sm">Sistem rolü · kilitli</span><span class="t-s fg3 ml hide-ph">4 izin seçili</span></div>
+            <div class="card-b">
+              <div class="r gp8 wrap mb16"><div class="inp f1" style="min-width:180px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">İzinlerde ara</span></div><span class="r gp8 t-s"><span class="sw"></span>Yalnız seçili olanlar</span></div>
+              <div class="fullp"><span class="chk dis"></span><div class="f1"><b class="t-m">Tam yetki</b><div class="t-s fg2">Bütün izinler, sahip atama ve organizasyonu silme. Yalnız Sahip rolünde.</div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Görme</b><span class="t-xs fg3">1 / 1 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Görüntüle</b> <span class="mono t-xs fg3">View</span><div class="t-s fg2">Uygulamalar, mağaza kayıtları, işler, yorumlar ve denetim kaydı.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">İçerik</b><span class="t-xs fg3">2 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Mağaza içeriğini düzenle</b> <span class="mono t-xs fg3">EditContent</span><div class="t-s fg2">Metin, ekran görüntüsü, mockup, build bağlama (diff, dry run, yazma).</div></div></div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Yorum yanıtla</b> <span class="mono t-xs fg3">ReplyReviews</span><div class="t-s fg2">App Store ve Google Play yorumlarına yanıt.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Yayın</b><span class="t-xs fg3">1 / 3 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Test track'lerine yayın</b> <span class="mono t-xs fg3">ReleaseTest</span><div class="t-s fg2">Play internal ve test track'leri, TestFlight, paket uçuşları.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Production'a yayın</b> <span class="mono t-xs fg3">ReleaseProduction</span><div class="t-s fg2">Play production, aşamalı yayın yüzdesi, Microsoft Store yayını.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">İncelemeye gönder</b> <span class="mono t-xs fg3">SubmitForReview</span><div class="t-s fg2">App Store incelemesi ve Microsoft sertifikasyonu; ikinci onay ister.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Teslim</b><span class="t-xs fg3">0 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Mağaza bağlantılarını yönet</b> <span class="mono t-xs fg3">ManageConnections</span><div class="t-s fg2">API anahtarı ve servis hesabı ekleme, doğrulama, silme.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Webhook'ları yönet</b> <span class="mono t-xs fg3">ManageWebhooks</span><div class="t-s fg2">Apple webhook uçları ve sır yenileme.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Organizasyon</b><span class="t-xs fg3">0 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Üyeleri yönet</b> <span class="mono t-xs fg3">ManageMembers</span><div class="t-s fg2">Davet, rol değiştirme, çıkarma (Sahip hariç).</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Organizasyonu yönet</b> <span class="mono t-xs fg3">ManageOrganization</span><div class="t-s fg2">Ayarlar, sahiplik devri, organizasyonu silme.</div></div></div></div></div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-14" data-view="phone" data-ph="900">
+  <figcaption class="fr-h"><b class="fr-n">15.14</b><span class="fr-t">Roller telefonda: açılır-kapanır gruplar</span><code class="fr-r">/members/roles</code></figcaption>
+  <p class="fr-note">Rol seçimi üstte yatay segment; gruplar alt alta ve kapalı açılır, grup başlığında "n / m seçili" ve ok. Bir grup açık (Yayın). Kilit ve "Faz 8" notu aynen kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler|Roller" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Roller</h1></div></div>
+        <div class="seg mb16" style="max-width:100%;overflow-x:auto"><span>Sahip</span><span>Yönetici</span><span class="on">Editör</span><span>İzleyici</span></div>
+        <div class="card"><div class="card-h"><svg class="ic s18 fg3"><use href="#i-lock"/></svg><span class="h3">Editör</span><span class="t-xs fg3 ml">4 / 10 izin</span></div>
+          <div class="card-b" style="padding-top:0;padding-bottom:0">
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Görme</b> <span class="t-xs fg3">· 1 / 1 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">İçerik</b> <span class="t-xs fg3">· 2 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp"><div class="pgrp-h r bt"><span><b class="t-m">Yayın</b> <span class="t-xs fg3">· 1 / 3 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-u"/></svg></div><div>
+              <div class="prow"><span class="chk on"></span><div><b class="t-s">Test track'lerine yayın</b><div class="t-s fg2">Play test track'leri, TestFlight, paket uçuşları.</div></div></div>
+              <div class="prow"><span class="chk"></span><div><b class="t-s">Production'a yayın</b><div class="t-s fg2">Play production, aşamalı yayın, Microsoft Store yayını.</div></div></div>
+              <div class="prow"><span class="chk"></span><div><b class="t-s">İncelemeye gönder</b><div class="t-s fg2">App Store incelemesi, Microsoft sertifikasyonu.</div></div></div></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Teslim</b> <span class="t-xs fg3">· 0 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Organizasyon</b> <span class="t-xs fg3">· 0 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+          </div></div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-lock"/></svg><span>Sistem rolleri düzenlenmez. Özel roller Faz 8'de.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. DENETİM KAYDI ============ -->
+<section class="sec" id="denetim">
+<div class="sec-h"><span class="k">Bölüm 15.15-15.19</span><h2>Denetim kaydı</h2><p>Organizasyondaki her yazmanın kaydı: kim, ne zaman, hangi kanaldan (web, MCP, API, sistem), hangi mağazada, ne değişti. Kayıt silinmez, yalnız saklama süresi dolunca temizlenir. MCP'den gelen işlemler Claude'un adına değil, token'ın sahibine yazılır ve token öneki gösterilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-15" data-h="1040">
+  <figcaption class="fr-h"><b class="fr-n">15.15</b><span class="fr-t">Denetim kaydı listesi</span><code class="fr-r">/audit</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/organizations/audit-logs</code> + ListRequest → <code>StoreAuditLogDto { Id, Date, UserName, Channel (Web, Mcp, Api, System), Action, Store?, TargetId, Summary, Details }</code>, varsayılan <code>Date</code> azalan. Filtreler (08 E11): tarih <code>Between</code> + hızlı seçim bugün / 7 gün / 30 gün; <code>Channel</code>, <code>Action</code>, <code>Store</code> enum olduğu için yalnız <code>EqualTo</code> / <code>NotEqualTo</code>; kullanıcı arama tek alan <code>UserName</code> <code>Contains</code>. Satır tıklaması 15.16 çekmecesi; ok ikonu satırı yerinde genişletir (<code>Details</code> diff). Sayfa boyutu 10 / 20 / 50 / 100. <b>İzin:</b> <code>View</code>. <b>Telefonda</b> kart: işlem + tarih üstte, kullanıcı + kanal altta; filtreler "Filtreler (2)" düğmesine toplanır. <span class="gap">Backend boşluğu:</span> <code>AuditAction</code>'da mağaza yazmaları yok (<code>ListingUpdated</code>, <code>ScreenshotsUploaded</code>, <code>BuildUploaded</code>, <code>ReleaseSubmitted</code>, <code>RolloutChanged</code>, <code>ReviewReplied</code>, <code>TokenCreated</code>, <code>TokenRevoked</code>...); DTO'da token kimliği (<code>TokenPrefix</code>, <code>TokenName</code>), uygulama adı (<code>AppId</code>, <code>AppName</code>; <code>StoreAppId</code> tabloda var) ve <code>StoreJobId</code> yok; <code>Summary</code> sunucuda İngilizce serbest metin (dile çevrilmiyor, parametreli şablon olmalı).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1><p class="pg-s">Kuzey Lab'de yapılan her değişiklik. Kayıtlar silinmez.</p></div>
+          <div class="pg-a"><span class="ib hide-ph" aria-label="Yenile"><svg class="ic"><use href="#i-refresh"/></svg></span><span class="btn"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar">
+          <div class="inp hide-ph" style="width:220px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Kullanıcı adında ara</span></div>
+          <span class="chip on hide-ph"><svg class="ic"><use href="#i-calendar"/></svg>Son 7 gün</span>
+          <span class="chip on hide-ph">Kanal eşittir: MCP, Web</span>
+          <span class="chip hide-ph"><svg class="ic"><use href="#i-filter"/></svg>İşlem</span>
+          <span class="chip hide-ph">Mağaza</span>
+          <span class="btn sm only-ph"><svg class="ic"><use href="#i-filter"/></svg>Filtreler (2)</span>
+          <span class="btn ghost sm">Filtreleri temizle</span>
+          <span class="t-s fg3 ml hide-ph">2 filtre etkin</span>
+        </div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="w1"></th><th class="srt">Tarih <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Kullanıcı</th><th>Kanal</th><th>İşlem</th><th>Mağaza</th><th>Hedef</th><th>Özet</th></tr></thead>
+          <tbody>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-d"/></svg></td><td class="tm nowrap">18 Kas, 14:10</td><td data-l="Kullanıcı"><span class="c"><b class="t-s">Claude (MCP)</b><span class="t-xs fg3">Deniz Arslan'ın token'ı <span class="mono">sea_9c1…</span></span></span></td><td data-l="Kanal"><span class="bdg acc sm chn">MCP</span></td><td data-l="İşlem">Mağaza kaydı güncellendi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · de-DE</td><td data-l="Özet" class="t-s">Pusula 2.3: de-DE anahtar kelimeler (dry run onaylandı)</td></tr>
+            <tr class="xp"><td colspan="8" class="xd"><div class="c gp10">
+              <div class="diff"><div class="diff-h"><span class="mono">keywords · de-DE</span><span class="t-xs fg3 ml">Details</span></div>
+                <div class="dl del"><span>Kompass, Navigation, <del>Karte</del>, Wandern</span></div>
+                <div class="dl add"><span>Kompass, Navigation, <ins>Offline-Karten</ins>, Wandern, <ins>Peilung</ins></span></div></div>
+              <div class="r gp8 wrap t-s"><span class="lnk">İşi aç · #4821</span><span class="fg3">·</span><span class="lnk">Ayrıntılar</span></div></div></td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 14:02</td><td data-l="Kullanıcı"><b class="t-s">Ece Yılmaz</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Mağaza kaydı güncellendi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · en-US</td><td data-l="Özet" class="t-s">Pusula 2.3: en-US yenilikler metni</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 11:48</td><td data-l="Kullanıcı"><span class="c"><b class="t-s">Mert Kaya</b><span class="t-xs fg3">CI token'ı <span class="mono">sci_4be…</span></span></span></td><td data-l="Kanal"><span class="bdg sm chn">API</span></td><td data-l="İşlem">Build yüklendi</td><td data-l="Mağaza"><span class="st sm"><b>GP</b></span></td><td data-l="Hedef" class="mono t-xs">com.kuzeylab.pusula · 231</td><td data-l="Özet" class="t-s">2.4.0 (231) closed track'e gönderildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 09:30</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Üye davet edildi</td><td data-l="Mağaza" class="fg3">-</td><td data-l="Hedef" class="mono t-xs">31</td><td data-l="Özet" class="t-s">can@kuzeylab.dev Editör olarak davet edildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 09:12</td><td data-l="Kullanıcı"><b class="t-s">storeasy</b></td><td data-l="Kanal"><span class="bdg sm chn">Sistem</span></td><td data-l="İşlem">Bağlantı doğrulandı</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">12</td><td data-l="Özet" class="t-s">Kuzey Lab ASC doğrulandı (Key ID 7QX2M4K9PL)</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">17 Kas, 16:40</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">İncelemeye gönderildi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · 2.3</td><td data-l="Özet" class="t-s">Pusula 2.3 (118) incelemeye gönderildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">17 Kas, 10:05</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Üye rolü değişti</td><td data-l="Mağaza" class="fg3">-</td><td data-l="Hedef" class="mono t-xs">14</td><td data-l="Özet" class="t-s">Ece Yılmaz: Editör → Yönetici</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 9 · Toplam: 172</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <p class="t-xs fg3 mt12">Kayıtlar 365 gün saklanır; süre <span class="lnk">organizasyon ayarlarından</span> değişir. Saatler senin yerel saatinde.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-16" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">15.16</b><span class="fr-t">Kayıt ayrıntısı (çekmece)</span><code class="fr-r">/audit?id=90412</code></figcaption>
+  <p class="fr-note">Sağdan açılan çekmece (08 bölüm 3.3), telefonda tam ekran. <code>Details</code> bugün serbest metin (JSON dizesi); çekmece içinde alan başına önce / sonra diff olarak çizilir. "İşi aç" canlı akıştaki iş detayına gider (adımlar, yeniden oynatma). <span class="gap">Backend boşluğu:</span> <code>Details</code> yapılandırılmış değişiklik olmalı (<code>Changes[{ Field, Locale, Before, After }]</code>, tabloda <code>Changes</code> jsonb planlı); DTO'ya <code>StoreJobId</code>, <code>Ip</code>, <code>TokenPrefix</code>, <code>TokenName</code>, <code>AppName</code> eklenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1516">
+      <div class="mdl-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><div class="f1"><div class="r gp8 mb8"><span class="bdg acc sm chn">MCP</span><span class="st sm"><b>AS</b>App Store</span></div><h2 class="h2" id="d1516">Mağaza kaydı güncellendi</h2><p class="t-s fg2 mt4">18 Kasım 2026, 14:10:22 · <span class="mono">#90412</span></p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <dl class="kv">
+          <dt>Kim</dt><dd><b>Claude (MCP)</b><div class="t-s fg2">Deniz Arslan'ın token'ı "Claude Code · dizüstü" <span class="mono">sea_9c1…</span></div></dd>
+          <dt>Uygulama</dt><dd><span class="r gp6"><span class="aic s" style="--c:#0F766E">P</span>Pusula · 2.3</span></dd>
+          <dt>Hedef</dt><dd class="mono t-s">6740012345 · de-DE</dd>
+          <dt>Araç</dt><dd class="mono t-s">listing_apply · plan 7f2c</dd>
+          <dt>İş</dt><dd><span class="lnk">#4821 · Tamamlandı, 4 sn</span></dd>
+          <dt>IP</dt><dd class="mono t-s fg3">MCP sunucusu</dd>
+        </dl>
+        <div class="diff"><div class="diff-h">Anahtar kelimeler · de-DE<span class="t-xs fg3 ml">51 / 100 karakter</span></div>
+          <div class="dl del"><span>Kompass, Navigation, <del>Karte</del>, Wandern</span></div>
+          <div class="dl add"><span>Kompass, Navigation, <ins>Offline-Karten</ins>, Wandern, <ins>Peilung</ins></span></div></div>
+        <div class="diff"><div class="diff-h">Tanıtım metni · de-DE</div>
+          <div class="dl"><span>Dein Kompass für unterwegs.</span></div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-spark"/></svg><div class="t-s">Claude önce dry run hazırladı; Deniz Arslan 14:09'da onayladı. Onay ve yazma aynı kayıtta.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn"><svg class="ic"><use href="#i-activity"/></svg>İşi aç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-17" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.17</b><span class="fr-t">Filtreler: tarih aralığı ve enum filtreleri</span><code class="fr-r">/audit → filtreler</code></figcaption>
+  <p class="fr-note">Masaüstünde sağ çekmece, telefonda tam ekran sayfa (aynı işaretleme; alt barda "Uygula · n kayıt"). Tarih: hazır aralıklar + iki alan (gün başı / gün sonu UTC'ye çevrilir, <code>Between</code> <code>value</code> / <code>otherValue</code>); takvim kitteki tarih seçicidir. Enum filtreleri her biri "eşittir / eşit değildir" + çoklu seçim değil tek değer (AND'lenir, OR yok; "MCP, Web" gibi çoklu seçim istemcide "eşit değildir: API" ve "eşit değildir: Sistem" iki kritere çevrilir). İşlem listesi <code>AuditAction</code> enum'undan, sunucudan çevrili etiketle (<code>lookups/enum</code>). Kullanıcı arama tek alan.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1517" style="width:420px">
+      <div class="mdl-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><div class="f1"><h2 class="h2" id="d1517">Filtreler</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Tarih</span>
+          <div class="presets"><span class="chip">Bugün</span><span class="chip on">Son 7 gün</span><span class="chip">Son 30 gün</span><span class="chip">Özel aralık</span></div>
+          <div class="g2" style="gap:8px"><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>11 Kas 2026</span><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>18 Kas 2026</span></div></div>
+        <div class="fld"><span class="lbl">Kullanıcı</span><div class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad soyad içinde</span></div></div>
+        <div class="fld"><span class="lbl">Kanal</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşittir</span><span class="inp sel f1">MCP</span></div></div>
+        <div class="fld"><span class="lbl">İşlem</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşit değildir</span><span class="inp sel f1">Bağlantı doğrulandı</span></div><span class="hint">Sistemin otomatik doğrulamalarını gizler.</span></div>
+        <div class="fld"><span class="lbl">Mağaza</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşittir</span><span class="inp sel f1"><span class="ph">Hepsi</span></span></div></div>
+        <div class="fld"><span class="lbl">Hedef <span class="opt">· kimlik, tam eşleşme</span></span><span class="inp mono"><span class="ph">ör. 6740012345</span></span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost f1" style="justify-content:flex-start">Temizle</span><span class="btn pri">Uygula · 38 kayıt</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-18">
+  <figcaption class="fr-h"><b class="fr-n">15.18</b><span class="fr-t">Dışa aktar: 5000 satır uyarısı</span><code class="fr-r">/audit → dışa aktar</code></figcaption>
+  <p class="fr-note">Mevcut filtre ve sıralamayla aktarılır, en çok 5000 satır (08 E14). Toplam 5000'i aşınca önceden uyarı; aşmıyorsa onaysız iner, düğme yükleniyor durumuna geçer. 503 gelirse "Dışa aktarma geçici olarak kapalı" toast'ı. <span class="gap">Backend boşluğu:</span> denetim kaydı için dışa aktarma yok: <code>POST /api/v1.0/exports/export</code> platform (Manager) ucu ve yalnız <code>ExportType.User</code>; organizasyon kapsamlı <code>POST /api/v1.0/organizations/audit-logs/export</code> (ListRequest ile, <code>View</code>, CSV) eklenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1518">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1518">İlk 5000 kayıt aktarılacak</h2></div></div>
+      <div class="mdl-b">
+        <p class="t-s fg2" style="margin:0">Seçili filtrelerle <b class="tnum">12.480</b> kayıt var. Dosya en çok 5000 satır alır; hepsini almak için tarih aralığını daralt.</p>
+        <dl class="kv t-s"><dt>Filtreler</dt><dd>Son 90 gün · Kanal eşittir Web</dd><dt>Sıralama</dt><dd>Tarih, yeniden eskiye</dd><dt>Biçim</dt><dd>CSV · UTF-8</dd></dl>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Filtreyi daralt</span><span class="btn pri"><svg class="ic"><use href="#i-download"/></svg>5000 kaydı aktar</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-19">
+  <figcaption class="fr-h"><b class="fr-n">15.19</b><span class="fr-t">Filtrelerle sonuç yok</span><code class="fr-r">/audit?channel=Api&amp;range=today</code></figcaption>
+  <p class="fr-note">Filtreler etkin ve sonuç boş: "Filtreleri temizle" ana çıkış. Organizasyonda hiç kayıt yoksa (yeni organizasyon) metin "Henüz kayıt yok. İlk mağaza bağlantısı ya da davet buraya düşer." olur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1></div><div class="pg-a"><span class="btn dis" aria-disabled="true"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar"><span class="chip on"><svg class="ic"><use href="#i-calendar"/></svg>Bugün</span><span class="chip on">Kanal eşittir: API</span><span class="t-s fg3 ml hide-ph">2 filtre etkin</span></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-filter"/></svg></span><h4>Bu filtrelerle kayıt yok</h4><p>Bugün API kanalından bir işlem yapılmadı. Tarih aralığını genişlet ya da kanal filtresini kaldır.</p><div class="r gp8 wrap jc"><span class="btn">Filtreleri temizle</span><span class="btn ghost">Son 7 gün</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. AYARLAR ============ -->
+<section class="sec" id="ayarlar">
+<div class="sec-h"><span class="k">Bölüm 15.20-15.22</span><h2>Organizasyon ayarları</h2><p>Ad, kısa ad (slug), saklama süreleri ve varsayılan dil; en altta tehlikeli bölge. Kayıt modu (açık / davetle / kapalı) organizasyon değil platform ayarıdır, burada yok.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-20" data-h="1080">
+  <figcaption class="fr-h"><b class="fr-n">15.20</b><span class="fr-t">Organizasyon ayarları</span><code class="fr-r">/settings</code></figcaption>
+  <p class="fr-note"><b>API:</b> ad <code>PUT /api/v1.0/organizations/organization { OrganizationId, Name }</code> (var; <code>UpdateOrganizationCommand</code> yalnız <code>Name</code> alır). Saklama süreleri <code>GET</code> / <code>PUT /api/v1.0/organizations/settings { ArtifactRetentionDays, AuditRetentionDays, DefaultLocale }</code> (planlanan). Kaydet yalnız değişen alanı gönderir (<code>UpdateProperty</code>); kaydedilmemiş değişiklik varken çıkışta uyarı. Slug değişince eski bağlantılar ve CI'daki organizasyon adresleri bozulur: alan odaklanınca uyarı. <b>İzin:</b> <code>ManageOrganization</code> (Sahip); Yönetici sayfayı salt okunur görür, İzleyici 403 (15.22). <b>Telefonda</b> kartlar alt alta, kaydet çubuğu altta sabit. <span class="gap">Backend boşluğu:</span> slug değiştirme (<code>UpdateOrganizationCommand</code>'a <code>Slug</code>, <code>OrganizationSlugTaken</code> zaten var); <code>DefaultLocale</code> planın ayarlar listesinde yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Ayarlar</h1><p class="pg-s">Kuzey Lab organizasyonunun genel ayarları.</p></div><div class="pg-a"><span class="t-s fg3 hide-ph">1 değişiklik</span><span class="btn ghost">Vazgeç</span><span class="btn pri">Kaydet</span></div></div>
+        <div class="c gp16" style="max-width:760px">
+          <div class="card"><div class="card-h"><span class="h3">Genel</span></div><div class="card-b c gp16">
+            <label class="fld"><span class="lbl">Organizasyon adı</span><span class="inp">Kuzey Lab</span></label>
+            <div class="fld"><span class="lbl">Kısa ad (slug)</span><span class="inp foc mono"><span class="fg3">storeasy.milvasoft.com/</span>kuzeylab</span><span class="hint">Küçük harf, rakam ve tire; 3-40 karakter.</span>
+              <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Kısa ad değişirse</b> <span class="mono">kuzey-lab</span> ile başlayan paylaşılmış bağlantılar ve CI yapılandırmalarındaki organizasyon adresi çalışmaz. Token'lar ve davetler etkilenmez.</div></div></div>
+            <label class="fld"><span class="lbl">Varsayılan dil</span><span class="inp sel">Türkçe (tr)</span><span class="hint">Yeni uygulamalarda birincil mağaza dili ve organizasyon e-postalarının dili.</span></label>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Saklama</span></div><div class="card-b c gp16">
+            <div class="g2">
+              <label class="fld"><span class="lbl">Paket saklama süresi</span><span class="inp"><span class="tnum">30</span><span class="fg3 ml">gün</span></span><span class="hint">CI'dan alınan AAB, IPA ve MSIX dosyaları mağazaya gittikten sonra bu süre kadar tutulur. Varsayılan 30.</span></label>
+              <label class="fld"><span class="lbl">Denetim kaydı saklama</span><span class="inp sel">365 gün</span><span class="hint">90, 180, 365, 730 gün. Süresi dolan kayıt gece temizlenir.</span></label>
+            </div>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Kaynak kod</span></div><div class="card-b r gp12 wrap t-s fg2"><svg class="ic s18"><use href="#i-code"/></svg><span class="f1">storeasy AGPL-3.0 lisanslı. Bu kurulumun kaynak kodu ve sürümü.</span><span class="lnk">v1.0.0 · kaynak kod</span></div></div>
+          <div class="card dng"><div class="card-h"><span class="h3 dng-t">Tehlikeli bölge</span></div>
+            <div class="dz"><div class="f1"><b class="t-m">Sahipliği devret</b><div class="t-s fg2">Sahip yetkisini başka bir üyeye ver.</div></div><span class="btn">Devret</span></div>
+            <div class="dz"><div class="f1"><b class="t-m">Organizasyonu sil</b><div class="t-s fg2">Uygulamalar, bağlantılar, token'lar ve kayıtlar kalıcı olarak silinir.</div></div><span class="btn dng-o"><svg class="ic"><use href="#i-trash"/></svg>Sil</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-21" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">15.21</b><span class="fr-t">Organizasyonu sil</span><code class="fr-r">/settings → sil</code></figcaption>
+  <p class="fr-note">Yalnız Sahip. Sonuçlar somut sayılarla listelenir, organizasyon adı aynen yazılınca kırmızı düğme etkinleşir. Mağazadaki uygulamalara dokunulmaz. Silme bir iş olarak çalışır; bitince kullanıcı başka organizasyonuna (yoksa organizasyon oluştur ekranına, 05) düşer. <b>API:</b> <code>DELETE /api/v1.0/organizations/organization { OrganizationId, Confirm: "Kuzey Lab" }</code> (planlanan). <b>İzin:</b> <code>ManageOrganization</code>. Diğer üyelere uygulama içi bildirim gider.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Ayarlar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1521">
+      <div class="mdl-h"><span class="ib ghost dng-t" style="border:0"><svg class="ic s24"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1521">Kuzey Lab kalıcı olarak silinsin mi?</h2><p class="t-s fg2 mt4">Bu işlem geri alınamaz.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-plug"/></svg><span class="f1 t-s">3 mağaza bağlantısının şifreli anahtarları silinir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-key"/></svg><span class="f1 t-s">4 kişisel token ve 2 CI token'ı hemen iptal edilir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-users"/></svg><span class="f1 t-s">4 üyenin erişimi kesilir, 1 bekleyen davet geçersiz olur</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-grid"/></svg><span class="f1 t-s">6 uygulama, mockup şablonları, kayıtlı cevaplar ve denetim kaydı silinir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-info"/></svg><span class="f1 t-s fg2">App Store, Google Play ve Microsoft Store'daki uygulamalar olduğu gibi kalır</span></div>
+        </div></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kuzey Lab</span> yaz</span><span class="inp foc mono">Kuzey La</span><span class="err-t t-s">Yazdığın metin eşleşmiyor.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng dis" aria-disabled="true">Organizasyonu sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-22">
+  <figcaption class="fr-h"><b class="fr-n">15.22</b><span class="fr-t">403: İzleyici ayarları açıyor</span><code class="fr-r">/settings</code></figcaption>
+  <p class="fr-note">Menüde "Ayarlar" görünür (Yönetici salt okunur görür), İzleyici doğrudan adresle ya da menüden açınca <code>GET /api/v1.0/organizations/settings</code> 403 döner. 08 bölüm 3.6: kalkan ikonu, "Tekrar dene" yok; yalnız geri dönüş. Kim yönetiyor bilgisi üyeler listesinden.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-role="Viewer">
+      <div class="content">
+        <div class="state"><span class="sic"><svg class="ic"><use href="#i-shield-x"/></svg></span><h3>Bu sayfayı görme yetkin yok</h3><p>Organizasyon ayarlarını yalnız Sahip değiştirir. Kuzey Lab'de rolün <b>İzleyici</b>. Bir değişiklik gerekiyorsa Deniz Arslan'a yaz.</p><div class="r gp8 wrap jc"><span class="btn">Uygulamalara dön</span><span class="btn ghost">Üyeleri gör</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+</main>
+<script>
+/* storeasy tasarım runtime'ı: tema, görünüm (masaüstü / telefon), hareket azaltma, çerçeve ölçekleme,
+   uygulama kabuğu (kenar çubuğu + üst bar) ve bölüm içindekileri. build.mjs her dosyaya gömer. */
+(function () {
+  var root = document.documentElement, KEY = 'storeasy.design';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(k, v) { try { var s = load(); s[k] = v; localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  /* ---------- Uygulama kabuğu ---------- */
+  var ICON = function (id, cls) { return '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; };
+  var NAV = [
+    { g: null, items: [
+      ['apps', '/apps', 'i-grid', 'Uygulamalar', '6'],
+      ['activity', '/activity', 'i-activity', 'Canlı akış', '2', 'live'],
+      ['reviews', '/reviews', 'i-msg', 'Yorumlar', '14'],
+      ['compliance', '/compliance', 'i-cal-clock', 'Uyum takvimi', '3', 'dng'],
+      ['studio', '/studio', 'i-images', 'Stüdyo']
+    ] },
+    { g: 'Teslim', items: [
+      ['intake', '/intake', 'i-cloud-up', 'Paket alma'],
+      ['connections', '/connections', 'i-plug', 'Mağaza bağlantıları'],
+      ['webhooks', '/webhooks', 'i-webhook', 'Webhook\'lar']
+    ] },
+    { g: 'Organizasyon', items: [
+      ['members', '/members', 'i-users', 'Üyeler'],
+      ['audit', '/audit', 'i-list', 'Denetim kaydı'],
+      ['rules', '/rules', 'i-book', 'Mağaza kuralları'],
+      ['settings', '/settings', 'i-settings', 'Ayarlar']
+    ] },
+    { g: 'Geliştirici', items: [
+      ['mcp', '/developer', 'i-terminal', 'MCP ve token\'lar']
+    ] }
+  ];
+  var ADMIN = { g: 'Platform', items: [
+    ['a-rules', '/admin/rules', 'i-radar', 'Katalog önerileri', '2'],
+    ['a-users', '/admin/users', 'i-user', 'Kullanıcılar'],
+    ['a-roles', '/admin/roles', 'i-shield', 'Roller'],
+    ['a-logs', '/admin/activity-logs', 'i-history', 'Aktivite logu'],
+    ['a-langs', '/admin/languages', 'i-lang', 'Diller'],
+    ['a-flags', '/admin/feature-flags', 'i-flag', 'Özellik anahtarları'],
+    ['a-health', '/admin/system', 'i-server', 'Sistem durumu']
+  ] };
+  var ROLE_HIDE = { Viewer: ['connections', 'webhooks'], Editor: ['connections', 'webhooks'] };
+
+  function buildShell(sh) {
+    var d = sh.dataset, on = d.nav || '', role = d.role || 'Owner';
+    var hide = (ROLE_HIDE[role] || []);
+    if (d.hide) { hide = hide.concat(d.hide.split(',')); }
+    var groups = NAV.slice(); if (d.admin !== undefined) { groups.push(ADMIN); }
+    var nav = groups.map(function (g) {
+      var items = g.items.filter(function (it) { return hide.indexOf(it[0]) < 0; }).map(function (it) {
+        var c = it[4] ? '<span class="cnt' + (it[5] ? ' ' + it[5] : '') + '">' + (it[5] === 'live' ? '&#9679; ' : '') + it[4] + '</span>' : '';
+        return '<a class="nav-i' + (it[0] === on ? ' on' : '') + '" href="#" title="' + it[1] + '">' + ICON(it[2]) + '<span>' + it[3] + '</span>' + c + '</a>';
+      }).join('');
+      return (g.g ? '<div class="nav-g">' + g.g + '</div>' : '') + items;
+    }).join('');
+    var act = d.act === undefined ? '<a class="btn pri blk act" href="#">' + ICON('i-plus') + 'Uygulama ekle</a>' :
+      (d.act ? '<a class="btn pri blk act" href="#">' + ICON(d.actIcon || 'i-plus') + d.act + '</a>' : '');
+    var org = d.org || 'Kuzey Lab', orgInit = d.orgInit || 'K';
+    var roleTr = { Owner: 'Sahip', Admin: 'Yönetici', Editor: 'Editör', Viewer: 'İzleyici' }[role] || role;
+    var aside = '<aside class="side" aria-label="Ana menü">' +
+      '<a class="brand" href="#"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></a>' +
+      '<button class="orgsw" type="button" aria-label="Organizasyon değiştir"><span class="oav">' + orgInit + '</span><span class="f1"><b>' + org + '</b><small>' + roleTr + ' · 6 uygulama</small></span>' + ICON('i-chevs', 's16 fg3') + '</button>' +
+      (role === 'Viewer' && d.act === undefined ? '' : act) + '<nav>' + nav + '</nav>' +
+      '<div class="side-f"><div class="me"><span class="av">DA</span><span class="f1"><b>Deniz Arslan</b><small>deniz@kuzeylab.dev</small></span>' + ICON('i-more', 's16 fg3') + '</div>' +
+      '<div class="lic"><span>AGPL-3.0 · Kaynak kod</span><span>v1.0.0</span></div></div></aside>';
+    var crumbs = (d.crumbs || 'Uygulamalar').split('|');
+    var cr = crumbs.map(function (c, i) { return i === crumbs.length - 1 ? '<b>' + c + '</b>' : '<span class="pre">' + c + '</span><span class="sep pre">/</span>'; }).join('');
+    var live = d.live === undefined ? '' : '<span class="livepill"><span class="dot"></span><span>' + (d.live || '2 iş sürüyor') + '</span></span>';
+    var bar = '<header class="bar"><button class="ib ghost menu-btn" type="button" aria-label="Menüyü aç">' + ICON('i-menu') + '</button>' +
+      '<div class="crumb"><span class="pre">' + org + '</span><span class="sep pre">/</span>' + cr + '</div>' +
+      '<div class="search" role="search">' + ICON('i-search', 's16') + '<span>Uygulama, sürüm, paket ara</span><span class="kbd">Ctrl K</span></div>' + live +
+      '<button class="ib" type="button" aria-label="Bildirimler">' + ICON('i-bell') + (d.bell === 'off' ? '' : '<span class="pip"></span>') + '</button>' +
+      '<button class="ib ghost" type="button" aria-label="Yardım">' + ICON('i-help') + '</button></header>';
+    var main = document.createElement('div'); main.className = 'main';
+    main.innerHTML = bar;
+    while (sh.firstChild) { main.appendChild(sh.firstChild); }
+    sh.innerHTML = aside; sh.appendChild(main);
+    if (!main.querySelector('.content')) { var ct = document.createElement('div'); ct.className = 'content'; while (main.children.length > 1) { ct.appendChild(main.children[1]); } main.appendChild(ct); }
+  }
+  document.querySelectorAll('.shell[data-nav]').forEach(buildShell);
+
+  /* ---------- Uygulama başlığı + sekmeler (uygulama detayı ekranları) ----------
+     <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler">[eylem düğmeleri]</div> */
+  var STORES = { apple: ['AS', 'App Store'], google: ['GP', 'Google Play'], ms: ['MS', 'Microsoft Store'] };
+  var APPS = {
+    pusula: { n: 'Pusula', c: '#0F766E', s: { apple: ['2.3', 'İncelemede', 'warn'], google: ['2.3.0', 'Production %20', 'info'], ms: ['2.3.0.0', 'Sertifikasyonda', 'info'] } },
+    defter: { n: 'Defter', c: '#B45309', s: { apple: ['1.4', 'Reddedildi', 'dng'], google: ['1.4.0', 'Closed', ''] } },
+    halka: { n: 'Halka', c: '#DB2777', s: { apple: ['1.0 (37)', 'TestFlight', 'info'], google: ['1.0.0', 'Internal', ''] } },
+    mola: { n: 'Mola', c: '#15803D', s: { apple: ['3.1.2', 'Yayında', 'ok'], google: ['3.1.2', 'Production', 'ok'] } },
+    tarla: { n: 'Tarla', c: '#9A3412', s: { google: ['0.9.4', 'Internal', ''], ms: ['0.9.4', 'Yayında', 'ok'] } },
+    kumbara: { n: 'Kumbara', c: '#475569', s: { apple: ['1.0', 'Hazırlanıyor', ''] } }
+  };
+  var TABS = [['ozet', 'Genel bakış'], ['hazirlik', 'Hazırlık'], ['kayit', 'Mağaza kaydı'], ['yayin', 'Yayın'], ['para', 'Para'], ['geri', 'Geri bildirim'], ['uyum', 'Uyum']];
+  var SUBS = {
+    kayit: [['Metinler'], ['Görseller'], ['Önizleme videoları', 'apple,google'], ['Kategori ve yaş'], ['Fiyat ve bölgeler'], ['Uygulama ayrıntıları']],
+    yayin: [['Build\'ler'], ['Sürümler ve track\'ler'], ['TestFlight', 'apple'], ['Paket uçuşları', 'ms'], ['Aşamalı yayın'], ['İnceleme bilgileri']],
+    para: [['Abonelikler', 'apple,google'], ['Uygulama içi ürünler', 'apple,google'], ['Add-on\'lar', 'ms']],
+    geri: [['Yorumlar'], ['Red kayıtları']],
+    uyum: [['Zaman çizelgesi'], ['Kayıtlı cevaplar'], ['Asistanlı adımlar']]
+  };
+  document.querySelectorAll('.apphead[data-app]').forEach(function (h) {
+    var d = h.dataset, a = APPS[d.app] || APPS.pusula, cur = d.store || Object.keys(a.s)[0];
+    var acts = h.innerHTML;
+    var seg = '<div class="seg" role="tablist" aria-label="Mağaza">' + Object.keys(a.s).map(function (k) {
+      return '<span class="' + (k === cur && d.store !== 'all' ? 'on' : '') + '"><span class="st sm"><b>' + STORES[k][0] + '</b></span>' + STORES[k][1] + '</span>';
+    }).join('') + '</div>';
+    var lanes = Object.keys(a.s).map(function (k) {
+      var x = a.s[k]; return '<span class="bdg ' + x[2] + '"><span class="dot"></span>' + STORES[k][0] + ' ' + x[0] + ' · ' + x[1] + '</span>';
+    }).join('');
+    var tabs = '<div class="tabs" role="tablist">' + TABS.map(function (t) {
+      var n = t[0] === 'hazirlik' && d.ready ? ' <span class="n' + (d.ready.indexOf('!') === 0 ? ' dng' : '') + '">' + d.ready.replace('!', '') + '</span>' : '';
+      return '<a class="tab' + (t[0] === d.tab ? ' on' : '') + '" href="#">' + t[1] + n + '</a>';
+    }).join('') + '</div>';
+    var subs = '';
+    if (SUBS[d.tab]) {
+      subs = '<div class="r gp6 wrap mb16 subnav">' + SUBS[d.tab].filter(function (s) { return !s[1] || d.store === 'all' || s[1].split(',').indexOf(cur) >= 0; }).map(function (s) {
+        return '<span class="chip' + (s[0] === d.sub ? ' on' : '') + '">' + s[0] + '</span>';
+      }).join('') + '</div>';
+    }
+    h.innerHTML = '<div class="r gp16 wrap mb16"><span class="aic l" style="--c:' + a.c + '">' + a.n[0] + '</span>' +
+      '<div class="f1"><div class="r gp10 wrap"><h1 class="pg-t">' + a.n + '</h1>' + lanes + '</div>' +
+      '<div class="t-s fg3 mono mt4">' + (d.meta || 'com.kuzeylab.' + d.app) + '</div></div>' +
+      (d.store === 'all' ? '' : seg) + (acts.trim() ? '<div class="pg-a apphead-a">' + acts + '</div>' : '') + '</div>' + tabs + subs;
+  });
+
+  /* ---------- Çerçeve ölçekleme ---------- */
+  function sizeOf(fr) {
+    var v = fr.getAttribute('data-view') || root.getAttribute('data-view') || 'desktop';
+    var ph = v === 'phone';
+    var h = ph ? (fr.getAttribute('data-ph') || 844) : (fr.getAttribute('data-h') || 820);
+    return { w: ph ? 390 : 1280, h: +h };
+  }
+  function fit() {
+    document.querySelectorAll('.fr').forEach(function (fr) {
+      var vp = fr.querySelector(':scope > .vp'); if (!vp) { return; }
+      var scr = vp.querySelector(':scope > .scr'); if (!scr) { return; }
+      var s = sizeOf(fr), avail = vp.clientWidth || s.w, k = Math.min(1, avail / s.w);
+      scr.style.width = s.w + 'px'; scr.style.height = s.h + 'px';
+      scr.style.transform = k < 1 ? 'scale(' + k + ')' : 'none';
+      vp.style.height = Math.round(s.h * k) + 'px';
+    });
+  }
+
+  /* ---------- Tema, görünüm, hareket ---------- */
+  function setAttr(k, v) {
+    root.setAttribute('data-' + k, v);
+    document.querySelectorAll('.dseg [data-set="' + k + '"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); });
+    save(k, v);
+    if (k === 'view') { requestAnimationFrame(fit); }
+    if (k === 'motion') { document.dispatchEvent(new CustomEvent('motionchange')); }
+  }
+  var st = load();
+  setAttr('theme', st.theme || root.getAttribute('data-theme') || 'dark');
+  setAttr('view', st.view || 'desktop');
+  var sysReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setAttr('motion', sysReduce ? 'reduce' : (st.motion || 'full'));
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.dseg [data-set]'); if (!b) { return; }
+    setAttr(b.getAttribute('data-set'), b.getAttribute('data-v'));
+  });
+
+  /* ---------- SVG SMIL animasyonları hareket azaltmada durur ---------- */
+  function motion() {
+    var reduce = root.getAttribute('data-motion') === 'reduce';
+    document.querySelectorAll('svg.anim').forEach(function (s) {
+      try { if (reduce) { s.pauseAnimations(); s.setCurrentTime(0); } else { s.unpauseAnimations(); } } catch (e) {}
+    });
+  }
+  document.addEventListener('motionchange', motion);
+
+  /* ---------- Bölüm içindekiler ---------- */
+  var toc = document.querySelector('.doc-toc');
+  if (toc) {
+    toc.innerHTML = Array.prototype.map.call(document.querySelectorAll('.sec'), function (s, i) {
+      if (!s.id) { s.id = 's' + (i + 1); }
+      var h = s.querySelector('.sec-h h2'); return h ? '<a href="#' + s.id + '">' + h.textContent + '</a>' : '';
+    }).join('');
+  }
+
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+  fit(); motion();
+})();
+
+</script>
+</body>
+</html>

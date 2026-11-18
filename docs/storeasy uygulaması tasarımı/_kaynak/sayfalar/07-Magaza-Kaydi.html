@@ -1,0 +1,901 @@
+<!--
+title: Mağaza kaydı: metinler ve görseller
+kicker: 07 · Uygulama detayı
+desc: Dil başına mağaza metinleri (App Store, Google Play, Microsoft Store), diff ve dry run değişiklik planı, MCP'nin hazırladığı planın onayı, toplu dil görünümü, ekran görüntüsü setleri ve yükleme kontrolleri, Play ve Microsoft grafikleri, önizleme videoları, kategori ve yaş derecelendirmesi, fiyat ve bölgeler, Play uygulama ayrıntıları ve bu ekranların durumları.
+-->
+<style>
+.savebar{flex:none;display:flex;align-items:center;gap:10px;padding:12px 28px;border-top:1px solid rgb(var(--border));background:rgb(var(--surface));min-width:0}
+.savebar .sum{font:600 13.5px/1.3 var(--font-body);min-width:0}
+.fsec{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:14px;border-bottom:1px dashed rgb(var(--border))}
+.fstack{display:grid;gap:16px}
+.fstack .g2,.card-b>.g2{align-items:start}
+.lcl .prog{margin-top:6px}
+.lcl .f1{min-width:0}
+.dside{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid rgb(var(--border)/.6)}
+.dside:last-child{border-bottom:0}
+.dside>.dl{border-bottom:0}
+.dside>.dl+.dl{border-left:1px solid rgb(var(--border)/.6)}
+.calls{display:grid;gap:6px}
+.calls>div{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:8px;align-items:baseline;font:500 12px/1.4 var(--font-mono);color:rgb(var(--fg-2));min-width:0}
+.calls>div>b{font-weight:700;color:rgb(var(--fg))}
+.calls>div>span{overflow-wrap:anywhere}
+.shots{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;min-width:0;align-items:flex-end}
+.shot{--c:#0F766E;position:relative;flex:none;width:58px;aspect-ratio:1206/2622;border-radius:8px;overflow:hidden;border:1px solid rgb(var(--border));
+  background:linear-gradient(#fff 0 0) 50% 100%/78% 64% no-repeat,linear-gradient(rgb(255 255 255/.55) 0 0) 7px 17px/50% 3px no-repeat,linear-gradient(rgb(255 255 255/.9) 0 0) 7px 9px/72% 4px no-repeat,var(--c)}
+.shot::after{content:"";position:absolute;left:11%;right:11%;bottom:0;height:64%;
+  background:linear-gradient(var(--c) 0 0) 5px 8px/40% 4px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 18px/calc(100% - 10px) 12px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 34px/calc(100% - 10px) 12px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 50px/60% 12px no-repeat}
+.shot.v2::after{background:linear-gradient(var(--c) 0 0) 5px 8px/55% 4px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 18px/calc(50% - 7px) 26px no-repeat,linear-gradient(#E2E8F0 0 0) right 5px top 18px/calc(50% - 7px) 26px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 50px/calc(100% - 10px) 10px no-repeat}
+.shot.v3::after{background:linear-gradient(#E2E8F0 0 0) 5px 8px/calc(100% - 10px) 36px no-repeat,linear-gradient(var(--c) 0 0) 5px 50px/30% 6px no-repeat,linear-gradient(#E2E8F0 0 0) 5px 62px/calc(100% - 10px) 8px no-repeat}
+.shot.lg{width:84px}
+.shot.pad{width:96px;aspect-ratio:2064/2752}
+.shot.pad::after{left:8%;right:8%;height:70%}
+.shot.duo-o{width:72px;aspect-ratio:1398/2034}
+.shot.duo-i{width:92px;aspect-ratio:2007/2853}
+.shot.wide{width:132px;aspect-ratio:16/9;background:linear-gradient(#fff 0 0) 50% 100%/86% 70% no-repeat,linear-gradient(rgb(255 255 255/.9) 0 0) 9px 8px/50% 4px no-repeat,var(--c)}
+.shot.wide::after{left:7%;right:7%;height:70%}
+.shot>b{position:absolute;left:4px;bottom:4px;z-index:2;font:700 10px/1 var(--font-mono);background:rgb(var(--surface));color:rgb(var(--fg));border:1px solid rgb(var(--border));border-radius:4px;padding:2px 4px}
+.shot>.gh{position:absolute;right:3px;top:3px;z-index:2;width:18px;height:18px;border-radius:5px;background:rgb(var(--surface)/.92);display:grid;place-items:center;color:rgb(var(--fg-2))}
+.shot>.gh .ic{width:12px;height:12px}
+.shot.lift{transform:translateY(-6px) rotate(-3deg);box-shadow:var(--sh-float);outline:2px solid rgb(var(--fg))}
+.shot.ghost{opacity:.35;border-style:dashed}
+.shot.new{outline:2px solid rgb(var(--success));outline-offset:1px}
+.shot.gone{opacity:.45;outline:2px solid rgb(var(--danger));outline-offset:1px}
+.slotadd{flex:none;width:58px;aspect-ratio:1206/2622;border:1.5px dashed rgb(var(--border-strong));border-radius:8px;display:grid;place-items:center;color:rgb(var(--fg-3))}
+.slotadd.pad{width:96px;aspect-ratio:2064/2752}
+.slotadd.wide{width:132px;aspect-ratio:16/9}
+.dropin{flex:none;width:3px;align-self:stretch;border-radius:2px;background:rgb(var(--fg))}
+.cls{display:grid;grid-template-columns:250px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 18px;border-bottom:1px solid rgb(var(--border));min-width:0}
+.cls:last-child{border-bottom:0}
+.cls .nm{min-width:0}
+.cls .dims{font:500 11.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));margin-top:3px}
+.cls.muted .nm b{color:rgb(var(--fg-2))}
+.fbk{font-size:12.5px;color:rgb(var(--fg-2));display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.drop{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:20px;display:grid;justify-items:center;gap:6px;text-align:center;background:rgb(var(--bg-2)/.5)}
+.feat{--c:#0F766E;width:100%;max-width:280px;aspect-ratio:1024/500;border-radius:8px;border:1px solid rgb(var(--border));
+  background:linear-gradient(#fff 0 0) right 8% bottom 0/26% 74% no-repeat,linear-gradient(rgb(255 255 255/.55) 0 0) 8% 56%/34% 5px no-repeat,linear-gradient(rgb(255 255 255/.92) 0 0) 8% 40%/46% 9px no-repeat,var(--c)}
+.logo-b{--c:#0F766E;flex:none;display:grid;place-items:center;border-radius:8px;background:var(--c);color:#fff;font:800 22px/1 var(--font-display);border:1px solid rgb(var(--border))}
+.vid{--c:#0F766E;position:relative;flex:none;width:72px;aspect-ratio:1206/2622;border-radius:8px;overflow:hidden;border:1px solid rgb(var(--border));background:linear-gradient(#fff 0 0) 50% 100%/78% 60% no-repeat,var(--c)}
+.vid .pl{position:absolute;inset:0;display:grid;place-items:center}
+.vid .pl span{width:26px;height:26px;border-radius:50%;background:rgb(0 0 0/.55);display:grid;place-items:center;color:#fff}
+.vid .pl .ic{width:12px;height:12px}
+.vid>b{position:absolute;left:4px;bottom:4px;font:700 10px/1 var(--font-mono);background:rgb(var(--surface));color:rgb(var(--fg));border-radius:4px;padding:2px 4px;border:1px solid rgb(var(--border))}
+.scrub{position:relative;height:30px;border-radius:6px;background:repeating-linear-gradient(90deg,rgb(var(--bg-2)) 0 22px,rgb(var(--border)) 22px 23px);border:1px solid rgb(var(--border))}
+.scrub i{position:absolute;top:-4px;bottom:-4px;left:22%;width:3px;border-radius:2px;background:rgb(var(--fg))}
+.qrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px dashed rgb(var(--border))}
+.qrow:last-child{border-bottom:0}
+.rgn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid rgb(var(--border))}
+.rgn:last-child{border-bottom:0}
+.rgn.sub{padding-left:48px;background:rgb(var(--bg-2)/.5)}
+.kwc{display:flex;flex-wrap:wrap;gap:6px}
+.kwc .tag.dup{border-color:rgb(var(--warning)/.6)}
+.blkrow{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.blkrow:last-child{border-bottom:0}
+.planhd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.scr .inp,.diff .dl>span{overflow-wrap:anywhere;min-width:0}
+.split>*,.split-l>*{min-width:0}
+@container scr (max-width:760px){
+  .savebar{padding:10px 16px;flex-wrap:wrap}
+  .savebar .sum{flex:1 1 100%}
+  .savebar .btn{flex:1}
+  .dside{grid-template-columns:1fr}
+  .dside>.dl+.dl{border-left:0;border-top:1px solid rgb(var(--border)/.6)}
+  .cls{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 16px}
+  .cls>:last-child{justify-self:start}
+  .blkrow{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 16px}
+  .rgn.sub{padding-left:32px}
+  .calls>div{grid-template-columns:46px minmax(0,1fr)}
+  .calls>div>:last-child{grid-column:2}
+  .planhd{grid-template-columns:1fr}
+  .feat{max-width:100%}
+}
+</style>
+
+<!-- ============ 1. METİNLER ============ -->
+<section class="sec" id="metinler">
+<div class="sec-h"><span class="k">Bölüm 7.1-7.5</span><h2>Metinler</h2><p>Dil başına mağaza metinleri. Her mağazanın kendi alanları ve karakter sınırları var; sınırlar kod değil katalog verisidir. Düzenleme tarayıcıda taslak olarak birikir, mağazaya hiçbir şey gitmez; alttaki çubuktan "Planla (dry run)" diff'i ve mağaza çağrılarını çıkarır, gönderme ancak plan onaylanınca olur (plan 2.2).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-1" data-h="1180">
+  <figcaption class="fr-h"><b class="fr-n">7.1</b><span class="fr-t">Metinler: App Store, en-US</span><code class="fr-r">/apps/:appId/listing/texts?store=apple&amp;locale=en-US</code></figcaption>
+  <p class="fr-note">Pusula 2.3 incelemede olduğu için sürüm metinleri kilitli; düzenlenen sürüm hazırlanan <b>2.4</b>. Alanlar iki gruptur: <b>App info</b> (ad, alt başlık, gizlilik URL'si; sürümden bağımsız, hemen yayına yansır) ve <b>sürüm lokalizasyonu</b> (tanıtım metni, açıklama, anahtar kelimeler, yenilikler, destek ve pazarlama URL'si; sürümle birlikte incelemeye gider). Değişen alanın etiketinde "Değişti" rozeti ve "Geri al" bağlantısı. Sayaç sınırın %90'ında uyarı, aşınca hata rengi alır (7.2). Tanıtım metni incelemesiz değişir. <b>API:</b> <code>GET /api/v1.0/listings?StoreAppId=&amp;Locale=en-US</code> (planlanan) → <code>ListingDto { StoreAppId, Store, VersionId, VersionString, VersionEditable, Locales: [{ Locale, IsPrimary, FilledCount, RequiredCount }], Fields: [{ Key, Group (AppInfo, Version), Value, MaxLength, Required, StoreValueHash }] }</code>; çubuk <code>POST /api/v1.0/listings/plan { StoreAppId, Changes: [{ Locale, Field, Value }] }</code> → 7.6. <b>İzin:</b> görme <code>View</code>, düzenleme ve planlama <code>EditContent</code>. <b>Telefonda</b> dil listesi alanların üstünde seçim kutusuna döner, iki sütunlu alanlar alt alta, çubuk ekranın altında iki satır. <span class="gap">Backend boşluğu:</span> sınırlar (<code>MaxLength</code>) katalogdan gelmeli; <code>ListingDto</code>'ya katalog sürümüyle eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler" data-meta="ASC 6740012345 · düzenlenen sürüm 2.4"><span class="btn hide-ph"><svg class="ic"><use href="#i-lang"/></svg>Toplu dil görünümü</span><span class="ib" title="Mağazadan çek"><svg class="ic"><use href="#i-refresh"/></svg></span></div>
+        <div class="split-l">
+          <div class="c gp12">
+            <div class="card hide-ph"><div class="card-h"><span class="h3">Diller</span><span class="t-xs fg3 ml">3</span></div><div class="lst">
+              <div class="lst-i lcl"><span class="tag">tr</span><div class="f1"><div class="r gp6"><b class="t-s">Türkçe</b><span class="t-xs fg3">· birincil</span></div><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="bdg info sm">1 değişti</span></div>
+              <div class="lst-i lcl on"><span class="tag">en-US</span><div class="f1"><b class="t-s">English (U.S.)</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="bdg info sm">2 değişti</span></div>
+              <div class="lst-i lcl"><span class="tag">de-DE</span><div class="f1"><b class="t-s">Deutsch</b><span class="prog sm"><i style="width:78%"></i></span></div><span class="t-xs dng-t b6">7 / 9</span></div>
+            </div><div class="card-f"><span class="btn sm ghost"><svg class="ic"><use href="#i-plus"/></svg>Dil ekle</span></div></div>
+            <div class="only-ph"><label class="fld"><span class="lbl">Dil</span><span class="inp sel"><span class="tag">en-US</span>English (U.S.) · 2 değişti</span></label></div>
+            <div class="callout hide-ph"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Tamamlanma yalnız zorunlu alanları sayar: ad, açıklama, anahtar kelimeler, destek URL'si, gizlilik URL'si ve güncellemelerde yenilikler.</div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b">
+              <div class="fsec"><span class="h3">App info</span><span class="t-xs fg3">Sürümden bağımsız · kaydedilince hemen yayına yansır</span></div>
+              <div class="fstack">
+                <div class="g2">
+                  <label class="fld"><span class="lbl">Ad <span class="cnt">21 / 30</span></span><span class="inp">Pusula: Daily Planner</span></label>
+                  <label class="fld"><span class="lbl">Alt başlık <span class="bdg info sm">Değişti</span><span class="cnt">26 / 30</span></span><span class="inp foc">Goals, calendar and habits</span><span class="hint">Mağazadaki: "Plan your day" · <span class="lnk">Geri al</span></span></label>
+                </div>
+                <label class="fld"><span class="lbl">Gizlilik politikası URL'si</span><span class="inp mono">https://kuzeylab.dev/gizlilik?lang=en</span></label>
+              </div>
+            </div></div>
+            <div class="card"><div class="card-b">
+              <div class="fsec"><span class="h3">Sürüm 2.4 lokalizasyonu</span><span class="t-xs fg3">İncelemeye sürümle birlikte gider</span></div>
+              <div class="fstack">
+                <label class="fld"><span class="lbl">Tanıtım metni <span class="opt">· incelemesiz değişir</span><span class="cnt">51 / 170</span></span><span class="inp ta" style="min-height:60px">New: weekly view and a two-column calendar on iPad.</span></label>
+                <label class="fld"><span class="lbl">Açıklama <span class="cnt">1.684 / 4.000</span></span><span class="inp ta" style="min-height:120px">Pusula keeps your day, your goals and your habits on one screen.
+
+Plan the week, break goals into small steps and keep streaks going with gentle reminders. On iPad, the calendar and your list sit side by side.
+...</span></label>
+                <label class="fld"><span class="lbl">Anahtar kelimeler <span class="bdg info sm">Değişti</span><span class="cnt">68 / 100</span></span><span class="inp mono">agenda,calendar,todo,goals,habit,tracker,focus,routine,notes,planner</span><span class="hint">Virgülle ayır, boşluk bırakma. Adda geçen kelimeyi tekrar etmek yer harcar: "planner" adda var.</span></label>
+                <label class="fld"><span class="lbl">Bu sürümdeki yenilikler <span class="bdg info sm">Değişti</span><span class="cnt">105 / 4.000</span></span><span class="inp ta" style="min-height:72px">Weekly view is here. On iPad the calendar now has two columns. Reminders follow your time zone correctly.</span></label>
+                <div class="g2">
+                  <label class="fld"><span class="lbl">Destek URL'si</span><span class="inp mono">https://kuzeylab.dev/pusula/destek</span></label>
+                  <label class="fld"><span class="lbl">Pazarlama URL'si <span class="opt">· isteğe bağlı</span></span><span class="inp mono">https://kuzeylab.dev/pusula</span></label>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div class="savebar"><span class="sum f1">3 değişiklik <span class="fg3 t-s">· 2 dil · taslak bu tarayıcıda</span></span><span class="btn ghost hide-ph">Hepsini geri al</span><span class="btn"><svg class="ic"><use href="#i-compare"/></svg>Diff'i gör</span><span class="btn pri"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-2" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">7.2</b><span class="fr-t">Sınır aşımı ve eksik zorunlu alan</span><code class="fr-r">/apps/:appId/listing/texts?store=apple&amp;locale=de-DE</code></figcaption>
+  <p class="fr-note">Sınır istemcide anlık sayılır (Unicode karakter, Apple'ın saydığı gibi) ve sunucu planlarken aynı kontrolü yapar: <code>POST listings/plan</code> sınırı aşan alanda <code>400</code> ve alan anahtarlı <code>Messages[{ Key: "Fields[de-DE].Subtitle", Message }]</code> döner. Hata olan dil listede kırmızı sayaçla işaretlenir; "Planla" pasif ve gerekçesi çubukta yazar. Eksik zorunlu alan planı engellemez (taslak sürüm), ama hazırlık kontrolünde engel olarak görünür. <b>İzin:</b> <code>EditContent</code>. Telefonda hata özeti formun en üstünde, alan hatası alanın altında.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler" data-meta="com.kuzeylab.pusula · düzenlenen sürüm 2.4"></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="lst">
+            <div class="lst-i lcl"><span class="tag">tr</span><div class="f1"><b class="t-s">Türkçe</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="t-xs fg3">9 / 9</span></div>
+            <div class="lst-i lcl"><span class="tag">en-US</span><div class="f1"><b class="t-s">English (U.S.)</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="t-xs fg3">9 / 9</span></div>
+            <div class="lst-i lcl on"><span class="tag">de-DE</span><div class="f1"><b class="t-s">Deutsch</b><span class="prog sm"><i style="width:78%"></i></span></div><span class="bdg dng sm">2 hata</span></div>
+          </div></div>
+          <div class="only-ph"><span class="inp sel"><span class="tag">de-DE</span>Deutsch · 2 hata</span></div>
+          <div class="c gp16">
+            <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Plan hazırlanamaz: 2 alan sınırı aşıyor</b><ul><li>Alt başlık 32 / 30</li><li>Anahtar kelimeler 106 / 100</li></ul></div></div>
+            <div class="card"><div class="card-b fstack">
+              <label class="fld"><span class="lbl">Ad <span class="cnt">19 / 30</span></span><span class="inp">Pusula: Tagesplaner</span></label>
+              <label class="fld"><span class="lbl">Alt başlık <span class="bdg info sm">Değişti</span><span class="cnt over">32 / 30</span></span><span class="inp err">Ziele, Kalender und Gewohnheiten</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>App Store alt başlığı en çok 30 karakter. 2 karakter kısalt.</span></label>
+              <label class="fld"><span class="lbl">Tanıtım metni <span class="cnt near">158 / 170</span></span><span class="inp ta" style="min-height:60px">Neu: Wochenansicht und ein zweispaltiger Kalender auf dem iPad. Plane deinen Tag, deine Ziele und deine Gewohnheiten auf einem einzigen Bildschirm.</span></label>
+              <label class="fld"><span class="lbl">Anahtar kelimeler <span class="bdg info sm">Değişti</span><span class="cnt over">106 / 100</span></span><span class="inp mono err">terminplaner,kalender,aufgaben,ziele,gewohnheiten,gewohnheitstracker,fokus,routine,notizen,planer,zeitplan</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>En çok 100 karakter. "gewohnheitstracker" ile "gewohnheiten" aynı aramayı karşılıyor olabilir.</span></label>
+              <label class="fld"><span class="lbl">Bu sürümdeki yenilikler <span class="cnt">0 / 4.000</span></span><span class="inp ta" style="min-height:60px"><span class="ph">Boş · güncellemede zorunlu</span></span><span class="hint">Boş kalırsa hazırlık kontrolünde "de-DE yenilikler eksik" engeli çıkar.</span></label>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div class="savebar"><span class="sum f1">2 değişiklik <span class="dng-t t-s">· 2 alan sınırı aşıyor</span></span><span class="btn"><svg class="ic"><use href="#i-compare"/></svg>Diff'i gör</span><span class="btn pri dis" aria-disabled="true"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-3" data-h="1060">
+  <figcaption class="fr-h"><b class="fr-n">7.3</b><span class="fr-t">Metinler: Google Play</span><code class="fr-r">/apps/:appId/listing/texts?store=google&amp;locale=tr-TR</code></figcaption>
+  <p class="fr-note">Aynı ekran, Play alanlarıyla: başlık 30, kısa açıklama 80, uzun açıklama 4.000, tanıtım videosu (YouTube URL'si). Sürüm notları dil başına 500 karakterdir ama mağaza listesine değil track'teki sürüme yazılır; bu yüzden ayrı kartta ve hangi sürüme gideceği yazılı. Play'de değişiklikler bir <code>edit</code> içinde toplanır, plan tek <code>edits.commit</code> ile biter. <b>API:</b> aynı <code>GET listings</code> / <code>POST listings/plan</code>; Play için <code>Fields</code> anahtarları <code>Title, ShortDescription, FullDescription, Video, ReleaseNotes</code>, <code>ReleaseNotes</code> için <code>Track</code> ve <code>VersionCode</code> zorunlu. <b>İzin:</b> <code>EditContent</code>; production sürümünün notunu değiştirmek ayrıca <code>ReleaseProduction</code> ister. Telefonda dil seçim kutusu, kartlar alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="kayit" data-sub="Metinler" data-meta="com.kuzeylab.pusula · Play servis hesabı"><span class="btn hide-ph"><svg class="ic"><use href="#i-lang"/></svg>Toplu dil görünümü</span></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="card-h"><span class="h3">Diller</span><span class="t-xs fg3 ml">3</span></div><div class="lst">
+            <div class="lst-i lcl on"><span class="tag">tr-TR</span><div class="f1"><div class="r gp6"><b class="t-s">Türkçe</b><span class="t-xs fg3">· varsayılan</span></div><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="bdg info sm">1 değişti</span></div>
+            <div class="lst-i lcl"><span class="tag">en-US</span><div class="f1"><b class="t-s">English (United States)</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="t-xs fg3">3 / 3</span></div>
+            <div class="lst-i lcl"><span class="tag">de-DE</span><div class="f1"><b class="t-s">Deutsch</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="t-xs fg3">3 / 3</span></div>
+          </div></div>
+          <div class="only-ph"><span class="inp sel"><span class="tag">tr-TR</span>Türkçe · 1 değişti</span></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b">
+              <div class="fsec"><span class="h3">Mağaza listesi</span><span class="t-xs fg3">Kaydedilince edit commit ile yayına yansır</span></div>
+              <div class="fstack">
+                <label class="fld"><span class="lbl">Başlık <span class="cnt">29 / 30</span></span><span class="inp">Pusula: Günlük Plan ve Ajanda</span></label>
+                <label class="fld"><span class="lbl">Kısa açıklama <span class="cnt">62 / 80</span></span><span class="inp">Hedeflerini, takvimini ve alışkanlıklarını tek ekranda planla.</span></label>
+                <label class="fld"><span class="lbl">Uzun açıklama <span class="cnt">2.315 / 4.000</span></span><span class="inp ta" style="min-height:120px">Pusula gününü, hedeflerini ve alışkanlıklarını tek ekranda toplar.
+
+Haftanı planla, büyük hedefleri küçük adımlara böl, nazik hatırlatıcılarla serini koru. Tablette takvim ve listen yan yana durur.
+...</span></label>
+                <label class="fld"><span class="lbl">Tanıtım videosu <span class="opt">· isteğe bağlı, YouTube URL'si</span></span><span class="inp mono"><span class="ph">https://www.youtube.com/watch?v=...</span></span></label>
+              </div>
+            </div></div>
+            <div class="card"><div class="card-b">
+              <div class="fsec"><span class="h3">Sürüm notları</span><span class="t-xs fg3">closed · 2.4.0 (231) sürümüne yazılır</span></div>
+              <label class="fld"><span class="lbl">tr-TR <span class="bdg info sm">Değişti</span><span class="cnt">100 / 500</span></span><span class="inp ta foc" style="min-height:72px">Haftalık görünüm geldi. Tablette takvim artık iki sütun. Hatırlatıcılar saat dilimini doğru izliyor.</span><span class="hint">Production'daki 2.3.0 (230) notunu değiştirmek için <span class="lnk">Sürümler ve track'ler</span>.</span></label>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div class="savebar"><span class="sum f1">1 değişiklik <span class="fg3 t-s">· tr-TR</span></span><span class="btn"><svg class="ic"><use href="#i-compare"/></svg>Diff'i gör</span><span class="btn pri"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-4" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">7.4</b><span class="fr-t">Metinler: Microsoft Store</span><code class="fr-r">/apps/:appId/listing/texts?store=ms&amp;locale=tr-TR</code></figcaption>
+  <p class="fr-note">Microsoft Store sınırları (plan 11.6): açıklama 10.000, kısa açıklama 1.000, yenilikler 1.500 karakter, en çok 20 özellik, en çok 7 arama terimi. Metin değişikliği yeni bir gönderim ister ve aynı anda tek aktif gönderim olabilir: Pusula 2.3.0.0 sertifikasyonda olduğu için plan hazırlanabilir ama uygulama sertifikasyon bitene kadar beklemeye alınır. API ile oluşturulan gönderim Partner Center'da elle değiştirilirse API onu bir daha değiştiremez; bu uyarı kalıcı olarak kartın üstünde. <b>API:</b> aynı <code>listings</code> uçları; MSIX için <code>manage.devcenter.microsoft.com</code> gönderimi, MSI/EXE için <code>submission/v1</code> listing. <b>İzin:</b> <code>EditContent</code>. Telefonda özellik ve terim listeleri tam genişlik. <span class="gap">Backend boşluğu:</span> <code>ListingDto</code>'da Microsoft'a özel <code>Features[]</code>, <code>SearchTerms[]</code> ve <code>ActiveSubmission { Id, Status, CreatedVia (Api, PartnerCenter) }</code> alanları yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="kayit" data-sub="Metinler" data-meta="Store ID 9P4K7Q2MZL1D · MSIX · Kuzey Lab Partner Center"></div>
+        <div class="callout warn mb16"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>2.3.0.0 sertifikasyonda</b><div class="t-s fg2 mt4">Yeni gönderim sertifikasyon bitince açılır. Plan şimdi hazırlanır ve beklemeye alınır. Bu gönderimi Partner Center'da elle değiştirirsen storeasy onu bir daha değiştiremez.</div></div></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="lst">
+            <div class="lst-i lcl on"><span class="tag">tr-TR</span><div class="f1"><b class="t-s">Türkçe</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="bdg info sm">2 değişti</span></div>
+            <div class="lst-i lcl"><span class="tag">en-US</span><div class="f1"><b class="t-s">English (United States)</b><span class="prog sm ok"><i style="width:100%"></i></span></div><span class="t-xs fg3">4 / 4</span></div>
+            <div class="lst-i lcl"><span class="tag">de-DE</span><div class="f1"><b class="t-s">Deutsch</b><span class="prog sm"><i style="width:75%"></i></span></div><span class="t-xs dng-t b6">3 / 4</span></div>
+          </div></div>
+          <div class="only-ph"><span class="inp sel"><span class="tag">tr-TR</span>Türkçe · 2 değişti</span></div>
+          <div class="card"><div class="card-b fstack">
+            <label class="fld"><span class="lbl">Açıklama <span class="cnt">3.240 / 10.000</span></span><span class="inp ta" style="min-height:96px">Pusula gününü, hedeflerini ve alışkanlıklarını tek pencerede toplar. Klavyeyle hızlı ekle, takvimi ve listeyi yan yana gör.
+...</span></label>
+            <label class="fld"><span class="lbl">Kısa açıklama <span class="cnt">115 / 1.000</span></span><span class="inp ta" style="min-height:60px">Gününü, hedeflerini ve alışkanlıklarını tek pencerede planla. Takvim, yapılacaklar ve odak zamanlayıcısı bir arada.</span></label>
+            <label class="fld"><span class="lbl">Bu sürümdeki yenilikler <span class="bdg info sm">Değişti</span><span class="cnt">45 / 1.500</span></span><span class="inp">Haftalık görünüm ve klavye kısayolları geldi.</span></label>
+            <div class="fld"><span class="lbl">Ürün özellikleri <span class="bdg info sm">Değişti</span><span class="cnt">5 / 20</span></span>
+              <div class="card"><div class="lst">
+                <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="f1 t-s">Günlük, haftalık ve aylık takvim</span><span class="ib sm ghost"><svg class="ic"><use href="#i-x"/></svg></span></div>
+                <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="f1 t-s">Hedefleri küçük adımlara bölme</span><span class="ib sm ghost"><svg class="ic"><use href="#i-x"/></svg></span></div>
+                <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="f1 t-s">Alışkanlık serileri ve hatırlatıcılar</span><span class="ib sm ghost"><svg class="ic"><use href="#i-x"/></svg></span></div>
+                <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="f1 t-s">Odak zamanlayıcısı</span><span class="ib sm ghost"><svg class="ic"><use href="#i-x"/></svg></span></div>
+                <div class="lst-i"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="f1 t-s">Klavye kısayolları</span><span class="bdg ok sm">Yeni</span></div>
+              </div><div class="card-f"><span class="btn sm ghost"><svg class="ic"><use href="#i-plus"/></svg>Özellik ekle</span></div></div>
+            </div>
+            <div class="fld"><span class="lbl">Arama terimleri <span class="cnt">5 / 7</span></span><div class="kwc"><span class="chip">ajanda <span class="x">×</span></span><span class="chip">takvim <span class="x">×</span></span><span class="chip">planlayıcı <span class="x">×</span></span><span class="chip">alışkanlık <span class="x">×</span></span><span class="chip">odak <span class="x">×</span></span><span class="chip"><svg class="ic"><use href="#i-plus"/></svg>Terim</span></div><span class="hint">Mağaza adında geçen kelimeyi terim olarak eklemek gerekmez.</span></div>
+          </div></div>
+        </div>
+      </div>
+      <div class="savebar"><span class="sum f1">2 değişiklik <span class="fg3 t-s">· yeni gönderim gerektirir</span></span><span class="btn"><svg class="ic"><use href="#i-compare"/></svg>Diff'i gör</span><span class="btn pri"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-5">
+  <figcaption class="fr-h"><b class="fr-n">7.5</b><span class="fr-t">Metinler yükleniyor (iskelet)</span><code class="fr-r">/apps/:appId/listing/texts</code></figcaption>
+  <p class="fr-note">İskelet gerçek düzenin şeklinde: dil listesi, iki alan grubu, sayaç yerleri. Dil değiştirirken eski alanlar kalır, üstte ince ilerleme çizgisi akar; taslaktaki değişiklikler dil değişiminde kaybolmaz. Hareket azaltmada parıltı durur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="card-b c gp16"><span class="sk t" style="width:40%"></span><span class="sk b"></span><span class="sk b"></span><span class="sk b"></span></div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp16"><span class="sk t" style="width:30%"></span><div class="g2"><div class="c gp8"><span class="sk" style="width:30%"></span><span class="sk b"></span></div><div class="c gp8"><span class="sk" style="width:40%"></span><span class="sk b"></span></div></div><div class="c gp8"><span class="sk" style="width:35%"></span><span class="sk b"></span></div></div></div>
+            <div class="card"><div class="card-b c gp16"><span class="sk t" style="width:36%"></span><div class="c gp8"><span class="sk" style="width:25%"></span><span class="sk" style="height:96px;border-radius:10px"></span></div><div class="c gp8"><span class="sk" style="width:30%"></span><span class="sk b"></span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. DIFF VE PLAN ============ -->
+<section class="sec" id="plan">
+<div class="sec-h"><span class="k">Bölüm 7.6-7.9</span><h2>Diff ve dry run değişiklik planı</h2><p>Plan mağazaya hiçbir şey yazmaz: alan ve dil başına önce / sonra, uyarılar ve yapılacak mağaza çağrılarının listesi. Plan sunucuda saklanır ve mağazadaki değerin özetini (hash) taşır; onaylandığında bir <code>StoreJob</code> olur ve canlı akışta izlenir. MCP'nin hazırladığı planlar da aynı ekrana düşer ve bir insanın onayını bekler.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-6" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">7.6</b><span class="fr-t">Değişiklik planı: diff, uyarılar, mağaza çağrıları</span><code class="fr-r">/apps/:appId/listing/plans/:planId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/listings/plan</code> → <code>ChangePlanDto { PlanId, Items: [{ Field, Locale, Before, After, Action (Create, Update, Delete) }], Warnings[] }</code>; onay <code>POST /api/v1.0/listings/apply { PlanId }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>. Satır içi / yan yana seçimi kullanıcı tercihidir. Uyarılar engel değildir; engel olan durumlar planı hiç üretmez (7.2). Plan 30 dakika geçerli. <b>İzin:</b> <code>EditContent</code>. Denetim kaydına <code>ListingPlanApplied</code>, <code>Channel = Web</code>. <b>Telefonda</b> yan yana seçimi gizlenir, diff hep satır içi; sağ sütun diff'in altına iner, "Onayla ve gönder" altta tam genişlik. <span class="gap">Backend boşluğu:</span> <code>ChangePlanDto</code>'da mağaza çağrıları (<code>Calls[{ Method, Path, Target }]</code>), <code>BaseHash</code>, <code>ExpiresDate</code>, <code>CreatedBy { UserName, Channel, OnBehalfOf }</code> yok; <code>Warnings</code> düz metin yerine <code>{ Key, Message, Field, Locale }</code> olmalı. Plan okuma ucu <code>GET /api/v1.0/plans/plan?PlanId=</code> listede yok. Hepsi eklenecek. <code>AuditAction</code>'a mağaza yazma değerleri eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler|Plan" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Metinlere dön</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg sm">Dry run</span><span class="t-xs fg3 mono">plan 8f3c21 · 29 dk geçerli</span></div><h1 class="pg-t">3 değişiklik · Pusula 2.4</h1><p class="pg-s">Mağazaya henüz hiçbir şey gitmedi. Onaylarsan aşağıdaki çağrılar sırayla yapılır.</p></div>
+          <div class="pg-a hide-ph"><div class="seg"><span class="on">Satır içi</span><span>Yan yana</span></div></div></div>
+        <div class="split">
+          <div class="c gp12">
+            <div class="diff"><div class="diff-h"><span class="tag">en-US</span>Alt başlık<span class="t-xs fg3">· app info · hemen yayına yansır</span><span class="bdg sm ml">Güncelle</span></div>
+              <div class="dl del"><span><del>Plan your day</del></span></div>
+              <div class="dl add"><span><ins>Goals, calendar and habits</ins></span></div></div>
+            <div class="diff"><div class="diff-h"><span class="tag">en-US</span>Anahtar kelimeler<span class="t-xs fg3">· sürüm 2.4</span><span class="bdg sm ml">Güncelle</span></div>
+              <div class="dl mono t-s"><span>agenda,calendar,todo,goals,habit,<ins>tracker,</ins>focus,routine,notes<ins>,planner</ins></span></div></div>
+            <div class="diff"><div class="diff-h"><span class="tag">tr</span>Bu sürümdeki yenilikler<span class="t-xs fg3">· sürüm 2.4</span><span class="bdg sm ml">Güncelle</span></div>
+              <div class="dl del"><span><del>Hata düzeltmeleri ve performans iyileştirmeleri.</del></span></div>
+              <div class="dl add"><span><ins>Haftalık görünüm geldi. iPad'de takvim artık iki sütun. Hatırlatıcılar saat dilimini doğru izliyor.</ins></span></div></div>
+            <div class="diff hide-ph"><div class="diff-h"><span class="tag">en-US</span>Alt başlık · yan yana görünüm örneği</div>
+              <div class="dside"><div class="dl del"><span>Plan your day</span></div><div class="dl add"><span>Goals, calendar and habits</span></div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-alert-t"/></svg><span class="h3">2 uyarı</span></div><div class="card-b c gp12 t-s">
+              <div><b>en-US sürüm lokalizasyonu zaten var</b><div class="fg2 mt4">en-US app info olduğu için Apple 2.4 sürüm lokalizasyonunu kendisi oluşturdu. storeasy anahtar kelimeleri POST yerine PATCH ile günceller.</div></div>
+              <div class="hr d" style="margin:0"></div>
+              <div><b>Anahtar kelime adla çakışıyor</b><div class="fg2 mt4">"planner" uygulama adında var; Apple adı zaten aramada kullanır. Çıkarırsan 8 karakter kazanırsın.</div><span class="lnk t-s">Metne dönüp düzelt</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-server"/></svg><span class="h3">Mağaza çağrıları</span><span class="t-xs fg3 ml">3</span></div><div class="card-b calls">
+              <div><b>PATCH</b><span>/v1/appInfoLocalizations/{en-US}</span><span class="fg3">subtitle</span></div>
+              <div><b>PATCH</b><span>/v1/appStoreVersionLocalizations/{en-US}</span><span class="fg3">keywords</span></div>
+              <div><b>PATCH</b><span>/v1/appStoreVersionLocalizations/{tr}</span><span class="fg3">whatsNew</span></div>
+            </div></div>
+            <div class="card"><div class="card-b c gp12">
+              <div class="t-s fg2">Uygulanınca bir mağaza işi oluşur ve canlı akışta görünür. Denetim kaydına senin adınla düşer.</div>
+              <span class="btn pri blk"><svg class="ic"><use href="#i-send"/></svg>Onayla ve gönder</span>
+              <span class="btn ghost blk">Metinlere dön</span>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-7" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">7.7</b><span class="fr-t">MCP'nin hazırladığı plan onay bekliyor</span><code class="fr-r">/apps/:appId/listing/plans/:planId</code></figcaption>
+  <p class="fr-note">Claude MCP üzerinden bir kullanıcının PAT'i ile plan hazırlar; plan o kullanıcı adına kaydedilir ama MCP onu uygulayamaz, bir insanın bu ekranda onaylaması gerekir. Uygulama detayının Genel bakış'ındaki "Son işlemler" ve bildirim zili bu plana bağlanır. Onaylayan ile hazırlatan farklı kişiler olabilir; denetim kaydı ikisini de yazar (<code>Channel = Mcp</code> hazırlık, <code>Channel = Web</code> onay). <b>API:</b> <code>PATCH /api/v1.0/plans</code> (onay bekleyenler), <code>POST /api/v1.0/plans/approve { PlanId }</code> → <code>StoreJobId</code>, <code>POST /api/v1.0/plans/reject { PlanId, Reason }</code>. <b>İzin:</b> <code>EditContent</code>; Viewer planı görür, düğmeleri görmez. Telefonda iki düğme alt alta, "Onayla ve gönder" üstte.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler|Plan" data-act="">
+      <div class="content">
+        <div class="hand mb16"><div class="planhd"><div class="r gp12"><span class="av"><svg class="ic s16"><use href="#i-spark"/></svg></span><div class="f1"><b class="t-m">Claude (MCP) hazırladı, Deniz Arslan adına</b><div class="t-s fg2">Dün 21:40 · PAT <span class="mono">sea_…4f2a</span> · araç <span class="mono">listing_plan</span> · istem: "de-DE anahtar kelimeleri en-US ile hizala"</div></div></div><span class="bdg acc sm"><span class="dot"></span>Onay bekliyor</span></div></div>
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="st"><b>AS</b>App Store</span><span class="t-xs fg3 mono">plan 7a91e0 · 6 saat geçerli</span></div><h1 class="pg-t">1 değişiklik · de-DE anahtar kelimeler</h1></div></div>
+        <div class="split">
+          <div class="c gp12">
+            <div class="diff"><div class="diff-h"><span class="tag">de-DE</span>Anahtar kelimeler<span class="t-xs fg3">· sürüm 2.4</span><span class="bdg sm ml">Güncelle</span></div>
+              <div class="dl del mono t-s"><span><del>kalender,termine,aufgaben,ziele,notizen</del></span></div>
+              <div class="dl add mono t-s"><span><ins>terminplaner,kalender,aufgaben,ziele,gewohnheit,fokus,routine,notizen</ins></span></div></div>
+            <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Claude'un notu: "en-US'deki 'habit', 'focus', 'routine' karşılıkları eklendi; 'termine' 'terminplaner' ile birleşti. 71 / 100 karakter."</div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Mağaza çağrıları</span></div><div class="card-b calls"><div><b>PATCH</b><span>/v1/appStoreVersionLocalizations/{de-DE}</span><span class="fg3">keywords</span></div></div></div>
+            <div class="card"><div class="card-b c gp12">
+              <span class="btn pri blk"><svg class="ic"><use href="#i-send"/></svg>Onayla ve gönder</span>
+              <span class="btn blk"><svg class="ic"><use href="#i-edit"/></svg>Metinde düzenle</span>
+              <span class="btn ghost blk dng-t">Reddet</span>
+              <span class="t-xs fg3">Reddedersen gerekçe Claude'a MCP yanıtı olarak döner.</span>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-8">
+  <figcaption class="fr-h"><b class="fr-n">7.8</b><span class="fr-t">Uygulandı: toast ve canlı iş</span><code class="fr-r">/apps/:appId/listing/texts</code></figcaption>
+  <p class="fr-note">"Onayla ve gönder" sonrası kullanıcı metinlere döner; taslak temizlenir, değişen alanlar iş bitene kadar "Gönderiliyor" rozetiyle kilitli kalır. Toast iş bağlantısını taşır. İş adımları SignalR <code>/hubs/activity</code> (<code>job.created</code>, <code>job.step</code>, <code>job.finished</code>) ile güncellenir; iş bitince rozet kalkar ve "Mağazadaki" değeri yenilenir. Hata olursa toast tehlike rengiyle "1 / 3 çağrı başarısız · İşi aç". <b>API:</b> <code>GET /api/v1.0/jobs/job?JobId=</code>. Telefonda toast altta, tam genişlik.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler" data-meta="com.kuzeylab.pusula · düzenlenen sürüm 2.4"></div>
+        <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-activity"/></svg><span class="h3">Metin güncellemesi · 3 çağrı</span><span class="bdg live ok sm ml"><span class="dot"></span>Sürüyor</span></div><div class="card-b c gp10">
+          <div class="r gp12 t-s"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="f1 mono">PATCH appInfoLocalizations · en-US subtitle</span><span class="fg3">200 · 0,4 sn</span></div>
+          <div class="r gp12 t-s"><span class="spinner"></span><span class="f1 mono">PATCH appStoreVersionLocalizations · en-US keywords</span><span class="fg3">gönderiliyor</span></div>
+          <div class="r gp12 t-s fg3"><svg class="ic s16"><use href="#i-circle-dash"/></svg><span class="f1 mono">PATCH appStoreVersionLocalizations · tr whatsNew</span><span>sırada</span></div>
+          <div class="stp"><span class="d"></span><span class="n"></span><span></span></div>
+        </div></div>
+        <div class="card mt16"><div class="card-b"><label class="fld"><span class="lbl">Alt başlık <span class="bdg sm"><span class="spinner" style="width:10px;height:10px"></span>Gönderiliyor</span><span class="cnt">26 / 30</span></span><span class="inp ro">Goals, calendar and habits</span></label></div></div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Plan uygulanıyor</b><div class="fg2">3 değişiklik App Store'a gönderiliyor.</div><span class="lnk t-s">Canlı işi aç</span></div></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-9">
+  <figcaption class="fr-h"><b class="fr-n">7.9</b><span class="fr-t">Çakışma: mağaza bu arada değişti (409)</span><code class="fr-r">/apps/:appId/listing/plans/:planId</code></figcaption>
+  <p class="fr-note">Plan hazırlanırken her alanın mağazadaki değerinin özeti saklanır. <code>POST listings/apply</code> mağazayı yeniden okur; özet tutmazsa (biri App Store Connect'te ya da başka bir planla değiştirdi) <code>409 Conflict</code> ve <code>Messages[{ Key: "Plan.Conflict", Field, Locale }]</code> döner, hiçbir çağrı yapılmaz. Kullanıcı mağazadaki yeni değeri görür ve "Yeniden planla" ile taslağını yeni değer üstüne yeniden hesaplatır; taslak korunur. Süresi dolan plan da aynı diyaloğu "Planın süresi doldu" metniyle açar (<code>410</code>). <b>İzin:</b> <code>EditContent</code>. Telefonda diyalog alttan açılan sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler|Plan" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">3 değişiklik · Pusula 2.4</h1></div><div class="diff" style="opacity:.5"><div class="diff-h">en-US · Alt başlık</div><div class="dl del"><span>Plan your day</span></div></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m79">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 warn-t"><use href="#i-alert-t"/></svg></span><div class="f1"><h2 class="h2" id="m79">Mağazadaki metin değişmiş</h2><p class="t-s fg2 mt4">Plan hazırlandıktan sonra 1 alan App Store Connect'te değişti. Hiçbir şey gönderilmedi.</p></div></div>
+      <div class="mdl-b">
+        <div class="diff"><div class="diff-h"><span class="tag">en-US</span>Alt başlık<span class="t-xs fg3 ml">Ece Yılmaz · ASC · 14:31</span></div>
+          <div class="dl"><span class="t-s"><span class="fg3">Plandaki önceki değer:</span> Plan your day</span></div>
+          <div class="dl"><span class="t-s"><span class="fg3">Mağazadaki şimdiki:</span> <b>Plan your week</b></span></div>
+          <div class="dl add"><span class="t-s"><span class="fg3">Senin taslağın:</span> Goals, calendar and habits</span></div></div>
+        <div class="t-s fg2">Diğer 2 değişiklik etkilenmedi. Yeniden planlayınca diff mağazadaki son değere göre hesaplanır.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Taslağı bırak</span><span class="btn pri"><svg class="ic"><use href="#i-refresh"/></svg>Yeniden planla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. TOPLU DİL ============ -->
+<section class="sec" id="toplu">
+<div class="sec-h"><span class="k">Bölüm 7.10-7.11</span><h2>Toplu dil görünümü</h2><p>Tek alan, bütün diller: anahtar kelimeleri ya da yenilikleri diller arasında karşılaştırmak ve hizalamak için. Bir dilden diğerine kopyalama elle yapılır; yapay zeka çeviri önerisi Faz 6 özelliğidir ve özellik anahtarıyla (kill switch) kapatılabilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-10" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">7.10</b><span class="fr-t">Bütün diller, tek alan: anahtar kelimeler</span><code class="fr-r">/apps/:appId/listing/texts/bulk?store=apple&amp;field=keywords</code></figcaption>
+  <p class="fr-note">Her satır bir dil; adla çakışan kelime uyarı çerçeveli etiket olur. Satırdaki "..." menüsü "Başka dilden kopyala" ve "Yapay zeka ile çevir" (7.11) içerir. Düzenlemeler 7.1 ile aynı taslağa yazılır; çubuk aynıdır. <b>API:</b> <code>GET /api/v1.0/listings/by-field?StoreAppId=&amp;Field=Keywords</code> (yeni) → <code>[{ Locale, Value, MaxLength, StoreValueHash }]</code>; plan yine <code>POST listings/plan</code>. <b>İzin:</b> <code>View</code>, düzenleme <code>EditContent</code>. Telefonda dil kodu satırın üstüne çıkar, etiketler sarılır. <span class="gap">Backend boşluğu:</span> <code>listings/by-field</code> planda yok; Eklenecek (yoksa istemci her dil için <code>GET listings</code> çağırır, 3 dilde kabul edilebilir).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler" data-meta="Toplu dil görünümü · sürüm 2.4"><span class="btn hide-ph"><svg class="ic"><use href="#i-file-text"/></svg>Dil başına görünüm</span></div>
+        <div class="toolbar"><span class="lbl">Alan</span><span class="inp sel" style="width:220px">Anahtar kelimeler</span><span class="t-s fg3 hide-ph">Sınır 100 · sürüm lokalizasyonu</span></div>
+        <div class="card" style="position:relative">
+          <div class="blkrow"><div><span class="tag">tr</span><div class="t-xs fg3 mt4">birincil</div></div><div class="c gp6"><div class="kwc"><span class="tag">ajanda</span><span class="tag">takvim</span><span class="tag">yapılacaklar</span><span class="tag">hedef</span><span class="tag">alışkanlık</span><span class="tag">planlayıcı</span><span class="tag">odak</span><span class="tag">rutin</span><span class="tag">not</span></div><span class="cnt" style="margin:0">69 / 100</span></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="blkrow"><div><span class="tag">en-US</span><div class="r gp4 mt4"><span class="bdg info sm">Değişti</span></div></div><div class="c gp6"><div class="kwc"><span class="tag">agenda</span><span class="tag">calendar</span><span class="tag">todo</span><span class="tag">goals</span><span class="tag">habit</span><span class="tag">tracker</span><span class="tag">focus</span><span class="tag">routine</span><span class="tag">notes</span><span class="tag dup">planner · adda var</span></div><span class="cnt" style="margin:0">68 / 100</span></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="blkrow"><div><span class="tag">de-DE</span></div><div class="c gp6"><div class="kwc"><span class="tag">kalender</span><span class="tag">termine</span><span class="tag">aufgaben</span><span class="tag">ziele</span><span class="tag">notizen</span></div><span class="cnt" style="margin:0">39 / 100 · 61 karakter boş</span></div><span class="ib sm"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="pop" style="right:18px;bottom:-96px"><div class="mh">de-DE</div><div class="mi on"><svg class="ic"><use href="#i-copy"/></svg>Başka dilden kopyala: en-US</div><div class="mi"><svg class="ic"><use href="#i-spark"/></svg>Yapay zeka ile çevir<span class="bdg sm ml">Faz 6</span></div><div class="ms"></div><div class="mi"><svg class="ic"><use href="#i-replay"/></svg>Mağazadaki değere dön</div></div>
+        </div>
+      </div>
+      <div class="savebar"><span class="sum f1">3 değişiklik <span class="fg3 t-s">· 2 dil</span></span><span class="btn"><svg class="ic"><use href="#i-compare"/></svg>Diff'i gör</span><span class="btn pri"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-11">
+  <figcaption class="fr-h"><b class="fr-n">7.11</b><span class="fr-t">Dilden kopyala ve kapalı yapay zeka önerisi (503)</span><code class="fr-r">/apps/:appId/listing/texts/bulk → kopyala</code></figcaption>
+  <p class="fr-note">"Başka dilden kopyala" kaynağı hedefe olduğu gibi taslağa yazar (çeviri değil); hedef doluysa üzerine yazılacağı söylenir. "Yapay zeka önerisi" sekmesi Faz 6'dadır ve platform yöneticisinin özellik anahtarıyla (<code>featureFlags</code>, kill switch) kapatılabilir: kapalıyken uç <code>503 Service Unavailable</code> ve <code>Messages[{ Key: "Feature.Disabled" }]</code> döner, sekme açıklamasıyla pasif kalır. Öneri hiçbir zaman doğrudan mağazaya gitmez, taslağa düşer ve plan ister. <b>API:</b> kopyalama istemcide; öneri <code>POST /api/v1.0/listings/translate-suggestion { StoreAppId, Field, SourceLocale, TargetLocales[] }</code> (yeni, Faz 6). <b>İzin:</b> <code>EditContent</code>. Telefonda alttan açılan sayfa. <span class="gap">Backend boşluğu:</span> <code>listings/translate-suggestion</code> ve bu özelliğin anahtarı planda yok; Faz 6 kapsamında eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act=""><div class="content"><div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m711">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m711">de-DE anahtar kelimeleri</h2><p class="t-s fg2 mt4">Taslağa yazılır; mağazaya gitmeden önce plan gösterilir.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="seg"><span>Dilden kopyala</span><span class="on"><svg class="ic s14"><use href="#i-spark"/></svg>Yapay zeka önerisi</span></div>
+        <div class="state" style="padding:20px 8px"><span class="sic"><svg class="ic s24"><use href="#i-ban"/></svg></span><h3 class="h3">Çeviri önerisi şu an kapalı</h3><p class="t-s fg2" style="margin:0">Platform yöneticisi bu özelliği geçici olarak kapattı. Kopyalama ve elle düzenleme çalışıyor.</p><span class="t-xs fg3 mono">503 · Feature.Disabled · listings.translate</span></div>
+        <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Açıkken öneri kaynak dilin anlamına göre yerel arama terimleri çıkarır ve sınırı (100) aşmaz; her dil ayrı satır olarak taslağa gelir.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri dis" aria-disabled="true"><svg class="ic"><use href="#i-spark"/></svg>Öneri al</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. GÖRSELLER: APP STORE ============ -->
+<section class="sec" id="gorseller">
+<div class="sec-h"><span class="k">Bölüm 7.12-7.15</span><h2>Görseller: App Store ekran görüntüleri</h2><p>Sınıflar ve boyutlar kural kataloğundan gelir (plan 12.2): her satır cihaz sınıfı, kabul edilen boyutlar, zorunluluk ve yedek zinciri. Sınıf başına en az 1, en çok 10 görsel; JPEG ya da PNG, alfa kanalı yok. Yükleme önce dosyaları kontrol eder, sonra eklenecek / silinecek / sıralama planını çıkarır (plan 4.3); mağaza yazması yalnız onaydan sonra.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-12" data-h="1300">
+  <figcaption class="fr-h"><b class="fr-n">7.12</b><span class="fr-t">Ekran görüntüsü sınıfları: Kumbara, ilk gönderim</span><code class="fr-r">/apps/:appId/listing/screenshots?store=apple&amp;locale=tr</code></figcaption>
+  <p class="fr-note">Satır durumları: <b>Zorunlu · dolu</b>, <b>Zorunlu · eksik</b>, <b>Yedekle karşılanıyor</b> (hangi sınıftan), <b>İsteğe bağlı</b>, <b>Yedek bekliyor</b> (yedek sınıf da boş). Kumbara iPhone ve iPad'i destekliyor; iPad 13" zorunlu ve boş. Duo satırı katalogdaki koşulla: iOS 27.1 SDK ile derlenince Nisan 2027'den itibaren; kaynak çelişkisi notlu. Yedek zinciri dil başına çalışır. <b>API:</b> <code>GET /api/v1.0/screenshots/sets?StoreAppId=&amp;Locale=tr</code> (planlanan) → <code>ScreenshotSetListDto { Locale, CatalogVersion, Classes: [{ ClassKey, Title, Sizes[], Requirement (Required, ConditionallyRequired, Optional), Condition?, FilledBy (Own, Fallback, None), FallbackFromClassKey?, Count, Max, Items: [{ Id, Position, FileName, Width, Height, Md5, ThumbnailUrl, State }] }] }</code>. <b>İzin:</b> <code>View</code>; yükleme ve sıralama <code>EditContent</code>. <b>Telefonda</b> satır üç bölüm alt alta (ad ve boyut, durum, küçük resimler yatay kayar), eylem en altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Görseller">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="kayit" data-sub="Görseller" data-meta="com.kuzeylab.kumbara · 1.0 · iPhone, iPad"></div>
+        <div class="toolbar"><span class="chip on"><span class="tag">tr</span>1 eksik</span><span class="chip"><span class="tag">en-US</span>2 eksik</span><span class="ml r gp8"><span class="btn hide-ph"><svg class="ic"><use href="#i-images"/></svg>Stüdyoda üret</span><span class="btn"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></span></div>
+        <div class="callout dng mb16"><svg class="ic"><use href="#i-x-c"/></svg><div class="t-s"><b>tr için 1 zorunlu sınıf boş:</b> iPad 13". Build iPad'i destekliyor (UIDeviceFamily 1, 2). Katalog v1.3.</div></div>
+        <div class="card">
+          <div class="cls"><div class="nm"><b class="t-m">iPhone Dynamic Island (medium)</b><div class="dims">6,1" ve 6,3" · 1206x2622, 1179x2556</div></div>
+            <div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg ok sm"><span class="dot"></span>Zorunlu · dolu</span><span>6 / 10</span></div><div class="shots" style="--c:#475569"><span class="shot" style="--c:#475569"><b>1</b></span><span class="shot v2" style="--c:#475569"><b>2</b></span><span class="shot v3" style="--c:#475569"><b>3</b></span><span class="shot" style="--c:#475569"><b>4</b></span><span class="shot v2" style="--c:#475569"><b>5</b></span><span class="shot v3" style="--c:#475569"><b>6</b></span></div></div>
+            <span class="btn sm">Düzenle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPhone Dynamic Island (large)</b><div class="dims">6,9" · 1320x2868, 1290x2796, 1260x2736</div></div>
+            <div class="fbk"><span class="bdg sm">Yedekle karşılanıyor</span><span>Face ID (large) setinden ölçeklenir</span></div><span class="btn sm ghost">Kendi setini yükle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPhone Face ID (large)</b><div class="dims">6,5" · 1284x2778, 1242x2688</div></div>
+            <div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg ok sm"><span class="dot"></span>Zorunlu · dolu</span><span>Dynamic Island (large) verilmediği için zorunlu · 4 / 10</span></div><div class="shots"><span class="shot lg" style="--c:#475569;width:62px;aspect-ratio:1284/2778"><b>1</b></span><span class="shot v2" style="--c:#475569;width:62px;aspect-ratio:1284/2778"><b>2</b></span><span class="shot v3" style="--c:#475569;width:62px;aspect-ratio:1284/2778"><b>3</b></span><span class="shot" style="--c:#475569;width:62px;aspect-ratio:1284/2778"><b>4</b></span></div></div>
+            <span class="btn sm">Düzenle</span></div>
+          <div class="cls muted"><div class="nm"><b class="t-m">iPhone Face ID (medium)</b><div class="dims">5,8" · 1170x2532, 1125x2436, 1080x2340</div></div>
+            <div class="fbk"><span class="bdg sm">Yedekle karşılanıyor</span><span>Dynamic Island (medium) setinden</span></div><span class="btn sm ghost">Kendi setini yükle</span></div>
+          <div class="cls muted"><div class="nm"><b class="t-m">iPhone Home Button</b><div class="dims">5,5", 4,7", 4", 3,5" · 1242x2208, 750x1334, 640x1136, 640x960</div></div>
+            <div class="fbk"><span class="bdg sm">Yedekle karşılanıyor</span><span>bir üst sınıftan</span></div><span class="btn sm ghost">Kendi setini yükle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPhone Duo dış ekran</b><div class="dims">1398x2034</div></div>
+            <div class="c gp6"><div class="fbk"><span class="bdg sm">İsteğe bağlı</span><span>Nisan 2027'den itibaren zorunlu: iOS 27.1 SDK ile derlenince</span></div><div class="t-xs warn-t b6">Kaynaklar çelişiyor: sürüm notu "bütün gönderimler" diyor. Katalog SDK koşulunu tutuyor.</div></div><span class="btn sm ghost">Yükle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPhone Duo iç ekran</b><div class="dims">2007x2853</div></div>
+            <div class="fbk"><span class="bdg sm">İsteğe bağlı</span><span>Dış ekranla aynı koşul · yedeği belirtilmemiş</span></div><span class="btn sm ghost">Yükle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPad 13"</b><div class="dims">2064x2752, 2048x2732</div></div>
+            <div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg dng sm"><span class="dot"></span>Zorunlu · eksik</span><span>0 / 10 · en üst iPad sınıfı, yedeği yok</span></div><div class="shots"><span class="slotadd pad"><svg class="ic"><use href="#i-plus"/></svg></span></div></div>
+            <span class="btn sm"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></div>
+          <div class="cls muted"><div class="nm"><b class="t-m">Diğer iPad'ler</b><div class="dims">12,9", 11", 10,5", 9,7"</div></div>
+            <div class="fbk"><span class="bdg warn sm">Yedek bekliyor</span><span>13" dolunca ondan karşılanır</span></div><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-13" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">7.13</b><span class="fr-t">Set düzenleme: sıralama ve canlı yükleme</span><code class="fr-r">/apps/:appId/listing/screenshots?store=apple&amp;locale=tr&amp;class=iphone-di-medium</code></figcaption>
+  <p class="fr-note">Pusula 2.4 için tr seti. Küçük resimler sürüklenerek sıralanır (tutamaç sağ üstte; klavyede odaklanıp <span class="kbd">Alt</span> + ok); bırakma yeri ince dikey çizgi. Sıralama ve silme de taslaktır, çubuktan plan çıkar (7.15). Aynı uygulamada iPad 13" tr seti şu an yükleniyor (canlı iş 4 / 7); o sınıf iş bitene kadar düzenlemeye kapalı. Satırdaki "..." menüsü: indir, sil, stüdyoda aç. <b>API:</b> <code>GET screenshots/sets</code>; plan <code>POST /api/v1.0/screenshots/plan { StoreAppId, Locale, ClassKey, Order[], Deletes[], AssetIds[] }</code>. <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> küçük resim şeridi yatay kayar; sürükleme uzun basmayla başlar, "Sırala" düğmesi yukarı / aşağı oklu liste açar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Görseller" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Görseller" data-meta="com.kuzeylab.pusula · düzenlenen sürüm 2.4"></div>
+        <div class="toolbar"><span class="chip on"><span class="tag">tr</span></span><span class="chip"><span class="tag">en-US</span></span><span class="chip"><span class="tag">de-DE</span></span><span class="t-s fg3 ml hide-ph">Katalog v1.3</span></div>
+        <div class="card mb16"><div class="card-h"><div class="f1"><b class="t-m">iPhone Dynamic Island (medium)</b><div class="t-xs mono fg3">1206x2622, 1179x2556 · zorunlu</div></div><span class="t-s fg2 nowrap">6 / 10</span><span class="btn sm hide-ph"><svg class="ic"><use href="#i-sort"/></svg>Sırala</span><span class="btn sm"><svg class="ic"><use href="#i-upload"/></svg>Ekle</span></div>
+          <div class="card-b"><div class="shots" style="gap:12px;padding-top:10px">
+            <span class="shot lg"><b>1</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+            <span class="shot lg v2"><b>2</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+            <span class="dropin"></span>
+            <span class="shot lg v3"><b>3</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+            <span class="shot lg ghost"><b>4</b></span>
+            <span class="shot lg v2"><b>5</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+            <span class="shot lg v3"><b>6</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+            <span class="slotadd" style="width:84px"><svg class="ic"><use href="#i-plus"/></svg></span>
+            <span class="shot lg lift" style="margin-left:-160px"><b>4</b><span class="gh"><svg class="ic"><use href="#i-grip"/></svg></span></span>
+          </div><div class="t-xs fg3 mt8">4. görsel 3. sıraya taşınıyor · 06-takvim.png</div></div></div>
+        <div class="card"><div class="card-h"><div class="f1"><b class="t-m">iPad 13"</b><div class="t-xs mono fg3">2064x2752, 2048x2732 · iPad desteklendiği için zorunlu</div></div><span class="bdg live ok sm"><span class="dot"></span>Yükleniyor 4 / 7</span></div>
+          <div class="card-b c gp12"><div class="shots" style="gap:10px"><span class="shot pad"><b>1</b></span><span class="shot pad v2"><b>2</b></span><span class="shot pad v3"><b>3</b></span><span class="shot pad" style="opacity:.6"><b>4</b></span><span class="slotadd pad"><span class="spinner"></span></span><span class="slotadd pad"></span><span class="slotadd pad"></span></div>
+            <div class="r gp12 t-s"><span class="f1 mono t-xs fg2">asset.upload · 04-takvim.png · parça 2/3</span><span class="lnk">Canlı işi aç</span></div><span class="prog"><i style="width:57%"></i></span></div></div>
+      </div>
+      <div class="savebar"><span class="sum f1">Sıralama değişti <span class="fg3 t-s">· tr · 1 set</span></span><span class="btn ghost">Geri al</span><span class="btn pri"><svg class="ic"><use href="#i-list-check"/></svg>Planla (dry run)</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-14" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">7.14</b><span class="fr-t">Yükleme: dosya başına kontrol</span><code class="fr-r">/apps/:appId/listing/screenshots → yükle</code></figcaption>
+  <p class="fr-note">Dosyalar tarayıcıdan doğrudan nesne deposuna gider (presigned URL); storeasy sunucusu dosyayı taşımaz. Her dosya için boyut, tür, alfa ve mevcut setle MD5 kontrolü sunucuda yapılır: <b>Kabul</b>, <b>Dönüştürüldü</b> (alfa kanalı düzleştirildi; plan 2.4), <b>Atlanacak</b> (MD5 aynı, mağazaya tekrar gitmez), <b>Reddedildi</b> (gerekçe ve varsa öneri). 1320x2868 bu slotta kabul edilmez; "6,9" sınıfına taşı" önerisi dosyayı doğru sınıfa planlar. <b>API:</b> <code>POST /api/v1.0/assets/upload-url { FileName, ContentType, Size }</code> → <code>{ AssetId, Url, Headers, ExpiresDate }</code>; sonra <code>POST screenshots/plan</code> → <code>ScreenshotPlanDto { PlanId, Files: [{ AssetId, FileName, Width, Height, Md5, Result (Accepted, Converted, Skipped, Rejected), Reason, SuggestedClassKey? }], Items: [...] }</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda dosya seçici (sürükle bırak yok), satırlar alt alta. <span class="gap">Backend boşluğu:</span> <code>ScreenshotPlanDto</code> ve dosya kontrol sonucu (<code>Files[]</code>) planda tanımlı değil; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Görseller" data-act=""><div class="content"><div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Görseller"></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m714">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m714">Ekran görüntüsü yükle</h2><p class="t-s fg2 mt4">tr · iPhone Dynamic Island (medium) · 1206x2622 ya da 1179x2556</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="drop"><svg class="ic s24 fg3"><use href="#i-cloud-up"/></svg><b class="t-m">Dosyaları buraya bırak</b><span class="t-s fg2">ya da <span class="lnk">bilgisayardan seç</span> · JPEG, PNG · sınıf başına en çok 10</span></div>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="shot" style="width:28px"></span><div class="f1"><b class="t-s">07-bugun.png</b><div class="t-xs mono fg3">1206x2622 · 1,8 MB</div></div><span class="bdg ok sm"><span class="dot"></span>Kabul</span></div>
+          <div class="lst-i"><span class="shot v2" style="width:28px"></span><div class="f1"><b class="t-s">08-hafta.png</b><div class="t-xs mono fg3">1206x2622 · 2,1 MB · alfa kanalı kaldırıldı</div></div><span class="bdg ok sm"><span class="dot"></span>Dönüştürüldü</span></div>
+          <div class="lst-i"><span class="shot v3" style="width:28px"></span><div class="f1"><b class="t-s">03-takvim.png</b><div class="t-xs mono fg3">1179x2556 · MD5 9e1f…c4 setteki 3. görselle aynı</div></div><span class="bdg sm">Atlanacak</span></div>
+          <div class="lst-i"><span class="shot" style="width:28px;opacity:.5"></span><div class="f1"><b class="t-s">09-hedef.png</b><div class="t-xs dng-t">1320x2868 6,1" slotunda reddedilir. Bu boyut 6,9" (Dynamic Island large) sınıfına ait.</div></div><span class="bdg dng sm">Reddedildi</span><span class="btn sm">6,9" sınıfına taşı</span></div>
+          <div class="lst-i"><span class="shot v2" style="width:28px;opacity:.5"></span><div class="f1"><b class="t-s">10-odak.heic</b><div class="t-xs dng-t">Yalnız JPEG ve PNG kabul edilir.</div></div><span class="bdg dng sm">Reddedildi</span></div>
+          <div class="lst-i"><span class="shot v3" style="width:28px"></span><div class="f1"><b class="t-s">11-rutin.png</b><div class="t-xs mono fg3">1206x2622 · 1,2 / 2,4 MB</div><span class="prog sm mt4"><i style="width:50%"></i></span></div><span class="t-xs fg3">Yükleniyor</span></div>
+        </div></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1">3 kabul · 1 atlanacak · 2 reddedildi</span><span class="btn ghost">Vazgeç</span><span class="btn pri dis" aria-disabled="true">Planı hazırla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-15" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">7.15</b><span class="fr-t">Ekran görüntüsü değişiklik planı</span><code class="fr-r">/apps/:appId/listing/screenshots/plans/:planId</code></figcaption>
+  <p class="fr-note">Plan üç bölümdür: <b>eklenecek</b> (yeşil çerçeve), <b>silinecek</b> (kırmızı çerçeve, soluk), <b>sıralama</b> (önce / sonra şeridi). Atlanan dosyalar ayrı satırda, mağaza çağrısı üretmez. Çağrı listesi App Store akışını izler: set oluştur, rezerve et, parçaları yükle, commit (checksum), işlenme, sırala, sil. "Onayla ve gönder" iş oluşturur, 7.13'teki gibi canlı izlenir, bitince toast. Apple 5xx'te iki deneme, sonra set kontrolü; kalıcı hatada rezervasyon silinir (plan 4.3). <b>API:</b> <code>POST /api/v1.0/screenshots/apply { PlanId }</code> → <code>StoreJobId</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda şeritler yatay kayar, çağrı listesi katlanır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Görseller|Plan" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg sm">Dry run</span><span class="t-xs fg3 mono">plan c40b7e</span></div><h1 class="pg-t">tr · iPhone Dynamic Island (medium)</h1><p class="pg-s">2 eklenecek · 1 silinecek · sıralama değişiyor · 1 atlandı</p></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Önce</span><span class="t-xs fg3 ml">6 görsel</span></div><div class="card-b"><div class="shots"><span class="shot"><b>1</b></span><span class="shot v2"><b>2</b></span><span class="shot v3"><b>3</b></span><span class="shot gone"><b>4</b></span><span class="shot v2"><b>5</b></span><span class="shot v3"><b>6</b></span></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Sonra</span><span class="t-xs fg3 ml">7 görsel</span></div><div class="card-b"><div class="shots"><span class="shot new"><b>1</b></span><span class="shot"><b>2</b></span><span class="shot v2"><b>3</b></span><span class="shot v3"><b>4</b></span><span class="shot v2 new"><b>5</b></span><span class="shot v2"><b>6</b></span><span class="shot v3"><b>7</b></span></div></div></div>
+            <div class="card"><div class="lst">
+              <div class="lst-i"><span class="bdg ok sm">Eklenecek</span><span class="f1 t-s">07-bugun.png → 1. sıra</span><span class="t-xs mono fg3">1206x2622</span></div>
+              <div class="lst-i"><span class="bdg ok sm">Eklenecek</span><span class="f1 t-s">08-hafta.png → 5. sıra · alfa kaldırıldı</span><span class="t-xs mono fg3">1206x2622</span></div>
+              <div class="lst-i"><span class="bdg dng sm">Silinecek</span><span class="f1 t-s">04-eski-liste.png</span><span class="t-xs mono fg3">1179x2556</span></div>
+              <div class="lst-i"><span class="bdg sm">Atlandı</span><span class="f1 t-s fg2">03-takvim.png · MD5 aynı</span><span></span></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Mağaza çağrıları</span><span class="t-xs fg3 ml">9</span></div><div class="card-b calls">
+              <div><b>POST</b><span>/v1/appScreenshots</span><span class="fg3">×2 rezerve</span></div>
+              <div><b>PUT</b><span>uploadOperations</span><span class="fg3">×2 parça</span></div>
+              <div><b>PATCH</b><span>/v1/appScreenshots/{id}</span><span class="fg3">×2 commit</span></div>
+              <div><b>DELETE</b><span>/v1/appScreenshots/{id}</span><span class="fg3">×1</span></div>
+              <div><b>PATCH</b><span>/v1/appScreenshotSets/{id}/relationships/appScreenshots</span><span class="fg3">sırala</span></div>
+            </div></div>
+            <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Pusula 2.3 incelemede; bu set 2.4'e yazılır, yayındaki sürüm değişmez.</div></div>
+            <span class="btn pri blk"><svg class="ic"><use href="#i-send"/></svg>Onayla ve gönder</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. PLAY VE MICROSOFT GÖRSELLERİ ============ -->
+<section class="sec" id="grafikler">
+<div class="sec-h"><span class="k">Bölüm 7.16-7.17</span><h2>Görseller: Google Play ve Microsoft Store</h2><p>Aynı yükleme ve plan akışı, mağazanın görsel türleriyle. Play'de grafikler dil başınadır ve boş dilde varsayılan dilin grafikleri gösterilir; Microsoft Store'da dil başına en çok 10 ekran görüntüsü ve logolar.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-16" data-h="1080">
+  <figcaption class="fr-h"><b class="fr-n">7.16</b><span class="fr-t">Google Play grafikleri</span><code class="fr-r">/apps/:appId/listing/screenshots?store=google&amp;locale=tr-TR</code></figcaption>
+  <p class="fr-note">Satırlar: uygulama simgesi 512x512 (32 bit PNG), öne çıkan grafik 1024x500 (JPEG ya da 24 bit PNG, alfa yok), telefon ekran görüntüleri (en az 2, en çok 8), 7" ve 10" tablet (her biri en çok 8; tablet düzeni bildiren uygulamada en az 1). Simge ve öne çıkan grafik tektir: yenisi eskiyi değiştirir, diff önce / sonra görseli gösterir. en-US satırında kendi grafiği olmayan tür "tr-TR'den gösteriliyor" der. <b>API:</b> aynı <code>screenshots/sets</code>, <code>screenshots/plan</code>, <code>screenshots/apply</code>; <code>ClassKey</code> Play görsel türleri (<code>icon, featureGraphic, phoneScreenshots, sevenInchScreenshots, tenInchScreenshots</code>), mağaza tarafında <code>edits.images</code> + <code>edits.commit</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda öne çıkan grafik tam genişlik, şeritler yatay kayar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Görseller">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="kayit" data-sub="Görseller"></div>
+        <div class="toolbar"><span class="chip on"><span class="tag">tr-TR</span>varsayılan</span><span class="chip"><span class="tag">en-US</span></span><span class="chip"><span class="tag">de-DE</span>3 tür tr-TR'den</span><span class="ml btn"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></div>
+        <div class="card">
+          <div class="cls"><div class="nm"><b class="t-m">Uygulama simgesi</b><div class="dims">512x512 · 32 bit PNG · en çok 1 MB</div></div><div class="fbk"><span class="aic l" style="--c:#0F766E">P</span><span class="bdg ok sm"><span class="dot"></span>Dolu</span></div><span class="btn sm ghost">Değiştir</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">Öne çıkan grafik</b><div class="dims">1024x500 · JPEG ya da 24 bit PNG</div></div><div class="c gp8" style="min-width:0"><div class="feat"></div><span class="bdg ok sm" style="justify-self:start;align-self:flex-start"><span class="dot"></span>Dolu</span></div><span class="btn sm ghost">Değiştir</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">Telefon ekran görüntüleri</b><div class="dims">en az 2, en çok 8 · 16:9 ya da 9:16</div></div><div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg ok sm"><span class="dot"></span>6 / 8</span></div><div class="shots"><span class="shot" style="aspect-ratio:9/16"><b>1</b></span><span class="shot v2" style="aspect-ratio:9/16"><b>2</b></span><span class="shot v3" style="aspect-ratio:9/16"><b>3</b></span><span class="shot" style="aspect-ratio:9/16"><b>4</b></span><span class="shot v2" style="aspect-ratio:9/16"><b>5</b></span><span class="shot v3" style="aspect-ratio:9/16"><b>6</b></span></div></div><span class="btn sm">Düzenle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">7" tablet</b><div class="dims">en çok 8</div></div><div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg dng sm"><span class="dot"></span>0 · en az 1 gerekli</span><span>Uygulama tablet düzeni bildiriyor</span></div><div class="shots"><span class="slotadd pad" style="aspect-ratio:10/16;width:64px"><svg class="ic"><use href="#i-plus"/></svg></span></div></div><span class="btn sm"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">10" tablet</b><div class="dims">en çok 8</div></div><div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg ok sm"><span class="dot"></span>4 / 8</span></div><div class="shots"><span class="shot pad" style="aspect-ratio:10/16;width:64px"><b>1</b></span><span class="shot pad v2" style="aspect-ratio:10/16;width:64px"><b>2</b></span><span class="shot pad v3" style="aspect-ratio:10/16;width:64px"><b>3</b></span><span class="shot pad" style="aspect-ratio:10/16;width:64px"><b>4</b></span></div></div><span class="btn sm">Düzenle</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-17" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">7.17</b><span class="fr-t">Microsoft Store görselleri</span><code class="fr-r">/apps/:appId/listing/screenshots?store=ms&amp;locale=tr-TR</code></figcaption>
+  <p class="fr-note">Dil başına en çok 10 masaüstü ekran görüntüsü (plan 11.6) ve mağaza logoları. MSIX gönderiminde görseller gönderimle birlikte yüklenir: görsel değişikliği de yeni gönderim ister ve 7.4'teki tek aktif gönderim kuralına takılır. Logo ve ekran boyutları stüdyo kataloğuna eklenecek; o zamana kadar satırlar boyut yerine "katalogda yok" der ve yükleme mağazanın kendi kontrolüne kalır. <b>API:</b> <code>screenshots/sets|plan|apply</code>, <code>Store = Microsoft</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda yatay görseller şeritte kayar. <span class="gap">Backend boşluğu:</span> Microsoft görsel sınıfları ve boyutları katalog v1'de yok; Eklenecek (katalog verisi, kod değil).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Görseller">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="kayit" data-sub="Görseller" data-meta="Store ID 9P4K7Q2MZL1D · MSIX"></div>
+        <div class="toolbar"><span class="chip on"><span class="tag">tr-TR</span></span><span class="chip"><span class="tag">en-US</span></span><span class="chip"><span class="tag">de-DE</span></span><span class="ml btn"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></div>
+        <div class="card">
+          <div class="cls"><div class="nm"><b class="t-m">Masaüstü ekran görüntüleri</b><div class="dims">dil başına en çok 10 · boyutlar katalogda yok</div></div><div class="c gp8" style="min-width:0"><div class="fbk"><span class="bdg ok sm"><span class="dot"></span>4 / 10</span></div><div class="shots"><span class="shot wide"><b>1</b></span><span class="shot wide v2"><b>2</b></span><span class="shot wide v3"><b>3</b></span><span class="shot wide"><b>4</b></span><span class="slotadd wide"><svg class="ic"><use href="#i-plus"/></svg></span></div></div><span class="btn sm">Düzenle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">Mağaza logoları</b><div class="dims">kare ve dikey poster · boyutlar katalogda yok</div></div><div class="r gp12 wrap"><span class="logo-b" style="width:56px;height:56px">P</span><span class="logo-b" style="width:48px;height:72px">P</span><span class="bdg ok sm"><span class="dot"></span>2 dolu</span></div><span class="btn sm ghost">Değiştir</span></div>
+        </div>
+        <div class="callout warn mt16"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">2.3.0.0 sertifikasyonda. Görsel planı hazırlanabilir, uygulama yeni gönderim açılınca yapılır.</div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. ÖNİZLEME VİDEOLARI ============ -->
+<section class="sec" id="videolar">
+<div class="sec-h"><span class="k">Bölüm 7.18</span><h2>Önizleme videoları</h2><p>App Store önizlemeleri (App Preview) cihaz sınıfı ve dil başına. Video yüklendikten sonra Apple işler; işlenene kadar poster karesi seçilemez. Boyutlar katalogdan gelir; Duo boyutları henüz kontrol edilmedi.</p></div>
+<div class="frames">
+<figure class="fr" id="f7-18" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">7.18</b><span class="fr-t">App Preview: sınıflar, işleme, poster karesi</span><code class="fr-r">/apps/:appId/listing/previews?store=apple&amp;locale=tr</code></figcaption>
+  <p class="fr-note">Sınıf başına en çok 3 video, 15-30 saniye. Satır durumları: İşleniyor (Apple, ilerleme bilinmez, spinner), Hazır, Hata (Apple'ın gerekçesiyle), Boş (isteğe bağlı). Poster karesi zaman çubuğundan seçilir ve plana <code>previewFrameTimeCode</code> olarak girer. Duo satırı pasif: "Boyutlar katalog v1'e eklenecek". Yükleme ve sıralama ekran görüntüleriyle aynı plan akışıdır. <b>İzin:</b> <code>View</code>, değişiklik <code>EditContent</code>. Telefonda sınıf satırları alt alta, zaman çubuğu tam genişlik. <span class="gap">Backend boşluğu:</span> önizleme uçları planda yok; <code>GET /api/v1.0/previews/sets</code>, <code>POST /api/v1.0/previews/plan</code>, <code>POST /api/v1.0/previews/apply</code> eklenecek (ya da <code>screenshots/*</code> uçları <code>MediaType = Preview</code> alacak); App Preview boyutları katalog v1'e eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Önizleme videoları" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Önizleme videoları" data-meta="com.kuzeylab.pusula · düzenlenen sürüm 2.4"></div>
+        <div class="toolbar"><span class="chip on"><span class="tag">tr</span></span><span class="chip"><span class="tag">en-US</span></span><span class="chip"><span class="tag">de-DE</span></span><span class="t-s fg3 ml hide-ph">Sınıf başına en çok 3 · 15-30 sn</span></div>
+        <div class="card">
+          <div class="cls"><div class="nm"><b class="t-m">iPhone 6,9"</b><div class="dims">Dynamic Island (large)</div></div><div class="r gp12 wrap"><span class="vid"><span class="pl"><span><svg class="ic"><use href="#i-play"/></svg></span></span><b>0:24</b></span><div class="c gp4"><span class="bdg ok sm" style="align-self:flex-start"><span class="dot"></span>Hazır</span><span class="t-xs fg3">poster 00:05 · 1 / 3</span></div></div><span class="btn sm">Düzenle</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPhone 6,1" ve 6,3"</b><div class="dims">Dynamic Island (medium)</div></div><div class="c gp10" style="min-width:0"><div class="r gp12 wrap"><span class="vid" style="opacity:.7"><span class="pl"><span class="spinner" style="border-color:#fff;border-top-color:transparent"></span></span><b>0:28</b></span><div class="c gp4"><span class="bdg sm" style="align-self:flex-start"><span class="spinner" style="width:10px;height:10px"></span>Apple işliyor</span><span class="t-xs fg3">pusula-hafta-tr.mov · 41,6 MB · 6 dk önce</span></div></div>
+            <div class="c gp6" style="max-width:420px"><span class="t-xs fg3">Poster karesi · işlenince seçilebilir</span><div class="scrub" style="opacity:.5"><i></i></div></div></div><span class="btn sm dis">Poster seç</span></div>
+          <div class="cls"><div class="nm"><b class="t-m">iPad 13"</b><div class="dims">isteğe bağlı</div></div><div class="fbk"><span class="bdg sm">Boş</span><span>Ekran görüntüleri tek başına yeterli</span></div><span class="btn sm ghost"><svg class="ic"><use href="#i-upload"/></svg>Yükle</span></div>
+          <div class="cls muted"><div class="nm"><b class="t-m fg3">iPhone Duo</b><div class="dims">dış ve iç ekran</div></div><div class="fbk"><span class="bdg sm">Katalogda yok</span><span>Boyutlar katalog v1'e eklenecek; henüz kontrol edilmedi.</span></div><span class="btn sm dis">Yükle</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+</div>
+</section>
+
+<!-- ============ 7. KATEGORİ VE YAŞ ============ -->
+<section class="sec" id="kategori">
+<div class="sec-h"><span class="k">Bölüm 7.19-7.20</span><h2>Kategori ve yaş</h2><p>Kategori, telif ve içerik hakları beyanı ile yaş derecelendirmesi. Bunlar da mağaza yazmasıdır: kaydetmek doğrudan yazmaz, küçük bir plan (diff) gösterir. Google Play içerik derecelendirmesi ve Microsoft IARC anketi API'de yok; asistanlı adıma bağlanır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-19" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">7.19</b><span class="fr-t">Kategori, telif ve içerik hakları</span><code class="fr-r">/apps/:appId/listing/category?store=apple</code></figcaption>
+  <p class="fr-note">Birincil ve ikincil kategori app info'dadır (hemen yansır); telif sürüme aittir (2.4 ile gider); içerik hakları beyanı uygulamaya aittir. İkincil kategori birincille aynı olamaz (alan hatası). <b>API:</b> <code>GET /api/v1.0/categories?StoreAppId=</code> → <code>CategoryDto { Primary, Secondary, Options[{ Key, Title }], Copyright, ContentRightsDeclaration (DoesNotUseThirdPartyContent, UsesThirdPartyContent) }</code>; <code>PUT /api/v1.0/categories { ..., DryRun }</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda alanlar tek sütun. <span class="gap">Backend boşluğu:</span> <code>PUT categories</code> doğrudan yazar; plan 2.2'deki "her yazmadan önce diff" için <code>DryRun = true</code> → <code>ChangePlanDto</code> davranışı eklenecek. Telif ve içerik hakları alanları uç listesinde yok; <code>categories</code> gövdesine eklenecek. Google Play kategorisi <code>edits.details</code>'te yok: Tasarımdan çıkarıldı, Play kategorisi asistanlı adımda.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Kategori ve yaş" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Kategori ve yaş"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-b">
+              <div class="fsec"><span class="h3">Kategori</span><span class="t-xs fg3">App info · hemen yansır</span></div>
+              <div class="g2"><label class="fld"><span class="lbl">Birincil kategori</span><span class="inp sel">Verimlilik</span></label><label class="fld"><span class="lbl">İkincil kategori <span class="bdg info sm">Değişti</span></span><span class="inp sel foc">Yaşam Tarzı</span><span class="hint">Mağazadaki: Sağlık ve Fitness</span></label></div>
+            </div></div>
+            <div class="card"><div class="card-b fstack">
+              <div class="fsec" style="margin-bottom:0"><span class="h3">Telif ve içerik hakları</span></div>
+              <label class="fld"><span class="lbl">Telif <span class="opt">· sürüm 2.4</span></span><span class="inp">2026 Kuzey Lab</span><span class="hint">Yıl ve hak sahibi; "©" işaretini Apple kendisi ekler.</span></label>
+              <div class="fld"><span class="lbl">İçerik hakları beyanı</span>
+                <div class="opt-row"><span class="rad on"></span><div><b class="t-s">Üçüncü taraf içeriği kullanmıyor</b><div class="t-xs fg3">Bütün metin, görsel ve ses Kuzey Lab'e ait.</div></div></div>
+                <div class="opt-row"><span class="rad"></span><div><b class="t-s">Üçüncü taraf içeriği kullanıyor ve gerekli haklara sahip</b></div></div>
+              </div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12"><div class="t-s fg2">1 değişiklik. Kaydetmeden önce diff gösterilir.</div><span class="btn pri blk"><svg class="ic"><use href="#i-list-check"/></svg>Planla ve kaydet</span></div></div>
+            <div class="callout"><svg class="ic"><use href="#i-hand"/></svg><div class="t-s"><b>Google Play kategorisi</b><div class="fg2 mt4">Play Console'da elle seçilir. <span class="lnk">Asistanlı adımı aç</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-20" data-h="1160">
+  <figcaption class="fr-h"><b class="fr-n">7.20</b><span class="fr-t">Yaş derecelendirmesi ve yeni sorular</span><code class="fr-r">/apps/:appId/listing/age-rating?store=apple</code></figcaption>
+  <p class="fr-note">Anket gruplu; 16 Kasım 2026'da eklenen <b>Paylaşılan konum</b> ve <b>Tanışma ve ilişkiler</b> soruları "Yeni" rozetli ve 12 Ocak 2027 son tarihli; cevaplanmadan güncelleme gönderilemez (hazırlık kuralı <code>apple.age-rating.2026-questions</code>). Pusula konum paylaştığı için storeasy "Evet" önerir ama işaretlemez. Hesaplanan derecelendirmeyi Apple döndürür; ekran kaydetmeden önceki ve sonraki tahmini gösterir. Brezilya notu katalogdan. Play ve Microsoft anketi asistanlı adımdır (kayıtlı cevaplar hazırsa bağlantı). <b>API:</b> <code>GET /api/v1.0/age-rating?StoreAppId=</code> → <code>AgeRatingDto { Answers: [{ Key, Value, IsNew, DueDate? }], CurrentRating, RegionalRatings[{ Territory, Rating }] }</code>; <code>PUT /api/v1.0/age-rating { StoreAppId, Answers[], DryRun }</code>. Yeni soruların API alan adları canlıda doğrulanacak (plan 11.2). <b>İzin:</b> <code>EditContent</code>. Telefonda soru ve seçim alt alta. <span class="gap">Backend boşluğu:</span> <code>PUT age-rating</code> için <code>DryRun</code> planı (7.19 ile aynı) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Kategori ve yaş" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Kategori ve yaş"></div>
+        <div class="callout warn mb16"><svg class="ic"><use href="#i-cal-clock"/></svg><div><b>2 yeni soru · son tarih 12 Ocak 2027 (55 gün)</b><div class="t-s fg2 mt4">Cevaplanmazsa bu tarihten sonra Pusula'nın güncellemesi gönderilemez.</div></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Yetenekler</span></div><div class="card-b" style="padding-top:4px;padding-bottom:4px">
+              <div class="qrow"><div><div class="r gp8 wrap"><b class="t-s">Paylaşılan konum</b><span class="bdg acc sm">Yeni</span></div><div class="t-xs fg2 mt4">Kullanıcılar konumlarını diğer kullanıcılarla paylaşabiliyor mu? <span class="b6">Öneri: Evet</span> · Pusula ortak plan için konum paylaşıyor.</div></div><div class="seg"><span>Hayır</span><span class="on">Evet</span></div></div>
+              <div class="qrow"><div><div class="r gp8 wrap"><b class="t-s">Tanışma ve ilişkiler</b><span class="bdg acc sm">Yeni</span></div><div class="t-xs fg2 mt4">Uygulama tanışma ya da romantik ilişki kurmaya yönelik mi?</div></div><div class="seg"><span class="on">Hayır</span><span>Evet</span></div></div>
+              <div class="qrow"><div><b class="t-s">Sınırsız web erişimi</b></div><div class="seg"><span class="on">Hayır</span><span>Evet</span></div></div>
+              <div class="qrow"><div><b class="t-s">Kullanıcı tarafından oluşturulan içerik</b></div><div class="seg"><span class="on">Hayır</span><span>Evet</span></div></div>
+              <div class="qrow"><div><b class="t-s">Mesajlaşma ve sohbet</b></div><div class="seg"><span class="on">Hayır</span><span>Evet</span></div></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">İçerik</span><span class="t-xs fg3 ml">9 soru · hepsi "Yok"</span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div>
+              <div class="card-b" style="padding-top:4px;padding-bottom:4px"><div class="qrow"><b class="t-s">Çizgi film ya da fantastik şiddet</b><div class="seg"><span class="on">Yok</span><span>Seyrek</span><span>Sık</span></div></div><div class="qrow"><b class="t-s">Kumar ve yarışmalar</b><div class="seg"><span class="on">Yok</span><span>Seyrek</span><span>Sık</span></div></div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12"><dl class="kv"><dt>Şu anki</dt><dd><b>4+</b></dd><dt>Kaydedince</dt><dd>Apple yeniden hesaplar</dd></dl><div class="t-xs fg3">Brezilya'da derecelendirme yerel sınıflarla (A16, A18 dahil) gösterilir; sonuç kaydettikten sonra mağazadan okunur.</div><span class="btn pri blk"><svg class="ic"><use href="#i-list-check"/></svg>Planla ve kaydet</span></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Diğer mağazalar</span></div><div class="lst">
+              <div class="lst-i"><span class="st sm"><b>GP</b></span><div class="f1 t-s">İçerik derecelendirme anketi<div class="t-xs fg3">Asistanlı · kayıtlı cevaplar hazır</div></div><span class="btn sm">Adımı aç</span></div>
+              <div class="lst-i"><span class="st sm"><b>MS</b></span><div class="f1 t-s">IARC anketi<div class="t-xs fg3">İlk gönderimde yapıldı · 12+</div></div><span class="bdg ok sm">Tamam</span></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 8. FİYAT VE BÖLGELER ============ -->
+<section class="sec" id="fiyat">
+<div class="sec-h"><span class="k">Bölüm 7.21-7.22</span><h2>Fiyat ve bölgeler</h2><p>Uygulama fiyatı, fiyat takvimi ve dağıtılan bölgeler. Bölge seçimi uyum kurallarını değiştirir (ör. Çin anakarası seçilirse App Compliance beyanları zaman çizelgesine girer). Microsoft'ta "Pricing Version 2"deki uygulamaların fiyatı API'den okunamıyor.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-21" data-h="1040">
+  <figcaption class="fr-h"><b class="fr-n">7.21</b><span class="fr-t">App Store fiyat ve bölgeler</span><code class="fr-r">/apps/:appId/listing/pricing?store=apple</code></figcaption>
+  <p class="fr-note">Fiyat temel bölgede (Türkiye) bir fiyat noktası olarak seçilir; diğer bölgeler Apple'ın eşdeğerleriyle dolar. Fiyat değişikliği tarihli bir takvim satırıdır (bugün ya da ileri tarih). Bölgeler kıtalara göre gruplu; 175 bölgeden 174'ü seçili, Çin anakarası hariç ve gerekçesi satırda. "Yeni bölgelerde otomatik yayınla" anahtarı. Kaydetmeden önce plan: eklenen ve çıkarılan bölgeler listesi. <b>API:</b> <code>GET /api/v1.0/pricing?StoreAppId=</code> → <code>PricingDto { BaseTerritory, Schedule[{ StartDate, PricePointId, CustomerPrice, Currency }], Territories[{ Code, Name, Group, Available }], AvailableInNewTerritories }</code>; <code>PUT /api/v1.0/pricing { ..., DryRun }</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda bölge grupları katlanır, arama üstte. <span class="gap">Backend boşluğu:</span> fiyat noktaları listesi için <code>GET /api/v1.0/pricing/price-points?StoreAppId=&amp;Territory=</code> planda yok; Eklenecek. <code>PUT pricing</code> için <code>DryRun</code> planı eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Fiyat ve bölgeler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Fiyat ve bölgeler"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Bölgeler</span><span class="t-s fg2 ml">174 / 175</span></div>
+              <div class="card-b" style="padding-bottom:0"><div class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Bölge ara</span></div></div>
+              <div class="mt12">
+                <div class="rgn"><span class="chk on"></span><b class="t-s">Avrupa</b><span class="t-xs fg3">tümü</span></div>
+                <div class="rgn"><span class="chk on"></span><b class="t-s">Afrika, Orta Doğu ve Hindistan</b><span class="t-xs fg3">tümü</span></div>
+                <div class="rgn"><span class="chk mix"></span><b class="t-s">Asya Pasifik</b><span class="t-xs fg3">1 hariç</span></div>
+                <div class="rgn sub"><span class="chk"></span><div><b class="t-s">Çin anakarası</b><div class="t-xs fg3">Dağıtım ICP kaydı ve App Compliance beyanları ister (son tarih 31 Oca 2027).</div></div><span class="bdg sm">Hariç</span></div>
+                <div class="rgn sub"><span class="chk on"></span><span class="t-s">Japonya</span><span></span></div>
+                <div class="rgn"><span class="chk on"></span><b class="t-s">Latin Amerika ve Karayipler</b><span class="t-xs fg3">tümü</span></div>
+                <div class="rgn"><span class="chk on"></span><b class="t-s">ABD ve Kanada</b><span class="t-xs fg3">tümü</span></div>
+              </div>
+              <div class="card-f"><span class="sw on"></span><span class="t-s">Apple yeni bölge açınca orada da yayınla</span></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Fiyat</span></div><div class="card-b c gp12">
+              <label class="fld"><span class="lbl">Temel bölge</span><span class="inp sel">Türkiye (TRY)</span></label>
+              <label class="fld"><span class="lbl">Fiyat</span><span class="inp sel">Ücretsiz</span></label>
+              <div class="t-xs fg3">Abonelik fiyatları Para sekmesinde.</div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Fiyat takvimi</span></div><div class="lst">
+              <div class="lst-i"><div class="f1 t-s"><b>Ücretsiz</b><div class="t-xs fg3">şu an geçerli</div></div><span class="bdg ok sm">Etkin</span></div>
+            </div><div class="card-f"><span class="btn sm ghost"><svg class="ic"><use href="#i-calendar"/></svg>Fiyat değişikliği planla</span></div></div>
+            <span class="btn pri blk dis" aria-disabled="true"><svg class="ic"><use href="#i-list-check"/></svg>Planla ve kaydet</span>
+            <span class="t-xs fg3" style="text-align:center">Değişiklik yok</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-22">
+  <figcaption class="fr-h"><b class="fr-n">7.22</b><span class="fr-t">Microsoft Store: fiyat asistanlı, pazarlar API'den</span><code class="fr-r">/apps/:appId/listing/pricing?store=ms</code></figcaption>
+  <p class="fr-note">Pusula "Pricing Version 2"de: fiyat API'den okunamaz ve yazılamaz (plan 11.6), kart salt okunur ve asistanlı adıma bağlanır; son elle kontrol tarihi gösterilir. Pazarlar ve keşfedilebilirlik API ile değişir ve aynı plan akışından geçer. <b>API:</b> <code>GET pricing</code> → <code>PricingDto { PricingModel (Legacy, PricingVersion2), PriceReadable: false, Markets[], Visibility }</code>; <code>PUT pricing</code> yalnız pazar ve görünürlük. <b>İzin:</b> <code>EditContent</code>. Telefonda kartlar alt alta. <span class="gap">Backend boşluğu:</span> <code>PricingModel</code>, <code>PriceReadable</code>, <code>Visibility</code> alanları eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Fiyat ve bölgeler" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="kayit" data-sub="Fiyat ve bölgeler" data-meta="Store ID 9P4K7Q2MZL1D · MSIX"></div>
+        <div class="g2">
+          <div class="card"><div class="card-h"><span class="h3">Fiyat</span><span class="bdg sm ml">Asistanlı</span></div><div class="card-b c gp12">
+            <div class="callout"><svg class="ic"><use href="#i-hand"/></svg><div class="t-s">Bu uygulama Pricing Version 2 modelinde. Microsoft bu modelde fiyatı API'ye açmıyor; Partner Center'da yönetilir.</div></div>
+            <dl class="kv"><dt>Son elle kontrol</dt><dd>Ücretsiz · 3 Kas 2026, Deniz Arslan</dd></dl>
+            <span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Asistanlı adımı aç</span>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Pazarlar ve görünürlük</span></div><div class="card-b c gp12">
+            <label class="fld"><span class="lbl">Pazarlar</span><span class="inp sel">Bütün pazarlar · gelecekteki pazarlar dahil</span></label>
+            <div class="fld"><span class="lbl">Keşfedilebilirlik</span>
+              <div class="opt-row"><span class="rad on"></span><span class="t-s">Store'da görünür ve aranabilir</span></div>
+              <div class="opt-row"><span class="rad"></span><span class="t-s">Yalnız doğrudan bağlantıyla</span></div>
+            </div>
+            <span class="btn pri dis" aria-disabled="true">Planla ve kaydet</span>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 9. UYGULAMA AYRINTILARI ============ -->
+<section class="sec" id="ayrintilar">
+<div class="sec-h"><span class="k">Bölüm 7.23</span><h2>Uygulama ayrıntıları</h2><p>Google Play'in uygulama düzeyindeki iletişim bilgileri ve varsayılan dili (<code>edits.details</code>). App Store'da karşılıkları metinlerdeki URL alanlarıdır; Microsoft'ta destek iletişimi listing'dedir.</p></div>
+<div class="frames">
+<figure class="fr" id="f7-23">
+  <figcaption class="fr-h"><b class="fr-n">7.23</b><span class="fr-t">Play uygulama ayrıntıları</span><code class="fr-r">/apps/:appId/listing/details?store=google</code></figcaption>
+  <p class="fr-note">İletişim e-postası zorunlu, web sitesi ve telefon isteğe bağlı; telefon uluslararası biçimde. Varsayılan dil değişirse kendi listesi olmayan dillerde gösterilen liste de değişir; bu uyarı alanın altında. Kaydetmek diğer yazmalar gibi plan gösterir (tek <code>edits.details.patch</code> + <code>edits.commit</code>). <b>İzin:</b> <code>EditContent</code>. Telefonda tek sütun. <span class="gap">Backend boşluğu:</span> uç listesinde yok; <code>GET /api/v1.0/listings/details?StoreAppId=</code> → <code>AppDetailsDto { ContactEmail, ContactWebsite, ContactPhone, DefaultLanguage }</code> ve plan için <code>POST listings/plan</code>'a <code>Scope = Details</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Uygulama ayrıntıları" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="kayit" data-sub="Uygulama ayrıntıları"></div>
+        <div class="split">
+          <div class="card"><div class="card-b fstack">
+            <label class="fld"><span class="lbl">İletişim e-postası</span><span class="inp">destek@kuzeylab.dev</span><span class="hint">Play'deki mağaza sayfasında herkese açık görünür.</span></label>
+            <label class="fld"><span class="lbl">Web sitesi <span class="opt">· isteğe bağlı</span></span><span class="inp mono">https://kuzeylab.dev/pusula</span></label>
+            <label class="fld"><span class="lbl">Telefon <span class="opt">· isteğe bağlı</span></span><span class="inp err">0212 555 01 01</span><span class="err-t"><svg class="ic s14"><use href="#i-alert-c"/></svg>Uluslararası biçimde yaz: +90 212 555 01 01</span></label>
+            <label class="fld"><span class="lbl">Varsayılan dil</span><span class="inp sel"><span class="tag">tr-TR</span>Türkçe</span><span class="hint">Kendi listesi olmayan dillerde bu dilin metni ve grafikleri gösterilir.</span></label>
+          </div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12"><div class="t-s fg2">1 alan düzeltilmeli.</div><span class="btn pri blk dis" aria-disabled="true"><svg class="ic"><use href="#i-list-check"/></svg>Planla ve kaydet</span></div></div>
+            <div class="callout"><svg class="ic"><use href="#i-hand"/></svg><div class="t-s">Kategori ve etiketler bu API'de yok; Play Console'da <span class="lnk">asistanlı adım</span> ile.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+</div>
+</section>
+
+<!-- ============ 10. DURUMLAR ============ -->
+<section class="sec" id="durumlar">
+<div class="sec-h"><span class="k">Bölüm 7.24-7.27</span><h2>Durumlar</h2><p>Salt okunur rol, kaydedilmemiş değişiklikle ayrılma, bütün dosyaları reddedilen yükleme ve mağazaya ulaşılamaması. Genel durum ekranları 18-Durum-Ekranlari dosyasında.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f7-24">
+  <figcaption class="fr-h"><b class="fr-n">7.24</b><span class="fr-t">Viewer: salt okunur metinler</span><code class="fr-r">/apps/:appId/listing/texts</code></figcaption>
+  <p class="fr-note">Viewer (Selin Demir) aynı ekranı görür: alanlar salt okunur (kesikli çerçeve), sayaçlar kalır, taslak çubuğu ve "Planla" yok, "..." menülerinde yalnız "Kopyala" var. Doğrudan plan adresine ya da <code>POST listings/plan</code>'a gitmek <code>403 Forbidden</code> döner ve toast olarak görünür. Başlık bandı rolü ve kimden yetki isteneceğini söyler. <b>İzin:</b> <code>View</code>. Telefonda bant içeriğin üstünde tek satır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-role="Viewer" data-crumbs="Uygulamalar|Pusula|Metinler">
+      <div class="banner info"><svg class="ic s16"><use href="#i-eye"/></svg><span class="f1">Salt okunur: Görüntüleyici rolündesin. Düzenlemek için bir yöneticiden Editör rolü iste.</span></div>
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="lst"><div class="lst-i lcl"><span class="tag">tr</span><b class="t-s f1">Türkçe</b><span class="t-xs fg3">9 / 9</span></div><div class="lst-i lcl on"><span class="tag">en-US</span><b class="t-s f1">English (U.S.)</b><span class="t-xs fg3">9 / 9</span></div><div class="lst-i lcl"><span class="tag">de-DE</span><b class="t-s f1">Deutsch</b><span class="t-xs fg3">7 / 9</span></div></div></div>
+          <div class="card"><div class="card-b fstack">
+            <div class="g2"><label class="fld"><span class="lbl">Ad <span class="cnt">21 / 30</span></span><span class="inp ro">Pusula: Daily Planner</span></label><label class="fld"><span class="lbl">Alt başlık <span class="cnt">13 / 30</span></span><span class="inp ro">Plan your day</span></label></div>
+            <label class="fld"><span class="lbl">Anahtar kelimeler <span class="cnt">52 / 100</span></span><span class="inp ro mono">agenda,calendar,todo,goals,habit,focus,routine,notes</span></label>
+            <label class="fld"><span class="lbl">Açıklama <span class="cnt">1.684 / 4.000</span></span><span class="inp ro ta" style="min-height:80px">Pusula keeps your day, your goals and your habits on one screen.</span></label>
+          </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast dng" role="alert"><svg class="ic dng-t"><use href="#i-lock"/></svg><div class="f1"><b>Bu işlem için yetkin yok</b><div class="fg2">Plan hazırlamak Editör rolü ister. · 403</div></div></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-25">
+  <figcaption class="fr-h"><b class="fr-n">7.25</b><span class="fr-t">Kaydedilmemiş değişiklikle ayrılma</span><code class="fr-r">/apps/:appId/listing/texts → başka sekme</code></figcaption>
+  <p class="fr-note">Taslak tarayıcıda tutulur (oturum deposu, uygulama ve mağaza başına); sunucuya gitmez. Mağaza kaydı içinde sekme ve dil değiştirmek taslağı korur; uygulamadan çıkmak, mağaza seçiciyi değiştirmek ya da sayfayı kapatmak bu diyaloğu açar (tarayıcı kapanışında tarayıcının kendi uyarısı). "Değişiklikleri at" tehlikeli eylem. <b>API:</b> yok. Telefonda alttan açılan sayfa, düğmeler tam genişlik.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler" data-act=""><div class="content"><div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m725">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m725">3 değişiklik planlanmadı</h2><p class="t-s fg2 mt4">Ayrılırsan en-US alt başlık, en-US anahtar kelimeler ve tr yenilikler taslağı silinir. Mağazaya hiçbir şey gitmedi.</p></div></div>
+      <div class="mdl-f"><span class="btn ghost">Sayfada kal</span><span class="btn dng">Değişiklikleri at</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-26">
+  <figcaption class="fr-h"><b class="fr-n">7.26</b><span class="fr-t">Yükleme: bütün dosyalar reddedildi</span><code class="fr-r">/apps/:appId/listing/screenshots → yükle</code></figcaption>
+  <p class="fr-note">Hiçbir dosya kabul edilmezse plan üretilmez; liste gerekçeleri ve varsa doğru sınıfa taşıma önerisini gösterir. Reddedilen dosyalar nesne deposundan 24 saat içinde silinir. "Stüdyoda boyutlandır" dosyaları stüdyoya taşır ve doğru boyutlarda dışa aktarır (plan 2.4). <b>API:</b> <code>POST screenshots/plan</code> → <code>422</code> ve <code>Files[].Result = Rejected</code>. <b>İzin:</b> <code>EditContent</code>. Telefonda alttan açılan sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Görseller" data-act=""><div class="content"><div class="apphead" data-app="kumbara" data-store="apple" data-tab="kayit" data-sub="Görseller"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m726">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m726">3 dosyanın hiçbiri bu sınıfa uymuyor</h2><p class="t-s fg2 mt4">tr · iPad 13" · 2064x2752 ya da 2048x2732</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16 dng-t"><use href="#i-x-c"/></svg><div class="f1"><b class="t-s">ipad-1.png</b><div class="t-xs dng-t">1668x2388 iPad 11" boyutu. 13" sınıfının yedeği olamaz; 13" en üst sınıf.</div></div></div>
+          <div class="lst-i"><svg class="ic s16 dng-t"><use href="#i-x-c"/></svg><div class="f1"><b class="t-s">ipad-2.png</b><div class="t-xs dng-t">2752x2064 yatay; sette dikey ve yatay karışamaz.</div></div></div>
+          <div class="lst-i"><svg class="ic s16 dng-t"><use href="#i-x-c"/></svg><div class="f1"><b class="t-s">ipad-3.jpg</b><div class="t-xs dng-t">CMYK renk alanı; RGB olmalı.</div></div></div>
+        </div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn"><svg class="ic"><use href="#i-crop"/></svg>Stüdyoda boyutlandır</span><span class="btn pri dis" aria-disabled="true">Planı hazırla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f7-27">
+  <figcaption class="fr-h"><b class="fr-n">7.27</b><span class="fr-t">Mağazaya ulaşılamadı</span><code class="fr-r">/apps/:appId/listing/texts</code></figcaption>
+  <p class="fr-note">Metinler son senkronun önbelleğinden gelir; "Mağazadan çek" ya da plan hazırlama mağazayı canlı okur. App Store Connect 5xx ya da zaman aşımı verirse uç <code>502</code> ve <code>Messages[{ Key: "Store.Unreachable" }]</code> döner. Önbellek varsa alanlar salt okunur gösterilir ve plan pasif; taslak korunur. Bağlantı doğrulaması reddedildiyse (<code>Rejected</code>) metin "Mağaza bağlantısını kontrol et" olur ve <code>ManageConnections</code> izni olana bağlantı verilir. <b>Telefonda</b> durum kartı tam genişlik.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Metinler">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler"></div>
+        <div class="state"><span class="sic"><svg class="ic s24"><use href="#i-wifi-off"/></svg></span><h3 class="h3">App Store Connect yanıt vermiyor</h3><p class="t-s fg2" style="margin:0;max-width:440px">Son senkron 3 dk önce. Metinleri önbellekten görebilirsin; plan hazırlamak için mağazanın yanıt vermesi gerekiyor. Taslağın duruyor.</p><div class="r gp8 wrap" style="justify-content:center"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span><span class="btn ghost">Önbellekten göster</span></div><span class="t-xs fg3 mono">502 · Store.Unreachable · istek 4b1e09</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

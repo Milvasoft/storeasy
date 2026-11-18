@@ -1,0 +1,654 @@
+<!--
+title: Para: abonelikler ve uygulama içi ürünler
+kicker: 10 · Uygulama detayı
+desc: App Store abonelik grupları, abonelik ayrıntısı, bölge fiyatları ve fiyat değişikliği, tanıtım ve promosyon teklifleri, IAP; Google Play abonelikleri, base plan'lar ve tek seferlik ürünler; Microsoft Store add-on'ları ve 409 kuralı; değişiklik planı, uygulama, hata ve izin durumları. storeasy fiyat uydurmaz: gösterilen her fiyat mağazanın döndürdüğü ya da kullanıcının girdiği değerdir.
+-->
+<style>
+.src{display:inline-flex;align-items:center;gap:4px;font:500 10.5px/1 var(--font-mono);padding:3px 6px;border-radius:5px;border:1px dashed rgb(var(--border-strong));color:rgb(var(--fg-3));white-space:nowrap;vertical-align:1px}
+.src.man{border-style:solid;color:rgb(var(--fg-2))}
+.src.conv{border-color:rgb(var(--info)/.5);color:rgb(var(--info))}
+.lvl{display:grid;grid-template-columns:18px 64px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid rgb(var(--border))}
+.lvl:last-child{border-bottom:0}
+.lvl .gr{color:rgb(var(--fg-3))}
+.lvl .lv{font:600 11px/1.2 var(--font-mono);color:rgb(var(--fg-3))}
+.price{font:700 15px/1.2 var(--font-display);letter-spacing:-.01em;white-space:nowrap}
+.revshot{display:grid;place-items:center;gap:6px;text-align:center;height:150px;border-radius:12px;border:1.5px dashed rgb(var(--danger)/.55);background:rgb(var(--danger)/.04);color:rgb(var(--fg-2));font-size:12.5px;padding:12px}
+.revshot.ok{border:1px solid rgb(var(--border));background:repeating-linear-gradient(135deg,rgb(var(--bg-2)) 0 8px,rgb(var(--surface)) 8px 16px);color:rgb(var(--fg-3));font:500 11px/1.3 var(--font-mono)}
+.vst{display:grid;gap:0}
+.vst-i{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:8px 0;font-size:13px;position:relative}
+.vst-i::before{content:"";position:absolute;left:10px;top:26px;bottom:-6px;width:2px;background:rgb(var(--border))}
+.vst-i:last-child::before{display:none}
+.vst-d{width:22px;height:22px;border-radius:50%;border:2px solid rgb(var(--border-strong));background:rgb(var(--surface));display:grid;place-items:center;position:relative;z-index:1}
+.vst-d.ok{border-color:rgb(var(--success));background:rgb(var(--success))}
+.vst-d.ok .ic{color:#fff;width:12px;height:12px}
+.vst-d.now{border-color:rgb(var(--accent));box-shadow:0 0 0 4px rgb(var(--accent)/.15)}
+.vst-i .k{font:500 10.5px/1.3 var(--font-mono);color:rgb(var(--fg-3))}
+.offer{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:14px 16px;display:grid;gap:8px;min-width:0}
+.offer .oh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bp{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden}
+.bp-h{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:14px 16px}
+.bp-o{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 16px 10px 28px;border-top:1px dashed rgb(var(--border));font-size:13px}
+.typec{border:1px solid rgb(var(--border));border-radius:12px;padding:12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:start;font-size:13px}
+.typec.on{border-color:rgb(var(--accent));background:rgb(var(--accent)/.05)}
+.typec .rad{margin-top:2px}
+.jobst{display:grid;gap:6px;font-size:12.5px}
+.jobst div{display:flex;align-items:center;gap:8px}
+@container scr (max-width:760px){
+  .lvl{grid-template-columns:18px minmax(0,1fr) auto;row-gap:4px}
+  .lvl .lv{grid-column:2}
+  .lvl>:nth-child(3){grid-column:2}
+  .lvl>:nth-child(4){grid-column:2}
+  .lvl>:nth-child(5){grid-column:3;grid-row:1}
+  .bp-h{grid-template-columns:minmax(0,1fr) auto}
+  .bp-h>:nth-child(2){grid-column:1}
+  .bp-h>:nth-child(3){grid-column:2;grid-row:1}
+  .bp-o{padding-left:16px}
+}
+</style>
+
+<!-- ============ 1. APP STORE ABONELİKLERİ ============ -->
+<section class="sec" id="abonelikler">
+<div class="sec-h"><span class="k">Bölüm 10.1-10.3</span><h2>App Store abonelikleri</h2><p>Para sekmesinin App Store tarafı: abonelik grupları, grup içi seviye sırası, grup lokalizasyonları ve tek bir aboneliğin bütün alanları. Her yazma önce değişiklik planına (diff) düşer, onaylanınca mağaza işi olur. storeasy fiyat önermez, hesaplamaz: fiyatlar App Store'dan okunur (<span class="src">mağazadan</span>) ya da kullanıcının mağazanın fiyat noktalarından seçtiği değerdir (<span class="src man">elle</span>).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-1" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">10.1</b><span class="fr-t">Abonelik grupları ve seviye sırası</span><code class="fr-r">/apps/:appId/money/subscriptions?store=apple</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/subscriptions/groups?StoreAppId=</code> (planlanan) → <code>SubscriptionGroupDto { Id, ExternalId, ReferenceName, Localizations: [{ Locale, Name, CustomAppName, State }], Subscriptions: [{ Id, ProductId, ReferenceName, Level, Duration, State, BasePrice { Territory, Currency, Amount, Source (Store, Manual) }, HasReviewScreenshot }] }</code>. Seviye sırası sürükle bırakla değişir; değişiklik hemen yazılmaz, <code>POST /api/v1.0/subscriptions/plan</code> planına "seviye" kalemi olarak eklenir. Seviye 1 en yüksek hizmet düzeyidir: kullanıcı üst seviyeye geçince hemen yükseltme, alta geçince dönem sonunda düşürme olur (Apple kuralı, açıklama metni katalogdan). <b>İzin:</b> görme <code>View</code>, sıra ve lokalizasyon <code>EditContent</code>. <b>Telefonda</b> seviye satırları iki satıra iner, sürükleme tutamacı solda kalır; lokalizasyon kartı listenin altına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Abonelikler" data-ready="!5"><span class="btn hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Grup oluştur</span><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Abonelik ekle</span></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card">
+              <div class="card-h"><svg class="ic s18"><use href="#i-repeat"/></svg><span class="h3">Kumbara Plus</span><span class="t-xs mono fg3 hide-ph">grup 21058734</span><span class="ib sm ghost ml"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="lvl"><svg class="ic s16 gr"><use href="#i-grip"/></svg><span class="lv">Seviye 1</span><div class="trunc"><b class="t-m">Kumbara Plus Yıllık</b><div class="t-xs mono fg3 trunc">com.kuzeylab.kumbara.plus.yearly · 1 yıl</div></div><span class="r gp6"><span class="price">399,99 TL</span><span class="src">mağazadan</span></span><span class="bdg info sm">Gönderime hazır</span></div>
+              <div class="lvl"><svg class="ic s16 gr"><use href="#i-grip"/></svg><span class="lv">Seviye 2</span><div class="trunc"><b class="t-m">Kumbara Plus Aylık</b><div class="t-xs mono fg3 trunc">com.kuzeylab.kumbara.plus.monthly · 1 ay</div></div><span class="r gp6"><span class="price">49,99 TL</span><span class="src">mağazadan</span></span><span class="bdg dng sm"><span class="dot"></span>Eksik bilgi</span></div>
+              <div class="card-f r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>Türkiye taban fiyat; diğer 173 bölge App Store'un eşitlediği fiyatlar. Sırayı değiştirmek için satırı sürükle.</span></div>
+            </div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>"Kumbara Plus Aylık" inceleme görüntüsü yok</b><div class="t-s fg2 mt4">Hazırlık kontrolünde engel (<span class="mono">apple.iap.review-screenshot</span>). İlk abonelikler Kumbara 1.0 ile birlikte incelemeye gider.</div><span class="btn sm mt8">Görüntüyü yükle</span></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-lang"/></svg><span class="h3">Grup lokalizasyonları</span><span class="lnk t-s ml">Düzenle</span></div>
+              <div class="lst">
+                <div class="lst-i"><span class="tag">tr</span><div class="f1"><b class="t-m">Kumbara Plus</b><div class="t-xs fg3">Uygulama adı: uygulamanınkini kullan</div></div><span class="bdg sm">Hazırlanıyor</span></div>
+                <div class="lst-i"><span class="tag">en-US</span><div class="f1"><b class="t-m">Kumbara Plus</b><div class="t-xs fg3">Uygulama adı: uygulamanınkini kullan</div></div><span class="bdg sm">Hazırlanıyor</span></div>
+                <div class="lst-i"><span class="tag">de-DE</span><div class="f1"><span class="t-m fg3">Eklenmedi</span><div class="t-xs fg3">Uygulamada de-DE yok, isteğe bağlı</div></div><span class="btn sm ghost">Ekle</span></div>
+              </div></div>
+            <div class="card"><div class="card-b"><dl class="kv"><dt>Abonelik</dt><dd>2</dd><dt>Bölge</dt><dd>174 (Çin hariç)</dd><dt>Tanıtım teklifi</dt><dd>1 hafta ücretsiz · Aylık</dd><dt>Son senkron</dt><dd>bugün 14:20</dd></dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-2">
+  <figcaption class="fr-h"><b class="fr-n">10.2</b><span class="fr-t">Boş: aboneliği olmayan uygulama</span><code class="fr-r">/apps/:appId/money/subscriptions?store=apple</code></figcaption>
+  <p class="fr-note">Mola'nın App Store kaydında abonelik grubu yok. Tek ana eylem "Abonelik grubu oluştur": ad ve ilk grup lokalizasyonu sorulur, sonra değişiklik planı açılır. <b>API:</b> <code>POST /api/v1.0/subscriptions/plan { StoreAppId, Changes: [{ Kind: "CreateGroup", ReferenceName, Localizations[] }] }</code>. <b>İzin:</b> <code>EditContent</code>; yoksa düğme pasif ve altında gerekçe. Satış için Paid Apps Agreement'ın etkin olması gerekir: durum asistanlı adımdan okunur, eksikse bilgi notu ve adım bağlantısı çıkar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Mola|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="mola" data-store="apple" data-tab="para" data-sub="Abonelikler"></div>
+        <div class="empty" style="padding:48px 24px">
+          <span class="eic"><svg class="ic"><use href="#i-repeat"/></svg></span>
+          <h4>Mola'da henüz abonelik yok</h4>
+          <p>Abonelikler bir grup içinde durur; kullanıcı aynı gruptan tek aboneliğe sahip olabilir. Önce grubu oluştur, sonra aylık, yıllık gibi süreleri ekle.</p>
+          <span class="btn pri mt8"><svg class="ic"><use href="#i-plus"/></svg>Abonelik grubu oluştur</span>
+          <span class="t-s fg3">Paid Apps Agreement: etkin · son kontrol 3 Kas 2026</span>
+        </div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-box"/></svg><span>Tek seferlik satın almalar için <b class="lnk">Uygulama içi ürünler</b>.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-3" data-h="1180">
+  <figcaption class="fr-h"><b class="fr-n">10.3</b><span class="fr-t">Abonelik ayrıntısı</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/subscriptions/subscription?SubscriptionId=</code> → <code>SubscriptionDetailDto { Id, ProductId, ReferenceName, Duration, Level, FamilySharable, State (MissingMetadata, ReadyToSubmit, WaitingForReview, InReview, Approved, Rejected, DeveloperRemoved), Localizations: [{ Locale, Name, Description, State }], Availability { TerritoryCount, Excluded[], AvailableInNewTerritories }, ReviewScreenshot { AssetId, FileName, Width, Height }?, ReviewNote, SubmitWithVersion, RetentionMessages?, MultiSeat? }</code>. Ürün kimliği oluşturulduktan sonra değişmez (salt okunur). Aile paylaşımı açıldıktan sonra kapatılamaz: anahtar açılırken onay sorar. İnceleme görüntüsü presigned yüklemeyle gelir (<code>POST /api/v1.0/assets/upload-url</code>); yüklenince 6.8'deki hazırlık satırı tamam olur. Lokalizasyon sınırları katalogdan (görünen ad 30, açıklama 45 karakter). Kaydet tuşu yok: alan değişiklikleri sayfa altındaki "Değişiklikleri gözden geçir" ile plana gider (10.17). <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> sağ sütun (durum, gelecek alanlar) formun altına iner; bölüm seçici yatay kayar. <span class="gap">Backend boşluğu:</span> retention mesajları ve çok koltuklu satın alma (plan 11.2 "API doğrulanacak"): alanlar pasif çizildi; App Store Connect API'de karşılığı doğrulanınca <code>SubscriptionDetailDto</code>'ya eklenecek, yoksa asistanlı adıma dönüşür.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Kumbara Plus</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng sm"><span class="dot"></span>Eksik bilgi</span><span class="t-xs mono fg3">MISSING_METADATA</span></div><h1 class="pg-t">Kumbara Plus Aylık</h1><p class="pg-s mono">com.kuzeylab.kumbara.plus.monthly</p></div>
+          <div class="pg-a"><div class="seg"><span class="on">Genel</span><span>Fiyatlar</span><span>Teklifler · 1</span></div></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Genel</span></div><div class="card-b c gp16">
+              <div class="g2">
+                <div class="fld"><span class="lbl">Ürün kimliği <svg class="ic s14"><use href="#i-lock"/></svg></span><span class="inp ro mono">com.kuzeylab.kumbara.plus.monthly<svg class="ic ml"><use href="#i-copy"/></svg></span><span class="hint">Oluşturulduktan sonra değişmez, silinse bile yeniden kullanılamaz.</span></div>
+                <label class="fld"><span class="lbl">Referans adı</span><span class="inp">Kumbara Plus Aylık</span><span class="hint">Yalnız App Store Connect'te görünür.</span></label>
+              </div>
+              <div class="fld"><span class="lbl">Süre</span><div class="seg" style="max-width:100%;overflow-x:auto"><span>1 hafta</span><span class="on">1 ay</span><span>2 ay</span><span>3 ay</span><span>6 ay</span><span>1 yıl</span></div></div>
+              <div class="r gp12"><span class="sw"></span><div class="f1"><b class="t-m">Aile paylaşımı</b><div class="t-s fg2">Açıldıktan sonra bu abonelik için kapatılamaz.</div></div></div>
+              <div class="r gp12 wrap"><svg class="ic s18"><use href="#i-globe"/></svg><div class="f1"><b class="t-m">Satışta olduğu bölgeler</b><div class="t-s fg2">174 bölge · Çin anakarası hariç · yeni bölgelere otomatik açılır</div></div><span class="btn sm">Bölgeleri düzenle</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Lokalizasyonlar</span><div class="r gp6 ml"><span class="chip on">tr</span><span class="chip">en-US</span><span class="chip"><svg class="ic"><use href="#i-plus"/></svg>Dil</span></div></div><div class="card-b c gp16">
+              <label class="fld"><span class="lbl">Görünen ad <span class="cnt">20 / 30</span></span><span class="inp foc">Kumbara Plus · Aylık</span></label>
+              <label class="fld"><span class="lbl">Açıklama <span class="cnt near">41 / 45</span></span><span class="inp ta" style="min-height:64px">Sınırsız hedef, otomatik birikim, raporlar.</span><span class="hint">Abonelik sayfasında ve satın alma sayfasında görünür.</span></label>
+            </div></div>
+            <div class="card dng"><div class="card-h"><svg class="ic s18"><use href="#i-image"/></svg><span class="h3">İnceleme bilgisi</span><span class="bdg dng sm ml">Zorunlu</span></div><div class="card-b c gp16">
+              <div class="g2">
+                <div class="fld"><span class="lbl">İnceleme görüntüsü</span><div class="revshot"><svg class="ic s24"><use href="#i-upload"/></svg><b class="t-s">Satın alma ekranının görüntüsü</b><span class="t-xs fg3">PNG veya JPG · en az 640x920 · yalnız App Review görür</span><span class="btn sm">Dosya seç</span></div><span class="hint">Hazırlık satırı: <span class="mono">apple.iap.review-screenshot</span></span></div>
+                <label class="fld"><span class="lbl">İnceleme notu <span class="opt">· isteğe bağlı</span> <span class="cnt">96 / 4000</span></span><span class="inp ta" style="min-height:150px">Abonelik ekranına Ayarlar &gt; Kumbara Plus'tan ulaşılır. Demo hesapta sandbox satın alma açık.</span></label>
+              </div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Durum</span><span class="t-xs fg3 ml">mağazadan</span></div><div class="card-b"><div class="vst">
+              <div class="vst-i"><span class="vst-d now"></span><div><b>Eksik bilgi</b><div class="k">MISSING_METADATA</div><div class="t-xs fg2 mt4">İnceleme görüntüsü eksik.</div></div></div>
+              <div class="vst-i"><span class="vst-d"></span><div><span class="fg2">Gönderime hazır</span><div class="k">READY_TO_SUBMIT</div></div></div>
+              <div class="vst-i"><span class="vst-d"></span><div><span class="fg2">İnceleme bekliyor</span><div class="k">WAITING_FOR_REVIEW</div></div></div>
+              <div class="vst-i"><span class="vst-d"></span><div><span class="fg2">Onaylandı</span><div class="k">APPROVED</div></div></div>
+            </div></div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div><b>İlk abonelik sürümle gider</b><div class="t-s fg2 mt4">Uygulamanın ilk aboneliği tek başına incelemeye gönderilemez; Kumbara 1.0 gönderilirken seçilir (6.10). Sonrakiler ayrı gönderilebilir.</div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Gelecek alanlar</span><span class="bdg warn sm ml">API doğrulanacak</span></div><div class="card-b c gp12">
+              <div class="r gp10"><span class="sw dis"></span><div class="f1"><b class="t-s fg2">Retention mesajları</b><div class="t-xs fg3">İptal etmek üzere olan aboneye gösterilen mesaj</div></div></div>
+              <div class="r gp10"><span class="sw dis"></span><div class="f1"><b class="t-s fg2">Çok koltuklu satın alma</b><div class="t-xs fg3">Koltuk sayısı ve koltuk başı fiyat</div></div></div>
+              <span class="t-xs fg3">API karşılığı doğrulanınca açılır; yoksa asistanlı adım olur.</span>
+            </div></div>
+            <span class="btn pri blk"><svg class="ic"><use href="#i-compare"/></svg>Değişiklikleri gözden geçir · 2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. FİYATLAR ============ -->
+<section class="sec" id="fiyatlar">
+<div class="sec-h"><span class="k">Bölüm 10.4-10.6</span><h2>Bölge fiyatları ve fiyat değişikliği</h2><p>Apple'da kullanıcı bir taban bölge ve o bölgenin fiyat noktasını seçer; App Store diğer 173 bölge için eşitlenmiş fiyatları kendisi hesaplar. storeasy bu fiyatları okur ve gösterir, kendisi hesaplamaz. Bir bölge elle değiştirilebilir; yalnız o bölgenin fiyat noktaları listelenir ve değişiklik bir başlangıç tarihiyle fiyat takvimine yazılır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-4" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">10.4</b><span class="fr-t">Bölge fiyatları tablosu</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId/prices</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/subscriptions/prices</code> (yeni ad, ListRequest; <code>SubscriptionId</code>, arama <code>TerritoryName</code> <code>Contains</code>, filtre <code>Source</code> ve <code>HasPendingChange</code>) → <code>SubscriptionPriceDto { Territory, TerritoryName, Currency, CustomerPrice, Proceeds, PricePointId, Source (Store, Manual), StartDate, Pending { CustomerPrice, StartDate }? }</code>. Satır eylemi elle değiştirme çekmecesini açar (10.5). "Mağazadan" etiketi fiyatın App Store'un eşitlediği değer olduğunu, "elle" kullanıcının seçtiğini söyler; "planlı" satır gelecekteki takvim kaydıdır. <b>İzin:</b> görme <code>View</code>; satışta olmayan abonelikte değişiklik <code>EditContent</code>, satıştaki (<code>Approved</code>) abonelikte <code>ReleaseProduction</code> (karar: fiyat ödeme yapan kullanıcıyı doğrudan etkiler, production yayını gibi sayılır). <b>Telefonda</b> tablo bölge kartlarına döner, bölge araması üstte tam genişlikte kalır, "Hasılat" sütunu gizlenir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Kumbara Plus</div>
+        <div class="pg-h"><div><h1 class="pg-t">Kumbara Plus Aylık</h1><p class="pg-s mono">com.kuzeylab.kumbara.plus.monthly</p></div><div class="pg-a"><div class="seg"><span>Genel</span><span class="on">Fiyatlar</span><span>Teklifler · 1</span></div></div></div>
+        <div class="card mb16"><div class="card-b r gp16 wrap">
+          <div class="f1"><div class="eb">Taban bölge</div><div class="r gp8 mt4 wrap"><span class="price" style="font-size:22px">49,99 TL</span><span class="t-s fg2">Türkiye · aylık</span><span class="src">mağazadan</span></div><div class="t-xs fg3 mt4">Fiyat noktası 10063 · hasılat 34,99 TL · 173 bölge bu fiyattan eşitlendi</div></div>
+          <span class="btn"><svg class="ic"><use href="#i-edit"/></svg>Taban fiyatı değiştir</span>
+        </div></div>
+        <div class="toolbar"><div class="inp" style="width:260px;max-width:100%"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Bölge ara</span></div><span class="chip">Tümü · 174</span><span class="chip on">Elle · 1</span><span class="chip">Planlı · 1</span><span class="t-s fg3 ml hide-ph">Son okuma bugün 14:20</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Bölge <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>Fiyat</th><th>Kaynak</th><th class="hide-ph">Hasılat</th><th>Başlangıç</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Türkiye</b> <span class="tag">taban</span></td><td data-l="Fiyat" class="tnum">49,99 TRY</td><td data-l="Kaynak"><span class="src">mağazadan</span></td><td data-l="Hasılat" class="tx tnum fg2">34,99 TRY</td><td data-l="Başlangıç">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b>ABD</b></td><td data-l="Fiyat" class="tnum">1,49 USD</td><td data-l="Kaynak"><span class="src">mağazadan</span></td><td data-l="Hasılat" class="tx tnum fg2">1,04 USD</td><td data-l="Başlangıç">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr class="sel"><td class="tm"><b>Almanya</b></td><td data-l="Fiyat" class="tnum">1,99 EUR</td><td data-l="Kaynak"><span class="src man">elle</span></td><td data-l="Hasılat" class="tx tnum fg2">1,17 EUR</td><td data-l="Başlangıç">-</td><td class="ta"><span class="btn sm">Değiştir</span></td></tr>
+            <tr><td class="tm"><b>Birleşik Krallık</b></td><td data-l="Fiyat" class="tnum">1,49 GBP</td><td data-l="Kaynak"><span class="src">mağazadan</span></td><td data-l="Hasılat" class="tx tnum fg2">0,87 GBP</td><td data-l="Başlangıç">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Hindistan</b></td><td data-l="Fiyat" class="tnum">129 INR <span class="t-xs fg3">→ 149 INR</span></td><td data-l="Kaynak"><span class="bdg info sm">Planlı</span></td><td data-l="Hasılat" class="tx tnum fg2">92 INR</td><td data-l="Başlangıç">1 Ara 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Japonya</b></td><td data-l="Fiyat" class="tnum">230 JPY</td><td data-l="Kaynak"><span class="src">mağazadan</span></td><td data-l="Hasılat" class="tx tnum fg2">161 JPY</td><td data-l="Başlangıç">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Brezilya</b></td><td data-l="Fiyat" class="tnum">7,90 BRL</td><td data-l="Kaynak"><span class="src">mağazadan</span></td><td data-l="Hasılat" class="tx tnum fg2">5,53 BRL</td><td data-l="Başlangıç">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 18 · Toplam: 174</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">10</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-5">
+  <figcaption class="fr-h"><b class="fr-n">10.5</b><span class="fr-t">Bölge fiyatını elle değiştir</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId/prices → Almanya</code></figcaption>
+  <p class="fr-note">Çekmece yalnız o bölgenin App Store fiyat noktalarını listeler; serbest tutar girilemez. <b>API:</b> <code>GET /api/v1.0/subscriptions/price-points?SubscriptionId=&amp;Territory=DEU</code> (yeni ad) → <code>PricePointDto { Id, CustomerPrice, Proceeds, Currency }</code>. "Eşitlenmiş fiyata dön" elle değeri kaldırır ve mağazanın eşitlediği değeri geri getirir. Kaydet planı günceller, mağazaya yazmaz. <b>İzin:</b> 10.4 ile aynı. <b>Telefonda</b> çekmece alttan açılan tam ekran sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kumbara Plus Aylık</h1></div><div class="tbl-w" style="height:300px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m105">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m105">Almanya fiyatı</h2><p class="t-s fg2 mt4">Kumbara Plus Aylık · EUR</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b c gp16">
+        <div class="card"><div class="card-b"><dl class="kv"><dt>Eşitlenmiş fiyat</dt><dd>1,49 EUR <span class="src">mağazadan</span></dd><dt>Taban</dt><dd>49,99 TL · Türkiye</dd></dl></div></div>
+        <label class="fld"><span class="lbl">Yeni fiyat</span><span class="inp sel foc">1,99 EUR · hasılat 1,17 EUR</span><span class="hint">Liste App Store'un Almanya fiyat noktalarıdır (KDV dahil). storeasy tutar önermez.</span></label>
+        <div class="fld"><span class="lbl">Başlangıç</span><div class="c gp8"><span class="r gp8 t-s"><span class="rad"></span>Hemen</span><span class="r gp8 t-s"><span class="rad on"></span>Tarihte</span></div><span class="inp mt4"><svg class="ic"><use href="#i-calendar"/></svg>1 Aralık 2026</span><span class="hint">Fiyat takvimine yeni bir kayıt eklenir; önceki fiyat o güne kadar geçerli.</span></div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Elle değiştirilen bölge, taban fiyat sonradan değişse bile eşitlenmez. Tabloda <span class="src man">elle</span> etiketiyle görünür.</div></div>
+        <span class="lnk t-s">Eşitlenmiş fiyata dön</span>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Plana ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-6" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">10.6</b><span class="fr-t">Fiyat artışı planı: mevcut aboneler</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId/prices → plan</code></figcaption>
+  <p class="fr-note">Örnek durum: abonelik satışta (<code>Approved</code>), taban fiyat artırılıyor. Plan diff'i bölge sayısını özetler, ilk satırları gösterir; tam liste "174 bölgeyi göster" ile açılır. Mevcut aboneler için seçim zorunludur: fiyatı koru ya da yeni fiyatı uygula. Apple artışı abonelere kendisi bildirir; bazı bölgelerde ve eşiği aşan artışlarda abonenin onayı gerekir, onay vermeyenin aboneliği dönem sonunda biter. Bu kurallar mağaza tarafındadır, metin katalogdan gelir (<span class="mono">apple.subscription.price-increase-consent</span>). <b>API:</b> <code>POST /api/v1.0/subscriptions/plan { StoreAppId, Changes: [{ Kind: "BasePrice", SubscriptionId, Territory, PricePointId, StartDate, PreserveCurrentPrice }] }</code> → <code>ChangePlanDto</code>; <code>POST /api/v1.0/subscriptions/apply { PlanId }</code>. <b>İzin:</b> <code>ReleaseProduction</code> (Sahip, Yönetici). Mevcut abone sayısı gösterilmez: mağaza API'si bu sayıyı vermez, storeasy uydurmaz.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kumbara Plus Yıllık</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m106">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m106">Fiyat artışı: Kumbara Plus Yıllık</h2><p class="t-s fg2 mt4">Taban 399,99 TL → 449,99 TL · 1 Ocak 2027'den itibaren</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-coin"/></svg>Fiyat takvimi · 174 bölge<span class="ml fg3 t-xs">eşitlenmiş değerler mağazadan</span></div>
+          <div class="dl">Türkiye (taban) · <del>399,99 TRY</del> <ins>449,99 TRY</ins></div>
+          <div class="dl">ABD · <del>9,99 USD</del> <ins>11,99 USD</ins></div>
+          <div class="dl">Almanya · 1,99 EUR <span class="src man">elle</span> değişmez</div>
+          <div class="dl fg3">ve 171 bölge daha · <span class="lnk">174 bölgeyi göster</span></div>
+        </div>
+        <div class="fld"><span class="lbl">Mevcut aboneler</span>
+          <div class="typec"><span class="rad"></span><div><b>Mevcut fiyatı koru</b><div class="t-s fg2">Yeni fiyat yalnız yeni abonelere. Mevcut aboneler eski fiyattan yenilemeye devam eder.</div></div></div>
+          <div class="typec on"><span class="rad on"></span><div><b>Mevcut abonelere de uygula</b><div class="t-s fg2">Apple aboneleri e-posta ve bildirimle uyarır. Onay gereken durumda onay vermeyenin aboneliği dönem sonunda biter.</div></div></div>
+        </div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Bu artış bazı bölgelerde abone onayı gerektirebilir. Kurallar App Store'a aittir; storeasy hangi abonenin etkileneceğini göremez.</div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-shield"/></svg>Satıştaki ürün fiyatı: <b>Sahip</b> veya <b>Yönetici</b> uygulayabilir.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Planı onayla ve uygula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. TEKLİFLER ============ -->
+<section class="sec" id="teklifler">
+<div class="sec-h"><span class="k">Bölüm 10.7-10.8</span><h2>Teklifler</h2><p>Tanıtım teklifi (yeni abonelere, bölge başına), promosyon teklifleri (mevcut ve eski abonelere, uygulama içinden imzalı) ve teklif kodları. Teklif fiyatları da yalnız App Store'un fiyat noktalarından seçilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-7" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">10.7</b><span class="fr-t">Teklifler</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId/offers</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/subscriptions/offers?SubscriptionId=</code> (yeni ad) → <code>SubscriptionOffersDto { Introductory: [{ Id, Mode (FreeTrial, PayAsYouGo, PayUpFront), Duration, Periods, Territories[], StartDate, EndDate }], Promotional: [{ Id, Name, OfferCode, Mode, Duration, Periods, PriceCount }], OfferCodes: [{ Id, Name, Eligibility[], CustomCodes: [{ Code, Count, ExpiryDate }], OneTimeCodeBatches: [{ Count, CreatedDate, ExpiryDate }] }] }</code>. Bir bölgede aynı anda tek tanıtım teklifi olabilir; uygunluk Apple'ındır (bu gruptan daha önce teklif kullanmamış kullanıcı). Promosyon teklifini uygulama kendi sunucusunda imzalar; storeasy imza üretmez ve In-App Purchase anahtarını saklamaz. Tek kullanımlık kodlar storeasy'de saklanmaz: yalnız adet ve tarih görünür, kod dosyası App Store Connect'ten indirilir. <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> teklif kartları tek sütun. <span class="gap">Backend boşluğu:</span> tek kullanımlık kod üretimi (<code>Kind: "OneTimeCodes"</code>) sonrası kod dosyasının kullanıcıya bir kez akıtılması tanımlı değil; önerim: storeasy dosyayı saklamadan tek seferlik indirme olarak eklenecek, olmazsa asistanlı adım.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Kumbara Plus</div>
+        <div class="pg-h"><div><h1 class="pg-t">Kumbara Plus Aylık</h1><p class="pg-s mono">com.kuzeylab.kumbara.plus.monthly</p></div><div class="pg-a"><div class="seg"><span>Genel</span><span>Fiyatlar</span><span class="on">Teklifler · 1</span></div></div></div>
+        <div class="c gp16">
+          <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-gift"/></svg><span class="h3">Tanıtım teklifi</span><span class="t-s fg3 hide-ph">yeni abonelere</span><span class="btn sm ml"><svg class="ic"><use href="#i-plus"/></svg>Teklif ekle</span></div><div class="card-b c gp12">
+            <div class="offer"><div class="oh"><b class="t-m">Ücretsiz deneme · 1 hafta</b><span class="bdg sm">Gönderilmedi</span><span class="ib sm ghost ml"><svg class="ic"><use href="#i-more"/></svg></span></div><div class="t-s fg2">174 bölge · hemen başlar · bitiş yok</div><div class="t-xs fg3">Uygunluk: Kumbara Plus grubunda daha önce tanıtım teklifi kullanmamış kullanıcılar (Apple kuralı)</div></div>
+          </div></div>
+          <div class="g2">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-percent"/></svg><span class="h3">Promosyon teklifleri</span><span class="btn sm ml">Ekle</span></div><div class="card-b c gp12">
+              <div class="offer"><div class="oh"><b class="t-m">Geri dönüş: 3 ay %50</b><span class="bdg sm">Taslak</span></div><div class="t-s fg2">Kullandıkça öde · 3 x 1 ay · 24,99 TL <span class="src man">elle</span></div><div class="t-xs mono fg3">geri-donus-50</div></div>
+              <div class="r gp8 t-xs fg3"><svg class="ic s14"><use href="#i-key"/></svg><span>İmza uygulamanın sunucusunda üretilir; storeasy imza anahtarı tutmaz.</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-tag"/></svg><span class="h3">Teklif kodları</span><span class="btn sm ml">Ekle</span></div><div class="card-b c gp12">
+              <div class="offer"><div class="oh"><b class="t-m">Lansman</b><span class="bdg sm">Taslak</span></div><div class="t-s fg2">1 ay ücretsiz · yeni aboneler</div><dl class="kv t-s"><dt>Özel kod</dt><dd class="mono">KUMBARA2027 · 500 kullanım</dd><dt>Tek kullanımlık</dt><dd>1.000 kod · 31 Mar 2027'ye kadar</dd></dl></div>
+              <div class="r gp8 t-xs fg3"><svg class="ic s14"><use href="#i-lock"/></svg><span>Tek kullanımlık kodlar storeasy'de saklanmaz.</span></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-8" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">10.8</b><span class="fr-t">Tanıtım teklifi ekle</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId/offers → yeni</code></figcaption>
+  <p class="fr-note">Üç tür: ücretsiz deneme (süre), kullandıkça öde (dönem başı indirimli fiyat x dönem sayısı), peşin öde (tek ödeme, süre). Ücretli türlerde fiyat bölge başına mağazanın fiyat noktalarından seçilir; seçilmeyen bölge teklifsiz kalır. Teklifi zaten olan bölgeler listede pasif ve "teklif var" etiketli. <b>API:</b> <code>POST /api/v1.0/subscriptions/plan { Changes: [{ Kind: "IntroductoryOffer", SubscriptionId, Mode, Duration, Periods, Territories[{ Territory, PricePointId? }], StartDate, EndDate }] }</code>. <b>İzin:</b> <code>EditContent</code>. Form hatası: süre ile dönem sayısı Apple'ın izin verdiği kombinasyon değilse alanın altında sunucu mesajı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kumbara Plus Aylık</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m108">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m108">Tanıtım teklifi ekle</h2><p class="t-s fg2 mt4">Kumbara Plus Aylık · yeni abonelere</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="g3">
+          <div class="typec on"><span class="rad on"></span><div><b>Ücretsiz deneme</b><div class="t-xs fg2">Belirli süre ücretsiz</div></div></div>
+          <div class="typec"><span class="rad"></span><div><b>Kullandıkça öde</b><div class="t-xs fg2">Dönem başı indirimli</div></div></div>
+          <div class="typec"><span class="rad"></span><div><b>Peşin öde</b><div class="t-xs fg2">Tek ödeme, süre boyunca</div></div></div>
+        </div>
+        <div class="g2">
+          <label class="fld"><span class="lbl">Süre</span><span class="inp sel">1 hafta</span></label>
+          <label class="fld"><span class="lbl">Başlangıç · bitiş</span><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>Hemen · bitiş yok</span></label>
+        </div>
+        <div class="fld"><span class="lbl">Bölgeler</span>
+          <div class="card"><div class="lst">
+            <div class="lst-i"><span class="chk on"></span><span class="f1 t-s b6">Bütün bölgeler</span><span class="t-s fg2">174</span></div>
+            <div class="lst-i"><span class="chk dis"></span><span class="f1 t-s fg3">Hindistan</span><span class="bdg sm">Teklif var</span></div>
+          </div></div>
+          <span class="hint">Ücretli türlerde bölge başına fiyat noktası seçilir; storeasy tutar önermez.</span>
+        </div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-users"/></svg><span>Uygunluk: bu gruptan daha önce tanıtım teklifi almamış kullanıcı. Apple belirler, değiştirilemez.</span></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1 hide-ph">173 bölge</span><span class="btn ghost">Vazgeç</span><span class="btn pri">Plana ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. IAP ============ -->
+<section class="sec" id="iap">
+<div class="sec-h"><span class="k">Bölüm 10.9-10.11</span><h2>Uygulama içi ürünler (App Store)</h2><p>Tüketilebilir, tüketilemez ve yenilenmeyen abonelik. Ayrıntı ekranı aboneliğinkiyle aynı düzende: genel, lokalizasyonlar, fiyat, inceleme bilgisi ve durum. İlk IAP de uygulama sürümüyle birlikte incelemeye gider.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-9">
+  <figcaption class="fr-h"><b class="fr-n">10.9</b><span class="fr-t">IAP listesi</span><code class="fr-r">/apps/:appId/money/iap?store=apple</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/iap</code> (planlanan, ListRequest; <code>StoreAppId</code>, arama <code>ReferenceName</code> <code>Contains</code>, filtre <code>Type</code>, <code>State</code>) → <code>IapListDto { Id, ProductId, ReferenceName, Type (Consumable, NonConsumable, NonRenewingSubscription), State, BasePrice { Territory, Currency, Amount, Source }, HasReviewScreenshot }</code>. Sayfalama 10 / 20 / 50 / 100. <b>İzin:</b> görme <code>View</code>, "Ürün oluştur" <code>EditContent</code>. <b>Telefonda</b> satırlar karta döner, ürün kimliği ikinci satırda.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Uygulama içi ürünler" data-ready="!5"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Ürün oluştur</span></div>
+        <div class="toolbar"><div class="inp" style="width:240px;max-width:100%"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ürün ara</span></div><span class="chip on">Tümü · 3</span><span class="chip">Tüketilebilir</span><span class="chip">Tüketilemez</span><span class="chip">Yenilenmeyen</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Ürün <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>Tür</th><th>Taban fiyat</th><th>Durum</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div><b>Gece teması</b><div class="t-xs mono fg3">com.kuzeylab.kumbara.tema.gece</div></div></td><td data-l="Tür">Tüketilemez</td><td data-l="Taban fiyat"><span class="r gp6">29,99 TL <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg info sm">Gönderime hazır</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Ek hedef hakkı (5)</b><div class="t-xs mono fg3">com.kuzeylab.kumbara.hedef.5</div></div></td><td data-l="Tür">Tüketilebilir</td><td data-l="Taban fiyat"><span class="r gp6">19,99 TL <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Eksik bilgi</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Plus 3 ay (yenilenmez)</b><div class="t-xs mono fg3">com.kuzeylab.kumbara.plus.3ay</div></div></td><td data-l="Tür">Yenilenmeyen abonelik</td><td data-l="Taban fiyat" class="fg3">Fiyat yok</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Eksik bilgi</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 3</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm dis">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-10" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">10.10</b><span class="fr-t">Ürün oluştur</span><code class="fr-r">/apps/:appId/money/iap → yeni</code></figcaption>
+  <p class="fr-note">Tür ve ürün kimliği oluşturulduktan sonra değişmez; bu yüzden ikisi modalda birlikte sorulur, gerisi ayrıntı ekranında doldurulur. Ürün kimliği kuralları alanın altında: harf, rakam, nokta ve alt çizgi; bundle id önekiyle başlaması önerilir; aynı hesapta bir kez kullanılır, silinen ürünün kimliği de geri gelmez. Kimlik yazılırken bu uygulamadaki ürünlerle çakışma yerelde denetlenir; hesap düzeyindeki çakışma mağazadan 409 olarak döner (10.19). <b>API:</b> <code>POST /api/v1.0/iap/plan { StoreAppId, Changes: [{ Kind: "CreateIap", Type, ProductId, ReferenceName }] }</code> (yeni ad) → <code>ChangePlanDto</code>; uygula <code>POST /api/v1.0/iap/apply { PlanId }</code> (yeni ad). <b>İzin:</b> <code>EditContent</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act=""><div class="content"><div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Uygulama içi ürünler"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1010">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1010">Uygulama içi ürün oluştur</h2><p class="t-s fg2 mt4">Kumbara · App Store</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Tür</span>
+          <div class="typec"><span class="rad"></span><div><b>Tüketilebilir</b><div class="t-xs fg2">Kullanılınca biter, yeniden alınır (ör. ek hedef hakkı).</div></div></div>
+          <div class="typec on"><span class="rad on"></span><div><b>Tüketilemez</b><div class="t-xs fg2">Bir kez alınır, geri yüklenir (ör. tema).</div></div></div>
+          <div class="typec"><span class="rad"></span><div><b>Yenilenmeyen abonelik</b><div class="t-xs fg2">Süreli erişim, kendiliğinden yenilenmez.</div></div></div>
+        </div>
+        <label class="fld"><span class="lbl">Ürün kimliği</span><span class="inp foc mono">com.kuzeylab.kumbara.tema.deniz</span><span class="hint">Harf, rakam, nokta, alt çizgi. Oluşturulduktan sonra değişmez ve hesapta bir kez kullanılır.</span></label>
+        <label class="fld"><span class="lbl">Referans adı</span><span class="inp">Deniz teması</span><span class="hint">Yalnız App Store Connect'te görünür, en çok 64 karakter.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Plana ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-11" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">10.11</b><span class="fr-t">IAP ayrıntısı</span><code class="fr-r">/apps/:appId/money/iap/:iapId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/iap/product?IapId=</code> (yeni ad) → <code>IapDetailDto { Id, ProductId, ReferenceName, Type, State, FamilySharable, Localizations[{ Locale, Name, Description }], Availability, BasePrice, ReviewScreenshot?, ReviewNote, SubmitWithVersion }</code>; fiyat tablosu aboneliğinkiyle aynı bileşen (<code>PATCH /api/v1.0/iap/prices</code>, yeni ad). Tüketilebilirde aile paylaşımı alanı yok. <b>İzin:</b> <code>EditContent</code>; satıştaki üründe fiyat <code>ReleaseProduction</code>. <b>Telefonda</b> sağ sütun altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Uygulama içi ürünler" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Uygulama içi ürünler</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="tag">Tüketilemez</span><span class="bdg info sm">Gönderime hazır</span></div><h1 class="pg-t">Gece teması</h1><p class="pg-s mono">com.kuzeylab.kumbara.tema.gece</p></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Lokalizasyonlar</span><div class="r gp6 ml"><span class="chip on">tr</span><span class="chip">en-US</span></div></div><div class="card-b c gp16">
+              <label class="fld"><span class="lbl">Görünen ad <span class="cnt">11 / 30</span></span><span class="inp">Gece teması</span></label>
+              <label class="fld"><span class="lbl">Açıklama <span class="cnt">33 / 45</span></span><span class="inp">Koyu renkler, gece için yumuşak.</span></label>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Fiyat</span><span class="lnk t-s ml">174 bölge</span></div><div class="card-b r gp8 wrap"><span class="price" style="font-size:20px">29,99 TL</span><span class="t-s fg2">Türkiye taban</span><span class="src">mağazadan</span><span class="btn sm ml">Değiştir</span></div></div>
+            <div class="card"><div class="card-h"><span class="h3">İnceleme bilgisi</span><span class="bdg ok sm ml"><span class="dot"></span>Tamam</span></div><div class="card-b g2">
+              <div class="revshot ok">tema-gece-satin-alma.png<br>1290x2796 · 412 KB</div>
+              <label class="fld"><span class="lbl">İnceleme notu</span><span class="inp ta" style="min-height:120px">Ayarlar &gt; Görünüm &gt; Temalar.</span></label>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b"><dl class="kv"><dt>Referans adı</dt><dd>Gece teması</dd><dt>Aile paylaşımı</dt><dd>Kapalı</dd><dt>Bölgeler</dt><dd>174 (Çin hariç)</dd><dt>Durum</dt><dd class="mono">READY_TO_SUBMIT</dd></dl></div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">İlk IAP, Kumbara 1.0 gönderilirken sürümle birlikte seçilir.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. GOOGLE PLAY ============ -->
+<section class="sec" id="play">
+<div class="sec-h"><span class="k">Bölüm 10.12-10.14</span><h2>Google Play: abonelikler, base plan'lar ve tek seferlik ürünler</h2><p>Play'de abonelik bir kapsayıcıdır; satılan şey base plan'dır (otomatik yenilenen ya da ön ödemeli) ve her base plan'ın kendi teklifleri vardır. Bölge fiyatlarını kullanıcı girer ya da Play'in dönüştürme servisi taban fiyattan hesaplar; storeasy yalnız Play'in döndürdüğünü gösterir. Durumlar Play'inkiler: etkin, etkin değil, taslak.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-12" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">10.12</b><span class="fr-t">Play abonelikleri ve base plan'lar</span><code class="fr-r">/apps/:appId/money/subscriptions?store=google</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/subscriptions/groups?StoreAppId=</code> Play kaydında aynı uç; Play'de grup kavramı olmadığı için yanıt <code>PlaySubscriptionDto { ProductId, Listings[{ Locale, Title, Benefits[] }], BasePlans: [{ BasePlanId, Type (AutoRenewing, Prepaid), BillingPeriod, State (Active, Inactive, Draft), BasePrice { RegionCode, Currency, Amount, Source (User, Converted) }, Offers: [{ OfferId, Phases[{ Kind (FreeTrial, IntroductoryPrice), Duration, Recurrence }], Eligibility (NewCustomers, Upgrade, DeveloperDetermined), State }] }] }</code> listesi döner (karar: tek uç, mağazaya göre DTO). Base plan'ı etkinleştirmek, devre dışı bırakmak ve teklif durumu plana gider. <b>İzin:</b> <code>EditContent</code>; etkin base plan'ın fiyatı <code>ReleaseProduction</code>. <b>Telefonda</b> abonelik seçici üstte açılır liste, teklifler base plan kartının içinde alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Para" data-act="" data-live="1 iş sürüyor">
+      <div class="content">
+        <div class="apphead" data-app="halka" data-store="google" data-tab="para" data-sub="Abonelikler"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Abonelik ekle</span></div>
+        <div class="split-l">
+          <div class="card"><div class="lst">
+            <div class="lst-i on"><svg class="ic s16"><use href="#i-repeat"/></svg><div class="f1"><b class="t-s">Halka Premium</b><div class="t-xs mono fg3">halka_premium</div></div><span class="t-xs fg3">3 plan</span></div>
+          </div></div>
+          <div class="c gp12">
+            <div class="r gp8 wrap"><h2 class="h2">Halka Premium</h2><span class="t-xs mono fg3">halka_premium</span><span class="btn sm ml">Liste ve avantajlar</span></div>
+            <div class="bp">
+              <div class="bp-h"><div><div class="r gp8 wrap"><b class="t-m">Aylık</b><span class="t-xs mono fg3">aylik · P1M · otomatik yenilenen</span></div></div><span class="r gp6"><span class="price">59,99 TL</span><span class="src man">elle</span></span><span class="bdg ok sm"><span class="dot"></span>Etkin</span></div>
+              <div class="bp-o"><svg class="ic s16 fg3"><use href="#i-gift"/></svg><div><b>ilk-hafta-ucretsiz</b> <span class="fg2">· ücretsiz deneme 1 hafta · yeni müşteriler</span></div><span class="bdg ok sm">Etkin</span></div>
+              <div class="bp-o"><svg class="ic s16 fg3"><use href="#i-percent"/></svg><div><b>ilk-ay-yarim</b> <span class="fg2">· tanıtım fiyatı 1 ay 29,99 TL · yeni müşteriler</span></div><span class="bdg sm">Etkin değil</span></div>
+            </div>
+            <div class="bp">
+              <div class="bp-h"><div><div class="r gp8 wrap"><b class="t-m">Yıllık</b><span class="t-xs mono fg3">yillik · P1Y · otomatik yenilenen</span></div></div><span class="r gp6"><span class="price">479,99 TL</span><span class="src man">elle</span></span><span class="bdg ok sm"><span class="dot"></span>Etkin</span></div>
+            </div>
+            <div class="bp">
+              <div class="bp-h"><div><div class="r gp8 wrap"><b class="t-m">1 ay ön ödemeli</b><span class="t-xs mono fg3">prepaid-1ay · P1M · ön ödemeli</span></div></div><span class="t-s fg3">Fiyat girilmedi</span><span class="bdg sm">Taslak</span></div>
+            </div>
+            <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>Play'de base plan silinemez, yalnız devre dışı bırakılır; aboneler mevcut planda kalır.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-13" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">10.13</b><span class="fr-t">Base plan bölge fiyatları: "Fiyatları dönüştür"</span><code class="fr-r">/apps/:appId/money/subscriptions/:productId/base-plans/aylik</code></figcaption>
+  <p class="fr-note">Kullanıcı Türkiye taban fiyatını girer; "Fiyatları dönüştür" Play'in dönüştürme servisini çağırır ve 173 bölgenin önerisini getirir. Dönüştürülen değerler <span class="src conv">Play dönüştürdü</span> etiketiyle ve henüz kaydedilmemiş olarak görünür; kullanıcı tek tek değiştirebilir, sonra plana ekler. "Yeni bölgeler" ayarı Play'in diğer bölgeler fiyatıdır. <b>API:</b> <code>POST /api/v1.0/subscriptions/prices/convert { StoreAppId, Currency: "TRY", Amount: "59.99" }</code> (yeni ad; Play <code>convertRegionPrices</code>) → <code>ConvertedPriceDto { RegionCode, Currency, Amount }[]</code>; kayıt <code>POST /api/v1.0/subscriptions/plan { Changes: [{ Kind: "BasePlanPrices", ProductId, BasePlanId, Prices[] }] }</code>. <b>İzin:</b> etkin base plan'da <code>ReleaseProduction</code>. Etkin plandaki fiyat artışı mevcut abonelere Play kurallarıyla (bildirim ve bazı bölgelerde onay) uygulanır; uyarı 10.6'daki gibi. <b>Telefonda</b> tablo bölge kartlarına döner, arama üstte.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Abonelikler" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Halka Premium</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>GP</b>Google Play</span><span class="bdg ok sm"><span class="dot"></span>Etkin</span></div><h1 class="pg-t">Aylık</h1><p class="pg-s mono">halka_premium · aylik · P1M</p></div><div class="pg-a"><span class="btn pri">Plana ekle · 173</span></div></div>
+        <div class="card mb16"><div class="card-b r gp16 wrap">
+          <label class="fld f1" style="min-width:200px"><span class="lbl">Taban fiyat · Türkiye</span><span class="inp foc">59,99 TRY</span></label>
+          <span class="btn inv"><svg class="ic"><use href="#i-refresh"/></svg>Fiyatları dönüştür</span>
+          <div class="c gp4" style="min-width:200px"><span class="lbl t-s">Yeni bölgeler</span><span class="t-s fg2">1,99 USD · 1,99 EUR <span class="src conv">Play dönüştürdü</span></span></div>
+        </div></div>
+        <div class="callout info mb16"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">173 bölge dönüştürüldü, henüz kaydedilmedi. Değerler Play'in 18 Kas 2026, 14:31 tarihli dönüşümü.</div></div>
+        <div class="toolbar"><div class="inp" style="width:240px;max-width:100%"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Bölge ara</span></div><span class="chip on">Değişen · 173</span><span class="chip">Tümü · 174</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Bölge</th><th>Şimdiki</th><th>Yeni</th><th>Kaynak</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Türkiye</b> <span class="tag">taban</span></td><td data-l="Şimdiki" class="tnum">54,99 TRY</td><td data-l="Yeni" class="tnum b6">59,99 TRY</td><td data-l="Kaynak"><span class="src man">elle</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+            <tr><td class="tm"><b>ABD</b></td><td data-l="Şimdiki" class="tnum">1,79 USD</td><td data-l="Yeni" class="tnum b6">1,99 USD</td><td data-l="Kaynak"><span class="src conv">Play dönüştürdü</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Almanya</b></td><td data-l="Şimdiki" class="tnum">1,79 EUR</td><td data-l="Yeni" class="tnum b6">1,99 EUR</td><td data-l="Kaynak"><span class="src conv">Play dönüştürdü</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Hindistan</b></td><td data-l="Şimdiki" class="tnum">99 INR</td><td data-l="Yeni" class="tnum b6">119 INR</td><td data-l="Kaynak"><span class="src man">elle</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Endonezya</b></td><td data-l="Şimdiki" class="tnum">24.000 IDR</td><td data-l="Yeni" class="tnum b6">26.000 IDR</td><td data-l="Kaynak"><span class="src conv">Play dönüştürdü</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 35 · Toplam: 173</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">5</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-14">
+  <figcaption class="fr-h"><b class="fr-n">10.14</b><span class="fr-t">Play tek seferlik ürünler</span><code class="fr-r">/apps/:appId/money/iap?store=google</code></figcaption>
+  <p class="fr-note">Play'in tek seferlik ürünleri (yönetilen ürünler). <b>API:</b> <code>PATCH /api/v1.0/iap</code> Play kaydında aynı uç → <code>PlayOneTimeProductDto { ProductId, Title, PurchaseOptions[{ Id, Type (Buy, Rent), State }], BasePrice { RegionCode, Currency, Amount, Source }, State (Active, Inactive, Draft) }</code>; yazma <code>POST /api/v1.0/iap/plan</code>. Tüketilip tüketilmeyeceğine uygulama karar verir (Play'de ürün türü yok); liste bunu not olarak gösterir. <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> satırlar karta döner. <span class="gap">Backend boşluğu:</span> Play'in yeni <code>monetization.onetimeproducts</code> API'si (satın alma seçenekleri) ile eski <code>inappproducts</code> arasında seçim yapılmadı; önerim: yeni API eklenecek, eski uç yalnız okuma için.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="halka" data-store="google" data-tab="para" data-sub="Uygulama içi ürünler"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Ürün oluştur</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ürün</th><th>Satın alma seçeneği</th><th>Taban fiyat</th><th>Durum</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div><b>Gece teması</b><div class="t-xs mono fg3">tema_gece</div></div></td><td data-l="Seçenek">Satın al</td><td data-l="Taban fiyat"><span class="r gp6">34,99 TL <span class="src man">elle</span></span></td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Etkin</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Ömür boyu Premium</b><div class="t-xs mono fg3">premium_omur_boyu</div></div></td><td data-l="Seçenek">Satın al</td><td data-l="Taban fiyat"><span class="r gp6">899,99 TL <span class="src man">elle</span></span></td><td data-l="Durum"><span class="bdg sm">Etkin değil</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Halka rozeti</b><div class="t-xs mono fg3">rozet_destek</div></div></td><td data-l="Seçenek" class="fg3">-</td><td data-l="Taban fiyat" class="fg3">Fiyat girilmedi</td><td data-l="Durum"><span class="bdg sm">Taslak</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="r gp8 t-s fg2 mt12"><svg class="ic s16"><use href="#i-info"/></svg><span>Ürünün tüketilebilir olup olmadığına uygulama karar verir; Play'de ayrı tür yok.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. MICROSOFT ADD-ON ============ -->
+<section class="sec" id="addon">
+<div class="sec-h"><span class="k">Bölüm 10.15-10.16</span><h2>Microsoft Store add-on'ları</h2><p>Add-on'lar Microsoft Store submission API'siyle yönetilir. Plan 11.6 kuralı: store-managed consumable ve zorunlu güncelleme kullanan add-on'larda API 409 döner. storeasy bu ürünleri baştan "asistanlı" işaretler ve değişiklik planına almaz; Partner Center adımı asistanlı adımlara bağlanır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-15">
+  <figcaption class="fr-h"><b class="fr-n">10.15</b><span class="fr-t">Add-on listesi</span><code class="fr-r">/apps/:appId/money/addons?store=ms</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/ms/addons?StoreAppId=</code> (planlanan) → <code>MsAddonDto { StoreId, ProductId, Title, Type (Durable, DeveloperManagedConsumable, StoreManagedConsumable, Subscription), Lifetime?, State (Published, InCertification, Draft), PendingSubmissionId?, Price { Tier?, Currency?, Amount?, Source }, ApiWritable, AssistedReason (StoreManagedConsumable, MandatoryUpdate, PricingV2, ManualEdit)? }</code>; ayrıntı <code>GET /api/v1.0/ms/addon?StoreId=</code>, yazma <code>POST /api/v1.0/ms/addons/plan</code> ve <code>POST /api/v1.0/ms/addons/apply</code> (yeni adlar). <code>ApiWritable = false</code> satırda "Asistanlı" rozeti ve "Adımı aç" çıkar. Fiyatı Pricing Version 2'de olan add-on'un fiyatı API'den okunamaz: "Partner Center'da" yazar. <b>İzin:</b> <code>EditContent</code>; yayındaki add-on'un fiyatı <code>ReleaseProduction</code>. <b>Telefonda</b> satırlar karta döner. <span class="gap">Backend boşluğu:</span> abonelik türü add-on'ların submission API ile yönetilip yönetilemediği doğrulanmadı; önerim: doğrulanana kadar salt okunur, eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="para" data-sub="Add-on'lar" data-meta="9P4K7Q2MZL1D · Kuzey Lab Partner Center"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Add-on oluştur</span></div>
+        <div class="callout info mb16"><svg class="ic"><use href="#i-hand"/></svg><div class="t-s">2 add-on API ile değiştirilemiyor (store-managed consumable ve zorunlu güncelleme). Bu ürünler asistanlı adımla Partner Center'da güncellenir.</div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Add-on</th><th>Tür</th><th>Fiyat</th><th>Durum</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div><b>Pusula Pro</b><div class="t-xs mono fg3">pusula_pro · 9NQ3W8D5K2TB</div></div></td><td data-l="Tür">Kalıcı (durable)</td><td data-l="Fiyat"><span class="r gp6">4,99 USD <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yayında</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Harita kredisi 50</b><div class="t-xs mono fg3">harita_kredi_50 · 9MZ7C1L4H8QV</div></div></td><td data-l="Tür">Tüketilebilir (geliştirici yönetimli)</td><td data-l="Fiyat"><span class="r gp6">1,99 USD <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yayında</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Rota jetonu</b><div class="t-xs mono fg3">rota_jeton · 9PB2R6T9X3KD</div></div></td><td data-l="Tür">Tüketilebilir (mağaza yönetimli)</td><td data-l="Fiyat" class="fg3">Partner Center'da</td><td data-l="Durum"><span class="bdg acc sm">Asistanlı</span></td><td class="ta"><span class="btn sm">Adımı aç</span></td></tr>
+            <tr><td class="tm"><div><b>Çevrimdışı haritalar</b><div class="t-xs mono fg3">offline_harita · 9N5D4K2W7JQS</div></div></td><td data-l="Tür">Kalıcı · zorunlu güncelleme</td><td data-l="Fiyat"><span class="r gp6">2,99 USD <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg acc sm">Asistanlı</span></td><td class="ta"><span class="btn sm">Adımı aç</span></td></tr>
+            <tr><td class="tm"><div><b>Pusula Plus Aylık</b><div class="t-xs mono fg3">pusula_plus_aylik · 9MV8H3Q1N6ZT</div></div></td><td data-l="Tür">Abonelik · 1 ay</td><td data-l="Fiyat"><span class="r gp6">1,49 USD <span class="src">mağazadan</span></span></td><td data-l="Durum"><span class="bdg info sm">Sertifikasyonda</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 5</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-16">
+  <figcaption class="fr-h"><b class="fr-n">10.16</b><span class="fr-t">409: add-on API ile değiştirilemiyor</span><code class="fr-r">/apps/:appId/money/addons/:storeId</code></figcaption>
+  <p class="fr-note">Senkron bir ürünü yazılabilir sanıp plana aldıysa (ör. ürün Partner Center'da sonradan zorunlu güncellemeye çevrildi) mağaza 409 döner. İş adımı "asistanlı" olarak kapanır, diğer kalemler etkilenmez; ürünün <code>ApiWritable</code> alanı <code>false</code> yapılır ve <code>Key = ms.addon.assisted-update</code> anahtarlı bir asistanlı adım kaydı açılır; "Asistanlı adımı aç" <code>GET /api/v1.0/assisted-steps/step?StepId=</code> ekranına (6.17) gider. Mesaj metni sunucudan (<code>Messages[{ Key: "Ms.AddonNotApiWritable" }]</code>). <span class="gap">Backend boşluğu:</span> mağaza işi adımında "asistanlıya düştü" sonucu (<code>StoreJobStepResult.Assisted</code>) ve bundan otomatik asistanlı adım üretimi planda yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Add-on'lar" data-act=""><div class="content"><div class="apphead" data-app="pusula" data-store="ms" data-tab="para" data-sub="Add-on'lar"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1016">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24"><use href="#i-hand"/></svg></span><div class="f1"><h2 class="h2" id="m1016">"Çevrimdışı haritalar" asistanlı güncellenecek</h2><p class="t-s fg2 mt4">Microsoft Store bu add-on'a API ile yazmaya izin vermedi (409).</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><span class="f1 t-s">Pusula Pro fiyatı</span><span class="t-xs fg3">Uygulandı</span></div>
+          <div class="lst-i"><span class="ck-s asst"><svg class="ic"><use href="#i-hand"/></svg></span><span class="f1 t-s">Çevrimdışı haritalar açıklaması</span><span class="bdg acc sm">Asistanlı</span></div>
+        </div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Ürün zorunlu güncelleme kullanıyor; Microsoft bu ürünlerde API yazmasını kabul etmiyor. Metin hazır, asistanlı adımda Partner Center'a girilir.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri"><svg class="ic"><use href="#i-hand"/></svg>Asistanlı adımı aç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 7. UYGULAMA AKIŞI VE DURUMLAR ============ -->
+<section class="sec" id="akis">
+<div class="sec-h"><span class="k">Bölüm 10.17-10.22</span><h2>Değişiklik planı, uygulama ve durumlar</h2><p>Para ekranlarındaki her değişiklik aynı akıştan geçer: plan (diff ve dry run) → onay → mağaza işi → canlı akış. Planın gerektirdiği izin, içindeki en yüksek izinli kalemdir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f10-17" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">10.17</b><span class="fr-t">Değişiklik planı (diff)</span><code class="fr-r">/apps/:appId/money → gözden geçir</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/subscriptions/plan</code> → <code>ChangePlanDto { PlanId, Items: [{ Field, Locale, Before, After, Action }], Warnings[], RequiredPermission, ExpiresDate }</code> (dry run: mağazada doğrulanır, yazılmaz); <code>POST /api/v1.0/subscriptions/apply { PlanId }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>. Plan 30 dakika geçerli; süresi dolarsa yeniden hesaplanır. Uyarılar engellemez, hatalar engeller. <b>İzin:</b> <code>RequiredPermission</code> (burada <code>EditContent</code>: abonelik satışta değil). MCP'de aynı plan Claude'un hazırladığı dry run olarak "onay bekleyen planlar"a (<code>PATCH /api/v1.0/plans</code>) düşer. <b>Telefonda</b> çekmece tam ekran, kalemler alt alta. <span class="gap">Backend boşluğu:</span> <code>AuditAction</code> enum'unda para yazmaları yok (<code>SubscriptionChanged</code>, <code>PriceScheduled</code>, <code>OfferChanged</code>, <code>IapChanged</code>, <code>AddonChanged</code>); eklenecek. <code>ChangePlanDto.RequiredPermission</code> ürünün satış durumuna göre hesaplanacak; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Abonelikler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kumbara Plus Aylık</h1></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m1017">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1017">Değişiklik planı</h2><p class="t-s fg2 mt4">Kumbara · App Store · 4 değişiklik · dry run geçti</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b c gp12">
+        <div class="diff"><div class="diff-h"><span class="tag">tr</span>Kumbara Plus Aylık · görünen ad</div><div class="dl del">Kumbara Plus <del>Aylık</del></div><div class="dl add">Kumbara Plus <ins>· Aylık</ins></div></div>
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-image"/></svg>İnceleme görüntüsü</div><div class="dl add"><ins>kumbara-plus-satin-alma.png · 1290x2796</ins></div></div>
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-gift"/></svg>Tanıtım teklifi</div><div class="dl add"><ins>Ücretsiz deneme · 1 hafta · 173 bölge</ins></div></div>
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-coin"/></svg>Almanya fiyatı · 1 Ara 2026</div><div class="dl del"><del>1,49 EUR</del> <span class="src">mağazadan</span></div><div class="dl add"><ins>1,99 EUR</ins> <span class="src man">elle</span></div></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Uyarı: Hindistan'da zaten bir tanıtım teklifi var; bu bölge yeni teklife dahil edilmedi.</div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-shield-check"/></svg>Gereken izin: <span class="mono">EditContent</span> · plan 30 dk geçerli</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-send"/></svg>Mağazaya uygula · 4</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-18">
+  <figcaption class="fr-h"><b class="fr-n">10.18</b><span class="fr-t">Uygulandı: canlı iş</span><code class="fr-r">/apps/:appId/money/subscriptions</code></figcaption>
+  <p class="fr-note">Uygulama bir <code>StoreJob</code> başlatır; toast iş adımlarını SignalR <code>/hubs/activity</code> (<code>job.step</code>, <code>job.finished</code>) olaylarıyla günceller, "Canlı akışta aç" <code>GET /api/v1.0/jobs/job?JobId=</code> ayrıntısına gider. Kalemler bitince satırlardaki rozetler mağazadan yeniden okunur. Bir kalem başarısız olursa toast tehlike rengine döner ve "Yeniden dene" (<code>POST /api/v1.0/jobs/retry</code>) yalnız o kalemi dener. Hareket azaltmada ilerleme çubuğu durur, sayılar güncellenir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act="" data-live="1 iş sürüyor">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Abonelikler" data-ready="!4"></div>
+        <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-repeat"/></svg><span class="h3">Kumbara Plus</span></div>
+          <div class="lvl"><svg class="ic s16 gr"><use href="#i-grip"/></svg><span class="lv">Seviye 1</span><div class="trunc"><b class="t-m">Kumbara Plus Yıllık</b></div><span class="price">399,99 TL</span><span class="bdg info sm">Gönderime hazır</span></div>
+          <div class="lvl"><svg class="ic s16 gr"><use href="#i-grip"/></svg><span class="lv">Seviye 2</span><div class="trunc"><b class="t-m">Kumbara Plus Aylık</b></div><span class="price">49,99 TL</span><span class="bdg sm"><span class="spinner" style="width:10px;height:10px"></span>Yazılıyor</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast info" role="status"><svg class="ic"><use href="#i-loader"/></svg><div class="f1"><b>Mağazaya yazılıyor · 2 / 4</b>
+      <div class="jobst mt8"><div><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>Görünen ad (tr)</div><div><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>İnceleme görüntüsü</div><div class="fg2"><span class="spinner" style="width:12px;height:12px"></span>Tanıtım teklifi</div><div class="fg3"><svg class="ic s14"><use href="#i-circle-dash"/></svg>Almanya fiyatı</div></div>
+      <span class="prog sm mt8"><i style="width:50%"></i></span><span class="lnk t-s mt8" style="display:inline-block">Canlı akışta aç</span></div></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-19">
+  <figcaption class="fr-h"><b class="fr-n">10.19</b><span class="fr-t">Doğrulama: ürün kimliği alınmış (409)</span><code class="fr-r">/apps/:appId/money/iap → yeni</code></figcaption>
+  <p class="fr-note">Dry run sırasında App Store kimliği reddeder (hesapta başka bir uygulamada ya da silinmiş bir üründe kullanılmış). Yanıt <code>StatusCode 409</code>, mesaj sunucudan; form üstünde <code>.ferr</code> özeti, alan kırmızı kenarlı ve altında açıklama. Odak hatalı alana gider. Referans adı boşsa yerel doğrulama aynı özetle gösterilir. Modal kapanmaz, girilen değerler korunur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act=""><div class="content"><div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Uygulama içi ürünler"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1019">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1019">Uygulama içi ürün oluştur</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Plan oluşturulamadı</b><ul><li>Bu ürün kimliği hesapta zaten kullanılmış.</li><li>Referans adı zorunlu.</li></ul></div></div>
+        <label class="fld"><span class="lbl">Tür</span><span class="inp sel">Tüketilemez</span></label>
+        <label class="fld"><span class="lbl">Ürün kimliği</span><span class="inp err mono">com.kuzeylab.kumbara.tema.gece</span><span class="err-t">App Store bu kimliği kabul etmedi (409): "Gece teması" ürününde kullanılıyor. Kimlikler silinse bile yeniden kullanılamaz.</span></label>
+        <label class="fld"><span class="lbl">Referans adı</span><span class="inp err"><span class="ph">Ör. Deniz teması</span></span><span class="err-t">Referans adı zorunlu.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Plana ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-20">
+  <figcaption class="fr-h"><b class="fr-n">10.20</b><span class="fr-t">Doğrulama: geçersiz fiyat</span><code class="fr-r">/apps/:appId/money/subscriptions/:productId/base-plans/aylik</code></figcaption>
+  <p class="fr-note">Play fiyatları serbest tutardır ama bölge başına alt ve üst sınır vardır; dry run'da Play reddederse satır hatalı işaretlenir ve plan oluşmaz. App Store tarafında elle tutar girilemediği için aynı hata "fiyat noktası artık geçerli değil" biçimindedir (mağaza fiyat noktalarını güncellediğinde): seçim yeniden istenir. Yanıt <code>StatusCode 400</code>, alan bazlı mesajlar <code>Messages[{ Key: "Prices[IN].Amount" }]</code>. "Hatalı satırları göster" tabloyu süzer.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Abonelikler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Aylık</h1><p class="pg-s mono">halka_premium · aylik</p></div><div class="pg-a"><span class="btn pri dis">Plana ekle</span></div></div>
+        <div class="ferr mb16" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>2 bölgede fiyat geçersiz</b><div class="t-s fg2 mt4">Play bu tutarları kabul etmedi. Düzeltince plan yeniden denenir. <span class="lnk">Hatalı satırları göster</span></div></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Bölge</th><th>Yeni fiyat</th><th>Sınır</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Hindistan</b></td><td data-l="Yeni fiyat"><div class="c gp4"><span class="inp err" style="min-height:34px">9 INR</span><span class="err-t">Play'in bu bölgedeki alt sınırının altında.</span></div></td><td data-l="Sınır" class="t-s fg2">Play'den: 10 INR alt sınır</td><td class="ta"></td></tr>
+            <tr><td class="tm"><b>Japonya</b></td><td data-l="Yeni fiyat"><div class="c gp4"><span class="inp err" style="min-height:34px">299,5 JPY</span><span class="err-t">JPY ondalık kabul etmiyor.</span></div></td><td data-l="Sınır" class="t-s fg2">Tam sayı</td><td class="ta"></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-21">
+  <figcaption class="fr-h"><b class="fr-n">10.21</b><span class="fr-t">İzleyici: salt okunur ve 403</span><code class="fr-r">/apps/:appId/money/subscriptions/:subscriptionId</code></figcaption>
+  <p class="fr-note">Viewer bütün para ekranlarını görür; alanlar salt okunur (<code>.ro</code>), plan düğmeleri pasif ve gerekçesi üstte. Eski bir sekmeden ya da rolü az önce düşürülen kullanıcıdan gelen istek <code>403</code> döner: toast tehlike rengi, mesaj sunucudan, sayfa salt okunur moda geçer. Editor satıştaki bir ürünün fiyatını uygulamaya çalışırsa aynı 403 metni "Bu fiyat değişikliği Sahip veya Yönetici onayı ister" olur ve "Onaya gönder" (<code>PATCH /api/v1.0/plans</code> kuyruğu) çıkar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-role="Viewer" data-crumbs="Uygulamalar|Kumbara|Abonelikler">
+      <div class="content">
+        <div class="banner info mb16"><svg class="ic"><use href="#i-eye"/></svg><span>Salt okunur görünüm: İzleyici rolündesin. Değişiklik için bir Editör ya da Yöneticiye yaz.</span></div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng sm"><span class="dot"></span>Eksik bilgi</span></div><h1 class="pg-t">Kumbara Plus Aylık</h1><p class="pg-s mono">com.kuzeylab.kumbara.plus.monthly</p></div><div class="pg-a"><div class="seg"><span class="on">Genel</span><span>Fiyatlar</span><span>Teklifler · 1</span></div></div></div>
+        <div class="split">
+          <div class="card"><div class="card-b c gp16">
+            <div class="g2"><div class="fld"><span class="lbl">Referans adı</span><span class="inp ro">Kumbara Plus Aylık</span></div><div class="fld"><span class="lbl">Süre</span><span class="inp ro">1 ay</span></div></div>
+            <div class="fld"><span class="lbl">Görünen ad · tr</span><span class="inp ro">Kumbara Plus Aylık</span></div>
+            <div class="fld"><span class="lbl">Açıklama · tr</span><span class="inp ro">Sınırsız hedef, otomatik birikim, raporlar.</span></div>
+          </div></div>
+          <div class="card"><div class="card-b c gp12"><span class="btn pri blk dis" aria-disabled="true"><svg class="ic"><use href="#i-compare"/></svg>Değişiklikleri gözden geçir</span><div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg><span>Para değişiklikleri <b>Editör</b> ve üstünde; satıştaki fiyatlar <b>Yönetici</b> ve <b>Sahip</b>'te.</span></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast dng" role="alert"><svg class="ic"><use href="#i-shield-x"/></svg><div class="f1"><b>Bu işlem için yetkin yok</b><div class="fg2">Abonelik değişikliği EditContent izni ister. (403)</div></div></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f10-22">
+  <figcaption class="fr-h"><b class="fr-n">10.22</b><span class="fr-t">İlk yükleme (iskelet)</span><code class="fr-r">/apps/:appId/money/subscriptions</code></figcaption>
+  <p class="fr-note">İskelet grup kartının ve seviye satırlarının şeklinde; fiyat sütunu ayrıca yüklenir (fiyatlar mağazadan ayrı istekle gelir). Mağaza erişilemezse son senkron verisi gösterilir ve üstte "Mağazadan okunamadı · son senkron 14:20 · Tekrar dene" bandı çıkar; fiyatlar bu durumda "son okunan" etiketiyle görünür, tahmin edilmez. Hareket azaltmada parıltı durur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Para" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="para" data-sub="Abonelikler"></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="sk t" style="width:160px"></span></div>
+            <div class="lvl"><span class="sk" style="width:14px"></span><span class="sk" style="width:56px"></span><div class="c gp6"><span class="sk t" style="width:70%"></span><span class="sk" style="width:50%"></span></div><span class="sk" style="width:80px"></span><span class="sk" style="width:90px"></span></div>
+            <div class="lvl"><span class="sk" style="width:14px"></span><span class="sk" style="width:56px"></span><div class="c gp6"><span class="sk t" style="width:60%"></span><span class="sk" style="width:45%"></span></div><span class="sk" style="width:80px"></span><span class="sk" style="width:90px"></span></div>
+          </div>
+          <div class="card"><div class="card-b c gp10"><span class="sk t" style="width:50%"></span><span class="sk b"></span><span class="sk b"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
