@@ -82,6 +82,25 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeStoreServer Stores { get; } = new();
 
+    /// <summary>
+    /// The events phase store calls (webhooks, versions, reviews, TestFlight) every test host uses.
+    /// </summary>
+    public FakeStoreEventGateway StoreEvents { get; } = new();
+
+    /// <summary>
+    /// The official pages the rule watcher reads.
+    /// </summary>
+    public FakeRuleSourceFetcher RulePages { get; } = new();
+
+    /// <summary>
+    /// DNS of the outgoing webhook checks.
+    /// </summary>
+    public FakeHostResolver HostResolver { get; } = new();
+
+    /// <summary>
+    /// The receivers of outgoing webhooks.
+    /// </summary>
+    public FakeWebhookReceiver WebhookReceiver { get; } = new();
 
     private static int _databaseSequence;
 
@@ -160,6 +179,19 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();
+
+            // Events phase: store calls, rules catalog, official pages, DNS and the outgoing webhook receivers.
+            services.RemoveAll<IStoreEventGateway>();
+            services.AddSingleton<IStoreEventGateway>(StoreEvents);
+            services.RemoveAll<IStoreReviewGateway>();
+            services.AddSingleton<IStoreReviewGateway>(StoreEvents);
+            services.RemoveAll<ITestFlightGateway>();
+            services.AddSingleton<ITestFlightGateway>(StoreEvents);
+            services.RemoveAll<IRuleSourceFetcher>();
+            services.AddSingleton<IRuleSourceFetcher>(RulePages);
+            services.RemoveAll<IHostResolver>();
+            services.AddSingleton<IHostResolver>(HostResolver);
+            services.AddHttpClient(Storeasy.Infrastructure.Notifications.OrgWebhookSender.HttpClientName).ConfigurePrimaryHttpMessageHandler(WebhookReceiver.CreateHandler);
         });
     }
 
@@ -262,6 +294,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         ["Storeasy:Stores:RetryBaseDelayMilliseconds"] = "1",
         ["Storeasy:Stores:AssetPollIntervalMilliseconds"] = "10",
         ["Storeasy:Stores:UploadChunkBytes"] = "262144",
+        ["Storeasy:Events:SchedulesEnabled"] = "false",
+        ["Storeasy:OrgWebhooks:PollIntervalMilliseconds"] = "100",
+        ["Storeasy:OrgWebhooks:RetryBaseDelaySeconds"] = "0",
+        ["Storeasy:OrgWebhooks:MaxAttempts"] = "3",
         ["Serilog:MinimumLevel:Default"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Warning",

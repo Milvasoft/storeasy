@@ -21,6 +21,7 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Email;
+using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -90,6 +91,8 @@ public static class InfraServiceCollectionExtensions
         services.AddAccountServices(configurationManager);
 
         services.AddStoreJobServices(configurationManager);
+
+        services.AddEventServices(configurationManager);
 
         // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
         var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();

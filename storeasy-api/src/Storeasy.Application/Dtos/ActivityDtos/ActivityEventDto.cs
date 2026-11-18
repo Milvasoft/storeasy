@@ -100,4 +100,19 @@ public class ActivityEventDto
     /// UTC instant of the event.
     /// </summary>
     public DateTime Date { get; set; }
+
+    /// <summary>
+    /// Kind of the record the event is about (rejection case, review, webhook event, notification...).
+    /// </summary>
+    public NotificationEntity? RelatedEntityType { get; set; }
+
+    /// <summary>
+    /// Id of that record.
+    /// </summary>
+    public string RelatedEntityId { get; set; }
+
+    /// <summary>
+    /// Notification id of a <c>notification.created</c> event.
+    /// </summary>
+    public long? NotificationId { get; set; }
 }

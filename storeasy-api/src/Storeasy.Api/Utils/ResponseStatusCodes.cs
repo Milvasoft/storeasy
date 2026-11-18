@@ -100,6 +100,28 @@ public static class ResponseStatusCodes
         [MessageKey.MockupTemplateChanged] = StatusCodes.Status409Conflict,
         [MessageKey.MockupExportNotReady] = StatusCodes.Status409Conflict,
         [MessageKey.TitleTranslatorUnavailable] = StatusCodes.Status503ServiceUnavailable,
+
+        // Phase 4 (events and tracking).
+        [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,
+        [MessageKey.WebhookEndpointNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.WebhookEventNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.OrgWebhookNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RejectionCaseNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.ReviewNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.SavedReplyNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BetaGroupNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BetaTesterNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BuildNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RuleProposalNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.WebhookEndpointExists] = StatusCodes.Status409Conflict,
+        [MessageKey.WebhookEventNotReprocessable] = StatusCodes.Status409Conflict,
+        [MessageKey.OrgWebhookLimitReached] = StatusCodes.Status409Conflict,
+        [MessageKey.RejectionCaseClosed] = StatusCodes.Status409Conflict,
+        [MessageKey.RejectionCaseExists] = StatusCodes.Status409Conflict,
+        [MessageKey.ReviewReplyInProgress] = StatusCodes.Status409Conflict,
+        [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
+        [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
+        [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,
     }.ToFrozenDictionary();
 
     /// <summary>
