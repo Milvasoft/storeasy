@@ -27,7 +27,8 @@ public class SecurityStampValidationMiddleware(RequestDelegate next)
     {
         var user = context.User;
 
-        if (user?.Identity?.IsAuthenticated == true && context.GetEndpoint()?.Metadata.GetMetadata<SkipSessionStampValidationAttribute>() is null)
+        // A storeasy token (personal access, CI, upload) is not a session: its own revocation is checked when it is authenticated.
+        if (user?.Identity?.IsAuthenticated == true && !user.HasClaim(c => c.Type == TokenClaimNames.Kind) && context.GetEndpoint()?.Metadata.GetMetadata<SkipSessionStampValidationAttribute>() is null)
         {
             var stampClaim = user.FindFirst(GlobalConstant.SessionStampClaimName)?.Value;
 
