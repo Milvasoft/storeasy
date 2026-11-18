@@ -101,7 +101,7 @@ public class AnswersStepsRulesTests(StoreasyApiFactory factory) : ContentTestBas
         var (missing, _) = await org.Owner.Client.GetAsync<RuleDetailDto>($"rules/rule?organizationId={org.OrganizationId}&ruleId=apple.nothing.here");
         var (_, calendar) = await org.Owner.Client.GetAsync<List<ComplianceItemDto>>($"compliance?organizationId={org.OrganizationId}&from=2026-11-01&to=2027-12-31");
 
-        catalog.Data.Version.Should().Be("1.0.1");
+        catalog.Data.Version.Should().Be("1.1.0");
         catalog.Data.RuleCount.Should().BeGreaterThan(100);
         rules.Data.Should().OnlyContain(r => r.Store == StoreKind.Apple && r.Category == "screenshots");
         rules.Data.Single(r => r.Id == "apple.screenshots.ipad-13").AffectedAppCount.Should().Be(1);

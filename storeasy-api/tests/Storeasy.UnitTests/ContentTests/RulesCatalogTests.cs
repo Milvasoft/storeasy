@@ -25,7 +25,7 @@ public class RulesCatalogTests
     [Fact]
     public void LoadFromFolder_ShouldLoadEveryStoreFileOfTheRepositoryCatalog()
     {
-        Catalog.Version.Should().Be("1.0.1");
+        Catalog.Version.Should().Be("1.1.0");
         Catalog.Rules.Select(r => r.StoreKind).Distinct().Should().BeEquivalentTo([StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]);
         Catalog.Find("apple.screenshots.ipad-13").Params.Sizes.Should().Contain(s => s.Width == 2064 && s.Height == 2752);
         Catalog.Find("apple.listing-limits.keywords").Params.MaxBytes.Should().Be(100);

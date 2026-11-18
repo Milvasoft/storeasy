@@ -140,7 +140,10 @@ public sealed partial class FakeAppStoreConnect
         if (request.RequestUri.Host == new Uri(UploadHost).Host)
         {
             lock (_lock)
+            {
                 Uploads[path] = body;
+                BuildUploadParts[path] = body;
+            }
 
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
@@ -149,7 +152,7 @@ public sealed partial class FakeAppStoreConnect
         {
             var json = body == null || body.Length == 0 ? null : JsonNode.Parse(body)?.AsObject();
 
-            return Route(method, path, query, json);
+            return RouteIntake(method, path, query, json) ?? Route(method, path, query, json);
         }
     }
 

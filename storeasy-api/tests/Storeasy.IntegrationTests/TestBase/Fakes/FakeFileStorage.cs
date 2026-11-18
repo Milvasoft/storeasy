@@ -7,7 +7,7 @@ namespace Storeasy.IntegrationTests.TestBase.Fakes;
 /// Replaces the bucket: URLs point at a fake host, and a test "uploads" by putting an object's size with
 /// <see cref="Put"/>. The real S3 implementation is tested against SeaweedFS in <c>S3FileStorageTests</c>.
 /// </summary>
-public sealed class FakeFileStorage : IFileStorage
+public sealed partial class FakeFileStorage : IFileStorage
 {
     /// <summary>
     /// Base of the fake URLs.
@@ -77,11 +77,18 @@ public sealed class FakeFileStorage : IFileStorage
     {
         CompletedUploads[key] = parts;
 
+        AssembleParts(key, uploadId);
+
         return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    public Task AbortMultipartUploadAsync(string key, string uploadId, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task AbortMultipartUploadAsync(string key, string uploadId, CancellationToken cancellationToken)
+    {
+        RecordAbort(key, uploadId);
+
+        return Task.CompletedTask;
+    }
 
     /// <inheritdoc/>
     public Task<StoredObjectInfo> GetObjectInfoAsync(string key, CancellationToken cancellationToken) => Task.FromResult(_objects.TryGetValue(key, out var info) ? info : null);

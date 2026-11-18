@@ -108,6 +108,14 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// The Microsoft every test host talks to (Entra, both Microsoft Store APIs, blob uploads, installer downloads).
     /// </summary>
     public FakeMicrosoftStore MicrosoftStore { get; } = new();
+    /// The CI providers' OIDC issuers (discovery documents and key sets of locally generated keys).
+    /// </summary>
+    public FakeOidcIssuers OidcIssuers { get; } = new();
+
+    /// <summary>
+    /// Build services that pulled packages are downloaded from.
+    /// </summary>
+    public FakeDownloadServer Downloads { get; } = new();
 
     private static int _databaseSequence;
 
@@ -205,6 +213,12 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.RemoveAll<IHostResolver>();
             services.AddSingleton<IHostResolver>(HostResolver);
             services.AddHttpClient(Storeasy.Infrastructure.Notifications.OrgWebhookSender.HttpClientName).ConfigurePrimaryHttpMessageHandler(WebhookReceiver.CreateHandler);
+
+            // Intake phase: OIDC issuers, pulled package downloads and the bucket's ranged reads and part listings.
+            services.AddHttpClient(Storeasy.Infrastructure.Intake.OidcTokenValidator.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => OidcIssuers);
+            services.AddHttpClient(Storeasy.Infrastructure.Intake.ArtifactDownloader.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Downloads);
+            services.RemoveAll<IArtifactStorage>();
+            services.AddSingleton<IArtifactStorage>(FileStorage);
         });
     }
 
