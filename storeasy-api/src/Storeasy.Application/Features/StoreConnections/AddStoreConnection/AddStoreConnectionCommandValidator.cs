@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Milvasoft.Core.Abstractions.Localization;
 using Storeasy.Application.Behaviours;
+using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 
 namespace Storeasy.Application.Features.StoreConnections.AddStoreConnection;
@@ -16,7 +17,7 @@ public sealed class AddStoreConnectionCommandValidator : AbstractValidator<AddSt
     public const int SecretMaxLength = 16 * 1024;
 
     ///<inheritdoc cref="AddStoreConnectionCommandValidator"/>
-    public AddStoreConnectionCommandValidator(IMilvaLocalizer localizer)
+    public AddStoreConnectionCommandValidator(IMilvaLocalizer localizer, TimeProvider timeProvider)
     {
         RuleFor(command => command.Store)
             .IsInEnum()
@@ -31,5 +32,10 @@ public sealed class AddStoreConnectionCommandValidator : AbstractValidator<AddSt
             .NotNullOrEmpty(localizer, MessageKey.StoreSecret)
             .MaximumLength(SecretMaxLength)
             .WithMessage(localizer[MessageKey.StoreSecret]);
+
+        RuleFor(command => command.CredentialExpiryDate)
+            .Must(date => MsSecretRules.IsValidExpiry(date, timeProvider.GetUtcNow().UtcDateTime))
+            .WithMessage(localizer[MessageKey.MsSecretExpiryInvalid])
+            .When(command => command.Store == StoreKind.Microsoft);
     }
 }

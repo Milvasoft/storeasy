@@ -53,5 +53,17 @@ public enum UserActivity : byte
     /// Feature flag updated.
     /// </summary>
     [Description("Feature flag updated")]
-    UpdateFeatureFlag = 16
+    UpdateFeatureFlag = 16,
+
+    /// <summary>
+    /// A rules catalog proposal was approved.
+    /// </summary>
+    [Description("Rule proposal approved")]
+    ApproveRuleProposal = 40,
+
+    /// <summary>
+    /// A rules catalog proposal was rejected.
+    /// </summary>
+    [Description("Rule proposal rejected")]
+    RejectRuleProposal = 41,
 }

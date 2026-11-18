@@ -48,6 +48,9 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsSubmissionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsFlightNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsAddonNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
@@ -69,6 +72,19 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotUploaded] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
         [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionInProgress] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionModifiedOutsideApi] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionNotOurs] = StatusCodes.Status409Conflict,
+        [MessageKey.MsNoPendingSubmission] = StatusCodes.Status409Conflict,
+        [MessageKey.MsPlanStale] = StatusCodes.Status409Conflict,
+        [MessageKey.MsPricingAssisted] = StatusCodes.Status409Conflict,
+        [MessageKey.MsAddonAssisted] = StatusCodes.Status409Conflict,
+        [MessageKey.MsApiRefused] = StatusCodes.Status409Conflict,
+        [MessageKey.MsFirstSubmissionRequired] = StatusCodes.Status409Conflict,
+        [MessageKey.MsInstallerNotSigned] = StatusCodes.Status409Conflict,
+        [MessageKey.MsInstallerNotReady] = StatusCodes.Status409Conflict,
+        [MessageKey.MsFlightNameTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.MsAddonProductIdTaken] = StatusCodes.Status409Conflict,
 
         // 410 - the plan expired.
         [MessageKey.PlanExpired] = StatusCodes.Status410Gone,
@@ -100,6 +116,28 @@ public static class ResponseStatusCodes
         [MessageKey.MockupTemplateChanged] = StatusCodes.Status409Conflict,
         [MessageKey.MockupExportNotReady] = StatusCodes.Status409Conflict,
         [MessageKey.TitleTranslatorUnavailable] = StatusCodes.Status503ServiceUnavailable,
+
+        // Phase 4 (events and tracking).
+        [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,
+        [MessageKey.WebhookEndpointNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.WebhookEventNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.OrgWebhookNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RejectionCaseNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.ReviewNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.SavedReplyNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BetaGroupNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BetaTesterNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BuildNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RuleProposalNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.WebhookEndpointExists] = StatusCodes.Status409Conflict,
+        [MessageKey.WebhookEventNotReprocessable] = StatusCodes.Status409Conflict,
+        [MessageKey.OrgWebhookLimitReached] = StatusCodes.Status409Conflict,
+        [MessageKey.RejectionCaseClosed] = StatusCodes.Status409Conflict,
+        [MessageKey.RejectionCaseExists] = StatusCodes.Status409Conflict,
+        [MessageKey.ReviewReplyInProgress] = StatusCodes.Status409Conflict,
+        [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
+        [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
+        [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,
     }.ToFrozenDictionary();
 
     /// <summary>

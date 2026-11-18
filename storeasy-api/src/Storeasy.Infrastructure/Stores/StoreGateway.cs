@@ -17,7 +17,8 @@ namespace Storeasy.Infrastructure.Stores;
 /// <param name="HttpClientFactory"></param>
 /// <param name="TimeProvider"></param>
 /// <param name="Logger"></param>
-public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger) : IStoreGateway
+/// <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
+public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger, IMicrosoftStoreClient MicrosoftStore = null) : IStoreGateway
 {
     /// <summary>
     /// Name of the HTTP client used for store calls.
@@ -44,10 +45,14 @@ public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, T
     private readonly IHttpClientFactory _httpClientFactory = HttpClientFactory;
     private readonly TimeProvider _timeProvider = TimeProvider;
     private readonly IMilvaLogger _logger = Logger;
+    private readonly IMicrosoftStoreClient _microsoftStore = MicrosoftStore;
 
     /// <inheritdoc/>
     public StoreSecretInspection Inspect(StoreKind store, string secretJson)
     {
+        if (store == StoreKind.Microsoft)
+            return InspectMicrosoft(secretJson);
+
         if (store is not (StoreKind.Apple or StoreKind.Google))
         {
             return new StoreSecretInspection(false, MessageKey.StoreNotSupported, null, null);
@@ -96,6 +101,7 @@ public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, T
             {
                 StoreKind.Apple => await VerifyAppleAsync(secretJson, cancellationToken),
                 StoreKind.Google => await VerifyGoogleAsync(secretJson, packageName, cancellationToken),
+                StoreKind.Microsoft when _microsoftStore != null => await _microsoftStore.VerifyAsync(secretJson, cancellationToken),
                 _ => new StoreVerification(ConnectionStatus.Rejected, NotSupportedMessage(store)),
             };
         }

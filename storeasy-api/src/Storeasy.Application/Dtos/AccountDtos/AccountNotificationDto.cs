@@ -99,5 +99,11 @@ public class AccountNotificationDto : StoreasyBaseDto<long>
         ActionLink = r.ActionLink,
         Text = r.Text,
         CreationDate = r.CreationDate,
+        OrganizationId = r.OrganizationId,
     };
+
+    /// <summary>
+    /// Organization the notification comes from; null for platform notifications.
+    /// </summary>
+    public int? OrganizationId { get; set; }
 }

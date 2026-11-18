@@ -33,6 +33,26 @@ public class ActivityHub(IOrganizationAccess organizationAccess) : Hub
     public static string GroupName(int organizationId) => $"org:{organizationId}";
 
     /// <summary>
+    /// Group of the connections of user <paramref name="userId"/> (events only that user may see, like
+    /// <c>notification.created</c>).
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public static string UserGroupName(int userId) => $"user:{userId}";
+
+    /// <summary>
+    /// Joins the connection to its user's own group.
+    /// </summary>
+    /// <returns></returns>
+    public override async Task OnConnectedAsync()
+    {
+        if (int.TryParse(Context.User?.FindFirst(GlobalConstant.UserIdClaimName)?.Value, out var userId))
+            await Groups.AddToGroupAsync(Context.ConnectionId, UserGroupName(userId), Context.ConnectionAborted);
+
+        await base.OnConnectedAsync();
+    }
+
+    /// <summary>
     /// Starts sending the organization's events to this connection. Returns false (and joins nothing) when the caller is
     /// not a member, so organization ids cannot be probed.
     /// </summary>

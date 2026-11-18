@@ -5,7 +5,8 @@ namespace Storeasy.Application.Features.StoreConnections.AddStoreConnection;
 
 /// <summary>
 /// Adds store credentials to an organization. The secret is checked offline, sealed and stored; it is never returned.
-/// Apple: <c>{"issuerId","keyId","privateKey"}</c>. Google: the service account JSON key file content.
+/// Apple: <c>{"issuerId","keyId","privateKey"}</c>. Google: the service account JSON key file content. Microsoft:
+/// <c>{"tenantId","clientId","clientSecret","sellerId"}</c> with <see cref="CredentialExpiryDate"/>.
 /// </summary>
 [OrgAuth(OrgPermission.ManageConnections)]
 [VerifiedEmailRequired]
@@ -29,4 +30,10 @@ public record AddStoreConnectionCommand : ICommand<int>, IOrganizationRequest
     /// </summary>
     [LogMasked]
     public string Secret { get; set; }
+
+    /// <summary>
+    /// Microsoft only, required: UTC instant the Entra client secret expires (at most 24 months away). The expiry
+    /// reminders read it.
+    /// </summary>
+    public DateTime? CredentialExpiryDate { get; set; }
 }
