@@ -89,9 +89,9 @@ public sealed class ApiTokenAuthenticator(IStoreasyRepositoryBase<PersonalAccess
         if (row.ExpiryDate <= now)
             return ApiTokenAuthentication.Failure(MessageKey.TokenExpired);
 
-        var role = await _organizationAccess.GetRoleAsync(row.OrganizationId, row.UserId, cancellationToken);
+        var access = await _organizationAccess.GetAccessAsync(row.OrganizationId, row.UserId, cancellationToken);
 
-        if (role == null)
+        if (access == null)
             return ApiTokenAuthentication.Failure(MessageKey.Unauthorized);
 
         if (row.LastUseDate == null || row.LastUseDate < now - LastUseInterval)

@@ -23,11 +23,16 @@ namespace Storeasy.Infrastructure.Services;
 /// in its backlog until the timeout, which would hold every authenticated request for seconds.
 /// </para>
 /// </summary>
+/// <para>
+/// A rotation also closes the user's live connections opened with the old stamp (<see cref="IRealtimeConnections"/>).
+/// </para>
 /// <param name="cache"></param>
 /// <param name="userRepository"></param>
 /// <param name="cacheKeys"></param>
-public class SecurityStampStore(IRedisAccessor cache, IStoreasyRepositoryBase<User> userRepository, CacheKeys cacheKeys) : ISecurityStampStore
+/// <param name="realtimeConnections"></param>
+public class SecurityStampStore(IRedisAccessor cache, IStoreasyRepositoryBase<User> userRepository, CacheKeys cacheKeys, IRealtimeConnections realtimeConnections) : ISecurityStampStore
 {
+    private readonly IRealtimeConnections _realtimeConnections = realtimeConnections;
     private static readonly TimeSpan _cacheExpiry = TimeSpan.FromHours(12);
 
     private readonly IRedisAccessor _cache = cache;
@@ -65,7 +70,29 @@ public class SecurityStampStore(IRedisAccessor cache, IStoreasyRepositoryBase<Us
         // still saw the old row cannot overwrite it because the read-through only adds a missing entry.
         await TrySetCacheAsync(userId, stamp);
 
+        await _realtimeConnections.DisconnectAsync(userId, stamp);
+
         return stamp;
+    }
+
+    /// <inheritdoc/>
+    public async Task RotateManyAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken = default)
+    {
+        if (userIds == null || userIds.Count == 0)
+            return;
+
+        // One new value for all of them: a stamp is only ever compared with its own user's token.
+        var stamp = Generate();
+        var ids = userIds.Distinct().ToList();
+
+        await _userRepository.ExecuteUpdateAsync(u => ids.Contains(u.Id), new SetPropertyBuilder<User>().SetPropertyValue(u => u.SessionStamp, stamp), cancellationToken);
+
+        foreach (var userId in ids)
+        {
+            await TrySetCacheAsync(userId, stamp);
+
+            await _realtimeConnections.DisconnectAsync(userId, stamp);
+        }
     }
 
     /// <inheritdoc/>

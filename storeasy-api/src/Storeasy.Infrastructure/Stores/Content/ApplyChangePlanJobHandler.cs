@@ -17,7 +17,8 @@ namespace Storeasy.Infrastructure.Stores.Content;
 /// <see cref="IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
 /// from the app's sealed saved answer here, in memory, and never stored with the plan. On success the plan becomes
 /// Applied and one audit entry per changed field is written in the name of the member who approved it. A failure is
-/// retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work.
+/// retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work. An
+/// applied submission for review closes the store record's open rejection cases (<see cref="IVersionStateTracker.CloseForSubmissionAsync"/>).
 /// </summary>
 /// <param name="planRepository"></param>
 /// <param name="storeAppRepository"></param>
@@ -28,6 +29,7 @@ namespace Storeasy.Infrastructure.Stores.Content;
 /// <param name="activityPublisher"></param>
 /// <param name="timeProvider"></param>
 /// <param name="extensions"></param>
+/// <param name="versionStateTracker"></param>
 public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan> planRepository,
                                              IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                              IStoreasyRepositoryBase<SavedAnswer> answerRepository,
@@ -36,7 +38,8 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
                                              IAuditTrail auditTrail,
                                              IActivityPublisher activityPublisher,
                                              TimeProvider timeProvider,
-                                             IEnumerable<IChangePlanExtension> extensions) : IStoreJobHandler
+                                             IEnumerable<IChangePlanExtension> extensions,
+                                             IVersionStateTracker versionStateTracker) : IStoreJobHandler
 {
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
@@ -49,6 +52,7 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
     private readonly IActivityPublisher _activityPublisher = activityPublisher;
     private readonly TimeProvider _timeProvider = timeProvider;
     private readonly IEnumerable<IChangePlanExtension> _extensions = extensions;
+    private readonly IVersionStateTracker _versionStateTracker = versionStateTracker;
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.ApplyChangePlan;
@@ -111,6 +115,10 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
                                                  new SetPropertyBuilder<ChangePlan>().SetPropertyValue(p => p.Status, ChangePlanStatus.Applied)
                                                                                      .SetPropertyValue(p => p.AppliedDate, (DateTime?)now),
                                                  cancellationToken);
+
+        // The version went to review again through storeasy: its open rejection cases are answered.
+        if (plan.Kind == ChangePlanKind.SubmitForReview)
+            await _versionStateTracker.CloseForSubmissionAsync(context.OrganizationId, plan.StoreAppId, cancellationToken);
 
         var items = plan.Items?.Count > 0 ? plan.Items : [new Domain.JsonModels.PlanItem { Field = plan.Kind.ToString(), Action = ChangeAction.Update }];
 

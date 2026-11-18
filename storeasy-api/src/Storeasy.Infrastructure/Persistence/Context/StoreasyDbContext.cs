@@ -98,6 +98,11 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<ArtifactPullSource> ArtifactPullSources { get; set; }
     public DbSet<IntakeSetting> IntakeSettings { get; set; }
     public DbSet<ArtifactSession> ArtifactSessions { get; set; }
+    public DbSet<OrganizationRole> OrganizationRoles { get; set; }
+    public DbSet<UserExternalLogin> UserExternalLogins { get; set; }
+    public DbSet<WebPushSubscription> WebPushSubscriptions { get; set; }
+    public DbSet<EmailOutboxItem> EmailOutbox { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

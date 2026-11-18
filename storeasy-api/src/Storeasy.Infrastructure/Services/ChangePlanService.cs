@@ -150,9 +150,7 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
         if (plan.ExpiryDate <= now)
             return Response<ChangePlanDto>.Error(null, MessageKey.PlanExpired);
 
-        var role = _organizationAccess.CurrentRole ?? await _organizationAccess.GetRoleAsync(organizationId, _currentUser.GetRequiredId(), cancellationToken);
-
-        if (role == null || !OrgRoleRules.Allows(role.Value, plan.RequiredPermission))
+        if (!await AllowsAsync(organizationId, plan.RequiredPermission, cancellationToken))
             return Response<ChangePlanDto>.Error(null, MessageKey.OrganizationForbidden);
 
         if (!ChangePlanRules.ConfirmationMatches(plan.ConfirmText, confirm))
@@ -257,9 +255,7 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
 
         if (status == ChangePlanStatus.Rejected)
         {
-            var role = _organizationAccess.CurrentRole ?? await _organizationAccess.GetRoleAsync(organizationId, _currentUser.GetRequiredId(), cancellationToken);
-
-            if (role == null || !OrgRoleRules.Allows(role.Value, plan.RequiredPermission))
+            if (!await AllowsAsync(organizationId, plan.RequiredPermission, cancellationToken))
                 return Response<ChangePlanDto>.Error(null, MessageKey.OrganizationForbidden);
         }
 
@@ -300,6 +296,17 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
     }
 
     private DateTime Now() => _timeProvider.GetUtcNow().UtcDateTime;
+
+    /// <summary>
+    /// Whether the caller's access in the organization (the one resolved for the request, or read now for a call outside
+    /// an organization request) grants <paramref name="permission"/>.
+    /// </summary>
+    private async Task<bool> AllowsAsync(int organizationId, OrgPermission permission, CancellationToken cancellationToken)
+    {
+        var access = _organizationAccess.Current ?? await _organizationAccess.GetAccessAsync(organizationId, _currentUser.GetRequiredId(), cancellationToken);
+
+        return access?.Allows(permission) == true;
+    }
 
     private static string Trim(string value, int max) => value == null || value.Length <= max ? value : value[..max];
 }
