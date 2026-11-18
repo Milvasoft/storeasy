@@ -88,6 +88,344 @@
             Optional related detail in JSON format (extra routing/display context for the related record).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Apps.App">
+            <summary>
+            A storeasy app: one product that lives in one, two or all three stores. Its store records (<see cref="P:Storeasy.Domain.Apps.App.StoreApps"/>,
+            at most one per store) carry the store specific identifiers; nothing store specific is kept here.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.App.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.App.Name"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.App.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.App.Name">
+            <summary>
+            Display name (the store name of the first record by default).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.App.IconUrl">
+            <summary>
+            Icon address, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.App.StoreApps">
+            <summary>
+            Store records of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.App.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.AppRules">
+            <summary>
+            Pure rules of storeasy apps. No database.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Apps.AppRules.LinkKey(System.String)">
+            <summary>
+            The key that links the records of one product across stores: the platform identifier (bundle id, package name),
+            trimmed and lower case. Null when there is none.
+            </summary>
+            <param name="bundleId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.Build">
+            <summary>
+            A build of a store record as the store reports it: an App Store Connect build, a Play bundle (by version code), later a
+            Microsoft Store package. <see cref="P:Storeasy.Domain.Apps.Build.Version"/> is the user facing version, <see cref="P:Storeasy.Domain.Apps.Build.BuildNumber"/> the build number
+            or version code.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.Build.TextMaxLength">
+            <summary>
+            Column length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.ExternalId">
+            <summary>
+            The store's id of the build (Apple build id, Play version code).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.Version">
+            <summary>
+            User facing version (1.4.0). Null when the store does not say.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.BuildNumber">
+            <summary>
+            Build number (CFBundleVersion) or version code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.ProcessingState">
+            <summary>
+            Processing state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.Tracks">
+            <summary>
+            Tracks the build is released to (Play), comma separated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.MinOsVersion">
+            <summary>
+            Minimum OS version, when the store reports it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.UploadedDate">
+            <summary>
+            UTC instant the build was uploaded.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.ExpiryDate">
+            <summary>
+            UTC instant the build stops being testable (TestFlight).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.SyncedDate">
+            <summary>
+            UTC instant of the last sync that saw the build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.Build.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.StoreApp">
+            <summary>
+            An app's record in one store. <see cref="P:Storeasy.Domain.Apps.StoreApp.ExternalId"/> is the store's own id of the app: the App Store Connect app id,
+            the Play package name, the Microsoft Store product id. <see cref="P:Storeasy.Domain.Apps.StoreApp.BundleId"/> is the platform identifier (iOS bundle id,
+            Android package name, Windows package family name) that links the records of one product across stores.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.StoreApp.ExternalIdMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.StoreApp.ExternalId"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.AppId">
+            <summary>
+            storeasy app the record belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.StoreConnectionId">
+            <summary>
+            Store connection the record is read with. Null when its connection was removed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.ExternalId">
+            <summary>
+            The store's id of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.BundleId">
+            <summary>
+            Platform identifier (bundle id, package name, package family name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.Name">
+            <summary>
+            Name in the store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.StoreConnection">
+            <summary>
+            Navigation property of the connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.Builds">
+            <summary>
+            Builds of the record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Assets.Asset">
+            <summary>
+            A file of an organization in the private bucket (screenshots, graphics, mockup outputs, build artifacts). The row is
+            created when upload URLs are handed out (<see cref="F:Storeasy.Domain.Enums.AssetStatus.Pending"/>) and confirmed after the storage reports the
+            object with the declared size (<see cref="F:Storeasy.Domain.Enums.AssetStatus.Uploaded"/>). Reads go through presigned URLs only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.Asset.FileNameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Assets.Asset.FileName"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.Asset.ContentTypeMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Assets.Asset.ContentType"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.Purpose">
+            <summary>
+            What the file is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.ObjectKey">
+            <summary>
+            Object key in the bucket.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.FileName">
+            <summary>
+            Original file name as uploaded.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.ContentType">
+            <summary>
+            MIME type.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.Size">
+            <summary>
+            Size in bytes: declared before the upload, checked against the stored object.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.Sha256">
+            <summary>
+            Lower case hex SHA-256 of the content as declared by the uploader (dedupe and later integrity checks).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.Status">
+            <summary>
+            Upload state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.UploadId">
+            <summary>
+            Multipart upload id while a multipart upload is open. Null for a single PUT.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.UploadDate">
+            <summary>
+            UTC instant the upload was confirmed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.Asset.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Assets.AssetRules">
+            <summary>
+            Pure rules of stored files: size limits, object keys and the multipart split. No storage call.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.AssetRules.MultipartThreshold">
+            <summary>
+            Files larger than this are uploaded in parts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.AssetRules.MinPartSize">
+            <summary>
+            Smallest part S3 accepts (every part but the last).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.AssetRules.DefaultPartSize">
+            <summary>
+            Part size used when the file needs no bigger parts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Assets.AssetRules.MaxPartCount">
+            <summary>
+            Most parts S3 accepts in one upload.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.MaxBytes(Storeasy.Domain.Enums.AssetPurpose)">
+            <summary>
+            Largest file accepted for <paramref name="purpose"/>, in bytes.
+            </summary>
+            <param name="purpose"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.IsMultipart(System.Int64)">
+            <summary>
+            Whether a file of <paramref name="size"/> bytes is uploaded in parts.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.PartSize(System.Int64)">
+            <summary>
+            Part size of a multipart upload of <paramref name="size"/> bytes: <see cref="F:Storeasy.Domain.Assets.AssetRules.DefaultPartSize"/>, or larger when the
+            file would need more than <see cref="F:Storeasy.Domain.Assets.AssetRules.MaxPartCount"/> parts.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.PartCount(System.Int64)">
+            <summary>
+            Number of parts of a multipart upload of <paramref name="size"/> bytes.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.ObjectKey(System.Int32,Storeasy.Domain.Enums.AssetPurpose,System.String,System.Guid)">
+            <summary>
+            Object key of a new file: <c>org/{organizationId}/{purpose}/{nonce}/{safe file name}</c>. The nonce is fresh per
+            upload, so a key is never predictable or shared, and the file name keeps only safe characters.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="purpose"></param>
+            <param name="fileName"></param>
+            <param name="nonce"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.AssetRules.SafeFileName(System.String)">
+            <summary>
+            <paramref name="fileName"/> reduced to letters, digits, dot, underscore and hyphen (others become hyphens), at most
+            100 characters; "file" when nothing is left.
+            </summary>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AccountTokenPurpose">
             <summary>
             What a one time account token proves. Values are explicit and never reused.
@@ -133,6 +471,51 @@
             A CI pipeline or build service (package intake).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.AssetPurpose">
+            <summary>
+            What a stored file is for; decides its folder and size limit. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.Screenshot">
+            <summary>
+            A screenshot or preview image for a store listing.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.Graphic">
+            <summary>
+            An app icon or listing graphic.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.MockupOutput">
+            <summary>
+            An image produced by the mockup studio.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.BuildArtifact">
+            <summary>
+            A build package (IPA, AAB, MSIX) from a CI pipeline or an upload.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AssetStatus">
+            <summary>
+            Upload state of a stored file.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetStatus.Pending">
+            <summary>
+            Upload URLs were handed out; the file is not confirmed yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetStatus.Uploaded">
+            <summary>
+            The file is in the bucket with the declared size.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssetStatus.Rejected">
+            <summary>
+            The upload did not match its declaration and was removed.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AuditAction">
             <summary>
             Kinds of organization audit entries. Values are explicit and never reused.
@@ -173,6 +556,45 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.JobCancelled">
             <summary>Store job cancelled.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppAdded">
+            <summary>A store record was added by hand (a Play app by package name).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.StoreAppLinked">
+            <summary>A store record was moved to another storeasy app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.StoreAppUnlinked">
+            <summary>A store record was split off into its own storeasy app.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.BuildProcessingState">
+            <summary>
+            Processing state of a build in its store, the same scale for every store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BuildProcessingState.Processing">
+            <summary>
+            The store is still processing the upload.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BuildProcessingState.Valid">
+            <summary>
+            Ready to be used (attached to a version, released to a track).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BuildProcessingState.Failed">
+            <summary>
+            Processing failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BuildProcessingState.Invalid">
+            <summary>
+            The store rejected the build.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.BuildProcessingState.Expired">
+            <summary>
+            The build expired (TestFlight builds expire after 90 days).
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ConnectionStatus">
             <summary>

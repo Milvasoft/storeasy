@@ -72,6 +72,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// </summary>
     public FakeEmailSender EmailSender { get; } = new();
 
+    /// <summary>
+    /// The bucket fake every test host uses.
+    /// </summary>
+    public FakeFileStorage FileStorage { get; } = new();
+
     private static int _databaseSequence;
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("app_tests")
@@ -140,6 +145,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
+
+            services.RemoveAll<IFileStorage>();
+            services.AddSingleton<IFileStorage>(FileStorage);
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();

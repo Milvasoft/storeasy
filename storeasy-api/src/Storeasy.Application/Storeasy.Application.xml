@@ -597,6 +597,299 @@
             Projection expression for mapping ActivityLog entity to ActivityLogListDto.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.AppAddedDto">
+            <summary>
+            Result of adding an app by hand: the record is confirmed by the sync job (follow <see cref="P:Storeasy.Application.Dtos.AppDtos.AppAddedDto.JobId"/>); a record the
+            store refuses is removed by that job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppAddedDto.AppId">
+            <summary>
+            storeasy app the record was added to (an existing one when the identifiers matched).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppAddedDto.StoreAppId">
+            <summary>
+            The new store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppAddedDto.JobId">
+            <summary>
+            The sync job that confirms the record and reads its builds.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.AppDetailDto">
+            <summary>
+            A storeasy app with its store records and its newest builds across the stores.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Dtos.AppDtos.AppDetailDto.BuildLimit">
+            <summary>
+            How many builds the detail carries at most.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppDetailDto.Builds">
+            <summary>
+            Newest builds first (by upload date, then by id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppDetailDto.Projection">
+            <summary>
+            Projection from an app row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.AppListDto">
+            <summary>
+            A storeasy app with its store records.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Id">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.IconUrl">
+            <summary>
+            Icon address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.CreationDate">
+            <summary>
+            UTC instant the app was added.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Stores">
+            <summary>
+            Records in the stores (one per store at most).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Projection">
+            <summary>
+            Projection from an app row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto">
+            <summary>
+            An app's record in one store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.StoreAppId">
+            <summary>
+            Store record id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.ExternalId">
+            <summary>
+            The store's id of the app (App Store Connect app id, Play package name, Microsoft Store product id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.BundleId">
+            <summary>
+            Platform identifier (bundle id, package name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.Name">
+            <summary>
+            Name in the store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.StoreConnectionId">
+            <summary>
+            Connection the record is read with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync; null until the first sync confirmed the record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.BuildDto">
+            <summary>
+            A build of one of the app's store records.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.Id">
+            <summary>
+            Build id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.ExternalId">
+            <summary>
+            The store's id of the build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.Version">
+            <summary>
+            User facing version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.BuildNumber">
+            <summary>
+            Build number or version code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.ProcessingState">
+            <summary>
+            Processing state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.Tracks">
+            <summary>
+            Tracks the build is released to (Play).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.MinOsVersion">
+            <summary>
+            Minimum OS version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.UploadedDate">
+            <summary>
+            UTC upload instant.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.ExpiryDate">
+            <summary>
+            UTC expiry instant (TestFlight).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AssetDtos.AssetDownloadDto">
+            <summary>
+            A presigned download URL of a stored file.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDownloadDto.Url">
+            <summary>
+            Presigned GET URL.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDownloadDto.ExpiryDate">
+            <summary>
+            UTC instant the URL stops working.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AssetDtos.AssetDto">
+            <summary>
+            A stored file of the organization (never its URL; ask for a download URL).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Id">
+            <summary>
+            Asset id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Purpose">
+            <summary>
+            What the file is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.FileName">
+            <summary>
+            Original file name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.ContentType">
+            <summary>
+            MIME type.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Size">
+            <summary>
+            Size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Sha256">
+            <summary>
+            Declared SHA-256 (hex).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Status">
+            <summary>
+            Upload state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.CreationDate">
+            <summary>
+            UTC instant the upload started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.UploadDate">
+            <summary>
+            UTC instant the upload was confirmed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetDto.Projection">
+            <summary>
+            Projection from an asset row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto">
+            <summary>
+            Where to upload a new file. A small file has one <see cref="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.UploadUrl"/> (PUT the body with the declared
+            <c>Content-Type</c>); a large one has <see cref="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.Parts"/> (PUT each slice of <see cref="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.PartSize"/> bytes, keep each
+            response's <c>ETag</c>, then complete with them). Then call the complete endpoint.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.AssetId">
+            <summary>
+            The new asset's id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.UploadUrl">
+            <summary>
+            Presigned PUT URL of a single part upload. Null for a multipart upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.PartSize">
+            <summary>
+            Bytes per part of a multipart upload (the last part may be smaller). Null for a single upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.Parts">
+            <summary>
+            Presigned PUT URLs of the parts, in order. Empty for a single upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadDto.ExpiryDate">
+            <summary>
+            UTC instant the URLs stop working.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AssetDtos.AssetUploadPartDto">
+            <summary>
+            One part of a multipart upload: its number and its presigned PUT URL.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadPartDto.PartNumber">
+            <summary>
+            Part number, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AssetDtos.AssetUploadPartDto.Url">
+            <summary>
+            Presigned PUT URL of the part.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AuditDto`1">
             <summary>
             Represents an audit data transfer object.
@@ -1638,6 +1931,21 @@
             UTC end.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.SyncAppsPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: the connection whose apps and builds are read.
+            </summary>
+            <param name="ConnectionId"></param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreJobDtos.SyncAppsPayload.#ctor(System.Int32)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: the connection whose apps and builds are read.
+            </summary>
+            <param name="ConnectionId"></param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.SyncAppsPayload.ConnectionId">
+            <summary></summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.TranslationDtos.NameDescriptionTranslationDto">
             <summary>
             Common translation dto.
@@ -2477,6 +2785,482 @@
         <member name="M:Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQueryValidator.#ctor">
             <inheritdoc cref="T:Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand">
+            <summary>
+            Adds a Google Play app by its package name (Play has no API that lists apps). The record is linked to the storeasy app
+            whose other store record has the same identifier (iOS bundle id equal to the package name), otherwise a new app is
+            created. A sync job then proves the service account can open the app (an edit probe), reads its bundles and tracks,
+            and removes the record if Play refuses it. The store secret is opened only inside that job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand.ConnectionId">
+            <summary>
+            Google Play connection to read the app with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand.PackageName">
+            <summary>
+            Package name (com.example.app).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand"/>. The record and its app are written first (unconfirmed:
+            <see cref="P:Storeasy.Domain.Apps.StoreApp.SyncedDate"/> is null), then the sync job of the connection is queued.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand"/>. The record and its app are written first (unconfirmed:
+            <see cref="P:Storeasy.Domain.Apps.StoreApp.SyncedDate"/> is null), then the sync job of the connection is queued.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandHandler.Handle(Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery">
+            <summary>
+            Reads one app of the organization with its store records and newest builds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found.
+            </summary>
+            <param name="appRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found.
+            </summary>
+            <param name="appRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.Handle(Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery">
+            <summary>
+            Pages through the organization's apps with their store records (all stores in one list).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default.
+            </summary>
+            <param name="appRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default.
+            </summary>
+            <param name="appRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler.Handle(Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand">
+            <summary>
+            Moves a store record (and its builds) to another storeasy app, e.g. to pair an iOS and an Android record of one
+            product. The target may hold at most one record per store; an app left without records is removed. Returns the
+            target app id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand.AppId">
+            <summary>
+            Target storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand.StoreAppId">
+            <summary>
+            Store record to move.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand"/>. The move and the removal of the emptied app commit together.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand"/>. The move and the removal of the emptied app commit together.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandHandler.Handle(Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand">
+            <summary>
+            Queues a sync of apps and builds: for one connection, or for every connection of the organization whose store the
+            engine reads (App Store Connect, Google Play). Returns the job ids; follow them on the activity hub.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand.ConnectionId">
+            <summary>
+            Connection to sync; null for all.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand"/>. One job per connection, queued in one write.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand"/>. One job per connection, queued in one write.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.SupportedStores">
+            <summary>
+            Stores the sync job reads today.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.Handle(Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand">
+            <summary>
+            Splits a store record (and its builds) off into a new storeasy app named after the record. A record that is already
+            the app's only one stays where it is. Returns the record's app id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand.StoreAppId">
+            <summary>
+            Store record to split off.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand"/>. The new app and the move commit together.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand"/>. The new app and the move commit together.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandHandler.Handle(Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand">
+            <summary>
+            Confirms an upload: completes a multipart upload with the parts' ETags, then checks that the stored object has the
+            declared size. A mismatching object is deleted and the asset rejected. Calling it again for a confirmed asset returns
+            the asset.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand.AssetId">
+            <summary>
+            Asset id from the upload request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand.Parts">
+            <summary>
+            Uploaded parts of a multipart upload (part number and the ETag of its PUT response). Empty for a single upload.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand"/>. The storage is the source of truth for what was uploaded; the
+            declared size must match, so a client cannot store more than it was allowed to declare.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand"/>. The storage is the source of truth for what was uploaded; the
+            declared size must match, so a client cannot store more than it was allowed to declare.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.AssetRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.FileStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.Logger">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandHandler.Handle(Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand">
+            <summary>
+            Declares a file to upload and returns presigned upload URLs: one PUT for a small file, one per part for a large one
+            (over 64 MB). The file counts only after the complete call confirms it with the declared size.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.Purpose">
+            <summary>
+            What the file is for (decides the size limit).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.FileName">
+            <summary>
+            File name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.ContentType">
+            <summary>
+            MIME type the upload is sent with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.Size">
+            <summary>
+            Exact size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand.Sha256">
+            <summary>
+            Lower case hex SHA-256 of the content (optional).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand"/>. A multipart upload is started on the storage before the row is
+            written, so a storage failure leaves no pending row behind.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="StorageOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.StorageOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand"/>. A multipart upload is started on the storage before the row is
+            written, so a storage failure leaves no pending row behind.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="StorageOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.AssetRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.FileStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.StorageOptions">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandHandler.Handle(Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery">
+            <summary>
+            Returns a short lived presigned download URL of a confirmed file of the organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery.AssetId">
+            <summary>
+            Asset id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery"/>. A file of another organization is reported as not found.
+            </summary>
+            <param name="assetRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.StorageOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery"/>. A file of another organization is reported as not found.
+            </summary>
+            <param name="assetRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryHandler.Handle(Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQueryValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.FeatureFlags.GetFeatureFlagList.GetFeatureFlagListQuery">
             <summary>
             Data transfer object for feature flag list.
@@ -3021,7 +3805,7 @@
         </member>
         <member name="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand">
             <summary>
-            Renames an organization.
+            Renames an organization and, when <see cref="P:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand.Slug"/> is sent, changes its URL key (normalized like at creation, unique).
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand.OrganizationId">
@@ -3032,16 +3816,23 @@
             New display name.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand.Slug">
+            <summary>
+            New URL key (optional; null or empty keeps the current one).
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommandHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand"/>. A slug used by any organization (a deleted one included, the unique
+            index covers every row) is a 409; a concurrent change to the same slug loses on the unique index and gets the same.
             </summary>
             <param name="OrganizationRepository"></param>
             <param name="AuditTrail"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IAuditTrail)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand"/>. A slug used by any organization (a deleted one included, the unique
+            index covers every row) is a 409; a concurrent change to the same slug loses on the unique index and gets the same.
             </summary>
             <param name="OrganizationRepository"></param>
             <param name="AuditTrail"></param>
@@ -3412,7 +4203,7 @@
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery">
             <summary>
-            Lists an organization's store connections.
+            Lists an organization's store connections (any member; fingerprints only for the roles that manage connections).
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery.OrganizationId">
@@ -3420,15 +4211,23 @@
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery"/>. Every member sees which connections exist and whether they work (the
+            role matrix lets every role see apps and jobs, and editors pick a connection to sync); the fingerprint (key id, issuer
+            id suffix, service account e-mail) and the last verification error are shown only to the roles that manage
+            connections (<see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageConnections"/>).
             </summary>
             <param name="connectionRepository"></param>
+            <param name="organizationAccess"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection})">
+        <member name="M:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IOrganizationAccess)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery"/>. Every member sees which connections exist and whether they work (the
+            role matrix lets every role see apps and jobs, and editors pick a connection to sync); the fingerprint (key id, issuer
+            id suffix, service account e-mail) and the last verification error are shown only to the roles that manage
+            connections (<see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageConnections"/>).
             </summary>
             <param name="connectionRepository"></param>
+            <param name="organizationAccess"></param>
         </member>
         <member name="M:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler.Handle(Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -4186,6 +4985,131 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IFileStorage">
+            <summary>
+            The private S3 compatible bucket (S3, or MinIO for self-host). Clients never get bucket credentials: they upload and
+            download with short lived presigned URLs, large files (CI artifacts) with presigned multipart uploads. URL creation
+            makes no network call; the other methods call the storage and throw when it fails.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IFileStorage.IsConfigured">
+            <summary>
+            Whether a bucket is configured. The other members must not be called when false.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.CreateUploadUrl(System.String,System.String,System.TimeSpan)">
+            <summary>
+            A presigned PUT URL for <paramref name="key"/>. The client sends the body with the same <c>Content-Type</c>.
+            </summary>
+            <param name="key"></param>
+            <param name="contentType"></param>
+            <param name="lifetime"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.CreateDownloadUrl(System.String,System.TimeSpan,System.String)">
+            <summary>
+            A presigned GET URL for <paramref name="key"/>, optionally downloaded as <paramref name="downloadFileName"/>.
+            </summary>
+            <param name="key"></param>
+            <param name="lifetime"></param>
+            <param name="downloadFileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.StartMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Starts a multipart upload and returns its upload id.
+            </summary>
+            <param name="key"></param>
+            <param name="contentType"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.CreatePartUploadUrl(System.String,System.String,System.Int32,System.TimeSpan)">
+            <summary>
+            A presigned PUT URL for one part (from 1) of a multipart upload. The response's <c>ETag</c> header is needed to
+            complete the upload.
+            </summary>
+            <param name="key"></param>
+            <param name="uploadId"></param>
+            <param name="partNumber"></param>
+            <param name="lifetime"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.CompleteMultipartUploadAsync(System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.UploadedPart},System.Threading.CancellationToken)">
+            <summary>
+            Completes a multipart upload from its uploaded parts.
+            </summary>
+            <param name="key"></param>
+            <param name="uploadId"></param>
+            <param name="parts"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.AbortMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Abandons a multipart upload and frees its parts.
+            </summary>
+            <param name="key"></param>
+            <param name="uploadId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.GetObjectInfoAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Size and type of a stored object, or null when there is none.
+            </summary>
+            <param name="key"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFileStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an object; a missing object is not an error.
+            </summary>
+            <param name="key"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.UploadedPart">
+            <summary>
+            One uploaded part of a multipart upload.
+            </summary>
+            <param name="PartNumber">Part number, from 1.</param>
+            <param name="ETag">The <c>ETag</c> the storage answered the part upload with.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.UploadedPart.#ctor(System.Int32,System.String)">
+            <summary>
+            One uploaded part of a multipart upload.
+            </summary>
+            <param name="PartNumber">Part number, from 1.</param>
+            <param name="ETag">The <c>ETag</c> the storage answered the part upload with.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.UploadedPart.PartNumber">
+            <summary>Part number, from 1.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.UploadedPart.ETag">
+            <summary>The <c>ETag</c> the storage answered the part upload with.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoredObjectInfo">
+            <summary>
+            Metadata of a stored object.
+            </summary>
+            <param name="Size">Size in bytes.</param>
+            <param name="ContentType">Stored content type.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoredObjectInfo.#ctor(System.Int64,System.String)">
+            <summary>
+            Metadata of a stored object.
+            </summary>
+            <param name="Size">Size in bytes.</param>
+            <param name="ContentType">Stored content type.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoredObjectInfo.Size">
+            <summary>Size in bytes.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoredObjectInfo.ContentType">
+            <summary>Stored content type.</summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IIdempotencyStore">
             <summary>
             Stores the client-supplied idempotency keys of create endpoints so a retried request returns the first
@@ -4443,6 +5367,123 @@
             <summary>
             Proves the credentials work with one cheap read call (Apple: list one app; Google: token exchange, plus an edit
             probe when <paramref name="packageName"/> is given).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreGateway.ListAppsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Lists every app the credentials can see. Only stores with a list API (App Store Connect); Google Play has none
+            (apps are added by package name) and Microsoft Store is not supported yet: both throw a permanent
+            <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreGateway.GetAppAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads one app by its store id (App Store Connect app id, Play package name). For Google Play this is also the proof
+            that the service account was invited to the app (an edit is opened and deleted).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreGateway.ListBuildsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Lists the builds of one app (App Store Connect builds with their versions; Play bundles with the tracks they are
+            released to), newest first where the store orders them.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreAppRecord">
+            <summary>
+            An app as a store reports it.
+            </summary>
+            <param name="ExternalId">The store's id of the app.</param>
+            <param name="BundleId">Platform identifier (bundle id, package name).</param>
+            <param name="Name">Name in the store.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreAppRecord.#ctor(System.String,System.String,System.String)">
+            <summary>
+            An app as a store reports it.
+            </summary>
+            <param name="ExternalId">The store's id of the app.</param>
+            <param name="BundleId">Platform identifier (bundle id, package name).</param>
+            <param name="Name">Name in the store.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreAppRecord.ExternalId">
+            <summary>The store's id of the app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreAppRecord.BundleId">
+            <summary>Platform identifier (bundle id, package name).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreAppRecord.Name">
+            <summary>Name in the store.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreBuildRecord">
+            <summary>
+            A build as a store reports it.
+            </summary>
+            <param name="ExternalId">The store's id of the build.</param>
+            <param name="Version">User facing version, if known.</param>
+            <param name="BuildNumber">Build number or version code.</param>
+            <param name="ProcessingState">Processing state.</param>
+            <param name="UploadedDate">UTC upload instant, if known.</param>
+            <param name="ExpiryDate">UTC expiry instant (TestFlight), if any.</param>
+            <param name="Tracks">Tracks the build is released to, comma separated (Play).</param>
+            <param name="MinOsVersion">Minimum OS version, if known.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreBuildRecord.#ctor(System.String,System.String,System.String,Storeasy.Domain.Enums.BuildProcessingState,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.String,System.String)">
+            <summary>
+            A build as a store reports it.
+            </summary>
+            <param name="ExternalId">The store's id of the build.</param>
+            <param name="Version">User facing version, if known.</param>
+            <param name="BuildNumber">Build number or version code.</param>
+            <param name="ProcessingState">Processing state.</param>
+            <param name="UploadedDate">UTC upload instant, if known.</param>
+            <param name="ExpiryDate">UTC expiry instant (TestFlight), if any.</param>
+            <param name="Tracks">Tracks the build is released to, comma separated (Play).</param>
+            <param name="MinOsVersion">Minimum OS version, if known.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.ExternalId">
+            <summary>The store's id of the build.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.Version">
+            <summary>User facing version, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.BuildNumber">
+            <summary>Build number or version code.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.ProcessingState">
+            <summary>Processing state.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.UploadedDate">
+            <summary>UTC upload instant, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.ExpiryDate">
+            <summary>UTC expiry instant (TestFlight), if any.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.Tracks">
+            <summary>Tracks the build is released to, comma separated (Play).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreBuildRecord.MinOsVersion">
+            <summary>Minimum OS version, if known.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreCallException">
+            <summary>
+            A store call failed. The message is redacted and safe to store. 429 and 5xx answers and network failures are
+            transient (retried by the job runner); 4xx answers and unsupported operations are permanent.
+            </summary>
+            <param name="message"></param>
+            <param name="statusCode">HTTP status of the store's answer; null for a network failure or an unsupported call.</param>
+            <param name="transient"></param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreCallException.#ctor(System.String,System.Nullable{System.Int32},System.Boolean)">
+            <summary>
+            A store call failed. The message is redacted and safe to store. 429 and 5xx answers and network failures are
+            transient (retried by the job runner); 4xx answers and unsupported operations are permanent.
+            </summary>
+            <param name="message"></param>
+            <param name="statusCode">HTTP status of the store's answer; null for a network failure or an unsupported call.</param>
+            <param name="transient"></param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreCallException.StatusCode">
+            <summary>
+            HTTP status of the store's answer, if there was one.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.StoreSecretInspection">
@@ -5744,6 +6785,16 @@
             <param name="exception"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.UserUniqueConstraintHelper.IsUniqueViolation(System.Exception,System.String)">
+            <summary>
+            Whether <paramref name="exception"/> (or its inner exception, as EF wraps it) is a unique violation (23505) of the
+            index <paramref name="indexName"/>. For set based updates (<c>ExecuteUpdateAsync</c>) that race on a unique column
+            outside the user table, e.g. an organization slug; this class is the one place the application layer reads Npgsql.
+            </summary>
+            <param name="exception"></param>
+            <param name="indexName"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.LinkedWithFormatters.ByteArrayToBase64Formatter">
             <summary>
             Converts byte array to base64 string.
@@ -6049,6 +7100,58 @@
         <member name="P:Storeasy.Application.Utils.Models.RegistrationOptions.Mode">
             <summary>
             Who may register. <see cref="F:Storeasy.Domain.Enums.RegistrationMode.Open"/> by default.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.StorageOptions">
+            <summary>
+            S3 compatible object storage settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.StorageOptions.SectionName"/>, docs/urun-plani.md section 10),
+            bound once and registered as a singleton. The bucket is private; every read and write goes through presigned URLs.
+            The keys come only from user secrets or the environment (<c>Storage__S3__AccessKey</c>, <c>Storage__S3__SecretKey</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.StorageOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.Bucket">
+            <summary>
+            Bucket name. Empty disables the storage (the upload endpoints answer 503).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.Region">
+            <summary>
+            AWS region of the bucket (also the signing region for MinIO).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.AccessKey">
+            <summary>
+            Access key id (secret, set through the environment).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.SecretKey">
+            <summary>
+            Secret access key (secret, set through the environment).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl">
+            <summary>
+            Endpoint of an S3 compatible server (MinIO, e.g. <c>http://localhost:9000</c>). Empty for AWS S3.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.ForcePathStyle">
+            <summary>
+            Path style addressing (<c>host/bucket/key</c>), needed by MinIO. Ignored without <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.PresignedUrlLifetimeMinutes">
+            <summary>
+            Lifetime of presigned upload and download URLs, in minutes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StorageOptions.IsConfigured">
+            <summary>
+            Whether the storage can be used.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.StoreJobOptions">

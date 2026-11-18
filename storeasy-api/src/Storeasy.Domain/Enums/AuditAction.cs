@@ -54,4 +54,16 @@ public enum AuditAction : short
     /// <summary>Store job cancelled.</summary>
     [Description("Store job cancelled")]
     JobCancelled = 30,
+
+    /// <summary>A store record was added by hand (a Play app by package name).</summary>
+    [Description("App added")]
+    AppAdded = 40,
+
+    /// <summary>A store record was moved to another storeasy app.</summary>
+    [Description("Store record linked")]
+    StoreAppLinked = 41,
+
+    /// <summary>A store record was split off into its own storeasy app.</summary>
+    [Description("Store record unlinked")]
+    StoreAppUnlinked = 42,
 }

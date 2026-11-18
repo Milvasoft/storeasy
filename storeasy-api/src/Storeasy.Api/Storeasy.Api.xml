@@ -451,6 +451,105 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AppsController">
+            <summary>
+            App endpoints: storeasy apps and their records in each store (App Store Connect, Google Play, later Microsoft Store),
+            with their builds. Store data arrives through sync jobs; nothing here calls a store in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.#ctor(MediatR.IMediator)">
+            <summary>
+            App endpoints: storeasy apps and their records in each store (App Store Connect, Google Play, later Microsoft Store),
+            with their builds. Store data arrives through sync jobs; nothing here calls a store in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetAppsAsync(Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's apps with their store records (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetAppAsync(Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one app with its store records and newest builds (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.AddGoogleAppAsync(Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds a Google Play app by package name (editors and above). A sync job confirms it and reads its builds; follow the
+            returned job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.LinkStoreAppAsync(Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Moves a store record to another app (editors and above); at most one record per store in an app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.UnlinkStoreAppAsync(Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Splits a store record off into its own app (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.SyncAppsAsync(Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of apps and builds for one connection or all (editors and above). Returns the job ids.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.AssetsController">
+            <summary>
+            File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
+            bytes never pass through the API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.#ctor(MediatR.IMediator)">
+            <summary>
+            File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
+            bytes never pass through the API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.CreateUploadAsync(Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Declares a file and returns presigned upload URLs: a single PUT, or one PUT per part for files over 64 MB
+            (editors and above). 503 when no bucket is configured.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.CompleteUploadAsync(Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Confirms an upload (completes a multipart upload with the parts' ETags) after checking the stored size (editors
+            and above). Retry safe: a confirmed asset is returned as is.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.GetDownloadUrlAsync(Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery,System.Threading.CancellationToken)">
+            <summary>
+            Returns a short lived presigned download URL of a confirmed file (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.DeveloperController">
             <summary>
             Developer endpoints. Every endpoint requires a super admin and is disabled in production.
@@ -641,7 +740,7 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.UpdateOrganizationAsync(Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand,System.Threading.CancellationToken)">
             <summary>
-            Renames an organization (owner only).
+            Renames an organization and optionally changes its slug (owner only; a slug in use is 409).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -791,7 +890,8 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.GetConnectionsAsync(Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery,System.Threading.CancellationToken)">
             <summary>
-            Lists the organization's store connections (fingerprints only).
+            Lists the organization's store connections (any member). Never the secret; the fingerprint and the last
+            verification error only for owners and admins.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1088,6 +1188,30 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118122158_AddAssets">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

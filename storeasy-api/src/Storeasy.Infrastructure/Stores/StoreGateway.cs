@@ -17,7 +17,7 @@ namespace Storeasy.Infrastructure.Stores;
 /// <param name="HttpClientFactory"></param>
 /// <param name="TimeProvider"></param>
 /// <param name="Logger"></param>
-public sealed class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger) : IStoreGateway
+public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger) : IStoreGateway
 {
     /// <summary>
     /// Name of the HTTP client used for store calls.

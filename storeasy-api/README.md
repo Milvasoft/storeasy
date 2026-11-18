@@ -56,6 +56,8 @@ docker compose up -d
 | `Storeasy:Email:Notifike:BaseUrl` | `Storeasy__Email__Notifike__BaseUrl` | Notifike API base address (`POST {BaseUrl}/notifications/send`). |
 | `Storeasy:Email:Notifike:ApiKey` | `Storeasy__Email__Notifike__ApiKey` | Secret. Notifike API key (`X-Api-Key` header). |
 | `Storeasy:Jobs:Enabled`, `Workers`, `PollIntervalMilliseconds`, `LeaseSeconds`, `DefaultMaxAttempts`, `RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | `Storeasy__Jobs__...` | Store job runner: whether this instance runs jobs, parallel jobs per instance, idle poll pause, lease of a running attempt (renewed on every step), attempts and the exponential retry backoff. |
+| `Storage:S3:Bucket`, `Region`, `ServiceUrl`, `ForcePathStyle`, `PresignedUrlLifetimeMinutes` | `Storage__S3__...` | Private S3 compatible bucket for files (presigned URLs only). Empty bucket disables uploads (503). `ServiceUrl` + `ForcePathStyle` for MinIO; empty `ServiceUrl` for AWS S3. |
+| `Storage:S3:AccessKey`, `Storage:S3:SecretKey` | `Storage__S3__AccessKey`, `Storage__S3__SecretKey` | Secret. Bucket credentials; without an access key the AWS default credential chain is used. `appsettings.Development.json` carries only the local MinIO defaults of `docker-compose.yml`. |
 | - | `MILVA_ENV` | `dev`, `test` or `prod`, see [Environment](#environment-milva_env). |
 
 #### Secrets
@@ -201,6 +203,14 @@ Store work runs as jobs (`StoreJobs`, steps in `StoreJobSteps`), never inside a 
 ### Live activity (SignalR)
 
 `/hubs/activity` (`ActivityHub`) pushes the organization's events: `job.queued`, `job.progress`, `job.step`, `job.succeeded`, `job.failed`, `job.cancelled`, `connection.verified` and `app.synced`, all on the client method `activity` as an `ActivityEventDto`. Clients authenticate with the REST access token (`Authorization` header, or `?access_token=` for websockets; the value is redacted in the logs by `SecretRedactingEnricher`) and call `JoinOrganization(organizationId)`; the server checks the membership (false for a non member) and adds the connection to the organization's group. With Redis configured the backplane carries events between instances on channels prefixed with `CacheKeys:Prefix`. A connection that joined keeps receiving until it reconnects, even if the membership is removed meanwhile.
+
+### Files (S3)
+
+Files live in a private bucket and move only through presigned URLs (`IFileStorage`, AWSSDK.S3; MinIO locally, `docker compose up -d minio minio-init` creates the `storeasy-local` bucket). `POST assets/upload` declares a file (purpose, name, type, exact size, optional SHA-256) and returns one presigned PUT, or for files over 64 MB a multipart upload with one presigned PUT per 16 MB part. `POST assets/asset/complete` completes the multipart upload with the parts' ETags and confirms the file only when the stored size equals the declared one (otherwise the object is deleted and the asset rejected). `GET assets/asset/download-url` hands out a short lived GET URL. Rows are in `Assets` (organization, purpose, key, type, size, SHA-256, status); keys are `org/{id}/{purpose}/{nonce}/{safe name}`.
+
+### Apps and builds
+
+A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, later the Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store answers "not supported yet". `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
 
 ### Health checks
 

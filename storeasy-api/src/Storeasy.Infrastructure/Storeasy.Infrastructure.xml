@@ -1152,6 +1152,58 @@
         <member name="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Storage.S3FileStorage">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            </summary>
+            <param name="client">The S3 client; null when the storage is not configured.</param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.#ctor(Amazon.S3.IAmazonS3,Storeasy.Application.Utils.Models.StorageOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            </summary>
+            <param name="client">The S3 client; null when the storage is not configured.</param>
+            <param name="options"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Storage.S3FileStorage.IsConfigured">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateClient(Storeasy.Application.Utils.Models.StorageOptions,Amazon.Runtime.HttpClientFactory)">
+            <summary>
+            Builds the S3 client of <paramref name="options"/>, or null when no bucket is configured. Without an access key the
+            SDK's default credential chain (instance role, environment) is used.
+            </summary>
+            <param name="options"></param>
+            <param name="httpClientFactory">Optional HTTP client factory of the SDK (tests bypass the process proxy with it).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateUploadUrl(System.String,System.String,System.TimeSpan)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateDownloadUrl(System.String,System.TimeSpan,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.StartMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreatePartUploadUrl(System.String,System.String,System.Int32,System.TimeSpan)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CompleteMultipartUploadAsync(System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.UploadedPart},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.AbortMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.GetObjectInfoAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> of a host without live clients: drops every event. The API replaces it with its
@@ -1499,6 +1551,11 @@
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
+            <summary>
+            App and build reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+            Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
+            deleted afterwards). Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
@@ -1546,6 +1603,36 @@
             <c>error_description</c>) error body; falls back to the raw text.
             </summary>
         </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.MaxPages">
+            <summary>
+            Most pages read from one paginated App Store Connect list.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListAppsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.GetAppAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListBuildsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseAppleBuilds(System.Text.Json.JsonElement)">
+            <summary>
+            Maps one page of <c>/v1/builds</c> (with the included pre-release versions) to build records.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseGoogleBuilds(System.Text.Json.JsonElement,System.Text.Json.JsonElement)">
+            <summary>
+            Maps the bundles of a Play edit to build records; the version name and the tracks come from the track releases
+            that carry the version code.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.SendRequestAsync(System.Net.Http.HttpRequestMessage,System.Threading.CancellationToken)">
+            <summary>
+            Sends <paramref name="request"/> (and disposes it) and parses the JSON answer; an empty answer parses as <c>{}</c>.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.StoreJwt">
             <summary>
             Minimal compact JWS signing for the two store grants: ES256 (App Store Connect, signature in IEEE P1363 form) and
@@ -1575,6 +1662,62 @@
         <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.DecodeHeader(System.String)">
             <summary>
             Decodes the header of a compact JWT without verifying it (tests and diagnostics only).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.SyncAppsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
+            <list type="bullet">
+            <item>App Store Connect: every app the key sees (<c>/v1/apps</c>); a new one is linked to the storeasy app whose other
+            store record has the same bundle id, otherwise it gets its own storeasy app.</item>
+            <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
+            service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
+            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            </list>
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
+            <list type="bullet">
+            <item>App Store Connect: every app the key sees (<c>/v1/apps</c>); a new one is linked to the storeasy app whose other
+            store record has the same bundle id, otherwise it gets its own storeasy app.</item>
+            <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
+            service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
+            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            </list>
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ReadGoogleAppsAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.Collections.Generic.List{Storeasy.Domain.Apps.StoreApp},System.Threading.CancellationToken)">
+            <summary>
+            Reads the Play records one by one. A permanent refusal (no access, unknown package) is collected; a transient
+            failure fails the attempt so the job is retried.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.CreateRecordsAsync(System.Int32,Storeasy.Application.Interfaces.OpenedStoreConnection,System.Collections.Generic.List{Storeasy.Application.Interfaces.StoreAppRecord},System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adds the new records: each joins the storeasy app whose record in another store has the same platform identifier
+            (and no record in this store yet), otherwise a new storeasy app named after it.
             </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer">

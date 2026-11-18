@@ -17,7 +17,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118120950_AddStoreJobs";
+    public override string LastMigrationId => "20261118123714_AddAppsAndBuilds";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -103,6 +103,237 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsDescending(false, true);
 
                 b.ToTable("ActivityLogs");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.App", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DeleterUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("DeletionDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("IconUrl")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<bool>("IsDeleted")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.ToTable("Apps");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.Build", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("BuildNumber")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("ExpiryDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("MinOsVersion")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("ProcessingState")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Tracks")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("UploadedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Version")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId", "ExternalId")
+                    .IsUnique();
+
+                b.ToTable("Builds");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.StoreApp", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("BundleId")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int?>("StoreConnectionId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("StoreConnectionId");
+
+                b.HasIndex("AppId", "Store")
+                    .IsUnique();
+
+                b.HasIndex("OrganizationId", "Store", "ExternalId")
+                    .IsUnique();
+
+                b.ToTable("StoreApps");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Assets.Asset", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("ContentType")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("FileName")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<string>("ObjectKey")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Purpose")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Sha256")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<long>("Size")
+                    .HasColumnType("bigint");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("UploadDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("UploadId")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ObjectKey")
+                    .IsUnique();
+
+                b.HasIndex("OrganizationId", "Purpose");
+
+                b.ToTable("Assets");
             });
 
         modelBuilder.Entity("Storeasy.Domain.FeatureFlag", b =>
@@ -987,6 +1218,56 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("User");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Apps.App", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.Build", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany("Builds")
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.StoreApp", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.App", "App")
+                    .WithMany("StoreApps")
+                    .HasForeignKey("AppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("Storeasy.Domain.Stores.StoreConnection", "StoreConnection")
+                    .WithMany()
+                    .HasForeignKey("StoreConnectionId");
+
+                b.Navigation("App");
+
+                b.Navigation("StoreConnection");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Assets.Asset", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>
             {
                 b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
@@ -1097,6 +1378,16 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsRequired();
 
                 b.Navigation("User");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.App", b =>
+            {
+                b.Navigation("StoreApps");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.StoreApp", b =>
+            {
+                b.Navigation("Builds");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.Organization", b =>

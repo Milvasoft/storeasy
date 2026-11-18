@@ -18,6 +18,68 @@ public interface IStoreGateway
     /// probe when <paramref name="packageName"/> is given).
     /// </summary>
     Task<StoreVerification> VerifyAsync(StoreKind store, string secretJson, string packageName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists every app the credentials can see. Only stores with a list API (App Store Connect); Google Play has none
+    /// (apps are added by package name) and Microsoft Store is not supported yet: both throw a permanent
+    /// <see cref="StoreCallException"/>.
+    /// </summary>
+    Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reads one app by its store id (App Store Connect app id, Play package name). For Google Play this is also the proof
+    /// that the service account was invited to the app (an edit is opened and deleted).
+    /// </summary>
+    Task<StoreAppRecord> GetAppAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lists the builds of one app (App Store Connect builds with their versions; Play bundles with the tracks they are
+    /// released to), newest first where the store orders them.
+    /// </summary>
+    Task<IReadOnlyList<StoreBuildRecord>> ListBuildsAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// An app as a store reports it.
+/// </summary>
+/// <param name="ExternalId">The store's id of the app.</param>
+/// <param name="BundleId">Platform identifier (bundle id, package name).</param>
+/// <param name="Name">Name in the store.</param>
+public sealed record StoreAppRecord(string ExternalId, string BundleId, string Name);
+
+/// <summary>
+/// A build as a store reports it.
+/// </summary>
+/// <param name="ExternalId">The store's id of the build.</param>
+/// <param name="Version">User facing version, if known.</param>
+/// <param name="BuildNumber">Build number or version code.</param>
+/// <param name="ProcessingState">Processing state.</param>
+/// <param name="UploadedDate">UTC upload instant, if known.</param>
+/// <param name="ExpiryDate">UTC expiry instant (TestFlight), if any.</param>
+/// <param name="Tracks">Tracks the build is released to, comma separated (Play).</param>
+/// <param name="MinOsVersion">Minimum OS version, if known.</param>
+public sealed record StoreBuildRecord(string ExternalId,
+                                      string Version,
+                                      string BuildNumber,
+                                      BuildProcessingState ProcessingState,
+                                      DateTime? UploadedDate,
+                                      DateTime? ExpiryDate,
+                                      string Tracks,
+                                      string MinOsVersion);
+
+/// <summary>
+/// A store call failed. The message is redacted and safe to store. 429 and 5xx answers and network failures are
+/// transient (retried by the job runner); 4xx answers and unsupported operations are permanent.
+/// </summary>
+/// <param name="message"></param>
+/// <param name="statusCode">HTTP status of the store's answer; null for a network failure or an unsupported call.</param>
+/// <param name="transient"></param>
+public class StoreCallException(string message, int? statusCode, bool transient) : StoreJobException(message, transient)
+{
+    /// <summary>
+    /// HTTP status of the store's answer, if there was one.
+    /// </summary>
+    public int? StatusCode { get; } = statusCode;
 }
 
 /// <summary>

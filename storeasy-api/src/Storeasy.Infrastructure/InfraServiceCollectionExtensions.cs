@@ -28,6 +28,7 @@ using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.Infrastructure.Persistence.Repository;
 using Storeasy.Infrastructure.Security;
 using Storeasy.Infrastructure.Services;
+using Storeasy.Infrastructure.Storage;
 using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
 using Npgsql;
@@ -74,6 +75,12 @@ public static class InfraServiceCollectionExtensions
         services.AddAccountServices(configurationManager);
 
         services.AddStoreJobServices(configurationManager);
+
+        // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
+        var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();
+
+        services.AddSingleton(storageOptions);
+        services.AddSingleton<IFileStorage>(new S3FileStorage(S3FileStorage.CreateClient(storageOptions), storageOptions));
 
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
@@ -175,6 +182,7 @@ public static class InfraServiceCollectionExtensions
 
         services.AddScoped<IStoreJobQueue, StoreJobQueue>();
         services.AddScoped<StoreJobExecutor>();
+        services.AddScoped<IStoreJobHandler, SyncAppsJobHandler>();
 
         // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
         services.AddHostedService<StoreJobRunner>();
