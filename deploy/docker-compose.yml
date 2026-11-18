@@ -60,9 +60,10 @@ services:
   seaweedfs:
     <<: *restart
     image: chrislusf/seaweedfs:4.51
-    command: server -s3 -s3.config=/config/s3.json -dir=/data
+    command: server -s3 -s3.config=/config/s3.json -s3.allowedOrigins=${STOREASY_BASE_URL:?set STOREASY_BASE_URL in .env} -dir=/data
     # S3 API. Browsers and CI runners PUT files to presigned URLs on S3_PUBLIC_URL, so the reverse proxy must route
-    # that host to this port.
+    # that host to this port. CORS: only the web app's origin may call it from a browser; SeaweedFS answers the
+    # preflight itself and exposes ETag (which the multipart upload needs) on every response.
     ports:
       - "${S3_BIND:-127.0.0.1}:${S3_PORT:-8333}:8333"
     volumes:

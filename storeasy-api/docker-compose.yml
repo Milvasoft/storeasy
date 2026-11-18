@@ -6,7 +6,9 @@
 # Seq is optional: the log sink of MILVA_ENV=test and prod; set SeqUri to http://localhost:5341 to use it (UI on the same url).
 # SeaweedFS is the local S3 (Storage:S3 in appsettings.Development.json): S3 API on http://localhost:8333 (path style),
 # master UI on http://localhost:9333. Its S3 credentials come from seaweedfs/s3.json (local only values, never use them
-# elsewhere). seaweedfs-init creates the storeasy-local bucket.
+# elsewhere). seaweedfs-init creates the storeasy-local bucket. The web app (http://localhost:5173) uploads to presigned
+# URLs from the browser: -s3.allowedOrigins lets that origin through CORS, and SeaweedFS exposes the ETag header of the
+# multipart part uploads on its own (checked with 4.51).
 services:
   redis:
     image: redis:7-alpine
@@ -40,7 +42,7 @@ services:
   seaweedfs:
     image: chrislusf/seaweedfs:4.51
     restart: unless-stopped
-    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -s3.allowedOrigins=http://localhost:5173 -dir=/data
     ports:
       - "8333:8333"
       - "9333:9333"
