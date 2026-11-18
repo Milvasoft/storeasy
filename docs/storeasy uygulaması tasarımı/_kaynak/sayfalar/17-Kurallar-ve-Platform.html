@@ -1,0 +1,754 @@
+<!--
+title: Mağaza kuralları ve platform yönetimi
+kicker: 17 · Kurallar ve self-host yönetimi
+desc: Organizasyon üyelerinin okuduğu mağaza kuralları kataloğu (kural listesi, kural detayı, ekran görüntüsü sınıfları) ve self-host kurulumunu yöneten platform yöneticisinin ekranları: kural izleyicisinin katalog önerileri, kullanıcılar, roller (dikey gruplu izin listesi), aktivite logu, diller, özellik anahtarları, sistem durumu ve erişim reddi.
+-->
+<style>
+.rid{font:500 12px/1.35 var(--font-mono);color:rgb(var(--fg));overflow-wrap:anywhere}
+.vals{display:flex;flex-wrap:wrap;gap:4px}
+.val{font:500 11px/1 var(--font-mono);padding:4px 6px;border-radius:6px;border:1px solid rgb(var(--border));color:rgb(var(--fg-2));white-space:nowrap}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px}
+.chain .ic{color:rgb(var(--fg-3));width:14px;height:14px}
+.srch{display:flex;min-width:0}
+.srch>.inp:first-child{border-top-right-radius:0;border-bottom-right-radius:0;border-right-width:0;flex:none;width:150px}
+.srch>.inp:last-child{border-top-left-radius:0;border-bottom-left-radius:0;flex:1 1 auto;min-width:0}
+.pmg{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;padding:14px 0;border-bottom:1px dashed rgb(var(--border-strong))}
+.pmg:last-child{border-bottom:0}
+.pmg-l{display:grid;gap:6px;align-content:start}
+.mk1{font:500 11px/1.3 var(--font-mono);color:rgb(var(--fg-3));overflow-wrap:anywhere}
+.pmr{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;padding:6px 0;align-items:start}
+.pmr .chk{margin-top:1px}
+.pmr b{font-size:13.5px;font-weight:600}
+.pmr .ds{font-size:12.5px;color:rgb(var(--fg-2))}
+.pmall{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:rgb(var(--fg-2))}
+.super{border:1.5px solid rgb(var(--danger)/.55);background:rgb(var(--danger)/.05);border-radius:var(--r-lg);padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
+.acc{border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--surface));flex:none}
+.acc-h{display:flex;align-items:center;gap:10px;padding:12px 14px;min-height:48px}
+.acc-b{border-top:1px dashed rgb(var(--border-strong));padding:4px 14px 10px}
+.hc{display:grid;gap:8px;padding:14px 16px;align-content:start}
+.hc .top{display:flex;align-items:center;gap:8px;min-width:0}
+.jd .dl{font:500 12px/1.55 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.ex{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.notif{border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:12px 14px;display:flex;gap:10px;background:rgb(var(--bg-2)/.5)}
+.radrow{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px dashed rgb(var(--border))}
+.radrow:last-child{border-bottom:0}
+.ref-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
+@container scr (max-width:760px){
+  .pmg{grid-template-columns:1fr;gap:8px}
+  .srch>.inp:first-child{width:118px}
+  .srch{width:100%}
+}
+</style>
+
+<!-- ============ A. KURAL KATALOĞU ============ -->
+<section class="sec" id="kurallar">
+<div class="sec-h"><span class="k">Bölüm 17.1-17.4</span><h2>Mağaza kuralları kataloğu</h2><p>Mağaza kuralları kodda değil, sürümlü bir katalogda durur (plan 12.1). Hazırlık kontrolü, uyum zaman çizelgesi, stüdyo dışa aktarımı ve MCP aynı katalogdan okur. Organizasyonun her üyesi kataloğu okuyabilir; "bu organizasyonda etkilenen uygulamalar" sayısı kuralın koşulunun organizasyonun uygulamalarıyla eşleşmesinden gelir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-1" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">17.1</b><span class="fr-t">Kural kataloğu</span><code class="fr-r">/rules</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/rules</code> (planlanan) + <code>OrganizationId</code> → <code>RuleListDto { Id, Store (Apple, Google, Microsoft), Type (ScreenshotClass, PreviewClass, Deadline, PolicyItem, BuildMinimum), Title, Values[], RequiredWhen, EffectiveDate, DueDate, Status (InForce, Upcoming, Watching), SourceUrl, CheckedDate, AffectedAppCount }</code>. Katalog sürüm rozeti <code>GET /api/v1.0/rules/catalog</code> → <code>RuleCatalogInfoDto { Version, PublishedDate, RuleCount }</code> (yeni uç, aşağıda). Filtreler enum olduğu için yalnız eşittir / eşit değildir; arama tek alanda (<code>Id</code> ya da <code>Title</code>, alan seçicili), sıralama <code>DueDate</code> artan. Sayfalama 10 / 20 / 50 / 100, varsayılan 20. <b>İzin:</b> organizasyonun her üyesi (<code>View</code>); katalog yazma yok, öneriler platform yöneticisinde (17.5). Satır tıklaması 17.2 çekmecesini açar. <b>Telefonda</b> tablo karta döner: kural adı başlık, kimlik ve değerler alt satırda, filtreler "Filtreler (1)" düğmesinde toplanır. <span class="gap">Backend boşluğu:</span> katalog bugün repoda JSON (plan 12.1); <code>rules</code> uçları, DB'ye yükleme ve <code>AffectedAppCount</code> eşleşmesi (cihaz ailesi, SDK, hedef API, ülke, abonelik) eklenecek. Katalog sürümü liste zarfında taşınamadığı için ayrı <code>GET rules/catalog</code> önerilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="rules" data-crumbs="Mağaza kuralları">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 wrap mb8"><span class="bdg acc sm"><svg class="ic s12"><use href="#i-book"/></svg>katalog v1.3 · 18 Kas 2026</span><span class="t-xs fg3">42 kural · birincil kaynaklardan kontrol edildi</span></div><h1 class="pg-t">Mağaza kuralları</h1><p class="pg-s">App Store, Google Play ve Microsoft Store'un ekran sınıfları, son tarihleri ve politika maddeleri. Hazırlık kontrolü bu listeden okur.</p></div>
+          <div class="pg-a"><div class="srch hide-ph" style="width:360px"><span class="inp sel">Kural adı</span><span class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Kuralda ara</span></span></div><span class="btn"><svg class="ic"><use href="#i-images"/></svg>Ekran sınıfları</span></div></div>
+        <div class="toolbar">
+          <div class="seg"><span class="on">Tümü</span><span><span class="st sm"><b>AS</b></span>Apple</span><span><span class="st sm"><b>GP</b></span>Google</span><span><span class="st sm"><b>MS</b></span>Microsoft</span></div>
+          <span class="chip hide-ph"><svg class="ic"><use href="#i-filter"/></svg>Tür: Tümü</span>
+          <span class="chip on hide-ph">Durum eşit değildir: Yürürlükte<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span>
+          <span class="chip hide-ph">Bu organizasyonu etkileyenler</span>
+          <span class="btn sm only-ph"><svg class="ic"><use href="#i-filter"/></svg>Filtreler (1)</span>
+          <span class="btn ghost sm hide-ph">Filtreleri temizle</span>
+        </div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Kural</th><th>Tür</th><th>Değerler</th><th>Ne zaman zorunlu</th><th class="srt">Yürürlük / son tarih <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>Kaynak</th><th>Etkilenen</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">Yaş derecelendirmesi yeni soruları</b></span><span class="rid">apple.age-rating.2026-questions</span></div></td><td data-l="Tür">Son tarih</td><td data-l="Değerler" class="t-s">Paylaşılan konum, tanışma ve ilişki</td><td data-l="Ne zaman" class="t-s">Her uygulama</td><td data-l="Son tarih"><div class="c gp4"><span class="warn-t b6">12 Oca 2027</span><span class="bdg warn sm">Yaklaşan</span></div></td><td data-l="Kaynak" class="t-s"><span class="lnk">developer.apple.com</span><div class="t-xs fg3">kontrol 18 Kas</div></td><td data-l="Etkilenen"><b>5</b> <span class="t-xs fg3">uygulama</span></td></tr>
+            <tr class="hov"><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">Çin anakarası App Compliance</b></span><span class="rid">apple.china.app-compliance</span></div></td><td data-l="Tür">Son tarih</td><td data-l="Değerler" class="t-s">AIGC, Security Assessment</td><td data-l="Ne zaman" class="t-s">Çin'de dağıtılıyorsa</td><td data-l="Son tarih"><div class="c gp4"><span>31 Oca 2027</span><span class="bdg warn sm">Yaklaşan</span></div></td><td data-l="Kaynak" class="t-s"><span class="lnk">developer.apple.com</span><div class="t-xs fg3">kontrol 18 Kas</div></td><td data-l="Etkilenen"><b>1</b> <span class="t-xs fg3">Mola</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">On-Demand Resources kaldırılıyor</b></span><span class="rid">apple.odr.deprecation</span></div></td><td data-l="Tür">Politika maddesi</td><td data-l="Değerler" class="t-s">Background Assets'e geçiş</td><td data-l="Ne zaman" class="t-s">ODR'yi yeni kullanıyorsa</td><td data-l="Son tarih"><div class="c gp4"><span>2027 başı</span><span class="bdg warn sm">Yaklaşan</span></div></td><td data-l="Kaynak" class="t-s"><span class="lnk">developer.apple.com</span><div class="t-xs fg3">kontrol 18 Kas</div></td><td data-l="Etkilenen" class="fg3">0</td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">iPhone Duo ekran görüntüleri</b><span class="bdg dng sm hide-ph">Kaynak çelişkisi</span></span><span class="rid">apple.screenshots.duo</span></div></td><td data-l="Tür">Ekran sınıfı</td><td data-l="Değerler"><div class="vals"><span class="val">1398x2034</span><span class="val">2007x2853</span></div></td><td data-l="Ne zaman" class="t-s">iOS 27.1 SDK ile derlenince</td><td data-l="Son tarih"><div class="c gp4"><span>Nis 2027</span><span class="bdg warn sm">Yaklaşan</span></div></td><td data-l="Kaynak" class="t-s"><span class="lnk">developer.apple.com</span><div class="t-xs fg3">kontrol 18 Kas</div></td><td data-l="Etkilenen"><b>0</b> <span class="t-xs fg3">· 5 olası</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>GP</b></span><b class="t-m">Android geliştirici doğrulaması</b></span><span class="rid">google.policy.developer-verification</span></div></td><td data-l="Tür">Politika maddesi</td><td data-l="Değerler" class="t-s">Paket adı Play Console'da kayıtlı</td><td data-l="Ne zaman" class="t-s">Her uygulama</td><td data-l="Son tarih"><div class="c gp4"><span>Tarih bekleniyor</span><span class="bdg sm">İzleniyor</span></div></td><td data-l="Kaynak" class="t-s"><span class="lnk">support.google.com</span><div class="t-xs fg3">kontrol 18 Kas</div></td><td data-l="Etkilenen"><b>4</b> <span class="t-xs fg3">uygulama</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">App Preview boyutları</b></span><span class="rid">apple.previews.*</span></div></td><td data-l="Tür">Önizleme sınıfı</td><td data-l="Değerler" class="t-s fg3">Henüz kontrol edilmedi</td><td data-l="Ne zaman" class="t-s">Önizleme video yüklüyorsa</td><td data-l="Son tarih" class="fg3">-</td><td data-l="Kaynak" class="t-s"><span class="lnk">developer.apple.com</span><div class="t-xs fg3">öneri #13 bekliyor</div></td><td data-l="Etkilenen" class="fg3">-</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 6</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm dis">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <p class="t-xs fg3 mt12">Kurallar bilgi amaçlıdır; bağlayıcı metin mağazanın kendi sayfasıdır. Bir kural yanlışsa platform yöneticisine bildir; değişiklik katalog önerisiyle gelir.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-2" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">17.2</b><span class="fr-t">Kural detayı (çekmece)</span><code class="fr-r">/rules/apple.screenshots.duo</code></figcaption>
+  <p class="fr-note">Plan 12.1'deki bütün alanlar: kimlik, mağaza, tür, değerler, yedek zinciri, "ne zaman zorunlu" koşulu, yürürlük ve son tarih, kaynak URL ve kontrol tarihi. Kaynaklar çelişiyorsa "Kaynak çelişkisi" kutusu ve kataloğun hangi yorumu tuttuğu yazılır (plan 12.2 Duo notu). <b>API:</b> <code>GET /api/v1.0/rules/rule?RuleId=apple.screenshots.duo&amp;OrganizationId=7</code> (planlanan) → <code>RuleDetailDto { Id, Store, Type, Title, Summary, Values[], FallbackChain[], RequiredWhen { DeviceFamily, SdkMin, Countries[], Feature }, EffectiveDate, DueDate, Status, Sources[{ Url, Title, CheckedDate }], Conflict? { Note, CatalogChoice }, AffectedApps[{ AppId, Name, IconColor, MatchReason, Matches }], CatalogVersion }</code>. Etkilenen uygulamalar yalnız istekteki organizasyonunkiler; "olası" listesi koşul sağlanınca etkilenecekleri gösterir. <b>İzin:</b> <code>View</code>. Telefonda çekmece tam ekran, etkilenen uygulamalar alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="rules" data-crumbs="Mağaza kuralları"><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza kuralları</h1></div><div class="card" style="height:420px;opacity:.5"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d172" style="width:520px">
+      <div class="mdl-h"><div class="f1"><div class="r gp8 wrap mb8"><span class="st"><b>AS</b>App Store</span><span class="bdg sm">Ekran sınıfı</span><span class="bdg warn sm">Yaklaşan</span></div><h2 class="h2" id="d172">iPhone Duo ekran görüntüleri</h2><div class="rid mt4">apple.screenshots.duo</div></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <dl class="kv">
+          <dt>Değerler</dt><dd><div class="c gp6"><span class="r gp6 wrap"><span class="t-s">Dış ekran</span><span class="val">1398x2034</span></span><span class="r gp6 wrap"><span class="t-s">İç ekran</span><span class="val">2007x2853</span></span><span class="t-xs fg3">Dikey; yatayları da geçerli · jpeg veya png, alfa yok · sınıf başına 1-10</span></div></dd>
+          <dt>Ne zaman zorunlu</dt><dd>iPhone'da çalışan ve <b class="mono">iOS 27.1 SDK</b> veya sonrası ile derlenen sürümler</dd>
+          <dt>Yürürlük</dt><dd>Nisan 2027</dd>
+          <dt>Yedek zinciri</dt><dd><div class="chain"><span class="tag">Duo iç</span><svg class="ic"><use href="#i-arrow-r"/></svg><span class="fg3">kaynakta belirtilmemiş</span></div><div class="t-xs fg3 mt4">Yedek olmadığı için her dil için ayrı set gerekir.</div></dd>
+          <dt>Kaynak</dt><dd><div class="c gp4"><span class="lnk t-s">Screenshot specifications <svg class="ic s12"><use href="#i-ext"/></svg></span><span class="lnk t-s">App Store Connect sürüm notu, 5 Eki 2026 <svg class="ic s12"><use href="#i-ext"/></svg></span></div></dd>
+          <dt>Kontrol</dt><dd>18 Kasım 2026 · katalog v1.3</dd>
+        </dl>
+        <div class="callout dng"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>Kaynak çelişkisi</b><div class="t-s fg2 mt4">Ekran görüntüsü sayfası "iOS 27.1 SDK ile derlenen uygulamalar" diyor, sürüm notu "Nisan 2027'den itibaren bütün gönderimler" diyor. Katalog SDK koşulunu tutuyor; izleyici iki kaynağı takip ediyor. Duo görseli gönderilince ürün sayfasında "made for iPhone Duo" rozeti çıkar.</div><div class="t-xs fg3 mt8">Bekleyen öneri: #14, platform yöneticisinde</div></div></div>
+        <div class="card"><div class="card-h"><span class="h3">Bu organizasyonda</span><span class="t-s fg3 ml">0 etkilenen · 5 olası</span></div>
+          <div class="lst">
+            <div class="lst-i"><span class="aic s" style="--c:#0F766E">P</span><div class="f1 t-s"><b>Pusula</b><div class="t-xs fg3">iPhone, iPad · build SDK iOS 26.1</div></div><span class="bdg sm">27.1 ile derlenince</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#475569">K</span><div class="f1 t-s"><b>Kumbara</b><div class="t-xs fg3">iPhone · build SDK iOS 26.1</div></div><span class="bdg sm">27.1 ile derlenince</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#B45309">D</span><div class="f1 t-s"><b>Defter</b><div class="t-xs fg3">iPhone · build SDK iOS 26.0</div></div><span class="bdg sm">27.1 ile derlenince</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#15803D">M</span><div class="f1 t-s"><b>Mola</b><span class="fg3"> ve </span><b>Halka</b><div class="t-xs fg3">iPhone · build SDK iOS 26.1</div></div><span class="bdg sm">27.1 ile derlenince</span></div>
+          </div></div>
+      </div>
+      <div class="mdl-f"><span class="t-xs fg3 f1">Uygulamanın uyum zaman çizelgesinde de görünür.</span><span class="btn"><svg class="ic"><use href="#i-images"/></svg>Stüdyoda Duo seti üret</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-3" data-h="1180">
+  <figcaption class="fr-h"><b class="fr-n">17.3</b><span class="fr-t">Ekran görüntüsü sınıfları (başvuru)</span><code class="fr-r">/rules/screenshots</code></figcaption>
+  <p class="fr-note">Plan 12.2'deki Apple tablosu okunur bir başvuru olarak; Google ve Microsoft satırları aynı biçimde. Satır, katalogdaki <code>Type = ScreenshotClass</code> kuralının ta kendisidir ve tıklaması 17.2'yi açar. Stüdyo dışa aktarımı ve hazırlık kontrolündeki slot rozetleri (zorunlu, yedekle karşılanan, eksik) bu tabloyu kullanır. <b>API:</b> aynı <code>PATCH /api/v1.0/rules</code>, filtre <code>Type EqualTo ScreenshotClass</code>, <code>Store EqualTo</code> seçili mağaza; <code>RowCount 100</code> ile tek istek. <b>İzin:</b> <code>View</code>. Telefonda her sınıf bir kart: sınıf adı başlık, boyutlar, zorunluluk ve yedek alt satırlarda.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="rules" data-crumbs="Mağaza kuralları|Ekran sınıfları">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Ekran görüntüsü sınıfları</h1><p class="pg-s">Her mağazanın istediği boyutlar, hangisinin zorunlu olduğu ve eksik sınıfın hangi sınıftan ölçeklenerek karşılandığı.</p></div><div class="pg-a"><span class="bdg acc sm">katalog v1.3 · 18 Kas 2026</span></div></div>
+        <div class="ref-h"><span class="st"><b>AS</b>App Store</span><span class="t-xs fg3">en az bir, sınıf başına en fazla 10 görsel · jpeg veya png · alfa kanalı yok</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Sınıf</th><th>Boyutlar (dikey)</th><th>Zorunlu</th><th>Yedek</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>iPhone Dynamic Island (medium)</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1206x2622</span><span class="val">1179x2556</span></div></td><td data-l="Zorunlu"><span class="bdg dng sm">Evet</span> <span class="t-xs fg2">iPhone'da çalışıyorsa</span></td><td data-l="Yedek" class="t-s">Face ID (large) ölçeklenir</td></tr>
+            <tr><td class="tm"><b>iPhone Dynamic Island (large)</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1320x2868</span><span class="val">1290x2796</span><span class="val">1260x2736</span></div></td><td data-l="Zorunlu"><span class="bdg sm">Hayır</span></td><td data-l="Yedek" class="t-s">Face ID (large)</td></tr>
+            <tr><td class="tm"><b>iPhone Face ID (large)</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1284x2778</span><span class="val">1242x2688</span></div></td><td data-l="Zorunlu"><span class="bdg warn sm">Koşullu</span> <span class="t-xs fg2">Dynamic Island (large) yoksa</span></td><td data-l="Yedek" class="t-s">Dynamic Island (large)</td></tr>
+            <tr><td class="tm"><b>iPhone Face ID (medium)</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1170x2532</span><span class="val">1125x2436</span><span class="val">1080x2340</span></div></td><td data-l="Zorunlu"><span class="bdg sm">Hayır</span></td><td data-l="Yedek" class="t-s">Dynamic Island (medium)</td></tr>
+            <tr><td class="tm"><b>iPhone Home Button (large, medium, 4", 3.5")</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1242x2208</span><span class="val">750x1334</span><span class="val">640x1136</span><span class="val">640x960</span></div><div class="t-xs fg3 mt4">durum çubuksuz varyantlar dahil</div></td><td data-l="Zorunlu"><span class="bdg sm">Hayır</span></td><td data-l="Yedek" class="t-s">Bir üst sınıf</td></tr>
+            <tr><td class="tm"><div class="r gp6 wrap"><b>iPhone Duo dış ekran</b><span class="bdg dng sm">Kaynak çelişkisi</span></div></td><td data-l="Boyutlar"><div class="vals"><span class="val">1398x2034</span></div></td><td data-l="Zorunlu"><span class="bdg warn sm">Nisan 2027</span> <span class="t-xs fg2">iOS 27.1 SDK ile</span></td><td data-l="Yedek" class="t-s fg3">Belirtilmemiş</td></tr>
+            <tr><td class="tm"><b>iPhone Duo iç ekran</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">2007x2853</span></div></td><td data-l="Zorunlu"><span class="bdg warn sm">Nisan 2027</span> <span class="t-xs fg2">iOS 27.1 SDK ile</span></td><td data-l="Yedek" class="t-s fg3">Belirtilmemiş</td></tr>
+            <tr><td class="tm"><b>iPad 13"</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">2064x2752</span><span class="val">2048x2732</span></div></td><td data-l="Zorunlu"><span class="bdg dng sm">Evet</span> <span class="t-xs fg2">iPad'de çalışıyorsa</span></td><td data-l="Yedek" class="t-s">Yok (en üst sınıf)</td></tr>
+            <tr><td class="tm"><b>iPad 12.9", 11", 10.5", 9.7"</b></td><td data-l="Boyutlar" class="t-s">Sayfadaki bütün boyutlar</td><td data-l="Zorunlu"><span class="bdg sm">Hayır</span></td><td data-l="Yedek" class="t-s">13" veya bir üst sınıf</td></tr>
+          </tbody></table></div>
+        <div class="ref-h"><span class="st"><b>GP</b>Google Play</span><span class="t-xs fg3">jpeg veya 24 bit png · kenar 320-3840 px · uzun kenar kısanın en fazla 2 katı</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Sınıf</th><th>Boyutlar</th><th>Zorunlu</th><th>Yedek</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Telefon</b></td><td data-l="Boyutlar" class="t-s">2-8 görsel · 16:9 veya 9:16</td><td data-l="Zorunlu"><span class="bdg dng sm">Evet</span> <span class="t-xs fg2">en az 2</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+            <tr><td class="tm"><b>7" tablet</b></td><td data-l="Boyutlar" class="t-s">en fazla 8 görsel</td><td data-l="Zorunlu"><span class="bdg warn sm">Koşullu</span> <span class="t-xs fg2">tablet düzeni bildiriyorsa</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+            <tr><td class="tm"><b>10" tablet</b></td><td data-l="Boyutlar" class="t-s">en fazla 8 görsel</td><td data-l="Zorunlu"><span class="bdg warn sm">Koşullu</span> <span class="t-xs fg2">tablet düzeni bildiriyorsa</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+            <tr><td class="tm"><b>Öne çıkan grafik</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1024x500</span></div></td><td data-l="Zorunlu"><span class="bdg dng sm">Evet</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+          </tbody></table></div>
+        <div class="ref-h"><span class="st"><b>MS</b>Microsoft Store</span><span class="t-xs fg3">png · 50 MB'a kadar · cihaz ailesi başına en fazla 10</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Sınıf</th><th>Boyutlar</th><th>Zorunlu</th><th>Yedek</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Masaüstü</b></td><td data-l="Boyutlar"><div class="vals"><span class="val">1366x768</span><span class="val">3840x2160'a kadar</span></div></td><td data-l="Zorunlu"><span class="bdg dng sm">Evet</span> <span class="t-xs fg2">en az 1</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+            <tr><td class="tm"><b>Xbox, karma gerçeklik</b></td><td data-l="Boyutlar" class="t-s">Aile sayfasındaki boyutlar</td><td data-l="Zorunlu"><span class="bdg warn sm">Koşullu</span> <span class="t-xs fg2">o aile hedefleniyorsa</span></td><td data-l="Yedek" class="t-s fg3">Yok</td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-4">
+  <figcaption class="fr-h"><b class="fr-n">17.4</b><span class="fr-t">Arama sonucu yok ve katalog yüklenemedi</span><code class="fr-r">/rules?q=watch</code></figcaption>
+  <p class="fr-note">Arama 400 ms gecikmeyle tetiklenir, sayfa 1'e döner; filtre varken "Filtreleri temizle" de çıkar. Katalog uç hata verirse (500) liste yerine "Bir şeyler ters gitti" + "Tekrar dene"; hazırlık kontrolü kendi son başarılı katalog sürümünü kullanmaya devam eder (bu ekrandan bağımsız). 403 bu ekranda yoktur: organizasyonun her üyesi okur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="rules" data-crumbs="Mağaza kuralları">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Mağaza kuralları</h1></div><div class="pg-a"><div class="srch" style="width:340px"><span class="inp sel">Kural adı</span><span class="inp foc"><svg class="ic"><use href="#i-search"/></svg>watch</span></div></div></div>
+        <div class="toolbar"><span class="chip on">Mağaza: Microsoft<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span><span class="t-s fg3">1 filtre etkin</span></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-search"/></svg></span><h4>"watch" için sonuç yok</h4><p>Kural adında ya da kimliğinde ara (ör. <span class="mono">apple.screenshots</span>). Microsoft filtresi açık.</p><div class="r gp8 wrap"><span class="btn">Aramayı temizle</span><span class="btn ghost">Filtreleri temizle</span></div></div>
+        <div class="card mt16"><div class="state" style="padding:32px 20px"><span class="sic"><svg class="ic"><use href="#i-alert-t"/></svg></span><h3 style="font-size:19px">Bir şeyler ters gitti</h3><p class="t-s">Katalog şu an okunamadı. Hazırlık kontrolü son yüklenen sürümle (v1.3) çalışmaya devam ediyor.</p><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ B1. KURAL İZLEYİCİ ============ -->
+<section class="sec" id="izleyici">
+<div class="sec-h"><span class="k">Bölüm 17.5-17.8</span><h2>Platform: kural izleyici ve katalog önerileri</h2><p>Platform yönetimi yalnız self-host kurulumunu yöneten kişiye açıktır: şablondaki <code>Manager</code> kullanıcı tipi ve global <code>PermissionCatalog</code> (plan 2.1). Örnekte Deniz Arslan bu kurulumun platform yöneticisidir; kenar çubuğunda "Platform" grubu yalnız ona görünür. İzleyici kaynakları periyodik okur, içerik hash'i değişince öneri açar; otomatik yayın yoktur, yönetici onaylar (plan 12.3).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-5" data-h="1060">
+  <figcaption class="fr-h"><b class="fr-n">17.5</b><span class="fr-t">Katalog önerileri ve izlenen kaynaklar</span><code class="fr-r">/admin/rules</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/rules/proposals</code> (planlanan) → <code>RuleProposalListDto { Id, Title, Store, RuleIds[], SourceId, SourceName, Status (Pending, Approved, Rejected), PreparedBy (Watcher, Mcp), PreparedByUserName, CreationDate, AffectedAppCount, AffectedOrganizationCount, CatalogVersionTo }</code>; açılış filtresi <code>Status EqualTo Pending</code> ("işlem bekleyenler", 08 E16 kuyruk deseni). Kaynaklar <code>GET /api/v1.0/rules/sources</code> → <code>RuleSourceDto { Id, Name, Store, Url, LastFetchDate, LastChangeDate, ContentHash, PreviousContentHash, Status (Unchanged, Changed, Unreachable), LastError }</code>. "Şimdi tara" <code>POST /api/v1.0/rules/sources/fetch</code> (yeni uç) bir StoreJob açar. <b>İzin:</b> <code>RuleCatalogManagement.List</code> (+ <code>Manager</code> tipi); "Şimdi tara" <code>RuleCatalogManagement.Approve</code>. Kenar çubuğu sayacı bekleyen öneri sayısıdır. <b>Telefonda</b> iki tablo da karta döner; hash kolonu gizlenir (<code>tx</code>). <span class="gap">Backend boşluğu:</span> izleyici işi, <code>RuleSources</code> ve <code>RuleProposals</code> tabloları, <code>RuleCatalogManagement</code> izin grubu ve bu uçlar eklenecek (plan 12.3).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-rules" data-admin data-act="" data-crumbs="Platform|Katalog önerileri">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Katalog önerileri</h1><p class="pg-s">Kaynak değişince izleyici öneri açar; Claude MCP ile kataloğa çevirebilir. Sen onaylamadan hiçbir kural değişmez.</p></div><div class="pg-a"><span class="bdg acc sm">katalog v1.3 · 18 Kas 2026</span><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Şimdi tara</span></div></div>
+        <div class="toolbar"><div class="seg"><span class="on">Bekleyen · 2</span><span>Tümü · 14</span></div><span class="chip hide-ph">Mağaza: Tümü</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Öneri</th><th>Kaynak</th><th>Hazırlayan</th><th>Etki</th><th>Durum</th><th class="srt">Açıldı <svg class="ic"><use href="#i-arrow-down"/></svg></th></tr></thead>
+          <tbody>
+            <tr class="hov"><td class="tm"><div class="c gp4"><span class="r gp6"><span class="mono t-s fg3">#14</span><b class="t-m">Duo koşulu netleşti, kaynak çelişkisi kalkıyor</b></span><span class="rid">apple.screenshots.duo</span></div></td><td data-l="Kaynak" class="t-s"><span class="st sm"><b>AS</b></span> ASC sürüm notları</td><td data-l="Hazırlayan"><span class="bdg acc sm"><svg class="ic s12"><use href="#i-spark"/></svg>Claude (MCP)</span></td><td data-l="Etki" class="t-s">7 uygulama · 2 organizasyon</td><td data-l="Durum"><span class="bdg warn sm"><span class="dot"></span>Bekliyor</span></td><td data-l="Açıldı" class="t-s">18 Kas, 09:40</td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="mono t-s fg3">#13</span><b class="t-m">App Preview boyutları kataloğa (Duo dahil)</b></span><span class="rid">apple.previews.* · 9 yeni kural</span></div></td><td data-l="Kaynak" class="t-s"><span class="st sm"><b>AS</b></span> Upcoming Requirements</td><td data-l="Hazırlayan"><span class="bdg sm"><svg class="ic s12"><use href="#i-radar"/></svg>İzleyici</span></td><td data-l="Etki" class="t-s">Yeni sınıflar · 0 uyarı</td><td data-l="Durum"><span class="bdg warn sm"><span class="dot"></span>Bekliyor</span></td><td data-l="Açıldı" class="t-s">17 Kas, 06:00</td></tr>
+          </tbody></table></div>
+        <div class="r gp8 mt24 mb12"><svg class="ic s18"><use href="#i-radar"/></svg><span class="h3">İzlenen kaynaklar</span><span class="t-s fg3 ml">6 saatte bir okunur · son tur 14:00</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Kaynak</th><th>Son okuma</th><th>İçerik hash'i</th><th>Durum</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">Apple Developer News (RSS)</b></span><span class="t-xs mono fg3">developer.apple.com/news/rss/news.rss</span></div></td><td data-l="Son okuma" class="t-s">18 Kas, 14:00</td><td data-l="Hash" class="tx mono t-xs">sha256 4be1…09ac</td><td data-l="Durum"><span class="bdg sm">Aynı</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">Upcoming Requirements</b></span><span class="t-xs mono fg3">developer.apple.com/news/upcoming-requirements/</span></div></td><td data-l="Son okuma" class="t-s">18 Kas, 14:00</td><td data-l="Hash" class="tx mono t-xs">sha256 7c2d…e410</td><td data-l="Durum"><span class="bdg sm">Aynı</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>AS</b></span><b class="t-m">App Store Connect sürüm notları</b></span><span class="t-xs mono fg3">developer.apple.com/help/app-store-connect/release-notes/</span></div></td><td data-l="Son okuma" class="t-s">18 Kas, 14:00<div class="t-xs fg3">değişim 17 Kas, 22:00</div></td><td data-l="Hash" class="tx mono t-xs">52c0…d118 → a91f…3b7e</td><td data-l="Durum"><span class="bdg warn sm">Değişti · #14</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>GP</b></span><b class="t-m">Play politika duyuruları</b></span><span class="t-xs mono fg3">support.google.com/googleplay/android-developer/answer/17134731</span></div></td><td data-l="Son okuma" class="t-s">18 Kas, 14:00</td><td data-l="Hash" class="tx mono t-xs">sha256 e08b…71c2</td><td data-l="Durum"><span class="bdg sm">Aynı</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>GP</b></span><b class="t-m">Play hedef API sayfası</b></span><span class="t-xs mono fg3">support.google.com/googleplay/android-developer/answer/11926878</span></div></td><td data-l="Son okuma" class="t-s">18 Kas, 14:00</td><td data-l="Hash" class="tx mono t-xs">sha256 19fa…a5d0</td><td data-l="Durum"><span class="bdg sm">Aynı</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><span class="r gp6"><span class="st sm"><b>MS</b></span><b class="t-m">Microsoft Learn: Store politikaları</b></span><span class="t-xs mono fg3">learn.microsoft.com/windows/apps/publish/store-policies</span></div></td><td data-l="Son okuma" class="t-s">17 Kas, 20:00<div class="t-xs dng-t">14:00 turu: HTTP 503, 3 deneme</div></td><td data-l="Hash" class="tx mono t-xs">sha256 c4e7…0b19</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Okunamadı</span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-6" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">17.6</b><span class="fr-t">Öneri detayı: kaynak farkı ve katalog farkı</span><code class="fr-r">/admin/rules/proposals/14</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/rules/proposals/proposal?ProposalId=14</code> (yeni uç, planlanan listeyle aynı desende) → <code>RuleProposalDetailDto { Id, Title, Status, PreparedBy, PreparedByUserName, McpNote, Source { Name, Url, PreviousContentHash, ContentHash, ChangeDate }, SourceExcerptBefore, SourceExcerptAfter, CatalogFile, CatalogVersionFrom, CatalogVersionTo, CatalogPatch, Impact[{ OrganizationId, OrganizationName, AppId, AppName, Message }], RejectReason?, DecidedByUserName?, DecidedDate? }</code>. Kaynak farkı satır içi <code>&lt;del&gt; / &lt;ins&gt;</code>, katalog farkı JSON satırları. "Claude (MCP) hazırladı" rozeti: öneriyi izleyici açtı, katalog yamasını Claude MCP aracıyla yazdı (<code>rules_proposal_prepare</code>, yetkiyi çağıran kullanıcının token'ından alır). Tek ana eylem "Onayla" (17.7); "Reddet" gerekçe ister (17.8). <b>İzin:</b> görme <code>RuleCatalogManagement.List</code>, karar <code>RuleCatalogManagement.Approve</code>; izin yoksa iki düğme gizlenir, salt okunur açılır. Telefonda sağ sütun (etki) farkların altına iner, düğmeler altta sabit. <span class="gap">Backend boşluğu:</span> detay ucu ve MCP aracı <code>rules_proposal_prepare</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-rules" data-admin data-act="" data-crumbs="Platform|Katalog önerileri|#14">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Katalog önerileri</div>
+        <div class="pg-h"><div><div class="r gp8 wrap mb8"><span class="bdg warn sm"><span class="dot"></span>Bekliyor</span><span class="bdg acc sm"><svg class="ic s12"><use href="#i-spark"/></svg>Claude (MCP) hazırladı</span><span class="mono t-xs fg3">#14 · v1.3 → v1.4</span></div><h1 class="pg-t">Duo koşulu netleşti, kaynak çelişkisi kalkıyor</h1><p class="pg-s">App Store Connect sürüm notu güncellendi; iki kaynak artık aynı koşulu söylüyor.</p></div>
+          <div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-x-c"/></svg>Reddet</span><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Onayla</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="st sm"><b>AS</b></span><span class="h3">Kaynaktaki değişiklik</span><span class="lnk t-s ml">Kaynağı aç <svg class="ic s12"><use href="#i-ext"/></svg></span></div>
+              <div class="card-b c gp12">
+                <div class="t-xs fg3 mono">App Store Connect sürüm notları · değişim 17 Kas 2026, 22:00 · 52c0…d118 → a91f…3b7e</div>
+                <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-file-text"/></svg>Değişen paragraf</div>
+                  <div class="dl del"><span class="ex">Beginning April 2027, <del>submissions</del> must include screenshots for iPhone Duo.</span></div>
+                  <div class="dl add"><span class="ex">Beginning April 2027, <ins>apps built with the iOS 27.1 SDK or later</ins> must include screenshots for iPhone Duo.</span></div>
+                </div>
+                <p class="t-xs fg3" style="margin:0">Alıntı yalnız değişen paragraftır; sayfanın kalanı aynı.</p>
+              </div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-code"/></svg><span class="h3">Katalog değişikliği</span><span class="t-s fg3 ml mono">rules/apple/screenshots.json</span></div>
+              <div class="card-b">
+                <div class="diff jd"><div class="diff-h"><svg class="ic s14"><use href="#i-branch"/></svg>katalog v1.3 → v1.4 · 1 kural</div>
+                  <div class="dl">{ "id": "apple.screenshots.duo",</div>
+                  <div class="dl">  "type": "ScreenshotClass",</div>
+                  <div class="dl">  "requiredWhen": { "deviceFamily": "iPhone", "sdkMin": "27.1" },</div>
+                  <div class="dl">  "effectiveDate": "2027-04-01",</div>
+                  <div class="dl del">  "conflict": { "note": "Sürüm notu (5 Eki 2026) bütün gönderimler diyor", "catalogChoice": "sdkMin" },</div>
+                  <div class="dl add">  "conflict": null,</div>
+                  <div class="dl del">  "sources": ["apple.screenshot-specs"],</div>
+                  <div class="dl add">  "sources": ["apple.screenshot-specs", "apple.asc-release-notes"],</div>
+                  <div class="dl">  "checkedDate": "2026-11-18" }</div>
+                </div>
+              </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Etki önizlemesi</span></div>
+              <div class="card-b c gp12">
+                <p class="t-s fg2" style="margin:0">Koşul değişmiyor, çelişki notu kalkıyor. Onaylanınca 2 organizasyonda 7 uygulamanın sahip ve yöneticilerine bildirim gider.</p>
+                <div class="lst" style="margin:0 -18px">
+                  <div class="lst-i"><span class="oav" style="width:24px;height:24px;border-radius:7px;background:rgb(var(--bg-2));display:grid;place-items:center;font:700 11px/1 var(--font-body)">K</span><div class="f1 t-s"><b>Kuzey Lab</b><div class="t-xs fg3">Pusula, Defter, Halka, Mola, Kumbara</div></div><span class="t-xs fg3">5</span></div>
+                  <div class="lst-i"><span class="oav" style="width:24px;height:24px;border-radius:7px;background:rgb(var(--bg-2));display:grid;place-items:center;font:700 11px/1 var(--font-body)">A</span><div class="f1 t-s"><b>Ada Stüdyo</b><div class="t-xs fg3">2 iPhone uygulaması</div></div><span class="t-xs fg3">2</span></div>
+                </div>
+                <div class="notif"><svg class="ic s16"><use href="#i-bell"/></svg><div class="t-s"><b>Örnek bildirim</b><div class="fg2 mt4">Pusula, iOS 27.1 SDK ile derlenince Duo ekran görüntüsü isteyecek (Nisan 2027).</div></div></div>
+              </div></div>
+            <div class="card"><div class="card-h"><svg class="ic s16"><use href="#i-spark"/></svg><span class="h3">Claude'un notu</span></div>
+              <div class="card-b t-s fg2">Sürüm notu ekran görüntüsü sayfasıyla aynı koşula geldi. Koşulu değiştirmedim; yalnız çelişki notunu kaldırıp ikinci kaynağı ekledim.<div class="t-xs fg3 mt8">Deniz Arslan'ın token'ıyla · 18 Kas, 09:40</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-7">
+  <figcaption class="fr-h"><b class="fr-n">17.7</b><span class="fr-t">Onay: etkilenen uygulamalar ve gidecek bildirimler</span><code class="fr-r">/admin/rules/proposals/14 → onay</code></figcaption>
+  <p class="fr-note">Onay yeni katalog sürümünü yayınlar; hazırlık kontrolü ve uyum zaman çizelgesi bir sonraki okumada yeni sürümü kullanır. Bildirim uygulama içi gider, e-posta kullanıcının tercihine göre (<code>account/preferences</code>). Bildirim seçeneği kapatılırsa yalnız katalog değişir. <b>API:</b> <code>PUT /api/v1.0/rules/proposal/approve { ProposalId, Notify }</code> (planlanan) → <code>{ CatalogVersion, NotifiedOrganizationCount }</code>; <code>Idempotency-Key</code>. Aynı anda başka yönetici karar verdiyse 409 "Bu öneri zaten karara bağlandı" form üstünde. <b>İzin:</b> <code>RuleCatalogManagement.Approve</code>. Aktivite loguna <code>ApproveRuleProposal</code> yazılır. Telefonda modal alttan tam ekran. <span class="gap">Backend boşluğu:</span> <code>UserActivity</code> enum'una <code>ApproveRuleProposal</code>, <code>RejectRuleProposal</code> eklenecek; etkilenen organizasyonlara bildirim türü (<code>RuleChanged</code>).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-rules" data-admin data-act="" data-crumbs="Platform|Katalog önerileri|#14"><div class="content"><div class="pg-h"><h1 class="pg-t">Duo koşulu netleşti</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m177">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m177">Öneri #14 onaylansın mı?</h2><p class="t-s fg2 mt4">Katalog v1.3 → v1.4 olarak yayınlanır. Geri almak için yeni bir öneri gerekir.</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Uygulama</th><th>Organizasyon</th><th>Gidecek bildirim</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="Organizasyon">Kuzey Lab</td><td data-l="Bildirim" class="t-s">Pusula, iOS 27.1 SDK ile derlenince Duo ekran görüntüsü isteyecek.</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#475569">K</span><b>Kumbara</b></span></td><td data-l="Organizasyon">Kuzey Lab</td><td data-l="Bildirim" class="t-s">Kumbara, iOS 27.1 SDK ile derlenince Duo ekran görüntüsü isteyecek.</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#B45309">D</span><b>Defter, Halka, Mola</b></span></td><td data-l="Organizasyon">Kuzey Lab</td><td data-l="Bildirim" class="t-s fg2">Aynı metin, uygulama adıyla</td></tr>
+            <tr><td class="tm"><b>2 uygulama</b></td><td data-l="Organizasyon">Ada Stüdyo</td><td data-l="Bildirim" class="t-s fg2">Aynı metin, uygulama adıyla</td></tr>
+          </tbody></table></div>
+        <label class="r gp10"><span class="chk on"></span><span class="t-s"><b>Etkilenen organizasyonlara bildirim gönder</b><div class="fg2">Sahip ve Yönetici rolündekiler · 2 organizasyon · 7 bildirim</div></span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Onayla ve yayınla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-8">
+  <figcaption class="fr-h"><b class="fr-n">17.8</b><span class="fr-t">Reddet: gerekçe zorunlu</span><code class="fr-r">/admin/rules/proposals/13 → reddet</code></figcaption>
+  <p class="fr-note">08 bölüm 3.5: kısıtlayan kararda gerekçe seçimi zorunlu, not isteğe bağlı (en çok 1000 karakter); gerekçe seçilmeden "Reddet" pasif. Reddedilen önerinin kaynağı izlenmeye devam eder; aynı hash için yeni öneri açılmaz. <b>API:</b> <code>PUT /api/v1.0/rules/proposal/reject { ProposalId, Reason (FormattingOnly, Misread, SourceUnstable, Other), Note }</code> (planlanan). <b>İzin:</b> <code>RuleCatalogManagement.Approve</code>. Başarıda toast sunucu mesajıyla.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-rules" data-admin data-act="" data-crumbs="Platform|Katalog önerileri|#13"><div class="content"><div class="pg-h"><h1 class="pg-t">App Preview boyutları</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m178">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m178">Öneri #13 reddedilsin mi?</h2><p class="t-s fg2 mt4">Katalog değişmez. Gerekçe öneri geçmişinde ve aktivite logunda görünür.</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Gerekçe</span>
+          <div class="c gp8">
+            <label class="r gp10 t-s"><span class="rad"></span>Yalnız biçim değişikliği</label>
+            <label class="r gp10 t-s"><span class="rad on"></span>Kaynak yanlış yorumlanmış</label>
+            <label class="r gp10 t-s"><span class="rad"></span>Kaynak henüz kararsız</label>
+            <label class="r gp10 t-s"><span class="rad"></span>Diğer</label>
+          </div></div>
+        <label class="fld"><span class="lbl">Not <span class="opt">· isteğe bağlı</span></span><span class="inp ta foc">Duo önizleme boyutları ayrı sayfada; Upcoming Requirements yalnız tarih veriyor. Sayfa yayınlanınca tekrar.</span><span class="cnt">108 / 1000</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Reddet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ B2. KULLANICILAR ============ -->
+<section class="sec" id="kullanicilar">
+<div class="sec-h"><span class="k">Bölüm 17.9-17.15</span><h2>Platform: kullanıcılar</h2><p>08 E4-E7. Liste <code>Manager</code> ve <code>AppUser</code> kullanıcılarını birlikte döner; storeasy'de giriş e-postayla olduğu için (K11) <code>UserName</code> e-posta adresidir. Sistem kayıtları (Id &lt; 21, ör. <code>rootuser</code>) rozetlidir; düzenle, sil, kilitle ve şifre sıfırla gizlenir. Kilit geçicidir (<code>Lockout:DefaultLockoutTimeSpan</code>, 5 dakika).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-9" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">17.9</b><span class="fr-t">Kullanıcı listesi</span><code class="fr-r">/admin/users</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/users</code> → <code>UserListDto { Id, UserName, Email, Name, Surname, UserType, LockoutEnd, IsLocked }</code>. Arama tek kutu + alan seçici (<code>UserName</code> / <code>Name</code>, <code>Contains</code>); <code>Email</code> ve <code>Surname</code> filtrelenemez, ama storeasy'de <code>UserName</code> e-posta olduğu için e-postayla arama kullanıcı adı aramasıdır. Tip filtresi enum (<code>EqualTo</code> / <code>NotEqualTo</code>, <code>Manager = 1</code>, <code>AppUser = 2</code>); "Kilitli olanlar" <code>LockoutEnd</code> şimdiden büyük. Rozet <code>IsLocked</code>'dan çizilir, bitiş ikincil satırda. Sıralama <code>UserName</code> artan; sayfa boyutu 10 / 20 / 50 / 100 (açık menü). <b>İzin:</b> sayfa <code>UserManagement.List</code>; "Yeni kullanıcı" <code>Create</code>; satır tıklaması <code>Detail</code>; düzenle <code>Update</code>; sil <code>Delete</code>; "Dışa aktar" <code>UserManagement.List</code> + <code>Export</code> anahtarı açık (5000 satır uyarısı). <b>Telefonda</b> kart: kullanıcı adı başlık, ad soyad ve tip altında, sağda eylemler; "Yeni kullanıcı" sağ altta yüzen düğme. <span class="gap">Backend boşluğu:</span> kayıt tarihi (<code>AuditInfo.CreationDate</code>), rol adları, son giriş zamanı listede yok; çizilmedi, eklenecekse 08 bölüm 6.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Kullanıcılar</h1><p class="pg-s">Bu storeasy kurulumundaki bütün hesaplar. Organizasyon üyelikleri organizasyonların kendi ekranında yönetilir.</p></div>
+          <div class="pg-a"><div class="srch" style="width:330px"><span class="inp sel">Kullanıcı adı</span><span class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">E-posta ile ara</span></span></div><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span><span class="btn pri hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Yeni kullanıcı</span></div></div>
+        <div class="toolbar"><span class="chip on">Tip eşittir: Manager<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span><span class="chip hide-ph"><svg class="ic"><use href="#i-lock"/></svg>Kilitli olanlar</span><span class="btn ghost sm">Filtreleri temizle</span><span class="t-s fg3 ml hide-ph">1 filtre etkin</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Kullanıcı adı <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>Ad soyad</th><th>Tip</th><th>Kilit</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div class="c gp4"><b class="mono t-s">rootuser</b><span class="r gp6"><span class="bdg sm"><svg class="ic s12"><use href="#i-lock"/></svg>Sistem kaydı</span><span class="t-xs fg3 mono">#1</span></span></div></td><td data-l="Ad soyad">Administrator User</td><td data-l="Tip"><span class="bdg sm">Manager</span></td><td data-l="Kilit" class="fg3">-</td><td class="ta"><span class="t-xs fg3">Salt okunur</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><b class="mono t-s">deniz@kuzeylab.dev</b><span class="t-xs fg3 mono">#21 · sen</span></div></td><td data-l="Ad soyad">Deniz Arslan</td><td data-l="Tip"><span class="bdg sm">Manager</span></td><td data-l="Kilit" class="fg3">-</td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span></td></tr>
+            <tr class="hov"><td class="tm"><div class="c gp4"><b class="mono t-s">ece@kuzeylab.dev</b><span class="t-xs fg3 mono">#22</span></div></td><td data-l="Ad soyad">Ece Yılmaz</td><td data-l="Tip"><span class="bdg sm">Manager</span></td><td data-l="Kilit" class="fg3">-</td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span><span class="ib sm ghost" aria-label="Sil"><svg class="ic"><use href="#i-trash"/></svg></span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><b class="mono t-s">ops@kuzeylab.dev</b><span class="t-xs fg3 mono">#30</span></div></td><td data-l="Ad soyad">Operasyon Hesabı</td><td data-l="Tip"><span class="bdg sm">Manager</span></td><td data-l="Kilit"><div class="c gp4"><span class="bdg dng sm"><svg class="ic s12"><use href="#i-lock"/></svg>Kilitli</span><span class="t-xs fg3">14:27'ye kadar · 5 dk</span></div></td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span><span class="ib sm ghost" aria-label="Sil"><svg class="ic"><use href="#i-trash"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 4</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps foc" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm dis">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <span class="btn pri fab"><svg class="ic"><use href="#i-user-plus"/></svg>Yeni kullanıcı</span>
+      </div>
+    </div>
+    <div class="pop hide-ph" style="bottom:116px;right:204px;min-width:96px"><div class="mh">Satır</div><span class="mi">10</span><span class="mi on">20</span><span class="mi">50</span><span class="mi">100</span></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-10">
+  <figcaption class="fr-h"><b class="fr-n">17.10</b><span class="fr-t">Liste: ilk yükleme ve arama sonucu yok</span><code class="fr-r">/admin/users?q=kaan</code></figcaption>
+  <p class="fr-note">İlk yüklemede tablo satırı biçiminde iskelet; sonraki yüklemelerde (sayfa, sıralama, arama) eski satırlar kalır, üstte ince ilerleme çizgisi akar. Arama sonucu yoksa "'{term}' için sonuç yok" + "Aramayı temizle". Hata (500) durumu 17.4'teki desenle; liste 403 durumu 17.27. Bu çerçevede üst bölüm sonraki yüklemeyi, alt bölüm sonuç yok durumunu gösterir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Kullanıcılar</h1></div><div class="pg-a"><div class="srch" style="width:330px"><span class="inp sel">Kullanıcı adı</span><span class="inp foc"><svg class="ic"><use href="#i-search"/></svg>kaan</span></div></div></div>
+        <div class="card" style="overflow:hidden"><div class="topline"></div>
+          <div class="lst">
+            <div class="lst-i"><span class="sk" style="width:28%"></span><span class="sk" style="width:22%"></span><span class="sk" style="width:12%"></span><span class="sk" style="width:10%"></span></div>
+            <div class="lst-i"><span class="sk" style="width:24%"></span><span class="sk" style="width:26%"></span><span class="sk" style="width:12%"></span><span class="sk" style="width:10%"></span></div>
+            <div class="lst-i"><span class="sk" style="width:30%"></span><span class="sk" style="width:18%"></span><span class="sk" style="width:12%"></span><span class="sk" style="width:10%"></span></div>
+          </div></div>
+        <div class="empty mt16"><span class="eic"><svg class="ic"><use href="#i-search"/></svg></span><h4>"kaan" için sonuç yok</h4><p>Kullanıcı adı alanında arandı. Ada göre aramak için alan seçiciden "Ad"ı seç.</p><span class="btn">Aramayı temizle</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-11" data-h="1080">
+  <figcaption class="fr-h"><b class="fr-n">17.11</b><span class="fr-t">Kullanıcı detayı</span><code class="fr-r">/admin/users/30</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/users/user?UserId=30</code> → <code>UserDetailDto { Id, UserName, Email, Name, Surname, UserType, LockoutEnd, IsLocked, Roles[{ Id, Name }], AllowedNotifications, AuditInfo { CreationDate, CreatorUserName, LastModificationDate, LastModifierUserName } }</code>. Başlık <code>UserName</code> + <code>#Id</code> + "Geri"; sağda "Düzenle" (<code>Update</code>) ve "Sil" (<code>Delete</code>), sistem kaydında ikisi de yok ve detay salt okunur. "Kilidi aç" onay istemez (<code>PUT users/user { Id, Lockout: false }</code>), "Kilitle" 17.14 onayıyla. Rol rozetleri <code>RoleManagement.Detail</code> varsa rol çekmecesine bağlantı. Son aktiviteler <code>PATCH activitylogs</code>: bu kullanıcı üzerinde yapılanlar <code>RelatedId EqualTo 30</code> + <code>Activity EqualTo UpdateUser</code>; <code>ActivityLogManagement.List</code> yoksa kart gizli. Telefonda kartlar alt alta. <span class="gap">Backend boşluğu:</span> oturum listesi ve "bütün oturumları kapat" (<code>GET users/user/sessions</code>, <code>DELETE users/user/sessions</code>, 08 bölüm 6), son giriş zamanı (<code>User.LastLoginDate</code>), <code>AccessFailedCount</code>, kullanıcının organizasyon üyelikleri (<code>GET users/user/organizations</code>) eklenecek; "Oturumlar" ve "Organizasyonlar" kartları bunlara bağlı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar|ops@kuzeylab.dev">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Kullanıcılar</div>
+        <div class="pg-h"><div><div class="r gp10 wrap"><h1 class="pg-t" style="font-size:26px;overflow-wrap:anywhere">ops@kuzeylab.dev</h1><span class="mono fg3">#30</span></div><div class="r gp8 wrap mt8"><span class="bdg sm">Manager</span><span class="bdg dng sm"><svg class="ic s12"><use href="#i-lock"/></svg>Kilitli · 14:27'ye kadar</span></div></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span><span class="btn dng-o"><svg class="ic"><use href="#i-trash"/></svg>Sil</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Kimlik</span></div><div class="card-b"><dl class="kv"><dt>Kullanıcı adı</dt><dd class="mono">ops@kuzeylab.dev</dd><dt>E-posta</dt><dd>ops@kuzeylab.dev</dd><dt>Ad</dt><dd>Operasyon</dd><dt>Soyad</dt><dd>Hesabı</dd><dt>Tip</dt><dd><span class="bdg sm">Manager</span></dd></dl></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Güvenlik</span></div><div class="card-b c gp12">
+              <div class="r gp12 wrap"><div class="f1"><b class="t-m">Hesap kilitli</b><div class="t-s fg2">18 Kasım 2026, 14:27'ye kadar giriş yapamaz (5 dakikalık geçici kilit). Süre dolunca kendiliğinden açılır.</div></div><span class="btn inv"><svg class="ic"><use href="#i-unlock"/></svg>Kilidi aç</span></div>
+              <div class="hr d"></div>
+              <div class="r gp12 wrap"><div class="f1"><b class="t-m">Şifre</b><div class="t-s fg2">Yeni şifre belirlemek bütün oturumları kapatır.</div></div><span class="btn"><svg class="ic"><use href="#i-key"/></svg>Şifre sıfırla</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Oturumlar</span><span class="t-s fg3 ml">en çok 5 cihaz</span></div>
+              <div class="lst">
+                <div class="lst-i"><svg class="ic s16"><use href="#i-monitor"/></svg><div class="f1 t-s"><b>Tarayıcı · 9c1e…a3</b><div class="t-xs fg3 mono">185.94.12.40 · açıldı 16 Kas 10:12 · kilitle kapandı 14:22</div></div><span class="bdg sm">Arşiv</span></div>
+                <div class="lst-i"><svg class="ic s16"><use href="#i-terminal"/></svg><div class="f1 t-s"><b>CLI · 4f02…7d</b><div class="t-xs fg3 mono">10.0.4.12 · açıldı 12 Kas 08:40 · kilitle kapandı 14:22</div></div><span class="bdg sm">Arşiv</span></div>
+              </div>
+              <div class="card-f"><span class="btn sm dis">Bütün oturumları kapat</span><span class="t-xs fg3">Açık oturum yok</span></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Roller</span></div><div class="card-b r gp6 wrap"><span class="tag">Destek</span><span class="tag">Salt okunur</span></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Organizasyonlar</span></div><div class="lst"><div class="lst-i"><div class="f1 t-s"><b>Kuzey Lab</b><div class="t-xs fg3">Viewer · 2 Kas 2026'dan beri</div></div></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Son işlemler</span><span class="lnk t-s ml">Tümünü gör</span></div>
+              <div class="lst">
+                <div class="lst-i"><div class="f1 t-s"><b>Kullanıcı güncellendi</b><div class="t-xs fg3">deniz@kuzeylab.dev · Lockout · bugün 14:22</div></div></div>
+                <div class="lst-i"><div class="f1 t-s"><b>Kullanıcı eklendi</b><div class="t-xs fg3">deniz@kuzeylab.dev · 2 Kas 2026</div></div></div>
+              </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Denetim</span></div><div class="card-b"><dl class="kv t-s"><dt>Oluşturan</dt><dd>deniz@kuzeylab.dev</dd><dt>Oluşturma</dt><dd>2 Kas 2026, 09:05</dd><dt>Son değiştiren</dt><dd>deniz@kuzeylab.dev</dd><dt>Son değişiklik</dt><dd>18 Kas 2026, 14:22</dd></dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-12" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">17.12</b><span class="fr-t">Yeni kullanıcı (409 hatası)</span><code class="fr-r">/admin/users → yeni</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/users/user</code> → <code>CreateUserCommand { UserType, UserName, Email, Name, Surname, Password, RoleIdList, AllowedNotifications }</code>, yanıt yeni <code>Id</code>. storeasy'de tek "E-posta" alanı hem <code>UserName</code> hem <code>Email</code> olarak gider (K11). Tip <code>Manager</code> / <code>AppUser</code> segmentle (enum değerleri 1 / 2). Roller çoklu seçim, en az bir zorunlu, kaynak <code>PATCH roles</code> (en çok 100, fazlası arama). <code>AllowedNotifications</code> formda yok (şablonda tek yer tutucu değer; kullanıcı kendi tercihini profilde verir). Ad ve soyad en çok 100 karakter. 409 <code>UserExists</code> / <code>EmailExists</code> sunucu mesajıyla form üstünde, form kapanmaz. "Kaydet" zorunlu alanlar boşken pasif, istek sürerken yükleniyor. <b>İzin:</b> <code>UserManagement.Create</code>. Telefonda tam ekran form, roller alttan açılan listede. Kayıt modu <code>Closed</code> olsa da yönetici hesap açabilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar"><div class="content"><div class="pg-h"><h1 class="pg-t">Kullanıcılar</h1></div><div class="card" style="height:300px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1712">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1712">Yeni kullanıcı</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>Kullanıcı oluşturulamadı</b><ul><li>Bu e-posta adresiyle kayıtlı bir kullanıcı zaten var.</li></ul></div></div>
+        <div class="fld"><span class="lbl">Kullanıcı tipi</span><div class="seg"><span class="on">Manager · platform yönetimi</span><span>AppUser</span></div></div>
+        <label class="fld"><span class="lbl">E-posta</span><span class="inp err">mert@kuzeylab.dev</span><span class="err-t">Bu adres kayıtlı. Mevcut hesabı düzenle.</span></label>
+        <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Mert</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Kaya</span></label></div>
+        <label class="fld"><span class="lbl">Şifre</span><span class="inp mono">••••••••••••</span><span class="hint">En az 8 karakter; büyük harf, küçük harf ve rakam.</span></label>
+        <div class="fld"><span class="lbl">Roller <span class="opt">· en az bir</span></span><span class="inp sel"><span class="chip on" style="height:24px">Destek<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span></span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-13" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">17.13</b><span class="fr-t">Kullanıcıyı düzenle</span><code class="fr-r">/admin/users/22 → düzenle</code></figcaption>
+  <p class="fr-note"><b>API:</b> form <code>GET users/user?UserId=22</code> ile dolar (listedeki satırla değil); kaydet <code>PUT /api/v1.0/users/user</code> → <code>UpdateUserCommand { Id, Name?, Surname?, Lockout?, NewPassword?, RoleIdList?, AllowedNotifications? }</code>, yalnız değişen alan <code>UpdateProperty</code> ile gider; <code>RoleIdList</code> tam liste. Kullanıcı adı, e-posta ve tip salt okunur (kilit ikonlu). Boş "Yeni şifre" gönderilmez. "Kilitle" anahtarı <code>IsLocked</code>'dan başlar; açıklaması süreyi söyler: kilit geçicidir, süresiz askı değildir. Rol, şifre veya kilit değişince "Kaydet" önce 17.14 onayını açar. <b>İzin:</b> <code>UserManagement.Update</code>; sistem kaydında düzenle görünmez (yine de 409 <code>DefaultValueCannotModify</code> gelirse form üstünde). Kaydedilmemiş değişiklikle kapatmada uyarı. <span class="gap">Backend boşluğu:</span> gerekçeli veya süresiz askıya alma, e-posta ve tip değiştirme yok; çizilmedi.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar|ece@kuzeylab.dev"><div class="content"><div class="pg-h"><h1 class="pg-t">ece@kuzeylab.dev</h1></div><div class="card" style="height:300px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1713">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1713">Kullanıcıyı düzenle</h2><p class="t-s fg2 mt4 mono">ece@kuzeylab.dev · #22</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="g2"><div class="fld"><span class="lbl">Kullanıcı adı <svg class="ic s14"><use href="#i-lock"/></svg></span><span class="inp ro mono">ece@kuzeylab.dev</span></div><div class="fld"><span class="lbl">Tip <svg class="ic s14"><use href="#i-lock"/></svg></span><span class="inp ro">Manager</span></div></div>
+        <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Ece</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Yılmaz</span></label></div>
+        <div class="fld"><span class="lbl">Roller</span><span class="inp sel foc"><span class="r gp6 wrap"><span class="chip on" style="height:24px">Katalog editörü<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span><span class="chip on" style="height:24px">Destek<span class="x"><svg class="ic"><use href="#i-x"/></svg></span></span></span></span><span class="hint">Değişti: "Destek" eklendi. Kaydedince kullanıcının oturumları kapanır.</span></div>
+        <label class="fld"><span class="lbl">Yeni şifre <span class="opt">· boş bırakırsan değişmez</span></span><span class="inp mono">••••••••••</span></label>
+        <div class="r gp12"><span class="sw"></span><div class="f1 t-s"><b>Kilitle</b><div class="fg2">5 dakika giriş yapamaz, bütün oturumları kapanır. Süre dolunca kendiliğinden açılır.</div></div></div>
+      </div>
+      <div class="mdl-f"><span class="t-xs fg3 f1">2 değişiklik</span><span class="btn ghost">İptal</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-14">
+  <figcaption class="fr-h"><b class="fr-n">17.14</b><span class="fr-t">Onay: oturumları kapatan değişiklikler</span><code class="fr-r">/admin/users/22 → kaydet</code></figcaption>
+  <p class="fr-note">08 bölüm 1.6: rol değişimi, admin şifre sıfırlaması ve kilit kullanıcının <code>sstamp</code> damgasını döndürür, bütün oturumları anında kapanır. Birden çok güvenlik değişikliği tek onayda birleşir; metin her birini sayar. Tek değişiklik olduğunda metinler: roller "Kullanıcının bütün oturumları kapanacak; yeni rollerle tekrar giriş yapması gerekecek."; şifre "Kullanıcının bütün oturumları kapanacak."; kilit "ece@kuzeylab.dev 5 dakika giriş yapamayacak ve bütün oturumları kapanacak.". Ad ve soyad değişikliği onay istemez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar|ece@kuzeylab.dev"><div class="content"><div class="pg-h"><h1 class="pg-t">ece@kuzeylab.dev</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1714">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1714">Ece Yılmaz'ın oturumları kapanacak</h2></div></div>
+      <div class="mdl-b">
+        <p class="t-s" style="margin:0">Kaydettiğinde şu değişiklikler uygulanır:</p>
+        <ul class="t-s fg2" style="margin:0;padding-left:18px;display:grid;gap:4px"><li>Roller: <b>Destek</b> eklendi</li><li>Yeni şifre belirlendi</li></ul>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Kullanıcının bütün cihazlardaki oturumları hemen kapanır; yeni rollerle ve yeni şifreyle tekrar giriş yapması gerekir.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Kaydet ve oturumları kapat</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-15">
+  <figcaption class="fr-h"><b class="fr-n">17.15</b><span class="fr-t">Kullanıcıyı sil</span><code class="fr-r">/admin/users → sil</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/users/user?UserId=30</code>. Onay metni 08 E4'ten; storeasy'ye özgü: organizasyon üyelikleri de kalkar, kullanıcı bir organizasyonun tek sahibiyse silme reddedilir ve sunucu mesajı hata toast'ı olarak gösterilir (ör. "Kullanıcı bir organizasyonun tek sahibi. Önce sahipliği devret."). Başarıda toast sunucu mesajıyla, liste yerinde yenilenir. <b>İzin:</b> <code>UserManagement.Delete</code>. Telefonda onay alttan açılır. <span class="gap">Backend boşluğu:</span> "tek sahip silinemez" kuralı ve üyeliklerin temizlenmesi <code>DeleteUserCommandHandler</code>'a eklenecek (bugün kullanıcı silinince sahipsiz organizasyon kalabilir).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-users" data-admin data-act="" data-crumbs="Platform|Kullanıcılar"><div class="content"><div class="pg-h"><h1 class="pg-t">Kullanıcılar</h1></div><div class="card" style="height:260px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1715">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 dng-t"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1715">Kullanıcı silinsin mi?</h2></div></div>
+      <div class="mdl-b"><p class="t-s" style="margin:0"><b class="mono">ops@kuzeylab.dev</b> silinecek. Kullanıcının bütün oturumları kapanır ve kullanıcı adı tekrar kullanılamaz. Kuzey Lab'deki üyeliği de kalkar.</p></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ B3. ROLLER ============ -->
+<section class="sec" id="roller">
+<div class="sec-h"><span class="k">Bölüm 17.16-17.19</span><h2>Platform: roller ve izinler</h2><p>08 E8-E9, 09 "Yetki ve rol ekranları". Rol yalnız ad + izin listesi + üyelerdir. İzin seçiminde matris yok: dikey gruplu liste, solda grup ve "3 / 5 seçili", sağda alt alta izinler. <code>App.SuperAdmin</code> listeye girmez, en üstte ayrı ve onaylı "Tam yetki" olarak durur. İzinler koddan gelir (<code>PermissionCatalog</code>); panelden eklenmez, silinmez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-16" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">17.16</b><span class="fr-t">Rol listesi ve rol detayı (çekmece)</span><code class="fr-r">/admin/roles/21</code></figcaption>
+  <p class="fr-note"><b>API:</b> liste <code>PATCH /api/v1.0/roles</code> → <code>RoleListDto { Id, Name }</code> (arama <code>Name Contains</code>, sıralama ad); detay <code>GET /api/v1.0/roles/role?RoleId=21</code> → <code>RoleDetailDto { Id, Name, Users[{ Id, Name }], Permissions[{ Id, Name }], AuditInfo }</code>. <code>Permissions[].Name</code> yalnız aksiyon adıdır; gruplar <code>PATCH permissions</code> (<code>PermissionListDto { Id, Name, Description, PermissionGroup, PermissionGroupDescription }</code>, <code>RowCount 1000</code>) ile <code>Id</code> eşlenerek çizilir. SuperAdmin (#1) sistem kaydı: düzenle ve sil gizli, detayda liste yerine "Tam yetki" rozeti. Silme onayı: "{Name} rolü silinecek. Bu role sahip kullanıcılar rolün izinlerini bir sonraki oturum yenilemesinde kaybeder." <b>İzin:</b> sayfa <code>RoleManagement.List</code>; "Yeni rol" <code>Create</code>; çekmece <code>Detail</code>; düzenle <code>Update</code>; sil <code>Delete</code>. Telefonda kart listesi, çekmece tam ekran. <span class="gap">Backend boşluğu:</span> kullanıcı sayısı, izin sayısı, açıklama kolonları ve tekil rol adı yok; listede çizilmedi.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-roles" data-admin data-act="" data-crumbs="Platform|Roller">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Roller</h1><p class="pg-s">Platform yönetimi rolleri. Organizasyon rolleri (Sahip, Yönetici, Editör, İzleyici) ayrıdır.</p></div><div class="pg-a"><span class="btn pri hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Yeni rol</span></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Rol adı <svg class="ic"><use href="#i-arrow-up"/></svg></th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp8 wrap"><b>SuperAdmin</b><span class="bdg sm"><svg class="ic s12"><use href="#i-lock"/></svg>Sistem kaydı</span><span class="bdg dng sm">Tam yetki</span></span></td><td class="ta"><span class="t-xs fg3">Salt okunur</span></td></tr>
+            <tr class="sel"><td class="tm"><b>Katalog editörü</b></td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span><span class="ib sm ghost" aria-label="Sil"><svg class="ic"><use href="#i-trash"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Destek</b></td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span><span class="ib sm ghost" aria-label="Sil"><svg class="ic"><use href="#i-trash"/></svg></span></td></tr>
+            <tr><td class="tm"><b>Salt okunur</b></td><td class="ta"><span class="ib sm ghost" aria-label="Düzenle"><svg class="ic"><use href="#i-edit"/></svg></span><span class="ib sm ghost" aria-label="Sil"><svg class="ic"><use href="#i-trash"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 4</span></div>
+      </div>
+    </div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1716">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="d1716">Katalog editörü</h2><p class="t-s fg2 mt4 mono">#21 · 7 izin</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="card"><div class="card-b" style="padding:4px 16px">
+          <div class="pmg" style="grid-template-columns:1fr;gap:6px"><div class="r gp8"><b class="t-s">Kullanıcı yönetimi</b><span class="t-xs fg3 ml">2 / 5</span></div><div class="pmr"><span class="chk on dis"></span><span class="t-s">Listele</span></div><div class="pmr"><span class="chk on dis"></span><span class="t-s">Detay</span></div></div>
+          <div class="pmg" style="grid-template-columns:1fr;gap:6px"><div class="r gp8"><b class="t-s">Mağaza kuralları kataloğu</b><span class="t-xs fg3 ml">2 / 2</span></div><div class="pmr"><span class="chk on dis"></span><span class="t-s">Listele</span></div><div class="pmr"><span class="chk on dis"></span><span class="t-s">Onayla</span></div></div>
+          <div class="pmg" style="grid-template-columns:1fr;gap:6px"><div class="r gp8"><b class="t-s">İzin, aktivite logu, özellik anahtarı</b><span class="t-xs fg3 ml">3</span></div><div class="pmr"><span class="chk on dis"></span><span class="t-s">İzinleri listele · Aktivite logunu listele · Özellik anahtarlarını listele</span></div></div>
+        </div></div>
+        <div class="fld"><span class="lbl">Kullanıcılar</span><div class="r gp6 wrap"><span class="tag">ece@kuzeylab.dev</span></div></div>
+        <dl class="kv t-s"><dt>Oluşturan</dt><dd>deniz@kuzeylab.dev · 2 Kas 2026</dd><dt>Son değişiklik</dt><dd>ece@kuzeylab.dev · bugün 11:40</dd></dl>
+      </div>
+      <div class="mdl-f"><span class="btn dng-o">Sil</span><span class="f1"></span><span class="btn"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-17" data-h="1100" data-view="desktop">
+  <figcaption class="fr-h"><b class="fr-n">17.17</b><span class="fr-t">Rolü düzenle: dikey gruplu izin listesi</span><code class="fr-r">/admin/roles/21 → düzenle</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PUT /api/v1.0/roles/role</code> → <code>UpdateRoleCommand { Id, Name?, PermissionIdList? }</code> (<code>PermissionIdList</code> tam liste); yeni rol <code>POST roles/role { Name, PermissionIdList }</code> + <code>Idempotency-Key</code> (rol adı tekil değil, çift tıklama iki rol açmasın). Katalog <code>PATCH permissions</code> (<code>PermissionManagement.List</code>); bu izin yoksa form yalnız adı düzenler ve liste yerine "İzinleri görmek için izin kataloğu yetkisi gerekir" çıkar. Grup başlığı <code>PermissionGroupDescription</code>, satır etiketi sözlükte aksiyon adı (Listele, Detay, Oluştur, Güncelle, Sil, Onayla; yoksa aksiyon adının kendisi), açıklama <code>Description</code>, altında birleşik ad mono. Grup "Tümünü seç" kısmi seçimde ara durumlu. Arama grup ve izin adında; "Yalnız seçili olanlar" boş grupları gizler. Katalog yüklenemezse liste alanında hata + "Tekrar dene"; 409 <code>RequestInProgress</code> sessiz. Bilgi notu <code>Token.ExpirationMinute</code> (prod 30). <b>İzin:</b> <code>RoleManagement.Update</code> / <code>Create</code>. Telefon görünümü 17.18. <span class="gap">Backend boşluğu:</span> <code>RuleCatalogManagement</code> (List, Approve) ve <code>SystemManagement</code> (Detail, Update) grupları <code>PermissionCatalog</code>'a eklenecek; rol izinlerinin anında etkisi (üyelerin damgasını döndürme) yok, not bu yüzden var.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-roles" data-admin data-act="" data-crumbs="Platform|Roller"><div class="content"><div class="pg-h"><h1 class="pg-t">Roller</h1></div></div></div>
+    <div class="ovl"><div class="mdl xl" role="dialog" aria-labelledby="m1717" style="height:100%">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1717">Rolü düzenle</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Rol adı</span><span class="inp">Katalog editörü</span></label>
+        <div class="super"><svg class="ic s24 dng-t"><use href="#i-shield"/></svg><div class="f1"><b class="t-m">Tam yetki</b><div class="t-s fg2 mt4">Bütün sistem. Aşağıdaki seçimlerden bağımsız olarak her şeye erişir; açarken ayrıca onay istenir.</div><div class="mk1 mt4">App.SuperAdmin</div></div><span class="sw"></span></div>
+        <div class="r gp12 wrap"><span class="inp" style="width:280px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">İzin ara</span></span><label class="r gp8 t-s"><span class="sw"></span>Yalnız seçili olanlar</label><span class="bdg acc ml">7 izin seçili</span></div>
+        <div class="card"><div class="card-b" style="padding:2px 18px">
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Kullanıcı yönetimi</b><span class="mk1">UserManagement</span><span class="t-s fg2">2 / 5 seçili</span><label class="pmall"><span class="chk mix"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk on"></span><div><b>Listele</b><div class="ds">Kullanıcı listeleme yetkisi.</div><div class="mk1">UserManagement.List</div></div></div><div class="pmr"><span class="chk on"></span><div><b>Detay</b><div class="ds">Kullanıcı detayını görme yetkisi.</div><div class="mk1">UserManagement.Detail</div></div></div><div class="pmr"><span class="chk"></span><div><b>Oluştur</b><div class="ds">Kullanıcı oluşturma yetkisi.</div><div class="mk1">UserManagement.Create</div></div></div><div class="pmr"><span class="chk"></span><div><b>Güncelle</b><div class="ds">Kullanıcı güncelleme yetkisi.</div><div class="mk1">UserManagement.Update</div></div></div><div class="pmr"><span class="chk"></span><div><b>Sil</b><div class="ds">Kullanıcı silme yetkisi.</div><div class="mk1">UserManagement.Delete</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Rol yönetimi</b><span class="mk1">RoleManagement</span><span class="t-s fg2">0 / 5 seçili</span><label class="pmall"><span class="chk"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk"></span><div><b>Listele</b><div class="ds">Rol listeleme yetkisi.</div></div></div><div class="pmr"><span class="chk"></span><div><b>Detay</b><div class="ds">Rol detayını görme yetkisi.</div></div></div><div class="pmr"><span class="chk"></span><div><b>Oluştur, Güncelle, Sil</b><div class="ds">3 izin daha · grubu aç</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Mağaza kuralları kataloğu</b><span class="mk1">RuleCatalogManagement</span><span class="t-s fg2">2 / 2 seçili</span><label class="pmall"><span class="chk on"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk on"></span><div><b>Listele</b><div class="ds">Katalog önerilerini ve izlenen kaynakları görme yetkisi.</div><div class="mk1">RuleCatalogManagement.List</div></div></div><div class="pmr"><span class="chk on"></span><div><b>Onayla</b><div class="ds">Katalog önerisini onaylama, reddetme ve kaynakları şimdi tarama yetkisi.</div><div class="mk1">RuleCatalogManagement.Approve</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">İzin yönetimi</b><span class="mk1">PermissionManagement</span><span class="t-s fg2">1 / 1 seçili</span><label class="pmall"><span class="chk on"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk on"></span><div><b>Listele</b><div class="ds">İzin listeleme yetkisi.</div><div class="mk1">PermissionManagement.List</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Aktivite logu</b><span class="mk1">ActivityLogManagement</span><span class="t-s fg2">1 / 1 seçili</span><label class="pmall"><span class="chk on"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk on"></span><div><b>Listele</b><div class="ds">Aktivite logu listeleme yetkisi.</div><div class="mk1">ActivityLogManagement.List</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Özellik anahtarları</b><span class="mk1">FeatureFlagManagement</span><span class="t-s fg2">1 / 2 seçili</span><label class="pmall"><span class="chk mix"></span>Tümünü seç</label></div>
+            <div><div class="pmr"><span class="chk on"></span><div><b>Listele</b><div class="ds">Özellik anahtarı listeleme yetkisi.</div></div></div><div class="pmr"><span class="chk"></span><div><b>Güncelle</b><div class="ds">Bir özelliği açma veya kapatma yetkisi.</div></div></div></div></div>
+          <div class="pmg"><div class="pmg-l"><b class="t-m">Dil yönetimi · Sistem</b><span class="mk1">LanguageManagement · SystemManagement</span><span class="t-s fg2">0 / 4 seçili</span></div>
+            <div><div class="pmr"><span class="chk"></span><div><b>Dilleri listele, güncelle</b><div class="ds">2 izin</div></div></div><div class="pmr"><span class="chk"></span><div><b>Sistem durumunu gör, kayıt modunu değiştir</b><div class="ds">2 izin · SystemManagement.Detail, SystemManagement.Update</div></div></div></div></div>
+        </div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">İzin değişiklikleri bu role sahip kullanıcılara bir sonraki oturum yenilemesinde (en geç 30 dakika) yansır. Rolün 1 kullanıcısı var.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-18" data-view="phone" data-ph="844">
+  <figcaption class="fr-h"><b class="fr-n">17.18</b><span class="fr-t">Rolü düzenle: telefon, açılır-kapanır gruplar</span><code class="fr-r">/admin/roles/21 → düzenle</code></figcaption>
+  <p class="fr-note">Telefonda form tam ekran, alt bar sabit. Gruplar alt alta açılır-kapanır kart; başlıkta grup adı ve "2 / 5", ara durumlu "Tümünü seç" başlıkta kalır (gruba dokunmadan seçilebilir). Açık grupta izinler alt alta, açıklamalı; dokunma hedefi en az 44 px. "Tam yetki" kartı en üstte. Arama ve "Yalnız seçili olanlar" grup başlıklarının üstünde.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-roles" data-admin data-act="" data-crumbs="Platform|Roller"><div class="content"></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1718" style="max-height:100%;height:100%;border-radius:0">
+      <div class="mdl-h"><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span><div class="f1"><h2 class="h2" id="m1718">Rolü düzenle</h2></div><span class="bdg acc sm">7 seçili</span></div>
+      <div class="mdl-b" style="display:flex;flex-direction:column">
+        <label class="fld"><span class="lbl">Rol adı</span><span class="inp">Katalog editörü</span></label>
+        <div class="super" style="padding:12px"><svg class="ic s18 dng-t"><use href="#i-shield"/></svg><div class="f1"><b class="t-s">Tam yetki</b><div class="t-xs fg2 mt4">Bütün sistem; açarken onay istenir.</div></div><span class="sw"></span></div>
+        <span class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">İzin ara</span></span>
+        <label class="r gp8 t-s"><span class="sw"></span>Yalnız seçili olanlar</label>
+        <div class="acc"><div class="acc-h"><span class="chk mix"></span><div class="f1"><b class="t-s">Kullanıcı yönetimi</b><div class="t-xs fg3">2 / 5 seçili</div></div><svg class="ic s16 fg3"><use href="#i-chev-u"/></svg></div>
+          <div class="acc-b"><div class="pmr" style="min-height:44px"><span class="chk on"></span><div><b>Listele</b><div class="ds">Kullanıcı listeleme yetkisi.</div></div></div><div class="pmr" style="min-height:44px"><span class="chk on"></span><div><b>Detay</b><div class="ds">Kullanıcı detayını görme yetkisi.</div></div></div><div class="pmr" style="min-height:44px"><span class="chk"></span><div><b>Oluştur</b><div class="ds">Kullanıcı oluşturma yetkisi.</div></div></div><div class="pmr" style="min-height:44px"><span class="chk"></span><div><b>Güncelle</b><div class="ds">Kullanıcı güncelleme yetkisi.</div></div></div><div class="pmr" style="min-height:44px"><span class="chk"></span><div><b>Sil</b><div class="ds">Kullanıcı silme yetkisi.</div></div></div></div></div>
+        <div class="acc"><div class="acc-h"><span class="chk"></span><div class="f1"><b class="t-s">Rol yönetimi</b><div class="t-xs fg3">0 / 5 seçili</div></div><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+        <div class="acc"><div class="acc-h"><span class="chk on"></span><div class="f1"><b class="t-s">Mağaza kuralları kataloğu</b><div class="t-xs fg3">2 / 2 seçili</div></div><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+        <div class="acc"><div class="acc-h"><span class="chk mix"></span><div class="f1"><b class="t-s">Özellik anahtarları</b><div class="t-xs fg3">1 / 2 seçili</div></div><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+        <p class="t-xs fg3" style="margin:0">Değişiklikler bir sonraki oturum yenilemesinde (en geç 30 dakika) yansır.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-19">
+  <figcaption class="fr-h"><b class="fr-n">17.19</b><span class="fr-t">Tam yetki onayı</span><code class="fr-r">/admin/roles/21 → tam yetki</code></figcaption>
+  <p class="fr-note">"Tam yetki" anahtarı açılırken ayrı onay (08 E9). Onaylanınca listedeki seçimler korunur ama pasifleşir ve "Tam yetki açıkken etkisiz" notu çıkar; kaydedilince <code>PermissionIdList</code> <code>App.SuperAdmin</code>'in <code>Id</code>'sini (1) içerir. Kapatma onay istemez. <b>İzin:</b> <code>RoleManagement.Update</code>; tam yetkiyi yalnız kendisi tam yetkili olan yönetici verebilir. <span class="gap">Backend boşluğu:</span> "tam yetkiyi yalnız tam yetkili verebilir" kuralı <code>UpdateRoleCommandValidator</code>'a eklenecek (bugün <code>RoleManagement.Update</code> yetiyor; yetki yükseltme yolu).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-roles" data-admin data-act="" data-crumbs="Platform|Roller"><div class="content"><div class="pg-h"><h1 class="pg-t">Roller</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1719">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 dng-t"><use href="#i-shield"/></svg></span><div class="f1"><h2 class="h2" id="m1719">Tam yetki verilsin mi?</h2></div></div>
+      <div class="mdl-b"><p class="t-s" style="margin:0"><b>Katalog editörü</b> rolündeki 1 kullanıcı (<span class="mono">ece@kuzeylab.dev</span>) diğer seçimlerden bağımsız olarak bütün platform yönetimine erişir: kullanıcı silme, rolleri değiştirme, kayıt modunu kapatma, katalog onayı.</p><p class="t-xs fg3" style="margin:0">Bir sonraki oturum yenilemesinde geçerli olur.</p></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Tam yetkiyi aç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ B4. LOG, DİL, ANAHTAR ============ -->
+<section class="sec" id="log-dil-anahtar">
+<div class="sec-h"><span class="k">Bölüm 17.20-17.23</span><h2>Platform: aktivite logu, diller, özellik anahtarları</h2><p>08 E11-E13. Aktivite logu platform yönetimindeki işlemlerdir; organizasyonların mağaza yazmaları ayrı denetim kaydındadır (<code>organizations/audit-logs</code>). Kayıt modu bir özellik anahtarı değil, sistem ayarıdır (17.24).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-20" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">17.20</b><span class="fr-t">Aktivite logu</span><code class="fr-r">/admin/activity-logs</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/activitylogs</code> → <code>ActivityLogListDto { Id, UserName, Activity, ActivityDescription, ActivityDate, RelatedId, RelatedData }</code>. Varsayılan sıralama <code>ActivityDate</code> azalan; tarih <code>Between</code> + hızlı seçim (bugün, 7 gün, 30 gün); kullanıcı <code>Contains</code>; işlem enum <code>EqualTo</code> (seçenekler <code>UserActivity</code>); ilgili kayıt <code>EqualTo</code>. <code>RelatedData</code> filtrelenemez; doluysa satır genişletilince tam metin. İlgili kayıt bağlantısı frontend'de tek eşleme tablosundan: <code>CreateUser</code> / <code>UpdateUser</code> → <code>/admin/users/{RelatedId}</code>; <code>CreateRole</code> / <code>UpdateRole</code> → rol çekmecesi; <code>UpdateFeatureFlag</code> → özellik anahtarları; <code>UpdateLanguages</code> → diller; <code>Delete*</code> → bağlantı yok, <code>#{RelatedId}</code> düz metin. Salt okunur. <b>İzin:</b> <code>ActivityLogManagement.List</code>. <b>Telefonda</b> kart: işlem rozeti + tarih üstte, kullanıcı + ilgili kayıt altta. <span class="gap">Backend boşluğu:</span> <code>ApproveRuleProposal</code>, <code>RejectRuleProposal</code>, <code>UpdateSystemSettings</code> aktiviteleri; giriş / çıkış / şifre aktiviteleri, IP, önceki / sonraki değer yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-logs" data-admin data-act="" data-crumbs="Platform|Aktivite logu">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Aktivite logu</h1><p class="pg-s">Platform yönetiminde kim, neyi, ne zaman yaptı.</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Yenile</span></div></div>
+        <div class="toolbar"><div class="seg"><span>Bugün</span><span class="on">7 gün</span><span>30 gün</span></div><span class="chip hide-ph">İşlem: Tümü</span><span class="inp hide-ph" style="width:220px;min-height:30px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Kullanıcı adı</span></span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Tarih <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Kullanıcı</th><th>İşlem</th><th>İlgili kayıt</th><th>Ek bilgi</th></tr></thead>
+          <tbody>
+            <tr><td class="tm t-s">18 Kas, 14:22</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg sm">Kullanıcı güncellendi</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Kullanıcı #30</span></td><td data-l="Ek bilgi" class="tx t-s fg2">Lockout</td></tr>
+            <tr><td class="tm t-s">18 Kas, 14:05</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg sm">Özellik anahtarı güncellendi</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Özellik anahtarları</span></td><td data-l="Ek bilgi" class="tx t-s fg2">AiCaptionSuggestions kapatıldı</td></tr>
+            <tr><td class="tm t-s">18 Kas, 11:40</td><td data-l="Kullanıcı" class="mono t-s">ece@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg sm">Rol güncellendi</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Rol #21</span></td><td data-l="Ek bilgi" class="tx t-s fg3">-</td></tr>
+            <tr><td class="tm t-s">18 Kas, 08:15</td><td data-l="Kullanıcı" class="mono t-s">ece@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg acc sm">Katalog önerisi onaylandı</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Öneri #11</span></td><td data-l="Ek bilgi" class="tx t-s fg2">katalog v1.3</td></tr>
+            <tr><td class="tm t-s">17 Kas, 17:12</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg dng sm">Kullanıcı silindi</span></td><td data-l="İlgili kayıt"><span class="t-s mono">#29</span> <span class="t-xs fg3">kayıt silindi</span></td><td data-l="Ek bilgi" class="tx t-s fg3">-</td></tr>
+            <tr><td class="tm t-s">17 Kas, 16:50</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg sm">Kullanıcı eklendi</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Kullanıcı #30</span></td><td data-l="Ek bilgi" class="tx t-s fg3">-</td></tr>
+            <tr><td class="tm t-s">15 Kas, 10:02</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg sm">Diller güncellendi</span></td><td data-l="İlgili kayıt"><span class="lnk t-s">Diller</span></td><td data-l="Ek bilgi" class="tx t-s fg2">de-DE destekleniyor: kapalı</td></tr>
+            <tr><td class="tm t-s">12 Kas, 09:31</td><td data-l="Kullanıcı" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="İşlem"><span class="bdg dng sm">Rol silindi</span></td><td data-l="İlgili kayıt"><span class="t-s mono">#25</span> <span class="t-xs fg3">kayıt silindi</span></td><td data-l="Ek bilgi" class="tx t-s fg3">-</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 3 · Toplam: 46</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <p class="t-xs fg3 mt12"><svg class="ic s12"><use href="#i-clock"/></svg> Kayıtlar 60 gün saklanır.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-21">
+  <figcaption class="fr-h"><b class="fr-n">17.21</b><span class="fr-t">Diller</span><code class="fr-r">/admin/languages</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/languages</code> → <code>LanguageDto { Id, Name, Code, Supported, SupportedDescription, IsDefault, IsDefaultDescription }</code>; <code>PUT /api/v1.0/languages/language { Id, IsDefault?, Supported? }</code>. Satır içi "Destekleniyor" anahtarı ve "Varsayılan" radyosu; ekleme ve silme yok (sabit seed). Kurallar: varsayılan dilin anahtarı pasif (kapatılamaz, ipucu gösterilir); desteklenmeyen dil varsayılan yapılamaz (radyo pasif). Varsayılanı değiştirme onayı: "Varsayılan dil {Name} olacak. Dil belirtmeyen istekler bu dilde yanıtlanır."; destek açıp kapamak onay istemez. Filtre <code>Supported</code>, <code>IsDefault</code> (<code>EqualTo</code>). <b>İzin:</b> görme <code>LanguageManagement.List</code>, değiştirme <code>Update</code> (yoksa kontroller pasif). Telefonda kart: ad + kod, iki kontrol. <span class="gap">Backend boşluğu:</span> iki kural sunucuda doğrulanmıyor (<code>UpdateLanguageCommandValidator</code>).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-langs" data-admin data-act="" data-crumbs="Platform|Diller">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Diller</h1><p class="pg-s">Sunucu mesajlarının ve izin açıklamalarının döndüğü diller.</p></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Dil</th><th>Kod</th><th>Destekleniyor</th><th>Varsayılan</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Türkçe</b></td><td data-l="Kod" class="mono t-s">tr-TR</td><td data-l="Destekleniyor"><span class="r gp8" style="position:relative"><span class="sw on dis" aria-disabled="true"></span><span class="t-xs fg3">Varsayılan dil kapatılamaz</span></span></td><td data-l="Varsayılan"><span class="r gp8"><span class="rad on"></span><span class="t-s">Varsayılan</span></span></td></tr>
+            <tr><td class="tm"><b>English</b></td><td data-l="Kod" class="mono t-s">en-US</td><td data-l="Destekleniyor"><span class="sw on"></span></td><td data-l="Varsayılan"><span class="rad"></span></td></tr>
+            <tr><td class="tm"><b>Deutsch</b></td><td data-l="Kod" class="mono t-s">de-DE</td><td data-l="Destekleniyor"><span class="sw"></span></td><td data-l="Varsayılan"><span class="r gp8"><span class="rad" style="opacity:.45" aria-disabled="true"></span><span class="t-xs fg3">Önce desteği aç</span></span></td></tr>
+          </tbody></table></div>
+        <div class="callout info mt16"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">storeasy arayüz metinleri yalnız Türkçe ve İngilizce için var. Başka bir dili desteklenir yapmak sunucu mesajlarını o dilde açar, arayüzü çevirmez. Mağaza kaydı dilleri (ör. de-DE metinler) bu ayardan bağımsızdır.</div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-22" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">17.22</b><span class="fr-t">Özellik anahtarları: satır taslağı</span><code class="fr-r">/admin/feature-flags</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/featureFlags</code> → <code>FeatureFlagListDto { Id, Key, IsEnabled, IsEnabledDescription, Reason }</code>; <code>PUT /api/v1.0/featureFlags/featureFlag { Id, IsEnabled?, Reason? }</code>. Satır başına taslak: anahtar ya da gerekçe değişince o satırda "Kaydet" / "Vazgeç" belirir, her satır ayrı kaydedilir. Kapatırken gerekçe zorunlu (en çok 200; boşken "Kaydet" pasif ve alan hatası), açarken temizlenebilir. Kapatma 17.23 onayıyla; açma onay istemez. Kapalı özelliğin uçları 503 <code>FeatureDisabled</code> döner; değişiklik Redis önbelleği silindiği için bütün sunucularda hemen, Redis'e ulaşılamadıysa en geç 60 saniyede geçerli. <b>İzin:</b> <code>FeatureFlagManagement.List</code>, değiştirme <code>Update</code>. Telefonda kart: etiket + anahtar, altında gerekçe ve kaydet. <span class="gap">Backend boşluğu:</span> <code>FeatureFlagKeys</code> bugün yalnız <code>Export</code>; storeasy anahtarları <code>AiCaptionSuggestions</code>, <code>RuleWatcher</code>, <code>McpServer</code>, <code>ArtifactIntake</code> koda eklenecek. Anahtar açıklaması (sözlükte) ve son değiştiren (<code>AuditInfo</code> DTO'da yok) eklenecek ya da aktivite logundan okunacak.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-flags" data-admin data-act="" data-crumbs="Platform|Özellik anahtarları">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Özellik anahtarları</h1><p class="pg-s">Sorun anında bir özelliği bütün kurulumda kapatmak için. Kapalı özellik "geçici olarak kapalı" yanıtı verir.</p></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Özellik</th><th>Durum</th><th>Gerekçe</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div class="c gp4"><b>Excel dışa aktarma</b><span class="mk1">Export</span></div></td><td data-l="Durum"><span class="sw on"></span></td><td data-l="Gerekçe" class="fg3">-</td><td class="ta"></td></tr>
+            <tr class="hov"><td class="tm"><div class="c gp4"><b>Yapay zekâ başlık önerileri</b><span class="mk1">AiCaptionSuggestions</span></div></td><td data-l="Durum"><span class="r gp8"><span class="sw"></span><span class="t-xs warn-t b6">Kaydedilmedi</span></span></td><td data-l="Gerekçe"><div class="fld" style="gap:4px"><span class="inp foc" style="min-height:34px">Sağlayıcı kotası doldu, 20 Kasım'a kadar</span><span class="cnt">40 / 200</span></div></td><td class="ta"><span class="btn sm ghost">Vazgeç</span><span class="btn sm inv">Kaydet</span></td></tr>
+            <tr><td class="tm"><div class="c gp4"><b>Kural izleyici</b><span class="mk1">RuleWatcher</span></div></td><td data-l="Durum"><span class="sw on"></span></td><td data-l="Gerekçe" class="fg3">-</td><td class="ta"></td></tr>
+            <tr><td class="tm"><div class="c gp4"><b>Uzaktan MCP sunucusu</b><span class="mk1">McpServer</span></div></td><td data-l="Durum"><span class="sw on"></span></td><td data-l="Gerekçe" class="fg3">-</td><td class="ta"></td></tr>
+            <tr><td class="tm"><div class="c gp4"><b>CI paket alma</b><span class="mk1">ArtifactIntake</span></div></td><td data-l="Durum"><span class="r gp8"><span class="sw"></span><span class="bdg sm">Kapalı</span></span></td><td data-l="Gerekçe" class="t-s">Depolama taşınıyor, 19 Kas 06:00'da açılacak</td><td class="ta"></td></tr>
+          </tbody></table></div>
+        <div class="c gp8 mt16">
+          <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Yeni anahtarlar kodla eklenir; bu ekrandan eklenemez veya silinemez.</div></div>
+          <div class="callout"><svg class="ic"><use href="#i-settings"/></svg><div class="t-s">Kayıt açık, yalnız davetle ya da kapalı mı? Bu bir özellik anahtarı değil, <span class="lnk">Sistem durumu &gt; Kayıt</span> ayarıdır.</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-23">
+  <figcaption class="fr-h"><b class="fr-n">17.23</b><span class="fr-t">Özelliği kapatma onayı</span><code class="fr-r">/admin/feature-flags → kapat</code></figcaption>
+  <p class="fr-note">08 E13 onay metni; gerekçe onayda tekrar gösterilir. Başarıda toast sunucu mesajıyla; satırda "Kapalı" rozeti ve gerekçe kalır. Hata (400) toast olarak, satır taslağı korunur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-flags" data-admin data-act="" data-crumbs="Platform|Özellik anahtarları"><div class="content"><div class="pg-h"><h1 class="pg-t">Özellik anahtarları</h1></div><div class="card" style="height:280px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1723">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1723">Yapay zekâ başlık önerileri kapatılsın mı?</h2></div></div>
+      <div class="mdl-b"><p class="t-s" style="margin:0">Yapay zekâ başlık önerileri kapatılacak. Bu özelliği kullanan istekler hemen "geçici olarak kapalı" yanıtı alacak; stüdyoda öneri düğmesi bu yanıtı gösterir.</p><div class="secret" style="font-family:var(--font-body)">Gerekçe: Sağlayıcı kotası doldu, 20 Kasım'a kadar</div></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Kapat</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ B5. SİSTEM VE ERİŞİM ============ -->
+<section class="sec" id="sistem">
+<div class="sec-h"><span class="k">Bölüm 17.24-17.27</span><h2>Platform: sistem durumu ve erişim</h2><p>Self-host kurulumun sağlığı tek ekranda: canlılık ve hazırlık yoklamaları, bağımlılıklar, mağaza iş kuyruğu, sürüm, kayıt modu (K10) ve şifreleme ana anahtarının sürümü. Ana anahtarın değeri hiçbir ekranda ve uçta görünmez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f17-24" data-h="1060">
+  <figcaption class="fr-h"><b class="fr-n">17.24</b><span class="fr-t">Sistem durumu ve kayıt modu</span><code class="fr-r">/admin/system</code></figcaption>
+  <p class="fr-note"><b>API (var):</b> <code>GET /api/v1.0/healthcheck</code> (canlılık, anonim, "Ok") ve <code>GET /api/v1.0/healthcheck/ready</code> → <code>ReadinessReport { Status (Healthy, Degraded, Unhealthy), DurationMs, Checks { database, redis: { Status, Description } } }</code>, hazır değilse 503. <b>API (planlanan):</b> <code>GET /api/v1.0/system/status</code> → <code>SystemStatusDto { Version, Commit, BuildDate, StartedDate, Checks[{ Name, Status, Description, LatencyMs }], Storage { Provider, Bucket }, Mail { Provider (Smtp, Notifike), LastSentDate, FailedLastHour }, SignalR { Connections, Backplane }, StoreJobs { Queued, Running, FailedLast24h, OldestQueuedDate }, Encryption { MasterKeyVersion, RecordsOnOlderVersion, LastRotationDate } }</code>; <code>GET /api/v1.0/system/settings</code> → <code>SystemSettingsDto { RegistrationMode (Open, InviteOnly, Closed) }</code>; <code>PUT /api/v1.0/system/settings { RegistrationMode }</code> 17.25 onayıyla. Ekran 30 saniyede bir yenilenir; bir yoklama düşerse kart rozeti metinle değişir, ekranın kalanı çalışır. <b>İzin:</b> <code>SystemManagement.Detail</code>; kayıt modu <code>SystemManagement.Update</code> (yoksa radyolar pasif). Telefonda kartlar tek sütun, kayıt ve şifreleme kartları alta iner. <span class="gap">Backend boşluğu:</span> <code>system/*</code> uçları, S3 / mail / SignalR / iş kuyruğu yoklamaları (bugün hazırlıkta yalnız <code>database</code> ve <code>redis</code>), <code>Registration:Mode</code> ayarının DB'de tutulması (bugün yok; K10) ve <code>SystemManagement</code> izin grubu eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-health" data-admin data-act="" data-crumbs="Platform|Sistem durumu">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 wrap mb8"><span class="bdg ok"><span class="dot"></span>Hazır</span><span class="t-xs fg3">hazırlık yoklaması 42 ms · 30 sn'de bir yenilenir</span></div><h1 class="pg-t">Sistem durumu</h1><p class="pg-s">storeasy <span class="mono">v1.0.0</span> · commit <span class="mono">3f9c2ab</span> · 14 Kas 2026 yapısı · 4 gündür çalışıyor</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Yenile</span></div></div>
+        <div class="g4">
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-activity"/></svg><b class="t-s f1">Canlılık</b><span class="bdg ok sm">Ok</span></div><span class="t-xs fg3 mono">/healthcheck</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-database"/></svg><b class="t-s f1">PostgreSQL</b><span class="bdg ok sm">Healthy</span></div><span class="t-xs fg3">database · 8 ms</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-layers"/></svg><b class="t-s f1">Redis</b><span class="bdg ok sm">Healthy</span></div><span class="t-xs fg3">redis · 2 ms · SignalR backplane</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-box"/></svg><b class="t-s f1">Nesne deposu</b><span class="bdg ok sm">Healthy</span></div><span class="t-xs fg3 mono">S3 · storeasy-assets</span></div>
+          <div class="card hc warn"><div class="top"><svg class="ic s16"><use href="#i-mail"/></svg><b class="t-s f1">E-posta</b><span class="bdg warn sm">Degraded</span></div><span class="t-xs fg3">SMTP · son 1 saatte 2 gönderim hatası · son başarılı 14:02</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-zap"/></svg><b class="t-s f1">SignalR</b><span class="bdg ok sm">Healthy</span></div><span class="t-xs fg3"><span class="mono">/hubs/activity</span> · 14 bağlantı</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-workflow"/></svg><b class="t-s f1">StoreJobRunner</b><span class="bdg ok sm">Çalışıyor</span></div><div class="r bt t-xs"><span class="fg3">Kuyrukta</span><b class="tnum">3</b></div><div class="r bt t-xs"><span class="fg3">Çalışan</span><b class="tnum">2</b></div><div class="r bt t-xs"><span class="fg3">24 saatte hata</span><b class="tnum">1</b></div><span class="t-xs fg3">en eski bekleyen 40 sn</span></div>
+          <div class="card hc"><div class="top"><svg class="ic s16"><use href="#i-radar"/></svg><b class="t-s f1">Kural izleyici</b><span class="bdg warn sm">1 kaynak okunamadı</span></div><span class="t-xs fg3">son tur 14:00 · sonraki 20:00</span></div>
+        </div>
+        <div class="split mt16">
+          <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-user-plus"/></svg><span class="h3">Kayıt</span><span class="t-xs fg3 ml mono">Registration:Mode</span></div>
+            <div class="card-b" style="padding-top:6px;padding-bottom:6px">
+              <div class="radrow"><span class="rad"></span><div><b class="t-s">Açık</b> <span class="bdg sm">Şu an</span><div class="t-s fg2">Herkes e-postayla hesap açabilir. Açık kaynak kurulumun varsayılanı.</div></div></div>
+              <div class="radrow"><span class="rad on"></span><div><b class="t-s">Yalnız davetle</b><div class="t-s fg2">Kayıt yalnız geçerli bir organizasyon davetiyle açılır.</div></div></div>
+              <div class="radrow"><span class="rad"></span><div><b class="t-s">Kapalı</b><div class="t-s fg2">Yeni hesap açılmaz; hesapları yalnız platform yöneticisi oluşturur.</div></div></div>
+            </div>
+            <div class="card-f"><span class="t-xs fg3 f1">Mevcut hesaplar etkilenmez.</span><span class="btn ghost sm">Vazgeç</span><span class="btn pri sm">Kaydet</span></div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-key"/></svg><span class="h3">Şifreleme</span></div>
+              <div class="card-b c gp10"><dl class="kv t-s"><dt>Ana anahtar sürümü</dt><dd><b class="mono">v2</b></dd><dt>Kaynak</dt><dd class="mono t-xs">Storeasy__Encryption__MasterKey</dd><dt>Eski sürümde kayıt</dt><dd>0</dd><dt>Son rotasyon</dt><dd>2 Kas 2026</dd></dl>
+                <div class="r gp8 t-xs fg3"><svg class="ic s14"><use href="#i-eye-off"/></svg>Anahtarın değeri hiçbir ekranda ve yanıtta gösterilmez.</div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Sürüm</span></div><div class="card-b"><dl class="kv t-s"><dt>Sürüm</dt><dd class="mono">v1.0.0</dd><dt>Lisans</dt><dd>AGPL-3.0 · <span class="lnk">Kaynak kod</span></dd><dt>Mail sağlayıcısı</dt><dd>SMTP</dd></dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-25">
+  <figcaption class="fr-h"><b class="fr-n">17.25</b><span class="fr-t">Kayıt modunu değiştirme onayı</span><code class="fr-r">/admin/system → kayıt</code></figcaption>
+  <p class="fr-note">Her mod değişikliği onay ister; metin seçilen modun etkisini söyler. "Kapalı" seçilince onay düğmesi kırmızı ve metin "Kayıt sayfası 'Kayıt kapalı' gösterir; bekleyen davetlerle de hesap açılamaz, davetli kişi için yöneticinin hesap oluşturması gerekir" olur. Başarıda toast sunucu mesajıyla. Kayıt sayfası modu <code>GET account/registration-mode</code> (anonim, yeni uç) ile okur. <b>İzin:</b> <code>SystemManagement.Update</code>. <span class="gap">Backend boşluğu:</span> <code>PUT system/settings</code>, anonim mod okuma ucu ve <code>UpdateSystemSettings</code> aktivitesi eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="a-health" data-admin data-act="" data-crumbs="Platform|Sistem durumu"><div class="content"><div class="pg-h"><h1 class="pg-t">Sistem durumu</h1></div><div class="card" style="height:280px;opacity:.5"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1725">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1725">Kayıt yalnız davetle olsun mu?</h2></div></div>
+      <div class="mdl-b"><p class="t-s" style="margin:0">Kayıt sayfası yalnız geçerli bir organizasyon davetiyle açılır; davetsiz kayıt denemeleri "Kayıt yalnız davetle" yanıtı alır. Mevcut hesaplar ve oturumlar etkilenmez.</p><div class="r gp8 t-s"><span class="tag">Open</span><svg class="ic s14 fg3"><use href="#i-arrow-r"/></svg><span class="tag">InviteOnly</span></div></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Kayıt modunu değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-26">
+  <figcaption class="fr-h"><b class="fr-n">17.26</b><span class="fr-t">Platform yönetimine giremeyen hesap</span><code class="fr-r">/admin</code></figcaption>
+  <p class="fr-note">Yönetim uçları sınıf düzeyinde <code>[UserTypeAuth(UserType.Manager)]</code> taşır: <code>AppUser</code> doğru izne sahip olsa da 403 alır. Giriş yanıtındaki <code>LoginResponseDto.UserType</code> <code>Manager</code> değilse kenar çubuğunda "Platform" grubu hiç yoktur; <code>/admin</code> adresi elle açılırsa bu ekran gösterilir. 08 E1'den farkı: storeasy tek uygulama olduğu için kullanıcı çıkış yaptırılmaz, organizasyon alanına döner. "Tekrar dene" yok. <span class="gap">Backend boşluğu:</span> <code>AccountDetailDto</code>'da <code>UserType</code> yok; sayfa yenilenince istemci tipi girişte sakladığı değerden okur. <code>GET account/detail</code>'e <code>UserType</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="" data-role="Editor" data-crumbs="Platform">
+      <div class="content">
+        <div class="state" style="padding-top:96px"><span class="sic"><svg class="ic"><use href="#i-shield-x"/></svg></span><h3>Bu hesap platform yönetimine giremez</h3><p>Platform yönetimi yalnız bu storeasy kurulumunu yöneten hesaplara açık. Organizasyonundaki uygulamalar, üyeler ve ayarlar için uygulamaya dön.</p><div class="r gp8 wrap" style="justify-content:center"><span class="btn"><svg class="ic"><use href="#i-grid"/></svg>Uygulamalara dön</span></div><span class="t-xs fg3">Kurulumu yönetmen gerekiyorsa platform yöneticisinden hesabını Manager olarak açmasını iste.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f17-27">
+  <figcaption class="fr-h"><b class="fr-n">17.27</b><span class="fr-t">Platform içinde izin yok (403)</span><code class="fr-r">/admin/roles</code></figcaption>
+  <p class="fr-note">Manager tipindeki ama <code>RoleManagement.List</code> izni olmayan kullanıcı (örnekte <code>ece@kuzeylab.dev</code>, rol "Katalog editörü") adresi elle açtı. Menü izne göre süzülür (Roller, Diller, Sistem durumu menüde yok), ekran yine de 403 durumunu çizer; kırık veya boş tablo gösterilmez, "Tekrar dene" yok. Sayfa içi eylemde 403 gelirse (ör. izni oturum içinde geri alındı) hata toast'ı. Menü haritası: Katalog önerileri <code>RuleCatalogManagement.List</code>, Kullanıcılar <code>UserManagement.List</code>, Roller <code>RoleManagement.List</code>, Aktivite logu <code>ActivityLogManagement.List</code>, Diller <code>LanguageManagement.List</code>, Özellik anahtarları <code>FeatureFlagManagement.List</code>, Sistem durumu <code>SystemManagement.Detail</code>; <code>App.SuperAdmin</code> hepsini görür.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="" data-admin data-act="" data-hide="a-roles,a-langs,a-health" data-crumbs="Platform|Roller">
+      <div class="content">
+        <div class="state" style="padding-top:96px"><span class="sic"><svg class="ic"><use href="#i-shield"/></svg></span><h3>Yetkiniz yok</h3><p>Bu ekranı görüntüleme yetkiniz yok. Rolleri görmek için <span class="mono">RoleManagement.List</span> izni gerekir.</p><span class="btn"><svg class="ic"><use href="#i-arrow-l"/></svg>Katalog önerilerine dön</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

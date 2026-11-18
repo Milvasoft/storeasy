@@ -1,0 +1,582 @@
+<!--
+title: Organizasyon, üyeler ve denetim kaydı
+kicker: 15 · Organizasyon
+desc: Üyeler ve bekleyen davetler, davet akışı, rol değiştirme ve sahiplik devri, dört kilitli rolün izinleri, organizasyonun denetim kaydı ve organizasyon ayarları. Organizasyon oluşturma 05'te.
+-->
+<style>
+.typecheck{font:600 15px/1 var(--font-mono)}
+.tsel{min-height:32px;width:150px;font-size:13px;padding:0 10px}
+.tsel.dis{opacity:.5}
+.rwrap{position:relative;display:inline-flex}
+.tip.wr{white-space:normal;width:230px;line-height:1.4;right:0;top:38px}
+.rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rc{border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
+.rc.on{border-color:rgb(var(--accent));box-shadow:0 0 0 1px rgb(var(--accent)) inset}
+.rc ul{margin:0;padding-left:16px;font-size:12px;color:rgb(var(--fg-2));line-height:1.5}
+.emails{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:44px;padding:6px 10px}
+.rolel{display:grid;gap:6px}
+.rolei{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:10px 12px;background:rgb(var(--surface))}
+.rolei.on{border-color:rgb(var(--fg));background:rgb(var(--bg-2))}
+.pgrp{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px dashed rgb(var(--border))}
+.pgrp:last-child{border-bottom:0}
+.pgrp-h{display:grid;gap:4px;align-content:start}
+.prow{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;padding:6px 0}
+.prow .chk{margin-top:2px}
+.fullp{border:1px dashed rgb(var(--danger)/.5);border-radius:var(--r-md);padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.tbl tr.xp td{background:rgb(var(--bg-2)/.6)}
+.chn{font:600 11px/1 var(--font-mono);letter-spacing:.02em}
+.dz{display:flex;gap:16px;align-items:center;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.dz:last-child{border-bottom:0}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.consq{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:rgb(var(--fg-2))}
+@container scr (max-width:760px){
+  .rcards{grid-template-columns:1fr}
+  .pgrp{grid-template-columns:1fr;gap:8px}
+  .pgrp.cl .prow{display:none}
+  .tbl td.xd{display:block}
+  .dz{flex-wrap:wrap}
+  .tsel{width:100%}
+}
+</style>
+
+<!-- ============ 1. ÜYELER ============ -->
+<section class="sec" id="uyeler">
+<div class="sec-h"><span class="k">Bölüm 15.1-15.4</span><h2>Üyeler ve bekleyen davetler</h2><p>Organizasyonun üyeleri ve henüz kabul edilmemiş davetler tek sayfada. Rol tablo satırında değiştirilir; değişiklik onaydan sonra hemen etkili olur, çünkü yetki her istekte üyelikten okunur (K3). Kurallar arayüzde görünür: en az bir Sahip kalır, Sahip başka Sahip atanmadan kendini düşüremez, Yönetici Sahip'e dokunamaz.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-1" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">15.1</b><span class="fr-t">Üyeler (Sahip görünümü)</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/members?OrganizationId=7</code> → <code>MemberListDto { Members[OrganizationMemberDto { Id, UserId, Email, Name, Surname, Role, JoinDate }], Invitations[OrganizationInvitationDto { Id, Email, Role, ExpiryDate, CreationDate }] }</code>. Liste sayfalı değil (üye sayısı küçük); arama istemcide. Rol değişikliği <code>PUT /api/v1.0/organizations/member/role { OrganizationId, MemberId, Role }</code> (onay 15.9), davet geri alma <code>DELETE /api/v1.0/organizations/invitation { OrganizationId, InvitationId }</code>. <b>İzin:</b> liste <code>View</code>; rol seçimi, davet ve davetler bölümü <code>ManageMembers</code>. Kendi satırında rol seçimi pasif: tek Sahip olduğun için düşemezsin (<code>OrganizationLastOwner</code>). <b>Telefonda</b> tablolar karta döner, "Üye davet et" sağ altta yüzen düğme. <span class="gap">Backend boşluğu:</span> "Son etkinlik" (<code>LastActivityDate</code>) <code>OrganizationMemberDto</code>'da yok; davet eden kişi (<code>InviterUserId</code> tabloda var, DTO'da yok); "Yeniden gönder" için ayrı uç yok (aynı e-postaya yeni davet eskisini iptal eder, yeni bağlantı üretir) ve davet e-postası gönderilmiyor.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler ve rolleri. Rol değişikliği bir sonraki istekte geçerli olur.</p></div>
+          <div class="pg-a"><div class="inp hide-ph" style="width:240px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad ya da e-posta</span></div><span class="btn pri hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Üyeler <span class="n">4</span></a><a class="tab" href="#">Roller</a></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Ad soyad <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>E-posta</th><th>Rol</th><th>Katılım</th><th>Son etkinlik</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol"><span class="c gp4"><span class="inp sel tsel dis" aria-disabled="true"><svg class="ic s14"><use href="#i-lock"/></svg>Sahip</span><span class="t-xs fg3">Tek Sahip: önce başka Sahip ata</span></span></td><td data-l="Katılım">2 Eyl 2026</td><td data-l="Son etkinlik">Şimdi</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Yönetici</span></td><td data-l="Katılım">4 Eyl 2026</td><td data-l="Son etkinlik">14:02</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Editör</span></td><td data-l="Katılım">12 Eyl 2026</td><td data-l="Son etkinlik">11:48 · CI</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">İzleyici</span></td><td data-l="Katılım">3 Kas 2026</td><td data-l="Son etkinlik" class="fg3">9 gün önce</td><td class="ta"><span class="ib sm ghost" aria-label="Üye işlemleri"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+
+        <div class="r gp8 mt24 mb12"><h2 class="h3">Bekleyen davetler</h2><span class="bdg sm">1</span><span class="t-s fg3 ml hide-ph">Davet bağlantısı 7 gün geçerli, tek kullanımlık</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>E-posta</th><th>Rol</th><th>Gönderildi</th><th>Bitiş</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s"><svg class="ic s14"><use href="#i-mail"/></svg></span><b class="mono t-s">can@kuzeylab.dev</b></span></td><td data-l="Rol">Editör</td><td data-l="Gönderildi">18 Kas 2026, 09:30</td><td data-l="Bitiş"><span class="bdg warn sm">25 Kas · 7 gün</span></td><td class="ta"><span class="r gp6 je"><span class="btn sm ghost"><svg class="ic"><use href="#i-refresh"/></svg>Yeniden gönder</span><span class="btn sm dng-o">Geri al</span></span></td></tr>
+          </tbody></table></div>
+        <p class="t-xs fg3 mt12">"Yeniden gönder" eski bağlantıyı geçersiz kılar ve yeni bir bağlantı üretir.</p>
+      </div>
+    </div>
+    <span class="btn pri fab"><svg class="ic"><use href="#i-user-plus"/></svg>Davet et</span>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-2" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.2</b><span class="fr-t">Yönetici görünümü: Sahip satırı kilitli, rol menüsü açık</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">Ece Yılmaz (Yönetici) olarak. Sahip satırında rol seçimi ve "..." menüsü pasif; üstüne gelince ipucu: "Yönetici, Sahip rolündeki üyeyi değiştiremez." Rol menüsünde "Sahip" seçeneği kilitli (yalnız Sahip atar, <code>OrgRoleRules.CanAssign</code>). Kendi satırında rolünü düşürebilir (onayda "kendi yetkini kaybedersin" uyarısı) ama yükseltemez. <b>API:</b> sunucu aynı kuralı uygular, istemci kuralı yalnız görünürlük içindir; ihlalde 403 <code>OrganizationForbidden</code> toast'ı. <b>İzin:</b> <code>ManageMembers</code>. <b>Telefonda</b> menü ekranın altından açılan seçim sayfası olur, ipucu yerine satırın altında açıklama metni.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-role="Admin" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler ve rolleri.</p></div>
+          <div class="pg-a"><span class="btn pri hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Üyeler <span class="n">4</span></a><a class="tab" href="#">Roller</a></div>
+        <div class="tbl-w" style="overflow:visible"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol"><span class="c gp4"><span class="rwrap"><span class="inp sel tsel dis" aria-disabled="true"><svg class="ic s14"><use href="#i-lock"/></svg>Sahip</span><span class="tip wr hide-ph" role="tooltip">Yönetici, Sahip rolündeki üyeyi değiştiremez ve organizasyondan çıkaramaz.</span></span><span class="t-xs fg3 only-ph">Sahip'i yalnız bir Sahip değiştirir</span></span></td><td data-l="Katılım">2 Eyl 2026</td><td class="ta"><span class="ib sm ghost" aria-disabled="true" style="opacity:.4"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">Yönetici</span></td><td data-l="Katılım">4 Eyl 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel foc">Editör</span></td><td data-l="Katılım">12 Eyl 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol"><span class="inp sel tsel">İzleyici</span></td><td data-l="Katılım">3 Kas 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+    <div class="pop hide-ph" style="top:416px;left:781px;width:290px" role="listbox" aria-label="Rol">
+      <div class="mh">Mert Kaya için rol</div>
+      <div class="mi"><span class="f1"><b>Yönetici</b><div class="t-xs fg3" style="white-space:normal">Yayın, gönderim, bağlantı ve üye yönetimi</div></span></div>
+      <div class="mi on"><span class="f1"><b>Editör</b><div class="t-xs fg3" style="white-space:normal">İçerik, test track'leri, yorum yanıtı</div></span><svg class="ic"><use href="#i-check"/></svg></div>
+      <div class="mi"><span class="f1"><b>İzleyici</b><div class="t-xs fg3" style="white-space:normal">Yalnız görür</div></span></div>
+      <div class="ms"></div>
+      <div class="mi" aria-disabled="true" style="opacity:.5"><svg class="ic"><use href="#i-lock"/></svg><span class="f1"><b>Sahip</b><div class="t-xs fg3" style="white-space:normal">Yalnız bir Sahip atayabilir</div></span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-3">
+  <figcaption class="fr-h"><b class="fr-n">15.3</b><span class="fr-t">İzleyici görünümü: salt okunur liste</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">Selin Demir (İzleyici) olarak. Sunucu <code>Invitations</code>'ı yalnız <code>ManageMembers</code> iznine dolu döner; izleyici için bölüm hiç çizilmez. Rol sütunu düz metin, satırda eylem yok; "Üye davet et" gizli (eylem hiç yapılamadığı için pasif değil, gizli). Kendi satırında yalnız "Organizasyondan ayrıl" var (<code>DELETE /api/v1.0/organizations/member</code> kendi <code>MemberId</code>'siyle, izin <code>View</code>). <b>Telefonda</b> kart listesi.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-role="Viewer">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1><p class="pg-s">Kuzey Lab'e erişimi olan kişiler.</p></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">DA</span><b>Deniz Arslan</b></span></td><td data-l="E-posta" class="mono t-s">deniz@kuzeylab.dev</td><td data-l="Rol">Sahip</td><td data-l="Katılım">2 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">EY</span><b>Ece Yılmaz</b></span></td><td data-l="E-posta" class="mono t-s">ece@kuzeylab.dev</td><td data-l="Rol">Yönetici</td><td data-l="Katılım">4 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">MK</span><b>Mert Kaya</b></span></td><td data-l="E-posta" class="mono t-s">mert@kuzeylab.dev</td><td data-l="Rol">Editör</td><td data-l="Katılım">12 Eyl 2026</td><td class="ta"></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="av s">SD</span><b>Selin Demir</b><span class="bdg sm">Sen</span></span></td><td data-l="E-posta" class="mono t-s">selin@kuzeylab.dev</td><td data-l="Rol">İzleyici</td><td data-l="Katılım">3 Kas 2026</td><td class="ta"><span class="btn sm ghost"><svg class="ic"><use href="#i-logout"/></svg>Ayrıl</span></td></tr>
+          </tbody></table></div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-lock"/></svg><span>Üyeleri ve davetleri yalnız <b>Sahip</b> ve <b>Yönetici</b> yönetir.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-4">
+  <figcaption class="fr-h"><b class="fr-n">15.4</b><span class="fr-t">İlk yükleme (iskelet)</span><code class="fr-r">/members</code></figcaption>
+  <p class="fr-note">İskelet tablo satırı biçiminde (08 bölüm 3.6). Rol değişikliği sonrası yeniden yüklemede satırlar kalır, üstte ince ilerleme çizgisi akar; yalnız değişen satırın rol seçimi kendi spinner'ını gösterir. Hata olursa tablo yerine "Bir şeyler ters gitti" + "Tekrar dene".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div class="c gp8"><span class="sk t" style="width:140px;height:28px"></span><span class="sk" style="width:320px;max-width:100%"></span></div><div class="pg-a"><span class="btn pri dis hide-ph"><svg class="ic"><use href="#i-user-plus"/></svg>Üye davet et</span></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad soyad</th><th>E-posta</th><th>Rol</th><th>Katılım</th><th>Son etkinlik</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:120px"></span></span></td><td data-l=""><span class="sk" style="width:150px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:100px"></span></span></td><td data-l=""><span class="sk" style="width:140px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="sk ci" style="width:28px;height:28px"></span><span class="sk" style="width:110px"></span></span></td><td data-l=""><span class="sk" style="width:150px"></span></td><td data-l=""><span class="sk b" style="width:120px;height:30px"></span></td><td data-l=""><span class="sk" style="width:80px"></span></td><td data-l=""><span class="sk" style="width:60px"></span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. DAVET ============ -->
+<section class="sec" id="davet">
+<div class="sec-h"><span class="k">Bölüm 15.5-15.8</span><h2>Üye davet et</h2><p>Davet e-postayla ve rol seçerek yapılır; bağlantı 7 gün geçerli ve tek kullanımlık. Token sunucuda yalnız hash olarak tutulur, bağlantı bu yüzden yalnız davet anında bir kez gösterilir. Sahip rolüyle davet edilmez: önce üye olarak davet edilir, sonra sahiplik devredilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-5" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">15.5</b><span class="fr-t">Davet formu: e-postalar ve rol kartları</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/organizations/invitation { OrganizationId, Email, Role }</code> (<code>Idempotency-Key</code>, <code>[RateLimit(30, 3600)]</code>) → <code>InvitationCreatedDto { Id, Token, ExpiryDate }</code>. Uç tek e-posta alır; birden çok adres yazılınca istemci adres başına bir istek atar ve her biri saatlik 30 sınırına sayılır. Rol kartları rol matrisinden (plan bölüm 6): Yönetici kartı yalnız davet edenin atayabileceği rollerdir; <code>Role = Owner</code> doğrulayıcıda reddedilir (<code>OrganizationRoleInvalid</code>). <b>İzin:</b> <code>ManageMembers</code>. <b>Telefonda</b> modal tam ekran, kartlar alt alta, alt bar sabit.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m155">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m155">Kuzey Lab'e üye davet et</h2><p class="t-s fg2 mt4">Her adres için tek kullanımlık bir bağlantı üretilir.</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">E-posta adresleri</span>
+          <div class="inp foc emails"><span class="chip on">can@kuzeylab.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="chip">ayse@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="t-s">burak@ornek</span></div>
+          <span class="hint">Virgül, boşluk ya da Enter ile ayır. En çok 10 adres; saatte en çok 30 davet.</span></div>
+        <div class="fld"><span class="lbl">Rol</span>
+          <div class="rcards">
+            <div class="rc"><div class="r gp8"><span class="rad"></span><b class="t-m">Yönetici</b></div><ul><li>Editör'ün yaptığı her şey</li><li>Production yayını ve incelemeye gönderme</li><li>Mağaza bağlantıları, webhook'lar</li><li>Üye davet, rol değiştirme (Sahip hariç)</li></ul></div>
+            <div class="rc on"><div class="r gp8"><span class="rad on"></span><b class="t-m">Editör</b></div><ul><li>Metin, görsel, mockup, build bağlama</li><li>Test track'lerine ve TestFlight'a yayın</li><li>Yorum yanıtlama</li><li>Kendi token'ı (rolünü aşamaz)</li></ul></div>
+            <div class="rc"><div class="r gp8"><span class="rad"></span><b class="t-m">İzleyici</b></div><ul><li>Uygulamaları, işleri ve denetim kaydını görür</li><li>Hiçbir şeyi değiştiremez</li><li>Yalnız salt okunur token</li></ul></div>
+          </div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>Sahip rolü davetle verilmez. Üye katıldıktan sonra <span class="lnk">sahipliği devredebilirsin</span>.</span></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1 hide-ph">2 adres hazır · 1 adres eksik</span><span class="btn ghost">İptal</span><span class="btn pri dis" aria-disabled="true">2 davet oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-6">
+  <figcaption class="fr-h"><b class="fr-n">15.6</b><span class="fr-t">Davet oluşturuldu: bağlantı bir kez gösterilir</span><code class="fr-r">/members → davet sonucu</code></figcaption>
+  <p class="fr-note"><code>InvitationCreatedDto.Token</code> yalnız bu yanıtta döner; bağlantı <code>https://storeasy.milvasoft.com/invite?token=…</code>. Kapatınca bir daha gösterilmez, yeni bağlantı için "Yeniden gönder". Davet alan kişi hesabı yoksa kayıt olur, varsa doğrudan kabul eder (<code>POST /api/v1.0/organizations/invitation/accept { Token }</code>; önizleme 05'te, <code>GET /api/v1.0/organizations/invitation?Token=</code> planlanan). Denetim kaydına <code>MemberInvited</code> düşer. <span class="gap">Backend boşluğu:</span> davet e-postası gönderilmiyor (<code>IEmailSender</code> bağlı değil); e-posta gidene kadar bağlantıyı kopyalayıp iletmek tek yol.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m156">
+      <div class="mdl-h"><span class="ck-s ok" style="width:32px;height:32px"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><h2 class="h2" id="m156">2 davet oluşturuldu</h2><p class="t-s fg2 mt4">Bağlantılar yalnız şimdi görünür. Kopyala ve kişiye ilet.</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">can@kuzeylab.dev · Editör</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/invite?token=Hq7vX2mK…f81c</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyalandı</span></div></div>
+        <div class="fld"><span class="lbl">ayse@ornek.dev · Editör</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/invite?token=P0aZr9cW…22be</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Bağlantılar <b>25 Kasım 2026, 09:30</b>'a kadar geçerli ve tek kullanımlık. Bağlantıyı alan herkes daveti kabul edebilir; yalnız kişinin kendisine gönder.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Başka davet</span><span class="btn pri">Tamam</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-7">
+  <figcaption class="fr-h"><b class="fr-n">15.7</b><span class="fr-t">409: adres zaten üye</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note">Çoklu davette başarılı olanlar oluşturulur, başarısız adresler formda kalır; form kapanmaz (08 bölüm 2.4). Hata metni sunucudan gelir (<code>OrganizationAlreadyMember</code>), ilgili adres çipi hata kenarlığıyla işaretlenir. Bekleyen davet varken aynı adrese yeni davet hata vermez: eski davet iptal edilir, yeni bağlantı üretilir (formda bilgi notu).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m157">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m157">Kuzey Lab'e üye davet et</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>1 davet oluşturulamadı</b><ul><li>mert@kuzeylab.dev bu organizasyonun zaten üyesi.</li></ul><div class="t-xs fg2 mt4">ayse@ornek.dev için davet oluşturuldu.</div></div></div>
+        <div class="fld"><span class="lbl">E-posta adresleri</span><div class="inp err emails"><span class="chip" style="border-color:rgb(var(--danger))">mert@kuzeylab.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span></div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg><span>can@kuzeylab.dev için bekleyen bir davet var; yeniden davet edersen eski bağlantı geçersiz olur.</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri dis" aria-disabled="true">Davet oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-8">
+  <figcaption class="fr-h"><b class="fr-n">15.8</b><span class="fr-t">429: saatlik davet sınırı</span><code class="fr-r">/members → davet</code></figcaption>
+  <p class="fr-note"><code>[RateLimit(30, 3600, "org-invite")]</code> aşılınca 429 ve <code>Retry-After</code>. Form üstünde süre gösterilir, "Davet oluştur" geri sayım bitene kadar pasif; yazılan adresler korunur. Sayaç organizasyon başına değil istek kapsamı başına tutulur; metin sunucunun mesajıdır, süre başlıktan.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m158">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m158">Kuzey Lab'e üye davet et</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-hourglass"/></svg><div><b>Saatlik davet sınırına ulaşıldı</b><div class="t-s fg2 mt4">Saatte en çok 30 davet oluşturulabilir. <b class="tnum">23 dakika</b> sonra tekrar dene.</div></div></div>
+        <div class="fld"><span class="lbl">E-posta adresleri</span><div class="inp emails"><span class="chip">deniz.y@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span><span class="chip">ops@ornek.dev<svg class="ic s14 x"><use href="#i-x"/></svg></span></div></div>
+        <div class="fld"><span class="lbl">Rol</span><span class="inp sel">İzleyici</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri dis tnum" aria-disabled="true">23:00 sonra</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. ONAYLAR ============ -->
+<section class="sec" id="onaylar">
+<div class="sec-h"><span class="k">Bölüm 15.9-15.12</span><h2>Rol değiştirme, çıkarma, ayrılma ve sahiplik devri</h2><p>Kullanıcıyı kısıtlayan her eylem onay ister; diyalog neyin olacağını somut söyler. Sahiplik devri yalnız Sahip'e açık ve organizasyon adını yazmayı ister.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-9">
+  <figcaption class="fr-h"><b class="fr-n">15.9</b><span class="fr-t">Rol değiştirme onayı</span><code class="fr-r">/members → rol</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PUT /api/v1.0/organizations/member/role { OrganizationId, MemberId, Role }</code>; son Sahip düşürülürse 400 <code>OrganizationLastOwner</code>. Etki anında: yetki token'dan değil her istekte üyelikten okunur (K3, Redis önbelleği değişiklikte temizlenir). Rol düşünce kişinin bu organizasyondaki token'ları yeni rolün üstüne çıkamaz; yazma token'ı İzleyici'ye düşen kişide salt okunur çalışır. Denetim kaydına <code>MemberRoleChanged</code>. <b>İzin:</b> <code>ManageMembers</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m159">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m159">Mert Kaya Yönetici olsun mu?</h2></div></div>
+      <div class="mdl-b">
+        <div class="r gp8 wrap t-m"><span class="bdg">Editör</span><svg class="ic s16 fg3"><use href="#i-arrow-r"/></svg><span class="bdg acc">Yönetici</span></div>
+        <p class="t-s fg2" style="margin:0">Değişiklik hemen geçerli olur: Mert bir sonraki işleminde production'a yayın yapabilir, incelemeye gönderebilir, mağaza bağlantılarını ve üyeleri yönetebilir. Açık oturumu ve MCP token'ları da yeni rolle çalışır.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Rolü değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-10">
+  <figcaption class="fr-h"><b class="fr-n">15.10</b><span class="fr-t">Üyeyi çıkar</span><code class="fr-r">/members → çıkar</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/organizations/member { OrganizationId, MemberId }</code>; Sahip'i yalnız Sahip çıkarır, son Sahip çıkarılamaz. Denetim kaydı silinmez; kişinin geçmiş kayıtları adıyla kalır (<code>MemberRemoved</code>). <span class="gap">Backend boşluğu:</span> üye çıkarılınca o organizasyona bağlı kişisel token'larının iptali (<code>PersonalAccessTokens</code> henüz yok).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1510">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1510">Selin Demir çıkarılsın mı?</h2></div></div>
+      <div class="mdl-b">
+        <ul class="consq"><li>Kuzey Lab'e erişimi hemen kesilir.</li><li>Bu organizasyon için oluşturduğu 1 token iptal edilir.</li><li>Denetim kaydındaki geçmiş işlemleri adıyla kalır.</li></ul>
+        <p class="t-s fg3" style="margin:0">Geri almak için yeniden davet etmen gerekir.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng"><svg class="ic"><use href="#i-trash"/></svg>Üyeyi çıkar</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-11">
+  <figcaption class="fr-h"><b class="fr-n">15.11</b><span class="fr-t">Organizasyondan ayrıl: tek Sahip engeli</span><code class="fr-r">/members → ayrıl</code></figcaption>
+  <p class="fr-note">Ayrılma aynı uç: <code>DELETE /api/v1.0/organizations/member</code> kendi <code>MemberId</code>'siyle (izin <code>View</code>). Deniz tek Sahip olduğu için diyalog engeli önceden söyler ve ayrılma düğmesi yerine "Sahipliği devret" sunar; sunucu yine <code>OrganizationLastOwner</code> döner. Başka Sahip varsa diyalog sade: "Kuzey Lab'den ayrılırsan erişimin hemen kesilir; bu organizasyondaki token'ların iptal edilir." + kırmızı "Ayrıl".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1511">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1511">Kuzey Lab'den ayrılamazsın</h2></div></div>
+      <div class="mdl-b">
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Organizasyonun tek <b>Sahip</b>'i sensin. Her organizasyonda en az bir Sahip kalır. Önce sahipliği bir üyeye devret, sonra ayrıl.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn inv"><svg class="ic"><use href="#i-switch"/></svg>Sahipliği devret</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-12" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.12</b><span class="fr-t">Sahipliği devret</span><code class="fr-r">/members → sahiplik</code></figcaption>
+  <p class="fr-note">Yalnız Sahip. Yeni Sahip mevcut bir üyeden seçilir; devreden kişinin yeni rolü seçilir (varsayılan Yönetici); onay için organizasyon adı aynen yazılır. <b>API:</b> <code>PUT /api/v1.0/organizations/owner { OrganizationId, NewOwnerMemberId, PreviousOwnerRole }</code> (planlanan, iki rol değişikliğini tek işlemde yapar). Bugün aynı sonuç iki <code>PUT member/role</code> çağrısıyla alınabilir (önce yeni Sahip, sonra kendini düşür) ama ikisinin arasında hata olursa iki Sahip kalır. <b>İzin:</b> <code>ManageOrganization</code>. Denetim kaydına iki <code>MemberRoleChanged</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Üyeler</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1512">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24"><use href="#i-switch"/></svg></span><div class="f1"><h2 class="h2" id="m1512">Kuzey Lab sahipliğini devret</h2><p class="t-s fg2 mt4">Organizasyonu silme ve sahip atama yetkisi yeni Sahip'e geçer.</p></div></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Yeni Sahip</span><span class="inp sel"><span class="av s">EY</span>Ece Yılmaz <span class="fg3 t-s">· şu an Yönetici</span></span><span class="hint">Yalnız mevcut üyeler. Yeni biri için önce davet et.</span></label>
+        <div class="fld"><span class="lbl">Senin yeni rolün</span><div class="seg"><span class="on">Yönetici</span><span>Editör</span><span>İzleyici</span><span>Sahip kal</span></div><span class="hint">"Sahip kal" seçilirse iki Sahip olur; sonra ayrılabilirsin.</span></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kuzey Lab</span> yaz</span><span class="inp foc typecheck mono">Kuzey Lab</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg>Metin eşleşti.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Sahipliği devret</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. ROLLER ============ -->
+<section class="sec" id="roller">
+<div class="sec-h"><span class="k">Bölüm 15.13-15.14</span><h2>Roller</h2><p>Dört seed rol (Sahip, Yönetici, Editör, İzleyici) kilitli; izinleri koddaki matristen gelir (<code>OrgRoleRules</code>) ve burada salt okunur görünür. İzinler matris değil dikey gruplu liste (09: kolonlar sağa büyümez). Özel roller Faz 8'de.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-13" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">15.13</b><span class="fr-t">Roller ve izinleri (salt okunur)</span><code class="fr-r">/members/roles</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/organizations/mine</code> → <code>MyOrganizationDto { Id, Name, Slug, Role, Permissions[] }</code> yalnız kendi rolünün izinlerini verir. Bütün rollerin matrisini dönen uç yok. <span class="gap">Backend boşluğu:</span> <code>GET /api/v1.0/organizations/roles</code> → <code>OrgRoleDto { Role, Permissions[], MemberCount, IsLocked }</code> (matrisi sunucudan okumak için; frontend'e kopyalanmaz). İzin açıklamaları <code>OrgPermission</code> <code>Description</code>'larından, sözlükte Türkçesi. Üst satır: rol adı, izin arama, "yalnız seçili olanlar", "{n} izin seçili". Grup başlığında "n / m seçili"; onay kutuları kilitli (<code>.chk</code> pasif değil, salt okunur: düzenleme Faz 8). "Özel rol" pasif, gerekçesiyle. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler|Roller" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Üyeler</h1></div><div class="pg-a"><span class="btn dis" aria-disabled="true"><svg class="ic"><use href="#i-plus"/></svg>Özel rol</span><span class="bdg sm">Faz 8</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Üyeler <span class="n">4</span></a><a class="tab on" href="#">Roller</a></div>
+        <div class="split-l">
+          <div class="rolel">
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Sahip</b><div class="t-xs fg3">10 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Yönetici</b><div class="t-xs fg3">9 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei on"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Editör</b><div class="t-xs fg3">4 / 10 izin · 1 üye</div></div></div>
+            <div class="rolei"><svg class="ic s16 fg3"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">İzleyici</b><div class="t-xs fg3">1 / 10 izin · 1 üye</div></div></div>
+            <div class="card dash mt8"><div class="card-b t-s fg2">Özel roller (ad ve izinleri düzenlenebilir) Faz 8'de gelecek. Seed rollerin adı ve izinleri değişmez.</div></div>
+          </div>
+          <div class="card"><div class="card-h"><svg class="ic s18 fg3"><use href="#i-lock"/></svg><span class="h3">Editör</span><span class="bdg sm">Sistem rolü · kilitli</span><span class="t-s fg3 ml hide-ph">4 izin seçili</span></div>
+            <div class="card-b">
+              <div class="r gp8 wrap mb16"><div class="inp f1" style="min-width:180px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">İzinlerde ara</span></div><span class="r gp8 t-s"><span class="sw"></span>Yalnız seçili olanlar</span></div>
+              <div class="fullp"><span class="chk dis"></span><div class="f1"><b class="t-m">Tam yetki</b><div class="t-s fg2">Bütün izinler, sahip atama ve organizasyonu silme. Yalnız Sahip rolünde.</div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Görme</b><span class="t-xs fg3">1 / 1 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Görüntüle</b> <span class="mono t-xs fg3">View</span><div class="t-s fg2">Uygulamalar, mağaza kayıtları, işler, yorumlar ve denetim kaydı.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">İçerik</b><span class="t-xs fg3">2 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Mağaza içeriğini düzenle</b> <span class="mono t-xs fg3">EditContent</span><div class="t-s fg2">Metin, ekran görüntüsü, mockup, build bağlama (diff, dry run, yazma).</div></div></div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Yorum yanıtla</b> <span class="mono t-xs fg3">ReplyReviews</span><div class="t-s fg2">App Store ve Google Play yorumlarına yanıt.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Yayın</b><span class="t-xs fg3">1 / 3 seçili</span></div><div>
+                <div class="prow"><span class="chk on"></span><div><b class="t-s">Test track'lerine yayın</b> <span class="mono t-xs fg3">ReleaseTest</span><div class="t-s fg2">Play internal ve test track'leri, TestFlight, paket uçuşları.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Production'a yayın</b> <span class="mono t-xs fg3">ReleaseProduction</span><div class="t-s fg2">Play production, aşamalı yayın yüzdesi, Microsoft Store yayını.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">İncelemeye gönder</b> <span class="mono t-xs fg3">SubmitForReview</span><div class="t-s fg2">App Store incelemesi ve Microsoft sertifikasyonu; ikinci onay ister.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Teslim</b><span class="t-xs fg3">0 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Mağaza bağlantılarını yönet</b> <span class="mono t-xs fg3">ManageConnections</span><div class="t-s fg2">API anahtarı ve servis hesabı ekleme, doğrulama, silme.</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Webhook'ları yönet</b> <span class="mono t-xs fg3">ManageWebhooks</span><div class="t-s fg2">Apple webhook uçları ve sır yenileme.</div></div></div></div></div>
+              <div class="pgrp"><div class="pgrp-h"><b class="t-m">Organizasyon</b><span class="t-xs fg3">0 / 2 seçili</span></div><div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Üyeleri yönet</b> <span class="mono t-xs fg3">ManageMembers</span><div class="t-s fg2">Davet, rol değiştirme, çıkarma (Sahip hariç).</div></div></div>
+                <div class="prow"><span class="chk"></span><div><b class="t-s">Organizasyonu yönet</b> <span class="mono t-xs fg3">ManageOrganization</span><div class="t-s fg2">Ayarlar, sahiplik devri, organizasyonu silme.</div></div></div></div></div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-14" data-view="phone" data-ph="900">
+  <figcaption class="fr-h"><b class="fr-n">15.14</b><span class="fr-t">Roller telefonda: açılır-kapanır gruplar</span><code class="fr-r">/members/roles</code></figcaption>
+  <p class="fr-note">Rol seçimi üstte yatay segment; gruplar alt alta ve kapalı açılır, grup başlığında "n / m seçili" ve ok. Bir grup açık (Yayın). Kilit ve "Faz 8" notu aynen kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="members" data-crumbs="Üyeler|Roller" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Roller</h1></div></div>
+        <div class="seg mb16" style="max-width:100%;overflow-x:auto"><span>Sahip</span><span>Yönetici</span><span class="on">Editör</span><span>İzleyici</span></div>
+        <div class="card"><div class="card-h"><svg class="ic s18 fg3"><use href="#i-lock"/></svg><span class="h3">Editör</span><span class="t-xs fg3 ml">4 / 10 izin</span></div>
+          <div class="card-b" style="padding-top:0;padding-bottom:0">
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Görme</b> <span class="t-xs fg3">· 1 / 1 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">İçerik</b> <span class="t-xs fg3">· 2 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp"><div class="pgrp-h r bt"><span><b class="t-m">Yayın</b> <span class="t-xs fg3">· 1 / 3 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-u"/></svg></div><div>
+              <div class="prow"><span class="chk on"></span><div><b class="t-s">Test track'lerine yayın</b><div class="t-s fg2">Play test track'leri, TestFlight, paket uçuşları.</div></div></div>
+              <div class="prow"><span class="chk"></span><div><b class="t-s">Production'a yayın</b><div class="t-s fg2">Play production, aşamalı yayın, Microsoft Store yayını.</div></div></div>
+              <div class="prow"><span class="chk"></span><div><b class="t-s">İncelemeye gönder</b><div class="t-s fg2">App Store incelemesi, Microsoft sertifikasyonu.</div></div></div></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Teslim</b> <span class="t-xs fg3">· 0 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+            <div class="pgrp cl"><div class="pgrp-h r bt"><span><b class="t-m">Organizasyon</b> <span class="t-xs fg3">· 0 / 2 seçili</span></span><svg class="ic s16 fg3"><use href="#i-chev-d"/></svg></div></div>
+          </div></div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-lock"/></svg><span>Sistem rolleri düzenlenmez. Özel roller Faz 8'de.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. DENETİM KAYDI ============ -->
+<section class="sec" id="denetim">
+<div class="sec-h"><span class="k">Bölüm 15.15-15.19</span><h2>Denetim kaydı</h2><p>Organizasyondaki her yazmanın kaydı: kim, ne zaman, hangi kanaldan (web, MCP, API, sistem), hangi mağazada, ne değişti. Kayıt silinmez, yalnız saklama süresi dolunca temizlenir. MCP'den gelen işlemler Claude'un adına değil, token'ın sahibine yazılır ve token öneki gösterilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-15" data-h="1040">
+  <figcaption class="fr-h"><b class="fr-n">15.15</b><span class="fr-t">Denetim kaydı listesi</span><code class="fr-r">/audit</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/organizations/audit-logs</code> + ListRequest → <code>StoreAuditLogDto { Id, Date, UserName, Channel (Web, Mcp, Api, System), Action, Store?, TargetId, Summary, Details }</code>, varsayılan <code>Date</code> azalan. Filtreler (08 E11): tarih <code>Between</code> + hızlı seçim bugün / 7 gün / 30 gün; <code>Channel</code>, <code>Action</code>, <code>Store</code> enum olduğu için yalnız <code>EqualTo</code> / <code>NotEqualTo</code>; kullanıcı arama tek alan <code>UserName</code> <code>Contains</code>. Satır tıklaması 15.16 çekmecesi; ok ikonu satırı yerinde genişletir (<code>Details</code> diff). Sayfa boyutu 10 / 20 / 50 / 100. <b>İzin:</b> <code>View</code>. <b>Telefonda</b> kart: işlem + tarih üstte, kullanıcı + kanal altta; filtreler "Filtreler (2)" düğmesine toplanır. <span class="gap">Backend boşluğu:</span> <code>AuditAction</code>'da mağaza yazmaları yok (<code>ListingUpdated</code>, <code>ScreenshotsUploaded</code>, <code>BuildUploaded</code>, <code>ReleaseSubmitted</code>, <code>RolloutChanged</code>, <code>ReviewReplied</code>, <code>TokenCreated</code>, <code>TokenRevoked</code>...); DTO'da token kimliği (<code>TokenPrefix</code>, <code>TokenName</code>), uygulama adı (<code>AppId</code>, <code>AppName</code>; <code>StoreAppId</code> tabloda var) ve <code>StoreJobId</code> yok; <code>Summary</code> sunucuda İngilizce serbest metin (dile çevrilmiyor, parametreli şablon olmalı).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1><p class="pg-s">Kuzey Lab'de yapılan her değişiklik. Kayıtlar silinmez.</p></div>
+          <div class="pg-a"><span class="ib hide-ph" aria-label="Yenile"><svg class="ic"><use href="#i-refresh"/></svg></span><span class="btn"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar">
+          <div class="inp hide-ph" style="width:220px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Kullanıcı adında ara</span></div>
+          <span class="chip on hide-ph"><svg class="ic"><use href="#i-calendar"/></svg>Son 7 gün</span>
+          <span class="chip on hide-ph">Kanal eşittir: MCP, Web</span>
+          <span class="chip hide-ph"><svg class="ic"><use href="#i-filter"/></svg>İşlem</span>
+          <span class="chip hide-ph">Mağaza</span>
+          <span class="btn sm only-ph"><svg class="ic"><use href="#i-filter"/></svg>Filtreler (2)</span>
+          <span class="btn ghost sm">Filtreleri temizle</span>
+          <span class="t-s fg3 ml hide-ph">2 filtre etkin</span>
+        </div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="w1"></th><th class="srt">Tarih <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Kullanıcı</th><th>Kanal</th><th>İşlem</th><th>Mağaza</th><th>Hedef</th><th>Özet</th></tr></thead>
+          <tbody>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-d"/></svg></td><td class="tm nowrap">18 Kas, 14:10</td><td data-l="Kullanıcı"><span class="c"><b class="t-s">Claude (MCP)</b><span class="t-xs fg3">Deniz Arslan'ın token'ı <span class="mono">sea_9c1…</span></span></span></td><td data-l="Kanal"><span class="bdg acc sm chn">MCP</span></td><td data-l="İşlem">Mağaza kaydı güncellendi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · de-DE</td><td data-l="Özet" class="t-s">Pusula 2.3: de-DE anahtar kelimeler (dry run onaylandı)</td></tr>
+            <tr class="xp"><td colspan="8" class="xd"><div class="c gp10">
+              <div class="diff"><div class="diff-h"><span class="mono">keywords · de-DE</span><span class="t-xs fg3 ml">Details</span></div>
+                <div class="dl del"><span>Kompass, Navigation, <del>Karte</del>, Wandern</span></div>
+                <div class="dl add"><span>Kompass, Navigation, <ins>Offline-Karten</ins>, Wandern, <ins>Peilung</ins></span></div></div>
+              <div class="r gp8 wrap t-s"><span class="lnk">İşi aç · #4821</span><span class="fg3">·</span><span class="lnk">Ayrıntılar</span></div></div></td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 14:02</td><td data-l="Kullanıcı"><b class="t-s">Ece Yılmaz</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Mağaza kaydı güncellendi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · en-US</td><td data-l="Özet" class="t-s">Pusula 2.3: en-US yenilikler metni</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 11:48</td><td data-l="Kullanıcı"><span class="c"><b class="t-s">Mert Kaya</b><span class="t-xs fg3">CI token'ı <span class="mono">sci_4be…</span></span></span></td><td data-l="Kanal"><span class="bdg sm chn">API</span></td><td data-l="İşlem">Build yüklendi</td><td data-l="Mağaza"><span class="st sm"><b>GP</b></span></td><td data-l="Hedef" class="mono t-xs">com.kuzeylab.pusula · 231</td><td data-l="Özet" class="t-s">2.4.0 (231) closed track'e gönderildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 09:30</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Üye davet edildi</td><td data-l="Mağaza" class="fg3">-</td><td data-l="Hedef" class="mono t-xs">31</td><td data-l="Özet" class="t-s">can@kuzeylab.dev Editör olarak davet edildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">18 Kas, 09:12</td><td data-l="Kullanıcı"><b class="t-s">storeasy</b></td><td data-l="Kanal"><span class="bdg sm chn">Sistem</span></td><td data-l="İşlem">Bağlantı doğrulandı</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">12</td><td data-l="Özet" class="t-s">Kuzey Lab ASC doğrulandı (Key ID 7QX2M4K9PL)</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">17 Kas, 16:40</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">İncelemeye gönderildi</td><td data-l="Mağaza"><span class="st sm"><b>AS</b></span></td><td data-l="Hedef" class="mono t-xs">6740012345 · 2.3</td><td data-l="Özet" class="t-s">Pusula 2.3 (118) incelemeye gönderildi</td></tr>
+            <tr><td class="tx"><svg class="ic s16"><use href="#i-chev-r"/></svg></td><td class="tm nowrap">17 Kas, 10:05</td><td data-l="Kullanıcı"><b class="t-s">Deniz Arslan</b></td><td data-l="Kanal"><span class="bdg sm chn">Web</span></td><td data-l="İşlem">Üye rolü değişti</td><td data-l="Mağaza" class="fg3">-</td><td data-l="Hedef" class="mono t-xs">14</td><td data-l="Özet" class="t-s">Ece Yılmaz: Editör → Yönetici</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 9 · Toplam: 172</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <p class="t-xs fg3 mt12">Kayıtlar 365 gün saklanır; süre <span class="lnk">organizasyon ayarlarından</span> değişir. Saatler senin yerel saatinde.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-16" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">15.16</b><span class="fr-t">Kayıt ayrıntısı (çekmece)</span><code class="fr-r">/audit?id=90412</code></figcaption>
+  <p class="fr-note">Sağdan açılan çekmece (08 bölüm 3.3), telefonda tam ekran. <code>Details</code> bugün serbest metin (JSON dizesi); çekmece içinde alan başına önce / sonra diff olarak çizilir. "İşi aç" canlı akıştaki iş detayına gider (adımlar, yeniden oynatma). <span class="gap">Backend boşluğu:</span> <code>Details</code> yapılandırılmış değişiklik olmalı (<code>Changes[{ Field, Locale, Before, After }]</code>, tabloda <code>Changes</code> jsonb planlı); DTO'ya <code>StoreJobId</code>, <code>Ip</code>, <code>TokenPrefix</code>, <code>TokenName</code>, <code>AppName</code> eklenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1516">
+      <div class="mdl-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><div class="f1"><div class="r gp8 mb8"><span class="bdg acc sm chn">MCP</span><span class="st sm"><b>AS</b>App Store</span></div><h2 class="h2" id="d1516">Mağaza kaydı güncellendi</h2><p class="t-s fg2 mt4">18 Kasım 2026, 14:10:22 · <span class="mono">#90412</span></p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <dl class="kv">
+          <dt>Kim</dt><dd><b>Claude (MCP)</b><div class="t-s fg2">Deniz Arslan'ın token'ı "Claude Code · dizüstü" <span class="mono">sea_9c1…</span></div></dd>
+          <dt>Uygulama</dt><dd><span class="r gp6"><span class="aic s" style="--c:#0F766E">P</span>Pusula · 2.3</span></dd>
+          <dt>Hedef</dt><dd class="mono t-s">6740012345 · de-DE</dd>
+          <dt>Araç</dt><dd class="mono t-s">listing_apply · plan 7f2c</dd>
+          <dt>İş</dt><dd><span class="lnk">#4821 · Tamamlandı, 4 sn</span></dd>
+          <dt>IP</dt><dd class="mono t-s fg3">MCP sunucusu</dd>
+        </dl>
+        <div class="diff"><div class="diff-h">Anahtar kelimeler · de-DE<span class="t-xs fg3 ml">51 / 100 karakter</span></div>
+          <div class="dl del"><span>Kompass, Navigation, <del>Karte</del>, Wandern</span></div>
+          <div class="dl add"><span>Kompass, Navigation, <ins>Offline-Karten</ins>, Wandern, <ins>Peilung</ins></span></div></div>
+        <div class="diff"><div class="diff-h">Tanıtım metni · de-DE</div>
+          <div class="dl"><span>Dein Kompass für unterwegs.</span></div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-spark"/></svg><div class="t-s">Claude önce dry run hazırladı; Deniz Arslan 14:09'da onayladı. Onay ve yazma aynı kayıtta.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn"><svg class="ic"><use href="#i-activity"/></svg>İşi aç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-17" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">15.17</b><span class="fr-t">Filtreler: tarih aralığı ve enum filtreleri</span><code class="fr-r">/audit → filtreler</code></figcaption>
+  <p class="fr-note">Masaüstünde sağ çekmece, telefonda tam ekran sayfa (aynı işaretleme; alt barda "Uygula · n kayıt"). Tarih: hazır aralıklar + iki alan (gün başı / gün sonu UTC'ye çevrilir, <code>Between</code> <code>value</code> / <code>otherValue</code>); takvim kitteki tarih seçicidir. Enum filtreleri her biri "eşittir / eşit değildir" + çoklu seçim değil tek değer (AND'lenir, OR yok; "MCP, Web" gibi çoklu seçim istemcide "eşit değildir: API" ve "eşit değildir: Sistem" iki kritere çevrilir). İşlem listesi <code>AuditAction</code> enum'undan, sunucudan çevrili etiketle (<code>lookups/enum</code>). Kullanıcı arama tek alan.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1517" style="width:420px">
+      <div class="mdl-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><div class="f1"><h2 class="h2" id="d1517">Filtreler</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Tarih</span>
+          <div class="presets"><span class="chip">Bugün</span><span class="chip on">Son 7 gün</span><span class="chip">Son 30 gün</span><span class="chip">Özel aralık</span></div>
+          <div class="g2" style="gap:8px"><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>11 Kas 2026</span><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>18 Kas 2026</span></div></div>
+        <div class="fld"><span class="lbl">Kullanıcı</span><div class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad soyad içinde</span></div></div>
+        <div class="fld"><span class="lbl">Kanal</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşittir</span><span class="inp sel f1">MCP</span></div></div>
+        <div class="fld"><span class="lbl">İşlem</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşit değildir</span><span class="inp sel f1">Bağlantı doğrulandı</span></div><span class="hint">Sistemin otomatik doğrulamalarını gizler.</span></div>
+        <div class="fld"><span class="lbl">Mağaza</span><div class="r gp8"><span class="inp sel" style="width:150px">Eşittir</span><span class="inp sel f1"><span class="ph">Hepsi</span></span></div></div>
+        <div class="fld"><span class="lbl">Hedef <span class="opt">· kimlik, tam eşleşme</span></span><span class="inp mono"><span class="ph">ör. 6740012345</span></span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost f1" style="justify-content:flex-start">Temizle</span><span class="btn pri">Uygula · 38 kayıt</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-18">
+  <figcaption class="fr-h"><b class="fr-n">15.18</b><span class="fr-t">Dışa aktar: 5000 satır uyarısı</span><code class="fr-r">/audit → dışa aktar</code></figcaption>
+  <p class="fr-note">Mevcut filtre ve sıralamayla aktarılır, en çok 5000 satır (08 E14). Toplam 5000'i aşınca önceden uyarı; aşmıyorsa onaysız iner, düğme yükleniyor durumuna geçer. 503 gelirse "Dışa aktarma geçici olarak kapalı" toast'ı. <span class="gap">Backend boşluğu:</span> denetim kaydı için dışa aktarma yok: <code>POST /api/v1.0/exports/export</code> platform (Manager) ucu ve yalnız <code>ExportType.User</code>; organizasyon kapsamlı <code>POST /api/v1.0/organizations/audit-logs/export</code> (ListRequest ile, <code>View</code>, CSV) eklenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Denetim kaydı</h1></div><div class="tbl-w" style="height:400px"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1518">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1518">İlk 5000 kayıt aktarılacak</h2></div></div>
+      <div class="mdl-b">
+        <p class="t-s fg2" style="margin:0">Seçili filtrelerle <b class="tnum">12.480</b> kayıt var. Dosya en çok 5000 satır alır; hepsini almak için tarih aralığını daralt.</p>
+        <dl class="kv t-s"><dt>Filtreler</dt><dd>Son 90 gün · Kanal eşittir Web</dd><dt>Sıralama</dt><dd>Tarih, yeniden eskiye</dd><dt>Biçim</dt><dd>CSV · UTF-8</dd></dl>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Filtreyi daralt</span><span class="btn pri"><svg class="ic"><use href="#i-download"/></svg>5000 kaydı aktar</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-19">
+  <figcaption class="fr-h"><b class="fr-n">15.19</b><span class="fr-t">Filtrelerle sonuç yok</span><code class="fr-r">/audit?channel=Api&amp;range=today</code></figcaption>
+  <p class="fr-note">Filtreler etkin ve sonuç boş: "Filtreleri temizle" ana çıkış. Organizasyonda hiç kayıt yoksa (yeni organizasyon) metin "Henüz kayıt yok. İlk mağaza bağlantısı ya da davet buraya düşer." olur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="audit" data-crumbs="Denetim kaydı" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Denetim kaydı</h1></div><div class="pg-a"><span class="btn dis" aria-disabled="true"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar"><span class="chip on"><svg class="ic"><use href="#i-calendar"/></svg>Bugün</span><span class="chip on">Kanal eşittir: API</span><span class="t-s fg3 ml hide-ph">2 filtre etkin</span></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-filter"/></svg></span><h4>Bu filtrelerle kayıt yok</h4><p>Bugün API kanalından bir işlem yapılmadı. Tarih aralığını genişlet ya da kanal filtresini kaldır.</p><div class="r gp8 wrap jc"><span class="btn">Filtreleri temizle</span><span class="btn ghost">Son 7 gün</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. AYARLAR ============ -->
+<section class="sec" id="ayarlar">
+<div class="sec-h"><span class="k">Bölüm 15.20-15.22</span><h2>Organizasyon ayarları</h2><p>Ad, kısa ad (slug), saklama süreleri ve varsayılan dil; en altta tehlikeli bölge. Kayıt modu (açık / davetle / kapalı) organizasyon değil platform ayarıdır, burada yok.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f15-20" data-h="1080">
+  <figcaption class="fr-h"><b class="fr-n">15.20</b><span class="fr-t">Organizasyon ayarları</span><code class="fr-r">/settings</code></figcaption>
+  <p class="fr-note"><b>API:</b> ad <code>PUT /api/v1.0/organizations/organization { OrganizationId, Name }</code> (var; <code>UpdateOrganizationCommand</code> yalnız <code>Name</code> alır). Saklama süreleri <code>GET</code> / <code>PUT /api/v1.0/organizations/settings { ArtifactRetentionDays, AuditRetentionDays, DefaultLocale }</code> (planlanan). Kaydet yalnız değişen alanı gönderir (<code>UpdateProperty</code>); kaydedilmemiş değişiklik varken çıkışta uyarı. Slug değişince eski bağlantılar ve CI'daki organizasyon adresleri bozulur: alan odaklanınca uyarı. <b>İzin:</b> <code>ManageOrganization</code> (Sahip); Yönetici sayfayı salt okunur görür, İzleyici 403 (15.22). <b>Telefonda</b> kartlar alt alta, kaydet çubuğu altta sabit. <span class="gap">Backend boşluğu:</span> slug değiştirme (<code>UpdateOrganizationCommand</code>'a <code>Slug</code>, <code>OrganizationSlugTaken</code> zaten var); <code>DefaultLocale</code> planın ayarlar listesinde yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Ayarlar</h1><p class="pg-s">Kuzey Lab organizasyonunun genel ayarları.</p></div><div class="pg-a"><span class="t-s fg3 hide-ph">1 değişiklik</span><span class="btn ghost">Vazgeç</span><span class="btn pri">Kaydet</span></div></div>
+        <div class="c gp16" style="max-width:760px">
+          <div class="card"><div class="card-h"><span class="h3">Genel</span></div><div class="card-b c gp16">
+            <label class="fld"><span class="lbl">Organizasyon adı</span><span class="inp">Kuzey Lab</span></label>
+            <div class="fld"><span class="lbl">Kısa ad (slug)</span><span class="inp foc mono"><span class="fg3">storeasy.milvasoft.com/</span>kuzeylab</span><span class="hint">Küçük harf, rakam ve tire; 3-40 karakter.</span>
+              <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Kısa ad değişirse</b> <span class="mono">kuzey-lab</span> ile başlayan paylaşılmış bağlantılar ve CI yapılandırmalarındaki organizasyon adresi çalışmaz. Token'lar ve davetler etkilenmez.</div></div></div>
+            <label class="fld"><span class="lbl">Varsayılan dil</span><span class="inp sel">Türkçe (tr)</span><span class="hint">Yeni uygulamalarda birincil mağaza dili ve organizasyon e-postalarının dili.</span></label>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Saklama</span></div><div class="card-b c gp16">
+            <div class="g2">
+              <label class="fld"><span class="lbl">Paket saklama süresi</span><span class="inp"><span class="tnum">30</span><span class="fg3 ml">gün</span></span><span class="hint">CI'dan alınan AAB, IPA ve MSIX dosyaları mağazaya gittikten sonra bu süre kadar tutulur. Varsayılan 30.</span></label>
+              <label class="fld"><span class="lbl">Denetim kaydı saklama</span><span class="inp sel">365 gün</span><span class="hint">90, 180, 365, 730 gün. Süresi dolan kayıt gece temizlenir.</span></label>
+            </div>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Kaynak kod</span></div><div class="card-b r gp12 wrap t-s fg2"><svg class="ic s18"><use href="#i-code"/></svg><span class="f1">storeasy AGPL-3.0 lisanslı. Bu kurulumun kaynak kodu ve sürümü.</span><span class="lnk">v1.0.0 · kaynak kod</span></div></div>
+          <div class="card dng"><div class="card-h"><span class="h3 dng-t">Tehlikeli bölge</span></div>
+            <div class="dz"><div class="f1"><b class="t-m">Sahipliği devret</b><div class="t-s fg2">Sahip yetkisini başka bir üyeye ver.</div></div><span class="btn">Devret</span></div>
+            <div class="dz"><div class="f1"><b class="t-m">Organizasyonu sil</b><div class="t-s fg2">Uygulamalar, bağlantılar, token'lar ve kayıtlar kalıcı olarak silinir.</div></div><span class="btn dng-o"><svg class="ic"><use href="#i-trash"/></svg>Sil</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-21" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">15.21</b><span class="fr-t">Organizasyonu sil</span><code class="fr-r">/settings → sil</code></figcaption>
+  <p class="fr-note">Yalnız Sahip. Sonuçlar somut sayılarla listelenir, organizasyon adı aynen yazılınca kırmızı düğme etkinleşir. Mağazadaki uygulamalara dokunulmaz. Silme bir iş olarak çalışır; bitince kullanıcı başka organizasyonuna (yoksa organizasyon oluştur ekranına, 05) düşer. <b>API:</b> <code>DELETE /api/v1.0/organizations/organization { OrganizationId, Confirm: "Kuzey Lab" }</code> (planlanan). <b>İzin:</b> <code>ManageOrganization</code>. Diğer üyelere uygulama içi bildirim gider.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Ayarlar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1521">
+      <div class="mdl-h"><span class="ib ghost dng-t" style="border:0"><svg class="ic s24"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1521">Kuzey Lab kalıcı olarak silinsin mi?</h2><p class="t-s fg2 mt4">Bu işlem geri alınamaz.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-plug"/></svg><span class="f1 t-s">3 mağaza bağlantısının şifreli anahtarları silinir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-key"/></svg><span class="f1 t-s">4 kişisel token ve 2 CI token'ı hemen iptal edilir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-users"/></svg><span class="f1 t-s">4 üyenin erişimi kesilir, 1 bekleyen davet geçersiz olur</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-grid"/></svg><span class="f1 t-s">6 uygulama, mockup şablonları, kayıtlı cevaplar ve denetim kaydı silinir</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-info"/></svg><span class="f1 t-s fg2">App Store, Google Play ve Microsoft Store'daki uygulamalar olduğu gibi kalır</span></div>
+        </div></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kuzey Lab</span> yaz</span><span class="inp foc mono">Kuzey La</span><span class="err-t t-s">Yazdığın metin eşleşmiyor.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng dis" aria-disabled="true">Organizasyonu sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f15-22">
+  <figcaption class="fr-h"><b class="fr-n">15.22</b><span class="fr-t">403: İzleyici ayarları açıyor</span><code class="fr-r">/settings</code></figcaption>
+  <p class="fr-note">Menüde "Ayarlar" görünür (Yönetici salt okunur görür), İzleyici doğrudan adresle ya da menüden açınca <code>GET /api/v1.0/organizations/settings</code> 403 döner. 08 bölüm 3.6: kalkan ikonu, "Tekrar dene" yok; yalnız geri dönüş. Kim yönetiyor bilgisi üyeler listesinden.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="settings" data-crumbs="Ayarlar" data-role="Viewer">
+      <div class="content">
+        <div class="state"><span class="sic"><svg class="ic"><use href="#i-shield-x"/></svg></span><h3>Bu sayfayı görme yetkin yok</h3><p>Organizasyon ayarlarını yalnız Sahip değiştirir. Kuzey Lab'de rolün <b>İzleyici</b>. Bir değişiklik gerekiyorsa Deniz Arslan'a yaz.</p><div class="r gp8 wrap jc"><span class="btn">Uygulamalara dön</span><span class="btn ghost">Üyeleri gör</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

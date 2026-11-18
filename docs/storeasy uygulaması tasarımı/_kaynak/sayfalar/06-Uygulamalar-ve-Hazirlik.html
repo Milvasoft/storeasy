@@ -1,0 +1,553 @@
+<!--
+title: Uygulamalar ve hazırlık
+kicker: 06 · Web uygulaması
+desc: Bütün uygulamaların tek listesi, uygulama detayının genel bakışı, "gönderimden önce eksik ne" hazırlık kontrolü, incelemeye gönderme kapısı, uyum zaman çizelgesi, kayıtlı cevaplar ve asistanlı adımlar. Bu dosya kitin referans bölümüdür.
+-->
+<style>
+.applist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.appc{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.appc.att{border-color:rgb(var(--danger)/.5)}
+.lanes{display:grid;gap:6px}
+.lane{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:10px;padding:8px 10px;font-size:12.5px;min-width:0}
+.lane .v{font:600 13px/1.2 var(--font-body);min-width:0}
+.lane .v small{font-weight:500;color:rgb(var(--fg-3))}
+.appc .foot{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:rgb(var(--fg-3));border-top:1px dashed rgb(var(--border));padding-top:10px}
+.rgrp{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden}
+.rgrp-h{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgb(var(--bg-2)/.6);border-bottom:1px solid rgb(var(--border))}
+.ri{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 16px;border-bottom:1px solid rgb(var(--border))}
+.ri:last-child{border-bottom:0}
+.ri .rid{font:500 11px/1.3 var(--font-mono);color:rgb(var(--fg-3))}
+.slotrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.slot{font:500 11px/1 var(--font-mono);padding:5px 7px;border-radius:6px;border:1px solid rgb(var(--border));color:rgb(var(--fg-2))}
+.slot.req{border-color:rgb(var(--danger)/.5);color:rgb(var(--danger))}
+.slot.fb{border-style:dashed}
+.slot.ok{border-color:rgb(var(--success)/.45);color:rgb(var(--success))}
+.ring{width:120px;height:120px;position:relative;flex:none}
+.ring svg{width:120px;height:120px;transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:800 30px/1 var(--font-display);letter-spacing:-.03em}
+.dl-month{font:700 13px/1 var(--font-display);margin:18px 0 8px;color:rgb(var(--fg-2))}
+.dlr{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:14px;align-items:start;padding:12px 16px;border-bottom:1px solid rgb(var(--border))}
+.dlr:last-child{border-bottom:0}
+.dlr .d{font:700 20px/1 var(--font-display);letter-spacing:-.02em}
+.dlr .d small{display:block;font:500 11px/1.3 var(--font-mono);color:rgb(var(--fg-3));margin-top:4px;letter-spacing:0}
+.typecheck{font:600 15px/1 var(--font-mono)}
+.ans-k{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px dashed rgb(var(--border))}
+.ans-k:last-child{border-bottom:0}
+.hand{border:1px solid rgb(var(--accent)/.35);background:rgb(var(--accent)/.05);border-radius:var(--r-lg);padding:16px}
+.shotev{height:120px;border-radius:10px;border:1px solid rgb(var(--border));background:repeating-linear-gradient(135deg,rgb(var(--bg-2)) 0 8px,rgb(var(--surface)) 8px 16px);display:grid;place-items:center;color:rgb(var(--fg-3));font:500 11px/1 var(--font-mono)}
+@container scr (max-width:760px){
+  .applist{grid-template-columns:1fr}
+  .dlr{grid-template-columns:56px minmax(0,1fr)}
+  .dlr>:last-child{grid-column:2}
+  .ri{grid-template-columns:24px minmax(0,1fr)}
+  .ri>:last-child{grid-column:2}
+  .ring{width:88px;height:88px}.ring svg{width:88px;height:88px}.ring b{font-size:22px}
+}
+</style>
+
+<!-- ============ 1. UYGULAMALAR ============ -->
+<section class="sec" id="liste">
+<div class="sec-h"><span class="k">Bölüm 6.1-6.6</span><h2>Uygulamalar</h2><p>Organizasyonun bütün uygulamaları tek listede. Bir storeasy uygulaması bir App Store, bir Google Play ve bir Microsoft Store kaydını eşler; kart her mağazayı ayrı bir "şerit" olarak gösterir. Liste açılışta "Tümü" gelir; "Dikkat isteyen" reddedilen, süresi yaklaşan ya da hazırlıkta engeli olan uygulamaları süzer.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f6-1">
+  <figcaption class="fr-h"><b class="fr-n">6.1</b><span class="fr-t">Uygulama ızgarası</span><code class="fr-r">/apps</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/apps</code> (planlanan) → <code>AppListDto { Id, Name, IconUrl, IconColor, Stores: [{ Store, StoreAppId, ExternalId, BundleId, VersionString, State, StateDescription, Track, RolloutPercentage }], AttentionReasons: [], OpenRejectionCount, NextDeadline { Date, Title } }</code>. Tüm mağaza durumları tek istekte; MCP'deki "bütün uygulamaların özeti" aracı aynı sorguyu kullanır. <b>İzin:</b> <code>View</code>; "Uygulama ekle" <code>EditContent</code>. Vurgu yalnız ana eylemde, seçili menüde ve ilerleme çubuğunda. Telefonda kartlar tek sütun, "Uygulama ekle" kenar menüsünde ve başlıktaki ikonda.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar" data-live>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Uygulamalar</h1><p class="pg-s">Üç mağazadaki her şey tek kartta. Mağazaya giden her değişiklik önce diff olarak görünür.</p></div>
+          <div class="pg-a"><div class="seg"><span class="on">Tümü · 6</span><span>Dikkat isteyen · 3</span></div><span class="ib hide-ph" title="Tablo görünümü"><svg class="ic"><use href="#i-list"/></svg></span><span class="btn hide-ph"><svg class="ic"><use href="#i-refresh"/></svg>Mağazadan çek</span></div></div>
+        <div class="toolbar"><span class="chip on"><span class="st sm"><b>AS</b></span>App Store · 5</span><span class="chip"><span class="st sm"><b>GP</b></span>Google Play · 5</span><span class="chip"><span class="st sm"><b>MS</b></span>Microsoft Store · 2</span><span class="t-s fg3 ml hide-ph">Son senkron 3 dk önce</span></div>
+        <div class="applist">
+          <article class="appc">
+            <div class="r gp12"><span class="aic" style="--c:#0F766E">P</span><div class="f1"><div class="h3">Pusula</div><div class="t-xs mono fg3 trunc">com.kuzeylab.pusula</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>AS</b></span><span class="v trunc">2.3 <small>· iPad seti yükleniyor</small><span class="prog sm mt4"><i style="width:57%"></i></span></span><span class="bdg warn sm"><span class="dot"></span>İncelemede</span></div>
+              <div class="lane"><span class="st sm"><b>GP</b></span><span class="v trunc">2.3.0 <small>· production</small></span><span class="bdg info sm">%20 yayında</span></div>
+              <div class="lane"><span class="st sm"><b>MS</b></span><span class="v trunc">2.3.0.0 <small>· MSIX</small></span><span class="bdg info sm">Sertifikasyonda</span></div>
+            </div>
+            <div class="foot"><span>tr, en, de · 3 dil</span><span>Hazırlık 12 / 12</span></div>
+          </article>
+          <article class="appc att">
+            <div class="r gp12"><span class="aic" style="--c:#B45309">D</span><div class="f1"><div class="h3">Defter</div><div class="t-xs mono fg3 trunc">com.kuzeylab.defter</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>AS</b></span><span class="v trunc">1.4 <small>· Guideline 2.1, 5.1.1</small></span><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></div>
+              <div class="lane"><span class="st sm"><b>GP</b></span><span class="v trunc">1.4.0 <small>· closed</small></span><span class="bdg sm">Testte</span></div>
+            </div>
+            <div class="foot"><span class="dng-t b6">Red kaydı açık · 2 gün</span><span>Yanıt taslağı var</span></div>
+          </article>
+          <article class="appc att">
+            <div class="r gp12"><span class="aic" style="--c:#DB2777">H</span><div class="f1"><div class="h3">Halka</div><div class="t-xs mono fg3 trunc">com.kuzeylab.halka</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>AS</b></span><span class="v trunc">1.0 (37) <small>· TestFlight</small></span><span class="bdg warn sm">6 gün kaldı</span></div>
+              <div class="lane"><span class="st sm"><b>GP</b></span><span class="v trunc">1.0.0 (42) <small>· AAB yükleniyor</small><span class="prog sm mt4"><i style="width:65%"></i></span></span><span class="bdg sm">Internal</span></div>
+            </div>
+            <div class="foot"><span class="warn-t b6">TestFlight build'i 24 Kasım'da bitiyor</span><span>2 grup</span></div>
+          </article>
+          <article class="appc">
+            <div class="r gp12"><span class="aic" style="--c:#15803D">M</span><div class="f1"><div class="h3">Mola</div><div class="t-xs mono fg3 trunc">com.kuzeylab.mola</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>AS</b></span><span class="v trunc">3.1.2 <small>· 4,7 puan</small></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div>
+              <div class="lane"><span class="st sm"><b>GP</b></span><span class="v trunc">3.1.2 <small>· 4,5 puan</small></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div>
+            </div>
+            <div class="foot"><span>8 yeni yorum</span><span>Çin beyanı 31 Ocak</span></div>
+          </article>
+          <article class="appc">
+            <div class="r gp12"><span class="aic" style="--c:#9A3412">T</span><div class="f1"><div class="h3">Tarla</div><div class="t-xs mono fg3 trunc">com.kuzeylab.tarla</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>GP</b></span><span class="v trunc">0.9.4 <small>· internal</small></span><span class="bdg sm">Testte</span></div>
+              <div class="lane"><span class="st sm"><b>MS</b></span><span class="v trunc">0.9.4 <small>· EXE yükleyici</small></span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div>
+            </div>
+            <div class="foot"><span>Entra sırrı 10 Aralık'ta bitiyor</span><span>2 dil</span></div>
+          </article>
+          <article class="appc att">
+            <div class="r gp12"><span class="aic" style="--c:#475569">K</span><div class="f1"><div class="h3">Kumbara</div><div class="t-xs mono fg3 trunc">com.kuzeylab.kumbara</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+            <div class="lanes">
+              <div class="lane"><span class="st sm"><b>AS</b></span><span class="v trunc">1.0 <small>· ilk gönderim</small></span><span class="bdg sm">Hazırlanıyor</span></div>
+            </div>
+            <div class="foot"><span class="dng-t b6">Hazırlık 7 / 12 · 5 eksik</span><span>Android yok</span></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-2">
+  <figcaption class="fr-h"><b class="fr-n">6.2</b><span class="fr-t">Tablo görünümü, filtre ve sayfalama</span><code class="fr-r">/apps?view=table</code></figcaption>
+  <p class="fr-note"><b>API:</b> aynı <code>PATCH /api/v1.0/apps</code>; liste sözleşmesi 08 bölüm 2.1: arama tek alanda <code>Name</code> <code>Contains</code>, mağaza ve durum filtreleri enum olduğu için yalnız eşittir / eşit değildir. Sayfalama 10 / 20 / 50 / 100, varsayılan 20. <b>Telefonda</b> tablo kart listesine döner (her satır: ad başlık, mağaza durumları ikincil satır, sağda "..." menüsü). Satır tıklaması uygulama detayını açar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Uygulamalar</h1></div><div class="pg-a"><div class="inp hide-ph" style="width:280px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Uygulama adında ara</span></div><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="toolbar"><span class="chip"><svg class="ic"><use href="#i-filter"/></svg>Mağaza: App Store</span><span class="chip">Durum eşit değildir: Yayında</span><span class="btn ghost sm">Filtreleri temizle</span><span class="t-s fg3 ml hide-ph">2 filtre etkin</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Uygulama <svg class="ic"><use href="#i-arrow-up"/></svg></th><th>App Store</th><th>Google Play</th><th>Microsoft Store</th><th>Hazırlık</th><th>Sonraki son tarih</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#B45309">D</span><b>Defter</b></span></td><td data-l="App Store"><span class="bdg dng sm"><span class="dot"></span>1.4 Reddedildi</span></td><td data-l="Google Play">1.4.0 · closed</td><td data-l="Microsoft Store" class="fg3">-</td><td data-l="Hazırlık">10 / 12</td><td data-l="Son tarih">12 Oca 2027</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr class="hov"><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#DB2777">H</span><b>Halka</b></span></td><td data-l="App Store"><span class="bdg info sm">1.0 (37) TestFlight</span></td><td data-l="Google Play">1.0.0 · internal</td><td data-l="Microsoft Store" class="fg3">-</td><td data-l="Hazırlık">9 / 12</td><td data-l="Son tarih"><span class="warn-t b6">24 Kas 2026</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#475569">K</span><b>Kumbara</b></span></td><td data-l="App Store"><span class="bdg sm">1.0 Hazırlanıyor</span></td><td data-l="Google Play" class="fg3">-</td><td data-l="Microsoft Store" class="fg3">-</td><td data-l="Hazırlık"><span class="dng-t b6">7 / 12</span></td><td data-l="Son tarih">12 Oca 2027</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="App Store"><span class="bdg warn sm"><span class="dot"></span>2.3 İncelemede</span></td><td data-l="Google Play">2.3.0 · %20</td><td data-l="Microsoft Store">2.3.0.0 · sertifikasyon</td><td data-l="Hazırlık">12 / 12</td><td data-l="Son tarih">12 Oca 2027</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 4</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm dis">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-3">
+  <figcaption class="fr-h"><b class="fr-n">6.3</b><span class="fr-t">Uygulama ekle: mağaza kayıtlarını eşle</span><code class="fr-r">/apps/new</code></figcaption>
+  <p class="fr-note">Mağazada uygulama oluşturmak API ile mümkün değil (App Store, Play ve Microsoft Store'da asistanlı adım, bkz. 6.16); burada senkronla gelen ve henüz bir storeasy uygulamasına bağlanmamış kayıtlar eşlenir. Aynı paket adı ya da bundle id'ye sahip kayıtlar önerilir. <b>API:</b> <code>GET /api/v1.0/apps/unlinked-store-apps</code> → <code>UnlinkedStoreAppDto { StoreConnectionId, ConnectionName, Store, ExternalId, BundleId, Name, IconUrl }</code>; <code>POST /api/v1.0/apps/app { Name, StoreAppIds[] }</code> (<code>Idempotency-Key</code>). <b>İzin:</b> <code>EditContent</code>. Telefonda modal alttan açılan tam ekran sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div><div class="applist" style="opacity:.5"><div class="appc" style="height:200px"></div><div class="appc" style="height:200px"></div><div class="appc" style="height:200px"></div></div></div>
+    </div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m63">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m63">Uygulama ekle</h2><p class="t-s fg2 mt4">Mağazalardan gelen ve henüz eşlenmemiş kayıtları tek uygulamada topla.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Uygulama adı</span><span class="inp foc">Kumbara</span><span class="hint">Yalnız storeasy içinde görünür; mağazadaki adı değiştirmez.</span></label>
+        <div class="fld"><span class="lbl">Mağaza kayıtları <span class="opt">· en az bir</span></span>
+          <div class="card"><div class="lst">
+            <div class="lst-i"><span class="chk on"></span><span class="st"><b>AS</b></span><div class="f1"><b class="t-m">Kumbara</b><div class="t-xs mono fg3">6740056789 · com.kuzeylab.kumbara · Kuzey Lab ASC</div></div><span class="bdg acc sm">Önerilen</span></div>
+            <div class="lst-i"><span class="chk"></span><span class="st"><b>GP</b></span><div class="f1"><b class="t-m">Kumbara Beta</b><div class="t-xs mono fg3">com.kuzeylab.kumbara.beta · Play servis hesabı</div></div><span class="t-xs fg3">Paket adı farklı</span></div>
+            <div class="lst-i"><span class="chk dis"></span><span class="st"><b>MS</b></span><div class="f1"><b class="t-m fg3">Microsoft Store kaydı yok</b><div class="t-xs fg3">Partner Center'da ad ayırma asistanlı adımdır.</div></div><span class="btn sm ghost">Adımı aç</span></div>
+          </div></div>
+        </div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div>Bir mağaza kaydı aynı anda yalnız bir uygulamaya bağlanabilir. Listede görmediğin bir kayıt için önce <b>Mağaza bağlantıları</b>ndan senkron başlat.</div></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1">1 kayıt seçili</span><span class="btn ghost">İptal</span><span class="btn pri">Uygulamayı ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-4">
+  <figcaption class="fr-h"><b class="fr-n">6.4</b><span class="fr-t">Boş: henüz mağaza bağlantısı yok</span><code class="fr-r">/apps</code></figcaption>
+  <p class="fr-note">Yeni organizasyonun ilk açılışı. Tek ana eylem "Mağaza bağla" (izin <code>ManageConnections</code>; yoksa düğme yerine "Bir yöneticiden bağlantı eklemesini iste" metni). Bağlantı varsa ama uygulama eşlenmemişse metin "Senkron tamamlandı, 4 kayıt eşlenmeyi bekliyor" olur ve eylem "Uygulama ekle"dir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar" data-act="" data-bell="off">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div>
+        <div class="empty" style="padding:56px 24px">
+          <svg viewBox="0 0 220 96" width="220" height="96" aria-hidden="true"><path d="M44 48 C 90 48, 100 20, 170 20" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><path d="M44 48 C 90 48, 100 76, 170 76" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><path d="M44 48 H170" fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"/><rect x="14" y="20" width="56" height="56" rx="16" fill="rgb(var(--accent))"/><use href="#logo" x="24" y="30" width="36" height="36" class="mk inv"/><g font-family="JetBrains Mono" font-size="9" font-weight="700" fill="rgb(var(--fg-3))"><rect x="166" y="8" width="40" height="24" rx="7" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))"/><text x="186" y="24" text-anchor="middle">AS</text><rect x="166" y="36" width="40" height="24" rx="7" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))"/><text x="186" y="52" text-anchor="middle">GP</text><rect x="166" y="64" width="40" height="24" rx="7" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))"/><text x="186" y="80" text-anchor="middle">MS</text></g></svg>
+          <h4>Hat henüz boş</h4><p>App Store Connect API anahtarını, Play servis hesabını ya da Microsoft Entra uygulamasını bağla. storeasy uygulamalarını ve build'lerini kendisi çeker.</p>
+          <span class="btn pri mt8"><svg class="ic"><use href="#i-plug"/></svg>Mağaza bağla</span><span class="t-s fg3">Anahtarlar şifreli saklanır, hiçbir ekranda geri gösterilmez.</span>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-5">
+  <figcaption class="fr-h"><b class="fr-n">6.5</b><span class="fr-t">İlk yükleme (iskelet)</span><code class="fr-r">/apps</code></figcaption>
+  <p class="fr-note">İskelet gerçek kartın şeklinde. Sonraki yüklemelerde (filtre, yenileme) eski kartlar kalır ve üstte ince ilerleme çizgisi akar. Hareket azaltmada parıltı durur, gri bloklar kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content"><div class="pg-h"><div class="c gp8"><span class="sk t" style="width:200px;height:28px"></span><span class="sk" style="width:340px"></span></div></div>
+        <div class="applist">
+          <div class="appc"><div class="r gp12"><span class="sk" style="width:44px;height:44px;border-radius:12px"></span><div class="c gp6 f1"><span class="sk t" style="width:60%"></span><span class="sk" style="width:80%"></span></div></div><span class="sk b"></span><span class="sk b"></span><span class="sk" style="width:50%"></span></div>
+          <div class="appc"><div class="r gp12"><span class="sk" style="width:44px;height:44px;border-radius:12px"></span><div class="c gp6 f1"><span class="sk t" style="width:50%"></span><span class="sk" style="width:70%"></span></div></div><span class="sk b"></span><span class="sk b"></span><span class="sk" style="width:40%"></span></div>
+          <div class="appc hide-ph"><div class="r gp12"><span class="sk" style="width:44px;height:44px;border-radius:12px"></span><div class="c gp6 f1"><span class="sk t" style="width:55%"></span><span class="sk" style="width:75%"></span></div></div><span class="sk b"></span><span class="sk b"></span><span class="sk" style="width:45%"></span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-6">
+  <figcaption class="fr-h"><b class="fr-n">6.6</b><span class="fr-t">Arama sonucu yok</span><code class="fr-r">/apps?q=kasa</code></figcaption>
+  <p class="fr-note">Arama 400 ms gecikmeyle tetiklenir, sayfa 1'e döner. Filtre varken sonuç yoksa "Filtreleri temizle" eklenir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1><div class="pg-a"><div class="inp foc" style="width:260px"><svg class="ic"><use href="#i-search"/></svg>kasa</div></div></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-search"/></svg></span><h4>"kasa" için sonuç yok</h4><p>Ad yazımını kontrol et ya da mağaza filtresini kaldır.</p><div class="r gp8"><span class="btn">Aramayı temizle</span><span class="btn ghost">Filtreleri temizle</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. GENEL BAKIŞ ============ -->
+<section class="sec" id="ozet">
+<div class="sec-h"><span class="k">Bölüm 6.7</span><h2>Uygulama detayı: genel bakış</h2><p>Uygulama detayının iki seviyeli gezinmesi bütün dosyalarda aynı: üstte mağaza seçici (yalnız bağlı mağazalar), altında yedi sekme (Genel bakış, Hazırlık, Mağaza kaydı, Yayın, Para, Geri bildirim, Uyum) ve sekmenin alt bölümleri çip satırında. Mağazaya özel alt bölümler (TestFlight, Paket uçuşları, Add-on'lar) yalnız o mağaza seçiliyken görünür.</p></div>
+<div class="frames">
+<figure class="fr" id="f6-7" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">6.7</b><span class="fr-t">Genel bakış (üç mağaza birlikte)</span><code class="fr-r">/apps/:appId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/apps/app?AppId=</code> → <code>AppDetailDto { Id, Name, Stores: [...], Locales[], Readiness: [{ Store, Ok, Total, Blocking }], Deadlines: [ComplianceItemDto], ActiveJobs: [StoreJobListDto] }</code>; son işlemler <code>PATCH /api/v1.0/organizations/audit-logs</code> + <code>TargetId</code> filtresi. Canlı iş satırı SignalR <code>/hubs/activity</code> olaylarıyla güncellenir. Sağ üstte tek ana eylem yok: gönderme kararı Hazırlık sekmesinde verilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula" data-live="1 iş sürüyor">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="all" data-tab="ozet" data-ready="12/12"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Senkron</span><span class="ib"><svg class="ic"><use href="#i-more"/></svg></span></div>
+        <div class="g3">
+          <div class="card"><div class="card-h"><span class="st"><b>AS</b>App Store</span><span class="bdg warn sm ml"><span class="dot"></span>İncelemede</span></div><div class="card-b c gp10"><div class="r bt"><span class="fg3 t-s">Sürüm</span><b class="mono">2.3 (118)</b></div><div class="r bt"><span class="fg3 t-s">Gönderildi</span><span>17 Kas, 16:40</span></div><div class="r bt"><span class="fg3 t-s">Yayın türü</span><span>Elle yayın</span></div><div class="r bt"><span class="fg3 t-s">Aşamalı yayın</span><span>Açık (7 gün)</span></div></div></div>
+          <div class="card"><div class="card-h"><span class="st"><b>GP</b>Google Play</span><span class="bdg info sm ml">%20 yayında</span></div><div class="card-b c gp10"><div class="r bt"><span class="fg3 t-s">Production</span><b class="mono">2.3.0 (230)</b></div><div class="c gp4"><div class="r bt t-s"><span class="fg3">Aşamalı yayın</span><span>%20 · 3. gün</span></div><span class="prog"><i style="width:20%"></i></span></div><div class="r bt"><span class="fg3 t-s">Closed</span><span class="mono">2.4.0 (231)</span></div></div></div>
+          <div class="card"><div class="card-h"><span class="st"><b>MS</b>Microsoft Store</span><span class="bdg info sm ml">Sertifikasyonda</span></div><div class="card-b c gp10"><div class="r bt"><span class="fg3 t-s">Paket</span><b class="mono">2.3.0.0 · x64, arm64</b></div><div class="r bt"><span class="fg3 t-s">Gönderim</span><span class="mono">1152921505698</span></div><div class="r bt"><span class="fg3 t-s">Uçuş</span><span>Kuzey içi · 2.4.0.0</span></div></div></div>
+        </div>
+        <div class="split mt16">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-activity"/></svg><span class="h3">Şu an hatta</span><span class="bdg live ok sm ml"><span class="dot"></span>Canlı</span></div>
+              <div class="card-b c gp10"><div class="r gp12"><span class="st sm"><b>AS</b></span><div class="f1"><b class="t-m">iPad 13" ekran görüntüleri · tr</b><div class="t-xs fg3 mono">asset.upload · 04-takvim.png · parça 2/3</div></div><span class="mono t-s">4 / 7</span></div><div class="stp"><span class="d"></span><span class="d"></span><span class="d"></span><span class="n"></span><span></span><span></span><span></span></div></div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-history"/></svg><span class="h3">Son işlemler</span><span class="lnk t-s ml">Denetim kaydı</span></div>
+              <div class="lst">
+                <div class="lst-i"><span class="av s">EY</span><div class="f1 t-s"><b>Ece Yılmaz</b> en-US yenilikler metnini güncelledi<div class="t-xs fg3">App Store · 2.3 · web</div></div><span class="t-xs fg3 nowrap">14:02</span></div>
+                <div class="lst-i"><span class="av s">MK</span><div class="f1 t-s"><b>Mert Kaya</b> 2.4.0 (231) closed track'e gönderildi<div class="t-xs fg3">Google Play · CI · GitHub Actions</div></div><span class="t-xs fg3 nowrap">11:48</span></div>
+                <div class="lst-i"><span class="av s"><svg class="ic s14"><use href="#i-spark"/></svg></span><div class="f1 t-s"><b>Claude (MCP)</b> de-DE anahtar kelimeler için dry run hazırladı<div class="t-xs fg3">App Store · onay bekliyor · Deniz Arslan adına</div></div><span class="t-xs fg3 nowrap">Dün</span></div>
+              </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Hazırlık</span><span class="lnk t-s ml">Ayrıntı</span></div><div class="card-b c gp10">
+              <div class="r bt t-s"><span class="st sm"><b>AS</b>App Store</span><span class="ok-t b6">12 / 12</span></div>
+              <div class="r bt t-s"><span class="st sm"><b>GP</b>Google Play</span><span class="ok-t b6">11 / 11</span></div>
+              <div class="r bt t-s"><span class="st sm"><b>MS</b>Microsoft Store</span><span class="ok-t b6">9 / 9</span></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Yaklaşan son tarihler</span></div><div class="lst">
+              <div class="lst-i"><div class="f1 t-s"><b>Yaş derecelendirmesi yeni soruları</b><div class="t-xs fg3">App Store · bütün uygulamalar</div></div><span class="bdg warn sm">12 Oca</span></div>
+              <div class="lst-i"><div class="f1 t-s"><b>iPhone Duo ekran görüntüleri</b><div class="t-xs fg3">iOS 27.1 SDK ile derlenince</div></div><span class="bdg sm">Nis 2027</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Diller</span></div><div class="card-b r gp6 wrap"><span class="tag">tr</span><span class="tag">en-US</span><span class="tag">de-DE</span><span class="t-xs fg3">Birincil: tr</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+</div>
+</section>
+
+<!-- ============ 3. HAZIRLIK ============ -->
+<section class="sec" id="hazirlik">
+<div class="sec-h"><span class="k">Bölüm 6.8-6.11</span><h2>Hazırlık kontrolü ve incelemeye gönderme</h2><p>"Gönderimden önce eksik ne" sorusunun tek cevabı. Kontroller kural kataloğundan gelir (bölüm 12): her satır kataloğun kural kimliğini, durumunu (tamam, eksik, uyarı, asistanlı) ve düzeltme yolunu taşır. Aynı rapor MCP'de tek çağrıdır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f6-8" data-h="1040">
+  <figcaption class="fr-h"><b class="fr-n">6.8</b><span class="fr-t">Hazırlık: App Store, ilk gönderim</span><code class="fr-r">/apps/:appId/readiness?store=apple</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/apps/readiness?AppId=&amp;Store=Apple</code> → <code>ReadinessReportDto { Store, VersionString, CheckedDate, Items: [{ Key, Group, Status (Ok, Missing, Warning, Assisted, NotApplicable), RuleId, Title, Message, FixRoute, Slots?: [{ ClassKey, Required, FilledBy (Own, Fallback, None), Count }] }] }</code>. Ekran görüntüsü satırı katalogdan zorunlu, yedekle karşılanan ve eksik sınıfları gösterir (iPad yalnız uygulama tablet destekliyorsa). "İncelemeye gönder" yalnız engel kalmayınca etkin ve izin <code>SubmitForReview</code> ister. Telefonda satırlar alt alta, düzeltme düğmesi metnin altına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Hazırlık">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="hazirlik" data-ready="!5"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="rgrp"><div class="rgrp-h"><svg class="ic s18"><use href="#i-file-text"/></svg><b class="t-m">Metinler ve görseller</b><span class="t-s fg3 ml">2 eksik</span></div>
+              <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Sürüm metinleri: tr, en-US</b><div class="t-s fg2">Açıklama, anahtar kelimeler, destek URL'si ve telif dolu.</div><div class="rid">apple.listing.required</div></div><span></span></div>
+              <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-x"/></svg></span><div><b class="t-m">Ekran görüntüleri: iPhone</b><div class="t-s fg2">en-US için Dynamic Island (medium) seti boş. tr seti var ama yedek zinciri dil başına çalışır.</div>
+                <div class="slotrow"><span class="slot ok">tr · 6,1" · 6</span><span class="slot req">en-US · 6,1" · 0 / zorunlu</span><span class="slot fb">6,9" · Face ID large'dan</span><span class="slot fb">5,5" · bir üst sınıftan</span></div><div class="rid">apple.screenshots.iphone.di-medium</div></div><span class="btn sm">Görsellere git</span></div>
+              <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-x"/></svg></span><div><b class="t-m">Ekran görüntüleri: iPad 13"</b><div class="t-s fg2">Build iPad'i destekliyor (UIDeviceFamily 1, 2). 13" sınıfının yedeği yok.</div><div class="slotrow"><span class="slot req">tr · 13" · 0 / zorunlu</span><span class="slot req">en-US · 13" · 0 / zorunlu</span></div><div class="rid">apple.screenshots.ipad.13</div></div><span class="btn sm">Stüdyoda üret</span></div>
+            </div>
+            <div class="rgrp"><div class="rgrp-h"><svg class="ic s18"><use href="#i-box"/></svg><b class="t-m">Build ve uyum</b><span class="t-s fg3 ml">1 eksik</span></div>
+              <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Build bağlı ve geçerli</b><div class="t-s fg2 mono">1.0 (12) · VALID · Xcode 26.1 · iOS 26 SDK</div><div class="rid">apple.build.min-sdk</div></div><span></span></div>
+              <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-x"/></svg></span><div><b class="t-m">İhracat uyumu cevaplanmadı</b><div class="t-s fg2">usesNonExemptEncryption build'de tanımlı değil; bu sürüm için soru cevaplanmalı.</div><div class="rid">apple.build.export-compliance</div></div><span class="btn sm">Cevapla</span></div>
+              <div class="ri"><span class="ck-s warn"><svg class="ic"><use href="#i-alert-t"/></svg></span><div><b class="t-m">Yaş derecelendirmesi: yeni sorular</b><div class="t-s fg2">Paylaşılan konum ve tanışma soruları boş. Son tarih 12 Ocak 2027; o tarihten sonra güncelleme gönderilemez.</div><div class="rid">apple.age-rating.2026-questions</div></div><span class="btn sm">Soruları aç</span></div>
+            </div>
+            <div class="rgrp"><div class="rgrp-h"><svg class="ic s18"><use href="#i-hand"/></svg><b class="t-m">Asistanlı adımlar</b><span class="t-s fg3 ml">API'de karşılığı yok</span></div>
+              <div class="ri"><span class="ck-s asst"><svg class="ic"><use href="#i-hand"/></svg></span><div><b class="t-m">App Privacy etiketleri</b><div class="t-s fg2">Kayıtlı cevaplar hazır (4 veri türü). App Store Connect'te elle ya da tarayıcı devriyle girilecek.</div><div class="rid">apple.privacy.labels · asistanlı</div></div><span class="btn sm">Adımı aç</span></div>
+              <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Paid Apps Agreement</b><div class="t-s fg2">Etkin olarak işaretlendi. Son kontrol 3 Kasım 2026, Deniz Arslan.</div><div class="rid">apple.agreements.paid · asistanlı</div></div><span class="t-xs fg3">15 gün önce</span></div>
+            </div>
+            <div class="rgrp"><div class="rgrp-h"><svg class="ic s18"><use href="#i-coin"/></svg><b class="t-m">Para ve inceleme</b><span class="t-s fg3 ml">1 eksik</span></div>
+              <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Fiyat ve bölgeler</b><div class="t-s fg2">Ücretsiz · 174 bölge (Çin anakarası hariç)</div></div><span></span></div>
+              <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-x"/></svg></span><div><b class="t-m">Abonelik inceleme görüntüsü</b><div class="t-s fg2">"Kumbara Plus Aylık" için inceleme görüntüsü yok. İlk abonelik bu sürümle birlikte gönderilecek.</div><div class="rid">apple.iap.review-screenshot</div></div><span class="btn sm">Yükle</span></div>
+              <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">İnceleme iletişimi ve demo hesap</b><div class="t-s fg2">Kayıtlı cevaplardan: Deniz Arslan · demo@kuzeylab.dev · şifre şifreli saklı</div></div><span></span></div>
+            </div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp16 ac">
+              <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgb(var(--bg-2))" stroke-width="12"/><circle cx="60" cy="60" r="52" fill="none" stroke="rgb(var(--accent))" stroke-width="12" stroke-linecap="round" stroke-dasharray="190.6 326.7"/></svg><b>7/12</b></div>
+              <div class="ctr" style="text-align:center"><div class="h3">5 engel var</div><p class="t-s fg2 mt4">Hepsi kapanınca gönderme kapısı açılır.</p></div>
+              <span class="btn blk pri dis" aria-disabled="true"><svg class="ic"><use href="#i-send"/></svg>İncelemeye gönder</span>
+              <span class="t-xs fg3" style="text-align:center">Kontrol 2 dk önce · katalog v1.3 · <span class="lnk">Yeniden kontrol et</span></span>
+            </div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-spark"/></svg><div><b>MCP'de aynı rapor</b><div class="t-s fg2 mt4">Claude <span class="mono">readiness_check</span> aracıyla bu listeyi görür ve eksikleri sırayla kapatabilir; her yazma yine dry run ve onay ister.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-9" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">6.9</b><span class="fr-t">Hazırlık: Google Play, güncelleme</span><code class="fr-r">/apps/:appId/readiness?store=google</code></figcaption>
+  <p class="fr-note">Play'e özel kurallar: hedef API seviyesi (güncellemeler için API 36, 31 Ağustos 2026'dan beri), versionCode'un öncekinden büyük olması, Data safety formunun kayıtlı cevaplardan üretilmesi, Android geliştirici doğrulaması (asistanlı). Production'a yayın ayrıca <code>ReleaseProduction</code> izni ister; bu ekranda ana eylem "Track'e gönder"dir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Hazırlık" data-live="1 iş sürüyor">
+      <div class="content">
+        <div class="apphead" data-app="halka" data-store="google" data-tab="hazirlik" data-ready="!2"></div>
+        <div class="split">
+          <div class="rgrp">
+            <div class="rgrp-h"><b class="t-m">1.0.0 (42) · internal → closed</b><span class="t-s fg3 ml">9 / 11 tamam</span></div>
+            <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Hedef API seviyesi</b><div class="t-s fg2 mono">targetSdk 36 · gerekli 36</div><div class="rid">google.build.target-api</div></div><span></span></div>
+            <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">versionCode artıyor</b><div class="t-s fg2 mono">42 &gt; 41 (internal'daki son)</div></div><span></span></div>
+            <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Mağaza listesi: tr-TR, en-US</b><div class="t-s fg2">Başlık, kısa ve uzun açıklama dolu.</div></div><span></span></div>
+            <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-x"/></svg></span><div><b class="t-m">Grafikler: 7" tablet</b><div class="t-s fg2">Uygulama tablet düzeni bildiriyor; 7" tablet ekranı en az 1 tane olmalı (önerilen 4).</div><div class="slotrow"><span class="slot ok">Telefon · 6</span><span class="slot req">7" tablet · 0</span><span class="slot ok">10" tablet · 4</span><span class="slot ok">Öne çıkan 1024x500</span></div></div><span class="btn sm">Görsellere git</span></div>
+            <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Data safety</b><div class="t-s fg2">Kayıtlı cevaplardan CSV üretildi, 12 Kasım'da gönderildi.</div></div><span></span></div>
+            <div class="ri"><span class="ck-s dng"><svg class="ic"><use href="#i-hand"/></svg></span><div><b class="t-m">Android geliştirici doğrulaması</b><div class="t-s fg2">Paket adı Play Console'da kayıtlı değil. Kayıtsız uygulama Play'den kaldırılabilir. Hesap sahibi rolü gerekir.</div><div class="rid">google.policy.developer-verification · asistanlı</div></div><span class="btn sm">Adımı aç</span></div>
+            <div class="ri"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div><b class="t-m">Test kullanıcıları</b><div class="t-s fg2">closed-beta@kuzeylab.dev grubu</div></div><span></span></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12">
+              <div class="h3">Closed track'e gönder</div>
+              <p class="t-s fg2">Engel: 2. Track ataması engeller kapanınca açılır; internal'a yükleme şu an sürüyor.</p>
+              <div class="c gp4"><div class="r bt t-s"><span>halka-1.0.0-42.aab</span><span class="mono">31,4 / 48,0 MB</span></div><span class="prog"><i style="width:65%"></i></span></div>
+              <span class="btn pri blk dis"><svg class="ic"><use href="#i-rocket"/></svg>Track'e gönder</span>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-10">
+  <figcaption class="fr-h"><b class="fr-n">6.10</b><span class="fr-t">İncelemeye gönderme kapısı</span><code class="fr-r">/apps/:appId/readiness → onay</code></figcaption>
+  <p class="fr-note">İkinci onay adımı (plan 2.2 ve 8): gönderilecek her şey özetlenir, kullanıcı uygulama adını ve sürümü <b>aynen yazar</b>; yazı eşleşene kadar düğme pasif. İlk abonelikler sürümle birlikte gider. <b>API:</b> <code>POST /api/v1.0/releases/submit-for-review { StoreAppId, VersionId, Confirm: "Kumbara 1.0", SubscriptionIds[] }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>; MCP'de aynı araç <code>confirm: true</code> ister. <b>İzin:</b> <code>SubmitForReview</code> (Owner, Admin). Denetim kaydına <code>Channel = Web</code> ile düşer. Hatalı yazımda alanın altında "Yazdığın metin eşleşmiyor" çıkar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Hazırlık"><div class="content"><div class="apphead" data-app="kumbara" data-store="apple" data-tab="hazirlik"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m610">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24"><use href="#i-send"/></svg></span><div class="f1"><h2 class="h2" id="m610">Kumbara 1.0 incelemeye gönderilsin mi?</h2><p class="t-s fg2 mt4">Apple incelemesi başladıktan sonra metinler ve görseller kilitlenir.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-box"/></svg><span class="f1 t-s">Build</span><span class="mono t-s">1.0 (12)</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-lang"/></svg><span class="f1 t-s">Diller</span><span class="t-s">tr, en-US</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-repeat"/></svg><span class="f1 t-s">İlk abonelikler</span><span class="t-s">Kumbara Plus Aylık, Yıllık</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-calendar"/></svg><span class="f1 t-s">Yayın</span><span class="t-s">Onaydan sonra elle</span></div>
+        </div></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kumbara 1.0</span> yaz</span><span class="inp foc typecheck">Kumbara 1.0</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg>Metin eşleşti. Gönderim bir mağaza işi olarak kuyruğa girer ve canlı akışta görünür.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-send"/></svg>İncelemeye gönder</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-11">
+  <figcaption class="fr-h"><b class="fr-n">6.11</b><span class="fr-t">Gönderme izni yok (Editor)</span><code class="fr-r">/apps/:appId/readiness</code></figcaption>
+  <p class="fr-note">Editor hazırlığı görür ve eksikleri kapatır ama gönderemez. Düğme gizlenmez, pasif ve gerekçesi altında: rol matrisi 6. bölüm. "Gönderim iste" sahiplere uygulama içi bildirim gönderir. <span class="gap">Backend boşluğu:</span> "gönderim iste" bildirimi (<code>POST /api/v1.0/releases/submit-request</code>) planda yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-role="Editor" data-crumbs="Uygulamalar|Pusula|Hazırlık"><div class="content">
+      <div class="apphead" data-app="pusula" data-store="apple" data-tab="hazirlik" data-ready="12/12"></div>
+      <div class="split"><div class="card"><div class="card-b"><div class="callout ok"><svg class="ic"><use href="#i-check-c"/></svg><div><b>Bütün kontroller tamam</b><div class="t-s fg2 mt4">2.4 sürümü gönderime hazır.</div></div></div></div></div>
+        <div class="card"><div class="card-b c gp12"><span class="btn blk pri dis"><svg class="ic"><use href="#i-send"/></svg>İncelemeye gönder</span><div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg><span>İncelemeye gönderme yalnız <b>Sahip</b> ve <b>Yönetici</b> rolünde.</span></div><span class="btn blk"><svg class="ic"><use href="#i-bell"/></svg>Gönderim iste</span></div></div></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. UYUM ============ -->
+<section class="sec" id="uyum">
+<div class="sec-h"><span class="k">Bölüm 6.12-6.13</span><h2>Uyum zaman çizelgesi</h2><p>Katalogdaki her son tarih, uygulamanın verisiyle eşleşir (cihaz aileleri, build SDK'sı, hedef API, dağıtılan ülkeler, abonelik var mı). Her satırda kaynak bağlantısı ve son kontrol tarihi; kaynaklar çelişiyorsa not.</p></div>
+<div class="frames">
+<figure class="fr" id="f6-12" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">6.12</b><span class="fr-t">Uygulamanın uyum zaman çizelgesi</span><code class="fr-r">/apps/:appId/compliance</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/apps/compliance?AppId=</code> → <code>ComplianceItemDto { RuleId, Store, Title, Summary, DueDate, Status (Done, Open, Upcoming, NotApplicable), MatchReason, SourceUrl, CheckedDate, Conflict? }</code>. Durum rozeti metinle; tarih 30 günden yakınsa uyarı rengi, geçmişse tehlike.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Uyum"><div class="content">
+      <div class="apphead" data-app="pusula" data-store="all" data-tab="uyum" data-sub="Zaman çizelgesi"></div>
+      <div class="split">
+        <div class="card"><div class="card-b" style="padding-bottom:4px">
+          <div class="tl">
+            <div class="tl-i"><span class="tl-d now"></span><div><div class="r gp8 wrap"><b class="t-m">Yaş derecelendirmesi: yeni sorular</b><span class="bdg warn sm">55 gün</span><span class="st sm"><b>AS</b></span></div><div class="t-s fg2 mt4">Paylaşılan konum ile tanışma ve ilişki soruları cevaplanmalı. Pusula konum paylaşıyor: "Paylaşılan konum" büyük olasılıkla "Evet".</div><div class="t-xs fg3 mt4 mono">12 Ocak 2027 · apple.age-rating.2026-questions · kontrol 18 Kas 2026 · <span class="lnk">Kaynak</span></div><span class="btn sm mt8">Soruları aç</span></div></div>
+            <div class="tl-i"><span class="tl-d"></span><div><div class="r gp8 wrap"><b class="t-m">Microsoft Entra sırrının süresi</b><span class="bdg warn sm">22 gün</span><span class="st sm"><b>MS</b></span></div><div class="t-s fg2 mt4">"Kuzey Lab Partner Center" bağlantısının client secret'ı bitiyor; bitince gönderimler durur.</div><div class="t-xs fg3 mt4 mono">10 Aralık 2026 · ms.connection.secret-expiry</div></div></div>
+            <div class="tl-i"><span class="tl-d"></span><div><div class="r gp8 wrap"><b class="t-m">iPhone Duo ekran görüntüleri</b><span class="bdg sm">Nisan 2027</span><span class="st sm"><b>AS</b></span></div><div class="t-s fg2 mt4">iOS 27.1 SDK ile derlenen sürümlerde Duo dış (1398x2034) ve iç (2007x2853) ekran setleri zorunlu olacak.</div><div class="callout warn mt8"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Kaynaklar çelişiyor: ekran görüntüsü sayfası "SDK 27.1 ile derlenen", sürüm notu "bütün gönderimler" diyor. Katalog SDK koşulunu tutuyor; izleyici netleşmeyi takip ediyor.</div></div><div class="t-xs fg3 mt4 mono">apple.screenshots.duo · kontrol 18 Kas 2026</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><div class="r gp8 wrap"><b class="t-m">Hedef API 36</b><span class="bdg ok sm"><span class="dot"></span>Tamam</span><span class="st sm"><b>GP</b></span></div><div class="t-s fg2 mt4">2.3.0 targetSdk 36.</div><div class="t-xs fg3 mt4 mono">31 Ağustos 2026 · google.build.target-api</div></div></div>
+          </div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="h3">Neden bu kurallar?</span></div><div class="card-b"><dl class="kv"><dt>Cihaz aileleri</dt><dd>iPhone, iPad</dd><dt>Build SDK</dt><dd class="mono">iOS 26.1</dd><dt>Hedef API</dt><dd class="mono">36</dd><dt>Ülkeler</dt><dd>174 (Çin hariç)</dd><dt>Abonelik</dt><dd>Var</dd><dt>Windows paketi</dt><dd>MSIX</dd></dl><p class="t-xs fg3 mt12">Çin anakarası beyanı bu uygulamada görünmez: Çin'de dağıtılmıyor.</p></div></div>
+      </div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-13" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">6.13</b><span class="fr-t">Organizasyon uyum takvimi</span><code class="fr-r">/compliance</code></figcaption>
+  <p class="fr-note">Bütün uygulamaların yaklaşan son tarihleri aya göre gruplu. Kenar menüdeki sayaç 30 gün içindeki açık maddeler. <b>API:</b> <code>GET /api/v1.0/compliance?From=&amp;To=</code> (planlanan) aynı <code>ComplianceItemDto</code> + <code>AppId, AppName</code>. Telefonda tarih sütunu daralır, eylem alta iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="compliance" data-crumbs="Uyum takvimi"><div class="content">
+      <div class="pg-h"><div><h1 class="pg-t">Uyum takvimi</h1><p class="pg-s">Mağaza kurallarının bu organizasyondaki uygulamalara düşen son tarihleri.</p></div><div class="pg-a"><div class="seg"><span class="on">Açık · 7</span><span>Tamamlanan</span></div></div></div>
+      <div class="dl-month">Kasım 2026</div>
+      <div class="card"><div class="dlr"><div class="d">24<small>Kas · 6 gün</small></div><div><div class="r gp8 wrap"><b class="t-m">TestFlight build'inin süresi doluyor</b><span class="r gp6"><span class="aic s" style="--c:#DB2777">H</span><span class="t-s">Halka</span></span></div><div class="t-s fg2 mt4">1.0 (37), 90 gün sınırı. Yeni build yüklenmezse test kullanıcıları uygulamayı açamaz.</div></div><span class="bdg dng sm">6 gün</span></div></div>
+      <div class="dl-month">Aralık 2026</div>
+      <div class="card"><div class="dlr"><div class="d">10<small>Ara · 22 gün</small></div><div><div class="r gp8 wrap"><b class="t-m">Entra client secret süresi</b><span class="t-s fg2">Pusula, Tarla</span></div><div class="t-s fg2 mt4">Microsoft 12 ay öneriyor; yeni sırrı bağlantıya gir.</div></div><span class="bdg warn sm">22 gün</span></div></div>
+      <div class="dl-month">Ocak 2027</div>
+      <div class="card">
+        <div class="dlr"><div class="d">12<small>Oca · 55 gün</small></div><div><div class="r gp8 wrap"><b class="t-m">Yaş derecelendirmesi yeni soruları</b><span class="t-s fg2">Pusula, Defter, Halka, Mola, Kumbara</span></div><div class="t-s fg2 mt4">5 uygulamanın 2'sinde cevaplandı.</div></div><span class="bdg warn sm">3 açık</span></div>
+        <div class="dlr"><div class="d">31<small>Oca · 74 gün</small></div><div><div class="r gp8 wrap"><b class="t-m">Çin anakarası App Compliance beyanları</b><span class="r gp6"><span class="aic s" style="--c:#15803D">M</span><span class="t-s">Mola</span></span></div><div class="t-s fg2 mt4">AIGC ve Security Assessment. Asistanlı adım, Account Holder veya Admin yapar.</div></div><span class="bdg sm">Asistanlı</span></div>
+      </div>
+      <div class="dl-month">Nisan 2027</div>
+      <div class="card"><div class="dlr"><div class="d">Nis<small>2027</small></div><div><b class="t-m">iPhone Duo ekran görüntüleri</b><div class="t-s fg2 mt4">iOS 27.1 SDK ile derlenince. Şu an hiçbir uygulama koşulu sağlamıyor.</div></div><span class="bdg sm">İzleniyor</span></div></div>
+    </div></div>
+  </div></div>
+</figure>
+</div>
+</section>
+
+<!-- ============ 5. KAYITLI CEVAPLAR ============ -->
+<section class="sec" id="cevaplar">
+<div class="sec-h"><span class="k">Bölüm 6.14-6.15</span><h2>Kayıtlı cevaplar</h2><p>API'si olmayan formların (gizlilik etiketleri, Data safety, içerik derecelendirme, hedef kitle) ve inceleme bilgilerinin uygulama başına cevapları. Hazırlık kontrolü, asistanlı adımlar ve MCP buradan okur; uygulamalar arası kopyalanır. Demo hesap şifresi şifreli saklanır, yalnız App Review alanına gider, ekranda gösterilmez.</p></div>
+<div class="frames">
+<figure class="fr" id="f6-14" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">6.14</b><span class="fr-t">Kayıtlı cevaplar</span><code class="fr-r">/apps/:appId/answers</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/apps/answers?AppId=</code> → <code>SavedAnswerSetDto { Sections: [{ Key (PrivacyLabels, DataSafety, ContentRating, TargetAudience, ReviewLogin, ReviewNotes), UpdatedDate, UpdatedByUserName, Answers (jsonb) }], DemoPasswordSet }</code>; <code>PUT /api/v1.0/apps/answers { AppId, Key, Answers, DemoPassword? }</code> (yalnız değişen bölüm; şifre alanı boşsa değişmez). <b>İzin:</b> görme <code>View</code> (şifre hiçbir rolde görünmez), düzenleme <code>EditContent</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Uyum"><div class="content">
+      <div class="apphead" data-app="kumbara" data-store="all" data-tab="uyum" data-sub="Kayıtlı cevaplar"><span class="btn"><svg class="ic"><use href="#i-copy"/></svg>Başka uygulamadan kopyala</span></div>
+      <div class="split-l">
+        <div class="card"><div class="lst">
+          <div class="lst-i on"><svg class="ic s16"><use href="#i-shield"/></svg><span class="f1 t-s b6">Gizlilik etiketleri</span><span class="ck-s ok" style="width:18px;height:18px"><svg class="ic" style="width:11px;height:11px"><use href="#i-check"/></svg></span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-database"/></svg><span class="f1 t-s">Data safety</span><span class="t-xs fg3">Play yok</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-scale"/></svg><span class="f1 t-s">İçerik derecelendirme</span><span class="ck-s ok" style="width:18px;height:18px"><svg class="ic" style="width:11px;height:11px"><use href="#i-check"/></svg></span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-users"/></svg><span class="f1 t-s">Hedef kitle</span><span class="ck-s" style="width:18px;height:18px"></span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-key"/></svg><span class="f1 t-s">İnceleme giriş bilgileri</span><span class="ck-s ok" style="width:18px;height:18px"><svg class="ic" style="width:11px;height:11px"><use href="#i-check"/></svg></span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-file-text"/></svg><span class="f1 t-s">İnceleme notları</span><span class="ck-s ok" style="width:18px;height:18px"><svg class="ic" style="width:11px;height:11px"><use href="#i-check"/></svg></span></div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="h3">Gizlilik etiketleri</span><span class="t-xs fg3 ml">Ece Yılmaz · 12 Kas 2026</span></div><div class="card-b">
+          <div class="ans-k"><div><b class="t-m">E-posta adresi</b><div class="t-s fg2">Uygulama işlevselliği · kimliğe bağlı · izleme yok</div></div><span class="btn sm ghost"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+          <div class="ans-k"><div><b class="t-m">Satın alma geçmişi</b><div class="t-s fg2">Uygulama işlevselliği · kimliğe bağlı · izleme yok</div></div><span class="btn sm ghost"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+          <div class="ans-k"><div><b class="t-m">Kilitlenme verisi</b><div class="t-s fg2">Analitik · kimliğe bağlı değil</div></div><span class="btn sm ghost"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+          <div class="ans-k"><div><b class="t-m">Performans verisi</b><div class="t-s fg2">Analitik · kimliğe bağlı değil</div></div><span class="btn sm ghost"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+          <div class="hr d"></div>
+          <div class="fld"><span class="lbl">Demo hesap şifresi <svg class="ic s14"><use href="#i-lock"/></svg></span><div class="secret">Kayıtlı · şifreli · son değişiklik 3 Kas 2026<span class="btn sm ml">Değiştir</span></div><span class="hint">storeasy bu şifreyi yalnız App Review bilgisine yazar; hiçbir ekranda ve MCP yanıtında gösterilmez.</span></div>
+          <div class="r gp8 mt16"><span class="btn"><svg class="ic"><use href="#i-plus"/></svg>Veri türü ekle</span><span class="t-xs fg3 ml">Asistanlı adımda tarayıcı devriyle kullanılır.</span></div>
+        </div></div>
+      </div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-15">
+  <figcaption class="fr-h"><b class="fr-n">6.15</b><span class="fr-t">Başka uygulamadan kopyala</span><code class="fr-r">/apps/:appId/answers → kopyala</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/apps/answers/copy { SourceAppId, TargetAppId, Keys[] }</code>. Hedefte dolu bölümler üzerine yazılacaksa satırda uyarı; demo hesap şifresi hiçbir zaman kopyalanmaz.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Uyum"><div class="content"><div class="apphead" data-app="kumbara" data-store="all" data-tab="uyum" data-sub="Kayıtlı cevaplar"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m615">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m615">Cevapları kopyala</h2><p class="t-s fg2 mt4">Kaynak uygulamanın cevapları Kumbara'ya yazılır.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Kaynak uygulama</span><span class="inp sel"><span class="aic s" style="--c:#15803D">M</span>Mola</span></label>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="chk on"></span><span class="f1 t-s">Gizlilik etiketleri</span><span class="bdg warn sm">Üzerine yazılır</span></div>
+          <div class="lst-i"><span class="chk on"></span><span class="f1 t-s">İçerik derecelendirme</span><span class="bdg warn sm">Üzerine yazılır</span></div>
+          <div class="lst-i"><span class="chk on"></span><span class="f1 t-s">Hedef kitle</span><span class="t-xs fg3">Boş, eklenir</span></div>
+          <div class="lst-i"><span class="chk"></span><span class="f1 t-s">İnceleme notları</span><span></span></div>
+        </div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg>Demo hesap şifresi kopyalanmaz.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">3 bölümü kopyala</span></div>
+    </div></div>
+  </div></div>
+</figure>
+</div>
+</section>
+
+<!-- ============ 6. ASİSTANLI ADIMLAR ============ -->
+<section class="sec" id="asistanli">
+<div class="sec-h"><span class="k">Bölüm 6.16-6.18</span><h2>Asistanlı adımlar</h2><p>API'si olmayan iş storeasy'nin içinde kalır: kontrol listesi, mağaza sayfasının doğrudan bağlantısı, kayıtlı cevaplar ve bilinen tuzaklar. Tarayıcı devrinde MCP aracı adımı yapılandırılmış verir, Claude in Chrome kullanıcının kendi oturumunda uygular ve sonucu buraya yazar. storeasy ve Claude mağaza şifresi saklamaz, girmez.</p></div>
+<div class="frames">
+<figure class="fr" id="f6-16">
+  <figcaption class="fr-h"><b class="fr-n">6.16</b><span class="fr-t">Asistanlı adımlar listesi</span><code class="fr-r">/apps/:appId/assisted</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/assisted-steps</code> (<code>AppId</code>, <code>Status</code> filtresi) → <code>AssistedStepListDto { Id, Key, Store, Title, Status (Todo, InProgress, HandedOff, Done, Skipped), DueDate?, LastDoneDate, LastDoneByUserName, Channel }</code>. Satır tıklaması 6.17. Telefonda tablo karta döner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Uyum"><div class="content">
+      <div class="apphead" data-app="kumbara" data-store="all" data-tab="uyum" data-sub="Asistanlı adımlar"></div>
+      <div class="tbl-w"><table class="tbl">
+        <thead><tr><th>Adım</th><th>Mağaza</th><th>Durum</th><th>Son yapılan</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="tm"><b>App Privacy etiketlerini gir</b></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Durum"><span class="bdg acc sm"><span class="dot"></span>Tarayıcıya devredildi</span></td><td data-l="Son yapılan" class="fg3">-</td><td class="ta"><span class="btn sm">Aç</span></td></tr>
+          <tr><td class="tm"><b>Paid Apps Agreement durumunu kontrol et</b></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yapıldı</span></td><td data-l="Son yapılan">3 Kas · Deniz Arslan</td><td class="ta"><span class="btn sm ghost">Aç</span></td></tr>
+          <tr><td class="tm"><b>Hızlandırılmış inceleme talebi</b></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Durum"><span class="bdg sm">Gerekmiyor</span></td><td data-l="Son yapılan" class="fg3">-</td><td class="ta"><span class="btn sm ghost">Aç</span></td></tr>
+          <tr><td class="tm"><b>Play Console'da uygulama oluştur</b></td><td data-l="Mağaza"><span class="st sm"><b>GP</b>Google Play</span></td><td data-l="Durum"><span class="bdg sm">Yapılacak</span></td><td data-l="Son yapılan" class="fg3">-</td><td class="ta"><span class="btn sm">Aç</span></td></tr>
+          <tr><td class="tm"><b>Partner Center'da ad ayır</b></td><td data-l="Mağaza"><span class="st sm"><b>MS</b>Microsoft Store</span></td><td data-l="Durum"><span class="bdg sm">Yapılacak</span></td><td data-l="Son yapılan" class="fg3">-</td><td class="ta"><span class="btn sm">Aç</span></td></tr>
+        </tbody></table></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-17" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">6.17</b><span class="fr-t">Asistanlı adım ve tarayıcı devri</span><code class="fr-r">/apps/:appId/assisted/:stepId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/assisted-steps/step?StepId=</code> → <code>AssistedStepDetailDto { Id, Title, Store, StoreUrl, Steps: [{ Order, Text, Expected, Done }], Pitfalls[], AnswerKeys[], HandOff { McpTool, Prompt, HandedOffDate, HandedOffByUserName } }</code>; <code>POST /api/v1.0/assisted-steps/step/handoff</code>; <code>PUT /api/v1.0/assisted-steps/step/complete { StepId, EvidenceAssetId?, Note }</code>. Tek ana eylem "Yapıldı olarak kaydet"; devir ikincil (ters renk). Adımlar tek tek işaretlenebilir; Claude işaretlediğinde satırda "Claude" etiketi çıkar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Asistanlı adımlar"><div class="content">
+      <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Asistanlı adımlar</div>
+      <div class="pg-h"><div><div class="r gp8 mb8"><span class="st"><b>AS</b>App Store</span><span class="bdg acc sm"><span class="dot"></span>Tarayıcıya devredildi</span></div><h1 class="pg-t">App Privacy etiketlerini gir</h1><p class="pg-s">Apple bu formu API'ye açmıyor. Kayıtlı cevaplar hazır; App Store Connect'te kendi oturumunla ya da Claude in Chrome ile gir.</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>App Store Connect'te aç</span></div></div>
+      <div class="split">
+        <div class="c gp16">
+          <div class="card"><div class="card-h"><span class="h3">Kontrol listesi</span><span class="t-s fg3 ml">2 / 5</span></div><div class="card-b" style="padding-top:4px;padding-bottom:4px"><div class="ck">
+            <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><b class="t-m">App Privacy sayfasını aç</b><div class="t-s fg2">Uygulama &gt; App Privacy &gt; Get Started</div></div><span class="bdg sm"><svg class="ic s12"><use href="#i-spark"/></svg>Claude</span></div>
+            <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><b class="t-m">"Veri topluyor musunuz?" sorusuna Evet</b><div class="t-s fg2">Beklenen: veri türü listesi açılır.</div></div><span class="bdg sm"><svg class="ic s12"><use href="#i-spark"/></svg>Claude</span></div>
+            <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">4 veri türünü kayıtlı cevaplara göre işaretle</b><div class="t-s fg2">E-posta, satın alma geçmişi, kilitlenme verisi, performans verisi.</div></div></div>
+            <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">Her tür için kullanım amacı ve bağlantı</b><div class="t-s fg2">Kayıtlı cevaplardaki amaç ve "kimliğe bağlı" değerleri.</div></div></div>
+            <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">Yayınla</b><div class="t-s fg2">Beklenen: "Published" etiketi; ekran görüntüsü kanıt olarak eklenir.</div></div></div>
+          </div></div></div>
+          <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>Bilinen tuzak</b><div class="t-s fg2 mt4">Bir veri türünü kaydetmeden sayfayı yenilersen o türün amaç seçimleri silinir. Her türden sonra "Save".</div></div></div>
+        </div>
+        <div class="c gp16">
+          <div class="hand c gp12"><div class="r gp8"><svg class="ic s18"><use href="#i-cursor"/></svg><b class="t-m">Tarayıcı devri</b></div><p class="t-s fg2" style="margin:0">Claude adımı ve cevapları MCP'den yapılandırılmış alır, App Store Connect'i senin tarayıcı oturumunda doldurur. Şifre girmez, saklamaz.</p>
+            <div class="code" style="white-space:pre-wrap">storeasy assisted_step_get
+  step: 5521 · Kumbara · App Privacy</div>
+            <div class="t-xs fg3">Devreden: Deniz Arslan · bugün 14:10 · Claude 2 adımı işaretledi</div>
+            <span class="btn inv blk"><svg class="ic"><use href="#i-copy"/></svg>Claude için istemi kopyala</span></div>
+          <div class="card"><div class="card-h"><span class="h3">Kullanılan cevaplar</span><span class="lnk t-s ml">Düzenle</span></div><div class="card-b t-s fg2">Gizlilik etiketleri · 4 veri türü · 12 Kas 2026</div></div>
+          <span class="btn pri blk"><svg class="ic"><use href="#i-check"/></svg>Yapıldı olarak kaydet</span>
+        </div>
+      </div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f6-18">
+  <figcaption class="fr-h"><b class="fr-n">6.18</b><span class="fr-t">Adımı tamamla: kanıt</span><code class="fr-r">/apps/:appId/assisted/:stepId → tamamla</code></figcaption>
+  <p class="fr-note">Kanıt ekran görüntüsü presigned yüklemeyle (<code>POST /api/v1.0/assets/upload-url</code>) gelir, isteğe bağlıdır. Tamamlanan adım hazırlık kontrolündeki satırı "tamam" yapar ve denetim kaydına <code>AssistedStepCompleted</code> olarak düşer (<code>Channel</code> Web ya da Mcp). <span class="gap">Backend boşluğu:</span> <code>AuditAction</code> enum'una asistanlı adım değerleri eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Asistanlı adımlar"><div class="content"><div class="pg-h"><h1 class="pg-t">App Privacy etiketlerini gir</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m618">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m618">Adım yapıldı</h2><p class="t-s fg2 mt4">Hazırlık kontrolündeki "App Privacy etiketleri" satırı tamam olur.</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Kanıt <span class="opt">· isteğe bağlı</span></span><div class="shotev">app-privacy-published.png · 412 KB</div></div>
+        <label class="fld"><span class="lbl">Not <span class="opt">· isteğe bağlı</span></span><span class="inp ta">Claude yayınladı, "Published" etiketi göründü.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+    <div class="toasts"><div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Adım kaydedildi</b><div class="fg2">Hazırlık 8 / 12</div></div></div></div>
+  </div></div>
+</figure>
+</div>
+</section>

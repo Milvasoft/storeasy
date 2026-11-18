@@ -1,0 +1,607 @@
+<!--
+title: Bağlantılar, webhook'lar ve bildirimler
+kicker: 14 · Teslim
+desc: Mağaza bağlantıları (App Store Connect, Google Play, Microsoft Entra): parmak izi, doğrulama, ekleme, silme ve sır yenileme. App Store Connect webhook uçları ve olay kaydı. Bildirim merkezi, zil menüsü ve kullanıcı başına bildirim tercihleri.
+-->
+<style>
+.conns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.conn{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.conn.dng{border-color:rgb(var(--danger)/.5)}
+.conn.warn{border-color:rgb(var(--warning)/.55)}
+.conn .kv{font-size:13px;gap:6px 16px}
+.conn .foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px dashed rgb(var(--border));padding-top:12px}
+.conn .err{font:500 12px/1.4 var(--font-mono);color:rgb(var(--danger));overflow-wrap:anywhere}
+.storepick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.storepick .card{padding:16px;display:grid;gap:8px;align-content:start}
+.drop{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:18px 16px;display:grid;justify-items:center;gap:6px;text-align:center;color:rgb(var(--fg-2));font-size:13px}
+.drop.on{border-color:rgb(var(--fg));background:rgb(var(--bg-2)/.6)}
+.drop.err{border-color:rgb(var(--danger))}
+.ni{display:grid;grid-template-columns:auto 10px minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.ni:last-child{border-bottom:0}
+.ni .ud{width:8px;height:8px;border-radius:50%;margin-top:7px}
+.ni.unread .ud{background:rgb(var(--fg))}
+.ni.unread .tx{font-weight:600}
+.ni .tx{font-size:13.5px;line-height:1.45}
+.ni .mt{font-size:12px;color:rgb(var(--fg-3));margin-top:4px}
+.ni.sel{background:rgb(var(--bg-2)/.6)}
+.bellpop{width:400px;max-width:calc(100% - 24px);padding:0;overflow:hidden}
+.bellpop .ni{grid-template-columns:10px minmax(0,1fr);padding:12px 14px}
+.bellpop .bh{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgb(var(--border))}
+.bellpop .bf{display:flex;justify-content:center;padding:10px;border-top:1px solid rgb(var(--border));font-size:13px}
+.tbl tr.bad td{background:rgb(var(--danger)/.07)}
+.tbl tr.bad td.tm{box-shadow:inset 3px 0 0 rgb(var(--danger))}
+.pref td.ch{text-align:center}
+.split>*,.split-l>*,.g2>*,.conns>*{min-width:0}
+@container scr (max-width:760px){
+  .conns,.storepick{grid-template-columns:1fr}
+  .ni{grid-template-columns:10px minmax(0,1fr) auto}
+  .ni>.chk{display:none}
+  .pref td.ch{text-align:right}
+  .tbl tr.bad{border-color:rgb(var(--danger)/.6)}
+  .tbl tr.bad td{background:none}
+  .tbl tr.bad td.tm{box-shadow:none}
+  .bellpop{right:12px !important;left:12px;width:auto}
+}
+</style>
+
+<!-- ============ 1. MAĞAZA BAĞLANTILARI ============ -->
+<section class="sec" id="baglantilar">
+<div class="sec-h"><span class="k">Bölüm 14.1-14.3</span><h2>Mağaza bağlantıları</h2><p>Organizasyonun App Store Connect API anahtarları, Play servis hesapları ve Microsoft Entra uygulamaları. Gizli değerler zarf şifrelemeyle saklanır (K6) ve hiçbir uçtan geri dönmez; ekran yalnız parmak izini, durumu ve son doğrulamayı gösterir. Kenar menüde yalnız <span class="mono">ManageConnections</span> olan rollerde görünür.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-1" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">14.1</b><span class="fr-t">Bağlantı listesi</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/storeConnections?OrganizationId=</code> (var) → <code>List&lt;StoreConnectionDto { Id, Store (Apple, Google), Name, Fingerprint { KeyId, IssuerIdSuffix, ServiceAccountEmail, ProjectId }, Status (NotVerified, Verified, Rejected, Unreachable), LastVerifiedDate, LastVerifyError, CreationDate }&gt;</code>. Durum metinleri: Doğrulanmadı, Doğrulandı, Reddedildi, Ulaşılamıyor; <code>LastVerifyError</code> kartta olduğu gibi (sunucu metni). "Doğrula" <code>POST /api/v1.0/storeConnections/connection/verify { ConnectionId, PackageName? }</code> (var, <code>[RateLimit(20, 600)]</code>); Google'da <code>PackageName</code> erişim denemesi için bağlı uygulamalardan biri seçilir. <b>İzin:</b> <code>ManageConnections</code> (Owner, Admin). Telefonda kartlar tek sütun, "Bağlantı ekle" sağ altta yüzen düğme. <span class="gap">Backend boşluğu:</span> <code>StoreKind</code>'a <code>Microsoft</code>; <code>ConnectionFingerprint</code>'e <code>TenantIdSuffix, ClientIdSuffix, SellerId, SecretExpiryDate</code>; <code>StoreConnectionDto</code>'ya <code>LinkedAppCount</code> (eşlenen <code>StoreApps</code> sayısı). Hepsi Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Mağaza bağlantıları</h1><p class="pg-s">Anahtarlar şifreli saklanır ve hiçbir ekranda geri gösterilmez. Burada yalnız parmak izi görünür.</p></div><div class="pg-a hide-ph"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Bağlantı ekle</span></div></div>
+        <div class="conns">
+          <article class="conn">
+            <div class="r gp10"><span class="st"><b>AS</b>App Store</span><b class="t-m f1 trunc">Kuzey Lab ASC</b><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div>
+            <dl class="kv"><dt>Key ID</dt><dd class="mono">7QX2M4K9PL</dd><dt>Issuer ID</dt><dd class="mono">…a91f</dd><dt>Son doğrulama</dt><dd>18 Kas 2026, 09:12</dd></dl>
+            <div class="foot"><span class="t-s fg2 f1">5 uygulama · 1 webhook ucu</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span><span class="ib sm ghost"><svg class="ic"><use href="#i-trash"/></svg></span></div>
+          </article>
+          <article class="conn">
+            <div class="r gp10"><span class="st"><b>GP</b>Google Play</span><b class="t-m f1 trunc">Play servis hesabı</b><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div>
+            <dl class="kv"><dt>Servis hesabı</dt><dd class="mono">storeasy@kuzeylab-play.iam.gserviceaccount.com</dd><dt>Proje</dt><dd class="mono">kuzeylab-play</dd><dt>Son doğrulama</dt><dd>18 Kas 2026, 09:12</dd></dl>
+            <div class="foot"><span class="t-s fg2 f1">5 uygulama</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span><span class="ib sm ghost"><svg class="ic"><use href="#i-trash"/></svg></span></div>
+          </article>
+          <article class="conn warn">
+            <div class="r gp10"><span class="st"><b>MS</b>Microsoft Store</span><b class="t-m f1 trunc">Kuzey Lab Partner Center</b><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div>
+            <dl class="kv"><dt>Tenant</dt><dd class="mono">…3c07</dd><dt>Client ID</dt><dd class="mono">…be12</dd><dt>Satıcı</dt><dd class="mono">40291187</dd><dt>Sır bitişi</dt><dd><span class="warn-t b6">10 Ara 2026 · 22 gün</span></dd></dl>
+            <div class="foot"><span class="t-s fg2 f1">2 uygulama</span><span class="btn sm inv">Sırrı güncelle</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span></div>
+          </article>
+          <article class="conn dng">
+            <div class="r gp10"><span class="st"><b>AS</b>App Store</span><b class="t-m f1 trunc">Kuzey Lab ASC (CI)</b><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></div>
+            <dl class="kv"><dt>Key ID</dt><dd class="mono">R8D3J6W2NQ</dd><dt>Issuer ID</dt><dd class="mono">…a91f</dd><dt>Son deneme</dt><dd>15 Kas 2026, 08:40</dd></dl>
+            <div class="err">401 NOT_AUTHORIZED · Anahtar App Store Connect'te iptal edilmiş ya da süresi dolmuş.</div>
+            <div class="foot"><span class="t-s fg2 f1">Bağlı uygulama yok</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span><span class="ib sm ghost"><svg class="ic"><use href="#i-trash"/></svg></span></div>
+          </article>
+        </div>
+      </div>
+      <span class="btn pri fab"><svg class="ic"><use href="#i-plus"/></svg>Bağlantı ekle</span>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-2">
+  <figcaption class="fr-h"><b class="fr-n">14.2</b><span class="fr-t">Boş: bağlantı yok</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note"><code>GET storeConnections</code> boş liste döner. Tek ana eylem "Bağlantı ekle"; üç mağaza için ne gerektiği önceden yazılır ki kullanıcı modalı açmadan hazırlansın.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act="" data-bell="off">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div>
+        <div class="empty" style="padding:44px 24px">
+          <span class="eic"><svg class="ic"><use href="#i-plug"/></svg></span>
+          <h4>Henüz bağlantı yok</h4><p>storeasy mağazalarla senin anahtarlarınla konuşur. Bir bağlantı ekle; uygulamalar ve build'ler kendiliğinden gelir.</p>
+          <span class="btn pri mt8"><svg class="ic"><use href="#i-plus"/></svg>Bağlantı ekle</span>
+          <div class="g3 mt16" style="width:100%;max-width:720px;text-align:left">
+            <div class="card"><div class="card-b c gp6"><span class="st sm"><b>AS</b>App Store</span><span class="t-s fg2">.p8 dosyası, Key ID, Issuer ID. App Store Connect &gt; Kullanıcılar ve Erişim &gt; Entegrasyonlar.</span></div></div>
+            <div class="card"><div class="card-b c gp6"><span class="st sm"><b>GP</b>Google Play</span><span class="t-s fg2">Servis hesabı JSON'u; Play Console'da hesaba uygulama izni.</span></div></div>
+            <div class="card"><div class="card-b c gp6"><span class="st sm"><b>MS</b>Microsoft Store</span><span class="t-s fg2">Entra uygulaması: tenant, client ID, client secret, satıcı kimliği.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-3">
+  <figcaption class="fr-h"><b class="fr-n">14.3</b><span class="fr-t">Doğrulama sürüyor</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note">"Doğrula" basılınca düğme yükleniyor durumuna geçer (<code>.btn.ld</code>), kartın durumu "Doğrulanıyor" olur; istek eşzamanlıdır (token alma + uygulama listesi), en çok 20 sn. Yanıt güncel <code>StoreConnectionDto</code> döner, kart yerinde güncellenir, toast sonucu söyler. 10 dakikada 20 denemeden sonra <code>429</code>: toast "Çok sık doğrulama; birkaç dakika sonra dene". Denetim kaydına <code>ConnectionVerified</code> düşer (var).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Mağaza bağlantıları</h1></div><div class="pg-a hide-ph"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Bağlantı ekle</span></div></div>
+        <div class="conns">
+          <article class="conn">
+            <div class="r gp10"><span class="st"><b>GP</b>Google Play</span><b class="t-m f1 trunc">Play servis hesabı</b><span class="bdg sm"><span class="spinner" style="width:10px;height:10px"></span>Doğrulanıyor</span></div>
+            <dl class="kv"><dt>Servis hesabı</dt><dd class="mono">storeasy@kuzeylab-play.iam.gserviceaccount.com</dd><dt>Deneme paketi</dt><dd class="mono">com.kuzeylab.mola</dd></dl>
+            <div class="foot"><span class="t-s fg2 f1">Token alınıyor, uygulama erişimi deneniyor</span><span class="btn sm ld">Doğrula</span></div>
+          </article>
+          <article class="conn">
+            <div class="r gp10"><span class="st"><b>AS</b>App Store</span><b class="t-m f1 trunc">Kuzey Lab ASC</b><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div>
+            <dl class="kv"><dt>Key ID</dt><dd class="mono">7QX2M4K9PL</dd><dt>Son doğrulama</dt><dd>Şimdi</dd></dl>
+            <div class="foot"><span class="t-s fg2 f1">5 uygulama</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span></div>
+          </article>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Kuzey Lab ASC doğrulandı</b><div class="fg2">5 uygulamaya erişim var.</div></div></div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. BAĞLANTI EKLE ============ -->
+<section class="sec" id="ekle">
+<div class="sec-h"><span class="k">Bölüm 14.4-14.11</span><h2>Bağlantı ekleme</h2><p>Önce mağaza seçilir, sonra mağazaya özel form. Dosyalar tarayıcıda okunur ve biçimi çevrimdışı denetlenir; kaydedince gizli değer sunucuya bir kez gider, sonra yalnız parmak izi kalır. Kayıttan hemen sonra doğrulama otomatik başlar.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-4">
+  <figcaption class="fr-h"><b class="fr-n">14.4</b><span class="fr-t">Mağaza seç</span><code class="fr-r">/connections → ekle</code></figcaption>
+  <p class="fr-note">Adım 1 / 2. Seçim <code>AddStoreConnectionCommand.Store</code> olur. Microsoft seçeneği <code>StoreKind.Microsoft</code> eklenene kadar backend'de yok (14.1 boşluğu). Telefonda kartlar alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m144">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 1 / 2</span><h2 class="h2 mt4" id="m144">Hangi mağaza?</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="storepick">
+          <div class="card sel"><span class="r gp8"><span class="rad on"></span><span class="st"><b>AS</b>App Store Connect</span></span><span class="t-s fg2">API anahtarı (.p8), Key ID, Issuer ID. Rol: App Manager ya da Admin.</span></div>
+          <div class="card"><span class="r gp8"><span class="rad"></span><span class="st"><b>GP</b>Google Play</span></span><span class="t-s fg2">Servis hesabı JSON anahtarı. Play Console'da yayın izinleri.</span></div>
+          <div class="card"><span class="r gp8"><span class="rad"></span><span class="st"><b>MS</b>Microsoft Store</span></span><span class="t-s fg2">Microsoft Entra uygulaması, Partner Center'da Manager rolü.</span></div>
+        </div>
+        <label class="fld"><span class="lbl">Bağlantı adı</span><span class="inp foc">Kuzey Lab ASC</span><span class="hint">Yalnız storeasy içinde görünür.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Devam</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-5" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">14.5</b><span class="fr-t">App Store Connect anahtarı</span><code class="fr-r">/connections → ekle → Apple</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/storeConnections/connection { Store: Apple, Name, Secret }</code> (var, <code>[Idempotent]</code>) → yeni <code>Id</code>; <code>Secret</code> istemcide JSON'a çevrilir: <code>{ "issuerId", "keyId", "privateKey" }</code> (<code>AppleCredentials</code>), en çok 16 KB, <code>[LogMasked]</code>. Dosya adı <code>AuthKey_7QX2M4K9PL.p8</code> ise Key ID kendiliğinden dolar. Tarayıcı PEM başlığını ve ES256 (P-256) anahtar türünü denetler; sunucu aynı kontrolü <code>Inspect</code> ile yapar. Anahtar içeriği ekranda gösterilmez, yalnız "okundu" durumu. <b>İzin:</b> <code>ManageConnections</code>. Kayıttan sonra <code>connection/verify</code> otomatik çağrılır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m145">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 2 / 2 · App Store Connect</span><h2 class="h2 mt4" id="m145">API anahtarını ekle</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Özel anahtar (.p8)</span><div class="drop on"><svg class="ic s24"><use href="#i-key"/></svg><b class="mono" style="color:rgb(var(--fg))">AuthKey_7QX2M4K9PL.p8</b><span class="r gp6 ok-t t-s b6"><svg class="ic s14"><use href="#i-check-c"/></svg>Geçerli PEM · ES256 (P-256)</span><span class="t-xs fg3">İçerik tarayıcıda okundu; kaydedene kadar sunucuya gitmez.</span></div></div>
+        <label class="fld"><span class="lbl">Key ID</span><span class="inp mono">7QX2M4K9PL</span><span class="hint">Dosya adından dolduruldu · 10 karakter</span></label>
+        <label class="fld"><span class="lbl">Issuer ID</span><span class="inp mono foc">57246542-96fe-1a63-e053-0824d011a91f</span><span class="hint">Anahtar tablosunun üstündeki UUID.</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg>Gizli değer bir daha gösterilmez; yalnız Key ID ve Issuer ID'nin son 4 hanesi görünür.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri">Kaydet ve doğrula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-6" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">14.6</b><span class="fr-t">Google Play servis hesabı</span><code class="fr-r">/connections → ekle → Google</code></figcaption>
+  <p class="fr-note">Aynı <code>POST storeConnections/connection { Store: Google, Name, Secret }</code>; <code>Secret</code> servis hesabı JSON'unun kendisi. Tarayıcı dosyayı okur ve kaydetmeden önce <code>client_email</code> ile <code>project_id</code>'yi gösterir; kullanıcı doğru hesabı seçtiğini görür. <code>private_key</code> hiçbir zaman ekrana basılmaz. Doğrulama için bağlı uygulamalardan biri seçilir (<code>VerifyStoreConnectionCommand.PackageName</code>, var). <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m146">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 2 / 2 · Google Play</span><h2 class="h2 mt4" id="m146">Servis hesabını ekle</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Servis hesabı anahtarı (JSON)</span><div class="drop on"><svg class="ic s24"><use href="#i-file-text"/></svg><b class="mono" style="color:rgb(var(--fg))">kuzeylab-play-3f0a91c2d7e4.json</b><span class="r gp6 ok-t t-s b6"><svg class="ic s14"><use href="#i-check-c"/></svg>Servis hesabı anahtarı · RSA</span></div></div>
+        <div class="card"><div class="card-h"><span class="h3">Dosyadan okunan</span></div><div class="card-b"><dl class="kv"><dt>E-posta</dt><dd class="mono">storeasy@kuzeylab-play.iam.gserviceaccount.com</dd><dt>Proje</dt><dd class="mono">kuzeylab-play</dd><dt>Anahtar kimliği</dt><dd class="mono">3f0a91c2…</dd></dl></div></div>
+        <label class="fld"><span class="lbl">Doğrulamada denenecek uygulama</span><span class="inp sel mono">com.kuzeylab.mola</span><span class="hint">Servis hesabının Play Console'da bu uygulamaya izni olmalı.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri">Kaydet ve doğrula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-7" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">14.7</b><span class="fr-t">Microsoft Entra uygulaması</span><code class="fr-r">/connections → ekle → Microsoft</code></figcaption>
+  <p class="fr-note">Plan 11.6: tenant ID, client ID, client secret, satıcı kimliği (<code>X-Seller-Account-Id</code>, MSI/EXE API'si için). Client secret en çok 24 ay geçerli, Microsoft 12 ayı öneriyor; bitiş tarihi bağlantıda tutulur, kural izleyici 30 gün önce uyarır (<code>ms.connection.secret-expiry</code>). <b>API:</b> <code>POST storeConnections/connection { Store: Microsoft, Name, Secret: { tenantId, clientId, clientSecret, sellerId }, SecretExpiryDate }</code>. Doğrulama token alır ve iki API'de uygulama listesini dener. <b>İzin:</b> <code>ManageConnections</code>. <span class="gap">Backend boşluğu:</span> <code>StoreKind.Microsoft</code>, Microsoft için <code>Inspect</code> kuralı, <code>AddStoreConnectionCommand.SecretExpiryDate</code> ve parmak izi alanları; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m147">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 2 / 2 · Microsoft Store</span><h2 class="h2 mt4" id="m147">Entra uygulamasını ekle</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="g2">
+          <label class="fld"><span class="lbl">Tenant ID</span><span class="inp mono">8d6b2e5a-…-3c07</span></label>
+          <label class="fld"><span class="lbl">Client ID</span><span class="inp mono">f19c4e27-…-be12</span></label>
+        </div>
+        <label class="fld"><span class="lbl">Client secret</span><span class="inp mono foc">••••••••••••••••••••••••••••<svg class="ic ml"><use href="#i-eye"/></svg></span><span class="hint">Entra &gt; App registrations &gt; Certificates &amp; secrets'teki "Value" (Secret ID değil).</span></label>
+        <div class="g2">
+          <label class="fld"><span class="lbl">Satıcı kimliği</span><span class="inp mono">40291187</span><span class="hint">Partner Center &gt; Hesap ayarları · <span class="mono">X-Seller-Account-Id</span></span></label>
+          <label class="fld"><span class="lbl">Sır bitiş tarihi</span><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>10 Ara 2026</span><span class="hint">En çok 24 ay; Microsoft 12 ay öneriyor. 30 gün önce uyarı.</span></label>
+        </div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Entra uygulamasının Partner Center'da <b>Manager</b> rolü olmalı. Sır ve kimlikler şifreli saklanır; sonra yalnız tenant ve client ID'nin son 4 hanesi, satıcı kimliği ve bitiş tarihi görünür.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri">Kaydet ve doğrula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-8">
+  <figcaption class="fr-h"><b class="fr-n">14.8</b><span class="fr-t">Hata: geçersiz .p8</span><code class="fr-r">/connections → ekle → Apple</code></figcaption>
+  <p class="fr-note">Çevrimdışı denetim dosyayı reddeder: PEM başlığı yok ya da anahtar P-256 değil. Sunucu tarafında aynı durum <code>AppleKeyInvalid</code>, JSON eksikse <code>AppleSecretInvalid</code> mesaj anahtarıyla döner (var); form üstünde <code>.ferr</code>, alanda hata kenarlığı. Issuer ID UUID değilse alan altında hata. Kaydet düğmesi hatalar düzelene kadar pasif.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m148">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 2 / 2 · App Store Connect</span><h2 class="h2 mt4" id="m148">API anahtarını ekle</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>2 alanı düzelt</b><ul><li>Dosya bir App Store Connect özel anahtarı değil.</li><li>Issuer ID bir UUID olmalı.</li></ul></div></div>
+        <div class="fld"><span class="lbl">Özel anahtar (.p8)</span><div class="drop err"><svg class="ic s24 dng-t"><use href="#i-file"/></svg><b class="mono" style="color:rgb(var(--fg))">AuthKey_7QX2M4K9PL.cer</b><span class="dng-t t-s b6">"-----BEGIN PRIVATE KEY-----" bulunamadı. Bu bir sertifika dosyası; App Store Connect &gt; Entegrasyonlar'dan indirilen .p8 gerekli.</span><span class="btn sm">Başka dosya seç</span></div></div>
+        <label class="fld"><span class="lbl">Key ID</span><span class="inp mono">7QX2M4K9PL</span></label>
+        <label class="fld"><span class="lbl">Issuer ID</span><span class="inp mono err">57246542-96fe-1a63</span><span class="err-t">Issuer ID 36 karakterlik bir UUID olmalı.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri dis" aria-disabled="true">Kaydet ve doğrula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-9">
+  <figcaption class="fr-h"><b class="fr-n">14.9</b><span class="fr-t">Hata: JSON'da private_key yok</span><code class="fr-r">/connections → ekle → Google</code></figcaption>
+  <p class="fr-note">Yanlış JSON (ör. OAuth istemci dosyası ya da anahtarsız servis hesabı bilgisi) <code>client_email</code> veya <code>private_key</code> içermez; sunucu <code>GoogleSecretInvalid</code>, anahtar okunamazsa <code>GoogleKeyInvalid</code> döner (var). Okunabilen alanlar yine gösterilir ki kullanıcı hangi dosyayı seçtiğini anlasın.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m149">
+      <div class="mdl-h"><div class="f1"><span class="eb">Adım 2 / 2 · Google Play</span><h2 class="h2 mt4" id="m149">Servis hesabını ekle</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Servis hesabı anahtarı (JSON)</span><div class="drop err"><svg class="ic s24 dng-t"><use href="#i-file-text"/></svg><b class="mono" style="color:rgb(var(--fg))">client_secret_8812.json</b><span class="dng-t t-s b6">Dosyada <span class="mono">private_key</span> alanı yok. Bu bir OAuth istemci dosyası olabilir; Google Cloud &gt; Servis hesapları &gt; Anahtarlar &gt; JSON anahtar oluştur.</span></div></div>
+        <div class="card"><div class="card-b"><dl class="kv"><dt>type</dt><dd class="mono">-</dd><dt>client_email</dt><dd class="mono fg3">yok</dd><dt>project_id</dt><dd class="mono">kuzeylab-play</dd></dl></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri dis" aria-disabled="true">Kaydet ve doğrula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-10">
+  <figcaption class="fr-h"><b class="fr-n">14.10</b><span class="fr-t">Kaydedildi: yalnız parmak izi</span><code class="fr-r">/connections → kaydedildi</code></figcaption>
+  <p class="fr-note">Kayıt <code>Status = NotVerified</code> ile oluşur; modal kapanmadan doğrulama başlar ve sonucu aynı yerde gösterir. Gizli alan formdan ve bellekten silinir; kart artık parmak izinden ibarettir. Denetim kaydı: <code>ConnectionAdded</code>, ardından <code>ConnectionVerified</code> (var). Uygulama senkronu arka planda <code>StoreJob</code> olarak başlar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1410">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 ok-t"><use href="#i-check-c"/></svg></span><div class="f1"><h2 class="h2" id="m1410">Kuzey Lab ASC bağlandı</h2><p class="t-s fg2 mt4">Doğrulandı · 5 uygulama bulundu, senkron başladı.</p></div></div>
+      <div class="mdl-b">
+        <div class="conn"><div class="r gp10"><span class="st"><b>AS</b>App Store</span><b class="t-m f1">Kuzey Lab ASC</b><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div><dl class="kv"><dt>Key ID</dt><dd class="mono">7QX2M4K9PL</dd><dt>Issuer ID</dt><dd class="mono">…a91f</dd><dt>Özel anahtar</dt><dd class="r gp6 fg2"><svg class="ic s14"><use href="#i-lock"/></svg>Şifreli saklandı</dd></dl></div>
+        <div class="callout"><svg class="ic"><use href="#i-eye-off"/></svg><div class="t-s"><b>Gizli değer bir daha gösterilmez.</b> Değiştirmek için yeni anahtarla bağlantıyı güncelle ya da sil ve yeniden ekle.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri">Uygulamaları eşle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-11">
+  <figcaption class="fr-h"><b class="fr-n">14.11</b><span class="fr-t">Doğrulama sonuçları: reddedildi ve ulaşılamıyor</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note"><code>Rejected</code>: mağaza kimliği tanımadı (<code>401</code>/<code>403</code>); tekrar denemek işe yaramaz, anahtar değişmeli. <code>Unreachable</code>: zaman aşımı, DNS, <code>5xx</code>; anahtar muhtemelen sağlam, sonra tekrar dene. İkisinde de <code>LastVerifyError</code> sunucudan gelen metin olarak kartta; <code>LastVerifiedDate</code> son başarılı doğrulamayı korur. Bağlantı reddedildiyse bağlı uygulamaların senkronu durur ve sahiplere bildirim gider.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Mağaza bağlantıları</h1></div></div>
+        <div class="conns">
+          <article class="conn dng">
+            <div class="r gp10"><span class="st"><b>GP</b>Google Play</span><b class="t-m f1 trunc">Play servis hesabı</b><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></div>
+            <dl class="kv"><dt>Servis hesabı</dt><dd class="mono">storeasy@kuzeylab-play.iam.gserviceaccount.com</dd><dt>Son başarılı</dt><dd>18 Kas 2026, 09:12</dd></dl>
+            <div class="err">403 · The caller does not have permission (com.kuzeylab.mola). Play Console'da servis hesabına uygulama izni verilmemiş.</div>
+            <div class="foot"><span class="t-s fg2 f1">5 uygulamanın senkronu durdu</span><span class="btn sm">Anahtarı değiştir</span></div>
+          </article>
+          <article class="conn">
+            <div class="r gp10"><span class="st"><b>MS</b>Microsoft Store</span><b class="t-m f1 trunc">Kuzey Lab Partner Center</b><span class="bdg warn sm"><span class="dot"></span>Ulaşılamıyor</span></div>
+            <dl class="kv"><dt>Tenant</dt><dd class="mono">…3c07</dd><dt>Son başarılı</dt><dd>18 Kas 2026, 09:12</dd></dl>
+            <div class="err" style="color:rgb(var(--fg-2))">manage.devcenter.microsoft.com 20 sn içinde yanıt vermedi.</div>
+            <div class="foot"><span class="t-s fg2 f1">Anahtar sağlam görünüyor</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. SİLME VE SIR YENİLEME ============ -->
+<section class="sec" id="sir">
+<div class="sec-h"><span class="k">Bölüm 14.12-14.14</span><h2>Silme ve sır yenileme</h2><p>Bağlantı silmek o mağazadaki bütün eşlemeleri ve webhook uçlarını kaldırır. Microsoft client secret'ı süreli olduğu için yenileme akışı ayrıca vardır: yeni sır doğrulanmadan eskisi silinmez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-12">
+  <figcaption class="fr-h"><b class="fr-n">14.12</b><span class="fr-t">Bağlantıyı sil</span><code class="fr-r">/connections → sil</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/storeConnections/connection { ConnectionId }</code> (var) → denetim kaydı <code>ConnectionRemoved</code>. Onay penceresi etkilenecekleri sayar: senkronu duracak uygulamalar, kaldırılacak webhook uçları (Apple tarafındaki kayıt da API ile silinir), bekleyen işler iptal. Tehlikeli eylem: bağlantı adını yazmak gerekir. <b>İzin:</b> <code>ManageConnections</code>. <span class="gap">Backend boşluğu:</span> etki listesi için <code>GET /api/v1.0/storeConnections/connection/usage?ConnectionId=</code> → <code>{ Apps[{ Id, Name }], WebhookEndpointCount, PendingJobCount }</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Mağaza bağlantıları</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1412">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 dng-t"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1412">Kuzey Lab ASC silinsin mi?</h2><p class="t-s fg2 mt4">Anahtar storeasy'den kalıcı olarak silinir. App Store Connect'teki anahtar etkilenmez.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-grid"/></svg><div class="f1 t-s"><b>5 uygulamanın App Store senkronu durur</b><div class="t-xs fg3">Pusula, Defter, Halka, Mola, Kumbara</div></div></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-webhook"/></svg><div class="f1 t-s"><b>1 webhook ucu kaldırılır</b><div class="t-xs fg3">Apple'daki kayıt da silinir; durum değişiklikleri gelmez.</div></div></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-activity"/></svg><div class="f1 t-s"><b>1 bekleyen iş iptal edilir</b><div class="t-xs fg3">Pusula iPad 13" ekran görüntüleri · 4 / 7</div></div></div>
+        </div></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Kuzey Lab ASC</span> yaz</span><span class="inp foc">Kuzey Lab ASC</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng"><svg class="ic"><use href="#i-trash"/></svg>Bağlantıyı sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-13" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">14.13</b><span class="fr-t">Microsoft bağlantısı: sır bitiyor</span><code class="fr-r">/connections/:connectionId</code></figcaption>
+  <p class="fr-note">Bağlantı detayı. Sır bitişine 30 gün kalınca sayfa üstünde uyarı şeridi, kartta uyarı kenarlığı, uyum takviminde satır (6.13) ve sahiplere "Son tarih" bildirimi. Bitişten sonra durum <code>Rejected</code> olur, Microsoft gönderimleri durur. <b>API:</b> liste ucu <code>GET storeConnections</code> (detay ucu yok, listeden süzülür); doğrulama geçmişi denetim kaydından <code>PATCH organizations/audit-logs</code> + <code>TargetId</code>. <b>İzin:</b> <code>ManageConnections</code>. Telefonda iki sütun alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları|Kuzey Lab Partner Center" data-act="">
+      <div class="banner warn"><svg class="ic s18 warn-t"><use href="#i-alert-t"/></svg><span class="f1">Client secret <b>10 Aralık 2026</b>'da bitiyor (22 gün). Bitince Pusula ve Tarla'nın Microsoft Store gönderimleri durur.</span><span class="btn sm inv hide-ph">Sırrı güncelle</span></div>
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Mağaza bağlantıları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="st"><b>MS</b>Microsoft Store</span><span class="bdg ok sm"><span class="dot"></span>Doğrulandı</span></div><h1 class="pg-t">Kuzey Lab Partner Center</h1></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-refresh"/></svg>Doğrula</span><span class="btn pri">Sırrı güncelle</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-fingerprint"/></svg><span class="h3">Parmak izi</span></div><div class="card-b"><dl class="kv">
+              <dt>Tenant</dt><dd class="mono">…3c07</dd><dt>Client ID</dt><dd class="mono">…be12</dd><dt>Satıcı kimliği</dt><dd class="mono">40291187</dd><dt>Client secret</dt><dd class="r gp6 fg2"><svg class="ic s14"><use href="#i-lock"/></svg>Şifreli · girildi 10 Ara 2025</dd><dt>Sır bitişi</dt><dd><span class="bdg warn sm">10 Ara 2026 · 22 gün</span></dd><dt>Son doğrulama</dt><dd>18 Kas 2026, 09:12</dd>
+            </dl></div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-history"/></svg><span class="h3">Doğrulama geçmişi</span></div><div class="lst">
+              <div class="lst-i"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="f1 t-s">Doğrulandı · iki API'de 2 uygulama</span><span class="t-xs fg3">18 Kas 09:12</span></div>
+              <div class="lst-i"><svg class="ic s16 warn-t"><use href="#i-wifi-off"/></svg><span class="f1 t-s">Ulaşılamıyor · zaman aşımı</span><span class="t-xs fg3">11 Kas 03:00</span></div>
+              <div class="lst-i"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="f1 t-s">Doğrulandı</span><span class="t-xs fg3">4 Kas 09:00</span></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Bağlı uygulamalar</span></div><div class="lst">
+              <div class="lst-i"><span class="aic s" style="--c:#0F766E">P</span><span class="f1 t-s">Pusula <span class="fg3">· MSIX</span></span><span class="mono t-xs fg3">9P4K7Q2MZL1D</span></div>
+              <div class="lst-i"><span class="aic s" style="--c:#9A3412">T</span><span class="f1 t-s">Tarla <span class="fg3">· EXE</span></span></div>
+            </div></div>
+            <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Yeni sırrı Entra'da oluştur, buraya gir; storeasy doğrular ve eskisini yenisiyle değiştirir. Eski sırrı Entra'dan sonra sil.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-14">
+  <figcaption class="fr-h"><b class="fr-n">14.14</b><span class="fr-t">Sırrı güncelle</span><code class="fr-r">/connections/:connectionId → sırrı güncelle</code></figcaption>
+  <p class="fr-note">Yeni sır önce doğrulanır (token alma); başarılıysa şifreli değer yenisiyle değiştirilir, bitiş tarihi güncellenir, uyarı kalkar. Başarısızsa eski sır yerinde kalır, form hatası gösterilir. Diğer alanlar (tenant, client, satıcı) değişmez; değişecekse yeni bağlantı eklenir. Apple ve Google için aynı akış "Anahtarı değiştir" adıyla (yeni .p8 ya da JSON). <b>İzin:</b> <code>ManageConnections</code>. Denetim kaydı <code>ConnectionUpdated</code> (var). <span class="gap">Backend boşluğu:</span> <code>PUT /api/v1.0/storeConnections/connection/secret { ConnectionId, Secret, SecretExpiryDate? }</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-crumbs="Mağaza bağlantıları|Kuzey Lab Partner Center" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kuzey Lab Partner Center</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1414">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1414">Client secret'ı güncelle</h2><p class="t-s fg2 mt4">Kuzey Lab Partner Center · tenant …3c07 · client …be12</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Yeni client secret</span><span class="inp mono foc">••••••••••••••••••••••••••••<svg class="ic ml"><use href="#i-eye"/></svg></span></label>
+        <label class="fld"><span class="lbl">Yeni bitiş tarihi</span><span class="inp"><svg class="ic"><use href="#i-calendar"/></svg>18 Kas 2027</span><span class="hint">12 ay · en çok 24 ay</span></label>
+        <div class="callout info"><svg class="ic"><use href="#i-shield-check"/></svg><div class="t-s">Önce yeni sırla token alınır. Başarılı olursa eski sır yenisiyle değiştirilir; başarısız olursa hiçbir şey değişmez.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Doğrula ve değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. WEBHOOK'LAR ============ -->
+<section class="sec" id="webhook">
+<div class="sec-h"><span class="k">Bölüm 14.15-14.18</span><h2>Webhook'lar</h2><p>App Store Connect sürüm durumu değişince storeasy'ye haber verir; red, inceleme ve yayın anında görünür. Her Apple bağlantısının kendi ucu ve kendi gizli anahtarı vardır. Alıcı anonimdir, HMAC zorunlu, hız sınırlı, gövde boyutu sınırlı (plan 8).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-15" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">14.15</b><span class="fr-t">Webhook uçları ve olay kaydı</span><code class="fr-r">/webhooks</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/webhooks</code> → <code>WebhookEndpointDto { Id, StoreConnectionId, ConnectionName, Url, ExternalWebhookId, Registration (Api, Manual, Pending, Failed), Events[], SecretSetDate, LastEventDate }</code>; olaylar <code>PATCH /api/v1.0/webhooks/events</code> ListRequest (<code>EndpointId</code>, <code>SignatureValid</code>, <code>EventType</code>) → <code>WebhookEventDto { Id, EndpointId, EventType, AppName, StoreAppId, OldValue, NewValue, SignatureValid, ReceivedDate, ProcessedDate, ProcessResult }</code>. Olay türü <code>APP_STORE_VERSION_APP_VERSION_STATE_UPDATED</code> (tekil yazım; eski çoğul yazım da kabul edilir ve aynı türe eşlenir). İmzası geçersiz olay işlenmez ama kayda düşer; satır kırmızı zeminle vurgulanır. Yeni olay SignalR <code>webhook.received</code> ile listenin başına eklenir. <b>İzin:</b> <code>ManageWebhooks</code> (Owner, Admin). Telefonda olay tablosu karta döner, geçersiz imzalı kart kırmızı kenarlıklı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="webhooks" data-crumbs="Webhook'lar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Webhook'lar</h1><p class="pg-s">App Store Connect sürüm durumu olayları. Google Play ve Microsoft Store durumu periyodik senkronla gelir.</p></div><div class="pg-a"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Uç ekle</span></div></div>
+        <div class="card mb16"><div class="card-h"><span class="st"><b>AS</b>App Store</span><b class="t-m">Kuzey Lab ASC</b><span class="bdg ok sm ml"><span class="dot"></span>Apple'da kayıtlı · API</span></div><div class="card-b c gp12">
+          <div class="secret"><span class="f1">https://storeasy.milvasoft.com/webhooks/apple/whe_3k9x2m7q</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div>
+          <div class="g3">
+            <div class="c gp4"><span class="t-xs fg3">Olay</span><span class="mono t-s" style="overflow-wrap:anywhere">APP_STORE_VERSION_APP_VERSION_STATE_UPDATED</span></div>
+            <div class="c gp4"><span class="t-xs fg3">Gizli anahtar</span><span class="t-s">Ayarlandı · 2 Kas 2026 <span class="lnk">Yenile</span></span></div>
+            <div class="c gp4"><span class="t-xs fg3">Apple kaydı</span><span class="t-s mono">ASC webhook 8a1f…c903</span></div>
+          </div>
+        </div></div>
+        <div class="r bt mb12"><div class="h3">Olay kaydı</div><div class="seg"><span class="on">Tümü</span><span>İmza geçersiz · 1</span></div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Alındı</th><th>Uygulama</th><th>Değişim</th><th>İmza</th><th>İşlendi</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm">18 Kas 09:31</td><td data-l="Uygulama">Pusula 2.3</td><td data-l="Değişim" class="mono t-s">WAITING_FOR_REVIEW → IN_REVIEW</td><td data-l="İmza"><span class="bdg ok sm">Geçerli</span></td><td data-l="İşlendi">09:31 · durum güncellendi</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-chev-r"/></svg></span></td></tr>
+            <tr><td class="tm">17 Kas 16:41</td><td data-l="Uygulama">Pusula 2.3</td><td data-l="Değişim" class="mono t-s">READY_FOR_REVIEW → WAITING_FOR_REVIEW</td><td data-l="İmza"><span class="bdg ok sm">Geçerli</span></td><td data-l="İşlendi">16:41 · durum güncellendi</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-chev-r"/></svg></span></td></tr>
+            <tr class="bad"><td class="tm">17 Kas 03:12</td><td data-l="Uygulama" class="fg3">-</td><td data-l="Değişim" class="mono t-s fg3">gövde okunmadı</td><td data-l="İmza"><span class="bdg dng sm"><span class="dot"></span>Geçersiz</span></td><td data-l="İşlendi" class="dng-t b6">İşlenmedi · 401</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-chev-r"/></svg></span></td></tr>
+            <tr class="hov"><td class="tm">16 Kas 11:05</td><td data-l="Uygulama">Defter 1.4</td><td data-l="Değişim" class="mono t-s">IN_REVIEW → REJECTED</td><td data-l="İmza"><span class="bdg ok sm">Geçerli</span></td><td data-l="İşlendi">11:05 · red kaydı açıldı</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-chev-r"/></svg></span></td></tr>
+            <tr><td class="tm">14 Kas 18:20</td><td data-l="Uygulama">Mola 3.1.2</td><td data-l="Değişim" class="mono t-s">PENDING_DEVELOPER_RELEASE → READY_FOR_SALE</td><td data-l="İmza"><span class="bdg ok sm">Geçerli</span></td><td data-l="İşlendi">18:20 · durum güncellendi</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-chev-r"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 3 · Toplam: 52</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-16">
+  <figcaption class="fr-h"><b class="fr-n">14.16</b><span class="fr-t">Gizli anahtarı yenile</span><code class="fr-r">/webhooks → yenile</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/webhooks/endpoint/rotate-secret { EndpointId }</code> → <code>{ Secret, SecretSetDate }</code>; değer yalnız bu yanıtta. Uç Apple'a API ile kayıtlıysa storeasy yeni sırrı Apple'daki webhook'a kendisi yazar; elle kayıtlıysa kullanıcı App Store Connect'e yapıştırır. Geçiş sırasında olay kaçmasın diye eski sır 24 saat daha kabul edilir. <b>İzin:</b> <code>ManageWebhooks</code>. <span class="gap">Backend boşluğu:</span> 24 saatlik geçiş için <code>WebhookEndpoints</code>'e <code>PreviousEncryptedSecret, PreviousSecretValidUntil</code>; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="webhooks" data-crumbs="Webhook'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Webhook'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1416">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 ok-t"><use href="#i-check-c"/></svg></span><div class="f1"><h2 class="h2" id="m1416">Yeni gizli anahtar hazır</h2><p class="t-s fg2 mt4">Kuzey Lab ASC · Apple'daki webhook güncellendi.</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Gizli anahtar</span><div class="secret"><span class="f1">whsec_asc_Vb7Kq2Xm9Lp4Rt8NzC3hYw6D</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Bu değer bir daha gösterilmez.</b> API ile kayıtlı uçta kopyalaman gerekmez; yine de yedek almak istersen şimdi al.</div></div>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-clock"/></svg>Eski anahtar 19 Kas 2026, 14:20'ye kadar kabul edilir.</div>
+      </div>
+      <div class="mdl-f"><span class="btn pri">Kapat</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-17">
+  <figcaption class="fr-h"><b class="fr-n">14.17</b><span class="fr-t">Uç ekle: Apple'a kayıt</span><code class="fr-r">/webhooks → uç ekle</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/webhooks/endpoint { StoreConnectionId, RegisterAtApple }</code> → <code>{ Id, Url, Secret, Registration }</code>. "API ile kaydet" storeasy'nin App Store Connect webhook kaynağına uç, sır ve olay türünü yazması; bağlantının anahtarı yetkisizse (<code>403</code>) kayıt <code>Failed</code> olur ve elle kayıt adımları açılır: URL ve sır bir kez gösterilir, kullanıcı App Store Connect &gt; Kullanıcılar ve Erişim &gt; Entegrasyonlar &gt; Webhook'lar'a girer. Elle kayıtta ilk geçerli olay gelince durum "Apple'da kayıtlı · elle" olur. Her bağlantıda en çok bir uç. <b>İzin:</b> <code>ManageWebhooks</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="webhooks" data-crumbs="Webhook'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Webhook'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1417">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1417">Webhook ucu ekle</h2><p class="t-s fg2 mt4">Apple bağlantısı başına bir uç, ayrı gizli anahtar.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Bağlantı</span><span class="inp sel"><span class="st sm"><b>AS</b></span>Kuzey Lab ASC (CI)</span></label>
+        <div class="fld"><span class="lbl">Kayıt</span>
+          <div class="opt-row"><span class="rad"></span><div class="f1"><b class="t-m">API ile kaydet</b><div class="t-s fg2">storeasy Apple'a kendisi kaydeder.</div></div><span class="bdg dng sm">Anahtar yetkisiz</span></div>
+          <div class="opt-row"><span class="rad on"></span><div class="f1"><b class="t-m">Elle kaydet</b><div class="t-s fg2">URL ve gizli anahtarı App Store Connect'e yapıştır.</div></div></div>
+        </div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Bu bağlantının anahtarı reddedildi (401). API ile kayıt için önce anahtarı değiştir ya da elle kaydet.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Uç oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-18" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">14.18</b><span class="fr-t">Olay ayrıntısı</span><code class="fr-r">/webhooks/events/:eventId</code></figcaption>
+  <p class="fr-note">Ham gövde <code>Payload (jsonb)</code> olduğu gibi; imza başlığı maskeli (<code>x-apple-signature</code> plan 8 log maskesinde): ilk ve son 4 hane. İmza sonucu sunucunun hesapladığıyla karşılaştırma; geçersizse "Neden olabilir" listesi (sır yenilendi, başka bir ortamın ucu, gövde değiştirildi). İşleme sonucu ilgili kayda bağlanır (red kaydı, sürüm durumu). "Yeniden işle" yalnız imzası geçerli olayda. <b>İzin:</b> <code>ManageWebhooks</code>. Telefonda çekmece tam ekran. <span class="gap">Backend boşluğu:</span> tek olay ve yeniden işleme için <code>GET /api/v1.0/webhooks/event?EventId=</code> → <code>WebhookEventDetailDto { ..., Payload, SignatureHeaderMasked, ProcessResult, RelatedEntityType, RelatedEntityId }</code> ve <code>POST /api/v1.0/webhooks/event/reprocess</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="webhooks" data-crumbs="Webhook'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Webhook'lar</h1></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m1418" style="width:540px">
+      <div class="mdl-h"><div class="f1"><div class="r gp8 mb8"><span class="aic s" style="--c:#B45309">D</span><span class="t-s">Defter 1.4</span><span class="bdg ok sm">İmza geçerli</span></div><h2 class="h2 mono" id="m1418" style="font-size:16px;overflow-wrap:anywhere">IN_REVIEW → REJECTED</h2><p class="t-s fg2 mt4">16 Kasım 2026, 11:05:12 · Kuzey Lab ASC</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="card"><div class="card-b"><dl class="kv">
+          <dt>Olay türü</dt><dd class="mono t-s">APP_STORE_VERSION_APP_VERSION_STATE_UPDATED</dd>
+          <dt>İmza başlığı</dt><dd class="mono t-s">x-apple-signature: hmacsha256=4f9a••••••••c21e</dd>
+          <dt>Hesaplanan</dt><dd class="r gp6 t-s"><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>Eşleşiyor · HMAC-SHA256, ham gövde</dd>
+          <dt>İşleme</dt><dd class="t-s">11:05:13 · red kaydı açıldı · 2 kişiye bildirim · <span class="lnk">Red kaydını aç</span></dd>
+        </dl></div></div>
+        <div class="fld"><span class="lbl">Ham gövde</span>
+<pre class="code">{
+  <span class="k1">"data"</span>: {
+    <span class="k1">"type"</span>: <span class="s1">"appStoreVersionAppVersionStateUpdated"</span>,
+    <span class="k1">"id"</span>: <span class="s1">"e1b0c7d4-5a8f-4c21-9e3b-7d02f6a14c88"</span>,
+    <span class="k1">"version"</span>: 1,
+    <span class="k1">"attributes"</span>: {
+      <span class="k1">"oldValue"</span>: <span class="s1">"IN_REVIEW"</span>,
+      <span class="k1">"newValue"</span>: <span class="s1">"REJECTED"</span>,
+      <span class="k1">"timestamp"</span>: <span class="s1">"2026-11-16T08:05:12.000Z"</span>
+    },
+    <span class="k1">"relationships"</span>: {
+      <span class="k1">"instance"</span>: {
+        <span class="k1">"data"</span>: {
+          <span class="k1">"type"</span>: <span class="s1">"appStoreVersions"</span>,
+          <span class="k1">"id"</span>: <span class="s1">"a7f3e9b2-1c4d-4e8a-b6f0-2d9c5e7a3b11"</span>
+        }
+      }
+    }
+  }
+}</pre></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn"><svg class="ic"><use href="#i-copy"/></svg>Gövdeyi kopyala</span><span class="btn">Yeniden işle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. BİLDİRİMLER ============ -->
+<section class="sec" id="bildirim">
+<div class="sec-h"><span class="k">Bölüm 14.19-14.22</span><h2>Bildirimler</h2><p>Bildirim merkezi kullanıcı başınadır ve bütün organizasyonlardan gelenleri toplar; her satır hangi organizasyondan geldiğini söyler. Tıklama <span class="mono">ActionLink</span>'e gider ve bildirimi okundu yapar. Kanallar: uygulama içi, e-posta, web push (Faz 8).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-19">
+  <figcaption class="fr-h"><b class="fr-n">14.19</b><span class="fr-t">Zil menüsü</span><code class="fr-r">üst bar → zil</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/account/notifications</code> (var) <code>RowCount=8</code>, okunmamışlar önce → <code>AccountNotificationDto { Id, Type, TypeDescription, Text, Data, RelatedEntityType, RelatedEntityId, ActionLink, SeenDate, IsSeen, CreationDate }</code>; okunmamış sayısı <code>IsSeen = false</code> süzgeciyle <code>TotalDataCount</code>. "Hepsini okundu yap" <code>PUT /api/v1.0/account/notifications/seen { MarkAll: true }</code> (var). Satıra tıklama <code>{ NotificationIdList: [Id] }</code> ile okundu yapar ve <code>ActionLink</code>'e gider. Telefonda menü üst barın altından tam genişlik açılır. <span class="gap">Backend boşluğu:</span> canlı sayaç için SignalR <code>notification.created</code> olayı planlanan olay listesinde yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar"><div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div><div class="g3" style="opacity:.5"><div class="card" style="height:180px"></div><div class="card" style="height:180px"></div><div class="card" style="height:180px"></div></div></div></div>
+    <div class="pop bellpop" style="top:58px;right:56px" role="dialog" aria-label="Bildirimler">
+      <div class="bh"><b class="t-m f1">Bildirimler</b><span class="bdg sm">5 okunmamış</span><span class="btn sm ghost">Hepsini okundu yap</span></div>
+      <div class="ni unread"><span class="ud"></span><div><div class="r gp6 mb8"><span class="bdg ok sm">İş bitti</span><span class="t-xs fg3">Kuzey Lab · 10:39</span></div><div class="tx">Pusula 2.4 (119) TestFlight "Kuzey içi" grubuna teslim edildi.</div></div></div>
+      <div class="ni unread"><span class="ud"></span><div><div class="r gp6 mb8"><span class="bdg info sm">Yeni yorum</span><span class="t-xs fg3">Kuzey Lab · 09:00</span></div><div class="tx">Mola'ya 8 yeni yorum; 2 tanesi 1 yıldız.</div></div></div>
+      <div class="ni unread"><span class="ud"></span><div><div class="r gp6 mb8"><span class="bdg warn sm">Son tarih</span><span class="t-xs fg3">Kuzey Lab · 08:00</span></div><div class="tx">Halka TestFlight build'i 24 Kasım'da bitiyor (6 gün).</div></div></div>
+      <div class="ni unread"><span class="ud"></span><div><div class="r gp6 mb8"><span class="bdg dng sm">İş hatalı</span><span class="t-xs fg3">Kuzey Lab · dün</span></div><div class="tx">defter-dev-1.4.1-55.aab reddedildi: paket adı uygulamayla eşleşmiyor.</div></div></div>
+      <div class="bf"><span class="lnk">Bütün bildirimler</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-20" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">14.20</b><span class="fr-t">Bildirim merkezi</span><code class="fr-r">/notifications</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/account/notifications</code> (var) ListRequest: <code>Type</code> eşittir (çipler), <code>IsSeen</code> (Okunmamış), sayfa 20. Seçim çubuğu: "Okundu yap" <code>PUT account/notifications/seen { NotificationIdList }</code>, "Sil" <code>DELETE account/notifications { NotificationIdList }</code> ya da <code>{ DeleteAll: true }</code> (var, onay 14.21). Rozet metni <code>TypeDescription</code>'dan; renk türe göre. <b>İzin:</b> yok, kendi bildirimleri. Telefonda onay kutuları gizli, uzun basma seçim modunu açar; çipler yatay kayar. <span class="gap">Backend boşluğu:</span> <code>NotificationType</code> bugün yalnız <code>OrderApproved</code>: <code>Rejection, JobSucceeded, JobFailed, Deadline, NewReview, Invitation, ConnectionAlert, ArtifactRejected</code> Eklenecek; <code>NotificationEntity</code> yalnız <code>None</code>: <code>App, StoreJob, RejectionCase, Review, Invitation, StoreConnection, ArtifactSession</code> Eklenecek; <code>InternalNotification</code>'da <code>OrganizationId</code> yok (plan 5 <code>Notifications</code> tablosunda var), satırdaki organizasyon etiketi ve organizasyon süzgeci için Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Bildirimler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Bildirimler</h1><p class="pg-s">Bütün organizasyonlarından · 5 okunmamış</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-check"/></svg>Hepsini okundu yap</span><span class="ib" title="Tercihler"><svg class="ic"><use href="#i-settings"/></svg></span></div></div>
+        <div class="toolbar" style="overflow-x:auto;flex-wrap:nowrap"><span class="chip on">Tümü</span><span class="chip">Okunmamış · 5</span><span class="chip">Red</span><span class="chip">İş bitti</span><span class="chip">İş hatalı</span><span class="chip">Son tarih</span><span class="chip">Yeni yorum</span><span class="chip">Davet</span></div>
+        <div class="bulk"><span class="chk on" style="border-color:rgb(var(--bg))"></span><b class="f1">2 bildirim seçili</b><span class="btn sm">Okundu yap</span><span class="btn sm"><svg class="ic"><use href="#i-trash"/></svg>Sil</span></div>
+        <div class="card">
+          <div class="ni unread sel"><span class="chk on"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg ok sm">İş bitti</span><span class="t-xs fg3">Kuzey Lab · bugün 10:39</span></div><div class="tx">Pusula 2.4 (119) TestFlight "Kuzey içi" grubuna teslim edildi.</div><div class="mt">Azure DevOps 20261118.3 · <span class="lnk">Oturumu aç</span></div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni unread"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg info sm">Yeni yorum</span><span class="t-xs fg3">Kuzey Lab · bugün 09:00</span></div><div class="tx">Mola'ya 8 yeni yorum; 2 tanesi 1 yıldız.</div><div class="mt"><span class="lnk">Yorumlara git</span></div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni unread"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg warn sm">Son tarih</span><span class="t-xs fg3">Kuzey Lab · bugün 08:00</span></div><div class="tx">Halka TestFlight build'i 24 Kasım'da bitiyor (6 gün).</div><div class="mt"><span class="lnk">TestFlight'ı aç</span></div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni unread"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg dng sm">İş hatalı</span><span class="t-xs fg3">Kuzey Lab · dün 17:03</span></div><div class="tx">defter-dev-1.4.1-55.aab reddedildi: paket adı uygulamayla eşleşmiyor.</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni unread"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg warn sm">Son tarih</span><span class="t-xs fg3">Kuzey Lab · 17 Kas</span></div><div class="tx">Kuzey Lab Partner Center'ın client secret'ı 10 Aralık'ta bitiyor.</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni sel"><span class="chk on"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg dng sm">Red</span><span class="t-xs fg3">Kuzey Lab · 16 Kas</span></div><div class="tx">Defter 1.4 reddedildi: Guideline 2.1, 5.1.1. Red kaydı açıldı.</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg sm">Davet</span><span class="t-xs fg3">Kuzey Lab · 15 Kas</span></div><div class="tx">Ece Yılmaz, can@kuzeylab.dev adresini Editor olarak davet etti.</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+          <div class="ni"><span class="chk"></span><span class="ud"></span><div><div class="r gp6 mb8 wrap"><span class="bdg ok sm">İş bitti</span><span class="t-xs fg3">Ada Stüdyo · 14 Kas</span></div><div class="tx">Ada Stüdyo: 3 dilde ekran görüntüsü seti yüklendi.</div></div><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+        </div>
+        <div class="pager"><span>Sayfa 1 / 3 · Toplam: 46</span><span class="btn sm dis ml"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-21">
+  <figcaption class="fr-h"><b class="fr-n">14.21</b><span class="fr-t">Seçilenleri sil</span><code class="fr-r">/notifications → sil</code></figcaption>
+  <p class="fr-note"><code>DELETE /api/v1.0/account/notifications { NotificationIdList: [..] }</code> (var). Silme kalıcıdır (bildirimin bağlı olduğu red kaydı, iş vb. etkilenmez). "Hepsini sil" aynı uçta <code>DeleteAll: true</code> ve onay metninde sayı. Sonuç toast'ı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Bildirimler" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Bildirimler</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1421">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1421">2 bildirim silinsin mi?</h2><p class="t-s fg2 mt4">Bildirimler kalıcı olarak silinir. Bağlı oldukları kayıtlar (red kaydı, teslim oturumu) yerinde kalır.</p></div></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f14-22" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">14.22</b><span class="fr-t">Bildirim tercihleri</span><code class="fr-r">/account/notifications</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/account/preferences</code>, <code>PUT /api/v1.0/account/preferences</code> (planlanan) → <code>UserPreferencesDto { Language, Theme, Notifications: [{ Kind, InApp, Email, WebPush, Locked }], EmailDigest (Immediate, Every15Minutes, Daily), QuietHours { Start, End, TimeZone } }</code>. Tercih kullanıcı başınadır, bütün organizasyonlarda geçerli. Zorunlu türler (güvenlik ve bağlantı uyarıları) kilitli: uygulama içi ve e-posta kapatılamaz. Web push Faz 8'de; sütun pasif ve etiketli. Değişiklik anında kaydedilir (anahtar başına <code>PUT</code>), toast yok, satır yanında "Kaydedildi". Telefonda tablo karta döner: tür başlık, üç kanal etiketli satırlar. <span class="gap">Backend boşluğu:</span> <code>EmailDigest</code> ve <code>QuietHours</code> alanları planda yok; Eklenecek. Satırların türleri <code>NotificationType</code> boşluğuyla (14.20) aynı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesabım|Bildirim tercihleri" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Bildirim tercihleri</h1><p class="pg-s">Ne zaman, nereden haber alacağın. Bütün organizasyonların için geçerli.</p></div></div>
+        <div class="tbl-w"><table class="tbl pref">
+          <thead><tr><th>Tür</th><th style="text-align:center">Uygulama içi</th><th style="text-align:center">E-posta</th><th style="text-align:center">Web push <span class="bdg sm">Faz 8</span></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div><b>Red</b><div class="t-xs fg3">Bir sürüm reddedilince</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw on"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b>İş bitti</b><div class="t-xs fg3">Benim başlattığım mağaza işleri ve teslimler</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b>İş hatalı</b><div class="t-xs fg3">Mağaza işi ya da paket teslimi başarısız</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw on"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b>Son tarih</b><div class="t-xs fg3">Uyum takvimi, TestFlight bitişi; 30, 7 ve 1 gün önce</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw on"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b>Yeni yorum</b><div class="t-xs fg3">Günde en çok bir özet</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b>Davet</b><div class="t-xs fg3">Organizasyona davet ve katılımlar</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on"></span></td><td data-l="E-posta" class="ch"><span class="sw on"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+            <tr><td class="tm"><div><b class="r gp6">Güvenlik ve bağlantılar <svg class="ic s14 fg3"><use href="#i-lock"/></svg></b><div class="t-xs fg3">Yeni oturum, sır bitişi, reddedilen anahtar, geçersiz webhook imzası · kapatılamaz</div></div></td><td data-l="Uygulama içi" class="ch"><span class="sw on dis"></span></td><td data-l="E-posta" class="ch"><span class="sw on dis"></span></td><td data-l="Web push" class="ch"><span class="sw dis"></span></td></tr>
+          </tbody></table></div>
+        <div class="g2 mt16">
+          <div class="card"><div class="card-h"><span class="h3">E-posta gönderimi</span></div><div class="card-b c gp10">
+            <div class="seg" style="max-width:100%;overflow-x:auto"><span>Anında</span><span class="on">15 dakikada bir özet</span><span>Günlük 09:00</span></div>
+            <p class="t-xs fg3" style="margin:0">Red ve güvenlik bildirimleri her zaman anında gider.</p>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Sessiz saatler</span><span class="sw on ml"></span></div><div class="card-b c gp10">
+            <div class="r gp8"><span class="inp mono" style="width:96px">22:00</span><span class="fg3">-</span><span class="inp mono" style="width:96px">08:00</span><span class="t-s fg3">Europe/Istanbul</span></div>
+            <p class="t-xs fg3" style="margin:0">Bu aralıkta e-postalar sabaha kalır; uygulama içi bildirimler düşmeye devam eder. Zorunlu türler beklemez.</p>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. DURUMLAR ============ -->
+<section class="sec" id="durumlar">
+<div class="sec-h"><span class="k">Bölüm 14.23</span><h2>Yetki durumu</h2><p>Mağaza bağlantıları ve webhook'lar Editor ve Viewer için kenar menüde görünmez. Adres doğrudan açılırsa 403 sayfası çizilir. Bağlantı boş durumu 14.2, doğrulama sürüyor 14.3, geçersiz imzalı olay satırı 14.15'te.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f14-23">
+  <figcaption class="fr-h"><b class="fr-n">14.23</b><span class="fr-t">Viewer: bağlantılar sayfası (403)</span><code class="fr-r">/connections</code></figcaption>
+  <p class="fr-note">Sayfa <code>ManageConnections</code> ister; <code>/webhooks</code> aynı biçimde <code>ManageWebhooks</code>. Metin rolü ve kimin yapabileceğini söyler, tek eylem uygulamalara dönüş. Hangi bağlantıların var olduğu sızdırılmaz. <span class="gap">Backend boşluğu:</span> <code>GetStoreConnectionListQuery</code> bugün <code>[OrgAuth(OrgPermission.View)]</code> ile Viewer'a da parmak izlerini döndürüyor; ekranla tutarlı olsun diye <code>ManageConnections</code>'a çekilmesi önerilir (uygulama eşleme ekranı 6.3 bağlantı adını <code>GET apps/unlinked-store-apps</code>'tan alır). Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="connections" data-role="Viewer" data-crumbs="Mağaza bağlantıları">
+      <div class="content">
+        <div class="state"><span class="sic"><svg class="ic"><use href="#i-lock"/></svg></span><h3>Bu sayfayı görme yetkin yok</h3><p>Mağaza bağlantıları yalnız <b>Sahip</b> ve <b>Yönetici</b> rolünde açılır. Kuzey Lab'de rolün <b>İzleyici</b>.</p><div class="r gp8 wrap" style="justify-content:center"><span class="btn pri">Uygulamalara dön</span><span class="btn ghost">Rolümü kim değiştirebilir?</span></div><span class="t-xs fg3 mono">403 · ManageConnections</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

@@ -1,0 +1,1645 @@
+<!doctype html>
+<html lang="tr" data-theme="dark" data-view="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy · Yorumlar ve red akışı</title>
+<meta name="description" content="Organizasyon genelindeki yorum kutusu (liste ve ayrıntı, yanıt yazma, kayıtlı yanıtlar, Claude taslağı), red kayıtları (yapıştır, ayrıştır, kontrol listesi, 4.000 karakterlik yanıt taslağı, yeniden gönderim), Microsoft sertifikasyon hatası, hızlandırılmış inceleme talebi ve red bildirimi.">
+<script>(function(){var r=document.documentElement;try{var s=JSON.parse(localStorage.getItem('storeasy.design')||'{}');if(s.theme)r.setAttribute('data-theme',s.theme);if(s.view)r.setAttribute('data-view',s.view);}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+/* ===== storeasy tasarım kiti v1 =====
+   Bütün tasarım dosyalarında aynen kullanılır (build.mjs gömer). Token adları 02 standardının src/index.css
+   adlarıyla aynıdır (RGB üçlüleri): kodda Tailwind `rgb(var(--x) / <alpha-value>)` ile okunur. */
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --r-xs:6px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-pill:999px;
+  --ease:cubic-bezier(.2,.7,.2,1);--dur-1:120ms;--dur-2:220ms;--dur-3:420ms;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.28),0 2px 6px rgb(0 0 0/.08);
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:250 250 248;--bg-2:244 244 241;--surface:255 255 255;--border:228 227 222;--border-strong:206 205 199;
+  --fg:20 20 22;--fg-2:88 88 94;--fg-3:112 112 118;
+  --accent:70 54 255;--accent-fg:255 255 255;--accent-text:70 54 255;
+  --success:21 128 61;--warning:180 95 6;--danger:200 40 40;--info:37 99 200;
+  --overlay:20 20 22;--page:236 236 232;--frame:214 213 207;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:10 10 11;--bg-2:26 26 29;--surface:18 18 20;--border:38 38 42;--border-strong:58 58 64;
+  --fg:240 240 238;--fg-2:168 168 172;--fg-3:124 124 130;
+  --accent:133 122 255;--accent-fg:10 10 11;--accent-text:150 141 255;
+  --success:62 199 128;--warning:240 176 64;--danger:255 99 99;--info:110 160 255;
+  --overlay:0 0 0;--page:4 4 5;--frame:44 44 50;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.7),0 2px 6px rgb(0 0 0/.5);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:rgb(var(--page));color:rgb(var(--fg));font:400 15px/1.5 var(--font-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.mono{font-family:var(--font-mono);font-feature-settings:"zero" 1}
+.disp{font-family:var(--font-display)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Doküman kabuğu ---------- */
+.doc-top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 24px;background:rgb(var(--page)/.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgb(var(--border))}
+.doc-top .home{display:flex;align-items:center;gap:8px;font:700 14px/1 var(--font-display);white-space:nowrap}
+.doc-top .home svg{width:22px;height:22px}
+.doc-top .ttl{font:500 13px/1.2 var(--font-body);color:rgb(var(--fg-2));min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-top .sp{flex:1}
+.doc-top .pn{display:flex;gap:4px}
+.doc-top .pn a{font:500 12px/1 var(--font-mono);padding:8px 10px;border:1px solid rgb(var(--border));border-radius:var(--r-pill);color:rgb(var(--fg-2));white-space:nowrap}
+.dseg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:var(--r-pill);padding:3px;gap:2px;background:rgb(var(--surface))}
+.dseg button{border:0;background:none;color:rgb(var(--fg-2));font:500 12px/1 var(--font-body);padding:7px 11px;border-radius:var(--r-pill);cursor:pointer;white-space:nowrap}
+.dseg button[aria-pressed="true"]{background:rgb(var(--fg));color:rgb(var(--bg))}
+.doc{max-width:1400px;margin:0 auto;padding:40px 24px 120px}
+.doc-hero{display:grid;gap:10px;margin-bottom:12px}
+.doc-hero .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.doc-hero h1{font:800 44px/1.02 var(--font-display);letter-spacing:-.035em;margin:0}
+.doc-hero p{margin:0;max-width:820px;color:rgb(var(--fg-2));font-size:16px}
+.doc-toc{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.doc-toc a{font:500 12px/1 var(--font-body);padding:7px 10px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));color:rgb(var(--fg-2));background:rgb(var(--surface))}
+.sec{margin-top:72px;scroll-margin-top:72px}
+.sec-h{margin:0 0 24px;display:grid;gap:6px}
+.sec-h .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.sec-h h2{font:800 32px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.sec-h p{margin:0;max-width:860px;color:rgb(var(--fg-2))}
+.frames{display:grid;gap:56px}
+html[data-view="phone"] .frames{grid-template-columns:repeat(auto-fill,minmax(min(390px,100%),1fr));gap:48px 32px}
+.fr{margin:0;min-width:0;scroll-margin-top:72px}
+.fr-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.fr-n{font:600 11px/1 var(--font-mono);background:rgb(var(--fg));color:rgb(var(--bg));border-radius:5px;padding:4px 6px}
+.fr-t{font:700 16px/1.2 var(--font-display)}
+.fr-r{font:500 12px/1 var(--font-mono);color:rgb(var(--fg-3));word-break:break-all}
+.fr-note{font-size:13px;line-height:1.55;color:rgb(var(--fg-2));margin:4px 0 12px;max-width:980px}
+.fr-note b{color:rgb(var(--fg))}
+.fr-note .gap{display:inline;color:rgb(var(--warning));font-weight:600}
+.vp{position:relative;width:100%;overflow:hidden;border-radius:var(--r-lg);box-shadow:0 0 0 1px rgb(var(--frame)),0 30px 60px -36px rgb(0 0 0/.45)}
+html[data-view="phone"] .fr:not([data-view="desktop"]) .vp{max-width:390px;border-radius:40px}
+.fr[data-view="phone"] .vp{max-width:390px;border-radius:40px}
+.scr{position:absolute;left:0;top:0;width:1280px;height:820px;transform-origin:0 0;background:rgb(var(--bg));color:rgb(var(--fg));overflow:hidden;container-type:inline-size;container-name:scr;font:400 14px/1.5 var(--font-body)}
+.doc-note{font-size:13px;color:rgb(var(--fg-2));border-left:2px solid rgb(var(--border-strong));padding:2px 0 2px 12px;margin:16px 0;max-width:900px}
+.doc-card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);padding:22px}
+
+/* ---------- Uygulama kabuğu ---------- */
+.shell{display:flex;height:100%;position:relative}
+.side{width:248px;flex:none;border-right:1px solid rgb(var(--border));background:rgb(var(--surface));display:flex;flex-direction:column;padding:16px 12px 12px;gap:4px;overflow:hidden}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px}
+.brand svg{width:28px;height:28px;flex:none}
+.wm{font:800 21px/1 var(--font-display);letter-spacing:-.035em;color:rgb(var(--fg))}
+.wm i{font-style:normal;color:rgb(var(--accent))}
+.orgsw{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:8px 10px;margin-bottom:8px;background:rgb(var(--bg));text-align:left;width:100%;cursor:pointer}
+.orgsw .oav{width:30px;height:30px;border-radius:9px;background:rgb(var(--fg));color:rgb(var(--bg));display:grid;place-items:center;font:800 13px/1 var(--font-display);flex:none}
+.orgsw b{display:block;font:600 13px/1.25 var(--font-body)}
+.orgsw small{display:block;color:rgb(var(--fg-3));font-size:11px;line-height:1.3}
+.side .act{margin-bottom:8px}
+.nav-g{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:14px 10px 6px}
+.nav-i{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;color:rgb(var(--fg-2));font:500 13.5px/1.2 var(--font-body)}
+.nav-i .ic{width:18px;height:18px}
+.nav-i.on{background:rgb(var(--bg-2));color:rgb(var(--fg));font-weight:600}
+.nav-i.on::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:rgb(var(--accent))}
+.nav-i.on .ic{color:rgb(var(--accent))}
+.nav-i .cnt{margin-left:auto;font:600 11px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.nav-i .cnt.live{color:rgb(var(--success))}
+.nav-i .cnt.dng{color:rgb(var(--danger))}
+.side-f{margin-top:auto;border-top:1px solid rgb(var(--border));padding-top:10px;display:grid;gap:8px}
+.me{display:flex;align-items:center;gap:10px;padding:4px 6px}
+.me b{display:block;font:600 13px/1.25 var(--font-body)}
+.me small{display:block;font-size:11px;color:rgb(var(--fg-3))}
+.lic{font:500 10.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));padding:0 6px;display:flex;justify-content:space-between;gap:8px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.bar{height:60px;flex:none;border-bottom:1px solid rgb(var(--border));display:flex;align-items:center;gap:10px;padding:0 24px;background:rgb(var(--bg))}
+.crumb{display:flex;align-items:center;gap:6px;color:rgb(var(--fg-3));font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.crumb b{color:rgb(var(--fg));font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.crumb .sep{opacity:.6}
+.search{margin-left:auto;width:300px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:flex;align-items:center;gap:8px;padding:0 10px;color:rgb(var(--fg-3));font-size:13px;background:rgb(var(--surface));flex:none}
+.livepill{display:inline-flex;align-items:center;gap:6px;font:600 11px/1 var(--font-mono);color:rgb(var(--success));border:1px solid rgb(var(--success)/.35);border-radius:var(--r-pill);padding:6px 9px;white-space:nowrap}
+.content{flex:1;min-height:0;overflow:auto;padding:24px 28px 40px}
+.content.flush{padding:0}
+.menu-btn{display:none}
+
+/* ---------- Telefon (kapsayıcı sorgusu: aynı ekran 390 px'te) ---------- */
+@container scr (max-width:760px){
+  .side{display:none}
+  .shell.drawer .side{display:flex;position:absolute;inset:0 auto 0 0;width:300px;z-index:40;box-shadow:var(--sh-float)}
+  .shell.drawer::after{content:"";position:absolute;inset:0;background:rgb(var(--overlay)/.45);z-index:39}
+  .menu-btn{display:grid}
+  .bar{padding:0 12px;height:56px;gap:6px}
+  .bar .search{width:36px;padding:0;justify-content:center;margin-left:auto}
+  .bar .search span,.bar .search .kbd{display:none}
+  .bar .livepill .lt{display:none}
+  .lst-i{flex-wrap:wrap}
+  .apphead .seg{max-width:100%;overflow-x:auto}
+  .apphead .f1{flex:1 1 calc(100% - 64px)}
+  .apphead .aic.l{width:48px;height:48px;font-size:20px;border-radius:13px}
+  .apphead .bdg{white-space:normal;line-height:1.2}
+  .subnav{flex-wrap:nowrap !important;overflow-x:auto}
+  .crumb .pre{display:none}
+  .content{padding:16px 16px 96px}
+  .scr .hide-ph{display:none !important}
+  .scr .only-ph{display:revert !important}
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr !important}
+  .split,.split-r,.split-l{grid-template-columns:1fr !important}
+  .pg-h{flex-wrap:wrap}
+  .pg-t{font-size:24px}
+  .pg-a{width:100%;flex-wrap:wrap}
+  .tbl-w{border:0;background:none;overflow:visible}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--surface));padding:12px 14px;margin-bottom:10px}
+  .tbl td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;grid-column:1 / -1;font-size:13px}
+  .tbl td[data-l]::before{content:attr(data-l);color:rgb(var(--fg-3));font-size:12px;flex:none}
+  .tbl td.tm{grid-column:1;font-size:14px;justify-content:flex-start}
+  .tbl td.ta{grid-column:2;grid-row:1;justify-content:flex-end}
+  .tbl td.tx{display:none}
+  .tbl tr.sel{outline:2px solid rgb(var(--fg))}
+  .pager{flex-wrap:wrap;justify-content:center}
+  .pager .ps{display:none}
+  .ovl{align-items:flex-end;padding:0}
+  .mdl{width:100% !important;max-height:92%;border-radius:20px 20px 0 0}
+  .drw{width:100% !important}
+  .toasts{left:12px;right:12px;bottom:84px}
+  .toast{width:auto}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .scr .fab{display:inline-flex !important}
+}
+.only-ph{display:none !important}
+.fab{display:none !important;position:absolute;right:16px;bottom:24px;z-index:20;box-shadow:var(--sh-float)}
+
+/* ---------- Tipografi ---------- */
+.pg-h{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.pg-t{font:800 30px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.pg-s{color:rgb(var(--fg-2));font-size:14px;margin:6px 0 0;max-width:720px}
+.pg-h>:first-child{flex:1 1 auto;min-width:0}
+.pg-a{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.h2{font:700 20px/1.2 var(--font-display);letter-spacing:-.015em;margin:0}
+.h3{font:700 16px/1.25 var(--font-display);letter-spacing:-.01em;margin:0}
+.eb{font:600 11px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.t-xs{font-size:11.5px;line-height:1.4}.t-s{font-size:12.5px;line-height:1.45}.t-m{font-size:14px}.t-l{font-size:16px}
+.fg2{color:rgb(var(--fg-2))}.fg3{color:rgb(var(--fg-3))}
+.b5{font-weight:500}.b6{font-weight:600}.b7{font-weight:700}
+.ok-t{color:rgb(var(--success))}.warn-t{color:rgb(var(--warning))}.dng-t{color:rgb(var(--danger))}.info-t{color:rgb(var(--info))}.acc-t{color:rgb(var(--accent-text))}
+.tnum{font-variant-numeric:tabular-nums}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.nowrap{white-space:nowrap}
+.num{font:800 28px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* ---------- Yardımcılar ---------- */
+.r{display:flex;align-items:center}.rt{display:flex;align-items:flex-start}.c{display:flex;flex-direction:column}
+.bt{justify-content:space-between}.je{justify-content:flex-end}.jc{justify-content:center}.ac{align-items:center}.wrap{flex-wrap:wrap}
+.f1{flex:1;min-width:0}.fn{flex:none}.ml{margin-left:auto}
+.gp4{gap:4px}.gp6{gap:6px}.gp8{gap:8px}.gp10{gap:10px}.gp12{gap:12px}.gp16{gap:16px}.gp20{gap:20px}.gp24{gap:24px}.gp32{gap:32px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}
+.grid{display:grid;gap:16px}
+.g2{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{display:grid;gap:12px;grid-template-columns:repeat(5,minmax(0,1fr))}
+.split{display:grid;gap:20px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.split-l{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr);align-items:start}
+.split-r{display:grid;gap:20px;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+.hr{height:1px;background:rgb(var(--border));border:0;margin:16px 0}
+.hr.d{background:none;border-top:1px dashed rgb(var(--border))}
+
+/* ---------- İkon, logo ---------- */
+.ic{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ic.s12{width:12px;height:12px}.ic.s14{width:14px;height:14px}.ic.s16{width:16px;height:16px}.ic.s18{width:18px;height:18px}.ic.s24{width:24px;height:24px}.ic.s28{width:28px;height:28px}.ic.s32{width:32px;height:32px}.ic.s40{width:40px;height:40px}.ic.s48{width:48px;height:48px}
+.mk{--m1:rgb(var(--accent));--m2:rgb(var(--accent)/.5);flex:none}
+.mk.inv{--m1:rgb(var(--accent-fg));--m2:rgb(var(--accent-fg)/.55)}
+.mk.mono-m{--m1:rgb(var(--fg));--m2:rgb(var(--fg)/.45)}
+.spin-mk{animation:spin 1.6s linear infinite}
+
+/* ---------- Butonlar ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 15px;border-radius:10px;font:600 13.5px/1 var(--font-body);border:1px solid rgb(var(--border-strong));background:rgb(var(--surface));color:rgb(var(--fg));white-space:nowrap;cursor:pointer;flex:none}
+.btn .ic{width:16px;height:16px}
+.btn.pri{background:rgb(var(--accent));border-color:transparent;color:rgb(var(--accent-fg))}
+.btn.inv{background:rgb(var(--fg));border-color:transparent;color:rgb(var(--bg))}
+.btn.ghost{background:none;border-color:transparent;color:rgb(var(--fg-2))}
+.btn.dng{background:rgb(var(--danger));border-color:transparent;color:#fff}
+html[data-theme="dark"] .btn.dng{color:rgb(10 10 11)}
+.btn.dng-o{background:none;border-color:rgb(var(--danger)/.5);color:rgb(var(--danger))}
+.btn.sm{height:30px;padding:0 11px;font-size:12.5px;border-radius:8px}
+.btn.lg{height:46px;padding:0 20px;font-size:15px;border-radius:12px}
+.btn.blk{display:flex;width:100%}
+.btn[disabled],.btn.dis{opacity:.45;cursor:not-allowed}
+.btn.ld{color:transparent !important;position:relative}
+.btn.ld::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid rgb(var(--fg)/.25);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite}
+.btn.pri.ld::after{border-color:rgb(var(--accent-fg)/.3);border-top-color:rgb(var(--accent-fg))}
+.ib{width:36px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:grid;place-items:center;color:rgb(var(--fg-2));background:rgb(var(--surface));position:relative;flex:none;cursor:pointer;padding:0}
+.ib .ic{width:18px;height:18px}
+.ib.sm{width:30px;height:30px;border-radius:8px}.ib.sm .ic{width:16px;height:16px}
+.ib.ghost{border-color:transparent;background:none}
+.pip{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:rgb(var(--danger));box-shadow:0 0 0 2px rgb(var(--surface))}
+.lnk{font-weight:600;color:rgb(var(--fg));text-decoration:underline;text-decoration-color:rgb(var(--fg)/.3);text-underline-offset:3px}
+.kbd{font:500 11px/1 var(--font-mono);border:1px solid rgb(var(--border));border-bottom-width:2px;border-radius:5px;padding:2px 5px;color:rgb(var(--fg-3));margin-left:auto}
+:where(.scr) .focus{outline:2px solid rgb(var(--fg));outline-offset:2px}
+
+/* ---------- Form ---------- */
+.fld{display:grid;gap:6px;min-width:0}
+.lbl{font:600 12.5px/1.2 var(--font-body);color:rgb(var(--fg-2));display:flex;align-items:center;gap:6px}
+.lbl .opt{font-weight:500;color:rgb(var(--fg-3))}
+.inp{display:flex;align-items:center;gap:8px;min-height:40px;border:1px solid rgb(var(--border-strong));border-radius:10px;padding:0 12px;background:rgb(var(--surface));color:rgb(var(--fg));font:400 14px/1.4 var(--font-body);width:100%;min-width:0}
+.inp .ph{color:rgb(var(--fg-3))}
+.inp .ic{width:16px;height:16px;color:rgb(var(--fg-3))}
+.inp.ta{align-items:flex-start;padding:10px 12px;min-height:96px;white-space:pre-wrap}
+.inp.foc{border-color:rgb(var(--fg));box-shadow:0 0 0 3px rgb(var(--fg)/.10)}
+.inp.err{border-color:rgb(var(--danger));box-shadow:0 0 0 3px rgb(var(--danger)/.12)}
+.inp.ro{background:rgb(var(--bg-2));color:rgb(var(--fg-2));border-style:dashed}
+.inp.dis{opacity:.55}
+.inp.mono,.inp .mono{font-family:var(--font-mono);font-size:13px}
+.inp.sel::after{content:"";margin-left:auto;width:8px;height:8px;border-right:1.8px solid rgb(var(--fg-3));border-bottom:1.8px solid rgb(var(--fg-3));transform:rotate(45deg) translate(-2px,-2px);flex:none}
+.hint{font-size:12px;color:rgb(var(--fg-3));line-height:1.45}
+.err-t{font-size:12px;color:rgb(var(--danger));display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.cnt{font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3));margin-left:auto;white-space:nowrap}
+.cnt.near{color:rgb(var(--warning))}.cnt.over{color:rgb(var(--danger))}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.chk.on{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.on::after{content:"";width:9px;height:5px;border-left:2px solid rgb(var(--accent-fg));border-bottom:2px solid rgb(var(--accent-fg));transform:rotate(-45deg) translate(1px,-1px)}
+.chk.mix{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.mix::after{content:"";width:9px;height:2px;background:rgb(var(--accent-fg));border-radius:2px}
+.chk.dis{opacity:.45}
+.rad{width:18px;height:18px;border-radius:50%;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.rad.on{border-color:rgb(var(--accent))}
+.rad.on::after{content:"";width:9px;height:9px;border-radius:50%;background:rgb(var(--accent))}
+.sw{width:36px;height:22px;border-radius:999px;background:rgb(var(--border-strong));position:relative;flex:none;display:inline-block}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgb(0 0 0/.25);transition:left var(--dur-2) var(--ease)}
+.sw.on{background:rgb(var(--accent))}
+.sw.on::after{left:17px}
+.sw.dis{opacity:.45}
+.opt-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0}
+.seg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:10px;padding:3px;gap:2px;background:rgb(var(--bg-2));flex:none}
+.seg>*{border:0;background:none;color:rgb(var(--fg-2));font:500 12.5px/1 var(--font-body);padding:7px 11px;border-radius:7px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.seg>.on{background:rgb(var(--surface));color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--border))}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));background:rgb(var(--surface));font:500 12.5px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.chip .ic{width:14px;height:14px}
+.chip.on{border-color:rgb(var(--accent));color:rgb(var(--accent-text));background:rgb(var(--accent)/.08)}
+.chip .x{opacity:.6}
+.ferr{border:1px solid rgb(var(--danger)/.45);background:rgb(var(--danger)/.07);border-radius:var(--r-md);padding:12px 14px;display:flex;gap:10px;font-size:13px}
+.ferr ul{margin:4px 0 0;padding-left:18px}
+
+/* ---------- Rozet, mağaza etiketi ---------- */
+.bdg{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1 var(--font-body);padding:5px 9px;border-radius:var(--r-pill);border:1px solid rgb(var(--border-strong));color:rgb(var(--fg-2));white-space:nowrap;background:rgb(var(--surface))}
+.bdg .dot,.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;display:inline-block}
+.bdg.ok{color:rgb(var(--success));border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.07)}
+.bdg.warn{color:rgb(var(--warning));border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.08)}
+.bdg.dng{color:rgb(var(--danger));border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.07)}
+.bdg.info{color:rgb(var(--info));border-color:rgb(var(--info)/.45);background:rgb(var(--info)/.07)}
+.bdg.acc{color:rgb(var(--accent-text));border-color:rgb(var(--accent)/.45);background:rgb(var(--accent)/.08)}
+.bdg.sol{background:rgb(var(--fg));color:rgb(var(--bg));border-color:transparent}
+.bdg.sm{font-size:10.5px;padding:3px 7px}
+.bdg.live .dot{animation:pulse 1.6s infinite}
+.st{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.st b{display:inline-grid;place-items:center;min-width:24px;height:18px;padding:0 4px;border-radius:5px;font:700 9.5px/1 var(--font-mono);letter-spacing:.02em;border:1.5px solid currentColor;color:rgb(var(--fg))}
+.st.sm{font-size:11px}.st.sm b{height:16px;min-width:22px;font-size:9px}
+.st.only b{margin:0}
+.plat{font:600 10.5px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.tag{display:inline-flex;align-items:center;font:500 11.5px/1 var(--font-mono);padding:4px 7px;border-radius:6px;background:rgb(var(--bg-2));color:rgb(var(--fg-2));border:1px solid rgb(var(--border));white-space:nowrap}
+
+/* ---------- Avatar, uygulama ikonu ---------- */
+.av{width:30px;height:30px;border-radius:50%;background:rgb(var(--bg-2));border:1px solid rgb(var(--border));display:inline-grid;place-items:center;font:600 11.5px/1 var(--font-body);color:rgb(var(--fg-2));flex:none}
+.av.s{width:24px;height:24px;font-size:10px}.av.l{width:44px;height:44px;font-size:15px}.av.xl{width:72px;height:72px;font-size:22px}
+.aic{--c:#555;width:44px;height:44px;border-radius:12px;background:var(--c);display:inline-grid;place-items:center;font:800 18px/1 var(--font-display);color:#fff;flex:none;position:relative;overflow:hidden}
+.aic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgb(255 255 255/.12)}
+.aic.s{width:28px;height:28px;border-radius:8px;font-size:12px}.aic.m{width:36px;height:36px;border-radius:10px;font-size:15px}.aic.l{width:64px;height:64px;border-radius:17px;font-size:26px}
+
+/* ---------- Kart, panel, liste ---------- */
+.card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.card-h .h3{font-size:15px}
+.card-b{padding:18px}
+.card-f{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid rgb(var(--border))}
+.card.dash{border-style:dashed;background:none}
+.card.warn{border-color:rgb(var(--warning)/.5)}
+.card.dng{border-color:rgb(var(--danger)/.5)}
+.card.sel{border-color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--fg))}
+.lst{display:grid}
+.lst-i{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgb(var(--border));min-width:0}
+.lst-i:last-child{border-bottom:0}
+.lst-i.on{background:rgb(var(--bg-2))}
+.lst-i .f1{overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:10px 20px;margin:0;font-size:13.5px}
+.kv dt{color:rgb(var(--fg-3))}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.stat{display:grid;gap:6px;padding:16px 18px}
+.stat .lb{font-size:12.5px;color:rgb(var(--fg-2))}
+.callout{display:flex;gap:12px;align-items:flex-start;border:1px solid rgb(var(--border));background:rgb(var(--bg-2));border-radius:var(--r-md);padding:12px 14px;font-size:13px;line-height:1.5}
+.callout .ic{width:18px;height:18px;margin-top:1px}
+.callout.info{border-color:rgb(var(--info)/.4);background:rgb(var(--info)/.06)}.callout.info>.ic{color:rgb(var(--info))}
+.callout.warn{border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.07)}.callout.warn>.ic{color:rgb(var(--warning))}
+.callout.dng{border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.06)}.callout.dng>.ic{color:rgb(var(--danger))}
+.callout.ok{border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.06)}.callout.ok>.ic{color:rgb(var(--success))}
+
+/* ---------- Sekmeler ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid rgb(var(--border));margin-bottom:20px}
+.tab{display:inline-flex;align-items:center;gap:7px;padding:10px 12px;font:500 13.5px/1 var(--font-body);color:rgb(var(--fg-2));border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab .ic{width:16px;height:16px}
+.tab.on{color:rgb(var(--fg));font-weight:600;border-bottom-color:rgb(var(--accent))}
+.tab .n{font:600 10.5px/1 var(--font-mono);padding:3px 5px;border-radius:5px;background:rgb(var(--bg-2));color:rgb(var(--fg-3))}
+.tab .n.dng{background:rgb(var(--danger)/.12);color:rgb(var(--danger))}
+
+/* ---------- Tablo, sayfalama ---------- */
+.tbl-w{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;min-width:0}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}
+.tbl th{text-align:left;font:600 12px/1.2 var(--font-body);color:rgb(var(--fg-3));padding:11px 14px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2)/.6);white-space:nowrap}
+.tbl th .ic{width:12px;height:12px;vertical-align:-1px;margin-left:3px}
+.tbl th.srt{color:rgb(var(--fg))}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgb(var(--border));vertical-align:middle;overflow-wrap:anywhere}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.sel td{background:rgb(var(--accent)/.06)}
+.tbl tr.hov td{background:rgb(var(--bg-2)/.7)}
+.tbl td.ta{text-align:right;white-space:nowrap}
+.tbl .w1{width:1%;white-space:nowrap}
+.pager{display:flex;align-items:center;gap:10px;padding:12px 2px 0;font-size:13px;color:rgb(var(--fg-2))}
+.pager .ml{margin-left:auto}
+.bulk{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);background:rgb(var(--fg));color:rgb(var(--bg));font-size:13px;margin-bottom:12px}
+.bulk .btn{background:rgb(var(--bg)/.12);border-color:transparent;color:rgb(var(--bg))}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+
+/* ---------- Boş, iskelet, durum ---------- */
+.empty{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:40px 24px;display:grid;justify-items:center;text-align:center;gap:10px;color:rgb(var(--fg-2))}
+.empty .eic{width:56px;height:56px;border-radius:16px;background:rgb(var(--bg-2));display:grid;place-items:center;color:rgb(var(--fg-2))}
+.empty .eic .ic{width:26px;height:26px}
+.empty h4{margin:4px 0 0;font:700 17px/1.2 var(--font-display);color:rgb(var(--fg))}
+.empty p{margin:0;max-width:420px;font-size:13.5px}
+.state{display:grid;justify-items:center;text-align:center;gap:12px;padding:56px 24px}
+.state .sic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:rgb(var(--bg-2));color:rgb(var(--fg-2))}
+.state .sic .ic{width:30px;height:30px}
+.state h3{margin:0;font:800 24px/1.1 var(--font-display);letter-spacing:-.02em}
+.state p{margin:0;max-width:440px;color:rgb(var(--fg-2))}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,rgb(var(--bg-2)) 0%,rgb(var(--border)/.7) 50%,rgb(var(--bg-2)) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;height:12px}
+.sk.t{height:18px}.sk.b{height:36px;border-radius:10px}.sk.ci{border-radius:50%}
+.topline{position:absolute;left:0;right:0;top:0;height:2px;overflow:hidden;z-index:5}
+.topline::after{content:"";position:absolute;inset:0 60% 0 0;background:rgb(var(--accent));animation:slide 1.2s var(--ease) infinite}
+.spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid rgb(var(--fg)/.15);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite;display:inline-block}
+
+/* ---------- İlerleme, adım, zaman çizelgesi ---------- */
+.prog{height:6px;border-radius:3px;background:rgb(var(--bg-2));overflow:hidden;min-width:40px}
+.prog>i{display:block;height:100%;background:rgb(var(--accent));border-radius:3px}
+.prog.ok>i{background:rgb(var(--success))}.prog.warn>i{background:rgb(var(--warning))}.prog.dng>i{background:rgb(var(--danger))}.prog.neu>i{background:rgb(var(--fg-2))}
+.prog.sm{height:4px}
+.stp{display:flex;gap:6px}
+.stp>span{flex:1;height:6px;border-radius:3px;background:rgb(var(--bg-2))}
+.stp>.d{background:rgb(var(--fg-2))}.stp>.n{background:rgb(var(--accent));animation:breathe 1.4s ease-in-out infinite}.stp>.x{background:rgb(var(--danger))}
+.tl{display:grid;position:relative}
+.tl-i>*{min-width:0;overflow-wrap:anywhere}
+.tl-i{display:grid;grid-template-columns:18px minmax(0,1fr);gap:12px;position:relative;padding-bottom:18px}
+.tl-i::before{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:rgb(var(--border))}
+.tl-i:last-child::before{display:none}
+.tl-d{width:18px;height:18px;border-radius:50%;border:2px solid rgb(var(--border-strong));background:rgb(var(--surface));margin-top:1px}
+.tl-d.ok{border-color:rgb(var(--success));background:rgb(var(--success))}
+.tl-d.now{border-color:rgb(var(--accent));box-shadow:0 0 0 4px rgb(var(--accent)/.18)}
+.tl-d.dng{border-color:rgb(var(--danger));background:rgb(var(--danger))}
+.tl-d.warn{border-color:rgb(var(--warning))}
+.ck{display:grid}
+.ck-i{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed rgb(var(--border))}
+.ck-i:last-child{border-bottom:0}
+.ck-s{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;border:1.5px solid rgb(var(--border-strong));margin-top:1px}
+.ck-s .ic{width:13px;height:13px;stroke-width:2.6}
+.ck-s.ok{background:rgb(var(--success));border-color:rgb(var(--success));color:#fff}
+.ck-s.dng{background:rgb(var(--danger)/.12);border-color:rgb(var(--danger));color:rgb(var(--danger))}
+.ck-s.warn{background:rgb(var(--warning)/.12);border-color:rgb(var(--warning));color:rgb(var(--warning))}
+.ck-s.asst{border-style:dashed}
+
+/* ---------- Diff, kod ---------- */
+.diff{border:1px solid rgb(var(--border));border-radius:var(--r-md);overflow:hidden;font-size:13px;background:rgb(var(--surface))}
+.diff-h{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgb(var(--bg-2));border-bottom:1px solid rgb(var(--border));font:600 12px/1.2 var(--font-body)}
+.dl{display:grid;grid-template-columns:22px 1fr;padding:6px 12px 6px 6px;line-height:1.55;border-bottom:1px solid rgb(var(--border)/.6)}
+.dl:last-child{border-bottom:0}
+.dl::before{font:700 12px/1.55 var(--font-mono);text-align:center;color:rgb(var(--fg-3));content:" "}
+.dl.del{background:rgb(var(--danger)/.07)}.dl.del::before{content:"-";color:rgb(var(--danger))}
+.dl.add{background:rgb(var(--success)/.08)}.dl.add::before{content:"+";color:rgb(var(--success))}
+.diff del{background:rgb(var(--danger)/.2);text-decoration:line-through;text-decoration-color:rgb(var(--danger)/.6);border-radius:3px;padding:0 2px}
+.diff ins{background:rgb(var(--success)/.22);text-decoration:none;border-radius:3px;padding:0 2px}
+.code{margin:0;font:500 12.5px/1.6 var(--font-mono);background:rgb(var(--bg-2));border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:14px 16px;overflow:auto;white-space:pre;color:rgb(var(--fg))}
+.code .c1{color:rgb(var(--fg-3))}.code .k1{color:rgb(var(--accent-text))}.code .s1{color:rgb(var(--success))}
+.secret{display:flex;align-items:center;gap:8px;font:500 13px/1.3 var(--font-mono);background:rgb(var(--bg-2));border:1px dashed rgb(var(--border-strong));border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}
+
+/* ---------- Yüzen öğeler: menü, modal, çekmece, toast ---------- */
+.ovl{position:absolute;inset:0;background:rgb(var(--overlay)/.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60}
+.mdl{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-xl);box-shadow:var(--sh-float);width:520px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.mdl.sm{width:420px}.mdl.lg{width:720px}.mdl.xl{width:960px}
+.mdl-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.mdl-h .h2{font-size:19px}
+.mdl-b{padding:16px 22px;overflow:auto;display:grid;gap:14px;min-height:0}
+.mdl-f{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 22px;border-top:1px solid rgb(var(--border));background:rgb(var(--bg)/.5)}
+.drw{position:absolute;top:0;right:0;bottom:0;width:480px;background:rgb(var(--surface));border-left:1px solid rgb(var(--border));box-shadow:var(--sh-float);display:flex;flex-direction:column;z-index:61}
+.drw .mdl-b{flex:1}
+.pop{position:absolute;z-index:70;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:6px;min-width:200px;display:grid;gap:1px}
+.pop .mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13.5px;color:rgb(var(--fg));white-space:nowrap}
+.pop .mi .ic{width:16px;height:16px;color:rgb(var(--fg-2))}
+.pop .mi.on{background:rgb(var(--bg-2))}
+.pop .mi.dng,.pop .mi.dng .ic{color:rgb(var(--danger))}
+.pop .ms{height:1px;background:rgb(var(--border));margin:4px 2px}
+.pop .mh{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:8px 10px 4px}
+.toasts{position:absolute;right:20px;bottom:20px;display:grid;gap:8px;z-index:80}
+.toast{width:360px;display:flex;gap:10px;align-items:flex-start;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:12px 14px;font-size:13px}
+.toast>.ic{width:18px;height:18px;margin-top:1px}
+.toast.ok>.ic{color:rgb(var(--success))}.toast.dng>.ic{color:rgb(var(--danger))}.toast.info>.ic{color:rgb(var(--info))}.toast.warn>.ic{color:rgb(var(--warning))}
+.tip{position:absolute;z-index:75;background:rgb(var(--fg));color:rgb(var(--bg));font-size:12px;padding:6px 9px;border-radius:7px;white-space:nowrap}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:13px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2))}
+.banner.warn{background:rgb(var(--warning)/.1);border-color:rgb(var(--warning)/.35)}
+.banner.dng{background:rgb(var(--danger)/.08);border-color:rgb(var(--danger)/.35)}
+.banner.info{background:rgb(var(--info)/.08);border-color:rgb(var(--info)/.35)}
+
+/* ---------- Giriş sayfası düzeni ---------- */
+.auth{display:grid;grid-template-columns:560px 1fr;height:100%}
+.auth-f{padding:48px 72px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:2;background:rgb(var(--bg));overflow:auto}
+.auth-f .brand{padding:0}
+.auth-c{margin:auto 0;display:grid;gap:16px;width:100%;max-width:400px}
+.auth-c h1{font:800 34px/1.05 var(--font-display);letter-spacing:-.03em;margin:0}
+.auth-foot{display:flex;justify-content:space-between;gap:12px;font:500 11px/1.4 var(--font-mono);color:rgb(var(--fg-3))}
+.auth-art{position:relative;overflow:hidden;background:rgb(var(--surface))}
+.auth-art::before{content:"";position:absolute;inset:0 auto 0 0;width:220px;background:linear-gradient(90deg,rgb(var(--bg)),rgb(var(--bg)/0));z-index:1}
+.auth-art svg{position:absolute;inset:0;width:100%;height:100%}
+@container scr (max-width:760px){
+  .auth{grid-template-columns:1fr}
+  .auth-art{display:none}
+  .auth-f{padding:28px 20px}
+}
+
+/* ---------- Hareket ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation:none !important;transition:none !important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+.rm-only{display:none}
+html[data-motion="reduce"] .rm-only{display:revert}
+html[data-motion="reduce"] .rm-hide{display:none !important}
+
+/* ---------- Doküman: telefon genişliğinde okuma ---------- */
+@media (max-width:720px){
+  .doc{padding:24px 16px 80px}
+  .doc-top{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .doc-top .ttl,.doc-top .pn{display:none}
+  .doc-hero h1{font-size:32px}
+  .sec-h h2{font-size:26px}
+  .vp{border-radius:var(--r-md)}
+}
+
+</style>
+<style>
+
+.rvw{display:flex;flex-direction:column;height:100%;min-height:0}
+.rv-top{display:flex;align-items:center;gap:12px;padding:18px 28px 14px;border-bottom:1px solid rgb(var(--border));flex-wrap:wrap}
+.rv-top .pg-t{font-size:26px}
+.rv{display:grid;grid-template-columns:400px minmax(0,1fr);flex:1;min-height:0}
+.rv-l{display:flex;flex-direction:column;min-height:0;border-right:1px solid rgb(var(--border));min-width:0}
+.rv-fl{padding:12px 16px;border-bottom:1px solid rgb(var(--border));display:grid;gap:10px}
+.rv-ch{display:flex;gap:6px;flex-wrap:wrap}
+.rv-ch .chip{height:28px;padding:0 10px;font-size:12px}
+.rv-ls{flex:1;overflow:auto;min-height:0}
+.rvi{display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;padding:13px 16px;border-bottom:1px solid rgb(var(--border))}
+.rvi.on{background:rgb(var(--bg-2));box-shadow:inset 3px 0 0 rgb(var(--accent))}
+.ud{width:8px;height:8px;border-radius:50%;background:rgb(var(--fg));margin-top:6px}
+.ud.no{background:none}
+.rvi .tx{margin:4px 0 6px;font-size:13px;color:rgb(var(--fg-2));display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rvi .tx b{color:rgb(var(--fg))}
+.rvi .mt{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:rgb(var(--fg-3))}
+.rv-d{overflow:auto;min-height:0;padding:22px 28px 40px;position:relative;min-width:0}
+.stars{display:inline-flex;gap:1px;flex:none;vertical-align:middle}
+.stars .ic{width:13px;height:13px;color:rgb(var(--fg-3)/.5);stroke-width:1.7}
+.stars .ic.f{fill:currentColor;color:rgb(var(--fg))}
+.stars.l .ic{width:18px;height:18px}
+.rq{font-size:15px;line-height:1.6;margin:10px 0 0;overflow-wrap:anywhere}
+.rq-t{font:700 16px/1.3 var(--font-display);margin:10px 0 0}
+.rep{border-left:3px solid rgb(var(--border-strong));padding:10px 14px;background:rgb(var(--bg-2)/.6);border-radius:0 10px 10px 0;font-size:13.5px;overflow-wrap:anywhere}
+.lim{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:rgb(var(--fg-3))}
+.srp{width:360px;white-space:normal}
+.srp .mi{white-space:normal;align-items:flex-start}
+.srp .mi small{display:block;font-size:11.5px;color:rgb(var(--fg-3));margin-top:2px}
+.phb{position:sticky;bottom:0;margin:auto -16px 0;padding:12px 16px 16px;background:rgb(var(--bg));border-top:1px solid rgb(var(--border));display:grid;gap:8px}
+.vchip{font:500 12px/1 var(--font-mono);padding:6px 8px;border-radius:7px;border:1px dashed rgb(var(--border-strong));color:rgb(var(--fg-2));white-space:nowrap}
+.var{font-family:var(--font-mono);font-size:.92em;background:rgb(var(--bg-2));border:1px solid rgb(var(--border));border-radius:5px;padding:0 4px}
+.prev{border:1px solid rgb(var(--border));border-radius:10px;padding:10px 12px;background:rgb(var(--bg-2)/.5);font-size:13px;overflow-wrap:anywhere}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:rgb(var(--fg-2));margin-bottom:12px}
+.rc{display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px}
+.sn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgb(var(--border-strong));display:grid;place-items:center;font:700 12px/1 var(--font-mono);color:rgb(var(--fg-2));background:rgb(var(--surface))}
+.sn.ok{background:rgb(var(--success));border-color:rgb(var(--success));color:#fff}
+.sn.now{border-color:rgb(var(--accent));color:rgb(var(--accent-text));box-shadow:0 0 0 4px rgb(var(--accent)/.15)}
+.sn .ic{width:14px;height:14px;stroke-width:2.6}
+.rc-off{opacity:.5}
+.paste{min-height:190px;font:400 12.5px/1.6 var(--font-mono)}
+.paste.empty-p{min-height:220px;border-style:dashed;justify-content:center;align-items:center;text-align:center;color:rgb(var(--fg-3));font-family:var(--font-body);font-size:13.5px}
+.gl{background:rgb(var(--fg)/.1);color:rgb(var(--fg));font-weight:700;border-radius:4px;padding:0 3px}
+.gh{display:flex;align-items:center;gap:10px;padding:10px 0 4px;flex-wrap:wrap}
+.gh .mono{font-weight:700}
+.ck-i .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:rgb(var(--fg-2))}
+.draft{min-height:260px;font-size:13px;line-height:1.55}
+.draft.long{min-height:300px;max-height:300px;overflow:hidden;position:relative}
+.cbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.hand{border:1px solid rgb(var(--accent)/.35);background:rgb(var(--accent)/.05);border-radius:var(--r-lg);padding:16px}
+.plan{display:grid;gap:8px;margin:0;padding:0;list-style:none;counter-reset:p}
+.plan li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;font-size:13px;counter-increment:p}
+.plan li::before{content:counter(p);font:700 11px/20px var(--font-mono);text-align:center;border-radius:6px;background:rgb(var(--surface));border:1px solid rgb(var(--border))}
+.vstrip{display:flex;gap:6px;flex-wrap:wrap}
+.vs{display:grid;gap:4px;justify-items:center;padding:8px 10px;border:1px solid rgb(var(--border));border-radius:10px;font:600 12px/1 var(--font-mono);min-width:56px}
+.vs small{font:500 10.5px/1.2 var(--font-body);color:rgb(var(--fg-3))}
+.vs.rj{border-color:rgb(var(--danger)/.5)}
+.vs.rj small{color:rgb(var(--danger))}
+.vs.ok small{color:rgb(var(--success))}
+.ntf{width:400px;padding:0;gap:0;top:56px;right:64px}
+.ntf-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgb(var(--border))}
+.ni{display:grid;grid-template-columns:8px 32px minmax(0,1fr);gap:10px;padding:12px 14px;border-bottom:1px solid rgb(var(--border));font-size:13px}
+.ni .nic{width:32px;height:32px;border-radius:9px;border:1px solid rgb(var(--border));display:grid;place-items:center;color:rgb(var(--fg-2));background:rgb(var(--bg-2))}
+.ni .nic.dng{color:rgb(var(--danger));border-color:rgb(var(--danger)/.4);background:rgb(var(--danger)/.06)}
+.ni .nic .ic{width:16px;height:16px}
+.ni.un{background:rgb(var(--bg-2)/.55)}
+.ntf-f{display:flex;justify-content:space-between;gap:8px;padding:10px 14px;font-size:12.5px}
+.mailw{height:100%;overflow:auto;background:rgb(var(--bg-2));padding:28px 20px 40px}
+.mailh{max-width:640px;margin:0 auto 14px;display:grid;gap:4px;font-size:12.5px;color:rgb(var(--fg-2))}
+.mailh b{color:rgb(var(--fg))}
+.mail{max-width:640px;margin:0 auto;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);overflow:hidden}
+.mail-b{padding:28px 32px;display:grid;gap:16px}
+.mail-f{padding:16px 32px;border-top:1px solid rgb(var(--border));font-size:11.5px;color:rgb(var(--fg-3));display:grid;gap:4px}
+.rtag{font:600 11px/1 var(--font-mono);padding:4px 7px;border-radius:6px;border:1px solid rgb(var(--danger)/.45);color:rgb(var(--danger));white-space:nowrap}
+.ow{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.split>*,.rc>*{min-width:0}
+@container scr (max-width:760px){
+  .rv-top{padding:14px 16px 12px}
+  .rv-top .pg-t{font-size:22px}
+  .rv{grid-template-columns:1fr}
+  .rv-l{border-right:0}
+  .rv-d{display:none}
+  .rv.det .rv-l{display:none}
+  .rv.det .rv-d{display:flex;flex-direction:column;padding:14px 16px 0}
+  .rv.det .rv-d>.phb{margin-top:auto}
+  .ntf{left:8px !important;right:8px !important;width:auto}
+  .mailw{padding:16px 10px 32px}
+  .mail-b{padding:20px 18px}
+  .mail-f{padding:14px 18px}
+  .rc{grid-template-columns:26px minmax(0,1fr);gap:10px}
+  .sn{width:26px;height:26px}
+  .draft{min-height:200px}
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<!-- Logo K3 "Dört kanat e": --m1 ana ton, --m2 ikinci ton (renkler .mk sınıfından) -->
+<symbol id="logo" viewBox="0 0 48 48"><path d="M24 24H43a9.5 9.5 0 0 0-19 0z" fill="var(--m1)"/><path d="M24 24V5a9.5 9.5 0 0 0 0 19z" fill="var(--m2)"/><path d="M24 24H5a9.5 9.5 0 0 0 19 0z" fill="var(--m1)"/></symbol>
+
+<!-- İkonlar: 24x24, stroke 1.9 (.ic sınıfı), kodda lucide karşılığı adın yanında -->
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><!-- layout-grid -->
+<symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol><!-- activity -->
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol><!-- image -->
+<symbol id="i-images" viewBox="0 0 24 24"><rect x="7" y="3" width="14" height="14" rx="2.5"/><path d="M3 7v11a3 3 0 0 0 3 3h11"/><path d="m21 13-4-4-6 6"/><circle cx="12" cy="8" r="1.5"/></symbol><!-- images -->
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><!-- message-square -->
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></symbol><!-- key -->
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/></symbol><!-- users -->
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><!-- user -->
+<symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></symbol><!-- user-plus -->
+<symbol id="i-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 11l2 2 4-4"/></symbol><!-- user-check -->
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol><!-- list -->
+<symbol id="i-list-check" viewBox="0 0 24 24"><path d="M11 6h10M11 12h10M11 18h10M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></symbol><!-- list-checks -->
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><!-- search -->
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><!-- bell -->
+<symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.7.5 4.6 1.1 6M17 17H3s3-2 3-9c0-.8.1-1.5.4-2.2M10.3 21a1.9 1.9 0 0 0 3.4 0M2 2l20 20"/></symbol><!-- bell-off -->
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><!-- plus -->
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><!-- minus -->
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol><!-- chevron-down -->
+<symbol id="i-chev-u" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5"/></symbol><!-- chevron-up -->
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m10 7 5 5-5 5"/></symbol><!-- chevron-right -->
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5"/></symbol><!-- chevron-left -->
+<symbol id="i-chevs" viewBox="0 0 24 24"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></symbol><!-- chevrons-up-down -->
+<symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><!-- arrow-right -->
+<symbol id="i-arrow-l" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol><!-- arrow-left -->
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol><!-- arrow-up -->
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol><!-- arrow-down -->
+<symbol id="i-arrows-lr" viewBox="0 0 24 24"><path d="M4 8h16M16 4l4 4-4 4M20 16H4M8 12l-4 4 4 4"/></symbol><!-- arrow-left-right -->
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol><!-- arrow-up-down -->
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><!-- x -->
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol><!-- check -->
+<symbol id="i-check-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></symbol><!-- circle-check -->
+<symbol id="i-x-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol><!-- circle-x -->
+<symbol id="i-alert-t" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><!-- triangle-alert -->
+<symbol id="i-alert-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></symbol><!-- circle-alert -->
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol><!-- info -->
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 1c0 1.8-2.5 2.2-2.5 4M12 17h.01"/></symbol><!-- circle-help -->
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol><!-- lock -->
+<symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.7-1.5"/></symbol><!-- lock-open -->
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol><!-- eye -->
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.6 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></symbol><!-- eye-off -->
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></symbol><!-- mail -->
+<symbol id="i-mail-check" viewBox="0 0 24 24"><path d="M21 12V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v9A2.5 2.5 0 0 0 5.5 19H12"/><path d="m3 7 9 6 9-6M15 18l2 2 4-4"/></symbol><!-- mail-check -->
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- upload -->
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- download -->
+<symbol id="i-cloud-up" viewBox="0 0 24 24"><path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.3 4.3 0 0 1-1 8.5M12 12v9M8.5 15.5 12 12l3.5 3.5"/></symbol><!-- cloud-upload -->
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></symbol><!-- refresh-cw -->
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol><!-- settings -->
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><!-- sliders-horizontal -->
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol><!-- log-out -->
+<symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></symbol><!-- log-in -->
+<symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-4h6v4M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></symbol><!-- building -->
+<symbol id="i-switch" viewBox="0 0 24 24"><path d="M16 3l4 4-4 4M20 7H8M8 21l-4-4 4-4M4 17h12"/></symbol><!-- arrow-right-left -->
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8"/></symbol><!-- copy -->
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol><!-- external-link -->
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><!-- link -->
+<symbol id="i-unlink" viewBox="0 0 24 24"><path d="M18.8 13.2l1.7-1.7a5 5 0 0 0-7-7l-1.7 1.7M5.2 10.8l-1.7 1.7a5 5 0 0 0 7 7l1.7-1.7M8 2v3M2 8h3M16 22v-3M22 16h-3"/></symbol><!-- unlink -->
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol><!-- trash-2 -->
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></symbol><!-- pencil-line -->
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol><!-- ellipsis -->
+<symbol id="i-more-v" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></symbol><!-- ellipsis-vertical -->
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></symbol><!-- funnel -->
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><!-- calendar -->
+<symbol id="i-cal-clock" viewBox="0 0 24 24"><path d="M21 10V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v11A2.5 2.5 0 0 0 5.5 21H10M3 10h18M8 3v4M16 3v4"/><circle cx="17" cy="17" r="4.5"/><path d="M17 15v2l1.3 1.3"/></symbol><!-- calendar-clock -->
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><!-- clock -->
+<symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v3a5 5 0 0 0 10 0V3M7 21v-3a5 5 0 0 1 10 0v3"/></symbol><!-- hourglass -->
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol><!-- history -->
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol><!-- play -->
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol><!-- pause -->
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol><!-- square -->
+<symbol id="i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/><path d="M10 9v6l5-3z"/></symbol><!-- rotate-ccw + play -->
+<symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol><!-- rocket -->
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol><!-- send -->
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></symbol><!-- shield -->
+<symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol><!-- shield-check -->
+<symbol id="i-shield-x" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/></symbol><!-- shield-x -->
+<symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.3-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5M2 2l20 20"/></symbol><!-- wifi-off -->
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol><!-- server -->
+<symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol><!-- database -->
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol><!-- globe -->
+<symbol id="i-lang" viewBox="0 0 24 24"><path d="M4 5h9M8.5 3v2M11 5c-1 4-4 7-7 8.5M6 9c1.4 2 3.6 3.6 6 4.5M13 21l4-9 4 9M14.5 18h5"/></symbol><!-- languages -->
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></symbol><!-- flag -->
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></symbol><!-- star -->
+<symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 17 4 12l5-5M20 18v-2a4 4 0 0 0-4-4H4"/></symbol><!-- reply -->
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol><!-- tag -->
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></symbol><!-- layers -->
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol><!-- package -->
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol><!-- file -->
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol><!-- file-text -->
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><!-- folder -->
+<symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol><!-- code-xml -->
+<symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol><!-- square-terminal -->
+<symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="7" r="2"/><path d="M6 7v10M18 9c0 5-6 4-11.5 8.5"/></symbol><!-- git-branch -->
+<symbol id="i-compare" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M13 6h3a2 2 0 0 1 2 2v7.5M11 18H8a2 2 0 0 1-2-2V8.5M15 3l-2 3 2 3M9 21l2-3-2-3"/></symbol><!-- git-compare -->
+<symbol id="i-webhook" viewBox="0 0 24 24"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2M6 17l3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06M12 6l3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/></symbol><!-- webhook -->
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol><!-- zap -->
+<symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></symbol><!-- hash -->
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><!-- smartphone -->
+<symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M11 18h2"/></symbol><!-- tablet -->
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2.5"/><path d="M8 21h8M12 17v4"/></symbol><!-- monitor -->
+<symbol id="i-fold" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 3v18" stroke-dasharray="2 2.4"/></symbol><!-- katlanır cihaz (kendi çizimimiz) -->
+<symbol id="i-frame" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3.5"/><rect x="10" y="4" width="4" height="1.6" rx=".8"/></symbol><!-- cihaz çerçevesi (kendi çizimimiz) -->
+<symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></symbol><!-- type -->
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A1.6 1.6 0 0 1 12 22z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15.5" cy="7.5" r="1"/></symbol><!-- palette -->
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></symbol><!-- move -->
+<symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/></symbol><!-- crop -->
+<symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol><!-- maximize -->
+<symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 11h6M9 15h4"/></symbol><!-- clipboard-list -->
+<symbol id="i-clip-check" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 13l2 2 4-4"/></symbol><!-- clipboard-check -->
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol><!-- bookmark -->
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/></symbol><!-- sparkles (MCP/Claude önerisi) -->
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol><!-- cpu -->
+<symbol id="i-workflow" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v3.5a2 2 0 0 0 2 2H14"/></symbol><!-- workflow -->
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol><!-- inbox -->
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1.5"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol><!-- archive -->
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><!-- sun -->
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol><!-- moon -->
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol><!-- menu -->
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><!-- house -->
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.1 0 2.9 6 1.6 6 4.3 0 1.3-1.3 2.1-3 2.1-1.4 0-2.6-.6-3.1-1.6M12 6v2M12 16v2"/></symbol><!-- circle-dollar-sign -->
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol><!-- repeat (abonelik) -->
+<symbol id="i-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol><!-- percent -->
+<symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-4M3.3 19a10 10 0 1 1 17.4 0z"/></symbol><!-- gauge -->
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7 15h10"/></symbol><!-- flask-conical (beta, TestFlight) -->
+<symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol><!-- plane (paket uçuşu) -->
+<symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol><!-- grip-vertical -->
+<symbol id="i-fingerprint" viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1 0 4-1 6M14 13.1c0 2.5 0 5-1 7.9M17.3 21c.3-1 .6-3 .7-4M2 12a10 10 0 0 1 18-6M2 16h.01M21.8 16c.2-2 .1-5.3 0-6M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .3-2M8.7 22c.2-.7.5-1.3.6-2M9 6.8a6 6 0 0 1 9 5.2v2"/></symbol><!-- fingerprint -->
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a6 6 0 0 1-12 0V8z"/></symbol><!-- plug -->
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol><!-- ban -->
+<symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="14" rx="5"/><path d="M12 20v-9M9 3l1.5 3M15 3l-1.5 3M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 19l3-2M20 19l-3-2"/></symbol><!-- bug -->
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+<symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol><!-- circle -->
+<symbol id="i-circle-dash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></symbol><!-- circle-dashed -->
+<symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/></symbol><!-- loader-circle -->
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol><!-- map-pin -->
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0zM8 21h8"/></symbol><!-- scale (politika, uyum) -->
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5 2.5 2.5 0 0 0 6.5 24"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></symbol><!-- book -->
+<symbol id="i-radar" viewBox="0 0 24 24"><path d="M19.1 4.9A10 10 0 1 0 22 12M16.2 7.8A6 6 0 1 0 18 12M12 12l7-7"/><circle cx="12" cy="12" r="1.5"/></symbol><!-- radar (kural izleyici) -->
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v4M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 8 8h2a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0"/></symbol><!-- hand (asistanlı adım, el ile) -->
+<symbol id="i-wand" viewBox="0 0 24 24"><path d="m15 4 5 5M3 21 14.5 9.5M14 3v2M20 9h2M18 3l-1.5 1.5M10.5 6.5 9 5"/></symbol><!-- wand -->
+<symbol id="i-cursor" viewBox="0 0 24 24"><path d="M4 3l7 18 2.5-7.5L21 11z"/></symbol><!-- mouse-pointer-2 (tarayıcı devri) -->
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7M12 8v13M12 8S10.5 3 8 3a2.5 2.5 0 0 0 0 5M12 8s1.5-5 4-5a2.5 2.5 0 0 1 0 5"/></symbol><!-- gift (teklif) -->
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 7H6"/></symbol><!-- shopping-cart (IAP) -->
+<symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol><!-- keyboard -->
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol><!-- qr-code -->
+<symbol id="i-cookie" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5z"/><path d="M8.5 8.5h.01M16 15.5h.01M12 12h.01M11 17h.01M7 14h.01"/></symbol><!-- cookie -->
+<symbol id="i-scroll" viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4M19 17V5a2 2 0 0 0-2-2H4"/></symbol><!-- scroll-text (yasal metin) -->
+</defs>
+</svg>
+
+<header class="doc-top"><a class="home" href="04-Icindekiler.html"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm" style="font-size:17px">stor<i>e</i>asy</span></a><span class="ttl">Yorumlar ve red akışı</span><span class="sp"></span><nav class="pn"><a href="08-Yayin-ve-TestFlight.html" title="Önceki dosya">08</a><a href="04-Icindekiler.html">İçindekiler</a><a href="10-Abonelikler-ve-Urunler.html" title="Sonraki dosya">10</a></nav><div class="dseg" role="group"><button type="button" data-set="view" data-v="desktop" aria-pressed="false">Masaüstü</button><button type="button" data-set="view" data-v="phone" aria-pressed="false">Telefon</button></div><div class="dseg" role="group"><button type="button" data-set="theme" data-v="light" aria-pressed="false">Açık</button><button type="button" data-set="theme" data-v="dark" aria-pressed="false">Koyu</button></div><div class="dseg" role="group"><button type="button" data-set="motion" data-v="full" aria-pressed="false">Hareket</button><button type="button" data-set="motion" data-v="reduce" aria-pressed="false">Azaltılmış</button></div></header>
+<main class="doc">
+<section class="doc-hero"><span class="k">09 · Geri bildirim</span><h1>Yorumlar ve red akışı</h1><p>Organizasyon genelindeki yorum kutusu (liste ve ayrıntı, yanıt yazma, kayıtlı yanıtlar, Claude taslağı), red kayıtları (yapıştır, ayrıştır, kontrol listesi, 4.000 karakterlik yanıt taslağı, yeniden gönderim), Microsoft sertifikasyon hatası, hızlandırılmış inceleme talebi ve red bildirimi.</p><nav class="doc-toc" aria-label="Bölümler"></nav></section>
+<!-- ============ 1. YORUM KUTUSU ============ -->
+<section class="sec" id="yorumlar">
+<div class="sec-h"><span class="k">Bölüm 9.1-9.8</span><h2>Yorum kutusu</h2><p>Bütün uygulamaların App Store ve Google Play yorumları tek kutuda. Sol liste, sağ ayrıntı ve yanıt alanı. Microsoft Store yorumları asistanlıdır (yanıt API'si çalışmıyor), kutuda yalnız bilgi olarak görünür. Yanıt mağazaya bir iş olarak gider, sonradan düzenlenebilir. Telefonda liste tek sütun, satıra dokununca ayrıntı tam ekran açılır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f9-1" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">9.1</b><span class="fr-t">Yorum kutusu: liste ve ayrıntı</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/reviews</code> (planlanan; filtre <code>AppId, Store, Rating, Locale, HasReply, CreatedDate</code>, sıralama tarihe göre) → <code>ReviewListDto { Id, AppId, AppName, AppColor, Store, StoreReviewId, Rating, Title?, Body, AuthorName, Locale, Territory, AppVersion, Device?, CreatedDate, IsRead, Reply? { Body, State (Sending, Published, Failed), UpdatedDate, ByUserName, Error? } }</code>. Yeni yorum SignalR <code>review.received</code> ile listenin başına eklenir. Yanıt <code>POST /api/v1.0/reviews/reply { ReviewId, Body }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>. Sınır katalogdan gelir: Google Play 350, App Store 5.970 karakter (sayaç %90'da uyarı, aşınca düğme pasif). <b>İzin:</b> görme <code>View</code>, yanıt <code>ReplyReviews</code> (Owner, Admin, Editor). Claude düğmesi taslak ister; Claude MCP aracı <code>review_reply_draft</code> ile taslak yazar, asla göndermez. Telefonda yalnız liste görünür (9.3). <span class="gap">Backend boşluğu:</span> okundu bilgisi (<code>PUT /api/v1.0/reviews/read { ReviewIds[], IsRead }</code>), Claude taslağının saklanması (<code>PUT /api/v1.0/reviews/reply-draft</code>) ve organizasyon ayarındaki <code>ReviewDraftsByMcpEnabled</code> anahtarı planda yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span class="on">Yanıtsız · 23</span><span>Tümü</span></div><span class="t-s fg3 hide-ph">14 okunmamış · son çekme 4 dk önce</span><span class="btn ml hide-ph"><svg class="ic"><use href="#i-bookmark"/></svg>Kayıtlı yanıtlar</span><span class="ib ml only-ph"><svg class="ic"><use href="#i-bookmark"/></svg></span></div>
+        <div class="rv">
+          <div class="rv-l">
+            <div class="rv-fl">
+              <div class="inp"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Yorum metninde ya da yazarda ara</span></div>
+              <div class="rv-ch"><span class="chip">Uygulama: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip">Mağaza: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip">Puan: 1-5<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip">Dil: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>Yanıtsız</span><span class="chip"><svg class="ic"><use href="#i-calendar"/></svg>Son 30 gün</span></div>
+              <div class="r gp6 t-xs fg3"><span class="st sm"><b>MS</b></span><span>Microsoft Store yorumları asistanlı: Partner Center'da yanıtlanır.</span><span class="lnk">Neden?</span></div>
+            </div>
+            <div class="rv-ls">
+              <div class="rvi on"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Ayşe K.</b><span class="t-xs fg3 ml nowrap">13:48</span></div><p class="tx">Son güncellemeden sonra hatırlatıcılar gelmiyor. Bildirim izni açık, pil tasarrufu kapalı. 3.1.1'de sorun yoktu.</p><div class="mt"><span class="aic s" style="--c:#15803D;width:18px;height:18px;font-size:9px;border-radius:5px">M</span>Mola<span class="st sm"><b>GP</b></span><span class="tag">tr</span><span class="mono">3.1.2</span></div></div></div>
+              <div class="rvi"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 5"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg></span><b class="t-s trunc">jonas_b</b><span class="t-xs fg3 ml nowrap">11:20</span></div><p class="tx"><b>Ruhig und klar.</b> Die Atemübungen helfen mir jeden Abend beim Einschlafen.</p><div class="mt"><span class="aic s" style="--c:#15803D;width:18px;height:18px;font-size:9px;border-radius:5px">M</span>Mola<span class="st sm"><b>AS</b></span><span class="tag">de-DE</span><span class="mono">3.1.2</span></div></div></div>
+              <div class="rvi"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 1"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">MertCan</b><span class="t-xs fg3 ml nowrap">Dün</span></div><p class="tx"><b>iPad'de harita yarım.</b> Harita ekranın yarısında açılıyor, cihazı döndürünce düzeliyor.</p><div class="mt"><span class="aic s" style="--c:#0F766E;width:18px;height:18px;font-size:9px;border-radius:5px">P</span>Pusula<span class="st sm"><b>AS</b></span><span class="tag">tr</span><span class="mono">2.2</span></div></div></div>
+              <div class="rvi"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 3"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Lena W.</b><span class="t-xs fg3 ml nowrap">17 Kas</span></div><p class="tx"><b>Needs PDF export.</b> Solid notes app, but I cannot share a notebook as PDF.</p><div class="mt"><span class="aic s" style="--c:#B45309;width:18px;height:18px;font-size:9px;border-radius:5px">D</span>Defter<span class="st sm"><b>AS</b></span><span class="tag">en-US</span><span class="mono">1.3</span></div></div></div>
+              <div class="rvi"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 4"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Hakan T.</b><span class="t-xs fg3 ml nowrap">16 Kas</span></div><p class="tx">Uyku sesleri çok iyi ama kilit ekranında süre görünmüyor.</p><div class="mt"><span class="aic s" style="--c:#15803D;width:18px;height:18px;font-size:9px;border-radius:5px">M</span>Mola<span class="st sm"><b>GP</b></span><span class="tag">tr</span><span class="mono">3.1.2</span></div></div></div>
+              <div class="rvi"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">r.okafor</b><span class="t-xs fg3 ml nowrap">15 Kas</span></div><p class="tx">Offline maps download stops at 60% every time on Wi-Fi.</p><div class="mt"><span class="aic s" style="--c:#0F766E;width:18px;height:18px;font-size:9px;border-radius:5px">P</span>Pusula<span class="st sm"><b>GP</b></span><span class="tag">en-US</span><span class="mono">2.3.0</span></div></div></div>
+            </div>
+          </div>
+          <div class="rv-d">
+            <div class="r gp10 wrap"><span class="aic m" style="--c:#15803D">M</span><div class="f1"><div class="r gp8 wrap"><b class="t-m">Mola</b><span class="st sm"><b>GP</b>Google Play</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">3.1.2 (312) · Pixel 8 · Android 16 · TR · bugün 13:48</div></div><span class="ib sm" title="Okunmadı işaretle"><svg class="ic"><use href="#i-mail"/></svg></span><span class="ib sm" title="Play Console'da aç"><svg class="ic"><use href="#i-ext"/></svg></span></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">Ayşe K.</b></div>
+            <p class="rq">Son güncellemeden sonra hatırlatıcılar gelmiyor. Bildirim izni açık, pil tasarrufu kapalı. 3.1.1'de sorun yoktu. Uygulamayı çok seviyorum ama akşam hatırlatıcısı olmadan kullanmayı unutuyorum.</p>
+            <div class="t-s fg3 mt8">Önceki yanıt yok · bu kullanıcının başka yorumu yok</div>
+            <div class="hand c gp10 mt16">
+              <div class="r gp8 wrap"><svg class="ic s18"><use href="#i-spark"/></svg><b class="t-m">Claude taslağı</b><span class="t-xs fg3">MCP · Deniz Arslan adına · 13:52</span><span class="btn sm ml">Taslağı kullan</span></div>
+              <div class="t-s fg2">Merhaba Ayşe, geri bildirimin için teşekkürler. 3.1.2'de Android 16'da hatırlatıcıları etkileyen bir hata bulduk ve 3.1.3 ile düzeltiyoruz...</div>
+              <div class="t-xs fg3">Claude yalnız taslak yazar; göndermek her zaman bir insanın onayıdır. Yöneticiler Ayarlar &gt; MCP'den "Claude yanıt taslakları"nı kapatabilir; kapalıyken bu kutu ve düğme görünmez.</div>
+            </div>
+            <div class="card mt16"><div class="card-h"><svg class="ic s18"><use href="#i-reply"/></svg><span class="h3">Yanıt</span><span class="btn sm ml"><svg class="ic"><use href="#i-bookmark"/></svg>Kayıtlı yanıt<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="btn sm hide-ph"><svg class="ic"><use href="#i-spark"/></svg>Claude'a taslak yazdır</span></div>
+              <div class="card-b c gp8">
+                <div class="inp ta foc" style="min-height:120px"><div class="f1">Merhaba Ayşe, yaşadığın sorun için üzgünüz. 3.1.2 sürümünde Android 16'da hatırlatıcı zamanlamasını bozan bir hata bulduk; düzeltme bu hafta 3.1.3 ile geliyor. O zamana kadar Ayarlar &gt; Hatırlatıcılar'dan hatırlatıcıyı kapatıp yeniden açmak sorunu çözüyor. Mola ekibi</div></div>
+                <div class="lim"><span>Google Play sınırı 350 karakter</span><span class="tag">katalog: google.reviews.reply-length</span><span class="cnt">266 / 350</span></div>
+              </div>
+              <div class="card-f r gp10 wrap" style="padding:12px 18px;border-top:1px solid rgb(var(--border))"><span class="t-xs fg3 f1">Yanıt mağazaya bir iş olarak gider ve herkese açık görünür. Sonra düzenleyebilirsin.</span><span class="btn pri"><svg class="ic"><use href="#i-send"/></svg>Yanıtı gönder</span></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-2" data-h="780">
+  <figcaption class="fr-h"><b class="fr-n">9.2</b><span class="fr-t">Kayıtlı yanıt seçici, App Store sınırı</span><code class="fr-r">/reviews?id=:reviewId</code></figcaption>
+  <p class="fr-note">Seçici yorumun diline göre süzülür (tr yorumda tr yanıtlar önce), değişkenler seçimde doldurulur: <span class="var">{ad}</span> yorumun yazarı, <span class="var">{uygulama}</span>, <span class="var">{sürüm}</span>. Seçilen metin alana yazılır, gönderilmez. App Store yanıt sınırı 5.970 karakter: kural kataloğundan gelen değer, mağaza resmi bir sayı yayınlamadığı için "katalogdan" etiketiyle gösterilir; izleyici değişirse katalog güncellenir. <b>API:</b> <code>GET /api/v1.0/reviews/saved-replies?Locale=</code> → <code>SavedReplyDto { Id, Name, Locale, Body, AppIds[], UseCount, UpdatedDate }</code>. <b>İzin:</b> <code>ReplyReviews</code>. Telefonda seçici alttan açılan sayfa olur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span class="on">Yanıtsız · 23</span><span>Tümü</span></div><span class="btn ml hide-ph"><svg class="ic"><use href="#i-bookmark"/></svg>Kayıtlı yanıtlar</span></div>
+        <div class="rv">
+          <div class="rv-l">
+            <div class="rv-fl"><div class="rv-ch"><span class="chip on">Uygulama: Pusula<svg class="ic"><use href="#i-x"/></svg></span><span class="chip on">Puan: 1-2<svg class="ic"><use href="#i-x"/></svg></span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>Yanıtsız</span></div></div>
+            <div class="rv-ls">
+              <div class="rvi on"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 1"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">MertCan</b><span class="t-xs fg3 ml nowrap">Dün</span></div><p class="tx"><b>iPad'de harita yarım.</b> Harita ekranın yarısında açılıyor, cihazı döndürünce düzeliyor.</p><div class="mt">Pusula<span class="st sm"><b>AS</b></span><span class="tag">tr</span><span class="mono">2.2</span></div></div></div>
+              <div class="rvi"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">r.okafor</b><span class="t-xs fg3 ml nowrap">15 Kas</span></div><p class="tx">Offline maps download stops at 60% every time on Wi-Fi.</p><div class="mt">Pusula<span class="st sm"><b>GP</b></span><span class="tag">en-US</span><span class="mono">2.3.0</span></div></div></div>
+              <div class="rvi"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">kaan_d</b><span class="t-xs fg3 ml nowrap">12 Kas</span></div><p class="tx"><b>Pusula kalibrasyonu</b> Her açılışta kalibrasyon istiyor.</p><div class="mt">Pusula<span class="st sm"><b>AS</b></span><span class="tag">tr</span><span class="mono">2.2</span></div></div></div>
+            </div>
+          </div>
+          <div class="rv-d">
+            <div class="r gp10 wrap"><span class="aic m" style="--c:#0F766E">P</span><div class="f1"><div class="r gp8 wrap"><b class="t-m">Pusula</b><span class="st sm"><b>AS</b>App Store</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">2.2 · Türkiye · dün 21:07</div></div></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 1"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">MertCan</b></div>
+            <div class="rq-t">iPad'de harita yarım</div>
+            <p class="rq" style="margin-top:4px">Harita ekranın yarısında açılıyor, cihazı döndürünce düzeliyor. iPad Pro 13" kullanıyorum.</p>
+            <div class="card mt16"><div class="card-h"><svg class="ic s18"><use href="#i-reply"/></svg><span class="h3">Yanıt</span><span class="btn sm ml"><svg class="ic"><use href="#i-bookmark"/></svg>Kayıtlı yanıt<svg class="ic"><use href="#i-chev-u"/></svg></span></div>
+              <div class="card-b c gp8">
+                <div class="inp ta" style="min-height:120px"><span class="ph">Yanıtını yaz ya da kayıtlı bir yanıt seç</span></div>
+                <div class="lim"><span>App Store sınırı 5.970 karakter</span><span class="tag">katalogdan</span><span class="cnt">0 / 5.970</span></div>
+              </div>
+              <div class="card-f r gp10" style="padding:12px 18px;border-top:1px solid rgb(var(--border))"><span class="t-xs fg3 f1">Boş yanıt gönderilemez.</span><span class="btn pri dis"><svg class="ic"><use href="#i-send"/></svg>Yanıtı gönder</span></div>
+            </div>
+            <div class="pop srp" style="top:250px;right:28px">
+              <div class="inp" style="min-height:34px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Kayıtlı yanıtlarda ara</span></div>
+              <div class="mh">tr · bu yorumun dili</div>
+              <div class="mi on"><svg class="ic"><use href="#i-bookmark"/></svg><div class="f1"><b>Hata bildirimi için teşekkür</b><small>Merhaba {ad}, bildirdiğin sorun için teşekkürler. {uygulama} ekibi olarak...</small></div></div>
+              <div class="mi"><svg class="ic"><use href="#i-bookmark"/></svg><div class="f1"><b>Destek e-postasına yönlendir</b><small>Merhaba {ad}, ayrıntıları destek@kuzeylab.dev adresine yazarsan...</small></div></div>
+              <div class="mi"><svg class="ic"><use href="#i-bookmark"/></svg><div class="f1"><b>Düzeltme sonraki sürümde</b><small>{sürüm} ile gelen düzeltme birkaç gün içinde yayında...</small></div></div>
+              <div class="ms"></div>
+              <div class="mi"><svg class="ic"><use href="#i-settings"/></svg>Kayıtlı yanıtları yönet</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-3" data-view="phone">
+  <figcaption class="fr-h"><b class="fr-n">9.3</b><span class="fr-t">Telefonda yorum ayrıntısı</span><code class="fr-r">/reviews/:reviewId</code></figcaption>
+  <p class="fr-note">Yalnız telefonda: listeden dokunulan yorum tam ekran sayfa olarak açılır, geri oku listeye döner ve filtreler korunur. Yanıt alanı ve sayaç altta sabit; "Kayıtlı yanıt" ve "Claude'a taslak yazdır" alanın üstündeki iki küçük düğmede. Sayfa açılınca yorum okundu sayılır. Aynı veri ve uçlar 9.1 ile aynı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar|Ayşe K." data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv det">
+          <div class="rv-l"></div>
+          <div class="rv-d">
+            <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Yorumlar · 3 / 23</div>
+            <div class="r gp10"><span class="aic m" style="--c:#15803D">M</span><div class="f1"><div class="r gp6 wrap"><b class="t-m">Mola</b><span class="st sm"><b>GP</b>Google Play</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">3.1.2 (312) · Pixel 8 · bugün 13:48</div></div><span class="ib sm"><svg class="ic"><use href="#i-more-v"/></svg></span></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">Ayşe K.</b></div>
+            <p class="rq">Son güncellemeden sonra hatırlatıcılar gelmiyor. Bildirim izni açık, pil tasarrufu kapalı. 3.1.1'de sorun yoktu. Uygulamayı çok seviyorum ama akşam hatırlatıcısı olmadan kullanmayı unutuyorum.</p>
+            <div class="t-s fg3 mt8">Önceki yanıt yok</div>
+            <div class="phb">
+              <div class="r gp8"><span class="btn sm"><svg class="ic"><use href="#i-bookmark"/></svg>Kayıtlı yanıt</span><span class="btn sm"><svg class="ic"><use href="#i-spark"/></svg>Claude taslağı</span></div>
+              <div class="inp ta foc" style="min-height:110px"><div class="f1">Merhaba Ayşe, yaşadığın sorun için üzgünüz. 3.1.2 sürümünde Android 16'da hatırlatıcı zamanlamasını bozan bir hata bulduk; düzeltme bu hafta 3.1.3 ile geliyor...</div></div>
+              <div class="lim"><span>Google Play · 350 karakter</span><span class="cnt">266 / 350</span></div>
+              <span class="btn pri blk"><svg class="ic"><use href="#i-send"/></svg>Yanıtı gönder</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-4" data-h="760">
+  <figcaption class="fr-h"><b class="fr-n">9.4</b><span class="fr-t">İzleyici: yanıt izni yok</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note">Viewer yorumları okur, filtreler ve mağazada açar ama yanıt yazamaz: yanıt alanı yerine kilitli bilgi kutusu (rol matrisi 6. bölüm, <code>ReplyReviews</code> yok). Kayıtlı yanıtlar sayfası salt okunur. Okundu işareti kişiseldir, Viewer için de çalışır. Sunucu yanıt isteğini <code>403</code> ile reddeder; MCP'de salt okunur PAT aynı kuralı izler.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-role="Viewer" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span>Yanıtsız · 23</span><span class="on">Tümü</span></div></div>
+        <div class="rv">
+          <div class="rv-l"><div class="rv-ls">
+            <div class="rvi on"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 4"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Hakan T.</b><span class="t-xs fg3 ml nowrap">16 Kas</span></div><p class="tx">Uyku sesleri çok iyi ama kilit ekranında süre görünmüyor.</p><div class="mt">Mola<span class="st sm"><b>GP</b></span><span class="tag">tr</span><span class="bdg ok sm">Yanıtlandı</span></div></div></div>
+            <div class="rvi"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 3"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Lena W.</b><span class="t-xs fg3 ml nowrap">17 Kas</span></div><p class="tx"><b>Needs PDF export.</b> Solid notes app, but I cannot share a notebook as PDF.</p><div class="mt">Defter<span class="st sm"><b>AS</b></span><span class="tag">en-US</span></div></div></div>
+          </div></div>
+          <div class="rv-d">
+            <div class="r gp10 wrap"><span class="aic m" style="--c:#15803D">M</span><div class="f1"><div class="r gp8 wrap"><b class="t-m">Mola</b><span class="st sm"><b>GP</b>Google Play</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">3.1.2 (312) · Galaxy S24 · 16 Kas 2026, 22:15</div></div></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 4"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">Hakan T.</b></div>
+            <p class="rq">Uyku sesleri çok iyi ama kilit ekranında kalan süre görünmüyor. Bir de yağmur sesine biraz daha çeşit eklenebilir.</p>
+            <div class="eb mt16 mb8">Yanıt · Mağazada yayında</div>
+            <div class="rep">Merhaba Hakan, güzel sözlerin için teşekkürler. Kilit ekranında kalan süre 3.2 ile geliyor; yeni yağmur seslerini de listeye ekledik.<div class="t-xs fg3 mt8">Ece Yılmaz · 17 Kas 2026, 09:31 · web</div></div>
+            <div class="callout mt16"><svg class="ic"><use href="#i-lock"/></svg><div><b>Yanıt yazma iznin yok</b><div class="t-s fg2 mt4">İzleyici rolü yorumları görür ama yanıtlayamaz. Yanıt yazmak için Editör, Yönetici ya da Sahip rolü gerekir.</div></div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-5" data-h="820">
+  <figcaption class="fr-h"><b class="fr-n">9.5</b><span class="fr-t">Yanıt gönderildi</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note">Gönderince alan kilitlenir, yanıt "Gönderiliyor" rozetiyle listede kalır (mağaza işi, <code>job.finished</code> ile güncellenir). Mağaza kabul edince "Mağazada yayında" olur ve "Düzenle" açılır: düzenleme aynı uçla gider (<code>POST /api/v1.0/reviews/reply</code>, Play eskisinin yerine yazar; App Store eski yanıtı silip yenisini oluşturur). Yanıtsız filtresi açıksa yorum listede soluklaşır, sonraki yenilemede düşer. Denetim kaydına <code>ReviewReplied</code> olarak yazılır. <span class="gap">Backend boşluğu:</span> <code>AuditAction</code> enum'una <code>ReviewReplied</code>, <code>ReviewReplyEdited</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-live="1 iş sürüyor" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span class="on">Yanıtsız · 21</span><span>Tümü</span></div></div>
+        <div class="rv">
+          <div class="rv-l"><div class="rv-ls">
+            <div class="rvi on" style="opacity:.6"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Ayşe K.</b><span class="t-xs fg3 ml nowrap">13:48</span></div><p class="tx">Son güncellemeden sonra hatırlatıcılar gelmiyor.</p><div class="mt">Mola<span class="st sm"><b>GP</b></span><span class="bdg ok sm"><span class="dot"></span>Mağazada yayında</span></div></div></div>
+            <div class="rvi" style="opacity:.6"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 5"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg></span><b class="t-s trunc">jonas_b</b><span class="t-xs fg3 ml nowrap">11:20</span></div><p class="tx"><b>Ruhig und klar.</b> Die Atemübungen helfen mir jeden Abend.</p><div class="mt">Mola<span class="st sm"><b>AS</b></span><span class="bdg info sm"><span class="spinner" style="width:10px;height:10px;border-width:1.5px"></span>Gönderiliyor</span></div></div></div>
+            <div class="rvi"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 1"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">MertCan</b><span class="t-xs fg3 ml nowrap">Dün</span></div><p class="tx"><b>iPad'de harita yarım.</b> Harita ekranın yarısında açılıyor.</p><div class="mt">Pusula<span class="st sm"><b>AS</b></span><span class="tag">tr</span></div></div></div>
+          </div></div>
+          <div class="rv-d">
+            <div class="r gp10 wrap"><span class="aic m" style="--c:#15803D">M</span><div class="f1"><div class="r gp8 wrap"><b class="t-m">Mola</b><span class="st sm"><b>GP</b>Google Play</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">3.1.2 (312) · Pixel 8 · bugün 13:48</div></div></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">Ayşe K.</b></div>
+            <p class="rq">Son güncellemeden sonra hatırlatıcılar gelmiyor. Bildirim izni açık, pil tasarrufu kapalı. 3.1.1'de sorun yoktu.</p>
+            <div class="r gp8 mt16 mb8"><span class="eb">Yanıt</span><span class="bdg ok sm"><span class="dot"></span>Mağazada yayında</span><span class="btn sm ghost ml"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+            <div class="rep">Merhaba Ayşe, yaşadığın sorun için üzgünüz. 3.1.2 sürümünde Android 16'da hatırlatıcı zamanlamasını bozan bir hata bulduk; düzeltme bu hafta 3.1.3 ile geliyor. O zamana kadar Ayarlar &gt; Hatırlatıcılar'dan hatırlatıcıyı kapatıp yeniden açmak sorunu çözüyor. Mola ekibi<div class="t-xs fg3 mt8">Deniz Arslan · bugün 14:06 · web · iş <span class="mono">#48213</span></div></div>
+            <div class="t-xs fg3 mt12">Kullanıcı yorumunu değiştirirse yorum yeniden "Yanıtsız" listesine döner ve önceki yanıt burada kalır.</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="toasts"><div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Yanıt Google Play'de yayında</b><div class="fg2">Mola · Ayşe K. · 14:06</div></div></div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-6" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">9.6</b><span class="fr-t">Yanıt gönderilemedi</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note">Mağaza hatası olduğu gibi (mono) ve Türkçe açıklamasıyla gösterilir; yazılan metin kaybolmaz. "Tekrar dene" aynı işi <code>POST /api/v1.0/jobs/retry { JobId }</code> ile yeniden kuyruğa alır; izin sorunu bağlantı ekranına yönlendirir (<code>ManageConnections</code> yoksa "Bir yöneticiye haber ver"). 429'da düğme geri sayımla pasif kalır. Play notu: API yalnız yakın tarihli ve metinli yorumları döndürür; storeasy çektiği her yorumu saklar, bu yüzden mağazada artık listelenmeyen eski yorumlar burada kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span class="on">Yanıtsız · 23</span><span>Tümü</span></div></div>
+        <div class="rv">
+          <div class="rv-l">
+            <div class="callout info" style="margin:12px 16px;border-radius:10px"><svg class="ic"><use href="#i-info"/></svg><div class="t-s"><b>Google Play yalnız yakın tarihli yorumları verir.</b> API metinsiz ve eski yorumları döndürmez; storeasy çektiklerini saklar.</div></div>
+            <div class="rv-ls">
+              <div class="rvi on"><span class="ud no"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-s trunc">Ayşe K.</b><span class="t-xs fg3 ml nowrap">13:48</span></div><p class="tx">Son güncellemeden sonra hatırlatıcılar gelmiyor.</p><div class="mt">Mola<span class="st sm"><b>GP</b></span><span class="bdg dng sm"><span class="dot"></span>Gönderilemedi</span></div></div></div>
+              <div class="rvi"><span class="ud"></span><div><div class="r gp8"><span class="stars" role="img" aria-label="5 üzerinden 5"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg></span><b class="t-s trunc">jonas_b</b><span class="t-xs fg3 ml nowrap">11:20</span></div><p class="tx"><b>Ruhig und klar.</b> Die Atemübungen helfen mir jeden Abend.</p><div class="mt">Mola<span class="st sm"><b>AS</b></span><span class="tag">de-DE</span></div></div></div>
+            </div>
+          </div>
+          <div class="rv-d">
+            <div class="r gp10 wrap"><span class="aic m" style="--c:#15803D">M</span><div class="f1"><div class="r gp8 wrap"><b class="t-m">Mola</b><span class="st sm"><b>GP</b>Google Play</span><span class="tag">tr</span></div><div class="t-xs fg3 mono mt4">3.1.2 (312) · Pixel 8 · bugün 13:48</div></div></div>
+            <div class="r gp10 mt16"><span class="stars l" role="img" aria-label="5 üzerinden 2"><svg class="ic f"><use href="#i-star"/></svg><svg class="ic f"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg><svg class="ic"><use href="#i-star"/></svg></span><b class="t-m">Ayşe K.</b></div>
+            <p class="rq">Son güncellemeden sonra hatırlatıcılar gelmiyor. Bildirim izni açık, pil tasarrufu kapalı. 3.1.1'de sorun yoktu.</p>
+            <div class="callout dng mt16"><svg class="ic"><use href="#i-alert-c"/></svg><div class="f1"><b>Yanıt gönderilemedi</b><div class="t-s fg2 mt4">Play servis hesabının bu uygulamada "Yorumlara yanıt ver" izni yok. Play Console &gt; Kullanıcılar ve izinler'den hesaba izni ekle, sonra tekrar dene.</div><div class="code mt8" style="white-space:pre-wrap;padding:8px 10px">403 PERMISSION_DENIED · The caller does not have permission
+reviews.reply · iş #48207 · 14:02</div><div class="r gp8 mt8 wrap"><span class="btn sm"><svg class="ic"><use href="#i-plug"/></svg>Bağlantıya git</span><span class="lnk t-s">İşi aç</span></div></div></div>
+            <div class="card mt16"><div class="card-h"><svg class="ic s18"><use href="#i-reply"/></svg><span class="h3">Yanıt</span><span class="t-xs fg3 ml">Metin korundu</span></div>
+              <div class="card-b c gp8"><div class="inp ta" style="min-height:100px"><div class="f1">Merhaba Ayşe, yaşadığın sorun için üzgünüz. 3.1.2 sürümünde Android 16'da hatırlatıcı zamanlamasını bozan bir hata bulduk; düzeltme bu hafta 3.1.3 ile geliyor...</div></div><div class="lim"><span>Google Play sınırı 350 karakter</span><span class="cnt">266 / 350</span></div></div>
+              <div class="card-f r gp10" style="padding:12px 18px;border-top:1px solid rgb(var(--border))"><span class="t-xs fg3 f1">Deneme 1 / 3 başarısız</span><span class="btn pri"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-7">
+  <figcaption class="fr-h"><b class="fr-n">9.7</b><span class="fr-t">Boş kutu: hepsi yanıtlandı</span><code class="fr-r">/reviews?hasReply=false</code></figcaption>
+  <p class="fr-note">Yanıtsız filtresinde kayıt kalmayınca. Hiç yorum yoksa (yeni organizasyon) metin "Yorumlar her 30 dakikada çekilir; ilk yorumlar bağlantıdan sonra burada görünür" olur. Filtreyle sonuç yoksa "Filtreleri temizle" eklenir. Telefonda ayrıntı sütunu olmadığı için yalnız boş durum görünür.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><h1 class="pg-t">Yorumlar</h1><div class="seg"><span class="on">Yanıtsız · 0</span><span>Tümü</span></div><span class="t-s fg3 hide-ph">son çekme 2 dk önce</span></div>
+        <div class="rv">
+          <div class="rv-l"><div style="padding:16px">
+            <div class="empty"><span class="eic"><svg class="ic"><use href="#i-check-c"/></svg></span><h4>Yanıtsız yorum kalmadı</h4><p>Bütün uygulamalardaki 214 yorumun hepsi yanıtlandı. Yeni yorum gelince burada ve bildirimlerde görünür.</p><span class="btn">Bütün yorumları gör</span></div>
+          </div></div>
+          <div class="rv-d"><div class="state"><span class="sic"><svg class="ic"><use href="#i-inbox"/></svg></span><h3>Kutu temiz</h3><p>Son 30 günde ortalama ilk yanıt süresi 5 saat. Microsoft Store yorumları Partner Center'da ayrıca izlenir.</p></div></div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-8">
+  <figcaption class="fr-h"><b class="fr-n">9.8</b><span class="fr-t">İlk yükleme (iskelet)</span><code class="fr-r">/reviews</code></figcaption>
+  <p class="fr-note">İskelet liste satırı ve ayrıntı şeklinde. Filtre değişince eski liste kalır, üstte ince ilerleme çizgisi akar. Hareket azaltmada parıltı durur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar" data-act="">
+      <div class="content flush"><div class="rvw">
+        <div class="rv-top"><span class="sk t" style="width:160px;height:26px"></span><span class="sk" style="width:180px;height:30px;border-radius:10px"></span></div>
+        <div class="rv">
+          <div class="rv-l"><div class="rv-fl"><span class="sk b"></span><div class="r gp6"><span class="sk" style="width:90px;height:28px;border-radius:14px"></span><span class="sk" style="width:80px;height:28px;border-radius:14px"></span><span class="sk" style="width:70px;height:28px;border-radius:14px"></span></div></div>
+            <div class="rv-ls">
+              <div class="rvi"><span></span><div class="c gp8"><span class="sk" style="width:55%"></span><span class="sk"></span><span class="sk" style="width:75%"></span></div></div>
+              <div class="rvi"><span></span><div class="c gp8"><span class="sk" style="width:45%"></span><span class="sk"></span><span class="sk" style="width:65%"></span></div></div>
+              <div class="rvi"><span></span><div class="c gp8"><span class="sk" style="width:50%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div></div>
+              <div class="rvi"><span></span><div class="c gp8"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:60%"></span></div></div>
+            </div></div>
+          <div class="rv-d c gp12"><div class="r gp10"><span class="sk" style="width:36px;height:36px;border-radius:10px"></span><div class="c gp6 f1"><span class="sk t" style="width:30%"></span><span class="sk" style="width:50%"></span></div></div><span class="sk" style="width:120px"></span><span class="sk"></span><span class="sk" style="width:80%"></span><span class="sk" style="height:160px;border-radius:12px;margin-top:12px"></span></div>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. KAYITLI YANITLAR ============ -->
+<section class="sec" id="kayitli-yanitlar">
+<div class="sec-h"><span class="k">Bölüm 9.9-9.10</span><h2>Kayıtlı yanıtlar</h2><p>Sık kullanılan yanıtlar organizasyon düzeyinde, dil başına ayrı metinle tutulur. Değişkenler yanıt seçilince yorumun verisiyle dolar. Bir yanıt bütün uygulamalarda ya da yalnız seçilen uygulamalarda önerilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f9-9">
+  <figcaption class="fr-h"><b class="fr-n">9.9</b><span class="fr-t">Kayıtlı yanıtlar listesi</span><code class="fr-r">/reviews/saved-replies</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/reviews/saved-replies</code> → <code>SavedReplyDto { Id, Name, Variants[{ Locale, Body }], AppIds[], UseCount, UpdatedDate, UpdatedByUserName }</code>; ekleme <code>POST /api/v1.0/reviews/saved-reply</code>. Dil sütunu hangi dillerde metin olduğunu gösterir; eksik dil soluk. En uzun dil varyantı Google Play sınırını aşıyorsa satırda uyarı. <b>İzin:</b> görme <code>View</code>, düzenleme <code>ReplyReviews</code>. Telefonda tablo karta döner. <span class="gap">Backend boşluğu:</span> düzenleme ve silme uçları planda yok: <code>PUT /api/v1.0/reviews/saved-reply</code>, <code>DELETE /api/v1.0/reviews/saved-reply</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar|Kayıtlı yanıtlar" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Yorumlar</div>
+        <div class="pg-h"><div><h1 class="pg-t">Kayıtlı yanıtlar</h1><p class="pg-s">Yanıt alanındaki seçicide görünür. <span class="var">{ad}</span>, <span class="var">{uygulama}</span>, <span class="var">{sürüm}</span> yorumun verisiyle dolar.</p></div><div class="pg-a"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Yanıt ekle</span></div></div>
+        <div class="toolbar"><div class="inp hide-ph" style="width:260px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad ya da metinde ara</span></div><span class="chip">Dil: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip">Uygulama: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad</th><th>Diller</th><th>Uygulamalar</th><th>Kullanım</th><th>Son düzenleme</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><div><b>Hata bildirimi için teşekkür</b><div class="t-xs fg3 trunc" style="max-width:320px">Merhaba {ad}, bildirdiğin sorun için teşekkürler...</div></div></td><td data-l="Diller"><span class="r gp4"><span class="tag">tr</span><span class="tag">en-US</span><span class="tag">de-DE</span></span></td><td data-l="Uygulamalar">Tümü</td><td data-l="Kullanım" class="mono">41</td><td data-l="Son düzenleme">Ece Yılmaz · 12 Kas</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Destek e-postasına yönlendir</b><div class="t-xs fg3 trunc" style="max-width:320px">Merhaba {ad}, ayrıntıları destek@kuzeylab.dev adresine...</div></div></td><td data-l="Diller"><span class="r gp4"><span class="tag">tr</span><span class="tag">en-US</span><span class="tag" style="opacity:.45">de-DE</span></span></td><td data-l="Uygulamalar">Tümü</td><td data-l="Kullanım" class="mono">27</td><td data-l="Son düzenleme">Deniz Arslan · 3 Kas</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Düzeltme sonraki sürümde</b><div class="t-xs fg3 trunc" style="max-width:320px">{sürüm} ile gelen düzeltme birkaç gün içinde...</div></div></td><td data-l="Diller"><span class="r gp4"><span class="tag">tr</span><span class="tag">en-US</span></span></td><td data-l="Uygulamalar">Mola, Pusula</td><td data-l="Kullanım" class="mono">12</td><td data-l="Son düzenleme">Mert Kaya · 28 Eki</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><div><b>Özellik isteği alındı</b><div class="t-xs fg3 trunc" style="max-width:320px">Merhaba {ad}, öneri listemize ekledik...</div><div class="t-xs warn-t mt4">en-US metni 372 karakter: Google Play'de kısaltılması gerekir</div></div></td><td data-l="Diller"><span class="r gp4"><span class="tag">tr</span><span class="tag">en-US</span></span></td><td data-l="Uygulamalar">Tümü</td><td data-l="Kullanım" class="mono">9</td><td data-l="Son düzenleme">Ece Yılmaz · 21 Eki</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 4</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-10" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">9.10</b><span class="fr-t">Kayıtlı yanıt ekle ve düzenle</span><code class="fr-r">/reviews/saved-replies → düzenle</code></figcaption>
+  <p class="fr-note">Dil sekmeleri organizasyondaki uygulamaların dillerinden gelir; her dil ayrı metin. Değişken çipine dokununca imlecin yerine eklenir. Önizleme örnek bir yorumla doldurulmuş hâli ve iki mağaza sınırına göre sayacı gösterir (değişkenler dolunca uzunluk değişebilir, seçici gönderimden önce gerçek uzunluğu yeniden sayar). Bilinmeyen değişken (ör. <span class="var">{isim}</span>) alan hatası verir. <b>API:</b> <code>POST /api/v1.0/reviews/saved-reply { Name, Variants[{ Locale, Body }], AppIds[] }</code>; düzenleme <code>PUT /api/v1.0/reviews/saved-reply</code> (boşluk, 9.9). <b>İzin:</b> <code>ReplyReviews</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="reviews" data-crumbs="Yorumlar|Kayıtlı yanıtlar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Kayıtlı yanıtlar</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m910">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m910">Kayıtlı yanıtı düzenle</h2><p class="t-s fg2 mt4">41 kez kullanıldı. Değişiklik yalnız bundan sonraki yanıtlara uygulanır.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Ad</span><span class="inp">Hata bildirimi için teşekkür</span></label>
+        <div class="fld"><span class="lbl">Metin</span>
+          <div class="tabs" style="margin-bottom:8px"><a class="tab on" href="#">tr</a><a class="tab" href="#">en-US</a><a class="tab" href="#">de-DE</a><a class="tab" href="#"><svg class="ic"><use href="#i-plus"/></svg>Dil</a></div>
+          <div class="inp ta foc" style="min-height:110px"><div class="f1">Merhaba <span class="var">{ad}</span>, bildirdiğin sorun için teşekkürler. <span class="var">{uygulama}</span> ekibi olarak hatayı inceledik; düzeltme <span class="var">{sürüm}</span> sonrasındaki ilk güncellemede gelecek. Sorun sürerse destek@kuzeylab.dev adresine yazabilirsin.</div></div>
+          <div class="r gp6 wrap mt8"><span class="t-xs fg3">Ekle:</span><span class="vchip">{ad}</span><span class="vchip">{uygulama}</span><span class="vchip">{sürüm}</span><span class="cnt">204 karakter</span></div>
+        </div>
+        <div class="fld"><span class="lbl">Önizleme <span class="opt">· Mola, Ayşe K., 3.1.2</span></span><div class="prev">Merhaba Ayşe K., bildirdiğin sorun için teşekkürler. Mola ekibi olarak hatayı inceledik; düzeltme 3.1.2 sonrasındaki ilk güncellemede gelecek. Sorun sürerse destek@kuzeylab.dev adresine yazabilirsin.</div>
+          <div class="lim mt8"><span class="st sm"><b>GP</b></span><span>199 / 350</span><span class="st sm"><b>AS</b></span><span>199 / 5.970 · katalogdan</span></div></div>
+        <div class="fld"><span class="lbl">Önerildiği uygulamalar</span><div class="seg"><span class="on">Bütün uygulamalar</span><span>Seçilenler</span></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost dng-t" style="margin-right:auto"><svg class="ic"><use href="#i-trash"/></svg>Sil</span><span class="btn ghost">Vazgeç</span><span class="btn pri">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. RED KAYITLARI ============ -->
+<section class="sec" id="red">
+<div class="sec-h"><span class="k">Bölüm 9.11-9.18</span><h2>Red akışı</h2><p>App Store sürümü <span class="mono">REJECTED</span> ya da <span class="mono">METADATA_REJECTED</span> olunca webhook (ya da periyodik senkron) bir red kaydı açar ve sahiplere bildirir. API Resolution Center metnini okuyamaz ve oraya yazamaz: metin yapıştırılır ya da asistanlı adımla okunur, guideline numaraları kontrol listesine dönüşür, yanıt taslağı 4.000 karakter sayacıyla hazırlanır ve elle ya da asistanlı adımla gönderilir. Yeniden gönderimde kayıt kendiliğinden kapanır, geçmişte kalır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f9-11" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">9.11</b><span class="fr-t">Red kayıtları ve geçmiş</span><code class="fr-r">/apps/:appId/rejections</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/rejections</code> (<code>AppId</code>, <code>State</code> filtresi) → <code>RejectionCaseListDto { Id, AppId, Store, StoreAppId, VersionString, BuildNumber, Kind (Rejected, MetadataRejected, CertificationFailed), State (Open, Closed), Guidelines[], OpenedDate, ClosedDate?, OpenedBy (Webhook, Sync, Manual), OwnerUserName, ChecklistDone, ChecklistTotal }</code>. Geçmiş şeridi uygulamanın bütün gönderimlerini sırayla gösterir; aynı guideline ikinci kez gelirse kayıtta "tekrarlayan" uyarısı. <b>İzin:</b> <code>View</code>. Telefonda tablo karta, şerit yatay kaydırmasız alt alta sarılır. <span class="gap">Backend boşluğu:</span> gönderim geçmişi (kabul edilenler dahil) için <code>GET /api/v1.0/rejections/history?AppId=</code> planda yok; eklenecek ya da <code>releases</code> yanıtından türetilecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları">
+      <div class="content">
+        <div class="apphead" data-app="defter" data-store="apple" data-tab="geri" data-sub="Red kayıtları"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="tbl-w"><table class="tbl">
+              <thead><tr><th>Sürüm</th><th>Tür</th><th>Guideline</th><th>Durum</th><th>Açıldı</th><th>Liste</th><th></th></tr></thead>
+              <tbody>
+                <tr class="hov"><td class="tm"><b class="mono">1.4 (52)</b></td><td data-l="Tür"><span class="rtag">REJECTED</span></td><td data-l="Guideline"><span class="mono">2.1 · 5.1.1</span></td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Açık · 2 gün</span></td><td data-l="Açıldı">16 Kas 2026 · webhook</td><td data-l="Liste">1 / 4</td><td class="ta"><span class="btn sm">Aç</span></td></tr>
+                <tr><td class="tm"><b class="mono">1.2 (38)</b></td><td data-l="Tür"><span class="rtag">REJECTED</span></td><td data-l="Guideline"><span class="mono">4.3</span></td><td data-l="Durum"><span class="bdg sm">Kapandı · 6 gün</span></td><td data-l="Açıldı">3 Eyl 2026 · webhook</td><td data-l="Liste">3 / 3</td><td class="ta"><span class="btn sm ghost">Aç</span></td></tr>
+              </tbody></table></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-history"/></svg><span class="h3">Gönderim geçmişi</span><span class="t-xs fg3 ml">App Store</span></div><div class="card-b c gp12">
+              <div class="vstrip"><span class="vs ok">1.0<small>Kabul</small></span><span class="vs ok">1.1<small>Kabul</small></span><span class="vs rj">1.2<small>4.3</small></span><span class="vs ok">1.2<small>Kabul</small></span><span class="vs ok">1.3<small>Kabul</small></span><span class="vs rj">1.4<small>2.1 · 5.1.1</small></span></div>
+              <div class="t-s fg2">6 gönderimde 2 red. Bu uygulamada aynı guideline iki kez gelmedi.</div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Sık görülen desen</span></div><div class="card-b c gp10 t-s fg2">
+              <p style="margin:0">Organizasyonun bütün uygulamalarındaki kapanmış kayıtlardan çıkarılır, yeni kayıtta öneri olarak görünür.</p>
+              <div class="r gp8 wrap"><span class="mono b6" style="color:rgb(var(--fg))">4.3</span><span>→</span><span class="mono b6" style="color:rgb(var(--fg))">5.2.5</span></div>
+              <p style="margin:0">Benzer uygulama (spam) reddinden sonra ad ya da alt başlık değiştirilince, alt başlıkta Apple ürün adı ("iPhone için") ikinci reddi getirebilir. Yeni metinde Apple ürün adı geçiyorsa metin ekranı uyarır.</p>
+            </div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-webhook"/></svg><div class="t-s" style="overflow-wrap:anywhere">Kayıtlar <span class="mono">APP_STORE_VERSION_APP_VERSION_STATE_UPDATED</span> olayıyla açılır. Webhook kapalıysa 15 dakikalık senkron yakalar.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-12" data-h="2060" data-ph="3700">
+  <figcaption class="fr-h"><b class="fr-n">9.12</b><span class="fr-t">Red kaydı ayrıntısı</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Çekirdek ekran; dört adım yukarıdan aşağı. <b>API:</b> <code>GET /api/v1.0/rejections/case?CaseId=</code> → <code>RejectionCaseDto { Id, App, VersionString, BuildNumber, Kind, State, OpenedDate, ResolutionCenterUrl, RawText, RawTextByUserName, Guidelines[{ Code, Title }], Checklist[{ Id, GuidelineCode, Text, FixRoute?, AssigneeUserId?, Status (Todo, InProgress, Done) }], ReplyDraft { Body, UpdatedDate, ByUserName, Channel, SentDate? }, Timeline[{ Date, Kind, Text, Channel }] }</code>. Yapıştırma <code>PUT /api/v1.0/rejections/case/text { CaseId, RawText }</code> (sunucu guideline'ları ayrıştırır, listeyi üretir); madde güncelleme <code>PUT /api/v1.0/rejections/case/checklist</code>; taslak <code>PUT /api/v1.0/rejections/case/reply-draft</code> (yazarken 2 sn gecikmeyle kaydedilir). Sayaç Resolution Center sınırı 4.000 karakter; %90'da (3.600) uyarı rengi, aşınca hata (9.15). Asistanlı okuma ve gönderme <code>assisted-steps</code> (<code>apple.rejection.read</code>, <code>apple.rejection.reply</code>). Claude MCP araçları <code>rejection_case_get</code>, <code>rejection_reply_draft</code>; plan önerisi yalnız öneridir, listeye eklemek bir tıklamadır. Yeniden gönderim 6.10 kapısından geçer; <code>SubmitForReview</code> başarıyla bitince kayıt kendiliğinden kapanır (<code>rejections/case/close</code> sistem çağrısı). <b>İzin:</b> görme <code>View</code>; metin, liste ve taslak <code>EditContent</code>; yeniden gönderme <code>SubmitForReview</code>. Telefonda sağ sütun adımların altına iner. <span class="gap">Backend boşluğu:</span> "Gönderdim olarak işaretle" için <code>ReplyDraft.SentDate</code> alanı ve <code>Checklist.AssigneeUserId</code> planda yok; <code>AuditAction</code>'a <code>RejectionOpened, RejectionTextAdded, RejectionReplySent, RejectionClosed</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng"><span class="dot"></span>Açık · 2 gün</span><span class="rtag">REJECTED</span></div><h1 class="pg-t">Defter 1.4 (52) reddedildi</h1><p class="pg-s">Guideline 2.1 ve 5.1.1 · 16 Kasım 2026, 09:14'te webhook ile açıldı · Sorumlu: Ece Yılmaz</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Resolution Center'ı aç</span><span class="ib"><svg class="ic"><use href="#i-more"/></svg></span></div></div>
+        <div class="split">
+          <div class="c gp24">
+            <!-- Adım 1 -->
+            <div class="rc"><span class="sn ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="c gp10">
+              <div class="r gp8 wrap"><b class="h3">Red metni</b><span class="t-xs fg3">Ece Yılmaz yapıştırdı · 16 Kas 10:02</span><span class="btn sm ghost ml"><svg class="ic"><use href="#i-edit"/></svg>Düzenle</span></div>
+              <div class="inp ta paste"><div class="f1"><span class="gl">Guideline 2.1 - Performance - App Completeness</span>
+We were unable to sign in with the demo account you provided. The sign-in attempt returned "Invalid password" on iPad Air (5th generation) running iPadOS 26.1.
+
+Next Steps: Please provide valid demo account credentials in the App Review Information section.
+
+<span class="gl">Guideline 5.1.1(v) - Legal - Privacy - Data Collection and Storage</span>
+The app supports account creation but does not include an option to initiate account deletion.
+
+Next Steps: Revise the app to let users delete their account from within the app.</div></div>
+              <div class="r gp12 wrap t-s"><span class="lnk"><svg class="ic s14" style="vertical-align:-2px"><use href="#i-ext"/></svg> App Store Connect'te Resolution Center'ı aç</span><span class="fg3">ya da</span><span class="lnk"><svg class="ic s14" style="vertical-align:-2px"><use href="#i-cursor"/></svg> Asistanlı adımla oku (Claude in Chrome)</span></div>
+            </div></div>
+            <!-- Adım 2 -->
+            <div class="rc"><span class="sn now">2</span><div class="c gp8">
+              <div class="r gp8 wrap"><b class="h3">Düzeltme listesi</b><span class="t-xs fg3">metinden 2 guideline ayrıştırıldı</span><span class="t-s b6 ml">1 / 4</span></div>
+              <span class="prog sm"><i style="width:25%"></i></span>
+              <div class="card"><div class="card-b" style="padding-top:4px;padding-bottom:4px">
+                <div class="gh"><span class="mono">2.1</span><b class="t-m">Uygulama bütünlüğü</b><span class="t-xs fg3">demo hesap çalışmıyor</span></div>
+                <div class="ck">
+                  <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><b class="t-m">Demo hesap şifresini yenile ve girişi iPad'de dene</b><div class="meta"><span class="ow"><span class="av s">MK</span>Mert Kaya</span><span class="bdg ok sm">Yapıldı</span><span class="fg3">17 Kas 11:20</span></div></div></div>
+                  <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">İnceleme bilgilerine yeni şifreyi ve giriş adımlarını yaz</b><div class="meta"><span class="ow"><span class="av s">EY</span>Ece Yılmaz</span><span class="bdg info sm">Sürüyor</span><span class="lnk">İnceleme bilgileri →</span></div></div></div>
+                </div>
+                <div class="hr d" style="margin:6px 0"></div>
+                <div class="gh"><span class="mono">5.1.1</span><b class="t-m">Veri toplama ve saklama</b><span class="t-xs fg3">hesap silme yolu yok</span></div>
+                <div class="ck">
+                  <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">Ayarlar &gt; Hesap &gt; Hesabı sil akışını ekle (yeni build)</b><div class="meta"><span class="ow"><span class="av s">MK</span>Mert Kaya</span><span class="bdg sm">Yapılacak</span><span class="fg3">build 1.4 (53) gerekir</span><span class="lnk">Build'ler →</span></div></div></div>
+                  <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">Gizlilik politikasına hesap silme bölümünü ekle</b><div class="meta"><span class="ow"><span class="av s">EY</span>Ece Yılmaz</span><span class="bdg sm">Yapılacak</span><span class="lnk">Metinler · gizlilik URL'si →</span></div></div></div>
+                </div>
+              </div></div>
+              <span class="btn sm ghost" style="align-self:flex-start"><svg class="ic"><use href="#i-plus"/></svg>Madde ekle</span>
+            </div></div>
+            <!-- Adım 3 -->
+            <div class="rc"><span class="sn">3</span><div class="c gp8">
+              <div class="r gp8 wrap"><b class="h3">Resolution Center yanıtı</b><span class="t-xs fg3">Claude taslağı · Deniz Arslan düzenledi · 17 Kas 15:42</span></div>
+              <div class="inp ta draft"><div class="f1">Hello App Review team,
+
+Thank you for your feedback on Defter 1.4 (52).
+
+Guideline 2.1: The demo account password had expired on our side. We have reset it and verified sign-in on iPhone and iPad. The updated credentials are in the App Review Information section, and the review notes now describe the sign-in steps.
+
+Guideline 5.1.1(v): We added in-app account deletion. Users can go to Settings &gt; Account &gt; Delete Account. Deletion removes the account and all notes from our servers within 24 hours; users do not need to contact support. Our privacy policy describes the process.
+
+We will submit build 1.4 (53) with these changes. Please let us know if anything else is needed.
+
+Best regards,
+Deniz Arslan
+Kuzey Lab</div></div>
+              <div class="cbar"><span class="t-xs fg3">Kaydedildi · 15:42</span><span class="cnt">717 / 4.000</span></div>
+              <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">App Store Connect API Resolution Center'a yazamaz. Taslağı kopyalayıp kendin gönder ya da asistanlı adımla Claude in Chrome'a gönderttir; gönderilince kayda işlenir.</div></div>
+              <div class="r gp8 wrap"><span class="btn pri"><svg class="ic"><use href="#i-copy"/></svg>Taslağı kopyala</span><span class="btn inv"><svg class="ic"><use href="#i-cursor"/></svg>Asistanlı adımla gönder</span><span class="btn ghost">Gönderdim olarak işaretle</span></div>
+            </div></div>
+            <!-- Adım 4 -->
+            <div class="rc"><span class="sn">4</span><div class="c gp8 rc-off">
+              <b class="h3">Yeniden gönder</b>
+              <p class="t-s fg2" style="margin:0">Liste tamamlanınca 1.4 (53) build'ini bağla, hazırlık kontrolünden geçir ve gönderme kapısından (6.10) yeniden gönder. Gönderim başarıyla bitince bu kayıt kendiliğinden kapanır ve geçmişte kalır.</p>
+              <div class="r gp8 wrap"><span class="btn"><svg class="ic"><use href="#i-list-check"/></svg>Hazırlığa git</span><span class="t-xs fg3">3 madde açık · yeni build gerekli</span></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Zaman çizelgesi</span></div><div class="card-b" style="padding-bottom:2px"><div class="tl">
+              <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-s">Webhook geldi: REJECTED</b><div class="t-xs fg3 mono">16 Kas 09:14 · APP_STORE_VERSION_APP_VERSION_STATE_UPDATED</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Sahip ve yöneticilere bildirim</b><div class="t-xs fg3">16 Kas 09:14 · Deniz Arslan, Ece Yılmaz · uygulama içi ve e-posta</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Red metni yapıştırıldı</b><div class="t-xs fg3">16 Kas 10:02 · Ece Yılmaz · 2 guideline, 4 madde</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Yanıt taslağı hazırlandı</b><div class="t-xs fg3">17 Kas 15:30 · Claude (MCP), Deniz Arslan adına</div></div></div>
+              <div class="tl-i"><span class="tl-d now"></span><div><b class="t-s">Yanıt gönderilecek</b><div class="t-xs fg3">Resolution Center · elle ya da asistanlı</div></div></div>
+            </div></div></div>
+            <div class="hand c gp10">
+              <div class="r gp8"><svg class="ic s18"><use href="#i-spark"/></svg><b class="t-m">Claude ile düzeltme planı ve taslak</b></div>
+              <p class="t-s fg2" style="margin:0">Claude kaydı <span class="mono">rejection_case_get</span> ile okur, plan ve taslak önerir. Öneriler onaysız uygulanmaz.</p>
+              <ol class="plan">
+                <li><span>Demo hesabı için süresi dolmayan bir şifre kullan; inceleme notuna iPad'de giriş adımlarını ekle.</span></li>
+                <li><span>Hesap silmeyi Ayarlar &gt; Hesap altına koy, onay ekranı ve "24 saat içinde silinir" metni ekle.</span></li>
+                <li><span>Yanıtta iki guideline'ı ayrı paragrafta karşıla, yeni build numarasını yaz.</span></li>
+              </ol>
+              <div class="r gp8 wrap"><span class="btn sm">Maddeleri listeye ekle</span><span class="btn sm ghost">Taslağa al</span></div>
+              <div class="t-xs fg3">Önerildi 17 Kas 15:30 · 2 madde zaten listede</div>
+            </div>
+            <div class="card"><div class="card-b"><dl class="kv"><dt>Build</dt><dd class="mono">1.4 (52)</dd><dt>Gönderildi</dt><dd>14 Kas 2026, 18:22</dd><dt>Reddedildi</dt><dd>16 Kas 2026, 09:12</dd><dt>Geçmiş</dt><dd>1.2'de 4.3</dd></dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-13" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">9.13</b><span class="fr-t">Red metni henüz yok</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Kayıt webhook ile açıldı, metin yok. Adım 1 büyük yapıştırma alanıdır; 2-4 soluk ve "metin gelince açılır" der. Tek ana eylem "Kaydet ve ayrıştır" (alan boşken pasif). Asistanlı okuma: Claude in Chrome Resolution Center'ı kullanıcının oturumunda açar, metni okuyup <code>PUT /api/v1.0/rejections/case/text</code> ile yazar (<code>Channel = Mcp</code>). <b>İzin:</b> <code>EditContent</code>; Viewer alanı görmez, yalnız "Metin bekleniyor" durumunu görür.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng"><span class="dot"></span>Açık · 12 dk</span><span class="rtag">REJECTED</span></div><h1 class="pg-t">Defter 1.4 (52) reddedildi</h1><p class="pg-s">16 Kasım 2026, 09:14'te webhook ile açıldı. Red nedeni App Store Connect'te; API bu metni vermiyor.</p></div></div>
+        <div class="split">
+          <div class="c gp24">
+            <div class="rc"><span class="sn now">1</span><div class="c gp10">
+              <b class="h3">Red metnini buraya yapıştır</b>
+              <div class="inp ta paste empty-p"><div><svg class="ic s28" style="color:rgb(var(--fg-3))"><use href="#i-clipboard"/></svg><div class="mt8">Resolution Center'daki mesajın tamamını kopyala ve buraya yapıştır.<br>Guideline numaraları kendiliğinden ayrıştırılır.</div></div></div>
+              <div class="g2">
+                <div class="card"><div class="card-b c gp8"><b class="t-m">Kendin kopyala</b><span class="t-s fg2">Doğrudan bağlantı Defter 1.4'ün Resolution Center sayfasını açar.</span><span class="btn sm" style="align-self:flex-start"><svg class="ic"><use href="#i-ext"/></svg>Resolution Center'ı aç</span></div></div>
+                <div class="card"><div class="card-b c gp8"><b class="t-m">Claude okusun</b><span class="t-s fg2">Asistanlı adım: Claude in Chrome senin oturumunda okur, buraya yazar. Şifre girmez.</span><span class="btn sm inv" style="align-self:flex-start"><svg class="ic"><use href="#i-cursor"/></svg>Asistanlı adımla oku</span></div></div>
+              </div>
+              <div class="r gp8"><span class="btn pri dis"><svg class="ic"><use href="#i-wand"/></svg>Kaydet ve ayrıştır</span><span class="t-xs fg3">Alan boş</span></div>
+            </div></div>
+            <div class="rc rc-off"><span class="sn">2</span><div><b class="h3">Düzeltme listesi</b><div class="t-s fg3 mt4">Metin gelince guideline başına maddeler burada açılır.</div></div></div>
+            <div class="rc rc-off"><span class="sn">3</span><div><b class="h3">Resolution Center yanıtı</b><div class="t-s fg3 mt4">Taslak 4.000 karakter sınırıyla yazılır.</div></div></div>
+            <div class="rc rc-off"><span class="sn">4</span><div><b class="h3">Yeniden gönder</b><div class="t-s fg3 mt4">Gönderimle kayıt kapanır.</div></div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Zaman çizelgesi</span></div><div class="card-b" style="padding-bottom:2px"><div class="tl">
+            <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-s">Webhook geldi: REJECTED</b><div class="t-xs fg3">16 Kas 09:14</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Sahip ve yöneticilere bildirim</b><div class="t-xs fg3">16 Kas 09:14 · 2 kişi</div></div></div>
+            <div class="tl-i"><span class="tl-d now"></span><div><b class="t-s">Red metni bekleniyor</b></div></div>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-14" data-h="840">
+  <figcaption class="fr-h"><b class="fr-n">9.14</b><span class="fr-t">Metinde guideline bulunamadı</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Ayrıştırıcı <span class="mono">Guideline N.N(.N)</span> kalıbını arar; bulamazsa metin yine kaydedilir ama liste boş kalır. Kullanıcı guideline'ı elle ekler (katalogdaki başlıklardan otomatik tamamlama) ya da listeyi elle kurar. Sık neden: e-posta bildirimi ("There's an issue with your submission") yapıştırılmıştır; asıl metin Resolution Center'dadır. <b>API:</b> <code>PUT /api/v1.0/rejections/case/text</code> → <code>Guidelines: []</code>, <code>Messages[{ Key: "rejection.no-guideline", Type: Warning }]</code>; elle ekleme <code>PUT /api/v1.0/rejections/case/checklist</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng"><span class="dot"></span>Açık · 1 saat</span></div><h1 class="pg-t">Defter 1.4 (52) reddedildi</h1></div></div>
+        <div class="c gp24" style="max-width:820px">
+          <div class="rc"><span class="sn now">1</span><div class="c gp10">
+            <b class="h3">Red metni</b>
+            <div class="inp ta paste foc" style="min-height:130px"><div class="f1">Hello,
+
+There's an issue with your submission for Defter. Please visit App Store Connect and view the Resolution Center for more information.
+
+App Store Review</div></div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="f1"><b>Metinde guideline numarası bulunamadı</b><div class="t-s fg2 mt4">Bu, App Store'un bildirim e-postası gibi görünüyor. Asıl red nedeni Resolution Center'daki mesajda. O mesajı yapıştır ya da guideline'ı elle ekle.</div><div class="r gp8 mt8 wrap"><span class="btn sm"><svg class="ic"><use href="#i-ext"/></svg>Resolution Center'ı aç</span><span class="btn sm inv"><svg class="ic"><use href="#i-cursor"/></svg>Asistanlı adımla oku</span></div></div></div>
+            <div class="fld"><span class="lbl">Guideline'ı elle ekle <span class="opt">· isteğe bağlı</span></span><div class="inp foc"><span class="chip on" style="height:24px">2.1 Uygulama bütünlüğü<svg class="ic x"><use href="#i-x"/></svg></span><span>5.1</span></div><div class="pop" style="position:relative;margin-top:4px;box-shadow:none"><div class="mi on"><span class="mono b6">5.1.1</span>Veri toplama ve saklama</div><div class="mi"><span class="mono b6">5.1.2</span>Veri kullanımı ve paylaşımı</div><div class="mi"><span class="mono b6">5.1.5</span>Konum hizmetleri</div></div></div>
+            <div class="r gp8"><span class="btn pri">Kaydet ve listeyi oluştur</span><span class="btn ghost">Vazgeç</span></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-15" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">9.15</b><span class="fr-t">Yanıt taslağı sınırı aştı</span><code class="fr-r">/apps/:appId/rejections/:caseId#yanit</code></figcaption>
+  <p class="fr-note">Sayaç üç hâlde: normal, yaklaşıyor (3.600 ve üstü, <code>.cnt.near</code>), aştı (4.000 üstü, <code>.cnt.over</code> + alan hatası). Aşınca "Taslağı kopyala" ve "Asistanlı adımla gönder" pasif; taslak yine kaydedilir. Claude'dan kısaltma istenebilir (<code>rejection_reply_draft</code>, <code>maxLength: 4000</code>). Karakter sayımı Resolution Center gibi satır sonlarını da sayar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="c gp12" style="max-width:820px">
+          <div class="rc"><span class="sn now">3</span><div class="c gp8">
+            <div class="r gp8 wrap"><b class="h3">Resolution Center yanıtı</b><span class="t-xs fg3">Deniz Arslan · şimdi</span></div>
+            <div class="inp ta draft long err"><div class="f1">Hello App Review team,
+
+Thank you for your feedback on Defter 1.4 (52). We would like to explain in detail the changes we made for each of the issues you raised, along with the background of the decisions behind them.
+
+Guideline 2.1: The demo account password had expired on our side because our staging environment rotates credentials every 30 days. We have reset it, disabled rotation for the review account, and verified sign-in on iPhone 17, iPad Air and iPad Pro. The updated credentials are in the App Review Information section, and the review notes now describe the sign-in steps one by one, including the optional two-factor prompt that appears on first launch...
+
+Guideline 5.1.1(v): We added in-app account deletion. Users can go to Settings &gt; Account &gt; Delete Account. The flow asks for confirmation, explains which data is removed, and sends a confirmation e-mail. Deletion removes the account, all notebooks, attachments and backups from our servers within 24 hours...</div></div>
+            <div class="cbar"><span class="err-t">Resolution Center 4.000 karakterden uzun yanıtı kabul etmez. 212 karakter kısalt.</span><span class="cnt over">4.212 / 4.000</span></div>
+            <div class="r gp8 wrap"><span class="btn pri dis"><svg class="ic"><use href="#i-copy"/></svg>Taslağı kopyala</span><span class="btn inv dis"><svg class="ic"><use href="#i-cursor"/></svg>Asistanlı adımla gönder</span><span class="btn"><svg class="ic"><use href="#i-spark"/></svg>Claude'dan kısaltmasını iste</span></div>
+            <div class="hr d"></div>
+            <div class="eb">Sayaç hâlleri</div>
+            <div class="r gp16 wrap t-s"><span class="r gp6"><span class="fg2">Normal</span><span class="cnt" style="margin:0">717 / 4.000</span></span><span class="r gp6"><span class="fg2">Yaklaşıyor</span><span class="cnt near" style="margin:0">3.742 / 4.000</span></span><span class="r gp6"><span class="fg2">Aştı</span><span class="cnt over" style="margin:0">4.212 / 4.000</span></span></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-16" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">9.16</b><span class="fr-t">Kapalı kayıt (salt okunur)</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Yeniden gönderim başarıyla bitince kayıt kapanır: kim, ne zaman, hangi gönderimle. Kapalı kayıtta alanlar salt okunur, liste ve yanıt olduğu gibi saklanır; "Metni kopyala" ve "Yanıtı kopyala" kalır. Aynı sürüm yeniden reddedilirse yeni kayıt açılır, eskisine bağlanır. <b>API:</b> <code>GET /api/v1.0/rejections/case</code> (<code>State = Closed</code>, <code>ClosedDate, ClosedBy (Submission, Manual), ClosingSubmissionId</code>); elle kapatma <code>PUT /api/v1.0/rejections/case/close { CaseId, Reason }</code> (<code>EditContent</code>, ör. sürüm geri çekildiyse). <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Red kayıtları">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg"><svg class="ic s12"><use href="#i-archive"/></svg>Kapandı · 6 gün sürdü</span><span class="rtag">REJECTED</span></div><h1 class="pg-t">Defter 1.2 (38) reddedildi</h1><p class="pg-s">Guideline 4.3 · 3 Eylül 2026'da açıldı · 9 Eylül 2026'da 1.2 (39) gönderimiyle kapandı</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-copy"/></svg>Metni kopyala</span></div></div>
+        <div class="banner info" style="border-radius:10px;border:1px solid rgb(var(--info)/.35);margin-bottom:20px"><svg class="ic s18"><use href="#i-lock"/></svg><span>Bu kayıt geçmişte; düzenlenemez. 1.2 (39) 10 Eylül 2026'da onaylandı.</span></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Red metni</span><span class="t-xs fg3 ml">Deniz Arslan · 3 Eyl</span></div><div class="card-b"><div class="inp ta ro paste" style="min-height:0"><div class="f1"><span class="gl">Guideline 4.3(a) - Design - Spam</span>
+We noticed your app shares a similar binary, metadata, and/or concept as apps already submitted to the App Store...</div></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Düzeltme listesi</span><span class="t-s b6 ok-t ml">3 / 3</span></div><div class="card-b" style="padding-top:4px;padding-bottom:4px"><div class="ck">
+              <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s"><b>Şablon temalarını kaldır, kendi düzeni öne çıkar</b><div class="fg3">Mert Kaya · 5 Eyl</div></div></div>
+              <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s"><b>Açıklama ve ekran görüntülerini farklılaştır</b><div class="fg3">Ece Yılmaz · 6 Eyl</div></div></div>
+              <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s"><b>Yanıtta benzer uygulamalardan farkı anlat</b><div class="fg3">Deniz Arslan · 6 Eyl</div></div></div>
+            </div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Gönderilen yanıt</span><span class="bdg ok sm ml">Gönderildi · 6 Eyl</span></div><div class="card-b"><div class="rep">Hello App Review team, Defter is a notebook app built around handwritten pages and offline sync. Unlike the template-based apps...<div class="t-xs fg3 mt8">1.284 karakter · elle gönderildi · Deniz Arslan</div></div></div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Zaman çizelgesi</span></div><div class="card-b" style="padding-bottom:2px"><div class="tl">
+            <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-s">REJECTED</b><div class="t-xs fg3">3 Eyl 14:40 · webhook</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Metin yapıştırıldı</b><div class="t-xs fg3">3 Eyl 15:05</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Yanıt gönderildi</b><div class="t-xs fg3">6 Eyl 10:12 · elle</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">1.2 (39) incelemeye gönderildi</b><div class="t-xs fg3">9 Eyl 11:30 · kayıt kapandı</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Onaylandı</b><div class="t-xs fg3">10 Eyl 08:02</div></div></div>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-17" data-h="990">
+  <figcaption class="fr-h"><b class="fr-n">9.17</b><span class="fr-t">METADATA_REJECTED: yalnız metin, build gerekmez</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Varyant: Mola 3.1.2'nin 2 Ekim 2026'daki metadata reddi, kayıt açıkken (3 Ekim) göründüğü gibi. Fark: build aynı kalır; liste maddeleri metin ekranlarına gider (diff + dry run), 4. adım "metin değişikliğini uygula ve aynı build'le yeniden gönder" olur. Katalog Apple ürün adı kuralını bildiği için ilgili alanın önerilen düzeltmesi diff olarak gösterilir; uygulamak <code>POST /api/v1.0/listings/plan</code> → <code>listings/apply</code> ister. <b>İzin:</b> metin <code>EditContent</code>, yeniden gönderme <code>SubmitForReview</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Mola|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng"><span class="dot"></span>Açık · 1 gün</span><span class="rtag">METADATA_REJECTED</span><span class="bdg sm">Build gerekmez</span></div><h1 class="pg-t">Mola 3.1.2 metadata reddi</h1><p class="pg-s">Guideline 2.3.10 ve 5.2.5 · 2 Ekim 2026'da webhook ile açıldı · build 3.1.2 (312) aynı kalır</p></div></div>
+        <div class="split">
+          <div class="c gp24">
+            <div class="rc"><span class="sn ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="c gp6"><b class="h3">Red metni</b><div class="t-s fg2">Alt başlıkta ve tr ekran görüntüsü metninde Apple ürün adı geçiyor. <span class="lnk">Metni göster</span></div></div></div>
+            <div class="rc"><span class="sn now">2</span><div class="c gp8">
+              <b class="h3">Düzeltme listesi</b>
+              <div class="card"><div class="card-b" style="padding-top:4px;padding-bottom:4px">
+                <div class="gh"><span class="mono">5.2.5</span><b class="t-m">Apple ürün adları</b></div>
+                <div class="ck">
+                  <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">tr alt başlıktan "iPhone için" ifadesini çıkar</b>
+                    <div class="diff mt8"><div class="diff-h">Alt başlık · tr · App Store</div><div class="dl del">Nefes ve uyku: <del>iPhone için</del> meditasyon</div><div class="dl add">Nefes ve uyku: <ins>günlük</ins> meditasyon</div></div>
+                    <div class="meta"><span class="ow"><span class="av s">EY</span>Ece Yılmaz</span><span class="bdg info sm">Plan hazır</span><span class="lnk">Metinlere git →</span></div></div></div>
+                </div>
+                <div class="hr d" style="margin:6px 0"></div>
+                <div class="gh"><span class="mono">2.3.10</span><b class="t-m">Doğru meta veri</b></div>
+                <div class="ck">
+                  <div class="ck-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><b class="t-m">tr 6,9" ekran görüntüsü 2'deki cihaz adını kaldır</b><div class="meta"><span class="ow"><span class="av s">MK</span>Mert Kaya</span><span class="bdg ok sm">Yapıldı</span><span class="lnk">Stüdyo şablonu →</span></div></div></div>
+                </div>
+              </div></div>
+            </div></div>
+            <div class="rc"><span class="sn">3</span><div class="c gp6"><b class="h3">Resolution Center yanıtı</b><div class="r gp8 wrap"><span class="t-s fg2">Kısa taslak hazır.</span><span class="cnt" style="margin:0">312 / 4.000</span><span class="btn sm">Taslağı kopyala</span></div></div></div>
+            <div class="rc"><span class="sn">4</span><div class="c gp8"><b class="h3">Metni uygula ve aynı build'le yeniden gönder</b><p class="t-s fg2" style="margin:0">Yeni build yüklemen gerekmez. Metin planını uygula; sürüm "Developer Rejected" olmadan doğrudan yeniden gönderilebilir. Gönderimle kayıt kapanır.</p><div class="r gp8 wrap"><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Metin planını uygula</span><span class="btn">Hazırlığa git</span></div></div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Kural kataloğu</span></div><div class="card-b c gp8 t-s fg2"><span class="mono t-xs">apple.metadata.apple-product-names</span><span>Alt başlıkta, anahtar kelimede ve ekran görüntüsü metninde Apple ürün adı (iPhone, iPad, Apple Watch) geçince metin ekranı uyarır. Bu kayıttan sonra kural "engel" seviyesine alındı.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-18" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">9.18</b><span class="fr-t">Microsoft Store sertifikasyon hatası</span><code class="fr-r">/apps/:appId/rejections/:caseId</code></figcaption>
+  <p class="fr-note">Varyant: Pusula MSIX 2.3.0.0 şu an sertifikasyonda; bu çerçeve aynı gönderimin başarısız sonucunu gösterir. Durum API'den gelir (<code>status = CertificationFailed</code>, <code>statusDetails</code> kısa özet); ayrıntılı rapor yalnız Partner Center'da, asistanlı bağlantıyla açılır. Rapordaki maddeler yapıştırılır ya da Claude in Chrome okur, liste aynı desenle kurulur. Düzeltme yeni gönderim ister; aynı anda tek aktif gönderim olduğu için başarısız gönderim önce silinir ya da güncellenir. API ile oluşturulan gönderimi Partner Center'da elle değiştirmek API'yi kilitler (uyarı). <b>API:</b> aynı <code>rejections</code> uçları, <code>Kind = CertificationFailed</code>; senkron <code>GET /api/v1.0/ms/submissions</code>. Bildirim kaynağı senkrondur (Microsoft webhook vermez). <b>İzin:</b> <code>View</code>, liste <code>EditContent</code>, yeniden gönderme <code>SubmitForReview</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Red kayıtları" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kayıtları</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>MS</b>Microsoft Store</span><span class="bdg dng"><span class="dot"></span>Açık · 3 saat</span><span class="rtag">CertificationFailed</span></div><h1 class="pg-t">Pusula 2.3.0.0 sertifikasyondan geçmedi</h1><p class="pg-s">Gönderim <span class="mono">1152921505698</span> · MSIX x64, arm64 · senkronla 18 Kas 11:05'te açıldı</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Partner Center'da raporu aç</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">API'den gelen durum</span><span class="t-xs fg3 ml">Microsoft Store submission API</span></div><div class="card-b c gp10">
+              <div class="code" style="white-space:pre-wrap">status: CertificationFailed
+statusDetails.errors: 0 · warnings: 1
+certificationReports: 1 (yalnız Partner Center'da)</div>
+              <div class="callout"><svg class="ic"><use href="#i-hand"/></svg><div class="t-s"><b>Ayrıntılı rapor asistanlı.</b> Rapor Partner Center'da açılır; maddeleri buraya yapıştır ya da Claude in Chrome'a okut.</div></div>
+              <div class="r gp8 wrap"><span class="btn inv"><svg class="ic"><use href="#i-cursor"/></svg>Asistanlı adımla oku</span><span class="btn ghost">Raporu yapıştır</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Düzeltme listesi</span><span class="t-s b6 ml">0 / 3</span></div><div class="card-b" style="padding-top:4px;padding-bottom:4px"><div class="ck">
+              <div class="ck-i"><span class="ck-s asst"><svg class="ic"><use href="#i-hand"/></svg></span><div class="f1"><b class="t-m">Partner Center'da sertifikasyon raporunu aç ve maddeleri ekle</b><div class="meta"><span class="ow"><span class="av s">DA</span>Deniz Arslan</span><span class="bdg sm">Asistanlı</span></div></div></div>
+              <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">Gizlilik politikası bağlantısı uygulama içinden erişilebilir olmalı</b><div class="meta"><span class="ow"><span class="av s">MK</span>Mert Kaya</span><span class="bdg sm">Yapılacak</span><span class="fg3">raporun 1. maddesi · yeni paket</span></div></div></div>
+              <div class="ck-i"><span class="ck-s"></span><div class="f1"><b class="t-m">de-DE açıklamasındaki işlevsiz özellik ifadesini düzelt</b><div class="meta"><span class="ow"><span class="av s">EY</span>Ece Yılmaz</span><span class="bdg sm">Yapılacak</span><span class="lnk">Metinler →</span></div></div></div>
+            </div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Bu gönderim API ile oluşturuldu. Partner Center'da elle değiştirirsen storeasy onu bir daha güncelleyemez; düzeltmeyi storeasy'den yeni gönderimle yap.</div></div>
+            <div class="card"><div class="card-b c gp10"><b class="t-m">Yeniden gönder</b><span class="t-s fg2">Başarısız gönderim silinir, yeni gönderim 2.3.1.0 paketiyle oluşur. Sertifikasyona girince kayıt kapanır.</span><span class="btn blk pri dis"><svg class="ic"><use href="#i-send"/></svg>Yeni gönderim hazırla</span><span class="t-xs fg3">2 madde açık</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. HIZLANDIRILMIŞ İNCELEME VE BİLDİRİM ============ -->
+<section class="sec" id="hizlandirma">
+<div class="sec-h"><span class="k">Bölüm 9.19-9.21</span><h2>Hızlandırılmış inceleme ve red bildirimi</h2><p>Hızlandırılmış inceleme talebi yalnız Apple'ın web formuyla yapılır: storeasy formun cevaplarını ve gerekçeyi hazır tutar, sonucu kaydeder. Red bildirimi uygulama içi bildirim merkezine ve e-postaya aynı anda düşer.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f9-19" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">9.19</b><span class="fr-t">Hızlandırılmış inceleme talebi (asistanlı)</span><code class="fr-r">/apps/:appId/assisted/:stepId</code></figcaption>
+  <p class="fr-note">Red kaydından ya da gönderim sonrası açılır (anahtar <span class="mono">apple.review.expedite</span>). Formda API yok; adım kayıtlı cevaplardan iletişim bilgisini, uygulamanın Apple ID'sini ve gerekçe metnini hazır verir. Gerekçe red kaydına bağlıysa kayıttan doldurulur. Sonuç (kabul, ret, cevap yok) ve süre kaydedilir; geçmiş sonuçlar yeni talepte gösterilir, çünkü Apple sık talebi geri çevirir. <b>API:</b> <code>GET /api/v1.0/assisted-steps/step?StepId=</code>, <code>POST /api/v1.0/assisted-steps/step/handoff</code>, <code>PUT /api/v1.0/assisted-steps/step/complete { StepId, Note, Result }</code>; gerekçe <code>PUT /api/v1.0/apps/answers</code> (<code>Key = ExpediteJustification</code>). <b>İzin:</b> <code>SubmitForReview</code>. <span class="gap">Backend boşluğu:</span> <code>complete</code> isteğinde <code>Result (Accepted, Declined, NoResponse)</code> ve <code>ResultDate</code> alanları, kayıtlı cevaplarda <code>ExpediteJustification</code> anahtarı planda yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Defter|Asistanlı adımlar" data-act="">
+      <div class="content">
+        <div class="back"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Red kaydı · Defter 1.4</div>
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="st"><b>AS</b>App Store</span><span class="bdg sm">Yapılacak</span></div><h1 class="pg-t">Hızlandırılmış inceleme iste</h1><p class="pg-s">Apple bu talebi yalnız web formundan alır. Cevaplar hazır; formu kendin doldur ya da Claude in Chrome'a devret.</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Formu aç</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Form cevapları</span><span class="lnk t-s ml">Kayıtlı cevaplar</span></div><div class="card-b"><dl class="kv"><dt>İletişim</dt><dd>Deniz Arslan · deniz@kuzeylab.dev</dd><dt>Uygulama</dt><dd>Defter · <span class="mono">6740023456</span></dd><dt>Platform</dt><dd>iOS</dd><dt>Sürüm</dt><dd class="mono">1.4 (53)</dd><dt>Talep nedeni</dt><dd>Kritik hata düzeltmesi</dd></dl></div></div>
+            <div class="fld"><span class="lbl">Gerekçe</span><div class="inp ta" style="min-height:140px"><div class="f1">Defter 1.4 (52) was rejected under 2.1 and 5.1.1 on 16 November. Build 1.4 (53) fixes the demo account and adds in-app account deletion. Our school customers start the new term on 23 November and rely on the sync fix included in this version.</div></div><div class="r gp8"><span class="hint">Red kaydından dolduruldu. Kısa ve olgusal tut.</span><span class="cnt">242 karakter</span></div></div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Apple hızlandırmayı sınırlı verir; sık talep geri çevrilir. Bu organizasyonun son talebi 3 Ağustos 2026'daydı.</div></div>
+            <div class="card"><div class="card-h"><span class="h3">Sonucu kaydet</span></div><div class="card-b c gp10">
+              <div class="r gp16 wrap t-s"><span class="r gp8"><span class="rad on"></span>Kabul edildi</span><span class="r gp8"><span class="rad"></span>Geri çevrildi</span><span class="r gp8"><span class="rad"></span>Cevap gelmedi</span></div>
+              <label class="fld"><span class="lbl">Not <span class="opt">· isteğe bağlı</span></span><span class="inp">Talep 18 Kas 15:10'da gönderildi, Apple e-postayla onayladı.</span></label>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="hand c gp12"><div class="r gp8"><svg class="ic s18"><use href="#i-cursor"/></svg><b class="t-m">Tarayıcı devri</b></div><p class="t-s fg2" style="margin:0">Claude formu senin oturumunda doldurur, göndermeden önce durur; "Gönder"e sen basarsın.</p><div class="code" style="white-space:pre-wrap">storeasy assisted_step_get
+  step: 5590 · Defter · expedite</div><span class="btn inv blk"><svg class="ic"><use href="#i-copy"/></svg>Claude için istemi kopyala</span></div>
+            <div class="card"><div class="card-h"><span class="h3">Önceki talepler</span></div><div class="lst">
+              <div class="lst-i"><div class="f1 t-s"><b>Pusula 2.1</b><div class="t-xs fg3">3 Ağu 2026 · Deniz Arslan</div></div><span class="bdg ok sm">Kabul · 9 saat</span></div>
+              <div class="lst-i"><div class="f1 t-s"><b>Mola 2.8</b><div class="t-xs fg3">14 Mar 2026 · Ece Yılmaz</div></div><span class="bdg sm">Geri çevrildi</span></div>
+            </div></div>
+            <span class="btn pri blk"><svg class="ic"><use href="#i-check"/></svg>Sonucu kaydet</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-20">
+  <figcaption class="fr-h"><b class="fr-n">9.20</b><span class="fr-t">Red bildirimi: zil menüsü</span><code class="fr-r">/apps → bildirimler</code></figcaption>
+  <p class="fr-note"><b>API:</b> var olan <code>PATCH /api/v1.0/account/notifications</code> → <code>NotificationDto { Id, Type, Title, Body, Link, IsSeen, CreationDate }</code>; menü açılınca <code>PUT /api/v1.0/account/notifications/seen</code>; tümünü temizle <code>DELETE /api/v1.0/account/notifications</code>. Red bildirimi Owner ve Admin'e gider (tercih <code>account/preferences</code>: "Red ve sertifikasyon" varsayılan açık), tıklama red kaydını açar. Yeni bildirim SignalR ile zile nokta koyar. Telefonda menü üst bara yapışık tam genişlik açılır. <span class="gap">Backend boşluğu:</span> <code>NotificationDto.Type</code> için <code>RejectionOpened, CertificationFailed, ReviewReceived, ReviewReplyFailed</code> değerleri eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar"><div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div><div class="g3"><div class="card" style="height:200px"></div><div class="card" style="height:200px"></div><div class="card hide-ph" style="height:200px"></div></div></div></div>
+    <div class="pop ntf">
+      <div class="ntf-h"><b class="t-m">Bildirimler</b><span class="bdg sm">3 yeni</span><span class="lnk t-s ml">Tümünü okundu say</span></div>
+      <div class="ni un"><span class="ud"></span><span class="nic dng"><svg class="ic"><use href="#i-x-c"/></svg></span><div><b>Defter 1.4 App Store'da reddedildi</b><div class="t-s fg2">Guideline 2.1 ve 5.1.1. Red kaydı açıldı; metni Resolution Center'dan yapıştır.</div><div class="t-xs fg3 mt4">16 Kas 09:14 · webhook</div></div></div>
+      <div class="ni un"><span class="ud"></span><span class="nic"><svg class="ic"><use href="#i-msg"/></svg></span><div><b>Mola'ya 3 yeni yorum</b><div class="t-s fg2">Biri 2 yıldız: "Son güncellemeden sonra hatırlatıcılar..."</div><div class="t-xs fg3 mt4">Bugün 13:48</div></div></div>
+      <div class="ni un"><span class="ud"></span><span class="nic"><svg class="ic"><use href="#i-hourglass"/></svg></span><div><b>Halka TestFlight build'i 6 gün sonra bitiyor</b><div class="t-xs fg3 mt4">Bugün 09:00</div></div></div>
+      <div class="ni"><span class="ud no"></span><span class="nic"><svg class="ic"><use href="#i-send"/></svg></span><div><b>Pusula 2.3 incelemeye alındı</b><div class="t-xs fg3 mt4">17 Kas 16:40</div></div></div>
+      <div class="ntf-f"><span class="lnk">Bütün bildirimler</span><span class="lnk">Bildirim tercihleri</span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f9-21" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">9.21</b><span class="fr-t">Red bildirimi: e-posta önizlemesi</span><code class="fr-r">e-posta · rejection-opened</code></figcaption>
+  <p class="fr-note">Uygulama içi bildirimle aynı anda, sahip ve yöneticilere. Kullanıcının arayüz dilinde (tr / en). Gizli değer, red metni ya da yorum içeriği taşımaz; yalnız uygulama, sürüm, guideline numaraları ve kayda giden bağlantı. Bağlantı oturum ister, token içermez. Abonelikten çıkma bağlantısı yalnız bu türü kapatır. <b>API:</b> şablon anahtarı <code>rejection-opened</code>; tercih <code>GET/PUT /api/v1.0/account/preferences</code>. <span class="gap">Backend boşluğu:</span> e-posta şablonu ve tür başına abonelikten çıkma bağlantısı (<code>POST /api/v1.0/account/notifications/unsubscribe { Token }</code>, anonim) planda yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="mailw">
+      <div class="mailh"><span><b>Kimden:</b> storeasy · Kuzey Lab &lt;bildirim@storeasy.kuzeylab.dev&gt;</span><span><b>Kime:</b> deniz@kuzeylab.dev</span><span><b>Konu:</b> Defter 1.4 App Store'da reddedildi</span></div>
+      <div class="mail">
+        <div class="mail-b">
+          <div class="r gp10"><svg class="mk" width="28" height="28"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></div>
+          <h2 class="h2" style="font-size:22px">Defter 1.4 (52) reddedildi</h2>
+          <p class="t-m fg2" style="margin:0">Merhaba Deniz, Apple Defter'in 1.4 sürümünü 16 Kasım 2026, 09:12'de reddetti. storeasy bir red kaydı açtı.</p>
+          <div class="card"><div class="card-b"><dl class="kv"><dt>Uygulama</dt><dd>Defter · App Store</dd><dt>Sürüm</dt><dd class="mono">1.4 (52)</dd><dt>Durum</dt><dd class="mono">REJECTED</dd><dt>Guideline</dt><dd class="mono">2.1 · 5.1.1</dd><dt>Organizasyon</dt><dd>Kuzey Lab</dd></dl></div></div>
+          <p class="t-s fg2" style="margin:0">Red metni App Store Connect'te. Kayda yapıştırınca guideline'lar düzeltme listesine dönüşür ve yanıt taslağı hazırlanabilir.</p>
+          <span class="btn pri" style="justify-self:start">Red kaydını aç</span>
+        </div>
+        <div class="mail-f"><span>Bu e-postayı "Red ve sertifikasyon" bildirimi açık olduğu için aldın. <span class="lnk">Bu bildirimi kapat</span> · <span class="lnk">Tercihler</span></span><span>storeasy · AGPL-3.0 · kaynak kod</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+</main>
+<script>
+/* storeasy tasarım runtime'ı: tema, görünüm (masaüstü / telefon), hareket azaltma, çerçeve ölçekleme,
+   uygulama kabuğu (kenar çubuğu + üst bar) ve bölüm içindekileri. build.mjs her dosyaya gömer. */
+(function () {
+  var root = document.documentElement, KEY = 'storeasy.design';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(k, v) { try { var s = load(); s[k] = v; localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  /* ---------- Uygulama kabuğu ---------- */
+  var ICON = function (id, cls) { return '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; };
+  var NAV = [
+    { g: null, items: [
+      ['apps', '/apps', 'i-grid', 'Uygulamalar', '6'],
+      ['activity', '/activity', 'i-activity', 'Canlı akış', '2', 'live'],
+      ['reviews', '/reviews', 'i-msg', 'Yorumlar', '14'],
+      ['compliance', '/compliance', 'i-cal-clock', 'Uyum takvimi', '3', 'dng'],
+      ['studio', '/studio', 'i-images', 'Stüdyo']
+    ] },
+    { g: 'Teslim', items: [
+      ['intake', '/intake', 'i-cloud-up', 'Paket alma'],
+      ['connections', '/connections', 'i-plug', 'Mağaza bağlantıları'],
+      ['webhooks', '/webhooks', 'i-webhook', 'Webhook\'lar']
+    ] },
+    { g: 'Organizasyon', items: [
+      ['members', '/members', 'i-users', 'Üyeler'],
+      ['audit', '/audit', 'i-list', 'Denetim kaydı'],
+      ['rules', '/rules', 'i-book', 'Mağaza kuralları'],
+      ['settings', '/settings', 'i-settings', 'Ayarlar']
+    ] },
+    { g: 'Geliştirici', items: [
+      ['mcp', '/developer', 'i-terminal', 'MCP ve token\'lar']
+    ] }
+  ];
+  var ADMIN = { g: 'Platform', items: [
+    ['a-rules', '/admin/rules', 'i-radar', 'Katalog önerileri', '2'],
+    ['a-users', '/admin/users', 'i-user', 'Kullanıcılar'],
+    ['a-roles', '/admin/roles', 'i-shield', 'Roller'],
+    ['a-logs', '/admin/activity-logs', 'i-history', 'Aktivite logu'],
+    ['a-langs', '/admin/languages', 'i-lang', 'Diller'],
+    ['a-flags', '/admin/feature-flags', 'i-flag', 'Özellik anahtarları'],
+    ['a-health', '/admin/system', 'i-server', 'Sistem durumu']
+  ] };
+  var ROLE_HIDE = { Viewer: ['connections', 'webhooks'], Editor: ['connections', 'webhooks'] };
+
+  function buildShell(sh) {
+    var d = sh.dataset, on = d.nav || '', role = d.role || 'Owner';
+    var hide = (ROLE_HIDE[role] || []);
+    if (d.hide) { hide = hide.concat(d.hide.split(',')); }
+    var groups = NAV.slice(); if (d.admin !== undefined) { groups.push(ADMIN); }
+    var nav = groups.map(function (g) {
+      var items = g.items.filter(function (it) { return hide.indexOf(it[0]) < 0; }).map(function (it) {
+        var c = it[4] ? '<span class="cnt' + (it[5] ? ' ' + it[5] : '') + '">' + (it[5] === 'live' ? '&#9679; ' : '') + it[4] + '</span>' : '';
+        return '<a class="nav-i' + (it[0] === on ? ' on' : '') + '" href="#" title="' + it[1] + '">' + ICON(it[2]) + '<span>' + it[3] + '</span>' + c + '</a>';
+      }).join('');
+      return (g.g ? '<div class="nav-g">' + g.g + '</div>' : '') + items;
+    }).join('');
+    var act = d.act === undefined ? '<a class="btn pri blk act" href="#">' + ICON('i-plus') + 'Uygulama ekle</a>' :
+      (d.act ? '<a class="btn pri blk act" href="#">' + ICON(d.actIcon || 'i-plus') + d.act + '</a>' : '');
+    var org = d.org || 'Kuzey Lab', orgInit = d.orgInit || 'K';
+    var roleTr = { Owner: 'Sahip', Admin: 'Yönetici', Editor: 'Editör', Viewer: 'İzleyici' }[role] || role;
+    var aside = '<aside class="side" aria-label="Ana menü">' +
+      '<a class="brand" href="#"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></a>' +
+      '<button class="orgsw" type="button" aria-label="Organizasyon değiştir"><span class="oav">' + orgInit + '</span><span class="f1"><b>' + org + '</b><small>' + roleTr + ' · 6 uygulama</small></span>' + ICON('i-chevs', 's16 fg3') + '</button>' +
+      (role === 'Viewer' && d.act === undefined ? '' : act) + '<nav>' + nav + '</nav>' +
+      '<div class="side-f"><div class="me"><span class="av">DA</span><span class="f1"><b>Deniz Arslan</b><small>deniz@kuzeylab.dev</small></span>' + ICON('i-more', 's16 fg3') + '</div>' +
+      '<div class="lic"><span>AGPL-3.0 · Kaynak kod</span><span>v1.0.0</span></div></div></aside>';
+    var crumbs = (d.crumbs || 'Uygulamalar').split('|');
+    var cr = crumbs.map(function (c, i) { return i === crumbs.length - 1 ? '<b>' + c + '</b>' : '<span class="pre">' + c + '</span><span class="sep pre">/</span>'; }).join('');
+    var live = d.live === undefined ? '' : '<span class="livepill"><span class="dot"></span><span>' + (d.live || '2 iş sürüyor') + '</span></span>';
+    var bar = '<header class="bar"><button class="ib ghost menu-btn" type="button" aria-label="Menüyü aç">' + ICON('i-menu') + '</button>' +
+      '<div class="crumb"><span class="pre">' + org + '</span><span class="sep pre">/</span>' + cr + '</div>' +
+      '<div class="search" role="search">' + ICON('i-search', 's16') + '<span>Uygulama, sürüm, paket ara</span><span class="kbd">Ctrl K</span></div>' + live +
+      '<button class="ib" type="button" aria-label="Bildirimler">' + ICON('i-bell') + (d.bell === 'off' ? '' : '<span class="pip"></span>') + '</button>' +
+      '<button class="ib ghost" type="button" aria-label="Yardım">' + ICON('i-help') + '</button></header>';
+    var main = document.createElement('div'); main.className = 'main';
+    main.innerHTML = bar;
+    while (sh.firstChild) { main.appendChild(sh.firstChild); }
+    sh.innerHTML = aside; sh.appendChild(main);
+    if (!main.querySelector('.content')) { var ct = document.createElement('div'); ct.className = 'content'; while (main.children.length > 1) { ct.appendChild(main.children[1]); } main.appendChild(ct); }
+  }
+  document.querySelectorAll('.shell[data-nav]').forEach(buildShell);
+
+  /* ---------- Uygulama başlığı + sekmeler (uygulama detayı ekranları) ----------
+     <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler">[eylem düğmeleri]</div> */
+  var STORES = { apple: ['AS', 'App Store'], google: ['GP', 'Google Play'], ms: ['MS', 'Microsoft Store'] };
+  var APPS = {
+    pusula: { n: 'Pusula', c: '#0F766E', s: { apple: ['2.3', 'İncelemede', 'warn'], google: ['2.3.0', 'Production %20', 'info'], ms: ['2.3.0.0', 'Sertifikasyonda', 'info'] } },
+    defter: { n: 'Defter', c: '#B45309', s: { apple: ['1.4', 'Reddedildi', 'dng'], google: ['1.4.0', 'Closed', ''] } },
+    halka: { n: 'Halka', c: '#DB2777', s: { apple: ['1.0 (37)', 'TestFlight', 'info'], google: ['1.0.0', 'Internal', ''] } },
+    mola: { n: 'Mola', c: '#15803D', s: { apple: ['3.1.2', 'Yayında', 'ok'], google: ['3.1.2', 'Production', 'ok'] } },
+    tarla: { n: 'Tarla', c: '#9A3412', s: { google: ['0.9.4', 'Internal', ''], ms: ['0.9.4', 'Yayında', 'ok'] } },
+    kumbara: { n: 'Kumbara', c: '#475569', s: { apple: ['1.0', 'Hazırlanıyor', ''] } }
+  };
+  var TABS = [['ozet', 'Genel bakış'], ['hazirlik', 'Hazırlık'], ['kayit', 'Mağaza kaydı'], ['yayin', 'Yayın'], ['para', 'Para'], ['geri', 'Geri bildirim'], ['uyum', 'Uyum']];
+  var SUBS = {
+    kayit: [['Metinler'], ['Görseller'], ['Önizleme videoları', 'apple,google'], ['Kategori ve yaş'], ['Fiyat ve bölgeler'], ['Uygulama ayrıntıları']],
+    yayin: [['Build\'ler'], ['Sürümler ve track\'ler'], ['TestFlight', 'apple'], ['Paket uçuşları', 'ms'], ['Aşamalı yayın'], ['İnceleme bilgileri']],
+    para: [['Abonelikler', 'apple,google'], ['Uygulama içi ürünler', 'apple,google'], ['Add-on\'lar', 'ms']],
+    geri: [['Yorumlar'], ['Red kayıtları']],
+    uyum: [['Zaman çizelgesi'], ['Kayıtlı cevaplar'], ['Asistanlı adımlar']]
+  };
+  document.querySelectorAll('.apphead[data-app]').forEach(function (h) {
+    var d = h.dataset, a = APPS[d.app] || APPS.pusula, cur = d.store || Object.keys(a.s)[0];
+    var acts = h.innerHTML;
+    var seg = '<div class="seg" role="tablist" aria-label="Mağaza">' + Object.keys(a.s).map(function (k) {
+      return '<span class="' + (k === cur && d.store !== 'all' ? 'on' : '') + '"><span class="st sm"><b>' + STORES[k][0] + '</b></span>' + STORES[k][1] + '</span>';
+    }).join('') + '</div>';
+    var lanes = Object.keys(a.s).map(function (k) {
+      var x = a.s[k]; return '<span class="bdg ' + x[2] + '"><span class="dot"></span>' + STORES[k][0] + ' ' + x[0] + ' · ' + x[1] + '</span>';
+    }).join('');
+    var tabs = '<div class="tabs" role="tablist">' + TABS.map(function (t) {
+      var n = t[0] === 'hazirlik' && d.ready ? ' <span class="n' + (d.ready.indexOf('!') === 0 ? ' dng' : '') + '">' + d.ready.replace('!', '') + '</span>' : '';
+      return '<a class="tab' + (t[0] === d.tab ? ' on' : '') + '" href="#">' + t[1] + n + '</a>';
+    }).join('') + '</div>';
+    var subs = '';
+    if (SUBS[d.tab]) {
+      subs = '<div class="r gp6 wrap mb16 subnav">' + SUBS[d.tab].filter(function (s) { return !s[1] || d.store === 'all' || s[1].split(',').indexOf(cur) >= 0; }).map(function (s) {
+        return '<span class="chip' + (s[0] === d.sub ? ' on' : '') + '">' + s[0] + '</span>';
+      }).join('') + '</div>';
+    }
+    h.innerHTML = '<div class="r gp16 wrap mb16"><span class="aic l" style="--c:' + a.c + '">' + a.n[0] + '</span>' +
+      '<div class="f1"><div class="r gp10 wrap"><h1 class="pg-t">' + a.n + '</h1>' + lanes + '</div>' +
+      '<div class="t-s fg3 mono mt4">' + (d.meta || 'com.kuzeylab.' + d.app) + '</div></div>' +
+      (d.store === 'all' ? '' : seg) + (acts.trim() ? '<div class="pg-a apphead-a">' + acts + '</div>' : '') + '</div>' + tabs + subs;
+  });
+
+  /* ---------- Çerçeve ölçekleme ---------- */
+  function sizeOf(fr) {
+    var v = fr.getAttribute('data-view') || root.getAttribute('data-view') || 'desktop';
+    var ph = v === 'phone';
+    var h = ph ? (fr.getAttribute('data-ph') || 844) : (fr.getAttribute('data-h') || 820);
+    return { w: ph ? 390 : 1280, h: +h };
+  }
+  function fit() {
+    document.querySelectorAll('.fr').forEach(function (fr) {
+      var vp = fr.querySelector(':scope > .vp'); if (!vp) { return; }
+      var scr = vp.querySelector(':scope > .scr'); if (!scr) { return; }
+      var s = sizeOf(fr), avail = vp.clientWidth || s.w, k = Math.min(1, avail / s.w);
+      scr.style.width = s.w + 'px'; scr.style.height = s.h + 'px';
+      scr.style.transform = k < 1 ? 'scale(' + k + ')' : 'none';
+      vp.style.height = Math.round(s.h * k) + 'px';
+    });
+  }
+
+  /* ---------- Tema, görünüm, hareket ---------- */
+  function setAttr(k, v) {
+    root.setAttribute('data-' + k, v);
+    document.querySelectorAll('.dseg [data-set="' + k + '"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); });
+    save(k, v);
+    if (k === 'view') { requestAnimationFrame(fit); }
+    if (k === 'motion') { document.dispatchEvent(new CustomEvent('motionchange')); }
+  }
+  var st = load();
+  setAttr('theme', st.theme || root.getAttribute('data-theme') || 'dark');
+  setAttr('view', st.view || 'desktop');
+  var sysReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setAttr('motion', sysReduce ? 'reduce' : (st.motion || 'full'));
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.dseg [data-set]'); if (!b) { return; }
+    setAttr(b.getAttribute('data-set'), b.getAttribute('data-v'));
+  });
+
+  /* ---------- SVG SMIL animasyonları hareket azaltmada durur ---------- */
+  function motion() {
+    var reduce = root.getAttribute('data-motion') === 'reduce';
+    document.querySelectorAll('svg.anim').forEach(function (s) {
+      try { if (reduce) { s.pauseAnimations(); s.setCurrentTime(0); } else { s.unpauseAnimations(); } } catch (e) {}
+    });
+  }
+  document.addEventListener('motionchange', motion);
+
+  /* ---------- Bölüm içindekiler ---------- */
+  var toc = document.querySelector('.doc-toc');
+  if (toc) {
+    toc.innerHTML = Array.prototype.map.call(document.querySelectorAll('.sec'), function (s, i) {
+      if (!s.id) { s.id = 's' + (i + 1); }
+      var h = s.querySelector('.sec-h h2'); return h ? '<a href="#' + s.id + '">' + h.textContent + '</a>' : '';
+    }).join('');
+  }
+
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+  fit(); motion();
+})();
+
+</script>
+</body>
+</html>

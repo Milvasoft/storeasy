@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="tr" data-theme="dark" data-view="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy · Canlı akış ve işler</title>
+<meta name="description" content="storeasy'nin imza ekranı &quot;Hat&quot;: storeasy'den mağazalara giden ve geri dönen her adım olduğu anda, hareket azaltmada durum listesi olarak. Ardından iş listesi, yeniden oynatılabilir iş detayı, başarısız iş ve tekrar deneme, onay bekleyen değişiklik planları, iş bildirimleri ve sessiz hat.">
+<script>(function(){var r=document.documentElement;try{var s=JSON.parse(localStorage.getItem('storeasy.design')||'{}');if(s.theme)r.setAttribute('data-theme',s.theme);if(s.view)r.setAttribute('data-view',s.view);}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+/* ===== storeasy tasarım kiti v1 =====
+   Bütün tasarım dosyalarında aynen kullanılır (build.mjs gömer). Token adları 02 standardının src/index.css
+   adlarıyla aynıdır (RGB üçlüleri): kodda Tailwind `rgb(var(--x) / <alpha-value>)` ile okunur. */
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --r-xs:6px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-pill:999px;
+  --ease:cubic-bezier(.2,.7,.2,1);--dur-1:120ms;--dur-2:220ms;--dur-3:420ms;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.28),0 2px 6px rgb(0 0 0/.08);
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:250 250 248;--bg-2:244 244 241;--surface:255 255 255;--border:228 227 222;--border-strong:206 205 199;
+  --fg:20 20 22;--fg-2:88 88 94;--fg-3:112 112 118;
+  --accent:70 54 255;--accent-fg:255 255 255;--accent-text:70 54 255;
+  --success:21 128 61;--warning:180 95 6;--danger:200 40 40;--info:37 99 200;
+  --overlay:20 20 22;--page:236 236 232;--frame:214 213 207;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:10 10 11;--bg-2:26 26 29;--surface:18 18 20;--border:38 38 42;--border-strong:58 58 64;
+  --fg:240 240 238;--fg-2:168 168 172;--fg-3:124 124 130;
+  --accent:133 122 255;--accent-fg:10 10 11;--accent-text:150 141 255;
+  --success:62 199 128;--warning:240 176 64;--danger:255 99 99;--info:110 160 255;
+  --overlay:0 0 0;--page:4 4 5;--frame:44 44 50;
+  --sh-float:0 18px 48px -12px rgb(0 0 0/.7),0 2px 6px rgb(0 0 0/.5);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:rgb(var(--page));color:rgb(var(--fg));font:400 15px/1.5 var(--font-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.mono{font-family:var(--font-mono);font-feature-settings:"zero" 1}
+.disp{font-family:var(--font-display)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Doküman kabuğu ---------- */
+.doc-top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 24px;background:rgb(var(--page)/.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgb(var(--border))}
+.doc-top .home{display:flex;align-items:center;gap:8px;font:700 14px/1 var(--font-display);white-space:nowrap}
+.doc-top .home svg{width:22px;height:22px}
+.doc-top .ttl{font:500 13px/1.2 var(--font-body);color:rgb(var(--fg-2));min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-top .sp{flex:1}
+.doc-top .pn{display:flex;gap:4px}
+.doc-top .pn a{font:500 12px/1 var(--font-mono);padding:8px 10px;border:1px solid rgb(var(--border));border-radius:var(--r-pill);color:rgb(var(--fg-2));white-space:nowrap}
+.dseg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:var(--r-pill);padding:3px;gap:2px;background:rgb(var(--surface))}
+.dseg button{border:0;background:none;color:rgb(var(--fg-2));font:500 12px/1 var(--font-body);padding:7px 11px;border-radius:var(--r-pill);cursor:pointer;white-space:nowrap}
+.dseg button[aria-pressed="true"]{background:rgb(var(--fg));color:rgb(var(--bg))}
+.doc{max-width:1400px;margin:0 auto;padding:40px 24px 120px}
+.doc-hero{display:grid;gap:10px;margin-bottom:12px}
+.doc-hero .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.doc-hero h1{font:800 44px/1.02 var(--font-display);letter-spacing:-.035em;margin:0}
+.doc-hero p{margin:0;max-width:820px;color:rgb(var(--fg-2));font-size:16px}
+.doc-toc{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.doc-toc a{font:500 12px/1 var(--font-body);padding:7px 10px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));color:rgb(var(--fg-2));background:rgb(var(--surface))}
+.sec{margin-top:72px;scroll-margin-top:72px}
+.sec-h{margin:0 0 24px;display:grid;gap:6px}
+.sec-h .k{font:600 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.sec-h h2{font:800 32px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.sec-h p{margin:0;max-width:860px;color:rgb(var(--fg-2))}
+.frames{display:grid;gap:56px}
+html[data-view="phone"] .frames{grid-template-columns:repeat(auto-fill,minmax(min(390px,100%),1fr));gap:48px 32px}
+.fr{margin:0;min-width:0;scroll-margin-top:72px}
+.fr-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.fr-n{font:600 11px/1 var(--font-mono);background:rgb(var(--fg));color:rgb(var(--bg));border-radius:5px;padding:4px 6px}
+.fr-t{font:700 16px/1.2 var(--font-display)}
+.fr-r{font:500 12px/1 var(--font-mono);color:rgb(var(--fg-3));word-break:break-all}
+.fr-note{font-size:13px;line-height:1.55;color:rgb(var(--fg-2));margin:4px 0 12px;max-width:980px}
+.fr-note b{color:rgb(var(--fg))}
+.fr-note .gap{display:inline;color:rgb(var(--warning));font-weight:600}
+.vp{position:relative;width:100%;overflow:hidden;border-radius:var(--r-lg);box-shadow:0 0 0 1px rgb(var(--frame)),0 30px 60px -36px rgb(0 0 0/.45)}
+html[data-view="phone"] .fr:not([data-view="desktop"]) .vp{max-width:390px;border-radius:40px}
+.fr[data-view="phone"] .vp{max-width:390px;border-radius:40px}
+.scr{position:absolute;left:0;top:0;width:1280px;height:820px;transform-origin:0 0;background:rgb(var(--bg));color:rgb(var(--fg));overflow:hidden;container-type:inline-size;container-name:scr;font:400 14px/1.5 var(--font-body)}
+.doc-note{font-size:13px;color:rgb(var(--fg-2));border-left:2px solid rgb(var(--border-strong));padding:2px 0 2px 12px;margin:16px 0;max-width:900px}
+.doc-card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);padding:22px}
+
+/* ---------- Uygulama kabuğu ---------- */
+.shell{display:flex;height:100%;position:relative}
+.side{width:248px;flex:none;border-right:1px solid rgb(var(--border));background:rgb(var(--surface));display:flex;flex-direction:column;padding:16px 12px 12px;gap:4px;overflow:hidden}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px}
+.brand svg{width:28px;height:28px;flex:none}
+.wm{font:800 21px/1 var(--font-display);letter-spacing:-.035em;color:rgb(var(--fg))}
+.wm i{font-style:normal;color:rgb(var(--accent))}
+.orgsw{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:8px 10px;margin-bottom:8px;background:rgb(var(--bg));text-align:left;width:100%;cursor:pointer}
+.orgsw .oav{width:30px;height:30px;border-radius:9px;background:rgb(var(--fg));color:rgb(var(--bg));display:grid;place-items:center;font:800 13px/1 var(--font-display);flex:none}
+.orgsw b{display:block;font:600 13px/1.25 var(--font-body)}
+.orgsw small{display:block;color:rgb(var(--fg-3));font-size:11px;line-height:1.3}
+.side .act{margin-bottom:8px}
+.nav-g{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:14px 10px 6px}
+.nav-i{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;color:rgb(var(--fg-2));font:500 13.5px/1.2 var(--font-body)}
+.nav-i .ic{width:18px;height:18px}
+.nav-i.on{background:rgb(var(--bg-2));color:rgb(var(--fg));font-weight:600}
+.nav-i.on::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:rgb(var(--accent))}
+.nav-i.on .ic{color:rgb(var(--accent))}
+.nav-i .cnt{margin-left:auto;font:600 11px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.nav-i .cnt.live{color:rgb(var(--success))}
+.nav-i .cnt.dng{color:rgb(var(--danger))}
+.side-f{margin-top:auto;border-top:1px solid rgb(var(--border));padding-top:10px;display:grid;gap:8px}
+.me{display:flex;align-items:center;gap:10px;padding:4px 6px}
+.me b{display:block;font:600 13px/1.25 var(--font-body)}
+.me small{display:block;font-size:11px;color:rgb(var(--fg-3))}
+.lic{font:500 10.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));padding:0 6px;display:flex;justify-content:space-between;gap:8px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.bar{height:60px;flex:none;border-bottom:1px solid rgb(var(--border));display:flex;align-items:center;gap:10px;padding:0 24px;background:rgb(var(--bg))}
+.crumb{display:flex;align-items:center;gap:6px;color:rgb(var(--fg-3));font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.crumb b{color:rgb(var(--fg));font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.crumb .sep{opacity:.6}
+.search{margin-left:auto;width:300px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:flex;align-items:center;gap:8px;padding:0 10px;color:rgb(var(--fg-3));font-size:13px;background:rgb(var(--surface));flex:none}
+.livepill{display:inline-flex;align-items:center;gap:6px;font:600 11px/1 var(--font-mono);color:rgb(var(--success));border:1px solid rgb(var(--success)/.35);border-radius:var(--r-pill);padding:6px 9px;white-space:nowrap}
+.content{flex:1;min-height:0;overflow:auto;padding:24px 28px 40px}
+.content.flush{padding:0}
+.menu-btn{display:none}
+
+/* ---------- Telefon (kapsayıcı sorgusu: aynı ekran 390 px'te) ---------- */
+@container scr (max-width:760px){
+  .side{display:none}
+  .shell.drawer .side{display:flex;position:absolute;inset:0 auto 0 0;width:300px;z-index:40;box-shadow:var(--sh-float)}
+  .shell.drawer::after{content:"";position:absolute;inset:0;background:rgb(var(--overlay)/.45);z-index:39}
+  .menu-btn{display:grid}
+  .bar{padding:0 12px;height:56px;gap:6px}
+  .bar .search{width:36px;padding:0;justify-content:center;margin-left:auto}
+  .bar .search span,.bar .search .kbd{display:none}
+  .bar .livepill .lt{display:none}
+  .lst-i{flex-wrap:wrap}
+  .apphead .seg{max-width:100%;overflow-x:auto}
+  .apphead .f1{flex:1 1 calc(100% - 64px)}
+  .apphead .aic.l{width:48px;height:48px;font-size:20px;border-radius:13px}
+  .apphead .bdg{white-space:normal;line-height:1.2}
+  .subnav{flex-wrap:nowrap !important;overflow-x:auto}
+  .crumb .pre{display:none}
+  .content{padding:16px 16px 96px}
+  .scr .hide-ph{display:none !important}
+  .scr .only-ph{display:revert !important}
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr !important}
+  .split,.split-r,.split-l{grid-template-columns:1fr !important}
+  .pg-h{flex-wrap:wrap}
+  .pg-t{font-size:24px}
+  .pg-a{width:100%;flex-wrap:wrap}
+  .tbl-w{border:0;background:none;overflow:visible}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;border:1px solid rgb(var(--border));border-radius:var(--r-md);background:rgb(var(--surface));padding:12px 14px;margin-bottom:10px}
+  .tbl td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;grid-column:1 / -1;font-size:13px}
+  .tbl td[data-l]::before{content:attr(data-l);color:rgb(var(--fg-3));font-size:12px;flex:none}
+  .tbl td.tm{grid-column:1;font-size:14px;justify-content:flex-start}
+  .tbl td.ta{grid-column:2;grid-row:1;justify-content:flex-end}
+  .tbl td.tx{display:none}
+  .tbl tr.sel{outline:2px solid rgb(var(--fg))}
+  .pager{flex-wrap:wrap;justify-content:center}
+  .pager .ps{display:none}
+  .ovl{align-items:flex-end;padding:0}
+  .mdl{width:100% !important;max-height:92%;border-radius:20px 20px 0 0}
+  .drw{width:100% !important}
+  .toasts{left:12px;right:12px;bottom:84px}
+  .toast{width:auto}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .scr .fab{display:inline-flex !important}
+}
+.only-ph{display:none !important}
+.fab{display:none !important;position:absolute;right:16px;bottom:24px;z-index:20;box-shadow:var(--sh-float)}
+
+/* ---------- Tipografi ---------- */
+.pg-h{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.pg-t{font:800 30px/1.08 var(--font-display);letter-spacing:-.028em;margin:0}
+.pg-s{color:rgb(var(--fg-2));font-size:14px;margin:6px 0 0;max-width:720px}
+.pg-h>:first-child{flex:1 1 auto;min-width:0}
+.pg-a{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.h2{font:700 20px/1.2 var(--font-display);letter-spacing:-.015em;margin:0}
+.h3{font:700 16px/1.25 var(--font-display);letter-spacing:-.01em;margin:0}
+.eb{font:600 11px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.t-xs{font-size:11.5px;line-height:1.4}.t-s{font-size:12.5px;line-height:1.45}.t-m{font-size:14px}.t-l{font-size:16px}
+.fg2{color:rgb(var(--fg-2))}.fg3{color:rgb(var(--fg-3))}
+.b5{font-weight:500}.b6{font-weight:600}.b7{font-weight:700}
+.ok-t{color:rgb(var(--success))}.warn-t{color:rgb(var(--warning))}.dng-t{color:rgb(var(--danger))}.info-t{color:rgb(var(--info))}.acc-t{color:rgb(var(--accent-text))}
+.tnum{font-variant-numeric:tabular-nums}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.nowrap{white-space:nowrap}
+.num{font:800 28px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* ---------- Yardımcılar ---------- */
+.r{display:flex;align-items:center}.rt{display:flex;align-items:flex-start}.c{display:flex;flex-direction:column}
+.bt{justify-content:space-between}.je{justify-content:flex-end}.jc{justify-content:center}.ac{align-items:center}.wrap{flex-wrap:wrap}
+.f1{flex:1;min-width:0}.fn{flex:none}.ml{margin-left:auto}
+.gp4{gap:4px}.gp6{gap:6px}.gp8{gap:8px}.gp10{gap:10px}.gp12{gap:12px}.gp16{gap:16px}.gp20{gap:20px}.gp24{gap:24px}.gp32{gap:32px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}
+.grid{display:grid;gap:16px}
+.g2{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{display:grid;gap:12px;grid-template-columns:repeat(5,minmax(0,1fr))}
+.split{display:grid;gap:20px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.split-l{display:grid;gap:20px;grid-template-columns:300px minmax(0,1fr);align-items:start}
+.split-r{display:grid;gap:20px;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+.hr{height:1px;background:rgb(var(--border));border:0;margin:16px 0}
+.hr.d{background:none;border-top:1px dashed rgb(var(--border))}
+
+/* ---------- İkon, logo ---------- */
+.ic{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ic.s12{width:12px;height:12px}.ic.s14{width:14px;height:14px}.ic.s16{width:16px;height:16px}.ic.s18{width:18px;height:18px}.ic.s24{width:24px;height:24px}.ic.s28{width:28px;height:28px}.ic.s32{width:32px;height:32px}.ic.s40{width:40px;height:40px}.ic.s48{width:48px;height:48px}
+.mk{--m1:rgb(var(--accent));--m2:rgb(var(--accent)/.5);flex:none}
+.mk.inv{--m1:rgb(var(--accent-fg));--m2:rgb(var(--accent-fg)/.55)}
+.mk.mono-m{--m1:rgb(var(--fg));--m2:rgb(var(--fg)/.45)}
+.spin-mk{animation:spin 1.6s linear infinite}
+
+/* ---------- Butonlar ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 15px;border-radius:10px;font:600 13.5px/1 var(--font-body);border:1px solid rgb(var(--border-strong));background:rgb(var(--surface));color:rgb(var(--fg));white-space:nowrap;cursor:pointer;flex:none}
+.btn .ic{width:16px;height:16px}
+.btn.pri{background:rgb(var(--accent));border-color:transparent;color:rgb(var(--accent-fg))}
+.btn.inv{background:rgb(var(--fg));border-color:transparent;color:rgb(var(--bg))}
+.btn.ghost{background:none;border-color:transparent;color:rgb(var(--fg-2))}
+.btn.dng{background:rgb(var(--danger));border-color:transparent;color:#fff}
+html[data-theme="dark"] .btn.dng{color:rgb(10 10 11)}
+.btn.dng-o{background:none;border-color:rgb(var(--danger)/.5);color:rgb(var(--danger))}
+.btn.sm{height:30px;padding:0 11px;font-size:12.5px;border-radius:8px}
+.btn.lg{height:46px;padding:0 20px;font-size:15px;border-radius:12px}
+.btn.blk{display:flex;width:100%}
+.btn[disabled],.btn.dis{opacity:.45;cursor:not-allowed}
+.btn.ld{color:transparent !important;position:relative}
+.btn.ld::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid rgb(var(--fg)/.25);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite}
+.btn.pri.ld::after{border-color:rgb(var(--accent-fg)/.3);border-top-color:rgb(var(--accent-fg))}
+.ib{width:36px;height:36px;border:1px solid rgb(var(--border));border-radius:10px;display:grid;place-items:center;color:rgb(var(--fg-2));background:rgb(var(--surface));position:relative;flex:none;cursor:pointer;padding:0}
+.ib .ic{width:18px;height:18px}
+.ib.sm{width:30px;height:30px;border-radius:8px}.ib.sm .ic{width:16px;height:16px}
+.ib.ghost{border-color:transparent;background:none}
+.pip{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:rgb(var(--danger));box-shadow:0 0 0 2px rgb(var(--surface))}
+.lnk{font-weight:600;color:rgb(var(--fg));text-decoration:underline;text-decoration-color:rgb(var(--fg)/.3);text-underline-offset:3px}
+.kbd{font:500 11px/1 var(--font-mono);border:1px solid rgb(var(--border));border-bottom-width:2px;border-radius:5px;padding:2px 5px;color:rgb(var(--fg-3));margin-left:auto}
+:where(.scr) .focus{outline:2px solid rgb(var(--fg));outline-offset:2px}
+
+/* ---------- Form ---------- */
+.fld{display:grid;gap:6px;min-width:0}
+.lbl{font:600 12.5px/1.2 var(--font-body);color:rgb(var(--fg-2));display:flex;align-items:center;gap:6px}
+.lbl .opt{font-weight:500;color:rgb(var(--fg-3))}
+.inp{display:flex;align-items:center;gap:8px;min-height:40px;border:1px solid rgb(var(--border-strong));border-radius:10px;padding:0 12px;background:rgb(var(--surface));color:rgb(var(--fg));font:400 14px/1.4 var(--font-body);width:100%;min-width:0}
+.inp .ph{color:rgb(var(--fg-3))}
+.inp .ic{width:16px;height:16px;color:rgb(var(--fg-3))}
+.inp.ta{align-items:flex-start;padding:10px 12px;min-height:96px;white-space:pre-wrap}
+.inp.foc{border-color:rgb(var(--fg));box-shadow:0 0 0 3px rgb(var(--fg)/.10)}
+.inp.err{border-color:rgb(var(--danger));box-shadow:0 0 0 3px rgb(var(--danger)/.12)}
+.inp.ro{background:rgb(var(--bg-2));color:rgb(var(--fg-2));border-style:dashed}
+.inp.dis{opacity:.55}
+.inp.mono,.inp .mono{font-family:var(--font-mono);font-size:13px}
+.inp.sel::after{content:"";margin-left:auto;width:8px;height:8px;border-right:1.8px solid rgb(var(--fg-3));border-bottom:1.8px solid rgb(var(--fg-3));transform:rotate(45deg) translate(-2px,-2px);flex:none}
+.hint{font-size:12px;color:rgb(var(--fg-3));line-height:1.45}
+.err-t{font-size:12px;color:rgb(var(--danger));display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.cnt{font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3));margin-left:auto;white-space:nowrap}
+.cnt.near{color:rgb(var(--warning))}.cnt.over{color:rgb(var(--danger))}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.chk.on{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.on::after{content:"";width:9px;height:5px;border-left:2px solid rgb(var(--accent-fg));border-bottom:2px solid rgb(var(--accent-fg));transform:rotate(-45deg) translate(1px,-1px)}
+.chk.mix{background:rgb(var(--accent));border-color:rgb(var(--accent))}
+.chk.mix::after{content:"";width:9px;height:2px;background:rgb(var(--accent-fg));border-radius:2px}
+.chk.dis{opacity:.45}
+.rad{width:18px;height:18px;border-radius:50%;border:1.5px solid rgb(var(--border-strong));display:inline-grid;place-items:center;flex:none;background:rgb(var(--surface))}
+.rad.on{border-color:rgb(var(--accent))}
+.rad.on::after{content:"";width:9px;height:9px;border-radius:50%;background:rgb(var(--accent))}
+.sw{width:36px;height:22px;border-radius:999px;background:rgb(var(--border-strong));position:relative;flex:none;display:inline-block}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgb(0 0 0/.25);transition:left var(--dur-2) var(--ease)}
+.sw.on{background:rgb(var(--accent))}
+.sw.on::after{left:17px}
+.sw.dis{opacity:.45}
+.opt-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0}
+.seg{display:inline-flex;border:1px solid rgb(var(--border));border-radius:10px;padding:3px;gap:2px;background:rgb(var(--bg-2));flex:none}
+.seg>*{border:0;background:none;color:rgb(var(--fg-2));font:500 12.5px/1 var(--font-body);padding:7px 11px;border-radius:7px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.seg>.on{background:rgb(var(--surface));color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--border))}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:var(--r-pill);border:1px solid rgb(var(--border));background:rgb(var(--surface));font:500 12.5px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.chip .ic{width:14px;height:14px}
+.chip.on{border-color:rgb(var(--accent));color:rgb(var(--accent-text));background:rgb(var(--accent)/.08)}
+.chip .x{opacity:.6}
+.ferr{border:1px solid rgb(var(--danger)/.45);background:rgb(var(--danger)/.07);border-radius:var(--r-md);padding:12px 14px;display:flex;gap:10px;font-size:13px}
+.ferr ul{margin:4px 0 0;padding-left:18px}
+
+/* ---------- Rozet, mağaza etiketi ---------- */
+.bdg{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1 var(--font-body);padding:5px 9px;border-radius:var(--r-pill);border:1px solid rgb(var(--border-strong));color:rgb(var(--fg-2));white-space:nowrap;background:rgb(var(--surface))}
+.bdg .dot,.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;display:inline-block}
+.bdg.ok{color:rgb(var(--success));border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.07)}
+.bdg.warn{color:rgb(var(--warning));border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.08)}
+.bdg.dng{color:rgb(var(--danger));border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.07)}
+.bdg.info{color:rgb(var(--info));border-color:rgb(var(--info)/.45);background:rgb(var(--info)/.07)}
+.bdg.acc{color:rgb(var(--accent-text));border-color:rgb(var(--accent)/.45);background:rgb(var(--accent)/.08)}
+.bdg.sol{background:rgb(var(--fg));color:rgb(var(--bg));border-color:transparent}
+.bdg.sm{font-size:10.5px;padding:3px 7px}
+.bdg.live .dot{animation:pulse 1.6s infinite}
+.st{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--font-body);color:rgb(var(--fg-2));white-space:nowrap}
+.st b{display:inline-grid;place-items:center;min-width:24px;height:18px;padding:0 4px;border-radius:5px;font:700 9.5px/1 var(--font-mono);letter-spacing:.02em;border:1.5px solid currentColor;color:rgb(var(--fg))}
+.st.sm{font-size:11px}.st.sm b{height:16px;min-width:22px;font-size:9px}
+.st.only b{margin:0}
+.plat{font:600 10.5px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:rgb(var(--fg-3))}
+.tag{display:inline-flex;align-items:center;font:500 11.5px/1 var(--font-mono);padding:4px 7px;border-radius:6px;background:rgb(var(--bg-2));color:rgb(var(--fg-2));border:1px solid rgb(var(--border));white-space:nowrap}
+
+/* ---------- Avatar, uygulama ikonu ---------- */
+.av{width:30px;height:30px;border-radius:50%;background:rgb(var(--bg-2));border:1px solid rgb(var(--border));display:inline-grid;place-items:center;font:600 11.5px/1 var(--font-body);color:rgb(var(--fg-2));flex:none}
+.av.s{width:24px;height:24px;font-size:10px}.av.l{width:44px;height:44px;font-size:15px}.av.xl{width:72px;height:72px;font-size:22px}
+.aic{--c:#555;width:44px;height:44px;border-radius:12px;background:var(--c);display:inline-grid;place-items:center;font:800 18px/1 var(--font-display);color:#fff;flex:none;position:relative;overflow:hidden}
+.aic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgb(255 255 255/.12)}
+.aic.s{width:28px;height:28px;border-radius:8px;font-size:12px}.aic.m{width:36px;height:36px;border-radius:10px;font-size:15px}.aic.l{width:64px;height:64px;border-radius:17px;font-size:26px}
+
+/* ---------- Kart, panel, liste ---------- */
+.card{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.card-h .h3{font-size:15px}
+.card-b{padding:18px}
+.card-f{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid rgb(var(--border))}
+.card.dash{border-style:dashed;background:none}
+.card.warn{border-color:rgb(var(--warning)/.5)}
+.card.dng{border-color:rgb(var(--danger)/.5)}
+.card.sel{border-color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--fg))}
+.lst{display:grid}
+.lst-i{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgb(var(--border));min-width:0}
+.lst-i:last-child{border-bottom:0}
+.lst-i.on{background:rgb(var(--bg-2))}
+.lst-i .f1{overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:10px 20px;margin:0;font-size:13.5px}
+.kv dt{color:rgb(var(--fg-3))}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.stat{display:grid;gap:6px;padding:16px 18px}
+.stat .lb{font-size:12.5px;color:rgb(var(--fg-2))}
+.callout{display:flex;gap:12px;align-items:flex-start;border:1px solid rgb(var(--border));background:rgb(var(--bg-2));border-radius:var(--r-md);padding:12px 14px;font-size:13px;line-height:1.5}
+.callout .ic{width:18px;height:18px;margin-top:1px}
+.callout.info{border-color:rgb(var(--info)/.4);background:rgb(var(--info)/.06)}.callout.info>.ic{color:rgb(var(--info))}
+.callout.warn{border-color:rgb(var(--warning)/.45);background:rgb(var(--warning)/.07)}.callout.warn>.ic{color:rgb(var(--warning))}
+.callout.dng{border-color:rgb(var(--danger)/.45);background:rgb(var(--danger)/.06)}.callout.dng>.ic{color:rgb(var(--danger))}
+.callout.ok{border-color:rgb(var(--success)/.4);background:rgb(var(--success)/.06)}.callout.ok>.ic{color:rgb(var(--success))}
+
+/* ---------- Sekmeler ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid rgb(var(--border));margin-bottom:20px}
+.tab{display:inline-flex;align-items:center;gap:7px;padding:10px 12px;font:500 13.5px/1 var(--font-body);color:rgb(var(--fg-2));border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab .ic{width:16px;height:16px}
+.tab.on{color:rgb(var(--fg));font-weight:600;border-bottom-color:rgb(var(--accent))}
+.tab .n{font:600 10.5px/1 var(--font-mono);padding:3px 5px;border-radius:5px;background:rgb(var(--bg-2));color:rgb(var(--fg-3))}
+.tab .n.dng{background:rgb(var(--danger)/.12);color:rgb(var(--danger))}
+
+/* ---------- Tablo, sayfalama ---------- */
+.tbl-w{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;min-width:0}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}
+.tbl th{text-align:left;font:600 12px/1.2 var(--font-body);color:rgb(var(--fg-3));padding:11px 14px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2)/.6);white-space:nowrap}
+.tbl th .ic{width:12px;height:12px;vertical-align:-1px;margin-left:3px}
+.tbl th.srt{color:rgb(var(--fg))}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgb(var(--border));vertical-align:middle;overflow-wrap:anywhere}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.sel td{background:rgb(var(--accent)/.06)}
+.tbl tr.hov td{background:rgb(var(--bg-2)/.7)}
+.tbl td.ta{text-align:right;white-space:nowrap}
+.tbl .w1{width:1%;white-space:nowrap}
+.pager{display:flex;align-items:center;gap:10px;padding:12px 2px 0;font-size:13px;color:rgb(var(--fg-2))}
+.pager .ml{margin-left:auto}
+.bulk{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);background:rgb(var(--fg));color:rgb(var(--bg));font-size:13px;margin-bottom:12px}
+.bulk .btn{background:rgb(var(--bg)/.12);border-color:transparent;color:rgb(var(--bg))}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+
+/* ---------- Boş, iskelet, durum ---------- */
+.empty{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:40px 24px;display:grid;justify-items:center;text-align:center;gap:10px;color:rgb(var(--fg-2))}
+.empty .eic{width:56px;height:56px;border-radius:16px;background:rgb(var(--bg-2));display:grid;place-items:center;color:rgb(var(--fg-2))}
+.empty .eic .ic{width:26px;height:26px}
+.empty h4{margin:4px 0 0;font:700 17px/1.2 var(--font-display);color:rgb(var(--fg))}
+.empty p{margin:0;max-width:420px;font-size:13.5px}
+.state{display:grid;justify-items:center;text-align:center;gap:12px;padding:56px 24px}
+.state .sic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:rgb(var(--bg-2));color:rgb(var(--fg-2))}
+.state .sic .ic{width:30px;height:30px}
+.state h3{margin:0;font:800 24px/1.1 var(--font-display);letter-spacing:-.02em}
+.state p{margin:0;max-width:440px;color:rgb(var(--fg-2))}
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,rgb(var(--bg-2)) 0%,rgb(var(--border)/.7) 50%,rgb(var(--bg-2)) 100%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;height:12px}
+.sk.t{height:18px}.sk.b{height:36px;border-radius:10px}.sk.ci{border-radius:50%}
+.topline{position:absolute;left:0;right:0;top:0;height:2px;overflow:hidden;z-index:5}
+.topline::after{content:"";position:absolute;inset:0 60% 0 0;background:rgb(var(--accent));animation:slide 1.2s var(--ease) infinite}
+.spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid rgb(var(--fg)/.15);border-top-color:rgb(var(--fg));animation:spin .8s linear infinite;display:inline-block}
+
+/* ---------- İlerleme, adım, zaman çizelgesi ---------- */
+.prog{height:6px;border-radius:3px;background:rgb(var(--bg-2));overflow:hidden;min-width:40px}
+.prog>i{display:block;height:100%;background:rgb(var(--accent));border-radius:3px}
+.prog.ok>i{background:rgb(var(--success))}.prog.warn>i{background:rgb(var(--warning))}.prog.dng>i{background:rgb(var(--danger))}.prog.neu>i{background:rgb(var(--fg-2))}
+.prog.sm{height:4px}
+.stp{display:flex;gap:6px}
+.stp>span{flex:1;height:6px;border-radius:3px;background:rgb(var(--bg-2))}
+.stp>.d{background:rgb(var(--fg-2))}.stp>.n{background:rgb(var(--accent));animation:breathe 1.4s ease-in-out infinite}.stp>.x{background:rgb(var(--danger))}
+.tl{display:grid;position:relative}
+.tl-i>*{min-width:0;overflow-wrap:anywhere}
+.tl-i{display:grid;grid-template-columns:18px minmax(0,1fr);gap:12px;position:relative;padding-bottom:18px}
+.tl-i::before{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:rgb(var(--border))}
+.tl-i:last-child::before{display:none}
+.tl-d{width:18px;height:18px;border-radius:50%;border:2px solid rgb(var(--border-strong));background:rgb(var(--surface));margin-top:1px}
+.tl-d.ok{border-color:rgb(var(--success));background:rgb(var(--success))}
+.tl-d.now{border-color:rgb(var(--accent));box-shadow:0 0 0 4px rgb(var(--accent)/.18)}
+.tl-d.dng{border-color:rgb(var(--danger));background:rgb(var(--danger))}
+.tl-d.warn{border-color:rgb(var(--warning))}
+.ck{display:grid}
+.ck-i{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed rgb(var(--border))}
+.ck-i:last-child{border-bottom:0}
+.ck-s{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;border:1.5px solid rgb(var(--border-strong));margin-top:1px}
+.ck-s .ic{width:13px;height:13px;stroke-width:2.6}
+.ck-s.ok{background:rgb(var(--success));border-color:rgb(var(--success));color:#fff}
+.ck-s.dng{background:rgb(var(--danger)/.12);border-color:rgb(var(--danger));color:rgb(var(--danger))}
+.ck-s.warn{background:rgb(var(--warning)/.12);border-color:rgb(var(--warning));color:rgb(var(--warning))}
+.ck-s.asst{border-style:dashed}
+
+/* ---------- Diff, kod ---------- */
+.diff{border:1px solid rgb(var(--border));border-radius:var(--r-md);overflow:hidden;font-size:13px;background:rgb(var(--surface))}
+.diff-h{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgb(var(--bg-2));border-bottom:1px solid rgb(var(--border));font:600 12px/1.2 var(--font-body)}
+.dl{display:grid;grid-template-columns:22px 1fr;padding:6px 12px 6px 6px;line-height:1.55;border-bottom:1px solid rgb(var(--border)/.6)}
+.dl:last-child{border-bottom:0}
+.dl::before{font:700 12px/1.55 var(--font-mono);text-align:center;color:rgb(var(--fg-3));content:" "}
+.dl.del{background:rgb(var(--danger)/.07)}.dl.del::before{content:"-";color:rgb(var(--danger))}
+.dl.add{background:rgb(var(--success)/.08)}.dl.add::before{content:"+";color:rgb(var(--success))}
+.diff del{background:rgb(var(--danger)/.2);text-decoration:line-through;text-decoration-color:rgb(var(--danger)/.6);border-radius:3px;padding:0 2px}
+.diff ins{background:rgb(var(--success)/.22);text-decoration:none;border-radius:3px;padding:0 2px}
+.code{margin:0;font:500 12.5px/1.6 var(--font-mono);background:rgb(var(--bg-2));border:1px solid rgb(var(--border));border-radius:var(--r-md);padding:14px 16px;overflow:auto;white-space:pre;color:rgb(var(--fg))}
+.code .c1{color:rgb(var(--fg-3))}.code .k1{color:rgb(var(--accent-text))}.code .s1{color:rgb(var(--success))}
+.secret{display:flex;align-items:center;gap:8px;font:500 13px/1.3 var(--font-mono);background:rgb(var(--bg-2));border:1px dashed rgb(var(--border-strong));border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}
+
+/* ---------- Yüzen öğeler: menü, modal, çekmece, toast ---------- */
+.ovl{position:absolute;inset:0;background:rgb(var(--overlay)/.45);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60}
+.mdl{background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-xl);box-shadow:var(--sh-float);width:520px;max-width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.mdl.sm{width:420px}.mdl.lg{width:720px}.mdl.xl{width:960px}
+.mdl-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.mdl-h .h2{font-size:19px}
+.mdl-b{padding:16px 22px;overflow:auto;display:grid;gap:14px;min-height:0}
+.mdl-f{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 22px;border-top:1px solid rgb(var(--border));background:rgb(var(--bg)/.5)}
+.drw{position:absolute;top:0;right:0;bottom:0;width:480px;background:rgb(var(--surface));border-left:1px solid rgb(var(--border));box-shadow:var(--sh-float);display:flex;flex-direction:column;z-index:61}
+.drw .mdl-b{flex:1}
+.pop{position:absolute;z-index:70;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:6px;min-width:200px;display:grid;gap:1px}
+.pop .mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13.5px;color:rgb(var(--fg));white-space:nowrap}
+.pop .mi .ic{width:16px;height:16px;color:rgb(var(--fg-2))}
+.pop .mi.on{background:rgb(var(--bg-2))}
+.pop .mi.dng,.pop .mi.dng .ic{color:rgb(var(--danger))}
+.pop .ms{height:1px;background:rgb(var(--border));margin:4px 2px}
+.pop .mh{font:600 10.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--fg-3));padding:8px 10px 4px}
+.toasts{position:absolute;right:20px;bottom:20px;display:grid;gap:8px;z-index:80}
+.toast{width:360px;display:flex;gap:10px;align-items:flex-start;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-md);box-shadow:var(--sh-float);padding:12px 14px;font-size:13px}
+.toast>.ic{width:18px;height:18px;margin-top:1px}
+.toast.ok>.ic{color:rgb(var(--success))}.toast.dng>.ic{color:rgb(var(--danger))}.toast.info>.ic{color:rgb(var(--info))}.toast.warn>.ic{color:rgb(var(--warning))}
+.tip{position:absolute;z-index:75;background:rgb(var(--fg));color:rgb(var(--bg));font-size:12px;padding:6px 9px;border-radius:7px;white-space:nowrap}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:13px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--bg-2))}
+.banner.warn{background:rgb(var(--warning)/.1);border-color:rgb(var(--warning)/.35)}
+.banner.dng{background:rgb(var(--danger)/.08);border-color:rgb(var(--danger)/.35)}
+.banner.info{background:rgb(var(--info)/.08);border-color:rgb(var(--info)/.35)}
+
+/* ---------- Giriş sayfası düzeni ---------- */
+.auth{display:grid;grid-template-columns:560px 1fr;height:100%}
+.auth-f{padding:48px 72px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:2;background:rgb(var(--bg));overflow:auto}
+.auth-f .brand{padding:0}
+.auth-c{margin:auto 0;display:grid;gap:16px;width:100%;max-width:400px}
+.auth-c h1{font:800 34px/1.05 var(--font-display);letter-spacing:-.03em;margin:0}
+.auth-foot{display:flex;justify-content:space-between;gap:12px;font:500 11px/1.4 var(--font-mono);color:rgb(var(--fg-3))}
+.auth-art{position:relative;overflow:hidden;background:rgb(var(--surface))}
+.auth-art::before{content:"";position:absolute;inset:0 auto 0 0;width:220px;background:linear-gradient(90deg,rgb(var(--bg)),rgb(var(--bg)/0));z-index:1}
+.auth-art svg{position:absolute;inset:0;width:100%;height:100%}
+@container scr (max-width:760px){
+  .auth{grid-template-columns:1fr}
+  .auth-art{display:none}
+  .auth-f{padding:28px 20px}
+}
+
+/* ---------- Hareket ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation:none !important;transition:none !important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+.rm-only{display:none}
+html[data-motion="reduce"] .rm-only{display:revert}
+html[data-motion="reduce"] .rm-hide{display:none !important}
+
+/* ---------- Doküman: telefon genişliğinde okuma ---------- */
+@media (max-width:720px){
+  .doc{padding:24px 16px 80px}
+  .doc-top{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .doc-top .ttl,.doc-top .pn{display:none}
+  .doc-hero h1{font-size:32px}
+  .sec-h h2{font-size:26px}
+  .vp{border-radius:var(--r-md)}
+}
+
+</style>
+<style>
+
+/* Hat sahnesi */
+.hat{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:stretch}
+.stage{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));background-image:radial-gradient(rgb(var(--border)) 1px,transparent 1.2px);background-size:22px 22px;min-width:0;display:flex;flex-direction:column}
+.stage-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--surface))}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font:500 11px/1.2 var(--font-mono);color:rgb(var(--fg-3))}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block;flex:none}
+.legend .lo{background:rgb(var(--accent))}
+.legend .li{border:1.6px solid rgb(var(--fg-2));border-radius:50%}
+.legend .lw{border:1.6px solid rgb(var(--warning))}
+.legend .lx{background:rgb(var(--danger))}
+.stage-b{flex:1;display:grid;place-items:center;padding:6px 8px}
+.stage svg{display:block;width:100%;height:auto}
+.hs text{font-family:var(--font-mono)}
+.hs .rail-w{fill:none;stroke:rgb(var(--border-strong));stroke-width:18;stroke-linecap:round;opacity:.32}
+.hs .rail{fill:none;stroke:rgb(var(--fg-3));stroke-width:1.5;stroke-dasharray:2 7}
+.hs .rail-x{fill:none;stroke:rgb(var(--danger));stroke-width:2;stroke-dasharray:0 60 40}
+.hs .rail-q{fill:none;stroke:rgb(var(--border-strong));stroke-width:1.5;stroke-dasharray:2 7}
+.hs .node{fill:rgb(var(--surface));stroke:rgb(var(--border-strong))}
+.hs .node.x{stroke:rgb(var(--danger)/.6)}
+.hs .lbl{font-size:10px;fill:rgb(var(--fg-3));letter-spacing:.06em}
+.hs .ttl{font:700 15px var(--font-display);fill:rgb(var(--fg))}
+.hs .ttl.s{font-size:12.5px}
+.hs .det{font-size:11px;fill:rgb(var(--fg-2))}
+.hs .det.s{font-size:9.5px}
+.hs .rl{font-size:10px;fill:rgb(var(--fg-3))}
+.hs .dng{fill:rgb(var(--danger))}
+.hs .pk{fill:rgb(var(--accent))}
+.hs .pk-t{font-size:9.5px;font-weight:600;fill:rgb(var(--accent-fg))}
+.hs .pk-w{fill:rgb(var(--surface));stroke:rgb(var(--accent));stroke-width:1.5;stroke-dasharray:3 3}
+.hs .pk-wt{font-size:9.5px;font-weight:600;fill:rgb(var(--accent-text))}
+.hs .in{fill:rgb(var(--surface));stroke:rgb(var(--fg-2));stroke-width:1.6}
+.hs .in-t{font-size:9.5px;font-weight:600;fill:rgb(var(--fg-2))}
+.hs .ack{fill:rgb(var(--surface));stroke:rgb(var(--fg-2));stroke-width:2}
+.hs .ackm{fill:none;stroke:rgb(var(--fg-2));stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hs .hub{fill:rgb(var(--accent))}
+.hs .hub-t{font-size:11px;font-weight:600;fill:rgb(var(--accent-fg))}
+.hs .wh{fill:none;stroke:rgb(var(--warning));stroke-width:2}
+.hs .wh-t{font-size:9.5px;font-weight:600;fill:rgb(var(--warning))}
+.hs .bt{fill:rgb(var(--bg-2))}
+.hs .bf{fill:rgb(var(--accent))}
+.hs .xm{fill:rgb(var(--surface));stroke:rgb(var(--danger));stroke-width:2}
+.hs .xl{stroke:rgb(var(--danger));stroke-width:2;stroke-linecap:round}
+.hs .idle{fill:rgb(var(--fg-3))}
+/* Olay akışı */
+.feed{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.feed-b{flex:1;overflow:hidden;min-height:0}
+.hat.fix{height:500px}
+html[data-motion="reduce"] .hat.fix{height:auto}
+.ev{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;padding:10px 14px;border-bottom:1px solid rgb(var(--border));font-size:12.5px;line-height:1.4}
+.ev:last-child{border-bottom:0}
+.ev time{font:500 11px/1.5 var(--font-mono);color:rgb(var(--fg-3))}
+.ev .m{font:500 11px/1.45 var(--font-mono);color:rgb(var(--fg-3));overflow-wrap:anywhere;margin-top:2px}
+.ev.x{background:rgb(var(--danger)/.05)}
+.ev.new{background:rgb(var(--accent)/.05)}
+.dir{display:inline-block;font:600 9.5px/1 var(--font-mono);letter-spacing:.05em;padding:3px 5px;border-radius:4px;border:1px solid rgb(var(--border-strong));color:rgb(var(--fg-2));margin-right:6px;vertical-align:1px}
+.dir.out{color:rgb(var(--accent-text));border-color:rgb(var(--accent)/.45)}
+.dir.wh{color:rgb(var(--warning));border-color:rgb(var(--warning)/.5)}
+.dir.err{color:rgb(var(--danger));border-color:rgb(var(--danger)/.5)}
+/* Etkin iş çubukları */
+.jb{display:grid;grid-template-columns:28px minmax(0,1.25fr) minmax(0,1fr) 150px auto;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid rgb(var(--border))}
+.jb:last-child{border-bottom:0}
+.jb .s{font:500 11.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));overflow-wrap:anywhere}
+.jb .r-t{font:500 12px/1.3 var(--font-mono);color:rgb(var(--fg-2));text-align:right}
+.stp>.w{background:rgb(var(--danger)/.35)}
+/* Hareket azaltma durum listesi */
+.rml{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 16px;border-bottom:1px solid rgb(var(--border))}
+.rml:last-child{border-bottom:0}
+.rml .ei{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid rgb(var(--border));background:rgb(var(--bg-2));color:rgb(var(--fg-2))}
+.rml .ei.acc{background:rgb(var(--accent));border-color:transparent}
+.rml .rt{font:600 11px/1.3 var(--font-mono);letter-spacing:.04em;color:rgb(var(--fg-3))}
+.rml .s{font:500 11.5px/1.45 var(--font-mono);color:rgb(var(--fg-2));overflow-wrap:anywhere;margin-top:3px}
+.rmbox{border-top:1px solid rgb(var(--border));background:rgb(var(--surface))}
+/* İş detayı ve yeniden oynatma */
+.replay{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden}
+.replay .stage-b{background-image:radial-gradient(rgb(var(--border)) 1px,transparent 1.2px);background-size:22px 22px;padding:4px 8px}
+.ctl{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid rgb(var(--border));flex-wrap:wrap}
+.scrub{position:relative;flex:1;min-width:160px;height:22px;display:flex;align-items:center}
+.scrub .tr{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:rgb(var(--bg-2))}
+.scrub .fi{position:absolute;left:0;height:6px;border-radius:3px;background:rgb(var(--accent))}
+.scrub .kn{position:absolute;width:16px;height:16px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--accent));transform:translateX(-50%)}
+.scrub .tk{position:absolute;top:17px;width:2px;height:5px;background:rgb(var(--border-strong));transform:translateX(-50%)}
+.tstep{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+.tstep .m{font:500 11.5px/1.45 var(--font-mono);color:rgb(var(--fg-3));overflow-wrap:anywhere}
+.tl-d.x{border-color:rgb(var(--danger));background:rgb(var(--surface))}
+.errbox{border:1px solid rgb(var(--danger)/.45);background:rgb(var(--danger)/.05);border-radius:var(--r-md);padding:12px 14px;overflow-wrap:anywhere;min-width:0}
+.redact{display:inline-block;padding:0 5px;border-radius:4px;background:rgb(var(--fg)/.1);color:rgb(var(--fg-2));font:500 11px/1.6 var(--font-mono)}
+.att{display:flex;gap:6px;flex-wrap:wrap}
+.att span{flex:1 1 104px;font:500 11px/1 var(--font-mono);padding:7px 8px;border-radius:8px;border:1px solid rgb(var(--danger)/.4);color:rgb(var(--danger));text-align:center;white-space:nowrap}
+/* Planlar */
+.pl{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.pl:last-child{border-bottom:0}
+.pl.on{background:rgb(var(--accent)/.05);box-shadow:inset 3px 0 0 rgb(var(--accent))}
+.src{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;border:1px solid rgb(var(--border));background:rgb(var(--bg-2));color:rgb(var(--fg-2))}
+.pl .meta{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:12px;color:rgb(var(--fg-3))}
+.lock{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:rgb(var(--fg-2))}
+/* Sessiz hat */
+.quiet{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@container scr (max-width:760px){
+  .hat,.quiet{grid-template-columns:1fr}
+  .hat.fix{height:auto}
+  .hat.fix .feed{max-height:520px}
+  .jb{grid-template-columns:28px minmax(0,1fr) auto;padding:12px 14px}
+  .jb>.stpc{grid-column:1 / -1}
+  .jb>.r-t{grid-column:2;text-align:left}
+  .jb>.ja{grid-column:3;grid-row:1}
+  .ev{grid-template-columns:50px minmax(0,1fr);padding:10px 12px}
+  .rml{grid-template-columns:30px minmax(0,1fr);padding:12px 14px}
+  .rml>:last-child{grid-column:2;justify-self:start}
+  .rml .ei{width:30px;height:30px}
+  .pl{grid-template-columns:32px minmax(0,1fr);padding:14px}
+  .pl>:last-child{grid-column:2;justify-self:start}
+  .src{width:32px;height:32px}
+  .ctl .seg{order:3}
+  .att span{font-size:10px;padding:6px 4px}
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<!-- Logo K3 "Dört kanat e": --m1 ana ton, --m2 ikinci ton (renkler .mk sınıfından) -->
+<symbol id="logo" viewBox="0 0 48 48"><path d="M24 24H43a9.5 9.5 0 0 0-19 0z" fill="var(--m1)"/><path d="M24 24V5a9.5 9.5 0 0 0 0 19z" fill="var(--m2)"/><path d="M24 24H5a9.5 9.5 0 0 0 19 0z" fill="var(--m1)"/></symbol>
+
+<!-- İkonlar: 24x24, stroke 1.9 (.ic sınıfı), kodda lucide karşılığı adın yanında -->
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><!-- layout-grid -->
+<symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol><!-- activity -->
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol><!-- image -->
+<symbol id="i-images" viewBox="0 0 24 24"><rect x="7" y="3" width="14" height="14" rx="2.5"/><path d="M3 7v11a3 3 0 0 0 3 3h11"/><path d="m21 13-4-4-6 6"/><circle cx="12" cy="8" r="1.5"/></symbol><!-- images -->
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><!-- message-square -->
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></symbol><!-- key -->
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/></symbol><!-- users -->
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><!-- user -->
+<symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></symbol><!-- user-plus -->
+<symbol id="i-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 11l2 2 4-4"/></symbol><!-- user-check -->
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol><!-- list -->
+<symbol id="i-list-check" viewBox="0 0 24 24"><path d="M11 6h10M11 12h10M11 18h10M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></symbol><!-- list-checks -->
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><!-- search -->
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><!-- bell -->
+<symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.7.5 4.6 1.1 6M17 17H3s3-2 3-9c0-.8.1-1.5.4-2.2M10.3 21a1.9 1.9 0 0 0 3.4 0M2 2l20 20"/></symbol><!-- bell-off -->
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><!-- plus -->
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><!-- minus -->
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol><!-- chevron-down -->
+<symbol id="i-chev-u" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5"/></symbol><!-- chevron-up -->
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m10 7 5 5-5 5"/></symbol><!-- chevron-right -->
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5"/></symbol><!-- chevron-left -->
+<symbol id="i-chevs" viewBox="0 0 24 24"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></symbol><!-- chevrons-up-down -->
+<symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><!-- arrow-right -->
+<symbol id="i-arrow-l" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol><!-- arrow-left -->
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol><!-- arrow-up -->
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol><!-- arrow-down -->
+<symbol id="i-arrows-lr" viewBox="0 0 24 24"><path d="M4 8h16M16 4l4 4-4 4M20 16H4M8 12l-4 4 4 4"/></symbol><!-- arrow-left-right -->
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol><!-- arrow-up-down -->
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><!-- x -->
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol><!-- check -->
+<symbol id="i-check-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></symbol><!-- circle-check -->
+<symbol id="i-x-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol><!-- circle-x -->
+<symbol id="i-alert-t" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol><!-- triangle-alert -->
+<symbol id="i-alert-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></symbol><!-- circle-alert -->
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol><!-- info -->
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 1c0 1.8-2.5 2.2-2.5 4M12 17h.01"/></symbol><!-- circle-help -->
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol><!-- lock -->
+<symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.7-1.5"/></symbol><!-- lock-open -->
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol><!-- eye -->
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.6 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></symbol><!-- eye-off -->
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></symbol><!-- mail -->
+<symbol id="i-mail-check" viewBox="0 0 24 24"><path d="M21 12V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v9A2.5 2.5 0 0 0 5.5 19H12"/><path d="m3 7 9 6 9-6M15 18l2 2 4-4"/></symbol><!-- mail-check -->
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- upload -->
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol><!-- download -->
+<symbol id="i-cloud-up" viewBox="0 0 24 24"><path d="M7 18a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 19 9.5a4.3 4.3 0 0 1-1 8.5M12 12v9M8.5 15.5 12 12l3.5 3.5"/></symbol><!-- cloud-upload -->
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></symbol><!-- refresh-cw -->
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol><!-- settings -->
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><!-- sliders-horizontal -->
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol><!-- log-out -->
+<symbol id="i-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></symbol><!-- log-in -->
+<symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-4h6v4M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></symbol><!-- building -->
+<symbol id="i-switch" viewBox="0 0 24 24"><path d="M16 3l4 4-4 4M20 7H8M8 21l-4-4 4-4M4 17h12"/></symbol><!-- arrow-right-left -->
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8"/></symbol><!-- copy -->
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol><!-- external-link -->
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><!-- link -->
+<symbol id="i-unlink" viewBox="0 0 24 24"><path d="M18.8 13.2l1.7-1.7a5 5 0 0 0-7-7l-1.7 1.7M5.2 10.8l-1.7 1.7a5 5 0 0 0 7 7l1.7-1.7M8 2v3M2 8h3M16 22v-3M22 16h-3"/></symbol><!-- unlink -->
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol><!-- trash-2 -->
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></symbol><!-- pencil-line -->
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol><!-- ellipsis -->
+<symbol id="i-more-v" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></symbol><!-- ellipsis-vertical -->
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8.5V20l-4-2v-4.5z"/></symbol><!-- funnel -->
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><!-- calendar -->
+<symbol id="i-cal-clock" viewBox="0 0 24 24"><path d="M21 10V7.5A2.5 2.5 0 0 0 18.5 5h-13A2.5 2.5 0 0 0 3 7.5v11A2.5 2.5 0 0 0 5.5 21H10M3 10h18M8 3v4M16 3v4"/><circle cx="17" cy="17" r="4.5"/><path d="M17 15v2l1.3 1.3"/></symbol><!-- calendar-clock -->
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><!-- clock -->
+<symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v3a5 5 0 0 0 10 0V3M7 21v-3a5 5 0 0 1 10 0v3"/></symbol><!-- hourglass -->
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol><!-- history -->
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol><!-- play -->
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol><!-- pause -->
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol><!-- square -->
+<symbol id="i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/><path d="M10 9v6l5-3z"/></symbol><!-- rotate-ccw + play -->
+<symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol><!-- rocket -->
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol><!-- send -->
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></symbol><!-- shield -->
+<symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol><!-- shield-check -->
+<symbol id="i-shield-x" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/></symbol><!-- shield-x -->
+<symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.3-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5M2 2l20 20"/></symbol><!-- wifi-off -->
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol><!-- server -->
+<symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol><!-- database -->
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol><!-- globe -->
+<symbol id="i-lang" viewBox="0 0 24 24"><path d="M4 5h9M8.5 3v2M11 5c-1 4-4 7-7 8.5M6 9c1.4 2 3.6 3.6 6 4.5M13 21l4-9 4 9M14.5 18h5"/></symbol><!-- languages -->
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></symbol><!-- flag -->
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></symbol><!-- star -->
+<symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 17 4 12l5-5M20 18v-2a4 4 0 0 0-4-4H4"/></symbol><!-- reply -->
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol><!-- tag -->
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></symbol><!-- layers -->
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol><!-- package -->
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol><!-- file -->
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol><!-- file-text -->
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><!-- folder -->
+<symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol><!-- code-xml -->
+<symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol><!-- square-terminal -->
+<symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="7" r="2"/><path d="M6 7v10M18 9c0 5-6 4-11.5 8.5"/></symbol><!-- git-branch -->
+<symbol id="i-compare" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M13 6h3a2 2 0 0 1 2 2v7.5M11 18H8a2 2 0 0 1-2-2V8.5M15 3l-2 3 2 3M9 21l2-3-2-3"/></symbol><!-- git-compare -->
+<symbol id="i-webhook" viewBox="0 0 24 24"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2M6 17l3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06M12 6l3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/></symbol><!-- webhook -->
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol><!-- zap -->
+<symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></symbol><!-- hash -->
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><!-- smartphone -->
+<symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M11 18h2"/></symbol><!-- tablet -->
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2.5"/><path d="M8 21h8M12 17v4"/></symbol><!-- monitor -->
+<symbol id="i-fold" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 3v18" stroke-dasharray="2 2.4"/></symbol><!-- katlanır cihaz (kendi çizimimiz) -->
+<symbol id="i-frame" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3.5"/><rect x="10" y="4" width="4" height="1.6" rx=".8"/></symbol><!-- cihaz çerçevesi (kendi çizimimiz) -->
+<symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></symbol><!-- type -->
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A1.6 1.6 0 0 1 12 22z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15.5" cy="7.5" r="1"/></symbol><!-- palette -->
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></symbol><!-- move -->
+<symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/></symbol><!-- crop -->
+<symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol><!-- maximize -->
+<symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 11h6M9 15h4"/></symbol><!-- clipboard-list -->
+<symbol id="i-clip-check" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 13l2 2 4-4"/></symbol><!-- clipboard-check -->
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol><!-- bookmark -->
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/></symbol><!-- sparkles (MCP/Claude önerisi) -->
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol><!-- cpu -->
+<symbol id="i-workflow" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v3.5a2 2 0 0 0 2 2H14"/></symbol><!-- workflow -->
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol><!-- inbox -->
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1.5"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol><!-- archive -->
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><!-- sun -->
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol><!-- moon -->
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol><!-- menu -->
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><!-- house -->
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.1 0 2.9 6 1.6 6 4.3 0 1.3-1.3 2.1-3 2.1-1.4 0-2.6-.6-3.1-1.6M12 6v2M12 16v2"/></symbol><!-- circle-dollar-sign -->
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol><!-- repeat (abonelik) -->
+<symbol id="i-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol><!-- percent -->
+<symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-4M3.3 19a10 10 0 1 1 17.4 0z"/></symbol><!-- gauge -->
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7 15h10"/></symbol><!-- flask-conical (beta, TestFlight) -->
+<symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol><!-- plane (paket uçuşu) -->
+<symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol><!-- grip-vertical -->
+<symbol id="i-fingerprint" viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1 0 4-1 6M14 13.1c0 2.5 0 5-1 7.9M17.3 21c.3-1 .6-3 .7-4M2 12a10 10 0 0 1 18-6M2 16h.01M21.8 16c.2-2 .1-5.3 0-6M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .3-2M8.7 22c.2-.7.5-1.3.6-2M9 6.8a6 6 0 0 1 9 5.2v2"/></symbol><!-- fingerprint -->
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a6 6 0 0 1-12 0V8z"/></symbol><!-- plug -->
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol><!-- ban -->
+<symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="14" rx="5"/><path d="M12 20v-9M9 3l1.5 3M15 3l-1.5 3M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 19l3-2M20 19l-3-2"/></symbol><!-- bug -->
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+<symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol><!-- circle -->
+<symbol id="i-circle-dash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></symbol><!-- circle-dashed -->
+<symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/></symbol><!-- loader-circle -->
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol><!-- map-pin -->
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 7a3.5 3.5 0 0 0 6 0zM19 7l-3 7a3.5 3.5 0 0 0 6 0zM8 21h8"/></symbol><!-- scale (politika, uyum) -->
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5 2.5 2.5 0 0 0 6.5 24"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></symbol><!-- book -->
+<symbol id="i-radar" viewBox="0 0 24 24"><path d="M19.1 4.9A10 10 0 1 0 22 12M16.2 7.8A6 6 0 1 0 18 12M12 12l7-7"/><circle cx="12" cy="12" r="1.5"/></symbol><!-- radar (kural izleyici) -->
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v4M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 8 8h2a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0"/></symbol><!-- hand (asistanlı adım, el ile) -->
+<symbol id="i-wand" viewBox="0 0 24 24"><path d="m15 4 5 5M3 21 14.5 9.5M14 3v2M20 9h2M18 3l-1.5 1.5M10.5 6.5 9 5"/></symbol><!-- wand -->
+<symbol id="i-cursor" viewBox="0 0 24 24"><path d="M4 3l7 18 2.5-7.5L21 11z"/></symbol><!-- mouse-pointer-2 (tarayıcı devri) -->
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7M12 8v13M12 8S10.5 3 8 3a2.5 2.5 0 0 0 0 5M12 8s1.5-5 4-5a2.5 2.5 0 0 1 0 5"/></symbol><!-- gift (teklif) -->
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 7H6"/></symbol><!-- shopping-cart (IAP) -->
+<symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol><!-- keyboard -->
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol><!-- qr-code -->
+<symbol id="i-cookie" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5z"/><path d="M8.5 8.5h.01M16 15.5h.01M12 12h.01M11 17h.01M7 14h.01"/></symbol><!-- cookie -->
+<symbol id="i-scroll" viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4M19 17V5a2 2 0 0 0-2-2H4"/></symbol><!-- scroll-text (yasal metin) -->
+</defs>
+</svg>
+
+<header class="doc-top"><a class="home" href="04-Icindekiler.html"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm" style="font-size:17px">stor<i>e</i>asy</span></a><span class="ttl">Canlı akış ve işler</span><span class="sp"></span><nav class="pn"><a href="10-Abonelikler-ve-Urunler.html" title="Önceki dosya">10</a><a href="04-Icindekiler.html">İçindekiler</a><a href="12-Studyo.html" title="Sonraki dosya">12</a></nav><div class="dseg" role="group"><button type="button" data-set="view" data-v="desktop" aria-pressed="false">Masaüstü</button><button type="button" data-set="view" data-v="phone" aria-pressed="false">Telefon</button></div><div class="dseg" role="group"><button type="button" data-set="theme" data-v="light" aria-pressed="false">Açık</button><button type="button" data-set="theme" data-v="dark" aria-pressed="false">Koyu</button></div><div class="dseg" role="group"><button type="button" data-set="motion" data-v="full" aria-pressed="false">Hareket</button><button type="button" data-set="motion" data-v="reduce" aria-pressed="false">Azaltılmış</button></div></header>
+<main class="doc">
+<section class="doc-hero"><span class="k">11 · Web uygulaması</span><h1>Canlı akış ve işler</h1><p>storeasy'nin imza ekranı &quot;Hat&quot;: storeasy'den mağazalara giden ve geri dönen her adım olduğu anda, hareket azaltmada durum listesi olarak. Ardından iş listesi, yeniden oynatılabilir iş detayı, başarısız iş ve tekrar deneme, onay bekleyen değişiklik planları, iş bildirimleri ve sessiz hat.</p><nav class="doc-toc" aria-label="Bölümler"></nav></section>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-gh-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.3 7.2l7.4 3.6M8.3 16.8l7.4-3.6"/></symbol>
+</defs></svg>
+
+<!-- ============ 1. HAT ============ -->
+<section class="sec" id="hat">
+<div class="sec-h"><span class="k">Bölüm 11.1-11.3</span><h2>Canlı akış: Hat</h2><p>Her mağaza işi bir <code>StoreJob</code> ve adımlarıdır; adımlar SignalR ile (<code>/hubs/activity</code>, grup = organizasyon) anında gelir. Hat aynı olayları iki biçimde gösterir: solda sahne (storeasy düğümü, mağazalara giden kesik raylar, giden paketler vurgu renginde, dönen yanıtlar nötr halka, webhook gelince sarı dalga, hatalı adım kırmızı), sağda aynı akışın metin hâli. Hareket yalnız gerçekten bir şey yolda iken: bekleyen ya da hata veren rayda hiçbir şey kıpırdamaz. Hareket azaltmada sahne gizlenir, yerine hat başına durum listesi gelir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f11-1" data-h="1120" data-ph="1500">
+  <figcaption class="fr-h"><b class="fr-n">11.1</b><span class="fr-t">Canlı akış (Hat)</span><code class="fr-r">/activity</code></figcaption>
+  <p class="fr-note">İmza ekranı. Açılışta <code>PATCH /api/v1.0/jobs</code> (planlanan; <code>Status</code> eşittir <code>Running</code> ve <code>Queued</code>) ile etkin işler ve son 50 adım yüklenir, sonra <code>/hubs/activity</code> olaylarıyla güncellenir: <code>job.created</code>, <code>job.step { JobId, Order, Kind, Direction (Outbound, Inbound), Status, Bytes, Total, Message, Date }</code>, <code>job.finished</code>, <code>webhook.received</code>, <code>review.received</code>. Paket = <code>Outbound</code> adım (dosya adı ve parça <code>Message</code>'dan), halka = <code>Inbound</code> yanıt, sarı dalga = <code>webhook.received</code>, kırmızı ray = <code>Status = Failed</code>. Sahne en çok üç mağaza rayı ve bir gelen kaynak (CI) çizer; aynı mağazada iki iş varsa düğüm "2 iş" der, ayrıntı alttaki iş çubuklarında. Filtreler (uygulama, mağaza, tür) yalnız istemcide süzer; adresle paylaşılır (<code>?app=pusula&amp;store=apple</code>). <b>İzin:</b> <code>View</code> (her rol). "Akışı dondur" yalnız ekranı durdurur, işler sürer. <b>Hareket azaltma:</b> üst bardan "Azaltılmış" seçilince sahne gizlenir, hat başına durum listesi görünür (11.2). <b>Telefonda</b> sahne dikey küçük hatta döner (storeasy üstte, mağazalar altta, paketler etiketsiz nokta), olaylar ve iş çubukları altında; olayların tam listesi 11.3. <span class="gap">Backend boşluğu:</span> CI'dan gelen paket bir <code>StoreJob</code> değil, yükleme oturumu; sahnede gösterilmesi için <code>artifact.progress { SessionId, AppId, Source, FileName, Bytes, Total }</code> hub olayı eklenecek. Adım başına deneme sayısı ve sonraki deneme zamanı (<code>StoreJobSteps.Attempt</code>, <code>NextAttemptDate</code>) modelde yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış" data-live>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1><p class="pg-s">storeasy'den mağazalara giden ve geri dönen her adım, olduğu anda.</p></div>
+          <div class="pg-a"><span class="bdg live ok"><span class="dot"></span>Canlı</span><span class="btn"><svg class="ic"><use href="#i-pause"/></svg>Akışı dondur</span></div></div>
+        <div class="tabs"><a class="tab on" href="#">Hat</a><a class="tab" href="#">İşler <span class="n">128</span></a><a class="tab" href="#">Onay bekleyen <span class="n">3</span></a></div>
+        <div class="toolbar"><span class="chip"><svg class="ic"><use href="#i-grid"/></svg>Uygulama: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span><span class="chip on">Tüm mağazalar</span><span class="chip"><span class="st sm"><b>AS</b></span>App Store</span><span class="chip"><span class="st sm"><b>GP</b></span>Google Play</span><span class="chip"><span class="st sm"><b>MS</b></span>Microsoft Store</span><span class="chip"><svg class="ic"><use href="#i-filter"/></svg>Tür: Tümü<svg class="ic"><use href="#i-chev-d"/></svg></span></div>
+        <div class="hat fix">
+          <div class="stage">
+            <div class="stage-h"><div class="legend"><span><i class="lo"></i>storeasy → mağaza</span><span><i class="li"></i>mağaza → storeasy</span><span><i class="lw"></i>webhook</span><span><i class="lx"></i>hata</span></div><span class="t-xs fg3 mono ml hide-ph">gecikme 180 ms</span></div>
+            <div class="stage-b rm-hide hide-ph">
+              <svg class="hs anim" viewBox="0 0 720 470" role="img" aria-label="Canlı hat: storeasy'den App Store Connect, Google Play ve Microsoft Store'a giden adımlar, GitHub Actions'tan gelen paket">
+                <defs>
+                  <path id="h1A" d="M320 230 C 420 230, 420 84, 520 84"/>
+                  <path id="h1G" d="M320 230 L 520 230"/>
+                  <path id="h1M" d="M320 230 C 420 230, 420 376, 520 376"/>
+                  <path id="h1C" d="M118 372 C 118 320, 250 340, 250 302"/>
+                </defs>
+                <use href="#h1A" class="rail-w"/><use href="#h1G" class="rail-w"/><use href="#h1M" class="rail-w"/><use href="#h1C" class="rail-w"/>
+                <use href="#h1A" class="rail"/><use href="#h1G" class="rail"/><use href="#h1M" class="rail"/><use href="#h1C" class="rail"/>
+                <path d="M320 230 C 420 230, 420 376, 520 376" pathLength="100" class="rail-x"/>
+
+                <text x="510" y="50" text-anchor="end" class="rl">PUT parça 2/3 · 1,1 MB</text>
+                <text x="420" y="212" text-anchor="middle" class="rl">edits.bundles.upload · 31,4 MB</text>
+                <text x="510" y="414" text-anchor="end" class="rl dng">package.commit · 503 · deneme 2/3</text>
+                <text x="14" y="352" class="rl">artifact.upload · OIDC</text>
+
+                <!-- App Store: dosya parçaları giden, yanıt dönen -->
+                <g><rect x="-44" y="-11" width="88" height="22" rx="6" class="pk"/><text y="3.5" text-anchor="middle" class="pk-t">04-takvim.png</text><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#h1A"/></animateMotion></g>
+                <g><circle r="9" class="ack"/><path d="m-4 0 3 3 5-6" class="ackm"/><animateMotion dur="2.6s" begin="-1.3s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#h1A"/></animateMotion></g>
+                <!-- Google Play: AAB parçası yavaş -->
+                <g><rect x="-34" y="-11" width="68" height="22" rx="6" class="pk"/><text y="3.5" text-anchor="middle" class="pk-t">.aab parça</text><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#h1G"/></animateMotion></g>
+                <g><circle r="9" class="ack"/><path d="m-4 0 3 3 5-6" class="ackm"/><animateMotion dur="5s" begin="-2.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#h1G"/></animateMotion></g>
+                <!-- CI: GitHub Actions'tan gelen ipa -->
+                <g><rect x="-30" y="-11" width="60" height="22" rx="6" class="in"/><text y="3.5" text-anchor="middle" class="in-t">ipa 3/5</text><animateMotion dur="3.2s" repeatCount="indefinite"><mpath href="#h1C"/></animateMotion></g>
+                <!-- Microsoft: hata, bekleyen paket kıpırdamaz -->
+                <g transform="translate(420 303)"><rect x="-26" y="-11" width="52" height="22" rx="6" class="pk-w"/><text y="3.5" text-anchor="middle" class="pk-wt">msix</text></g>
+                <g transform="translate(461 353)"><circle r="10" class="xm"/><path d="M-4 -4 4 4M4 -4-4 4" class="xl"/></g>
+
+                <!-- webhook dalgası App Store düğümünde -->
+                <rect x="520" y="36" width="190" height="96" rx="22" class="wh"><animate attributeName="x" values="520;502" dur="2.4s" repeatCount="indefinite"/><animate attributeName="y" values="36;18" dur="2.4s" repeatCount="indefinite"/><animate attributeName="width" values="190;226" dur="2.4s" repeatCount="indefinite"/><animate attributeName="height" values="96;132" dur="2.4s" repeatCount="indefinite"/><animate attributeName="rx" values="22;36" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.4s" repeatCount="indefinite"/></rect>
+
+                <!-- storeasy düğümü -->
+                <rect x="180" y="160" width="140" height="140" rx="36" class="hub"/>
+                <use href="#logo" x="214" y="180" width="72" height="72" class="mk inv"/>
+                <text x="250" y="282" text-anchor="middle" class="hub-t">2 iş · 5 adım</text>
+
+                <!-- CI kaynağı -->
+                <rect x="12" y="372" width="212" height="82" rx="20" class="node"/>
+                <text x="30" y="396" class="lbl">GITHUB ACTIONS</text>
+                <text x="30" y="420" class="ttl">Halka 1.0.0 (42)</text>
+                <text x="30" y="442" class="det">ipa · 29,8 / 52,1 MB</text>
+
+                <!-- App Store Connect -->
+                <rect x="520" y="36" width="190" height="96" rx="22" class="node"/>
+                <text x="538" y="60" class="lbl">APP STORE CONNECT</text>
+                <text x="538" y="86" class="ttl">Pusula · iPad 13" · tr</text>
+                <text x="538" y="110" class="det">asset.upload · 4 / 7</text>
+                <rect x="636" y="27" width="62" height="18" rx="9" class="wh" style="fill:rgb(var(--surface))"/><text x="667" y="39.5" text-anchor="middle" class="wh-t">webhook</text>
+                <!-- Google Play -->
+                <rect x="520" y="182" width="190" height="96" rx="22" class="node"/>
+                <text x="538" y="206" class="lbl">GOOGLE PLAY</text>
+                <text x="538" y="232" class="ttl">Halka · AAB internal</text>
+                <text x="538" y="254" class="det">31,4 / 48,0 MB</text>
+                <rect x="538" y="262" width="154" height="4" rx="2" class="bt"/><rect x="538" y="262" width="100" height="4" rx="2" class="bf"/>
+                <!-- Microsoft Store -->
+                <rect x="520" y="328" width="190" height="96" rx="22" class="node x"/>
+                <text x="538" y="352" class="lbl">MICROSOFT STORE</text>
+                <text x="538" y="378" class="ttl">Pusula · uçuş 2.4.0.0</text>
+                <text x="538" y="402" class="det dng">tekrar 12 sn sonra</text>
+              </svg>
+            </div>
+            <div class="stage-b rm-hide only-ph" style="padding:10px 12px">
+              <svg class="hs anim" viewBox="0 0 358 250" role="img" aria-label="Canlı hat, küçük görünüm">
+                <defs>
+                  <path id="p1A" d="M180 82 C 180 130, 55 128, 55 180"/>
+                  <path id="p1G" d="M180 82 L 180 180"/>
+                  <path id="p1M" d="M180 82 C 180 130, 305 128, 305 180"/>
+                  <path id="p1C" d="M100 46 L 144 46"/>
+                </defs>
+                <use href="#p1A" class="rail-w"/><use href="#p1G" class="rail-w"/><use href="#p1M" class="rail-w"/><use href="#p1C" class="rail-w"/>
+                <use href="#p1A" class="rail"/><use href="#p1G" class="rail"/><use href="#p1M" class="rail"/><use href="#p1C" class="rail"/>
+                <path d="M180 82 C 180 130, 305 128, 305 180" pathLength="100" class="rail-x"/>
+                <g><circle r="6" class="pk"/><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#p1A"/></animateMotion></g>
+                <g><circle r="6" class="ack"/><animateMotion dur="2.6s" begin="-1.3s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p1A"/></animateMotion></g>
+                <g><circle r="6" class="pk"/><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#p1G"/></animateMotion></g>
+                <g><circle r="5" class="in"/><animateMotion dur="2s" repeatCount="indefinite"><mpath href="#p1C"/></animateMotion></g>
+                <g transform="translate(286 158)"><circle r="8" class="xm"/><path d="M-3 -3 3 3M3 -3-3 3" class="xl"/></g>
+                <rect x="0" y="180" width="110" height="64" rx="16" class="wh"><animate attributeName="x" values="0;-6" dur="2.4s" repeatCount="indefinite"/><animate attributeName="y" values="180;174" dur="2.4s" repeatCount="indefinite"/><animate attributeName="width" values="110;122" dur="2.4s" repeatCount="indefinite"/><animate attributeName="height" values="64;76" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.4s" repeatCount="indefinite"/></rect>
+                <rect x="144" y="10" width="72" height="72" rx="20" class="hub"/>
+                <use href="#logo" x="162" y="16" width="36" height="36" class="mk inv"/>
+                <text x="180" y="72" text-anchor="middle" class="hub-t" style="font-size:8.5px">2 iş · 5 adım</text>
+                <rect x="0" y="24" width="100" height="44" rx="12" class="node"/>
+                <text x="10" y="40" class="lbl" style="font-size:8px">GITHUB ACTIONS</text>
+                <text x="10" y="58" class="ttl s">Halka (42)</text>
+                <rect x="0" y="180" width="110" height="64" rx="16" class="node"/>
+                <text x="12" y="198" class="lbl" style="font-size:8.5px">APP STORE</text><text x="12" y="217" class="ttl s">Pusula 4 / 7</text><text x="12" y="234" class="det s">iPad 13" · tr</text>
+                <rect x="125" y="180" width="110" height="64" rx="16" class="node"/>
+                <text x="137" y="198" class="lbl" style="font-size:8.5px">GOOGLE PLAY</text><text x="137" y="217" class="ttl s">Halka AAB</text><text x="137" y="234" class="det s">31,4 / 48,0 MB</text>
+                <rect x="250" y="180" width="108" height="64" rx="16" class="node x"/>
+                <text x="262" y="198" class="lbl" style="font-size:8.5px">MICROSOFT</text><text x="262" y="217" class="ttl s">Pusula uçuş</text><text x="262" y="234" class="det s dng">deneme 2/3</text>
+              </svg>
+            </div>
+            <div class="rm-only rmbox">
+              <div class="rml"><span class="ei"><svg class="ic s16"><use href="#i-gh-run"/></svg></span><div><div class="rt">GITHUB ACTIONS → STOREASY</div><b class="t-m">Halka 1.0.0 (42) · ipa</b><div class="s">artifact.upload · parça 3/5 · 29,8 / 52,1 MB · OIDC</div></div><span class="bdg sm">Geliyor</span></div>
+              <div class="rml"><span class="ei"><span class="st sm"><b>AS</b></span></span><div><div class="rt">STOREASY → APP STORE CONNECT</div><b class="t-m">Pusula · iPad 13" ekran görüntüleri · tr</b><div class="s">asset.upload · 04-takvim.png · parça 2/3 · adım 4 / 7</div><div class="s warn-t">webhook 14:02:41 · Pusula 2.3 IN_REVIEW</div></div><span class="bdg acc sm"><span class="dot"></span>Sürüyor</span></div>
+              <div class="rml"><span class="ei"><span class="st sm"><b>GP</b></span></span><div><div class="rt">STOREASY → GOOGLE PLAY</div><b class="t-m">Halka · AAB internal</b><div class="s">edits.bundles.upload · 31,4 / 48,0 MB · %65</div></div><span class="bdg acc sm"><span class="dot"></span>Sürüyor</span></div>
+              <div class="rml"><span class="ei"><span class="st sm"><b>MS</b></span></span><div><div class="rt">STOREASY → MICROSOFT STORE</div><b class="t-m">Pusula · Kuzey içi uçuşu 2.4.0.0</b><div class="s dng-t">package.commit · 503 Service Unavailable · deneme 2/3 · 12 sn sonra tekrar</div></div><span class="bdg dng sm">Tekrar bekliyor</span></div>
+            </div>
+          </div>
+          <div class="feed">
+            <div class="card-h"><span class="h3">Olaylar</span><span class="bdg live ok sm ml"><span class="dot"></span>Canlı</span></div>
+            <div class="feed-b" aria-live="off">
+              <div class="ev new"><time>14:02:41</time><div><span class="dir wh">GELEN</span><b>webhook.received</b> Pusula 2.3<div class="m">WAITING_FOR_REVIEW → IN_REVIEW · imza doğrulandı</div></div></div>
+              <div class="ev"><time>14:02:39</time><div><span class="dir out">GİDEN</span><b>asset.commit</b> 03-harita.png<div class="m">md5 9be1…04fa · 200 · 0,3 sn</div></div></div>
+              <div class="ev"><time>14:02:38</time><div><span class="dir out">GİDEN</span><b>asset.upload</b> 04-takvim.png<div class="m">PUT parça 2/3 · 1,1 MB · 0,8 sn</div></div></div>
+              <div class="ev"><time>14:02:36</time><div><span class="dir">GELEN</span><b>artifact.upload</b> halka-1.0.0-42.ipa<div class="m">GitHub Actions · parça 3/5 · 16,0 MB</div></div></div>
+              <div class="ev x"><time>14:02:33</time><div><span class="dir err">HATA</span><b class="dng-t">package.commit</b> Pusula MSIX<div class="m">503 Service Unavailable · deneme 2/3 · 12 sn sonra</div></div></div>
+              <div class="ev"><time>14:02:31</time><div><span class="dir out">GİDEN</span><b>edits.bundles.upload</b> Halka<div class="m">internal · versionCode 42 · 31,4 / 48,0 MB</div></div></div>
+              <div class="ev"><time>14:02:12</time><div><span class="dir">GELEN</span><b>review.received</b> Mola, 5 yıldız<div class="m">Google Play · tr · "Çevrimdışı da çalışıyor"</div></div></div>
+              <div class="ev"><time>14:01:58</time><div><span class="dir out">GİDEN</span><b>set.create</b> APP_IPAD_PRO_3GEN_129<div class="m">mevcut set bulundu · 0 silindi</div></div></div>
+            </div>
+            <div class="card-f"><span class="t-xs fg3">Son 50 olay · eskisi iş detayında</span><span class="lnk t-s ml">Denetim kaydı</span></div>
+          </div>
+        </div>
+        <div class="card mt16">
+          <div class="card-h"><span class="h3">Etkin işler</span><span class="t-s fg3">3</span><span class="lnk t-s ml">Bütün işler</span></div>
+          <div class="jb"><span class="st sm"><b>AS</b></span><div class="f1" style="min-width:0"><b class="t-m">Pusula · iPad 13" · tr</b><div class="s">asset.upload · 04-takvim.png · Web · Ece Yılmaz</div></div><div class="stpc"><div class="stp"><span class="d"></span><span class="d"></span><span class="d"></span><span class="n"></span><span></span><span></span><span></span></div></div><span class="r-t">4 / 7 · ~40 sn</span><span class="btn sm ja">Ayrıntı</span></div>
+          <div class="jb"><span class="st sm"><b>GP</b></span><div class="f1" style="min-width:0"><b class="t-m">Halka · AAB internal</b><div class="s">edits.bundles.upload · Ci · GitHub Actions</div></div><div class="stpc"><div class="stp"><span class="d"></span><span class="n"></span><span></span><span></span></div></div><span class="r-t">31,4 / 48,0 MB</span><span class="btn sm ja">Ayrıntı</span></div>
+          <div class="jb"><span class="st sm"><b>MS</b></span><div class="f1" style="min-width:0"><b class="t-m">Pusula · Kuzey içi uçuşu 2.4.0.0</b><div class="s dng-t">package.commit · 503 · deneme 2/3</div></div><div class="stpc"><div class="stp"><span class="d"></span><span class="d"></span><span class="x"></span><span></span></div></div><span class="r-t dng-t">12 sn sonra</span><span class="btn sm ja">Ayrıntı</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-2" data-h="980" data-ph="1400">
+  <figcaption class="fr-h"><b class="fr-n">11.2</b><span class="fr-t">Canlı akış, azaltılmış hareket</span><code class="fr-r">/activity</code></figcaption>
+  <p class="fr-note">Bu çerçeve her zaman azaltılmış biçimde: <code>prefers-reduced-motion</code> açıkken ya da kullanıcı tercihi "Azaltılmış" iken (<code>PUT /api/v1.0/account/preferences</code>, planlanan) sahne çizilmez. Hat başına bir satır: yön, iş, şu anki adım ve ilerleme metni; durum rozeti metinle. Yeni olay listeye sessizce eklenir, sayfa kaymaz; ekran okuyucuya yalnız iş bittiğinde ve hata olduğunda <code>aria-live="polite"</code> ile söylenir. İş çubuklarındaki şu anki adım nefes almaz, yalnız renkli kalır. Veri ve uçlar 11.1 ile aynı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış" data-live>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1><p class="pg-s">Hareket azaltma açık: hat durum listesi olarak gösteriliyor.</p></div>
+          <div class="pg-a"><span class="bdg ok"><span class="dot"></span>Canlı</span><span class="btn"><svg class="ic"><use href="#i-pause"/></svg>Akışı dondur</span></div></div>
+        <div class="tabs"><a class="tab on" href="#">Hat</a><a class="tab" href="#">İşler <span class="n">128</span></a><a class="tab" href="#">Onay bekleyen <span class="n">3</span></a></div>
+        <div class="hat">
+          <div class="card">
+            <div class="card-h"><svg class="ic s18"><use href="#i-activity"/></svg><span class="h3">Hat durumu</span><span class="t-xs fg3 mono ml">güncellendi 14:02:41</span></div>
+            <div class="rml"><span class="ei"><svg class="ic s16"><use href="#i-gh-run"/></svg></span><div><div class="rt">GITHUB ACTIONS → STOREASY</div><b class="t-m">Halka 1.0.0 (42) · ipa</b><div class="s">artifact.upload · parça 3/5 · 29,8 / 52,1 MB · OIDC</div><div class="prog sm mt8"><i style="width:57%"></i></div></div><span class="bdg sm">Geliyor</span></div>
+            <div class="rml"><span class="ei"><span class="st sm"><b>AS</b></span></span><div><div class="rt">STOREASY → APP STORE CONNECT</div><b class="t-m">Pusula · iPad 13" ekran görüntüleri · tr</b><div class="s">asset.upload · 04-takvim.png · parça 2/3 · adım 4 / 7</div><div class="s warn-t">webhook 14:02:41 · Pusula 2.3 IN_REVIEW</div><div class="stp mt8"><span class="d"></span><span class="d"></span><span class="d"></span><span class="n"></span><span></span><span></span><span></span></div></div><span class="bdg acc sm">Sürüyor</span></div>
+            <div class="rml"><span class="ei"><span class="st sm"><b>GP</b></span></span><div><div class="rt">STOREASY → GOOGLE PLAY</div><b class="t-m">Halka · AAB internal</b><div class="s">edits.bundles.upload · 31,4 / 48,0 MB · %65</div><div class="prog sm mt8"><i style="width:65%"></i></div></div><span class="bdg acc sm">Sürüyor</span></div>
+            <div class="rml"><span class="ei"><span class="st sm"><b>MS</b></span></span><div><div class="rt">STOREASY → MICROSOFT STORE</div><b class="t-m">Pusula · Kuzey içi uçuşu 2.4.0.0</b><div class="s dng-t">package.commit · 503 Service Unavailable · deneme 2/3 · 12 sn sonra tekrar</div><div class="r gp8 mt8"><span class="btn sm">Ayrıntı</span><span class="btn sm ghost">İptal et</span></div></div><span class="bdg dng sm">Tekrar bekliyor</span></div>
+          </div>
+          <div class="feed">
+            <div class="card-h"><span class="h3">Olaylar</span><span class="bdg ok sm ml"><span class="dot"></span>Canlı</span></div>
+            <div class="feed-b">
+              <div class="ev"><time>14:02:41</time><div><span class="dir wh">GELEN</span><b>webhook.received</b> Pusula 2.3<div class="m">WAITING_FOR_REVIEW → IN_REVIEW</div></div></div>
+              <div class="ev"><time>14:02:39</time><div><span class="dir out">GİDEN</span><b>asset.commit</b> 03-harita.png<div class="m">md5 9be1…04fa · 200</div></div></div>
+              <div class="ev"><time>14:02:38</time><div><span class="dir out">GİDEN</span><b>asset.upload</b> 04-takvim.png<div class="m">PUT parça 2/3 · 1,1 MB</div></div></div>
+              <div class="ev x"><time>14:02:33</time><div><span class="dir err">HATA</span><b class="dng-t">package.commit</b> Pusula MSIX<div class="m">503 · deneme 2/3</div></div></div>
+              <div class="ev"><time>14:02:31</time><div><span class="dir out">GİDEN</span><b>edits.bundles.upload</b> Halka<div class="m">31,4 / 48,0 MB</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-3" data-view="phone" data-ph="844">
+  <figcaption class="fr-h"><b class="fr-n">11.3</b><span class="fr-t">Telefonda olaylar ve süzgeç</span><code class="fr-r">/activity?view=events</code></figcaption>
+  <p class="fr-note">Telefonda Hat iki görünümlü: "Hat" (11.1'in telefon hâli: küçük dikey sahne + iş kartları) ve "Olaylar" (tam liste). Süzgeç alttan açılan sayfa: uygulama, mağaza, tür (Yükleme, Metin, Yayın, Webhook, Yorum) ve yön. Üstteki ince şerit etkin işleri özetler, dokununca Hat'a döner. Hata satırına dokunmak iş detayını açar. Uçlar 11.1 ile aynı; süzgeç sunucuya gitmez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış" data-live>
+      <div class="content">
+        <div class="seg" style="width:100%;margin-bottom:12px"><span style="flex:1;justify-content:center">Hat</span><span class="on" style="flex:1;justify-content:center">Olaylar · 8</span></div>
+        <div class="card" style="margin-bottom:12px"><div class="lst-i" style="padding:10px 14px"><span class="bdg live ok sm"><span class="dot"></span>3 iş</span><span class="t-s fg2 f1 trunc">Pusula 4/7 · Halka %65 · MS deneme 2/3</span><svg class="ic s16 fg3"><use href="#i-chev-r"/></svg></div></div>
+        <div class="feed">
+          <div class="ev new"><time>14:02:41</time><div><span class="dir wh">GELEN</span><b>webhook.received</b><div class="m">Pusula 2.3 · IN_REVIEW</div></div></div>
+          <div class="ev"><time>14:02:39</time><div><span class="dir out">GİDEN</span><b>asset.commit</b><div class="m">03-harita.png · 200</div></div></div>
+          <div class="ev"><time>14:02:38</time><div><span class="dir out">GİDEN</span><b>asset.upload</b><div class="m">04-takvim.png · 2/3 · 1,1 MB</div></div></div>
+          <div class="ev x"><time>14:02:33</time><div><span class="dir err">HATA</span><b class="dng-t">package.commit</b><div class="m">Pusula MSIX · 503 · deneme 2/3</div></div></div>
+          <div class="ev"><time>14:02:31</time><div><span class="dir out">GİDEN</span><b>edits.bundles.upload</b><div class="m">Halka · 31,4 / 48,0 MB</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m113">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m113">Süz</h2></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Uygulama</span><span class="inp sel">Tümü</span></div>
+        <div class="fld"><span class="lbl">Mağaza</span><div class="r gp6 wrap"><span class="chip on">Tümü</span><span class="chip"><span class="st sm"><b>AS</b></span></span><span class="chip"><span class="st sm"><b>GP</b></span></span><span class="chip"><span class="st sm"><b>MS</b></span></span></div></div>
+        <div class="fld"><span class="lbl">Tür</span><div class="r gp6 wrap"><span class="chip on">Yükleme</span><span class="chip">Metin</span><span class="chip">Yayın</span><span class="chip on">Webhook</span><span class="chip">Yorum</span></div></div>
+        <div class="fld"><span class="lbl">Yön</span><div class="seg"><span class="on">İkisi</span><span>Giden</span><span>Gelen</span></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Temizle</span><span class="btn pri">Uygula</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. İŞLER ============ -->
+<section class="sec" id="isler">
+<div class="sec-h"><span class="k">Bölüm 11.4-11.7</span><h2>İşler</h2><p>Her onaylanmış plan bir <code>StoreJob</code> olur (<code>Queued</code> → <code>Running</code> → <code>Succeeded</code> / <code>Failed</code> / <code>Canceled</code>); <code>StoreJobRunner</code> işi alır, her adım bir <code>StoreJobSteps</code> satırı ve bir SignalR olayıdır. Adımlar silinmez: iş detayı aynı olayları zaman çizelgesi olarak tutar ve Hat'ı o iş için yeniden oynatır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f11-4" data-h="1020">
+  <figcaption class="fr-h"><b class="fr-n">11.4</b><span class="fr-t">İş listesi</span><code class="fr-r">/activity/jobs</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/jobs</code> (planlanan) ListRequest → <code>StoreJobListDto { Id, Kind, Title, AppId, AppName, AppIconColor, Store, Channel (Web, Mcp, Api, Ci), RequestedByUserName, Source?, Status (Queued, Running, Succeeded, Failed, Canceled), Attempt, MaxAttempt, StartDate, EndDate, DurationMs, DoneStepCount, StepCount }</code>. Filtreler 08 kuralıyla: <code>Status</code>, <code>Store</code>, <code>Channel</code>, <code>Kind</code> enum olduğu için eşittir / eşit değildir; uygulama seçimli; tarih aralığı <code>StartDate</code> arası. Varsayılan sıralama başlangıç azalan, sayfa boyutu 20. Sürüyor satırları SignalR ile yerinde güncellenir, sıralama sayfa yenilenene kadar sabit kalır. <b>İzin:</b> görme <code>View</code>; satır menüsündeki "İptal et" (yalnız <code>Queued</code>/<code>Running</code>) ve "Tekrar dene" (yalnız <code>Failed</code>) işin gerektirdiği izni ister (<code>POST /api/v1.0/jobs/cancel</code>, <code>POST /api/v1.0/jobs/retry</code>). <b>Telefonda</b> satır karta döner: başlık, durum rozeti, mağaza ve süre ikincil satırda; İsteyen ve Deneme gizlenir. <span class="gap">Backend boşluğu:</span> <code>StoreJobs.Channel</code> bugün <code>Web, Mcp, Api</code>; paket alma işleri için <code>Ci</code> değeri ve CI kaynağı (<code>Source</code>: sağlayıcı, repo, iş akışı) eklenecek. <code>MaxAttempt</code> modelde yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|İşler" data-live>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1></div><div class="pg-a"><div class="inp hide-ph" style="width:260px"><svg class="ic"><use href="#i-search"/></svg><span class="fg3">Uygulama adında ara</span></div><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Dışa aktar</span></div></div>
+        <div class="tabs"><a class="tab" href="#">Hat</a><a class="tab on" href="#">İşler <span class="n">128</span></a><a class="tab" href="#">Onay bekleyen <span class="n">3</span></a></div>
+        <div class="toolbar"><span class="chip on"><svg class="ic"><use href="#i-filter"/></svg>Durum eşit değildir: Başarılı</span><span class="chip">Mağaza: Tümü</span><span class="chip">Kanal: Tümü</span><span class="chip">Son 7 gün</span><span class="btn ghost sm">Filtreleri temizle</span><span class="t-s fg3 ml hide-ph">1 filtre etkin</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>İş</th><th>Mağaza</th><th>Kanal</th><th>İsteyen</th><th>Durum</th><th>Deneme</th><th>Süre</th><th class="srt">Başladı <svg class="ic"><use href="#i-arrow-down"/></svg></th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><span><b>iPad 13" ekran görüntüleri · tr</b><span class="t-xs mono fg3" style="display:block">screenshots.apply · Pusula</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İsteyen" class="tx">Ece Yılmaz</td><td data-l="Durum"><span class="bdg acc sm"><span class="dot"></span>Sürüyor 4 / 7</span></td><td data-l="Deneme" class="tx mono">1 / 3</td><td data-l="Süre" class="mono">1 dk 06 sn</td><td data-l="Başladı">14:01</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#DB2777">H</span><span><b>AAB · internal</b><span class="t-xs mono fg3" style="display:block">bundles.upload · Halka 1.0.0 (42)</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>GP</b>Google Play</span></td><td data-l="Kanal"><span class="tag">Ci</span></td><td data-l="İsteyen" class="tx">GitHub Actions</td><td data-l="Durum"><span class="bdg acc sm"><span class="dot"></span>Sürüyor %65</span></td><td data-l="Deneme" class="tx mono">1 / 3</td><td data-l="Süre" class="mono">2 dk 14 sn</td><td data-l="Başladı">14:00</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><span><b>Kuzey içi uçuşu 2.4.0.0</b><span class="t-xs mono fg3" style="display:block">ms.flight.submit · Pusula</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>MS</b>Microsoft Store</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İsteyen" class="tx">Deniz Arslan</td><td data-l="Durum"><span class="bdg dng sm">Tekrar bekliyor</span></td><td data-l="Deneme" class="tx mono dng-t">2 / 3</td><td data-l="Süre" class="mono">3 dk 40 sn</td><td data-l="Başladı">13:59</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><span><b>de-DE anahtar kelimeler</b><span class="t-xs mono fg3" style="display:block">listings.apply · Pusula</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Kanal"><span class="tag">Mcp</span></td><td data-l="İsteyen" class="tx">Claude · Deniz Arslan</td><td data-l="Durum"><span class="bdg sm">Kuyrukta</span></td><td data-l="Deneme" class="tx mono">0 / 3</td><td data-l="Süre" class="mono fg3">-</td><td data-l="Başladı" class="fg3">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><span><b>en-US iPhone 6,9" ekran görüntüleri</b><span class="t-xs mono fg3" style="display:block">screenshots.apply · Pusula</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İsteyen" class="tx">Mert Kaya</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Başarısız</span></td><td data-l="Deneme" class="tx mono dng-t">3 / 3</td><td data-l="Süre" class="mono">2 dk 51 sn</td><td data-l="Başladı">11:20</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#B45309">D</span><span><b>Red yanıtı ve yeniden gönderim</b><span class="t-xs mono fg3" style="display:block">releases.submit · Defter 1.4</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>AS</b>App Store</span></td><td data-l="Kanal"><span class="tag">Web</span></td><td data-l="İsteyen" class="tx">Deniz Arslan</td><td data-l="Durum"><span class="bdg sm">İptal edildi</span></td><td data-l="Deneme" class="tx mono">1 / 3</td><td data-l="Süre" class="mono">4 sn</td><td data-l="Başladı">Dün 18:12</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#9A3412">T</span><span><b>Yükleyici URL'si 0.9.4</b><span class="t-xs mono fg3" style="display:block">ms.packages.update · Tarla</span></span></span></td><td data-l="Mağaza"><span class="st sm"><b>MS</b>Microsoft Store</span></td><td data-l="Kanal"><span class="tag">Api</span></td><td data-l="İsteyen" class="tx">Mert Kaya · sea_7f3a</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Başarısız</span></td><td data-l="Deneme" class="tx mono dng-t">1 / 1</td><td data-l="Süre" class="mono">2 sn</td><td data-l="Başladı">Dün 10:05</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 1 · Toplam: 7</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm dis">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+    <div class="pop" style="top:452px;right:40px"><span class="mh">Kuzey içi uçuşu 2.4.0.0</span><span class="mi"><svg class="ic"><use href="#i-eye"/></svg>Ayrıntıyı aç</span><span class="mi"><svg class="ic"><use href="#i-list"/></svg>Denetim kaydında aç</span><span class="ms"></span><span class="mi dng"><svg class="ic"><use href="#i-stop"/></svg>İşi iptal et</span></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-5" data-h="1080">
+  <figcaption class="fr-h"><b class="fr-n">11.5</b><span class="fr-t">İş detayı ve yeniden oynatma</span><code class="fr-r">/activity/jobs/:jobId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/jobs/job?JobId=</code> (planlanan) → <code>StoreJobDetailDto { Id, Kind, Title, AppId, AppName, Store, StoreAppId, Channel, Status, Attempt, MaxAttempt, RequestedByUserName, ApprovedByUserName?, ApprovedDate?, PlanId, PlanSummary { Added, Removed, Reordered, Items[] }, Result, StartDate, EndDate, AuditLogId, Steps: [StoreJobStepDto { Order, Kind, Direction, Status, Bytes, Total, Message, Date }] }</code>. "Yeniden oynat" sunucuya gitmez: adımlar <code>Date</code> farklarıyla sahneye yeniden verilir (1x gerçek süre, 4x hızlı); kaydırıcıdaki çentikler adımlardır, adıma tıklamak oraya atlar. Hareket azaltmada oynatıcı gizlenir, zaman çizelgesi kalır ve seçili adım vurgulanır. Denetim bağlantısı <code>PATCH /api/v1.0/organizations/audit-logs</code> + <code>StoreJobId</code> filtresi. <b>İzin:</b> <code>View</code>. Kayıt yoksa ya da başka organizasyonunsa 404 ("Bu iş bulunamadı", İşler'e dönüş). <b>Telefonda</b> özet kartı zaman çizelgesinin üstüne iner, sahne tam genişlik ve hız seçimi alt satırda. <span class="gap">Backend boşluğu:</span> onaylayan kişi ve plan bağı (<code>ApprovedByUserId</code>, <code>PlanId</code>) <code>StoreJobs</code>'ta yok; değişiklik planları için ayrı tablo gerekiyor (11.8). Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|İşler|Pusula iPad 13&quot;">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>İşler</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg ok sm"><span class="dot"></span>Başarılı</span><span class="t-s fg3 mono">1 dk 42 sn · iş 48213</span></div><h1 class="pg-t">Pusula · iPad 13" ekran görüntüleri · tr</h1><p class="pg-s">7 ekran görüntüsü yüklendi ve sıralandı. 18 Kasım 2026, 13:58-13:59</p></div>
+          <div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-list"/></svg>Denetim kaydı</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="replay">
+              <div class="stage-h"><svg class="ic s18"><use href="#i-replay"/></svg><b class="t-m">Yeniden oynat</b><div class="legend ml hide-ph"><span><i class="lo"></i>giden</span><span><i class="li"></i>dönen</span></div></div>
+              <div class="stage-b rm-hide">
+                <svg class="hs anim" viewBox="0 0 640 170" role="img" aria-label="İşin yeniden oynatılan hattı: storeasy'den App Store Connect'e">
+                  <defs><path id="r5A" d="M128 85 L 462 85"/></defs>
+                  <use href="#r5A" class="rail-w"/><use href="#r5A" class="rail"/>
+                  <text x="295" y="62" text-anchor="middle" class="rl">asset.upload · 05-istatistik.png · parça 1/3 · 1,4 MB</text>
+                  <g><rect x="-50" y="-11" width="100" height="22" rx="6" class="pk"/><text y="3.5" text-anchor="middle" class="pk-t">05-istatistik.png</text><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#r5A"/></animateMotion></g>
+                  <g><circle r="9" class="ack"/><path d="m-4 0 3 3 5-6" class="ackm"/><animateMotion dur="2.2s" begin="-1.1s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r5A"/></animateMotion></g>
+                  <rect x="20" y="27" width="116" height="116" rx="30" class="hub"/>
+                  <use href="#logo" x="48" y="42" width="60" height="60" class="mk inv"/>
+                  <text x="78" y="128" text-anchor="middle" class="hub-t" style="font-size:10px">adım 18 / 29</text>
+                  <rect x="462" y="37" width="166" height="96" rx="22" class="node"/>
+                  <text x="480" y="61" class="lbl">APP STORE CONNECT</text>
+                  <text x="480" y="87" class="ttl">Pusula · iPad 13"</text>
+                  <text x="480" y="111" class="det">commit 4 / 7</text>
+                </svg>
+              </div>
+              <div class="ctl">
+                <span class="ib" title="Duraklat" aria-label="Duraklat"><svg class="ic"><use href="#i-pause"/></svg></span>
+                <div class="scrub" role="slider" aria-label="Oynatma konumu" aria-valuetext="1 dk 03 sn / 1 dk 42 sn"><span class="tr"></span><span class="fi" style="width:62%"></span><span class="tk" style="left:1%"></span><span class="tk" style="left:6%"></span><span class="tk" style="left:12%"></span><span class="tk" style="left:58%"></span><span class="tk" style="left:63%"></span><span class="tk" style="left:94%"></span><span class="kn" style="left:62%"></span></div>
+                <span class="mono t-s fg2 nowrap">1:03 / 1:42</span>
+                <div class="seg"><span>1x</span><span class="on">4x</span></div>
+              </div>
+            </div>
+            <div class="card"><div class="card-h"><span class="h3">Adımlar</span><span class="t-s fg3">29 adım · 6 tür</span><span class="lnk t-s ml">Bütün parçaları göster</span></div><div class="card-b" style="padding-bottom:4px"><div class="tl">
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">set.create</b><div class="m mt4">APP_IPAD_PRO_3GEN_129 · tr · mevcut set bulundu, eski 5 görüntü plana göre silindi</div></div><span class="mono t-xs fg3">13:58:12</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">asset.reserve</b> <span class="t-s fg2">× 7</span><div class="m mt4">7 dosya · 21 uploadOperations · 9,8 MB</div></div><span class="mono t-xs fg3">13:58:14</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">asset.upload</b> <span class="t-s fg2">× 21 parça</span><div class="m mt4">9,8 / 9,8 MB · en yavaş parça 1,4 sn · 0 tekrar</div><div class="prog sm mt8 ok" style="max-width:280px"><i style="width:100%"></i></div></div><span class="mono t-xs fg3">13:58:15</span></div></div>
+              <div class="tl-i"><span class="tl-d now"></span><div class="tstep"><div><span class="dir">GELEN</span><b class="t-m mono">asset.commit</b> <span class="t-s fg2">× 7</span><div class="m mt4">md5 doğrulandı · 200 · oynatıcı bu adımda (4 / 7)</div></div><span class="mono t-xs fg3">13:58:44</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir">GELEN</span><b class="t-m mono">asset.processing</b><div class="m mt4">7 / 7 COMPLETE · 38 sn bekleme · 6 yoklama</div></div><span class="mono t-xs fg3">13:59:22</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">set.reorder</b><div class="m mt4">01-ana → 07-ayarlar · 7 sıra · 204</div></div><span class="mono t-xs fg3">13:59:54</span></div></div>
+            </div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Plan</span><span class="lnk t-s ml">Planı aç</span></div><div class="card-b">
+              <dl class="kv"><dt>Onaylanan</dt><dd>7 ekle · 5 sil · sırala</dd><dt>Plan</dt><dd class="mono">plan 9921</dd><dt>İsteyen</dt><dd>Ece Yılmaz</dd><dt>Onaylayan</dt><dd>Ece Yılmaz · 13:58</dd><dt>Kanal</dt><dd><span class="tag">Web</span></dd><dt>Deneme</dt><dd class="mono">1 / 3</dd><dt>Kaynak</dt><dd>Stüdyo · "Pusula iPad" şablonu</dd></dl>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Dosyalar</span><span class="t-s fg3 ml">7</span></div><div class="lst">
+              <div class="lst-i"><svg class="ic s16"><use href="#i-image"/></svg><span class="f1 t-s mono trunc">01-ana.png</span><span class="t-xs fg3 mono">1,2 MB</span></div>
+              <div class="lst-i"><svg class="ic s16"><use href="#i-image"/></svg><span class="f1 t-s mono trunc">02-rota.png</span><span class="t-xs fg3 mono">1,5 MB</span></div>
+              <div class="lst-i"><svg class="ic s16"><use href="#i-image"/></svg><span class="f1 t-s mono trunc">03-harita.png</span><span class="t-xs fg3 mono">1,6 MB</span></div>
+              <div class="lst-i"><svg class="ic s16"><use href="#i-image"/></svg><span class="f1 t-s mono trunc">04-takvim.png ve 3 dosya daha</span><span class="t-xs fg3 mono">5,5 MB</span></div>
+            </div></div>
+            <div class="callout"><svg class="ic"><use href="#i-shield-check"/></svg><div class="t-s">Denetim kaydı: <b>ScreenshotSetApplied</b> · Web · Ece Yılmaz. <span class="lnk">Kaydı aç</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-6" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">11.6</b><span class="fr-t">Başarısız iş: deneme 3 / 3</span><code class="fr-r">/activity/jobs/:jobId</code></figcaption>
+  <p class="fr-note">Plan 4.3 madde 4: Apple 5xx'te iki tekrar, sonra set kontrolü; kalıcı hatada iş <code>Failed</code>, rezervasyon silinir. Hatalı adım kırmızı, her denemenin sonucu ayrı. Mağaza hata metni olduğu gibi gösterilir ama sırlar maskelenir: <code>Authorization</code> başlığı, JWT, imzalı URL'lerin imza parametreleri (<code>X-Amz-Signature</code>, <code>sig</code>, <code>token</code>) <span class="redact">gizlendi</span> olur; maskeleme sunucuda, <code>Result</code> yazılmadan önce. Tek ana eylem "Tekrar dene": aynı planla yeni deneme açar, başarılı adımları atlar. <b>API:</b> <code>GET /api/v1.0/jobs/job</code>; <code>POST /api/v1.0/jobs/retry { JobId }</code> (<code>Idempotency-Key</code>) → aynı <code>JobId</code>, <code>Attempt</code> sıfırlanır. <b>İzin:</b> tekrar deneme işin kendi izni (<code>EditContent</code>); Viewer düğmeyi pasif ve gerekçeyle görür. Plan 24 saatten eskiyse ya da mağazadaki set değiştiyse 409 döner: "Mağazadaki set değişti, planı yeniden oluştur" ve ana eylem "Planı yeniden oluştur" olur. <b>Telefonda</b> eylemler alt barda sabit.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|İşler|Pusula en-US iPhone" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>İşler</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>AS</b>App Store</span><span class="bdg dng sm"><span class="dot"></span>Başarısız</span><span class="t-s fg3 mono">2 dk 51 sn · iş 48190</span></div><h1 class="pg-t">Pusula · en-US iPhone 6,9" ekran görüntüleri</h1><p class="pg-s">3 deneme de mağaza hatasıyla bitti. Mağazada değişiklik kalmadı.</p></div>
+          <div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-file-text"/></svg>Planı aç</span><span class="btn pri"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Adımlar</span><span class="t-s fg3">deneme 3 / 3</span></div><div class="card-b" style="padding-bottom:4px"><div class="tl">
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">set.create</b><div class="m mt4">APP_IPHONE_69 · en-US · mevcut set bulundu</div></div><span class="mono t-xs fg3">11:20:02</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">asset.reserve</b> <span class="t-s fg2">× 6</span><div class="m mt4">6 dosya · 18 uploadOperations</div></div><span class="mono t-xs fg3">11:20:04</span></div></div>
+              <div class="tl-i"><span class="tl-d dng"></span><div class="tstep"><div><span class="dir err">HATA</span><b class="t-m mono dng-t">asset.upload</b> <span class="t-s fg2">02-rota.png · parça 2/3</span>
+                <div class="att mt8"><span>1 · 500 · 11:20:09</span><span>2 · 500 · 11:20:41</span><span>3 · 502 · 11:21:47</span></div>
+                <div class="errbox mt8"><div class="t-s b6 dng-t">App Store Connect: 502 Bad Gateway</div><div class="m mt4">PUT https://store-031.blobstore.apple.com/sq/…/02-rota.png?X-Amz-Signature=<span class="redact">gizlendi</span>&amp;X-Amz-Credential=<span class="redact">gizlendi</span></div><div class="m">Authorization: Bearer <span class="redact">gizlendi</span> · istek 7c1e-55af</div><div class="m">"An unexpected error occurred on the server side."</div></div></div><span class="mono t-xs fg3">11:21:47</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">set.verify</b><div class="m mt4">mağazadaki set değişmemiş · 6 görüntü yerinde</div></div><span class="mono t-xs fg3">11:21:50</span></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div class="tstep"><div><span class="dir out">GİDEN</span><b class="t-m mono">asset.cleanup</b><div class="m mt4">6 rezervasyon silindi · 204 · yarım yükleme kalmadı</div></div><span class="mono t-xs fg3">11:21:52</span></div></div>
+            </div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="callout dng"><svg class="ic"><use href="#i-x-c"/></svg><div><b>Mağaza tarafında geçici hata</b><div class="t-s fg2 mt4">Apple'ın yükleme sunucusu 3 kez yanıt vermedi. Plan geçerli; tekrar denemek güvenli. Sorun sürerse Apple Developer sistem durumuna bak.</div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Özet</span></div><div class="card-b"><dl class="kv"><dt>İsteyen</dt><dd>Mert Kaya</dd><dt>Kanal</dt><dd><span class="tag">Web</span></dd><dt>Deneme</dt><dd class="mono dng-t">3 / 3</dd><dt>Rezervasyon</dt><dd>Temizlendi</dd><dt>Plan</dt><dd class="mono">plan 9904 · 6 ekle</dd><dt>Bildirim</dt><dd>Mert Kaya, Deniz Arslan</dd></dl></div></div>
+            <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg><span>Hata metnindeki token'lar ve imzalı URL parametreleri sunucuda gizlenir; ham değer hiçbir ekranda, MCP yanıtında ve denetim kaydında yoktur.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-7">
+  <figcaption class="fr-h"><b class="fr-n">11.7</b><span class="fr-t">Microsoft Store: aynı anda tek aktif gönderim (409)</span><code class="fr-r">/activity/jobs/:jobId</code></figcaption>
+  <p class="fr-note">Microsoft Store'da bir uygulamanın ya da uçuşun aynı anda tek aktif gönderimi olabilir (plan 11.6). 409 kalıcı hatadır: otomatik tekrar yapılmaz, deneme 1 / 3'te durur ve iş <code>Failed</code> olur; storeasy'nin açtığı taslak gönderim varsa silinir. "Tekrar dene" engelli kalmaz ama ana eylem, çakışan gönderimi açmaktır. API ile açılan bir gönderim Partner Center'da elle değiştirildiyse storeasy onu bir daha değiştiremez; bu durumda metin "Partner Center'da tamamla" der (asistanlı adım). <b>API:</b> <code>GET /api/v1.0/jobs/job</code>; çakışan gönderim <code>GET /api/v1.0/ms/submissions</code>; <code>POST /api/v1.0/jobs/retry</code>. <b>İzin:</b> uçuş gönderimi <code>ReleaseTest</code>. <span class="gap">Backend boşluğu:</span> hata sınıflandırması (geçici / kalıcı, <code>Retryable</code>) ve çakışan kaydın kimliği (<code>ConflictRef</code>) adım <code>Message</code>'ında serbest metin; <code>StoreJobSteps</code>'a yapılandırılmış <code>Error { Code, Retryable, ConflictRef }</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|İşler|Pusula uçuş 2.4.0.0" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="st"><b>MS</b>Microsoft Store</span><span class="bdg dng sm"><span class="dot"></span>Başarısız</span><span class="t-s fg3 mono">6 sn · iş 48177</span></div><h1 class="pg-t">Pusula · Kuzey içi uçuşu 2.4.0.0</h1></div>
+          <div class="pg-a"><span class="btn">Tekrar dene</span><span class="btn pri"><svg class="ic"><use href="#i-ext"/></svg>Çakışan gönderimi aç</span></div></div>
+        <div class="split">
+          <div class="card"><div class="card-b c gp12">
+            <div class="r gp8 wrap"><span class="dir err">HATA</span><b class="mono">flight.submission.create</b><span class="t-xs fg3 mono ml">deneme 1 / 3 · tekrar yok</span></div>
+            <div class="errbox"><div class="t-s b6 dng-t">409 Conflict · InvalidState</div><div class="t-s mt4">Bu uçuş için bekleyen bir gönderim zaten var. Önce onu tamamla ya da sil.</div><div class="m mt8" style="font:500 11.5px/1.5 var(--font-mono);color:rgb(var(--fg-3))">POST /v1.0/my/applications/9P4K7Q2MZL1D/flights/…/submissions · Authorization: Bearer <span class="redact">gizlendi</span></div></div>
+            <dl class="kv"><dt>Çakışan gönderim</dt><dd class="mono">1152921505712 · PendingCommit</dd><dt>Açan</dt><dd>storeasy · iş 48120 · 16 Kas</dd><dt>Temizlik</dt><dd>Bu işin taslağı oluşmadı, silinecek bir şey yok</dd></dl>
+          </div></div>
+          <div class="c gp12">
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Aynı anda tek aktif gönderim</b><div class="fg2 mt4">16 Kasım'daki gönderim "PendingCommit" durumunda kalmış. Onu gönder ya da sil; sonra bu iş tek tıkla yeniden dener.</div></div></div>
+            <div class="card"><div class="lst"><div class="lst-i"><span class="bdg sm">1</span><span class="f1 t-s">Çakışan gönderimi aç</span></div><div class="lst-i"><span class="bdg sm">2</span><span class="f1 t-s">Gönder ya da sil</span></div><div class="lst-i"><span class="bdg sm">3</span><span class="f1 t-s">Bu işi tekrar dene</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. ONAY BEKLEYEN PLANLAR ============ -->
+<section class="sec" id="planlar">
+<div class="sec-h"><span class="k">Bölüm 11.8-11.11</span><h2>Onay bekleyen planlar</h2><p>Mağazaya giden her yazma önce bir değişiklik planıdır (diff + dry run). Web'de kullanıcı planı kendisi onaylar; MCP'deki Claude'un, API'nin ya da CI teslim kuralının hazırladığı ve insan onayı isteyen planlar burada toplanır. Onaylanan plan bir iş olur ve Hat'a düşer. Production'a yayın ve incelemeye gönderme hiçbir zaman otomatik değildir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f11-8" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">11.8</b><span class="fr-t">Onay kuyruğu</span><code class="fr-r">/activity/plans</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/plans</code> (planlanan) → <code>ChangePlanListDto { PlanId, Kind, Title, AppId, AppName, Store, Source (Web, Mcp, Api, Ci), CreatedByUserName, OnBehalfOfUserName?, CiSource?, RequiredPermission, ItemCount, Warnings[], Status (Pending, Approved, Rejected, Expired), CreationDate, ExpiryDate }</code>; varsayılan süzgeç <code>Status = Pending</code>. Satırlar onay için gereken izne göre etiketlenir; kullanıcı onaylayamayacağı planı görür ama "İncele" çekmecesinde düğme pasif (11.11). Plan 48 saat içinde onaylanmazsa <code>Expired</code> olur. Kenar menüdeki Canlı akış sayacına bekleyen plan sayısı eklenmez; sekmede sayaç ve bildirim var. <b>İzin:</b> görme <code>View</code>; onay plana göre <code>EditContent</code>, <code>ReleaseTest</code>, <code>ReleaseProduction</code>, <code>SubmitForReview</code>. <b>Telefonda</b> satırlar kart; "İncele" çekmecesi tam ekran. <span class="gap">Backend boşluğu:</span> veri modelinde (bölüm 5) değişiklik planı tablosu yok: <code>ChangePlans { OrganizationId, StoreAppId, Kind, Source, Items jsonb, Warnings jsonb, RequiredPermission, Status, CreatedByUserId, OnBehalfOfUserId, DecidedByUserId, DecisionNote, DecisionDate, ExpiryDate }</code> eklenecek; yeni plan için hub olayı <code>plan.created</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|Onay bekleyen" data-live>
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1></div><div class="pg-a"><div class="seg"><span class="on">Bekleyen · 3</span><span>Karar verilen</span></div></div></div>
+        <div class="tabs"><a class="tab" href="#">Hat</a><a class="tab" href="#">İşler <span class="n">128</span></a><a class="tab on" href="#">Onay bekleyen <span class="n">3</span></a></div>
+        <div class="card">
+          <div class="pl"><span class="src"><svg class="ic s18"><use href="#i-spark"/></svg></span><div style="min-width:0"><div class="r gp8 wrap"><b class="t-m">de-DE anahtar kelimeler</b><span class="tag">dry run</span><span class="bdg sm">EditContent</span></div><div class="t-s fg2 mt4">Claude (MCP) · Deniz Arslan adına · 1 alan değişiyor, 97 / 100 karakter</div><div class="meta"><span class="r gp6"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span><span class="st sm"><b>AS</b>App Store</span><span>Dün 17:20</span><span class="warn-t">23 saat içinde düşer</span></div></div><span class="btn sm">İncele</span></div>
+          <div class="pl"><span class="src"><svg class="ic s18"><use href="#i-gh-run"/></svg></span><div style="min-width:0"><div class="r gp8 wrap"><b class="t-m">Production'a terfi: Pusula 2.4.0 (231)</b><span class="bdg warn sm"><svg class="ic s12"><use href="#i-lock"/></svg>ReleaseProduction</span></div><div class="t-s fg2 mt4">CI teslim kuralı · GitHub Actions <span class="mono">kuzeylab/pusula</span> · <span class="mono">release/2.4</span> · closed → production %10</div><div class="meta"><span class="r gp6"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span><span class="st sm"><b>GP</b>Google Play</span><span>Bugün 12:04</span><span>47 saat içinde düşer</span></div></div><span class="btn sm">İncele</span></div>
+          <div class="pl"><span class="src"><span class="av s" style="width:100%;height:100%;border:0;border-radius:10px">MK</span></span><div style="min-width:0"><div class="r gp8 wrap"><b class="t-m">3.1.3 yenilikler metni · 3 dil</b><span class="bdg sm">EditContent</span></div><div class="t-s fg2 mt4">Mert Kaya (API, <span class="mono">sea_7f3a</span>) · ikinci göz istendi</div><div class="meta"><span class="r gp6"><span class="aic s" style="--c:#15803D">M</span>Mola</span><span class="st sm"><b>AS</b>App Store</span><span class="st sm"><b>GP</b>Google Play</span><span>Bugün 09:41</span></div></div><span class="btn sm">İncele</span></div>
+        </div>
+        <p class="t-xs fg3 mt12">Planlar 48 saat sonra düşer. Düşen plan mağazaya hiçbir şey yazmaz; Claude ya da CI yenisini hazırlayabilir.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-9" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">11.9</b><span class="fr-t">Planı incele: diff çekmecesi</span><code class="fr-r">/activity/plans/:planId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/plans/plan?PlanId=</code> → <code>ChangePlanDto { PlanId, Items[{ Field, Locale, Before, After, Action }], Warnings[], DryRun { Ok, Messages[] }, Source, Prompt? }</code>; <code>POST /api/v1.0/plans/approve { PlanId }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>, ekran Hat'a geçmez, toast "İş kuyruğa girdi · Hat'ta izle" verir; <code>POST /api/v1.0/plans/reject { PlanId, Reason }</code> (11.10). Onay anında mağazadaki değer plan anından farklıysa 409: "Plan hazırlandıktan sonra mağazada değişti", çekmece yeni diff'i gösterir. Claude'un planında istem özeti görünür; MCP oturumu onay sonucunu araç yanıtı olarak alır. <b>İzin:</b> <code>EditContent</code>. Tek ana eylem "Onayla", "Reddet" ikincil. <span class="gap">Backend boşluğu:</span> <code>GET plans/plan</code> uç listesinde yok (yalnız <code>PATCH plans</code>); eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|Onay bekleyen" data-live><div class="content"><div class="pg-h"><h1 class="pg-t">Canlı akış</h1></div><div class="card" style="opacity:.5;height:260px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d119">
+      <div class="mdl-h"><span class="src"><svg class="ic s18"><use href="#i-spark"/></svg></span><div class="f1"><h2 class="h2" id="d119">de-DE anahtar kelimeler</h2><p class="t-s fg2 mt4">Pusula · App Store · 2.4 · Claude (MCP), Deniz Arslan adına</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="callout"><svg class="ic"><use href="#i-spark"/></svg><div class="t-s"><b>İstem özeti</b><div class="fg2 mt4">"Almanca anahtar kelimeleri rakip uygulamalara göre güncelle, marka adlarını kullanma."</div></div></div>
+        <div class="diff"><div class="diff-h"><span class="mono">keywords · de-DE</span><span class="ml t-xs fg3">97 / 100</span></div>
+          <div class="dl del">navigation,karte,<del>wandern,offline,route,</del>gps,kompass</div>
+          <div class="dl add">navigation,karte,gps,kompass,<ins>wanderkarte,offline-karten,routenplaner,höhenprofil</ins></div></div>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="f1 t-s">Dry run: App Store Connect alanı kabul ediyor</span></div>
+          <div class="lst-i"><svg class="ic s16 warn-t"><use href="#i-alert-t"/></svg><span class="f1 t-s">"offline-karten" en-US anahtar kelimelerinde de var; tekrar puan getirmez.</span></div>
+        </div></div>
+        <dl class="kv"><dt>Etkilenen</dt><dd>Yalnız de-DE, sürüm 2.4 (Hazırlanıyor)</dd><dt>Hazırlandı</dt><dd>17 Kas 2026, 17:20</dd><dt>Düşer</dt><dd>19 Kas 2026, 17:20</dd></dl>
+      </div>
+      <div class="mdl-f"><span class="btn dng-o">Reddet</span><span class="f1"></span><span class="btn ghost">Kapat</span><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Onayla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-10">
+  <figcaption class="fr-h"><b class="fr-n">11.10</b><span class="fr-t">Planı reddet: gerekçe</span><code class="fr-r">/activity/plans/:planId → reddet</code></figcaption>
+  <p class="fr-note">Gerekçe zorunlu (en az 10 karakter) ve plan sahibine döner: Claude'a MCP araç yanıtı olarak, CI'a teslim özetinde, kişiye bildirimle. Boş gönderimde alan hatası. Reddedilen plan mağazaya hiçbir şey yazmaz, denetim kaydına <code>PlanRejected</code> olarak düşer. <b>API:</b> <code>POST /api/v1.0/plans/reject { PlanId, Reason }</code>. <b>İzin:</b> planı onaylayabilen herkes reddedebilir. <span class="gap">Backend boşluğu:</span> <code>AuditAction</code>'a <code>PlanApproved</code>, <code>PlanRejected</code>, <code>JobRetried</code>, <code>JobCanceled</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış|Onay bekleyen"><div class="content"><div class="pg-h"><h1 class="pg-t">Canlı akış</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1110">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1110">Plan reddedilsin mi?</h2><p class="t-s fg2 mt4">de-DE anahtar kelimeler · Pusula. Gerekçe Claude'a iletilir.</p></div></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Gerekçe</span><span class="inp ta err">wandern</span><span class="err-t">Gerekçe en az 10 karakter olmalı.</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-info"/></svg>Mağazaya hiçbir şey yazılmaz.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Planı reddet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-11" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">11.11</b><span class="fr-t">Editör: production planı onaylanamaz</span><code class="fr-r">/activity/plans/:planId</code></figcaption>
+  <p class="fr-note">Editör içerik planlarını (<code>EditContent</code>) ve test track'lerini (<code>ReleaseTest</code>) onaylar; production'a terfi <code>ReleaseProduction</code> ister (Sahip, Yönetici, rol matrisi bölüm 6). Düğme gizlenmez, pasif ve gerekçesi altında; "Yöneticiye ilet" planı Sahip ve Yöneticilere bildirim olarak gönderir. Sunucu da aynı kontrolü yapar (403). <b>API:</b> <code>GET /api/v1.0/plans/plan</code>; ilet <span class="gap">Backend boşluğu:</span> <code>POST /api/v1.0/plans/request-approval { PlanId }</code> planda yok; eklenecek (6.11'deki "gönderim iste" ile aynı bildirim türü).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-role="Editor" data-crumbs="Canlı akış|Onay bekleyen"><div class="content"><div class="pg-h"><h1 class="pg-t">Canlı akış</h1></div><div class="card" style="opacity:.5;height:260px"></div></div></div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="d1111">
+      <div class="mdl-h"><span class="src"><svg class="ic s18"><use href="#i-gh-run"/></svg></span><div class="f1"><h2 class="h2" id="d1111">Production'a terfi: Pusula 2.4.0</h2><p class="t-s fg2 mt4">Google Play · CI teslim kuralı "closed yeşilse production'a öner"</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="diff"><div class="diff-h"><span class="mono">track · production</span></div>
+          <div class="dl del">2.3.0 (230) · %20 aşamalı</div>
+          <div class="dl add"><ins>2.4.0 (231) · %10 aşamalı</ins> · 2.3.0 (230) kalır</div></div>
+        <div class="diff"><div class="diff-h"><span class="mono">releaseNotes · tr-TR</span></div><div class="dl add"><ins>Rota paylaşımı ve çevrimdışı haritalarda hız iyileştirmesi.</ins></div></div>
+        <dl class="kv"><dt>Kaynak</dt><dd class="mono">kuzeylab/pusula · release/2.4 · run 1187</dd><dt>Closed'da</dt><dd>4 gün · çökme yok</dd><dt>Hazırlık</dt><dd class="ok-t b6">11 / 11</dd></dl>
+      </div>
+      <div class="mdl-f" style="flex-wrap:wrap"><div class="lock f1" style="min-width:220px"><svg class="ic s16"><use href="#i-lock"/></svg><span>Production'a yayın yalnız <b>Sahip</b> ve <b>Yönetici</b> rolünde.</span></div><span class="btn"><svg class="ic"><use href="#i-bell"/></svg>Yöneticiye ilet</span><span class="btn pri dis" aria-disabled="true">Onayla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. BİLDİRİM VE BOŞ ============ -->
+<section class="sec" id="bildirim">
+<div class="sec-h"><span class="k">Bölüm 11.12-11.14</span><h2>İş bildirimleri ve sessiz hat</h2><p>İş bitince (ya da hata verince) kullanıcı hangi ekranda olursa olsun toast alır; aynı olay zil menüsüne ve tercihe göre e-postaya düşer. Hat boşken ekran ölü görünmez: raylar bekler, son biten işler listelenir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f11-12">
+  <figcaption class="fr-h"><b class="fr-n">11.12</b><span class="fr-t">İş bildirimleri (toast)</span><code class="fr-r">her ekran</code></figcaption>
+  <p class="fr-note"><code>job.finished</code> olayı işi isteyene ve onaylayana toast olarak gelir; başkalarının işleri yalnız Hat'ta görünür. Başarılı toast 6 sn sonra kapanır, başarısız toast kullanıcı kapatana kadar kalır. En çok 3 toast; fazlası "2 bildirim daha" olarak zile gider. Hareket azaltmada toast kayarak değil, yerinde belirir. <b>API:</b> SignalR <code>job.finished { JobId, Status, Title, AppName, Store, DurationMs, Message }</code>; kalıcı kayıt <code>Notifications</code> (<code>PATCH /api/v1.0/account/notifications</code>, var olan). <b>İzin:</b> <code>View</code>. <b>Telefonda</b> toast'lar alt barın üstünde tam genişlik. <span class="gap">Backend boşluğu:</span> bildirim türleri <code>JobSucceeded</code>, <code>JobFailed</code>, <code>PlanPending</code> ve tercih anahtarları eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula" data-live="1 iş sürüyor"><div class="content"><div class="apphead" data-app="pusula" data-store="all" data-tab="ozet"></div><div class="g3"><div class="card" style="height:180px"></div><div class="card" style="height:180px"></div><div class="card hide-ph" style="height:180px"></div></div></div></div>
+    <div class="toasts">
+      <div class="toast info" role="status"><svg class="ic"><use href="#i-spark"/></svg><div class="f1"><b>Onayını bekleyen plan</b><div class="fg2">Claude · de-DE anahtar kelimeler · Pusula</div><span class="lnk t-s">İncele</span></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="toast dng" role="alert"><svg class="ic"><use href="#i-x-c"/></svg><div class="f1"><b>İş başarısız: Pusula Kuzey içi uçuşu</b><div class="fg2">Microsoft Store · 409 aynı anda tek aktif gönderim</div><div class="r gp12 mt4"><span class="lnk t-s">İşi aç</span><span class="lnk t-s">Tekrar dene</span></div></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>iPad 13" ekran görüntüleri yüklendi</b><div class="fg2">Pusula · App Store · 7 görüntü · 1 dk 42 sn</div><span class="lnk t-s">İşi aç</span></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-13" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">11.13</b><span class="fr-t">Hat şu an sessiz</span><code class="fr-r">/activity</code></figcaption>
+  <p class="fr-note">Etkin iş yokken sahne durağan çizilir: raylar kesik ve soluk, mağaza düğümlerinde son durum; hiçbir şey hareket etmez. Webhook ya da yorum gelirse yine dalga ve olay satırı görünür. Sağda son biten 5 iş. <b>API:</b> <code>PATCH /api/v1.0/jobs</code> (<code>Status</code> eşit değildir <code>Running</code>, <code>RowCount 5</code>, <code>EndDate</code> azalan). Hiç iş olmamış yeni organizasyonda liste yerine "İlk işin bir plan onaylanınca burada görünür" ve Stüdyo / Mağaza kaydı bağlantıları. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış" data-bell="off">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Canlı akış</h1><p class="pg-s">storeasy'den mağazalara giden ve geri dönen her adım, olduğu anda.</p></div><div class="pg-a"><span class="bdg ok"><span class="dot"></span>Bağlı</span></div></div>
+        <div class="tabs"><a class="tab on" href="#">Hat</a><a class="tab" href="#">İşler <span class="n">128</span></a><a class="tab" href="#">Onay bekleyen</a></div>
+        <div class="quiet">
+          <div class="stage">
+            <div class="stage-b" style="padding:18px 12px 6px">
+              <svg class="hs" viewBox="0 0 560 300" role="img" aria-label="Sessiz hat">
+                <path d="M210 150 C 300 150, 300 56, 380 56" class="rail-q"/><path d="M210 150 L 380 150" class="rail-q"/><path d="M210 150 C 300 150, 300 244, 380 244" class="rail-q"/>
+                <rect x="90" y="90" width="120" height="120" rx="32" class="hub" opacity=".9"/>
+                <use href="#logo" x="120" y="106" width="60" height="60" class="mk inv"/>
+                <text x="150" y="194" text-anchor="middle" class="hub-t">0 iş</text>
+                <rect x="380" y="20" width="170" height="72" rx="20" class="node"/><text x="396" y="44" class="lbl">APP STORE CONNECT</text><text x="396" y="70" class="det">son: 13:59 · başarılı</text>
+                <rect x="380" y="114" width="170" height="72" rx="20" class="node"/><text x="396" y="138" class="lbl">GOOGLE PLAY</text><text x="396" y="164" class="det">son: 14:03 · başarılı</text>
+                <rect x="380" y="208" width="170" height="72" rx="20" class="node"/><text x="396" y="232" class="lbl">MICROSOFT STORE</text><text x="396" y="258" class="det">son: dün · başarısız</text>
+              </svg>
+            </div>
+            <div style="text-align:center;padding:4px 24px 26px"><h3 class="h3">Hat şu an sessiz</h3><p class="t-s fg2 mt4" style="max-width:420px;margin-left:auto;margin-right:auto">Bir plan onaylandığında ya da CI bir paket gönderdiğinde iş burada akmaya başlar.</p></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Son biten işler</span><span class="lnk t-s ml">Bütün işler</span></div><div class="lst">
+            <div class="lst-i"><span class="st sm"><b>GP</b></span><div class="f1" style="min-width:0"><b class="t-s">Halka · AAB internal</b><div class="t-xs fg3 mono">Ci · 3 dk 02 sn</div></div><span class="bdg ok sm">Başarılı</span></div>
+            <div class="lst-i"><span class="st sm"><b>AS</b></span><div class="f1" style="min-width:0"><b class="t-s">Pusula · iPad 13" · tr</b><div class="t-xs fg3 mono">Web · 1 dk 42 sn</div></div><span class="bdg ok sm">Başarılı</span></div>
+            <div class="lst-i"><span class="st sm"><b>MS</b></span><div class="f1" style="min-width:0"><b class="t-s">Pusula · Kuzey içi uçuşu</b><div class="t-xs fg3 mono">Web · 409</div></div><span class="bdg dng sm">Başarısız</span></div>
+            <div class="lst-i"><span class="st sm"><b>AS</b></span><div class="f1" style="min-width:0"><b class="t-s">Mola · 3 yorum yanıtı</b><div class="t-xs fg3 mono">Mcp · 4 sn</div></div><span class="bdg ok sm">Başarılı</span></div>
+            <div class="lst-i"><span class="st sm"><b>AS</b></span><div class="f1" style="min-width:0"><b class="t-s">Defter · yeniden gönderim</b><div class="t-xs fg3 mono">Web · iptal</div></div><span class="bdg sm">İptal edildi</span></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f11-14">
+  <figcaption class="fr-h"><b class="fr-n">11.14</b><span class="fr-t">Canlı bağlantı koptu</span><code class="fr-r">/activity</code></figcaption>
+  <p class="fr-note">SignalR bağlantısı düşünce sahne donar ve soluklaşır, "Canlı" rozeti "Bağlantı yok" olur; işler sunucuda sürer. İstemci 0, 2, 5, 10, 30 sn aralıklarla yeniden bağlanır. Bağlanınca kaçan adımlar her etkin iş için <code>GET /api/v1.0/jobs/job</code> ile son görülen <code>Order</code>'dan sonrası alınarak tamamlanır, animasyon kaçan adımları oynatmaz, doğrudan son duruma geçer. Token süresi dolduysa (401) önce <code>POST account/login/refresh</code>. 503 (bakım) için ayrı metin: "storeasy bakımda, işler kuyrukta bekliyor".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="activity" data-crumbs="Canlı akış" data-live="2 iş sürüyor">
+      <div class="content">
+        <div class="banner warn"><svg class="ic"><use href="#i-wifi-off"/></svg><div class="f1"><b>Canlı bağlantı koptu.</b> İşler sunucuda sürüyor; 5 sn sonra yeniden bağlanılacak.</div><span class="btn sm">Şimdi bağlan</span></div>
+        <div class="pg-h mt16"><div><h1 class="pg-t">Canlı akış</h1><p class="pg-s">Son olay 14:02:41</p></div><div class="pg-a"><span class="bdg"><svg class="ic s12"><use href="#i-wifi-off"/></svg>Bağlantı yok</span></div></div>
+        <div class="hat">
+          <div class="stage" style="opacity:.55">
+            <div class="stage-b" style="padding:18px 12px">
+              <svg class="hs" viewBox="0 0 560 300" role="img" aria-label="Donmuş hat">
+                <path d="M210 150 C 300 150, 300 56, 380 56" class="rail-q"/><path d="M210 150 L 380 150" class="rail-q"/><path d="M210 150 C 300 150, 300 244, 380 244" class="rail-q"/>
+                <rect x="90" y="90" width="120" height="120" rx="32" class="hub"/>
+                <use href="#logo" x="120" y="106" width="60" height="60" class="mk inv"/>
+                <text x="150" y="194" text-anchor="middle" class="hub-t">2 iş · ?</text>
+                <rect x="380" y="20" width="170" height="72" rx="20" class="node"/><text x="396" y="44" class="lbl">APP STORE CONNECT</text><text x="396" y="70" class="det">4 / 7 · 14:02:39</text>
+                <rect x="380" y="114" width="170" height="72" rx="20" class="node"/><text x="396" y="138" class="lbl">GOOGLE PLAY</text><text x="396" y="164" class="det">31,4 / 48,0 MB</text>
+                <rect x="380" y="208" width="170" height="72" rx="20" class="node"/><text x="396" y="232" class="lbl">MICROSOFT STORE</text><text x="396" y="258" class="det">deneme 2/3</text>
+              </svg>
+            </div>
+          </div>
+          <div class="feed"><div class="card-h"><span class="h3">Olaylar</span><span class="bdg sm ml">Donduruldu</span></div>
+            <div class="ev"><time>14:02:41</time><div><span class="dir wh">GELEN</span><b>webhook.received</b><div class="m">Pusula 2.3 · IN_REVIEW</div></div></div>
+            <div class="ev"><time>14:02:39</time><div><span class="dir out">GİDEN</span><b>asset.commit</b><div class="m">03-harita.png · 200</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+</main>
+<script>
+/* storeasy tasarım runtime'ı: tema, görünüm (masaüstü / telefon), hareket azaltma, çerçeve ölçekleme,
+   uygulama kabuğu (kenar çubuğu + üst bar) ve bölüm içindekileri. build.mjs her dosyaya gömer. */
+(function () {
+  var root = document.documentElement, KEY = 'storeasy.design';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(k, v) { try { var s = load(); s[k] = v; localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  /* ---------- Uygulama kabuğu ---------- */
+  var ICON = function (id, cls) { return '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; };
+  var NAV = [
+    { g: null, items: [
+      ['apps', '/apps', 'i-grid', 'Uygulamalar', '6'],
+      ['activity', '/activity', 'i-activity', 'Canlı akış', '2', 'live'],
+      ['reviews', '/reviews', 'i-msg', 'Yorumlar', '14'],
+      ['compliance', '/compliance', 'i-cal-clock', 'Uyum takvimi', '3', 'dng'],
+      ['studio', '/studio', 'i-images', 'Stüdyo']
+    ] },
+    { g: 'Teslim', items: [
+      ['intake', '/intake', 'i-cloud-up', 'Paket alma'],
+      ['connections', '/connections', 'i-plug', 'Mağaza bağlantıları'],
+      ['webhooks', '/webhooks', 'i-webhook', 'Webhook\'lar']
+    ] },
+    { g: 'Organizasyon', items: [
+      ['members', '/members', 'i-users', 'Üyeler'],
+      ['audit', '/audit', 'i-list', 'Denetim kaydı'],
+      ['rules', '/rules', 'i-book', 'Mağaza kuralları'],
+      ['settings', '/settings', 'i-settings', 'Ayarlar']
+    ] },
+    { g: 'Geliştirici', items: [
+      ['mcp', '/developer', 'i-terminal', 'MCP ve token\'lar']
+    ] }
+  ];
+  var ADMIN = { g: 'Platform', items: [
+    ['a-rules', '/admin/rules', 'i-radar', 'Katalog önerileri', '2'],
+    ['a-users', '/admin/users', 'i-user', 'Kullanıcılar'],
+    ['a-roles', '/admin/roles', 'i-shield', 'Roller'],
+    ['a-logs', '/admin/activity-logs', 'i-history', 'Aktivite logu'],
+    ['a-langs', '/admin/languages', 'i-lang', 'Diller'],
+    ['a-flags', '/admin/feature-flags', 'i-flag', 'Özellik anahtarları'],
+    ['a-health', '/admin/system', 'i-server', 'Sistem durumu']
+  ] };
+  var ROLE_HIDE = { Viewer: ['connections', 'webhooks'], Editor: ['connections', 'webhooks'] };
+
+  function buildShell(sh) {
+    var d = sh.dataset, on = d.nav || '', role = d.role || 'Owner';
+    var hide = (ROLE_HIDE[role] || []);
+    if (d.hide) { hide = hide.concat(d.hide.split(',')); }
+    var groups = NAV.slice(); if (d.admin !== undefined) { groups.push(ADMIN); }
+    var nav = groups.map(function (g) {
+      var items = g.items.filter(function (it) { return hide.indexOf(it[0]) < 0; }).map(function (it) {
+        var c = it[4] ? '<span class="cnt' + (it[5] ? ' ' + it[5] : '') + '">' + (it[5] === 'live' ? '&#9679; ' : '') + it[4] + '</span>' : '';
+        return '<a class="nav-i' + (it[0] === on ? ' on' : '') + '" href="#" title="' + it[1] + '">' + ICON(it[2]) + '<span>' + it[3] + '</span>' + c + '</a>';
+      }).join('');
+      return (g.g ? '<div class="nav-g">' + g.g + '</div>' : '') + items;
+    }).join('');
+    var act = d.act === undefined ? '<a class="btn pri blk act" href="#">' + ICON('i-plus') + 'Uygulama ekle</a>' :
+      (d.act ? '<a class="btn pri blk act" href="#">' + ICON(d.actIcon || 'i-plus') + d.act + '</a>' : '');
+    var org = d.org || 'Kuzey Lab', orgInit = d.orgInit || 'K';
+    var roleTr = { Owner: 'Sahip', Admin: 'Yönetici', Editor: 'Editör', Viewer: 'İzleyici' }[role] || role;
+    var aside = '<aside class="side" aria-label="Ana menü">' +
+      '<a class="brand" href="#"><svg class="mk" aria-hidden="true"><use href="#logo"/></svg><span class="wm">stor<i>e</i>asy</span></a>' +
+      '<button class="orgsw" type="button" aria-label="Organizasyon değiştir"><span class="oav">' + orgInit + '</span><span class="f1"><b>' + org + '</b><small>' + roleTr + ' · 6 uygulama</small></span>' + ICON('i-chevs', 's16 fg3') + '</button>' +
+      (role === 'Viewer' && d.act === undefined ? '' : act) + '<nav>' + nav + '</nav>' +
+      '<div class="side-f"><div class="me"><span class="av">DA</span><span class="f1"><b>Deniz Arslan</b><small>deniz@kuzeylab.dev</small></span>' + ICON('i-more', 's16 fg3') + '</div>' +
+      '<div class="lic"><span>AGPL-3.0 · Kaynak kod</span><span>v1.0.0</span></div></div></aside>';
+    var crumbs = (d.crumbs || 'Uygulamalar').split('|');
+    var cr = crumbs.map(function (c, i) { return i === crumbs.length - 1 ? '<b>' + c + '</b>' : '<span class="pre">' + c + '</span><span class="sep pre">/</span>'; }).join('');
+    var live = d.live === undefined ? '' : '<span class="livepill"><span class="dot"></span><span>' + (d.live || '2 iş sürüyor') + '</span></span>';
+    var bar = '<header class="bar"><button class="ib ghost menu-btn" type="button" aria-label="Menüyü aç">' + ICON('i-menu') + '</button>' +
+      '<div class="crumb"><span class="pre">' + org + '</span><span class="sep pre">/</span>' + cr + '</div>' +
+      '<div class="search" role="search">' + ICON('i-search', 's16') + '<span>Uygulama, sürüm, paket ara</span><span class="kbd">Ctrl K</span></div>' + live +
+      '<button class="ib" type="button" aria-label="Bildirimler">' + ICON('i-bell') + (d.bell === 'off' ? '' : '<span class="pip"></span>') + '</button>' +
+      '<button class="ib ghost" type="button" aria-label="Yardım">' + ICON('i-help') + '</button></header>';
+    var main = document.createElement('div'); main.className = 'main';
+    main.innerHTML = bar;
+    while (sh.firstChild) { main.appendChild(sh.firstChild); }
+    sh.innerHTML = aside; sh.appendChild(main);
+    if (!main.querySelector('.content')) { var ct = document.createElement('div'); ct.className = 'content'; while (main.children.length > 1) { ct.appendChild(main.children[1]); } main.appendChild(ct); }
+  }
+  document.querySelectorAll('.shell[data-nav]').forEach(buildShell);
+
+  /* ---------- Uygulama başlığı + sekmeler (uygulama detayı ekranları) ----------
+     <div class="apphead" data-app="pusula" data-store="apple" data-tab="kayit" data-sub="Metinler">[eylem düğmeleri]</div> */
+  var STORES = { apple: ['AS', 'App Store'], google: ['GP', 'Google Play'], ms: ['MS', 'Microsoft Store'] };
+  var APPS = {
+    pusula: { n: 'Pusula', c: '#0F766E', s: { apple: ['2.3', 'İncelemede', 'warn'], google: ['2.3.0', 'Production %20', 'info'], ms: ['2.3.0.0', 'Sertifikasyonda', 'info'] } },
+    defter: { n: 'Defter', c: '#B45309', s: { apple: ['1.4', 'Reddedildi', 'dng'], google: ['1.4.0', 'Closed', ''] } },
+    halka: { n: 'Halka', c: '#DB2777', s: { apple: ['1.0 (37)', 'TestFlight', 'info'], google: ['1.0.0', 'Internal', ''] } },
+    mola: { n: 'Mola', c: '#15803D', s: { apple: ['3.1.2', 'Yayında', 'ok'], google: ['3.1.2', 'Production', 'ok'] } },
+    tarla: { n: 'Tarla', c: '#9A3412', s: { google: ['0.9.4', 'Internal', ''], ms: ['0.9.4', 'Yayında', 'ok'] } },
+    kumbara: { n: 'Kumbara', c: '#475569', s: { apple: ['1.0', 'Hazırlanıyor', ''] } }
+  };
+  var TABS = [['ozet', 'Genel bakış'], ['hazirlik', 'Hazırlık'], ['kayit', 'Mağaza kaydı'], ['yayin', 'Yayın'], ['para', 'Para'], ['geri', 'Geri bildirim'], ['uyum', 'Uyum']];
+  var SUBS = {
+    kayit: [['Metinler'], ['Görseller'], ['Önizleme videoları', 'apple,google'], ['Kategori ve yaş'], ['Fiyat ve bölgeler'], ['Uygulama ayrıntıları']],
+    yayin: [['Build\'ler'], ['Sürümler ve track\'ler'], ['TestFlight', 'apple'], ['Paket uçuşları', 'ms'], ['Aşamalı yayın'], ['İnceleme bilgileri']],
+    para: [['Abonelikler', 'apple,google'], ['Uygulama içi ürünler', 'apple,google'], ['Add-on\'lar', 'ms']],
+    geri: [['Yorumlar'], ['Red kayıtları']],
+    uyum: [['Zaman çizelgesi'], ['Kayıtlı cevaplar'], ['Asistanlı adımlar']]
+  };
+  document.querySelectorAll('.apphead[data-app]').forEach(function (h) {
+    var d = h.dataset, a = APPS[d.app] || APPS.pusula, cur = d.store || Object.keys(a.s)[0];
+    var acts = h.innerHTML;
+    var seg = '<div class="seg" role="tablist" aria-label="Mağaza">' + Object.keys(a.s).map(function (k) {
+      return '<span class="' + (k === cur && d.store !== 'all' ? 'on' : '') + '"><span class="st sm"><b>' + STORES[k][0] + '</b></span>' + STORES[k][1] + '</span>';
+    }).join('') + '</div>';
+    var lanes = Object.keys(a.s).map(function (k) {
+      var x = a.s[k]; return '<span class="bdg ' + x[2] + '"><span class="dot"></span>' + STORES[k][0] + ' ' + x[0] + ' · ' + x[1] + '</span>';
+    }).join('');
+    var tabs = '<div class="tabs" role="tablist">' + TABS.map(function (t) {
+      var n = t[0] === 'hazirlik' && d.ready ? ' <span class="n' + (d.ready.indexOf('!') === 0 ? ' dng' : '') + '">' + d.ready.replace('!', '') + '</span>' : '';
+      return '<a class="tab' + (t[0] === d.tab ? ' on' : '') + '" href="#">' + t[1] + n + '</a>';
+    }).join('') + '</div>';
+    var subs = '';
+    if (SUBS[d.tab]) {
+      subs = '<div class="r gp6 wrap mb16 subnav">' + SUBS[d.tab].filter(function (s) { return !s[1] || d.store === 'all' || s[1].split(',').indexOf(cur) >= 0; }).map(function (s) {
+        return '<span class="chip' + (s[0] === d.sub ? ' on' : '') + '">' + s[0] + '</span>';
+      }).join('') + '</div>';
+    }
+    h.innerHTML = '<div class="r gp16 wrap mb16"><span class="aic l" style="--c:' + a.c + '">' + a.n[0] + '</span>' +
+      '<div class="f1"><div class="r gp10 wrap"><h1 class="pg-t">' + a.n + '</h1>' + lanes + '</div>' +
+      '<div class="t-s fg3 mono mt4">' + (d.meta || 'com.kuzeylab.' + d.app) + '</div></div>' +
+      (d.store === 'all' ? '' : seg) + (acts.trim() ? '<div class="pg-a apphead-a">' + acts + '</div>' : '') + '</div>' + tabs + subs;
+  });
+
+  /* ---------- Çerçeve ölçekleme ---------- */
+  function sizeOf(fr) {
+    var v = fr.getAttribute('data-view') || root.getAttribute('data-view') || 'desktop';
+    var ph = v === 'phone';
+    var h = ph ? (fr.getAttribute('data-ph') || 844) : (fr.getAttribute('data-h') || 820);
+    return { w: ph ? 390 : 1280, h: +h };
+  }
+  function fit() {
+    document.querySelectorAll('.fr').forEach(function (fr) {
+      var vp = fr.querySelector(':scope > .vp'); if (!vp) { return; }
+      var scr = vp.querySelector(':scope > .scr'); if (!scr) { return; }
+      var s = sizeOf(fr), avail = vp.clientWidth || s.w, k = Math.min(1, avail / s.w);
+      scr.style.width = s.w + 'px'; scr.style.height = s.h + 'px';
+      scr.style.transform = k < 1 ? 'scale(' + k + ')' : 'none';
+      vp.style.height = Math.round(s.h * k) + 'px';
+    });
+  }
+
+  /* ---------- Tema, görünüm, hareket ---------- */
+  function setAttr(k, v) {
+    root.setAttribute('data-' + k, v);
+    document.querySelectorAll('.dseg [data-set="' + k + '"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); });
+    save(k, v);
+    if (k === 'view') { requestAnimationFrame(fit); }
+    if (k === 'motion') { document.dispatchEvent(new CustomEvent('motionchange')); }
+  }
+  var st = load();
+  setAttr('theme', st.theme || root.getAttribute('data-theme') || 'dark');
+  setAttr('view', st.view || 'desktop');
+  var sysReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setAttr('motion', sysReduce ? 'reduce' : (st.motion || 'full'));
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.dseg [data-set]'); if (!b) { return; }
+    setAttr(b.getAttribute('data-set'), b.getAttribute('data-v'));
+  });
+
+  /* ---------- SVG SMIL animasyonları hareket azaltmada durur ---------- */
+  function motion() {
+    var reduce = root.getAttribute('data-motion') === 'reduce';
+    document.querySelectorAll('svg.anim').forEach(function (s) {
+      try { if (reduce) { s.pauseAnimations(); s.setCurrentTime(0); } else { s.unpauseAnimations(); } } catch (e) {}
+    });
+  }
+  document.addEventListener('motionchange', motion);
+
+  /* ---------- Bölüm içindekiler ---------- */
+  var toc = document.querySelector('.doc-toc');
+  if (toc) {
+    toc.innerHTML = Array.prototype.map.call(document.querySelectorAll('.sec'), function (s, i) {
+      if (!s.id) { s.id = 's' + (i + 1); }
+      var h = s.querySelector('.sec-h h2'); return h ? '<a href="#' + s.id + '">' + h.textContent + '</a>' : '';
+    }).join('');
+  }
+
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+  fit(); motion();
+})();
+
+</script>
+</body>
+</html>

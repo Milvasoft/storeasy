@@ -1,0 +1,783 @@
+<!--
+title: Paket alma ve CI
+kicker: 13 · Teslim
+desc: Build pipeline'larının paketi doğrudan storeasy'ye vermesi: giriş yolları, OIDC güvenilir yayıncılar, CI token'ları, yükleme oturumları ve işleme adımları, teslim kuralları, EAS ve genel webhook kaynakları, kurulum parçacıkları ve elle yükleme.
+-->
+<style>
+.paths{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pathc{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pathc.later{border-style:dashed;background:none}
+.pathc .pic{width:32px;height:32px;border-radius:9px;background:rgb(var(--bg-2));display:grid;place-items:center;flex:none;color:rgb(var(--fg-2))}
+.pathc .pf{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgb(var(--fg-3));border-top:1px dashed rgb(var(--border));padding-top:8px}
+.drop{border:1.5px dashed rgb(var(--border-strong));border-radius:var(--r-lg);padding:22px 16px;display:grid;justify-items:center;gap:8px;text-align:center;color:rgb(var(--fg-2));font-size:13px}
+.drop.on{border-color:rgb(var(--fg));background:rgb(var(--bg-2)/.6)}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.flow .nd{border:1px solid rgb(var(--border));border-radius:10px;padding:8px 10px;font-size:12.5px;background:rgb(var(--surface));display:grid;gap:2px}
+.flow .nd small{font:500 11px/1.2 var(--font-mono);color:rgb(var(--fg-3))}
+.flow .ar{color:rgb(var(--fg-3));display:inline-flex}
+.rule{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid rgb(var(--border))}
+.rule:last-child{border-bottom:0}
+.rule.lock{background:rgb(var(--bg-2)/.5)}
+.tl .skip{opacity:.5}
+.tl-i>div{min-width:0}
+.stepm{font:500 11.5px/1.4 var(--font-mono);color:rgb(var(--fg-3));margin-top:4px;overflow-wrap:anywhere}
+.split>*,.split-l>*,.g2>*{min-width:0}
+.cmp td.bad{color:rgb(var(--danger));font-weight:600}
+@container scr (max-width:760px){
+  .paths{grid-template-columns:1fr}
+  .rule{grid-template-columns:minmax(0,1fr) auto}
+  .rule>:nth-child(2){grid-column:1 / -1;grid-row:2}
+  .flow .ar{transform:rotate(90deg)}
+  .flow{flex-direction:column;align-items:stretch}
+  .rpop{left:12px !important;right:12px;min-width:0 !important;top:252px !important}
+}
+</style>
+
+<!-- ============ 1. GENEL BAKIŞ ============ -->
+<section class="sec" id="genel">
+<div class="sec-h"><span class="k">Bölüm 13.1-13.3</span><h2>Paket alma: genel bakış</h2><p>Build pipeline'ı paketi storeasy'ye verir, storeasy okur, kataloğa göre kontrol eder ve uygulamanın teslim kuralıyla mağazaya götürür (plan 11.8). Production ve incelemeye gönderme hiçbir zaman otomatik değildir. Bütün paket alma ekranları aynı sekme satırını paylaşır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-1" data-h="1100">
+  <figcaption class="fr-h"><b class="fr-n">13.1</b><span class="fr-t">Paket alma genel bakışı</span><code class="fr-r">/intake</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/artifacts/sessions</code> (planlanan, sayaçlar) → <code>ArtifactSessionListDto { Id, AppId, AppName, Platform (Ios, Android, Windows), FileName, Size, Sha256, Source (GitHubActions, AzureDevOps, GitLab, Cli, Rest, Eas, Webhook, Manual), SourceRef { Provider, RunId, RunUrl, Repository, Branch, Actor }, Status (Uploading, Parsing, Checking, Delivering, Delivered, Rejected, Duplicate), StatusDescription, StartDate, EndDate, StoreJobId }</code>; giriş yolu kartlarının sayaçları <code>GET artifacts/trusted-publishers</code>, <code>GET artifacts/ci-tokens</code>, <code>GET artifacts/sources</code> yanıtlarından. Canlı satırlar SignalR <code>/hubs/activity</code> <code>job.step</code> olayıyla akar. <b>İzin:</b> görme <code>View</code>; "Paket yükle" <code>ReleaseTest</code> (rol matrisi: Editor test track'lerine AAB yükleyebilir). Kurulum kartları yalnız <code>ManageConnections</code> olan rolde "Kur" düğmesi taşır. Telefonda sayaçlar tek sütun, uygulama tablosu karta döner, giriş yolları tek sütun. <span class="gap">Backend boşluğu:</span> uygulama başına "son paket" özeti için <code>GET /api/v1.0/artifacts/summary</code> (uygulama başına son oturum + teslim kuralı) planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1><p class="pg-s">CI ve build servisleri paketi buraya verir; storeasy okur, kontrol eder ve teslim kuralına göre mağazaya götürür.</p></div>
+          <div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-code"/></svg>Kurulum</span><span class="btn pri"><svg class="ic"><use href="#i-upload"/></svg>Paket yükle</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar <span class="n">37</span></a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="g4">
+          <div class="card stat"><span class="lb">Bugün gelen paket</span><span class="num">5</span><span class="t-xs fg3">GitHub 2 · Azure DevOps 2 · EAS 1</span></div>
+          <div class="card stat"><span class="lb">Teslim edildi (7 gün)</span><span class="num">14</span><span class="t-xs fg3">TestFlight 6 · Play 7 · Microsoft 1</span></div>
+          <div class="card stat"><span class="lb">Reddedildi (7 gün)</span><span class="num dng-t">1</span><span class="t-xs fg3">Paket adı eşleşmedi</span></div>
+          <div class="card stat"><span class="lb">Ortalama süre</span><span class="num">6 dk</span><span class="t-xs fg3">Yüklemeden mağaza onayına</span></div>
+        </div>
+        <div class="mt16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-box"/></svg><span class="h3">Uygulama başına son paket</span><span class="lnk t-s ml">Bütün oturumlar</span></div>
+              <div class="tbl-w" style="border:0;border-radius:0"><table class="tbl">
+                <thead><tr><th>Uygulama</th><th>Son paket</th><th>Kaynak</th><th>Durum</th><th>Teslim kuralı</th></tr></thead>
+                <tbody>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#DB2777">H</span><b>Halka</b></span></td><td data-l="Son paket" class="mono">1.0.0 (42) · AAB</td><td data-l="Kaynak">GitHub Actions #318</td><td data-l="Durum"><span class="bdg live info sm"><span class="dot"></span>Teslim ediliyor</span></td><td data-l="Kural" class="t-s">Android → internal</td></tr>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="Son paket" class="mono">2.4 (119) · IPA</td><td data-l="Kaynak">Azure DevOps</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Teslim edildi</span></td><td data-l="Kural" class="t-s">iOS → TestFlight Kuzey içi</td></tr>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#15803D">M</span><b>Mola</b></span></td><td data-l="Son paket" class="mono">3.1.3 (88) · IPA</td><td data-l="Kaynak">EAS webhook'u</td><td data-l="Durum"><span class="bdg sm">Okunuyor</span></td><td data-l="Kural" class="t-s">iOS → TestFlight Kuzey içi</td></tr>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#B45309">D</span><b>Defter</b></span></td><td data-l="Son paket" class="mono">1.4.1 (55) · AAB</td><td data-l="Kaynak">GitHub Actions #127</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></td><td data-l="Kural" class="t-s">Android → internal</td></tr>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#475569">K</span><b>Kumbara</b></span></td><td data-l="Son paket" class="mono">1.0 (12) · IPA</td><td data-l="Kaynak">Elle · Deniz Arslan</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Teslim edildi</span></td><td data-l="Kural" class="t-s fg3">Kural yok</td></tr>
+                  <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#9A3412">T</span><b>Tarla</b></span></td><td data-l="Son paket" class="mono">0.9.5 (95) · AAB</td><td data-l="Kaynak">CLI · Mert Kaya</td><td data-l="Durum"><span class="bdg info sm">Yükleniyor %45</span></td><td data-l="Kural" class="t-s">Android → internal</td></tr>
+                </tbody></table></div></div>
+        </div>
+        <div class="r bt mt24 mb12"><div class="h3">Giriş yolları</div><span class="t-s fg3">Önerilen: OIDC ile güvenilir yayıncı, kalıcı sır yok</span></div>
+        <div class="paths">
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-branch"/></svg></span><b class="t-m f1">GitHub Action</b><span class="bdg ok sm">Önerilen</span></div><span class="t-s fg2"><span class="mono">storeasy/upload-action</span>, OIDC ile; <span class="mono">id-token: write</span> yeter.</span><div class="pf"><span>2 güven kuralı</span><span class="btn sm">Kur</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-workflow"/></svg></span><b class="t-m f1">Azure DevOps görevi</b></div><span class="t-s fg2"><span class="mono">StoreasyUpload@1</span>, workload identity ya da CI token'ı.</span><div class="pf"><span>1 güven kuralı</span><span class="btn sm">Kur</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-terminal"/></svg></span><b class="t-m f1">CLI</b></div><span class="t-s fg2"><span class="mono">storeasy upload &lt;dosya&gt; --app &lt;id&gt;</span>, yerel makine ve her CI.</span><div class="pf"><span>npm · storeasy</span><span class="btn sm">Komutu gör</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-code"/></svg></span><b class="t-m f1">REST</b></div><span class="t-s fg2">Oturum aç, presigned parçalı yükle, <span class="mono">complete</span> ile kapat.</span><div class="pf"><span>CI token'ı ile</span><span class="btn sm">Örnek</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-webhook"/></svg></span><b class="t-m f1">EAS webhook'u</b></div><span class="t-s fg2">Build bitince EAS haber verir, storeasy indirir. <span class="mono">expo-signature</span> doğrulanır.</span><div class="pf"><span>1 kaynak · Mola</span><span class="btn sm">Ayarlar</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-zap"/></svg></span><b class="t-m f1">Genel webhook</b></div><span class="t-s fg2">Codemagic, Bitrise ve diğerleri: imzalı "artifact hazır" çağrısı.</span><div class="pf"><span>1 kaynak · Halka</span><span class="btn sm">Ayarlar</span></div></div>
+          <div class="pathc"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-upload"/></svg></span><b class="t-m f1">Elle</b></div><span class="t-s fg2">Sürükle bırak; MCP'de yerel dosya yolu.</span><div class="pf"><span>IPA, AAB, MSIX</span><span class="btn sm">Yükle</span></div></div>
+          <div class="pathc later"><div class="r gp8"><span class="pic"><svg class="ic s16"><use href="#i-plug"/></svg></span><b class="t-m f1 fg2">fastlane eklentisi</b><span class="bdg sm">Faz 8</span></div><span class="t-s fg3">Sonraki fazda. O zamana kadar fastlane içinden CLI çağrılır.</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-2">
+  <figcaption class="fr-h"><b class="fr-n">13.2</b><span class="fr-t">Boş: henüz paket gelmedi</span><code class="fr-r">/intake</code></figcaption>
+  <p class="fr-note">İlk açılış. Tek ana eylem "GitHub Action'ı kur" (en yaygın yol, sır gerektirmez); diğer yollar ikincil. <code>ManageConnections</code> yoksa düğme yerine "Kurulumu bir yöneticiden iste" metni ve yalnız "Paket yükle" (izin <code>ReleaseTest</code>) kalır. Mağaza bağlantısı hiç yoksa önce bağlantı istenir: paket teslim edilecek yer yok.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma" data-act="" data-bell="off">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div>
+        <div class="empty" style="padding:48px 24px">
+          <div class="flow" style="justify-content:center"><span class="nd"><b>CI</b><small>build</small></span><span class="ar"><svg class="ic s16"><use href="#i-arrow-r"/></svg></span><span class="nd"><b>storeasy</b><small>oku · kontrol et</small></span><span class="ar"><svg class="ic s16"><use href="#i-arrow-r"/></svg></span><span class="nd"><b>Mağaza</b><small>test track'i</small></span></div>
+          <h4>Henüz paket gelmedi</h4><p>Pipeline'ın son adımına storeasy'yi ekle. GitHub Actions ve Azure DevOps OIDC ile kimlik gösterir; saklanacak sır yok.</p>
+          <span class="btn pri mt8"><svg class="ic"><use href="#i-branch"/></svg>GitHub Action'ı kur</span>
+          <div class="r gp8 wrap" style="justify-content:center"><span class="btn sm">Azure DevOps</span><span class="btn sm">EAS webhook'u</span><span class="btn sm">CLI</span><span class="btn sm ghost"><svg class="ic"><use href="#i-upload"/></svg>Elle yükle</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-3" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.3</b><span class="fr-t">Elle yükleme ve okuma önizlemesi</span><code class="fr-r">/intake → Paket yükle</code></figcaption>
+  <p class="fr-note">Dosya bırakılınca tarayıcı <code>POST /api/v1.0/apps/{appId}/artifacts { FileName, Size, Sha256, Source: Manual }</code> ile oturum açar (SHA-256 tarayıcıda hesaplanır), parçaları presigned URL'lerle S3'e yollar, <code>PUT /api/v1.0/artifacts/{sessionId}/complete { Parts[{ PartNumber, ETag }] }</code> ile kapatır. Sunucu paketi okur ve önizleme döner. Elle yüklemede teslim kullanıcının onayıyla başlar; CI'da kural kendiliğinden uygulanır. <b>İzin:</b> <code>ReleaseTest</code>. Telefonda modal tam ekran, bırakma alanı "Dosya seç" düğmesine döner. <span class="gap">Backend boşluğu:</span> elle yüklemede "oku, onayla, sonra teslim et" için <code>complete</code> isteğinde <code>HoldForConfirmation</code> ve <code>POST /api/v1.0/artifacts/session/deliver { SessionId }</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m133">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m133">Paket yükle</h2><p class="t-s fg2 mt4">IPA, AAB ya da MSIX. Paket uygulamayla eşleşmezse reddedilir.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Uygulama</span><span class="inp sel"><span class="aic s" style="--c:#DB2777">H</span>Halka</span></label>
+        <div class="drop on"><svg class="ic s24"><use href="#i-cloud-up"/></svg><b class="mono t-m" style="color:rgb(var(--fg))">halka-1.0.0-43.aab</b><span>49,1 MB · 7 parça · SHA-256 <span class="mono">c07e5a19…</span></span><div style="width:100%;max-width:360px"><div class="prog ok"><i style="width:100%"></i></div></div><span class="t-xs fg3">Yüklendi ve okundu · 14:31</span></div>
+        <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-file"/></svg><span class="h3">Paketten okunan</span><span class="bdg ok sm ml"><span class="dot"></span>Uygulamayla eşleşiyor</span></div><div class="card-b">
+          <dl class="kv"><dt>Paket adı</dt><dd class="mono">com.kuzeylab.halka</dd><dt>Sürüm</dt><dd class="mono">1.0.0 · versionCode 43</dd><dt>targetSdk / minSdk</dt><dd class="mono">36 / 26</dd><dt>İmza</dt><dd class="mono">upload key · SHA-256 3A:9F:…:E2</dd></dl>
+        </div></div>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><span class="f1 t-s">Hedef API 36 <span class="fg3 mono">google.build.target-api</span></span></div>
+          <div class="lst-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><span class="f1 t-s">versionCode 43 &gt; 42</span></div>
+          <div class="lst-i"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><span class="f1 t-s">Upload key Play'deki kayıtla eşleşiyor</span></div>
+        </div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-workflow"/></svg><div>Teslim kuralı: <b>Android → internal track</b>. Production ve incelemeye gönderme bu akışta yok.</div></div>
+      </div>
+      <div class="mdl-f"><span class="t-s fg3 f1 hide-ph">Teslim edilmezse paket 30 gün saklanır</span><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-rocket"/></svg>Internal'a teslim et</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. KİMLİK ============ -->
+<section class="sec" id="kimlik">
+<div class="sec-h"><span class="k">Bölüm 13.4-13.12</span><h2>Kimlik: güvenilir yayıncılar ve CI token'ları</h2><p>Önerilen yol OIDC güvenilir yayıncıdır (PyPI ve npm trusted publishing gibi): CI kendi kısa ömürlü token'ını gösterir, storeasy kuralla karşılaştırır ve 15 dakikalık yükleme token'ı verir. OIDC desteklemeyen servisler için organizasyona bağlı, uygulama ve izin kapsamlı CI token'ı vardır. İkisi de kişiye bağlı değildir ve PAT'tan ayrıdır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-4" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.4</b><span class="fr-t">Güvenilir yayıncılar</span><code class="fr-r">/intake/trusted-publishers</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/artifacts/trusted-publishers</code> → <code>TrustedPublisherDto { Id, AppId, AppName, Provider (GitHub, AzureDevOps, GitLab), Repository, Organization, Project, ServiceConnection, Branch, Environment, Audience, LastExchangeDate, LastExchangeResult (Succeeded, ClaimMismatch, InvalidToken), LastExchangeRunUrl, CreatorUserName, CreationDate }</code>; değişim ucu <code>POST /api/v1.0/oidc/exchange { AppId, Token }</code> → <code>{ UploadToken, ExpiryDate }</code> (15 dk, yalnız o uygulama ve <code>artifacts:write</code>). <b>İzin:</b> görme <code>View</code>, ekleme ve silme <code>ManageConnections</code> (Owner, Admin). Başarısız değişim satırı 13.7'deki tanı çekmecesini açar. Telefonda tablo karta döner, akış şeması dikey dizilir.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Güvenilir yayıncılar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Kural ekle</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab on" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="card mb16"><div class="card-b c gp12">
+          <div class="flow"><span class="nd"><b>CI çalışması</b><small>OIDC token · aud storeasy</small></span><span class="ar"><svg class="ic s16"><use href="#i-arrow-r"/></svg></span><span class="nd"><b>storeasy kuralı</b><small>repo · dal · ortam</small></span><span class="ar"><svg class="ic s16"><use href="#i-arrow-r"/></svg></span><span class="nd"><b>Yükleme token'ı</b><small>15 dakika · tek uygulama</small></span><span class="ar"><svg class="ic s16"><use href="#i-arrow-r"/></svg></span><span class="nd"><b>Paket</b><small>/apps/{appId}/artifacts</small></span></div>
+          <p class="t-s fg2" style="margin:0">CI'da saklanan kalıcı sır yok. Token yalnız kuraldaki repo, dal ve ortamdan gelirse 15 dakikalık yükleme token'ına çevrilir; süre dolunca işe yaramaz.</p>
+        </div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Uygulama</th><th>Sağlayıcı</th><th>Repo / proje</th><th>Dal</th><th>Ortam</th><th>Son değişim</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#DB2777">H</span><b>Halka</b></span></td><td data-l="Sağlayıcı">GitHub</td><td data-l="Repo" class="mono">kuzeylab/halka-mobile</td><td data-l="Dal" class="mono">main</td><td data-l="Ortam" class="mono">play-internal</td><td data-l="Son değişim"><span class="r gp6"><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>Bugün 13:58 · #318</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="Sağlayıcı">Azure DevOps</td><td data-l="Proje" class="mono">kuzeylab / Pusula · storeasy-pusula</td><td data-l="Dal" class="fg3">Token'da yok</td><td data-l="Ortam" class="mono">testflight</td><td data-l="Son değişim"><span class="r gp6"><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>Bugün 10:20</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr class="hov"><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#15803D">M</span><b>Mola</b></span></td><td data-l="Sağlayıcı">GitLab</td><td data-l="Proje" class="mono">kuzeylab/mola</td><td data-l="Dal" class="mono">release/*</td><td data-l="Ortam" class="fg3">-</td><td data-l="Son değişim"><span class="bdg dng sm"><span class="dot"></span>Claim eşleşmedi · 14 Kas</span></td><td class="ta"><span class="btn sm">Tanı</span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><span class="aic s" style="--c:#B45309">D</span><b>Defter</b></span></td><td data-l="Sağlayıcı">GitHub</td><td data-l="Repo" class="mono">kuzeylab/defter</td><td data-l="Dal" class="mono">main</td><td data-l="Ortam" class="fg3">-</td><td data-l="Son değişim"><span class="r gp6"><svg class="ic s14 ok-t"><use href="#i-check-c"/></svg>Dün 17:01 · #127</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <p class="t-xs fg3 mt12">Defter'in son değişimi başarılı ama paket reddedildi (paket adı eşleşmedi, bkz. 13.16). Kimlik doğrulaması ile paket kontrolü ayrı adımlardır.</p>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-5" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.5</b><span class="fr-t">Kural ekle: GitHub</span><code class="fr-r">/intake/trusted-publishers → ekle</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/artifacts/trusted-publisher { AppId, Provider: GitHub, Repository, Workflow?, Branch, Environment? }</code> (<code>Idempotency-Key</code>) → <code>Id</code>. Audience sabit <code>storeasy</code>, değiştirilemez. GitHub'da iş bir ortam kullanınca <code>sub</code> içinde dal olmaz (<code>repo:ORG/REPO:environment:AD</code>); storeasy bu yüzden dalı ayrıca <code>ref</code> claim'inden denetler. Alanlar yazıldıkça "beklenen claim'ler" güncellenir. <b>İzin:</b> <code>ManageConnections</code>. Denetim kaydı: <span class="gap">Backend boşluğu:</span> <code>AuditAction</code>'a <code>TrustedPublisherAdded</code>, <code>TrustedPublisherRemoved</code>, <code>CiTokenCreated</code>, <code>CiTokenRevoked</code>, <code>DeliveryRulesUpdated</code>, <code>ArtifactSourceUpdated</code> eklenecek. Telefonda sağlayıcı seçimi yatay kayar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Güvenilir yayıncılar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m135">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m135">Güvenilir yayıncı ekle</h2><p class="t-s fg2 mt4">Bu kuralla eşleşen CI çalışmaları sır olmadan paket yükleyebilir.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Sağlayıcı</span><div class="seg" style="max-width:100%;overflow-x:auto"><span class="on">GitHub</span><span>Azure DevOps</span><span>GitLab</span></div></div>
+        <div class="g2">
+          <label class="fld"><span class="lbl">Uygulama</span><span class="inp sel"><span class="aic s" style="--c:#DB2777">H</span>Halka</span></label>
+          <label class="fld"><span class="lbl">Repo</span><span class="inp mono foc">kuzeylab/halka-mobile</span><span class="hint">sahip/repo biçiminde</span></label>
+          <label class="fld"><span class="lbl">Dal</span><span class="inp mono">main</span><span class="hint">Joker kabul eder: <span class="mono">release/*</span></span></label>
+          <label class="fld"><span class="lbl">Ortam <span class="opt">· önerilir</span></span><span class="inp mono">play-internal</span><span class="hint">GitHub ortamındaki onaycılar ek kapı olur.</span></label>
+          <label class="fld"><span class="lbl">Workflow dosyası <span class="opt">· isteğe bağlı</span></span><span class="inp mono">.github/workflows/release.yml</span></label>
+          <label class="fld"><span class="lbl">Audience</span><span class="inp mono ro">storeasy</span><span class="hint">Sabit; action bunu kendisi ister.</span></label>
+        </div>
+        <div class="fld"><span class="lbl">Beklenen claim'ler</span>
+<pre class="code"><span class="k1">iss</span>  https://token.actions.githubusercontent.com
+<span class="k1">aud</span>  storeasy
+<span class="k1">sub</span>  repo:kuzeylab/halka-mobile:environment:play-internal
+<span class="k1">ref</span>  refs/heads/main
+<span class="k1">job_workflow_ref</span>  kuzeylab/halka-mobile/.github/workflows/release.yml@refs/heads/main</pre></div>
+        <div class="callout info"><svg class="ic"><use href="#i-clock"/></svg><div>Eşleşen token 15 dakikalık yükleme token'ına çevrilir. Kuralı kaydettikten sonraki ilk CI çalışması "Son değişim" sütununda görünür.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Kuralı kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-6" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">13.6</b><span class="fr-t">Kural ekle: Azure DevOps</span><code class="fr-r">/intake/trusted-publishers → ekle</code></figcaption>
+  <p class="fr-note">Aynı uç, <code>Provider: AzureDevOps</code>, <code>Organization, Project, ServiceConnection</code>. Azure DevOps workload identity token'ında dal bilgisi yoktur: <code>sub</code> yalnız service connection'ı söyler. Bu yüzden dal alanı pasif ve gerekçesi altında; kısıt service connection'ın pipeline izinleri ve ortam onaylarıyla kurulur. GitLab seçilince alanlar <code>project_path</code>, <code>ref</code>, <code>environment</code> olur. <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Güvenilir yayıncılar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m136">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m136">Güvenilir yayıncı ekle</h2><p class="t-s fg2 mt4">Azure Pipelines, workload identity federation ile.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Sağlayıcı</span><div class="seg" style="max-width:100%;overflow-x:auto"><span>GitHub</span><span class="on">Azure DevOps</span><span>GitLab</span></div></div>
+        <div class="g2">
+          <label class="fld"><span class="lbl">Uygulama</span><span class="inp sel"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span></label>
+          <label class="fld"><span class="lbl">Azure DevOps organizasyonu</span><span class="inp mono">kuzeylab</span></label>
+          <label class="fld"><span class="lbl">Proje</span><span class="inp mono">Pusula</span></label>
+          <label class="fld"><span class="lbl">Service connection</span><span class="inp mono foc">storeasy-pusula</span></label>
+          <label class="fld"><span class="lbl">Dal</span><span class="inp dis">Azure DevOps token'ında yok</span></label>
+          <label class="fld"><span class="lbl">Audience</span><span class="inp mono ro">api://AzureADTokenExchange · storeasy</span></label>
+        </div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>Dal kısıtı burada kurulamaz</b><div class="t-s fg2 mt4">Service connection'ı yalnız bu pipeline'a aç ("Grant access to all pipelines" kapalı) ve <span class="mono">testflight</span> ortamına onaycı ekle. Böylece başka daldan çalışan bir pipeline onaysız yükleyemez.</div></div></div>
+        <div class="fld"><span class="lbl">Beklenen claim'ler</span>
+<pre class="code"><span class="k1">iss</span>  https://vstoken.dev.azure.com/&lt;organizasyon kimliği&gt;
+<span class="k1">sub</span>  sc://kuzeylab/Pusula/storeasy-pusula</pre></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Kuralı kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-7" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.7</b><span class="fr-t">OIDC değişimi başarısız: claim tanısı</span><code class="fr-r">/intake/trusted-publishers/:id</code></figcaption>
+  <p class="fr-note"><code>POST oidc/exchange</code> eşleşmeyince <code>403</code> ve mesaj anahtarı <code>OidcClaimMismatch</code> döner; CI'a giden metin hangi claim'in tuttuğunu söylemez (bilgi sızmasın), ayrıntı yalnız bu çekmecede. Tablo kuralın beklediği ile gelen değeri yan yana gösterir; uyuşmayan satır kırmızı metin. "Token ile dene" CI loglarından kopyalanan bir OIDC token'ını kurala karşı kuru çalıştırır (yükleme token'ı üretmez). <b>İzin:</b> <code>ManageConnections</code>. Telefonda çekmece tam genişlik, tablo karta döner. <span class="gap">Backend boşluğu:</span> son değişim ayrıntısı (gelen claim'ler, ham token saklanmadan) ve kuru deneme için <code>GET /api/v1.0/artifacts/trusted-publisher?Id=</code> + <code>POST /api/v1.0/artifacts/trusted-publisher/test { Id, Token }</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Güvenilir yayıncılar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m137" style="width:560px">
+      <div class="mdl-h"><div class="f1"><div class="r gp8 mb8"><span class="aic s" style="--c:#15803D">M</span><span class="t-s">Mola · GitLab</span><span class="bdg dng sm"><span class="dot"></span>Claim eşleşmedi</span></div><h2 class="h2" id="m137">Son değişim reddedildi</h2><p class="t-s fg2 mt4">14 Kasım 2026, 18:44 · pipeline 90211 · <span class="lnk">GitLab'da aç</span></p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="tbl-w"><table class="tbl cmp">
+          <thead><tr><th>Claim</th><th>Beklenen</th><th>Gelen</th></tr></thead>
+          <tbody>
+            <tr><td class="tm mono">iss</td><td data-l="Beklenen" class="mono">https://gitlab.com</td><td data-l="Gelen" class="mono">https://gitlab.com</td></tr>
+            <tr><td class="tm mono">aud</td><td data-l="Beklenen" class="mono">storeasy</td><td data-l="Gelen" class="mono bad">https://gitlab.com</td></tr>
+            <tr><td class="tm mono">project_path</td><td data-l="Beklenen" class="mono">kuzeylab/mola</td><td data-l="Gelen" class="mono">kuzeylab/mola</td></tr>
+            <tr><td class="tm mono">ref</td><td data-l="Beklenen" class="mono">release/*</td><td data-l="Gelen" class="mono bad">feature/yeni-zamanlayici</td></tr>
+            <tr><td class="tm mono">ref_type</td><td data-l="Beklenen" class="mono">branch</td><td data-l="Gelen" class="mono">branch</td></tr>
+          </tbody></table></div>
+        <div class="callout dng"><svg class="ic"><use href="#i-x-c"/></svg><div><b>İki claim tutmuyor</b><div class="t-s fg2 mt4"><span class="mono">aud</span>: <span class="mono">.gitlab-ci.yml</span> içindeki <span class="mono">id_tokens</span> bloğunda <span class="mono">aud: storeasy</span> olmalı. <span class="mono">ref</span>: çalışma bir özellik dalından; kural yalnız <span class="mono">release/*</span> dallarına izin veriyor.</div></div></div>
+        <div class="fld"><span class="lbl">CI'a dönen yanıt</span>
+<pre class="code"><span class="c1">$ storeasy upload mola-3.1.3-88.aab --app 4</span>
+hata  OIDC token'ı bu uygulamanın güven kurallarıyla eşleşmedi (403).
+      Ayrıntı: storeasy &gt; Paket alma &gt; Güvenilir yayıncılar
+<span class="c1">çıkış kodu 3</span></pre></div>
+        <div class="hr d"></div>
+        <label class="fld"><span class="lbl">Token ile dene <span class="opt">· kuru çalıştırma</span></span><span class="inp ta mono" style="min-height:72px"><span class="ph">CI logundan bir OIDC token'ı yapıştır (eyJhbGciOi…)</span></span><span class="hint">Token saklanmaz; yalnız claim'ler kurala karşı denetlenir.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn">Dene</span><span class="btn pri">Kuralı düzenle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-8" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">13.8</b><span class="fr-t">CI token'ları</span><code class="fr-r">/intake/tokens</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/artifacts/ci-tokens</code> → <code>CiTokenDto { Id, Name, AppIds[], AppNames[], AllApps, Scopes ["artifacts:write"], Prefix, ExpiryDate, LastUseDate, LastUseSource, CreatorUserName, CreationDate }</code>. Değer yalnız SHA-256 hash olarak saklanır; listede yalnız önek (<code>sci_7f2a…</code>). Token bir kişiye bağlı değildir: oluşturan üye ayrılsa da çalışır; PAT (<code>sea_</code>) kişiseldir ve "Geliştirici &gt; MCP ve token'lar"da yönetilir. Süresi dolan satır kırmızı metinle, 30 günden yakın olan uyarı rengiyle. <b>İzin:</b> görme <code>View</code>, oluşturma ve iptal <code>ManageConnections</code>. Telefonda tablo karta döner, "Token oluştur" sağ altta yüzen düğme.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|CI token'ları" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a hide-ph"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab on" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="callout info mb16"><svg class="ic"><use href="#i-info"/></svg><div>CI token'ı OIDC desteklemeyen servisler içindir (Codemagic, Bitrise, Jenkins). GitHub Actions ve Azure DevOps için güvenilir yayıncı kullan: saklanacak sır kalmaz.</div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad</th><th>Uygulamalar</th><th>İzin</th><th>Önek</th><th>Bitiş</th><th>Son kullanım</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>codemagic-halka</b></td><td data-l="Uygulamalar">Halka</td><td data-l="İzin"><span class="tag">artifacts:write</span></td><td data-l="Önek" class="mono">sci_7f2a…</td><td data-l="Bitiş">18 May 2027</td><td data-l="Son kullanım">Bugün 13:41 · Codemagic</td><td class="ta"><span class="btn sm ghost">İptal et</span></td></tr>
+            <tr><td class="tm"><b>bitrise-mola</b></td><td data-l="Uygulamalar">Mola</td><td data-l="İzin"><span class="tag">artifacts:write</span></td><td data-l="Önek" class="mono">sci_c41d…</td><td data-l="Bitiş">2 Şub 2027</td><td data-l="Son kullanım">10 Kas · Bitrise</td><td class="ta"><span class="btn sm ghost">İptal et</span></td></tr>
+            <tr><td class="tm"><b>jenkins-windows</b></td><td data-l="Uygulamalar">Pusula, Tarla</td><td data-l="İzin"><span class="tag">artifacts:write</span></td><td data-l="Önek" class="mono">sci_90be…</td><td data-l="Bitiş"><span class="warn-t b6">30 Kas 2026 · 12 gün</span></td><td data-l="Son kullanım">Dün 22:10 · CLI</td><td class="ta"><span class="btn sm ghost">İptal et</span></td></tr>
+            <tr><td class="tm"><b class="fg2">eski-jenkins</b></td><td data-l="Uygulamalar" class="fg2">Bütün uygulamalar</td><td data-l="İzin"><span class="tag">artifacts:write</span></td><td data-l="Önek" class="mono fg2">sci_2b11…</td><td data-l="Bitiş"><span class="bdg dng sm">Süresi doldu · 1 Kas</span></td><td data-l="Son kullanım" class="fg2">28 Eki · CLI</td><td class="ta"><span class="btn sm ghost">Sil</span></td></tr>
+          </tbody></table></div>
+        <p class="t-xs fg3 mt12">Süresi dolan token uzatılamaz; yenisi oluşturulup CI değişkeni değiştirilir. Süresi dolmuş token'la gelen istek <span class="mono">401 CiTokenExpired</span> alır.</p>
+      </div>
+      <span class="btn pri fab"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-9">
+  <figcaption class="fr-h"><b class="fr-n">13.9</b><span class="fr-t">Token oluştur</span><code class="fr-r">/intake/tokens → oluştur</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/artifacts/ci-token { Name, AppIds[], AllApps, Scopes: ["artifacts:write"], ExpiryDays }</code> (<code>Idempotency-Key</code>) → <code>CiTokenCreatedDto { Id, Token, Prefix, ExpiryDate }</code>. Süre en çok 1 yıl; süresiz token yok. Bugün tek izin <code>artifacts:write</code>; alan ileride başka izinler için liste. Ad organizasyonda benzersiz; çakışmada alan altında hata. <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|CI token'ları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m139">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m139">CI token'ı oluştur</h2><p class="t-s fg2 mt4">Organizasyona bağlı; kimseye ait değil.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Ad</span><span class="inp mono foc">codemagic-halka</span><span class="hint">Hangi CI'da kullanıldığını anlatsın.</span></label>
+        <div class="fld"><span class="lbl">Uygulamalar</span><div class="r gp6 wrap"><span class="chip on"><span class="aic s" style="--c:#DB2777;width:16px;height:16px;font-size:9px;border-radius:5px">H</span>Halka</span><span class="chip">Pusula</span><span class="chip">Defter</span><span class="chip">Mola</span><span class="chip">Tarla</span><span class="chip">Kumbara</span></div><span class="hint">Yalnız seçilen uygulamalara paket yükleyebilir.</span></div>
+        <div class="fld"><span class="lbl">İzin</span><div class="r gp8"><span class="chk on dis"></span><span class="mono t-s">artifacts:write</span><span class="t-xs fg3">paket yükleme · başka izin yok</span></div></div>
+        <div class="fld"><span class="lbl">Süre</span><div class="seg"><span>30 gün</span><span>90 gün</span><span class="on">180 gün</span><span>1 yıl</span></div><span class="hint">Bitiş 17 Mayıs 2027. Bitişten 14 gün önce sahiplere bildirim gider.</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Token oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-10">
+  <figcaption class="fr-h"><b class="fr-n">13.10</b><span class="fr-t">Token bir kez gösterilir</span><code class="fr-r">/intake/tokens → oluşturuldu</code></figcaption>
+  <p class="fr-note">Yanıttaki <code>Token</code> yalnız bu modalda durur; modal kapanınca bellekten silinir, sunucuda yalnız hash kalır. "Kaydettim" işaretlenmeden "Kapat" pasif; dışarı tıklama ve Esc modalı kapatmaz. Kopyalama 2 sn "Kopyalandı" geri bildirimi verir. Telefonda tam ekran; uzun değer satır kırar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|CI token'ları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1310">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 ok-t"><use href="#i-check-c"/></svg></span><div class="f1"><h2 class="h2" id="m1310">codemagic-halka oluşturuldu</h2><p class="t-s fg2 mt4">Halka · artifacts:write · 17 May 2027'ye kadar</p></div></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Token</span><div class="secret"><span class="f1">sci_7f2a4QmV9xT2kLr8NwZp3Hc6YbJd1EuS5gAo</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>Bu değer bir daha gösterilmez</b><div class="t-s fg2 mt4">Codemagic'te gizli ortam değişkeni olarak kaydet: <span class="mono">STOREASY_TOKEN</span>. Kaybedersen bu token'ı iptal edip yenisini oluştur.</div></div></div>
+        <div class="r gp8 t-s"><span class="chk on"></span>Token'ı güvenli bir yere kaydettim</div>
+      </div>
+      <div class="mdl-f"><span class="btn pri">Kapat</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-11">
+  <figcaption class="fr-h"><b class="fr-n">13.11</b><span class="fr-t">Token'ı iptal et</span><code class="fr-r">/intake/tokens → iptal</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/artifacts/ci-token { Id }</code>. İptal anında etkili; o anda süren yükleme oturumu tamamlanır, yeni oturum açılamaz (<code>401</code>). Son kullanım bilgisi kararı kolaylaştırır. Tehlikeli eylem kırmızı düğme. <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|CI token'ları" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Paket alma</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1311">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1311">codemagic-halka iptal edilsin mi?</h2><p class="t-s fg2 mt4">Bu token'la gelen yeni yüklemeler reddedilir. Geri alınamaz.</p></div></div>
+      <div class="mdl-b">
+        <dl class="kv"><dt>Önek</dt><dd class="mono">sci_7f2a…</dd><dt>Son kullanım</dt><dd>Bugün 13:41 · Codemagic</dd><dt>Uygulama</dt><dd>Halka</dd></dl>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Son 24 saatte kullanıldı. Codemagic'teki pipeline yeni token olmadan duracak.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Token'ı iptal et</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-12">
+  <figcaption class="fr-h"><b class="fr-n">13.12</b><span class="fr-t">Editor: token oluşturma izni yok (403)</span><code class="fr-r">/intake/tokens</code></figcaption>
+  <p class="fr-note">CI token'ı ve güven kuralları organizasyon adına kalıcı yükleme kapısı açar; bu yüzden <code>ManageConnections</code> ister (Owner, Admin). Editor listeyi görür, "Token oluştur" pasif ve gerekçesi yanında; elle yükleme (<code>ReleaseTest</code>) Editor'da açık kalır. Doğrudan API çağrısı <code>403</code> döner, toast sunucu mesajını gösterir. Viewer'da da aynı görünüm, iptal düğmeleri gizli. <span class="gap">Backend boşluğu:</span> paket alma ayarları için ayrı bir izin (<code>ManageIntake</code>) yok; öneri: <code>ManageConnections</code> kullanılır, ayrı izin Tasarımdan çıkarıldı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-role="Editor" data-crumbs="Paket alma|CI token'ları">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="btn pri dis" aria-disabled="true"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab on" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="callout mb16"><svg class="ic"><use href="#i-lock"/></svg><div>CI token'ı oluşturma ve iptal etme yalnız <b>Sahip</b> ve <b>Yönetici</b> rolünde. Elle paket yükleyebilirsin.</div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad</th><th>Uygulamalar</th><th>Önek</th><th>Bitiş</th><th>Son kullanım</th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>codemagic-halka</b></td><td data-l="Uygulamalar">Halka</td><td data-l="Önek" class="mono">sci_7f2a…</td><td data-l="Bitiş">18 May 2027</td><td data-l="Son kullanım">Bugün 13:41</td></tr>
+            <tr><td class="tm"><b>bitrise-mola</b></td><td data-l="Uygulamalar">Mola</td><td data-l="Önek" class="mono">sci_c41d…</td><td data-l="Bitiş">2 Şub 2027</td><td data-l="Son kullanım">10 Kas</td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast dng" role="alert"><svg class="ic"><use href="#i-shield-x"/></svg><div class="f1"><b>Bu işlem için yetkin yok</b><div class="fg2">CI token'ı oluşturmak Yönetici rolü ister. (403)</div></div></div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. OTURUMLAR ============ -->
+<section class="sec" id="oturumlar">
+<div class="sec-h"><span class="k">Bölüm 13.13-13.17</span><h2>Yükleme oturumları</h2><p>Her paket bir yükleme oturumudur: S3'e parçalı yükleme, okuma, kataloğa göre kontrol, teslim kuralı ve mağazaya teslim. Her adım canlı akışta ve denetim kaydında; sonuç CI'a çıkış kodu ve özet olarak döner. Aynı SHA-256 ikinci kez işlenmez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-13" data-h="920">
+  <figcaption class="fr-h"><b class="fr-n">13.13</b><span class="fr-t">Oturum listesi</span><code class="fr-r">/intake/sessions</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/artifacts/sessions</code> ListRequest (<code>AppId</code>, <code>Status</code>, <code>Source</code> eşittir; <code>FileName</code> Contains; <code>StartDate</code> aralık) → <code>ArtifactSessionListDto</code> (13.1). Sayfa boyutu 10 / 20 / 50 / 100, varsayılan 20; sıralama başlangıca göre azalan. SHA-256 ilk 8 hane, tam değer satır detayında. Durum metinleri: Yükleniyor, Okunuyor, Kontrol ediliyor, Teslim ediliyor, Teslim edildi, Reddedildi, Aynı paket. <b>İzin:</b> <code>View</code>. Telefonda tablo karta döner; boyut ve SHA sütunları (<code>td.tx</code>) gizlenir, filtreler tek "Filtre" düğmesine toplanır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Oturumlar" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><div class="inp hide-ph" style="width:260px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Dosya adında ara</span></div><span class="btn pri"><svg class="ic"><use href="#i-upload"/></svg>Paket yükle</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab on" href="#">Oturumlar <span class="n">37</span></a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="toolbar"><span class="chip hide-ph">Uygulama: Tümü</span><span class="chip hide-ph">Durum: Tümü</span><span class="chip on hide-ph"><svg class="ic"><use href="#i-filter"/></svg>Kaynak: CI</span><span class="chip hide-ph">Son 7 gün</span><span class="btn sm only-ph"><svg class="ic"><use href="#i-filter"/></svg>Filtre · 1</span><span class="btn ghost sm">Filtreleri temizle</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Uygulama</th><th>Dosya</th><th>Kaynak</th><th>Boyut</th><th>SHA-256</th><th>Durum</th><th class="srt">Başladı <svg class="ic"><use href="#i-arrow-down"/></svg></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#DB2777">H</span><b>Halka</b></span></td><td data-l="Dosya" class="mono">halka-1.0.0-42.aab</td><td data-l="Kaynak">GitHub Actions #318 · deneme 2</td><td data-l="Boyut" class="tx">48,0 MB</td><td data-l="SHA-256" class="mono tx">9e41c0d2</td><td data-l="Durum"><span class="bdg sm">Aynı paket</span></td><td data-l="Başladı">14:06</td></tr>
+            <tr class="hov"><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#DB2777">H</span><b>Halka</b></span></td><td data-l="Dosya" class="mono">halka-1.0.0-42.aab</td><td data-l="Kaynak">GitHub Actions #318</td><td data-l="Boyut" class="tx">48,0 MB</td><td data-l="SHA-256" class="mono tx">9e41c0d2</td><td data-l="Durum"><span class="bdg live info sm"><span class="dot"></span>Teslim ediliyor</span></td><td data-l="Başladı">13:58</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#9A3412">T</span><b>Tarla</b></span></td><td data-l="Dosya" class="mono">tarla-0.9.5-95.aab</td><td data-l="Kaynak">CLI · Mert Kaya</td><td data-l="Boyut" class="tx">40,6 MB</td><td data-l="SHA-256" class="mono tx">51aa07fe</td><td data-l="Durum"><span class="bdg info sm">Yükleniyor %45</span></td><td data-l="Başladı">13:55</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#15803D">M</span><b>Mola</b></span></td><td data-l="Dosya" class="mono">mola-3.1.3-88.ipa</td><td data-l="Kaynak">EAS webhook'u</td><td data-l="Boyut" class="tx">71,9 MB</td><td data-l="SHA-256" class="mono tx">e2b85c31</td><td data-l="Durum"><span class="bdg sm">Okunuyor</span></td><td data-l="Başladı">13:12</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="Dosya" class="mono">Pusula_2.4.0.0.msixbundle</td><td data-l="Kaynak">Azure DevOps 20261118.3</td><td data-l="Boyut" class="tx">61,2 MB</td><td data-l="SHA-256" class="mono tx">0c9d44ab</td><td data-l="Durum"><span class="bdg sm">Kontrol ediliyor</span></td><td data-l="Başladı">10:24</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#0F766E">P</span><b>Pusula</b></span></td><td data-l="Dosya" class="mono">pusula-2.4-119.ipa</td><td data-l="Kaynak">Azure DevOps 20261118.3</td><td data-l="Boyut" class="tx">92,6 MB</td><td data-l="SHA-256" class="mono tx">3b7f19e0</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Teslim edildi</span></td><td data-l="Başladı">10:21</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#B45309">D</span><b>Defter</b></span></td><td data-l="Dosya" class="mono">defter-dev-1.4.1-55.aab</td><td data-l="Kaynak">GitHub Actions #127</td><td data-l="Boyut" class="tx">39,3 MB</td><td data-l="SHA-256" class="mono tx">a8820f6c</td><td data-l="Durum"><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></td><td data-l="Başladı">Dün 17:02</td></tr>
+            <tr><td class="tm"><span class="r gp8"><span class="aic s" style="--c:#15803D">M</span><b>Mola</b></span></td><td data-l="Dosya" class="mono">mola-3.1.2-87.aab</td><td data-l="Kaynak">Bitrise · genel webhook</td><td data-l="Boyut" class="tx">44,8 MB</td><td data-l="SHA-256" class="mono tx">77d2e490</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Teslim edildi</span></td><td data-l="Başladı">10 Kas</td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 2 · Toplam: 31</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-14" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">13.14</b><span class="fr-t">Oturum detayı: Android, teslim ediliyor</span><code class="fr-r">/intake/sessions/:sessionId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/artifacts/session?SessionId=</code> → <code>ArtifactSessionDetailDto { ...ArtifactSessionListDto, Steps: [{ Kind (Upload, Parse, Check, Rule, Deliver, Report), Status (Pending, Running, Done, Failed, Skipped), Message, Bytes, Total, ResumeCount, StartDate, EndDate }], Package { Kind (Ipa, Aab, Msix), Identifier, VersionName, VersionCode, MinOs, TargetSdk, Signature }, Checks: [ReadinessItemDto], AppliedRule { Platform, Target, TargetName, RuleUpdatedByUserName, RuleUpdatedDate }, Identity { Kind (Oidc, CiToken, User), TrustedPublisherId?, CiTokenPrefix?, UserName? }, CiResult { ExitCode?, Summary }, StoreJobId }</code>. Yükleme adımı kaldığı yerden devam eden parçaları sayar. Teslim adımı canlı (SignalR <code>job.step</code>); "Canlı işi aç" Canlı akıştaki işe gider. <b>İzin:</b> <code>View</code>. Telefonda sağ sütun (kaynak, CI çıktısı) adımların altına iner; çıktı bloğu kendi içinde yatay kayar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Oturumlar|4127" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Oturumlar</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="aic s" style="--c:#DB2777">H</span><span class="t-s">Halka</span><span class="st sm"><b>GP</b>Google Play</span><span class="bdg live info sm"><span class="dot"></span>Teslim ediliyor</span></div><h1 class="pg-t mono" style="font-size:24px">halka-1.0.0-42.aab</h1><p class="pg-s">Oturum 4127 · 48,0 MB · GitHub Actions #318</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-activity"/></svg>Canlı işi aç</span></div></div>
+        <div class="split">
+          <div class="card"><div class="card-b"><div class="tl">
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Yüklendi</b><div class="t-s fg2">S3'e parçalı yükleme · 6 parça · parça 4 bağlantı koptuğu için kaldığı yerden yeniden gönderildi</div><div class="stepm">13:58:02 → 13:58:41 · şifreli · saklama 30 gün</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Paket okundu</b><div class="t-s fg2 mono">com.kuzeylab.halka · 1.0.0 · versionCode 42 · targetSdk 36 · minSdk 26</div><div class="stepm">Uygulamayla eşleşiyor · 13:58:44</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Hazırlık kontrolü · 3 / 3</b>
+              <div class="ck mt4">
+                <div class="ck-i" style="padding:8px 0"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s">Hedef API 36 <span class="fg3 mono">· google.build.target-api</span></div></div>
+                <div class="ck-i" style="padding:8px 0"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s">versionCode 42 &gt; 41 <span class="fg3">· internal'daki son</span></div></div>
+                <div class="ck-i" style="padding:8px 0"><span class="ck-s ok"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1 t-s">Upload key imzası eşleşiyor</div></div>
+              </div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Teslim kuralı uygulandı</b><div class="t-s fg2">Android → internal track</div><div class="stepm">Kural: Ece Yılmaz · 2 Kas 2026</div></div></div>
+            <div class="tl-i"><span class="tl-d now"></span><div><b class="t-m">Google Play'e teslim</b><div class="t-s fg2 mono">edits.bundles.upload · 31,4 / 48,0 MB</div><div class="prog mt8"><i style="width:65%"></i></div><div class="stepm">Sonra: internal track ataması · edit commit</div></div></div>
+            <div class="tl-i skip"><span class="tl-d"></span><div><b class="t-m">CI'a sonuç</b><div class="t-s fg2">Action <span class="mono">wait: true</span> ile bekliyor (en çok 30 dk)</div></div></div>
+          </div></div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Kaynak ve kimlik</span></div><div class="card-b"><dl class="kv">
+              <dt>Kaynak</dt><dd>GitHub Actions · <span class="lnk">#318</span></dd>
+              <dt>Repo</dt><dd class="mono">kuzeylab/halka-mobile</dd>
+              <dt>Dal · commit</dt><dd class="mono">main · a41f9c2</dd>
+              <dt>Kimlik</dt><dd>OIDC · güven kuralı Halka / GitHub</dd>
+              <dt>SHA-256</dt><dd class="mono t-s">9e41c0d2…7b03 <svg class="ic s14 fg3"><use href="#i-copy"/></svg></dd>
+            </dl></div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-terminal"/></svg><span class="h3">CI çıktısı</span><span class="bdg sm ml">Sürüyor</span></div><div class="card-b">
+<pre class="code"><span class="c1">storeasy/upload-action@v1</span>
+oidc       token alındı · 15 dk
+yükleme    48,0 MB · 6 parça · 1 yeniden
+okuma      com.kuzeylab.halka 1.0.0 (42)
+kontrol    3 / 3 tamam
+teslim     Google Play internal · %65 …</pre></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-15" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">13.15</b><span class="fr-t">Oturum detayı: iOS, TestFlight'a teslim edildi</span><code class="fr-r">/intake/sessions/:sessionId</code></figcaption>
+  <p class="fr-note">Aynı <code>GET artifacts/session</code>. Apple teslimi App Store Connect API'nin <code>buildUploads</code> ve <code>buildUploadFiles</code> kaynaklarıyla parçalı yapılır; uçtan uca çalıştığı Faz 3'te gerçek bir build ile doğrulanacak (not kutusu). Çalışmazsa yedek yol: CI paketi Apple'a kendisi yükler (EAS Submit, Xcode Cloud), storeasy build'i senkronla görür ve aynı teslim kuralını uygular; o durumda oturumun kaynağı "Senkron" olur ve yükleme adımı atlanır. CI sonucu çıkış kodu ve özet: <code>0</code> teslim edildi, <code>2</code> paket reddedildi, <code>3</code> kimlik, <code>4</code> mağaza hatası. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Oturumlar|4119" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Oturumlar</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="aic s" style="--c:#0F766E">P</span><span class="t-s">Pusula</span><span class="st sm"><b>AS</b>App Store</span><span class="bdg ok sm"><span class="dot"></span>Teslim edildi</span></div><h1 class="pg-t mono" style="font-size:24px">pusula-2.4-119.ipa</h1><p class="pg-s">Oturum 4119 · 92,6 MB · Azure DevOps 20261118.3 · 18 dk 40 sn</p></div><div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-plane"/></svg>TestFlight'ta gör</span></div></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-b"><div class="tl">
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Yüklendi</b><div class="t-s fg2">S3 · 12 parça</div><div class="stepm">10:21:05 → 10:22:31</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Paket okundu</b><div class="t-s fg2 mono">com.kuzeylab.pusula · 2.4 (119) · minimum iOS 17.0 · Xcode 26.1 · iphoneos26.1</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Hazırlık kontrolü · 4 / 4</b><div class="t-s fg2">Xcode 26 ve iOS 26 SDK alt sınırı · build 119 &gt; 118 · Apple Distribution imzası · ihracat uyumu build'de tanımlı</div><div class="stepm">apple.build.min-sdk · apple.build.number · apple.build.signature · apple.build.export-compliance</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Teslim kuralı uygulandı</b><div class="t-s fg2">iOS → TestFlight iç grup "Kuzey içi"</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">App Store Connect'e teslim</b><div class="t-s fg2 mono">buildUploads · buildUploadFiles · 12 parça</div><div class="t-s fg2">İşleme 10:39'da bitti: VALID · "Kuzey içi" grubuna eklendi</div></div></div>
+              <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">CI'a sonuç</b><div class="t-s fg2">Çıkış kodu 0 · 10:39:46</div></div></div>
+            </div></div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-flask"/></svg><div><b>Apple yükleme yolu Faz 3'te doğrulanacak</b><div class="t-s fg2 mt4">Bu teslim API'nin build upload kaynaklarıyla yapıldı. Yol çalışmazsa CI paketi Apple'a kendisi yükler (EAS Submit, Xcode Cloud); storeasy build'i senkronla görüp aynı kuralı uygular.</div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Kaynak ve kimlik</span></div><div class="card-b"><dl class="kv">
+              <dt>Kaynak</dt><dd>Azure DevOps · <span class="lnk">20261118.3</span></dd>
+              <dt>Proje</dt><dd class="mono">kuzeylab / Pusula</dd>
+              <dt>Kimlik</dt><dd>OIDC · storeasy-pusula</dd>
+              <dt>Ortam</dt><dd class="mono">testflight · Ece Yılmaz onayladı</dd>
+            </dl></div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-terminal"/></svg><span class="h3">CI çıktısı</span><span class="bdg ok sm ml">Çıkış 0</span></div><div class="card-b">
+<pre class="code"><span class="c1">StoreasyUpload@1</span>
+<span class="s1">teslim edildi</span>  Pusula 2.4 (119)
+mağaza     App Store Connect · VALID
+hedef      TestFlight · Kuzey içi
+süre       18 dk 40 sn
+oturum     https://storeasy.milvasoft.com/
+           intake/sessions/4119
+<span class="c1">çıkış kodu 0</span></pre></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-16" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.16</b><span class="fr-t">Reddedilen oturum: paket adı eşleşmiyor</span><code class="fr-r">/intake/sessions/:sessionId</code></figcaption>
+  <p class="fr-note">Okuma adımında paket kimliği uygulamanın mağaza kaydıyla karşılaştırılır; eşleşmezse oturum <code>Rejected</code> olur, sonraki adımlar atlanır (soluk), mağazaya hiçbir şey gitmez. CI çıkış kodu <code>2</code>, özet tek satırda nedeni söyler. Reddedilen paket saklama süresi sonunda silinir; "Paketi şimdi sil" yer açar. Sahiplere "İş hatalı" bildirimi gider (14. dosya). <b>İzin:</b> görme <code>View</code>; silme <code>ReleaseTest</code>. <span class="gap">Backend boşluğu:</span> reddedilen paketi elle silmek için <code>DELETE /api/v1.0/artifacts/session { SessionId }</code> planda yok; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Oturumlar|4102" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Oturumlar</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="aic s" style="--c:#B45309">D</span><span class="t-s">Defter</span><span class="st sm"><b>GP</b>Google Play</span><span class="bdg dng sm"><span class="dot"></span>Reddedildi</span></div><h1 class="pg-t mono" style="font-size:24px">defter-dev-1.4.1-55.aab</h1><p class="pg-s">Oturum 4102 · 39,3 MB · GitHub Actions #127 · dün 17:02</p></div><div class="pg-a"><span class="btn dng-o"><svg class="ic"><use href="#i-trash"/></svg>Paketi şimdi sil</span></div></div>
+        <div class="callout dng mb16"><svg class="ic"><use href="#i-x-c"/></svg><div><b>Paket adı uygulamayla eşleşmiyor</b><div class="t-s fg2 mt4">Paket <span class="mono">com.kuzeylab.defter.dev</span>, Defter'in Play kaydı <span class="mono">com.kuzeylab.defter</span>. Muhtemelen geliştirme flavor'ı derlendi; pipeline'da <span class="mono">bundleProdRelease</span> kullan.</div></div></div>
+        <div class="split">
+          <div class="card"><div class="card-b"><div class="tl">
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-m">Yüklendi</b><div class="stepm">17:02:10 → 17:02:38 · 5 parça</div></div></div>
+            <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-m dng-t">Paket okundu: eşleşmedi</b><div class="t-s fg2 mono">com.kuzeylab.defter.dev ≠ com.kuzeylab.defter</div><div class="stepm">1.4.1 · versionCode 55 · targetSdk 36</div></div></div>
+            <div class="tl-i skip"><span class="tl-d"></span><div><b class="t-m">Hazırlık kontrolü</b><div class="t-s fg2">Atlandı</div></div></div>
+            <div class="tl-i skip"><span class="tl-d"></span><div><b class="t-m">Teslim kuralı</b><div class="t-s fg2">Atlandı · Android → internal</div></div></div>
+            <div class="tl-i skip"><span class="tl-d"></span><div><b class="t-m">Mağazaya teslim</b><div class="t-s fg2">Atlandı · mağazaya hiçbir şey gönderilmedi</div></div></div>
+            <div class="tl-i"><span class="tl-d dng"></span><div><b class="t-m">CI'a sonuç</b><div class="t-s fg2">Çıkış kodu 2</div></div></div>
+          </div></div></div>
+          <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-terminal"/></svg><span class="h3">CI çıktısı</span><span class="bdg dng sm ml">Çıkış 2</span></div><div class="card-b">
+<pre class="code"><span class="c1">storeasy/upload-action@v1</span>
+oidc       token alındı · 15 dk
+yükleme    39,3 MB · 5 parça
+hata       Paket adı uygulamayla
+           eşleşmiyor:
+           com.kuzeylab.defter.dev
+           beklenen com.kuzeylab.defter
+<span class="c1">çıkış kodu 2</span></pre></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-17">
+  <figcaption class="fr-h"><b class="fr-n">13.17</b><span class="fr-t">Aynı paket: SHA-256 tekrarı atlandı</span><code class="fr-r">/intake/sessions/:sessionId</code></figcaption>
+  <p class="fr-note"><code>POST apps/{appId}/artifacts</code> aynı uygulamada aynı <code>Sha256</code> ile gelirse yükleme URL'si verilmez; yanıt <code>{ SessionId, Duplicate: true, OriginalSessionId }</code> olur ve oturum <code>Duplicate</code> durumunda kapanır. CI'a çıkış kodu <code>0</code> döner (yeniden çalıştırılan pipeline kırmızıya düşmesin); "--wait" verilmişse asıl oturumun sonucunu bekler. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Oturumlar|4131" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>Oturumlar</div>
+        <div class="pg-h"><div><div class="r gp8 mb8 wrap"><span class="aic s" style="--c:#DB2777">H</span><span class="t-s">Halka</span><span class="bdg sm">Aynı paket</span></div><h1 class="pg-t mono" style="font-size:24px">halka-1.0.0-42.aab</h1><p class="pg-s">Oturum 4131 · GitHub Actions #318 · deneme 2 · 14:06</p></div><div class="pg-a"><span class="btn">Asıl oturumu aç</span></div></div>
+        <div class="split">
+          <div class="state" style="padding:32px 16px"><span class="sic"><svg class="ic"><use href="#i-fingerprint"/></svg></span><h3>Bu paket zaten alındı</h3><p>SHA-256 <span class="mono">9e41c0d2…7b03</span> bugün 13:58'de oturum 4127 ile geldi. Aynı dosya ikinci kez yüklenmez ve mağazaya ikinci kez gönderilmez.</p></div>
+          <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-terminal"/></svg><span class="h3">CI çıktısı</span><span class="bdg ok sm ml">Çıkış 0</span></div><div class="card-b">
+<pre class="code">bilgi      Paket daha önce alındı
+           (oturum 4127)
+bekleme    asıl oturum teslim ediliyor
+<span class="c1">çıkış kodu 0</span></pre></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. TESLİM KURALLARI ============ -->
+<section class="sec" id="kurallar">
+<div class="sec-h"><span class="k">Bölüm 13.18</span><h2>Teslim kuralları</h2><p>Uygulama başına, platform başına tek kural: paket kontrolü geçince nereye gider. Hedefler yalnız test kanallarıdır; production ve incelemeye gönderme hiçbir zaman otomatik olmaz, onay adımı ve izin ister.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-18" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">13.18</b><span class="fr-t">Teslim kuralı düzenleyicisi</span><code class="fr-r">/intake/rules?app=:appId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/artifacts/delivery-rules?AppId=</code> → <code>DeliveryRulesDto { AppId, Rules: [{ Platform (Ios, Android, Windows), Enabled, Target (TestFlightGroup, PlayTrack, MsFlight, None), TargetId, TargetName, OnWarning (Deliver, Hold) }], UpdatedByUserName, UpdatedDate }</code>; hedef seçenekleri <code>GET testflight/groups</code>, Play track listesi ve <code>GET ms/flights</code>'tan. <code>PUT /api/v1.0/artifacts/delivery-rules { AppId, Rules[] }</code>. Sunucu production track'ini, dış TestFlight grubunu (beta inceleme ister) ve gönderimi hedef olarak kabul etmez (<code>400</code>). <b>İzin:</b> görme <code>View</code>, kaydetme <code>ManageConnections</code>. Telefonda uygulama listesi üstte açılır menüye döner, her kuralın hedefi kendi satırına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Teslim kuralları" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="btn pri">Kuralları kaydet</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab on" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="lst">
+            <div class="lst-i on"><span class="aic s" style="--c:#0F766E">P</span><span class="f1 t-s b6">Pusula</span><span class="t-xs fg3">3 kural</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#DB2777">H</span><span class="f1 t-s">Halka</span><span class="t-xs fg3">2 kural</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#15803D">M</span><span class="f1 t-s">Mola</span><span class="t-xs fg3">2 kural</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#B45309">D</span><span class="f1 t-s">Defter</span><span class="t-xs fg3">1 kural</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#9A3412">T</span><span class="f1 t-s">Tarla</span><span class="t-xs fg3">1 kural</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#475569">K</span><span class="f1 t-s">Kumbara</span><span class="t-xs fg3">Kural yok</span></div>
+          </div></div>
+          <div class="c gp16">
+            <label class="fld only-ph"><span class="lbl">Uygulama</span><span class="inp sel"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span></label>
+            <div class="card" style="position:relative"><div class="card-h"><span class="h3">Pusula</span><span class="t-xs fg3 ml">Ece Yılmaz · 2 Kas 2026</span></div>
+              <div class="rule"><span class="r gp8"><span class="st sm"><b>AS</b></span><b class="t-m">iOS</b></span><span class="inp sel">TestFlight iç grup · Kuzey içi</span><span class="sw on" role="switch" aria-checked="true"></span></div>
+              <div class="rule"><span class="r gp8"><span class="st sm"><b>GP</b></span><b class="t-m">Android</b></span><span class="inp sel foc">Internal track</span><span class="sw on" role="switch" aria-checked="true"></span></div>
+              <div class="rule"><span class="r gp8"><span class="st sm"><b>MS</b></span><b class="t-m">Windows</b></span><span class="inp sel">Paket uçuşu · Kuzey içi</span><span class="sw on" role="switch" aria-checked="true"></span></div>
+              <div class="pop rpop" style="top:166px;left:206px;min-width:260px">
+                <div class="mh">Test kanalları</div>
+                <div class="mi on"><svg class="ic"><use href="#i-check"/></svg>Internal track</div>
+                <div class="mi"><svg class="ic" style="opacity:0"><use href="#i-check"/></svg>Closed · Kuzey Beta</div>
+                <div class="mi"><svg class="ic" style="opacity:0"><use href="#i-check"/></svg>Open testing</div>
+                <div class="ms"></div>
+                <div class="mh">Otomatik olamaz</div>
+                <div class="mi fg3"><svg class="ic"><use href="#i-lock"/></svg>Production</div>
+              </div>
+            </div>
+            <div class="card"><div class="card-b c gp10">
+              <div class="opt-row"><span class="chk on"></span><div class="f1"><b class="t-m">Kontrolde uyarı varsa beklet</b><div class="t-s fg2">Engel yoksa ama uyarı varsa (ör. yaş derecelendirmesi yeni soruları) paket teslim edilmez, oturum onay bekler.</div></div></div>
+            </div></div>
+            <div class="card" style="background:rgb(var(--bg-2)/.5)"><div class="card-b r gp12" style="align-items:flex-start"><svg class="ic s18 fg2"><use href="#i-lock"/></svg><div class="f1"><b class="t-m">Production ve incelemeye gönderme hiçbir zaman otomatik değildir</b><div class="t-s fg2 mt4">Play production yayını <span class="mono">ReleaseProduction</span>, App Store incelemeye gönderme <span class="mono">SubmitForReview</span> izni ve ikinci onay adımı ister. Bu kurallar yalnız test kanallarına götürür.</div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. ÇEKME KAYNAKLARI ============ -->
+<section class="sec" id="cekme">
+<div class="sec-h"><span class="k">Bölüm 13.19-13.20</span><h2>Çekme kaynakları: EAS ve genel webhook</h2><p>Bazı build servisleri paketi göndermez, "hazır" der; storeasy imzayı doğrular ve paketi kendisi indirir. İndirme yalnız izinli alan adlarından yapılır (SSRF koruması); yönlendirme zinciri de aynı listeye tabidir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-19" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">13.19</b><span class="fr-t">EAS webhook'u</span><code class="fr-r">/intake/sources/eas</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/artifacts/sources</code> → <code>ArtifactSourceDto { Id, Kind (Eas, Webhook), AppId, Url, AllowedDomains[], Platforms[], SecretSetDate, LastCallDate, LastCallResult }</code>; <code>PUT /api/v1.0/artifacts/source { Id?, Kind, AppId, AllowedDomains[], Platforms[], RotateSecret }</code> → <code>{ Id, Url, Secret? }</code> (gizli değer yalnız oluşturma ve yenilemede, bir kez). Alıcı anonim: <code>POST /webhooks/eas/{sourceId}</code>, <code>expo-signature</code> başlığı (HMAC-SHA1, ham gövde) doğrulanır; geçersizse <code>401</code>, olay yine kayda düşer. Gövdedeki <code>artifacts.buildUrl</code> izinli alan adında değilse indirilmez. <b>İzin:</b> <code>ManageConnections</code>. Telefonda URL ve sır kutusu satır kırar, kopyala düğmesi altta. <span class="gap">Backend boşluğu:</span> alıcı uçları <code>POST /webhooks/eas/{sourceId}</code> ve <code>POST /webhooks/artifacts/{sourceId}</code> planın uç listesinde yalnız Apple için var; Eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Çekme kaynakları|EAS" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="btn pri">Kaydet</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab on" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-webhook"/></svg><span class="h3">EAS webhook'u · Mola</span><span class="bdg ok sm ml"><span class="dot"></span>Son çağrı 13:12</span></div><div class="card-b c gp16">
+              <div class="fld"><span class="lbl">EAS'a verilecek URL</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/webhooks/eas/src_4kq9m2</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+              <div class="fld"><span class="lbl">İmza sırrı <span class="opt">· expo-signature, HMAC-SHA1</span></span><div class="secret"><span class="f1">whsec_eas_Q4n8Lr2VxT9mKp6ZcH1sYb</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div>
+                <div class="callout warn mt4"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Sır yalnız şimdi gösteriliyor. Sayfadan çıkınca yalnız "Ayarlandı · 18 Kas 2026" yazar; kaybedersen yenile.</div></div></div>
+              <div class="fld"><span class="lbl">EAS'ta kaydet</span>
+<pre class="code"><span class="c1"># Mola projesinin klasöründe</span>
+eas webhook:create --event BUILD \
+  --url https://storeasy.milvasoft.com/webhooks/eas/src_4kq9m2 \
+  --secret whsec_eas_Q4n8Lr2VxT9mKp6ZcH1sYb</pre></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">İzinli indirme alan adları</span></div><div class="card-b c gp10">
+              <div class="r gp6 wrap"><span class="tag">expo.dev</span><span class="tag">*.expo.dev</span><span class="tag">storage.googleapis.com</span></div>
+              <label class="fld"><span class="inp mono"><span class="ph">alan adı ekle</span></span></label>
+              <p class="t-xs fg3" style="margin:0">Yalnız https. Özel ağ adresleri (10.x, 192.168.x, 169.254.x, localhost) her zaman engelli.</p>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Platformlar</span></div><div class="card-b c gp8">
+              <div class="r gp8 t-s"><span class="chk on"></span>iOS build'leri (IPA)</div>
+              <div class="r gp8 t-s"><span class="chk on"></span>Android build'leri (AAB)</div>
+              <div class="r gp8 t-s"><span class="chk"></span>APK ve simulator build'lerini de al</div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-20" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">13.20</b><span class="fr-t">Genel imzalı webhook (Codemagic, Bitrise)</span><code class="fr-r">/intake/sources/:sourceId</code></figcaption>
+  <p class="fr-note">storeasy'nin kendi şeması <code>storeasy.artifact-ready/v1</code>. İmza: <code>X-Storeasy-Signature: sha256=&lt;hex&gt;</code>, HMAC-SHA256, anahtar kaynak sırrı, ileti <code>&lt;X-Storeasy-Timestamp&gt;.&lt;ham gövde&gt;</code>; 5 dakikadan eski zaman damgası reddedilir (tekrar saldırısı). <code>sha256</code> alanı zorunlu: indirilen dosya tutmazsa oturum reddedilir. Aynı <code>sha256</code> ikinci kez gelirse 13.17. <b>API:</b> aynı <code>GET artifacts/sources</code>, <code>PUT artifacts/source { Kind: Webhook }</code>. <b>İzin:</b> <code>ManageConnections</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Çekme kaynakları|Genel webhook" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="btn pri">Kaydet</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab on" href="#">Çekme kaynakları</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-zap"/></svg><span class="h3">Genel webhook · Halka</span><span class="t-xs fg3 ml">Codemagic</span></div><div class="card-b c gp16">
+              <div class="fld"><span class="lbl">URL</span><div class="secret"><span class="f1">https://storeasy.milvasoft.com/webhooks/artifacts/src_7hz2p8</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div></div>
+              <div class="fld"><span class="lbl">İmza sırrı <span class="opt">· HMAC-SHA256</span></span><div class="secret"><span class="f1 fg2">Ayarlandı · 2 Kas 2026 · Ece Yılmaz</span><span class="btn sm">Yenile</span></div></div>
+              <div class="fld"><span class="lbl">Örnek istek</span>
+<pre class="code">POST /webhooks/artifacts/src_7hz2p8
+<span class="k1">X-Storeasy-Timestamp</span>: 1763474520
+<span class="k1">X-Storeasy-Signature</span>: sha256=5d0c…e19a
+
+{
+  <span class="k1">"schema"</span>: <span class="s1">"storeasy.artifact-ready/v1"</span>,
+  <span class="k1">"appId"</span>: 3,
+  <span class="k1">"platform"</span>: <span class="s1">"android"</span>,
+  <span class="k1">"fileName"</span>: <span class="s1">"halka-1.0.0-43.aab"</span>,
+  <span class="k1">"downloadUrl"</span>: <span class="s1">"https://api.codemagic.io/artifacts/…"</span>,
+  <span class="k1">"sha256"</span>: <span class="s1">"c07e5a19…"</span>,
+  <span class="k1">"size"</span>: 51485696,
+  <span class="k1">"source"</span>: {
+    <span class="k1">"provider"</span>: <span class="s1">"codemagic"</span>,
+    <span class="k1">"runId"</span>: <span class="s1">"6738f1c2a4"</span>,
+    <span class="k1">"runUrl"</span>: <span class="s1">"https://codemagic.io/app/…/build/6738f1c2a4"</span>
+  }
+}</pre></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">İzinli indirme alan adları</span></div><div class="card-b c gp10">
+              <div class="r gp6 wrap"><span class="tag">api.codemagic.io</span><span class="tag">*.bitrise.io</span></div>
+              <label class="fld"><span class="inp mono"><span class="ph">alan adı ekle</span></span></label>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Yanıtlar</span></div><div class="card-b"><dl class="kv">
+              <dt class="mono">202</dt><dd>Kabul edildi, oturum açıldı · <span class="mono">sessionId</span></dd>
+              <dt class="mono">200</dt><dd>Aynı paket, atlandı</dd>
+              <dt class="mono">401</dt><dd>İmza ya da zaman damgası geçersiz</dd>
+              <dt class="mono">422</dt><dd>Alan adı izinli değil, şema hatalı</dd>
+            </dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. KURULUM ============ -->
+<section class="sec" id="kurulum">
+<div class="sec-h"><span class="k">Bölüm 13.21-13.22</span><h2>Kurulum parçacıkları</h2><p>Her giriş yolu için kopyalanabilir, uygulamanın kimliğiyle doldurulmuş örnek. Parçacıklar uygulama seçimine göre değişir; OIDC yollarında hiçbir sır yoktur.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f13-21" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">13.21</b><span class="fr-t">Kurulum: GitHub Actions ve CLI</span><code class="fr-r">/intake/setup?path=github</code></figcaption>
+  <p class="fr-note">Parçacık istemcide üretilir (uygulama kimliği, güven kuralının ortamı); ek uç yok. "Güven kuralı var mı" kontrolü <code>GET artifacts/trusted-publishers</code>'tan: yoksa üstte "Önce kural ekle" uyarısı ve 13.5'e bağlantı. Action OIDC token'ını <code>aud: storeasy</code> ile ister, <code>POST oidc/exchange</code> ile 15 dakikalık yükleme token'ına çevirir, oturumu açar, yükler ve <code>wait: true</code> ise sonucu bekler. CLI aynı paket (<code>storeasy</code>, npm); OIDC yoksa <code>STOREASY_TOKEN</code> (CI token'ı) okur. <b>İzin:</b> <code>View</code>. Telefonda kod blokları kendi içinde yatay kayar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Kurulum" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="inp sel" style="width:200px"><span class="aic s" style="--c:#DB2777">H</span>Halka · app id 3</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Genel bakış</a><a class="tab" href="#">Oturumlar</a><a class="tab" href="#">Teslim kuralları</a><a class="tab" href="#">Güvenilir yayıncılar</a><a class="tab" href="#">CI token'ları</a><a class="tab" href="#">Çekme kaynakları</a><a class="tab on" href="#">Kurulum</a></div>
+        <div class="r gp6 wrap mb16 subnav"><span class="chip on">GitHub Actions</span><span class="chip">Azure DevOps</span><span class="chip">CLI</span><span class="chip">REST</span><span class="chip">EAS</span><span class="chip">Genel webhook</span></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="mono t-s">.github/workflows/release.yml</span><span class="btn sm ml"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div><div class="card-b">
+<pre class="code">name: release
+on:
+  push:
+    branches: [main]
+
+<span class="k1">permissions</span>:
+  contents: read
+  <span class="k1">id-token: write</span>   <span class="c1"># OIDC token'ı; sır yok</span>
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    environment: play-internal
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./gradlew bundleRelease
+      - uses: <span class="k1">storeasy/upload-action@v1</span>
+        with:
+          app-id: 3
+          file: app/build/outputs/bundle/release/app-release.aab
+          wait: true   <span class="c1"># teslim sonucunu bekle</span></pre></div></div>
+          <div class="c gp16">
+            <div class="callout ok"><svg class="ic"><use href="#i-shield-check"/></svg><div><b>Güven kuralı hazır</b><div class="t-s fg2 mt4">Halka · <span class="mono">kuzeylab/halka-mobile</span> · main · ortam <span class="mono">play-internal</span></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">CLI</span><span class="btn sm ml"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div><div class="card-b c gp10">
+<pre class="code">npx storeasy upload \
+  app-release.aab --app 3 --wait</pre>
+              <p class="t-xs fg3" style="margin:0">OIDC olmayan ortamda <span class="mono">STOREASY_TOKEN</span> ortam değişkenine bir CI token'ı (<span class="mono">sci_</span>) koy. Yerel makinede <span class="mono">storeasy login</span> PAT ile çalışır.</p>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Çıkış kodları</span></div><div class="card-b"><dl class="kv"><dt class="mono">0</dt><dd>Teslim edildi ya da aynı paket</dd><dt class="mono">2</dt><dd>Paket reddedildi</dd><dt class="mono">3</dt><dd>Kimlik doğrulanamadı</dd><dt class="mono">4</dt><dd>Mağaza hatası</dd><dt class="mono">5</dt><dd>Bekleme süresi doldu</dd></dl></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f13-22" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">13.22</b><span class="fr-t">Kurulum: Azure DevOps ve REST</span><code class="fr-r">/intake/setup?path=azure</code></figcaption>
+  <p class="fr-note"><code>StoreasyUpload@1</code> service connection üzerinden workload identity token'ı alır (13.6); service connection yoksa <code>STOREASY_TOKEN</code> gizli değişkeniyle çalışır. REST örneği üç adım: <code>POST /api/v1.0/apps/{appId}/artifacts</code> → <code>ArtifactUploadDto { SessionId, PartSize, Parts[{ PartNumber, Url }], UrlExpiryDate, Duplicate, OriginalSessionId? }</code>, parçalar presigned URL'lere <code>PUT</code>, sonra <code>PUT /api/v1.0/artifacts/{sessionId}/complete</code>. Kesilen yükleme aynı <code>SessionId</code> ile eksik parçalardan devam eder. <b>İzin:</b> <code>View</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="intake" data-crumbs="Paket alma|Kurulum" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Paket alma</h1></div><div class="pg-a"><span class="inp sel" style="width:200px"><span class="aic s" style="--c:#0F766E">P</span>Pusula · app id 1</span></div></div>
+        <div class="r gp6 wrap mb16 subnav"><span class="chip">GitHub Actions</span><span class="chip on">Azure DevOps</span><span class="chip">CLI</span><span class="chip">REST</span><span class="chip">EAS</span><span class="chip">Genel webhook</span></div>
+        <div class="g2">
+          <div class="card"><div class="card-h"><span class="mono t-s">azure-pipelines.yml</span><span class="btn sm ml"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div><div class="card-b">
+<pre class="code">trigger:
+  branches:
+    include: [main]
+
+stages:
+- stage: deliver
+  jobs:
+  - deployment: testflight
+    environment: testflight   <span class="c1"># onay burada</span>
+    pool:
+      vmImage: macos-15
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: <span class="k1">StoreasyUpload@1</span>
+            inputs:
+              connectedService: storeasy-pusula
+              appId: 1
+              file: $(Pipeline.Workspace)/ipa/Pusula.ipa
+              wait: true</pre></div></div>
+          <div class="card"><div class="card-h"><span class="h3">REST</span><span class="btn sm ml"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span></div><div class="card-b">
+<pre class="code"><span class="c1"># 1. oturum aç</span>
+curl -X POST \
+  https://storeasy.milvasoft.com/api/v1.0/apps/1/artifacts \
+  -H "Authorization: Bearer $STOREASY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"fileName":"pusula-2.4-119.ipa",
+       "size":97098547,"sha256":"3b7f19e0…"}'
+<span class="c1"># yanıt: sessionId, partSize, parts[].url</span>
+
+<span class="c1"># 2. her parçayı yükle, ETag'i sakla</span>
+curl -X PUT "$PART_URL" --data-binary @part-01
+
+<span class="c1"># 3. kapat</span>
+curl -X PUT \
+  https://storeasy.milvasoft.com/api/v1.0/artifacts/4119/complete \
+  -H "Authorization: Bearer $STOREASY_TOKEN" \
+  -d '{"parts":[{"partNumber":1,"eTag":"…"}]}'</pre></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>

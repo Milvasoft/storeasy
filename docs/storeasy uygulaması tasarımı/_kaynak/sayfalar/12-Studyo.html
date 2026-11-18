@@ -1,0 +1,917 @@
+<!--
+title: Stüdyo
+kicker: 12 · Mockup ve ekran görüntüsü stüdyosu
+desc: Ham ekran görüntüsünden mağazaya hazır görsel seti: uygulama başına şablonlar, üç panelli düzenleyici, storeasy'nin kendi parametrik cihaz çerçeveleri, dil başına başlık ızgarası, katalogdaki bütün boyutlara tek seferde dışa aktarım ve yükleme planına bağlanma. Önizleme ve dışa aktarım aynı şablon JSON'undan sunucuda (SkiaSharp) çizilir.
+-->
+<style>
+.shot{display:block;min-width:0;line-height:0;border-radius:6px;overflow:hidden}
+.shot svg{display:block;width:100%;height:auto}
+.shot.on{outline:2px solid rgb(var(--accent));outline-offset:3px}
+.adot{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none;display:inline-block}
+/* şablon kartları */
+.tplg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tpl{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.tpl .strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:14px 14px 0;background:rgb(var(--bg-2));border-bottom:1px solid rgb(var(--border));align-items:start;height:168px;overflow:hidden}
+.tpl .strip.ls{grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;padding-bottom:14px}
+.tpl .strip .shot{border-radius:5px}
+.tpl .tb{padding:14px 16px;display:grid;gap:10px;flex:1}
+.tpl .ft{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:rgb(var(--fg-3));border-top:1px dashed rgb(var(--border));padding:10px 16px}
+.tpl.empty-c{border-style:dashed;background:none;justify-content:center;align-items:center;text-align:center;padding:28px 18px;gap:10px;color:rgb(var(--fg-2))}
+/* düzenleyici */
+.edw{display:flex;flex-direction:column;height:100%;min-height:0}
+.ed-h{display:flex;align-items:center;gap:12px;padding:12px 20px 0;background:rgb(var(--surface))}
+.ed-tabs{display:flex;align-items:flex-end;gap:12px;padding:0 20px;background:rgb(var(--surface));border-bottom:1px solid rgb(var(--border))}
+.ed-tabs .tabs{border-bottom:0;margin:0}
+.std{flex:1;display:grid;grid-template-columns:292px minmax(0,1fr) 256px;min-height:0}
+.std>.pnl{overflow:auto;background:rgb(var(--surface));padding:16px;display:grid;gap:18px;align-content:start;border-right:1px solid rgb(var(--border));min-width:0}
+.std>.pnl.r{border-right:0;border-left:1px solid rgb(var(--border))}
+.pgrp{display:grid;gap:10px}
+.cnv{display:flex;flex-direction:column;min-width:0;min-height:0;background-color:rgb(var(--bg));background-image:radial-gradient(rgb(var(--border-strong)/.55) 1px,transparent 1.2px);background-size:16px 16px}
+.cnv-t{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgb(var(--border));background:rgb(var(--surface)/.9);flex-wrap:wrap}
+.cnv-b{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:22px;align-items:start;align-content:start}
+.cnv-b figure{margin:0;display:grid;gap:8px;min-width:0}
+.cnv-b figcaption{font-size:11.5px;color:rgb(var(--fg-3));display:flex;gap:6px;min-width:0}
+.cnv-b figcaption b{color:rgb(var(--fg-2));font-weight:600}
+.sl{display:grid;grid-template-columns:12px 16px 26px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:8px;font-size:12.5px;color:rgb(var(--fg-2))}
+.sl .shot{border-radius:3px}
+.sl.on{background:rgb(var(--accent)/.08);box-shadow:inset 0 0 0 1px rgb(var(--accent)/.4);color:rgb(var(--fg))}
+.sl .ic{color:rgb(var(--fg-3))}
+.rng{display:grid;grid-template-columns:62px minmax(0,1fr) 42px;gap:10px;align-items:center;font-size:12.5px;color:rgb(var(--fg-2))}
+.rng .tr{height:4px;border-radius:2px;background:rgb(var(--bg-2));position:relative;box-shadow:inset 0 0 0 1px rgb(var(--border))}
+.rng .tr i{position:absolute;left:0;top:0;bottom:0;width:var(--v);background:rgb(var(--accent));border-radius:2px}
+.rng .tr b{position:absolute;top:50%;left:var(--v);width:14px;height:14px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--accent));transform:translate(-50%,-50%)}
+.rng .val{font:500 11.5px/1 var(--font-mono);text-align:right;color:rgb(var(--fg))}
+.rng.ro .tr i,.rng.ro .tr b{opacity:.45}
+.sws{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.swc{width:28px;height:28px;border-radius:8px;box-shadow:inset 0 0 0 1px rgb(0 0 0/.12);flex:none;display:inline-block}
+.swc.on{outline:2px solid rgb(var(--accent));outline-offset:2px}
+.swc.add{display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgb(var(--border-strong));color:rgb(var(--fg-3))}
+.asset{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid rgb(var(--border));border-radius:10px;padding:8px 10px;font-size:12px}
+.asset .fi{width:26px;height:26px;border-radius:6px;background:rgb(var(--bg-2));display:grid;place-items:center;color:rgb(var(--fg-3))}
+.cls{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;padding:7px 8px;border-radius:8px;font-size:12.5px}
+.cls.on{background:rgb(var(--accent)/.08)}
+.cls small{grid-column:2;font:500 11px/1.2 var(--font-mono);color:rgb(var(--fg-3))}
+.wrn{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:12px;padding:9px 10px;border-radius:10px;border:1px solid rgb(var(--border));background:rgb(var(--bg-2)/.5)}
+.wrn .ic{width:15px;height:15px;margin-top:1px}
+/* telefon önizleme */
+.car{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:4px 16px 8px;scrollbar-width:none}
+.car .shot{flex:0 0 68%;scroll-snap-align:center;border-radius:10px}
+.dots{display:flex;justify-content:center;gap:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgb(var(--border-strong))}
+.dots i.on{background:rgb(var(--accent));width:16px;border-radius:3px}
+/* çerçeve galerisi */
+.fg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fc{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;min-width:0;display:flex;flex-direction:column}
+.fc.sel{border-color:rgb(var(--fg));box-shadow:0 0 0 1px rgb(var(--fg))}
+.fc .pv{height:158px;display:flex;align-items:center;justify-content:center;background:rgb(var(--bg-2));padding:10px;border-bottom:1px solid rgb(var(--border))}
+.fc .pv .shot{height:138px;width:auto;border-radius:0}
+.fc .pv .shot svg{height:100%;width:auto}
+.fc .pv .shot.wide{height:auto;width:100%}
+.fc .pv .shot.wide svg{width:100%;height:auto}
+.fc .fb{padding:10px 12px;display:grid;gap:6px;font-size:12px}
+.bigpv{display:flex;justify-content:center;background:rgb(var(--bg-2));border-radius:12px;padding:16px}
+.bigpv .shot{width:62%;border-radius:0}
+/* başlık ızgarası */
+.capg{display:grid;grid-template-columns:128px repeat(3,minmax(0,1fr));border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden}
+.capg>div{padding:10px 12px;border-bottom:1px solid rgb(var(--border));border-left:1px solid rgb(var(--border));min-width:0}
+.capg>.sn{border-left:0;display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:start;font-size:12px;color:rgb(var(--fg-3))}
+.capg>.sn .shot{border-radius:3px}
+.capg>.hd{background:rgb(var(--bg-2)/.6);font:600 12px/1.2 var(--font-body);color:rgb(var(--fg-2));display:flex;align-items:center;gap:6px;padding:9px 12px}
+.capg>.last{border-bottom:0}
+.cc{display:grid;gap:5px}
+.cl{display:flex;align-items:baseline;gap:8px;min-width:0;font-size:12.5px;padding:3px 6px;margin:0 -6px;border-radius:6px}
+.cl span:first-child{min-width:0;flex:1}
+.cl.t span:first-child{font-weight:600;color:rgb(var(--fg))}
+.cl.s span:first-child{color:rgb(var(--fg-2))}
+.cl.foc{box-shadow:inset 0 0 0 1px rgb(var(--fg-2));background:rgb(var(--bg))}
+.cl.bad{box-shadow:inset 0 0 0 1px rgb(var(--danger)/.6)}
+.cl.ph span:first-child{color:rgb(var(--fg-3));font-style:italic;font-weight:400}
+.cc .note{font-size:11px;line-height:1.35}
+/* dışa aktarım */
+.rgrp{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden}
+.rgrp-h{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgb(var(--bg-2)/.6);border-bottom:1px solid rgb(var(--border))}
+.exr{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:12px;align-items:start;padding:11px 16px;border-bottom:1px solid rgb(var(--border))}
+.exr:last-child{border-bottom:0}
+.exr .sz{font:500 12px/1.3 var(--font-mono);color:rgb(var(--fg-2))}
+.exr.off b{color:rgb(var(--fg-2))}
+.exr.rej{background:rgb(var(--danger)/.05)}
+.big-n{font:800 40px/1 var(--font-display);letter-spacing:-.03em}
+.formula{font:500 12.5px/1.4 var(--font-mono);color:rgb(var(--fg-2));background:rgb(var(--bg-2));border-radius:8px;padding:8px 10px}
+/* ilerleme ve sonuç */
+.pr{display:grid;grid-template-columns:minmax(0,1fr) 170px 64px;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid rgb(var(--border));font-size:12.5px}
+.pr:last-child{border-bottom:0}
+.pr .n{font:500 11.5px/1 var(--font-mono);text-align:right}
+.resh{display:flex;align-items:baseline;gap:10px;margin:18px 0 10px;flex-wrap:wrap}
+.resg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.resg.ls{grid-template-columns:repeat(3,minmax(0,1fr))}
+.resg .shot{border-radius:5px;position:relative}
+.cellx{position:relative;min-width:0}
+.cellx .x{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:4px;background:rgb(var(--surface)/.82);border:1.5px dashed rgb(var(--danger)/.7);border-radius:5px;font-size:11px;color:rgb(var(--danger));text-align:center;padding:4px}
+.sk-shot{aspect-ratio:1206/2622;border-radius:6px}
+@container scr (max-width:760px){
+  .tplg,.fg{grid-template-columns:1fr}
+  .fg{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .std{grid-template-columns:1fr;overflow:auto}
+  .std>.pnl{display:none}
+  .cnv-b{gap:8px;padding:12px}
+  .ed-h{padding:12px 16px 0;flex-wrap:wrap}
+  .ed-tabs{padding:0 16px;overflow-x:auto}
+  .capg{grid-template-columns:64px minmax(0,1fr)}
+  .capg>.lc-tr,.capg>.lc-en{display:none}
+  .capg>.sn{grid-template-columns:1fr}
+  .capg>.sn .shot{width:30px}
+  .pr{grid-template-columns:minmax(0,1fr) 56px}
+  .pr .prog{grid-column:1 / -1;grid-row:2}
+  .resg{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .resg.ls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .exr{grid-template-columns:20px minmax(0,1fr)}
+  .exr>:last-child{grid-column:2}
+  .big-n{font-size:32px}
+}
+</style>
+
+<!-- ============ 1. STÜDYO ANA SAYFASI ============ -->
+<section class="sec" id="sablonlar">
+<div class="sec-h"><span class="k">Bölüm 12.1-12.3</span><h2>Şablonlar</h2><p>Stüdyo, ham ekran görüntüsünü mağazaya hazır görsele çevirir: başlık ve alt başlık, marka arka planı, storeasy'nin kendi çizdiği cihaz çerçevesi. Şablon uygulama başınadır (<code>MockupTemplates</code>), başlıklar dil başına (<code>MockupCaptions</code>). Şablon JSON'u hem önizlemenin hem dışa aktarımın tek kaynağıdır; çizim sunucuda SkiaSharp ile yapılır, fontlar açık lisanslı Inter ve Noto Sans (K8). Bu dosyadaki görseller o çizimin tasarım karşılığıdır.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-1" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">12.1</b><span class="fr-t">Stüdyo ana sayfası</span><code class="fr-r">/studio</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/mockups/templates</code> (planlanan; ListRequest, <code>AppId</code> eşittir filtresi, <code>Name</code> içerir araması) → <code>MockupTemplateListDto { Id, AppId, AppName, AppIconColor, Name, Locales[], SlotCount, FrameKey, PreviewUrls[], UpdatedDate, UpdatedByUserName, LastExport { Date, ImageCount, StoreJobId } }</code>. Küçük resimler son kaydedilen önizlemeden (S3, imzalı URL) gelir, her açılışta yeniden çizilmez. Kartta tek eylem yok, kart tıklaması düzenleyiciyi açar; "..." menüsünde kopyala, yeniden adlandır, sil (onaylı). <b>İzin:</b> listeyi görme <code>View</code>, "Yeni şablon" <code>EditContent</code>. <b>Telefonda</b> kartlar tek sütun, "Çerçeveler" düğmesi gizlenir, ana eylem başlıkta kalır. <span class="gap">Backend boşluğu:</span> <code>LastExport</code> için <code>StoreJobs.Kind</code> değerlerine <code>MockupExport</code> eklenmeli ve listede son başarılı işle eşlenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Stüdyo</h1><p class="pg-s">Ham ekran görüntüsünden mağazaya hazır set. Bir kez tasarla, bütün dillerde ve bütün boyutlarda tek seferde üret.</p></div>
+          <div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-frame"/></svg>Çerçeveler</span><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Yeni şablon</span></div></div>
+        <div class="toolbar"><span class="chip on">Tümü · 5</span><span class="chip"><span class="adot" style="--c:#0F766E"></span>Pusula · 2</span><span class="chip"><span class="adot" style="--c:#475569"></span>Kumbara · 1</span><span class="chip"><span class="adot" style="--c:#15803D"></span>Mola · 1</span><span class="chip"><span class="adot" style="--c:#9A3412"></span>Tarla · 1</span><span class="chip"><span class="adot" style="--c:#DB2777"></span>Halka · 0</span></div>
+        <div class="tplg">
+          <article class="tpl">
+            <div class="strip" data-a="pusula" data-f="island" data-ar="1206x2622"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div></div>
+            <div class="tb"><div class="r gp8"><b class="h3 f1 trunc">Mağaza seti 2026</b><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="r gp6 wrap"><span class="r gp6 t-s"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span><span class="tag">tr</span><span class="tag">en-US</span><span class="tag">de-DE</span></div>
+              <div class="t-xs fg3">6 slot · Telefon (ada) · Inter</div></div>
+            <div class="ft"><span>Son dışa aktarım 12 Kas 2026 · 162 görsel</span><span class="hide-ph">Ece Yılmaz</span></div>
+          </article>
+          <article class="tpl">
+            <div class="strip" data-a="pusula" data-f="island" data-ar="1206x2622" data-bg="img:#1E3A8A,#0B1A3F"><div class="shot" data-v="1" data-t="Kışa|hazır ol" data-s="Yeni yıl hedefleri"></div><div class="shot" data-v="4" data-t="Ocak|planın" data-s="Takvim tek dokunuş"></div><div class="shot" data-v="5" data-t="Birlikte|başla" data-s="Arkadaşını davet et"></div><div class="shot" data-v="3" data-t="Yılın|özeti" data-s="2026 nasıl geçti?"></div></div>
+            <div class="tb"><div class="r gp8"><b class="h3 f1 trunc">Kış kampanyası</b><span class="bdg sm">Taslak</span><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="r gp6 wrap"><span class="r gp6 t-s"><span class="aic s" style="--c:#0F766E">P</span>Pusula</span><span class="tag">tr</span></div>
+              <div class="t-xs fg3">4 slot · Telefon (ada) · görsel arka plan</div></div>
+            <div class="ft"><span>Henüz dışa aktarılmadı</span><span class="hide-ph">Mert Kaya · dün</span></div>
+          </article>
+          <article class="tpl">
+            <div class="strip" data-a="kumbara" data-f="island" data-ar="1206x2622"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="6"></div></div>
+            <div class="tb"><div class="r gp8"><b class="h3 f1 trunc">İlk gönderim</b><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="r gp6 wrap"><span class="r gp6 t-s"><span class="aic s" style="--c:#475569">K</span>Kumbara</span><span class="tag">tr</span><span class="tag">en-US</span></div>
+              <div class="t-xs fg3">5 slot · Telefon (ada), Tablet · Noto Sans</div></div>
+            <div class="ft"><span class="dng-t b6">Hazırlıkta 2 sınıf eksik</span><span>Dışa aktarılmadı</span></div>
+          </article>
+          <article class="tpl">
+            <div class="strip" data-a="mola" data-f="hole" data-ar="1080x1920"><div class="shot" data-v="1"></div><div class="shot" data-v="3"></div><div class="shot" data-v="6"></div><div class="shot" data-v="2"></div></div>
+            <div class="tb"><div class="r gp8"><b class="h3 f1 trunc">Mola 3.x</b><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="r gp6 wrap"><span class="r gp6 t-s"><span class="aic s" style="--c:#15803D">M</span>Mola</span><span class="tag">tr</span><span class="tag">en-US</span></div>
+              <div class="t-xs fg3">4 slot · Telefon (delik) · Inter</div></div>
+            <div class="ft"><span>Son dışa aktarım 28 Eki 2026 · 48 görsel</span></div>
+          </article>
+          <article class="tpl">
+            <div class="strip ls" data-a="tarla" data-f="win" data-ar="1920x1080"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div></div>
+            <div class="tb"><div class="r gp8"><b class="h3 f1 trunc">Masaüstü seti</b><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></div>
+              <div class="r gp6 wrap"><span class="r gp6 t-s"><span class="aic s" style="--c:#9A3412">T</span>Tarla</span><span class="tag">tr</span><span class="tag">en-US</span><span class="st sm"><b>MS</b></span></div>
+              <div class="t-xs fg3">4 slot · Masaüstü pencere · 1920x1080</div></div>
+            <div class="ft"><span>Son dışa aktarım 4 Kas 2026 · 8 görsel</span></div>
+          </article>
+          <article class="tpl empty-c">
+            <span class="aic" style="--c:#DB2777">H</span>
+            <b class="t-m" style="color:rgb(var(--fg))">Halka için şablon yok</b>
+            <span class="t-s">TestFlight'tan çıkmadan önce mağaza seti hazır olsun.</span>
+            <span class="btn sm"><svg class="ic"><use href="#i-plus"/></svg>Halka için oluştur</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-2">
+  <figcaption class="fr-h"><b class="fr-n">12.2</b><span class="fr-t">Yeni şablon</span><code class="fr-r">/studio → yeni</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/mockups/template { AppId, Name, CopyFromTemplateId?, Locales[], FrameKey, SlotCount }</code> (planlanan, <code>Idempotency-Key</code>) → <code>Id</code>; ardından düzenleyici açılır. Diller uygulamanın mağaza dillerinden gelir (<code>GET apps/app</code> → <code>Locales[]</code>), birincil dil işaretli ve kaldırılamaz. Başka şablondan kopyalarken arka plan, çerçeve ve yerleşim kopyalanır; başlıklar isteğe bağlı. <b>İzin:</b> <code>EditContent</code>. Ad aynı uygulamada benzersiz; çakışmada alan altında "Bu adla bir şablon var" (409). <b>Telefonda</b> modal alttan açılır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo" data-act="">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Stüdyo</h1></div><div class="tplg" style="opacity:.5"><div class="tpl" style="height:280px"></div><div class="tpl" style="height:280px"></div><div class="tpl hide-ph" style="height:280px"></div></div></div>
+    </div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m122">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m122">Yeni şablon</h2><p class="t-s fg2 mt4">Şablon tek uygulamaya bağlıdır; diller ve sınıflar o uygulamanın mağazalarından gelir.</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Uygulama</span><span class="inp sel"><span class="aic s" style="--c:#475569">K</span>Kumbara</span></label>
+        <label class="fld"><span class="lbl">Şablon adı</span><span class="inp foc">Plus tanıtımı</span></label>
+        <div class="fld"><span class="lbl">Başlangıç</span>
+          <div class="card"><div class="lst">
+            <div class="lst-i"><span class="rad"></span><div class="f1"><b class="t-m">Boş şablon</b><div class="t-xs fg3">Telefon (ada), düz arka plan, 6 slot</div></div></div>
+            <div class="lst-i"><span class="rad on"></span><div class="f1"><b class="t-m">Kumbara · İlk gönderim'den kopyala</b><div class="t-xs fg3">Arka plan, çerçeve, yerleşim ve ham görüntüler</div></div><span class="r gp6 t-s"><span class="chk on"></span>Başlıklar da</span></div>
+          </div></div>
+        </div>
+        <div class="fld"><span class="lbl">Diller</span><div class="r gp6 wrap"><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>tr · birincil</span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>en-US</span><span class="chip">de-DE</span></div><span class="hint">Kumbara App Store'da tr ve en-US ile kayıtlı. Mağazada olmayan dil eklenirse dışa aktarımda yalnız indirilir, yüklenmez.</span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Şablonu oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-3">
+  <figcaption class="fr-h"><b class="fr-n">12.3</b><span class="fr-t">Boş: uygulamanın şablonu yok</span><code class="fr-r">/studio?app=halka</code></figcaption>
+  <p class="fr-note">Uygulama süzgeci seçiliyken o uygulamanın şablonu yoksa. Ana eylem boş durumun içinde (başlıktaki "Yeni şablon" bu durumda gizlenir: ekranda tek ana eylem). İkincil eylem başka uygulamanın şablonunu kopyalamak; renk ve başlıklar sonra değiştirilir. Bütün organizasyonda hiç şablon yoksa metin "Stüdyoda henüz şablon yok" olur. <b>İzin:</b> <code>EditContent</code> yoksa düğmeler yerine "Şablonu bir editör oluşturabilir" metni.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Stüdyo</h1></div><div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-frame"/></svg>Çerçeveler</span></div></div>
+        <div class="toolbar"><span class="chip">Tümü · 5</span><span class="chip"><span class="adot" style="--c:#0F766E"></span>Pusula · 2</span><span class="chip on"><span class="adot" style="--c:#DB2777"></span>Halka · 0<svg class="ic x"><use href="#i-x"/></svg></span></div>
+        <div class="empty" style="padding:48px 24px">
+          <svg viewBox="0 0 220 120" width="220" height="120" aria-hidden="true"><rect x="22" y="22" width="52" height="96" rx="12" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))" stroke-width="1.5" stroke-dasharray="3 4"/><rect x="146" y="22" width="52" height="96" rx="12" fill="rgb(var(--surface))" stroke="rgb(var(--border-strong))" stroke-width="1.5" stroke-dasharray="3 4"/><rect x="80" y="6" width="60" height="112" rx="14" fill="rgb(var(--fg))"/><rect x="84" y="10" width="52" height="104" rx="11" fill="rgb(var(--surface))"/><rect x="101" y="14" width="18" height="5" rx="2.5" fill="rgb(var(--fg))"/><rect x="91" y="30" width="38" height="5" rx="2.5" fill="rgb(var(--accent))"/><rect x="95" y="39" width="30" height="3" rx="1.5" fill="rgb(var(--border-strong))"/><rect x="91" y="52" width="38" height="24" rx="5" fill="rgb(var(--bg-2))"/><rect x="91" y="80" width="38" height="8" rx="3" fill="rgb(var(--bg-2))"/><rect x="91" y="92" width="38" height="8" rx="3" fill="rgb(var(--bg-2))"/></svg>
+          <h4>Halka için henüz şablon yok</h4><p>Ham ekran görüntülerini yükle ve başlıkları yaz; storeasy App Store ve Google Play'in istediği bütün boyutları her dil için tek seferde üretir.</p>
+          <div class="r gp8 wrap" style="justify-content:center"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Halka için şablon oluştur</span><span class="btn"><svg class="ic"><use href="#i-copy"/></svg>Pusula şablonunu kopyala</span></div>
+          <span class="t-s fg3">Halka: App Store 1.0 (37) TestFlight · Google Play 1.0.0 (42) internal · diller tr, en-US</span>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. DÜZENLEYİCİ ============ -->
+<section class="sec" id="duzenleyici">
+<div class="sec-h"><span class="k">Bölüm 12.4-12.5</span><h2>Şablon düzenleyici</h2><p>Masaüstü için üç panel: solda slotlar ve seçili slotun ayarları, ortada seçili sınıfta üç slot yan yana, sağda dil, sınıf, güvenli alan ve uyarılar. Her değişiklik önizlemeyi yeniden ister (400 ms gecikmeyle); kaydetme açık eylemdir. Telefonda stüdyo yalnız önizlemedir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-4" data-view="desktop" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">12.4</b><span class="fr-t">Şablon düzenleyici (masaüstü)</span><code class="fr-r">/studio/:templateId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/mockups/template?TemplateId=</code> → <code>MockupTemplateDto { Id, AppId, Name, Locales[], Spec { Frame { FrameKey, CornerRadius, Bezel, Cutout (Island, Hole, None), Color }, Background { Kind (Solid, Gradient, Image), Colors[], AssetId? }, Layout { Font (Inter, NotoSans), TextColor, CaptionPosition (Top, Bottom), DeviceOffsetY, DeviceScale } }, Slots: [{ Order, Assets: [{ Family (Phone, Tablet, Desktop), AssetId, Width, Height, HasAlpha }] }], Captions: [MockupCaptionDto { Locale, SlotOrder, Title, Subtitle }], RowVersion, UpdatedDate }</code>. Önizleme <code>POST /api/v1.0/mockups/render-preview { TemplateId, Locale, ClassKey, SlotOrders[], Spec? }</code> → <code>{ Images: [{ SlotOrder, Url, Warnings[] }], DurationMs }</code> (kaydedilmemiş <code>Spec</code> gövdeyle gönderilir). Kaydet <code>PUT /api/v1.0/mockups/template { TemplateId, Name, Spec, Slots, RowVersion }</code> + başlıklar <code>PUT /api/v1.0/mockups/captions</code>; başkası arada kaydettiyse 409 ve 12.16'daki seçenekler. Ham görüntü <code>POST /api/v1.0/assets/upload-url</code> ile gelir; alfa varsa rozet "düzleştirilecek". Sayaç yumuşak sınırdır (başlık 30, alt başlık 40); asıl kontrol sunucunun ölçtüğü satır sayısı (<code>Warnings</code>). <b>İzin:</b> önizleme <code>View</code>, kaydet <code>EditContent</code>. <b>Telefonda</b> bu ekran açılmaz, 12.5 gösterilir. <span class="gap">Backend boşluğu:</span> slot başına ve cihaz ailesine göre ham görüntü (<code>Slots[].Assets[]</code>) veri modelinde yok; <code>MockupTemplates.Spec</code> içine mi, ayrı <code>MockupSlots { MockupTemplateId, Order, Family, Locale?, AssetId }</code> tablosuna mı gideceği seçilmeli (öneri: ayrı tablo, dil başına farklı görüntüye izin verir). <code>RowVersion</code> eşzamanlılık kontrolü de eklenmeli.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content flush"><div class="edw">
+        <div class="ed-h"><span class="aic s" style="--c:#0F766E">P</span><div class="f1" style="min-width:0"><div class="r gp8"><b class="h3 trunc">Mağaza seti 2026</b><span class="bdg warn sm"><span class="dot"></span>3 kaydedilmemiş değişiklik</span></div><div class="t-xs fg3">Pusula · 6 slot · son kayıt bugün 14:02, Ece Yılmaz</div></div>
+          <span class="ib ghost" title="Geri al"><svg class="ic"><use href="#i-reply"/></svg></span><span class="btn"><svg class="ic"><use href="#i-download"/></svg>Bu slotu indir</span><span class="btn pri"><svg class="ic"><use href="#i-check"/></svg>Kaydet</span></div>
+        <div class="ed-tabs"><div class="tabs"><a class="tab on"><svg class="ic"><use href="#i-sliders"/></svg>Düzenle</a><a class="tab"><svg class="ic"><use href="#i-lang"/></svg>Başlıklar <span class="n dng">1</span></a><a class="tab"><svg class="ic"><use href="#i-layers"/></svg>Dışa aktar</a></div></div>
+        <div class="std">
+          <aside class="pnl" aria-label="Slot ayarları">
+            <div class="pgrp"><div class="r"><span class="eb">Slotlar</span><span class="lnk t-xs ml">+ Slot ekle</span></div>
+              <div class="c gp4" data-a="pusula" data-f="island" data-ar="1206x2622">
+                <div class="sl"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">1</span><div class="shot" data-v="1"></div><span class="trunc">Hedeflerin tek bakışta</span></div>
+                <div class="sl on"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">2</span><div class="shot" data-v="2"></div><span class="trunc">Her adımı işaretle</span></div>
+                <div class="sl"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">3</span><div class="shot" data-v="3"></div><span class="trunc">İlerlemeni gör</span></div>
+                <div class="sl"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">4</span><div class="shot" data-v="4"></div><span class="trunc">Takvimine yerleştir</span></div>
+                <div class="sl"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">5</span><div class="shot" data-v="5"></div><span class="trunc">Birlikte ilerle</span></div>
+                <div class="sl"><svg class="ic s12"><use href="#i-grip"/></svg><span class="mono">6</span><div class="shot" data-v="6"></div><span class="trunc">Senin düzenin</span></div>
+              </div>
+            </div>
+            <div class="hr"></div>
+            <div class="pgrp"><span class="eb">Slot 2 · ham ekran görüntüsü</span>
+              <div class="asset"><span class="fi"><svg class="ic s14"><use href="#i-phone"/></svg></span><div style="min-width:0"><div class="trunc b6">pusula-02-adimlar.png</div><div class="mono fg3" style="font-size:11px">1206x2622 · alfa var</div></div><span class="lnk">Değiştir</span></div>
+              <div class="asset"><span class="fi"><svg class="ic s14"><use href="#i-tablet"/></svg></span><div style="min-width:0"><div class="trunc b6">pusula-ipad-02.png</div><div class="mono fg3" style="font-size:11px">2064x2752</div></div><span class="lnk">Değiştir</span></div>
+              <div class="asset" style="border-style:dashed"><span class="fi"><svg class="ic s14"><use href="#i-monitor"/></svg></span><div style="min-width:0"><div class="fg3">Masaüstü görüntüsü yok</div><div class="fg3" style="font-size:11px">Telefon görüntüsü pencerede kullanılır</div></div><span class="lnk">Yükle</span></div>
+            </div>
+            <div class="pgrp"><span class="eb">Başlık · tr</span>
+              <label class="fld"><span class="lbl r">Başlık<span class="cnt">18 / 30</span></span><span class="inp foc">Her adımı işaretle</span></label>
+              <label class="fld"><span class="lbl r">Alt başlık<span class="cnt">31 / 40</span></span><span class="inp">Küçük adımlar, düzenli ilerleme</span></label>
+              <span class="hint">Satır kırmak için Shift+Enter. Diğer diller Başlıklar sekmesinde.</span>
+            </div>
+            <div class="pgrp"><span class="eb">Arka plan</span>
+              <div class="seg"><span>Düz</span><span class="on">Gradyan</span><span>Görsel</span></div>
+              <div class="sws"><span class="swc on" style="background:linear-gradient(160deg,#14B8A6,#0F4C45)"></span><span class="swc" style="background:linear-gradient(160deg,#0F766E,#022C22)"></span><span class="swc" style="background:linear-gradient(160deg,#F0FDFA,#99F6E4)"></span><span class="swc" style="background:linear-gradient(160deg,#1E3A8A,#0B1A3F)"></span><span class="swc" style="background:#111214"></span><span class="swc add"><svg class="ic s14"><use href="#i-plus"/></svg></span></div>
+              <div class="r gp8 t-s"><span class="mono fg2">#14B8A6 → #0F4C45</span><span class="fg3">· 160°</span></div>
+            </div>
+            <div class="pgrp"><span class="eb">Metin</span>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Renk</span><div class="sws"><span class="swc on" style="background:#FFFFFF"></span><span class="swc" style="background:#0B1F1D"></span><span class="swc" style="background:#CCFBF1"></span></div></div>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Yazı tipi</span><div class="seg"><span class="on">Inter</span><span>Noto Sans</span></div></div>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Konum</span><div class="seg"><span class="on">Üstte</span><span>Altta</span></div></div>
+            </div>
+            <div class="pgrp"><span class="eb">Cihaz</span>
+              <div class="rng"><span>Dikey</span><span class="tr" style="--v:27%"><i></i><b></b></span><span class="val">%27</span></div>
+              <div class="rng"><span>Ölçek</span><span class="tr" style="--v:78%"><i></i><b></b></span><span class="val">%78</span></div>
+              <label class="fld"><span class="lbl">Çerçeve</span><span class="inp sel"><svg class="ic s16"><use href="#i-phone"/></svg>Telefon (ada) · Grafit</span><span class="hint">Sınıfa göre otomatik: tablet sınıfında Tablet, Duo'da Katlanır, masaüstünde Pencere. <span class="lnk">Çerçeveler</span></span></label>
+            </div>
+          </aside>
+          <section class="cnv" aria-label="Tuval">
+            <div class="cnv-t"><span class="ib sm"><svg class="ic"><use href="#i-chev-l"/></svg></span><span class="t-s b6">Slot 1-3 / 6</span><span class="ib sm"><svg class="ic"><use href="#i-chev-r"/></svg></span><div class="seg" style="margin-left:8px"><span class="on">Sığdır</span><span>%50</span><span>%100</span></div><span class="t-xs fg3 ml mono">render-preview · 380 ms</span></div>
+            <div class="cnv-b" data-a="pusula" data-f="island" data-ar="1206x2622" data-safe>
+              <figure><div class="shot" data-v="1"></div><figcaption><b>1</b><span class="trunc">Hedeflerin tek bakışta</span></figcaption></figure>
+              <figure><div class="shot on" data-v="2"></div><figcaption><b>2</b><span class="trunc">Her adımı işaretle · seçili</span></figcaption></figure>
+              <figure><div class="shot" data-v="3"></div><figcaption><b>3</b><span class="trunc">İlerlemeni gör</span></figcaption></figure>
+            </div>
+          </section>
+          <aside class="pnl r" aria-label="Önizleme ayarları">
+            <div class="pgrp"><span class="eb">Dil</span><div class="seg"><span class="on">tr</span><span>en-US</span><span>de-DE <i class="dot" style="background:rgb(var(--warning))"></i></span></div></div>
+            <div class="pgrp"><span class="eb">Sınıf</span>
+              <div class="c gp4">
+                <div class="cls on"><span class="rad on"></span><span><span class="st sm"><b>AS</b></span> iPhone DI medium</span><small>1206x2622 · 6,1"/6,3"</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>AS</b></span> iPhone DI large</span><small>1320x2868 · 6,9"</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>AS</b></span> iPad 13"</span><small>2064x2752</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>AS</b></span> iPhone Duo dış ekran</span><small>1398x2034</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>AS</b></span> iPhone Duo iç ekran</span><small>2007x2853</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>GP</b></span> Telefon</span><small>1080x1920</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>GP</b></span> 7" / 10" tablet</span><small>1200x1920 · 1600x2560</small></div>
+                <div class="cls"><span class="rad"></span><span><span class="st sm"><b>MS</b></span> Masaüstü</span><small>1920x1080</small></div>
+              </div>
+            </div>
+            <div class="r gp10"><span class="sw on"></span><div class="f1"><div class="t-s b6">Güvenli alan</div><div class="t-xs fg3">Kesilme ve köşe payı çizgisi</div></div></div>
+            <div class="pgrp"><span class="eb">Uyarılar · 3</span>
+              <div class="wrn"><svg class="ic warn-t"><use href="#i-alert-t"/></svg><div><b>de-DE · slot 2</b> başlığı en dar sınıfta 3 satıra taşıyor (46 / 30). <span class="lnk">Başlıklara git</span></div></div>
+              <div class="wrn"><svg class="ic info-t"><use href="#i-info"/></svg><div>Slot 2 telefon görüntüsünde alfa kanalı var; dışa aktarımda arka plan rengiyle düzleştirilir.</div></div>
+              <div class="wrn"><svg class="ic info-t"><use href="#i-info"/></svg><div>Masaüstü sınıfında 3 slotun kendi görüntüsü yok; telefon görüntüsü pencere içinde ortalanır.</div></div>
+            </div>
+          </aside>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-5" data-view="phone">
+  <figcaption class="fr-h"><b class="fr-n">12.5</b><span class="fr-t">Telefonda stüdyo: yalnız önizleme</span><code class="fr-r">/studio/:templateId</code></figcaption>
+  <p class="fr-note">Üç panelli düzenleyici telefona sığmaz; telefonda şablon kaydırmalı önizleme olarak açılır. Dil ve sınıf değiştirilebilir (<code>POST mockups/render-preview</code>, izin <code>View</code>), başlık ve ayar düzenlenemez. "Masaüstünde düzenle" bağlantıyı kopyalar ve kullanıcıya e-posta ile gönderir (hesabın kendi adresi). Son dışa aktarım indirilebilir. Masaüstünde pencere 760 px'in altına daralırsa da aynı görünüm gelir. <span class="gap">Backend boşluğu:</span> "bağlantıyı bana gönder" için <code>POST /api/v1.0/account/send-link { Url }</code> planda yok; öneri: tasarımdan çıkarılsın, yalnız "Bağlantıyı kopyala" kalsın.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content">
+        <div class="r gp8 mb8"><span class="aic s" style="--c:#0F766E">P</span><span class="t-s fg2">Pusula</span><span class="bdg sm ml"><svg class="ic s12"><use href="#i-eye"/></svg>Yalnız önizleme</span></div>
+        <h1 class="pg-t" style="margin-bottom:14px">Mağaza seti 2026</h1>
+        <div class="r gp8 mb12"><div class="seg"><span class="on">tr</span><span>en-US</span><span>de-DE</span></div></div>
+        <span class="inp sel mb12"><span class="st sm"><b>AS</b></span>iPhone DI medium · 1206x2622</span>
+        <div class="car mt12" data-a="pusula" data-f="island" data-ar="1206x2622">
+          <div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div><div class="shot" data-v="5"></div><div class="shot" data-v="6"></div>
+        </div>
+        <div class="dots mt8"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="callout info mt16"><svg class="ic"><use href="#i-monitor"/></svg><div><b>Düzenleme masaüstünde</b><div class="t-s fg2 mt4">Slotlar, başlıklar ve dışa aktarım üç panelli düzenleyicide. Telefonda dil ve sınıf değiştirip bakabilirsin.</div></div></div>
+        <div class="c gp8 mt12"><span class="btn blk inv"><svg class="ic"><use href="#i-monitor"/></svg>Masaüstünde düzenle</span><span class="btn blk ghost"><svg class="ic"><use href="#i-download"/></svg>Son dışa aktarımı indir · 148,6 MB</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. ÇERÇEVELER ============ -->
+<section class="sec" id="cerceveler">
+<div class="sec-h"><span class="k">Bölüm 12.6</span><h2>Kendi cihaz çerçevelerimiz</h2><p>Bütün çerçeveler storeasy'nin vektör çizimidir: yuvarlatılmış gövde, çerçeve kalınlığı, isteğe bağlı ada ya da delik kesiği, kamera deliği, katlanır modelde katlama çizgisi. Üretici görseli, logosu ya da ürün adıyla anılan çizim yoktur; mağaza sınıfları yalnız boyut ve en-boy oranı olarak bağlanır. iPhone Duo sınıfları mağazanın sınıf adıyla anılır ama çizim yine bizim katlanır çerçevemizdir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-6" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">12.6</b><span class="fr-t">Çerçeve galerisi ve parametreler</span><code class="fr-r">/studio/frames</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/mockups/frames</code> (planlanan) → <code>MockupFrameDto { Key, Name, Kind (Phone, Tablet, Foldable, Desktop, None), Defaults { CornerRadius, Bezel, Cutout, FoldAxis?, Color }, Classes: [{ ClassKey, Store, Label, Width, Height, Status (Required, Recommended, Optional), RuleId }] }</code>; sınıf listesi ve boyutlar kural kataloğundan (bölüm 12.2) gelir, kodda sabit değildir. Parametreler yüzde olarak gövde genişliğine göre saklanır; en-boy oranı sınıftan gelir ve değiştirilemez. Sağ panel seçili çerçeveyi bir şablona uygular: <code>PUT mockups/template</code> → <code>Spec.Frame</code>. <b>İzin:</b> galeri <code>View</code>, şablona uygulama <code>EditContent</code>. <b>Telefonda</b> kartlar iki sütun, parametre paneli kartların altına iner. <span class="gap">Backend boşluğu:</span> Microsoft Store masaüstü boyutları (1366x768 en küçük, 1920x1080 önerilen) ve Play 7" / 10" tablet dışa aktarım boyutları katalog v1'de yok (plan 11.6 "stüdyo boyutları kataloğa eklenir"); eklenecek. Organizasyon çapında özel çerçeve kaydı (<code>POST mockups/frame</code>) planda yok; öneri: tasarımdan çıkarıldı, ayar şablonun <code>Spec</code>'inde kalır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Çerçeveler" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Çerçeveler</h1><p class="pg-s">Parametrik cihaz çerçeveleri. Sınıf boyutu ve en-boy oranı katalogdan gelir; gövde, kesik ve renk ayarlanır.</p></div></div>
+        <div class="toolbar"><div class="seg"><span class="on">Tümü · 8</span><span>Telefon</span><span>Tablet</span><span>Katlanır</span><span>Masaüstü</span></div><span class="t-s fg3 ml hide-ph">Katalog v1.3 · 18 Kas 2026</span></div>
+        <div class="split">
+          <div class="fg">
+            <div class="fc"><div class="pv"><div class="shot" data-bare data-f="island" data-ar="1206x2622" data-a="pusula" data-v="1"></div></div><div class="fb"><b class="t-s">Telefon (ada)</b><span class="mono fg3">1206x2622 · 1320x2868</span><span class="r gp6"><span class="st sm"><b>AS</b></span><span class="fg3">DI medium, DI large</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot" data-bare data-f="hole" data-ar="1080x1920" data-a="mola" data-v="3"></div></div><div class="fb"><b class="t-s">Telefon (delik)</b><span class="mono fg3">1080x1920 · 9:16</span><span class="r gp6"><span class="st sm"><b>GP</b></span><span class="fg3">Telefon</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot" data-bare data-f="tablet" data-ar="2064x2752" data-a="pusula" data-v="3"></div></div><div class="fb"><b class="t-s">Tablet 13"</b><span class="mono fg3">2064x2752 · 3:4</span><span class="r gp6"><span class="st sm"><b>AS</b></span><span class="fg3">iPad 13"</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot" data-bare data-f="tablet" data-cut="hole" data-ar="1600x2560" data-a="mola" data-v="4"></div></div><div class="fb"><b class="t-s">Tablet (ince)</b><span class="mono fg3">1200x1920 · 1600x2560</span><span class="r gp6"><span class="st sm"><b>GP</b></span><span class="fg3">7" ve 10" tablet</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot" data-bare data-f="duo-out" data-ar="1398x2034" data-a="pusula" data-v="2"></div></div><div class="fb"><b class="t-s">Katlanır: dış ekran</b><span class="mono fg3">1398x2034 · 0,687</span><span class="r gp6 wrap"><span class="st sm"><b>AS</b></span><span class="fg3">iPhone Duo dış ekran 1398x2034</span></span></div></div>
+            <div class="fc sel"><div class="pv"><div class="shot" data-bare data-f="duo-in" data-ar="2007x2853" data-a="pusula" data-v="4"></div></div><div class="fb"><b class="t-s">Katlanır: iç ekran</b><span class="mono fg3">2007x2853 · 0,703</span><span class="r gp6 wrap"><span class="st sm"><b>AS</b></span><span class="fg3">iPhone Duo iç ekran 2007x2853</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot wide" data-bare data-f="win" data-ar="1920x1080" data-a="tarla" data-v="1"></div></div><div class="fb"><b class="t-s">Masaüstü pencere</b><span class="mono fg3">1920x1080 · 1366x768</span><span class="r gp6"><span class="st sm"><b>MS</b></span><span class="fg3">Masaüstü</span></span></div></div>
+            <div class="fc"><div class="pv"><div class="shot wide" data-f="none" data-ar="1024x500" data-a="pusula" data-t="Hedeflerin|tek bakışta" data-s="Pusula · tr"></div></div><div class="fb"><b class="t-s">Çerçevesiz: öne çıkan</b><span class="mono fg3">1024x500 · cihaz yok</span><span class="r gp6"><span class="st sm"><b>GP</b></span><span class="fg3">Öne çıkan görsel</span></span></div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Katlanır: iç ekran</span><span class="bdg sm ml">Nisan 2027</span></div>
+            <div class="card-b c gp16">
+              <div class="bigpv"><div class="shot" data-bare data-f="duo-in" data-ar="2007x2853" data-a="pusula" data-v="4"></div></div>
+              <dl class="kv"><dt>Mağaza sınıfı</dt><dd>iPhone Duo iç ekran 2007x2853</dd><dt>En-boy</dt><dd class="mono">2007:2853 · 0,703</dd></dl>
+              <div class="rng"><span>Köşe</span><span class="tr" style="--v:35%"><i></i><b></b></span><span class="val">%7</span></div>
+              <div class="rng"><span>Kalınlık</span><span class="tr" style="--v:44%"><i></i><b></b></span><span class="val">%3,5</span></div>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Kesik</span><div class="seg"><span>Ada</span><span class="on">Delik</span><span>Yok</span></div></div>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Katlama</span><span class="sw on"></span><div class="seg"><span class="on">Dikey</span><span>Yatay</span></div></div>
+              <div class="r gp10"><span class="t-s fg2" style="width:62px">Renk</span><div class="sws"><span class="swc on" style="background:#16181D" title="Grafit"></span><span class="swc" style="background:#C9CDD2" title="Gümüş"></span><span class="swc" style="background:#D8CBB5" title="Kum"></span><span class="swc" style="background:#F4F4F2" title="Beyaz"></span></div></div>
+              <div class="hr d"></div>
+              <label class="fld"><span class="lbl">Şablon</span><span class="inp sel"><span class="aic s" style="--c:#0F766E">P</span>Pusula · Mağaza seti 2026</span></label>
+              <div class="r gp8"><span class="btn ghost">Varsayılana dön</span><span class="btn pri f1">Şablona uygula</span></div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. BAŞLIKLAR ============ -->
+<section class="sec" id="basliklar">
+<div class="sec-h"><span class="k">Bölüm 12.7-12.9</span><h2>Başlık lokalizasyonu</h2><p>Satırlar slot, sütunlar dil. Hücre yerinde düzenlenir; taşma uyarısı sunucunun ölçtüğü satır sayısından gelir (en dar sınıfta, seçili fontta). Bir dilden ötekine kopyalama ve Faz 6'da yapay zeka önerisi; öneri hiçbir zaman kendiliğinden kaydedilmez, ızgaraya taslak olarak düşer. Özellik platform bayrağıyla kapatılabilir (kill switch).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-7" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">12.7</b><span class="fr-t">Başlık ızgarası</span><code class="fr-r">/studio/:templateId/captions</code></figcaption>
+  <p class="fr-note"><b>API:</b> başlıklar <code>GET mockups/template</code> içindeki <code>Captions[]</code>; kaydet <code>PUT /api/v1.0/mockups/captions { TemplateId, Items: [{ Locale, SlotOrder, Title, Subtitle }] }</code> (yalnız değişen hücreler, planlanan) → <code>{ Warnings: [{ Locale, SlotOrder, Field, Lines, MaxLines, ClassKey }] }</code>. Taşma ölçümü kayıtta ve 600 ms yazma beklemesinde <code>POST mockups/render-preview</code> ile yapılır. "Dilden kopyala" istemcide hücreleri doldurur (yalnız boşlar ya da hepsi), kayıt yine <code>PUT mockups/captions</code>. <b>İzin:</b> <code>EditContent</code>; Viewer'da hücreler salt okunur. <b>Telefonda</b> tek dil sütunu görünür (dil seçici üstte), slot sütunu daralır. Kısayol: Tab sonraki hücre, Esc düzenlemeyi bırakır.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content">
+        <div class="r gp10 mb12"><span class="aic s" style="--c:#0F766E">P</span><b class="h3 f1 trunc">Mağaza seti 2026</b><span class="bdg warn sm"><span class="dot"></span>2 kaydedilmemiş hücre</span></div>
+        <div class="tabs"><a class="tab"><svg class="ic"><use href="#i-sliders"/></svg>Düzenle</a><a class="tab on"><svg class="ic"><use href="#i-lang"/></svg>Başlıklar <span class="n dng">1</span></a><a class="tab"><svg class="ic"><use href="#i-layers"/></svg>Dışa aktar</a></div>
+        <div class="toolbar" style="position:relative"><span class="chip">Yalnız sorunlu · 2</span><div class="seg only-ph"><span>tr</span><span>en-US</span><span class="on">de-DE</span></div><span class="ml"></span><span class="btn hide-ph"><svg class="ic"><use href="#i-copy"/></svg>Dilden kopyala<svg class="ic s14"><use href="#i-chev-d"/></svg></span><span class="btn inv"><svg class="ic"><use href="#i-spark"/></svg>Yapay zeka önerisi</span><span class="btn pri">Kaydet</span>
+          <div class="pop hide-ph" style="top:38px;right:240px;width:260px"><div class="mh">Dilden kopyala</div><div class="mi">tr → de-DE</div><div class="mi on">en-US → de-DE<svg class="ic ml"><use href="#i-check"/></svg></div><div class="ms"></div><div class="mi"><span class="chk on"></span>Yalnız boş hücreler</div><div class="mi"><span class="chk"></span>Dolu hücrelerin üzerine yaz</div></div>
+        </div>
+        <div class="capg" data-a="pusula" data-f="island" data-ar="1206x2622">
+          <div class="sn hd">Slot</div><div class="hd lc-tr">tr <span class="fg3">· birincil</span></div><div class="hd lc-en">en-US</div><div class="hd">de-DE <span class="bdg warn sm ml">2 uyarı</span></div>
+          <div class="sn"><div class="shot" data-v="1"></div><span class="mono">1</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>Hedeflerin tek bakışta</span><span class="cnt">22 / 30</span></div><div class="cl s"><span>Bütün rotan tek ekranda</span><span class="cnt">23 / 40</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t"><span>Your goals at a glance</span><span class="cnt">22 / 30</span></div><div class="cl s"><span>Your whole route on one screen</span><span class="cnt">30 / 40</span></div></div></div>
+          <div><div class="cc"><div class="cl t"><span>Deine Ziele auf einen Blick</span><span class="cnt near">27 / 30</span></div><div class="cl s"><span>Deine ganze Route auf einem Screen</span><span class="cnt">34 / 40</span></div></div></div>
+          <div class="sn"><div class="shot" data-v="2"></div><span class="mono">2</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>Her adımı işaretle</span><span class="cnt">18 / 30</span></div><div class="cl s"><span>Küçük adımlar, düzenli ilerleme</span><span class="cnt">31 / 40</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t"><span>Check off every step</span><span class="cnt">20 / 30</span></div><div class="cl s"><span>Small steps, steady progress</span><span class="cnt">28 / 40</span></div></div></div>
+          <div style="background:rgb(var(--danger)/.04)"><div class="cc"><div class="cl t bad"><span>Jeden einzelnen Schritt abhaken und festhalten</span><span class="cnt over">46 / 30</span></div><div class="cl s"><span>Kleine Schritte, stetiger Fortschritt</span><span class="cnt">36 / 40</span></div><div class="note dng-t"><svg class="ic s12"><use href="#i-alert-c"/></svg> Play telefonda 3 satır, sınır 2. Görselde cihazın üstüne biner.</div></div></div>
+          <div class="sn"><div class="shot" data-v="3"></div><span class="mono">3</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>İlerlemeni gör</span><span class="cnt">14 / 30</span></div><div class="cl s"><span>Haftalık grafikler kendiliğinden</span><span class="cnt">32 / 40</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t"><span>See your progress</span><span class="cnt">17 / 30</span></div><div class="cl s"><span>Weekly charts, automatically</span><span class="cnt">28 / 40</span></div></div></div>
+          <div><div class="cc"><div class="cl t"><span>Fortschritt sehen</span><span class="cnt">17 / 30</span></div><div class="cl s"><span>Wöchentliche Diagramme, automatisch</span><span class="cnt">35 / 40</span></div></div></div>
+          <div class="sn"><div class="shot" data-v="4"></div><span class="mono">4</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>Takvimine yerleştir</span><span class="cnt">19 / 30</span></div><div class="cl s"><span>Hatırlatmalar doğru saatte</span><span class="cnt">26 / 40</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t foc"><span>Put it on your calendar</span><span class="cnt">23 / 30</span></div><div class="cl s"><span>Reminders at the right time</span><span class="cnt">27 / 40</span></div><div class="note fg3">Düzenleniyor · kaydedilmedi</div></div></div>
+          <div><div class="cc"><div class="cl t"><span>In den Kalender eintragen</span><span class="cnt">25 / 30</span></div><div class="cl s"><span>Erinnerungen zur richtigen Zeit</span><span class="cnt">31 / 40</span></div></div></div>
+          <div class="sn"><div class="shot" data-v="5"></div><span class="mono">5</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>Birlikte ilerle</span><span class="cnt">15 / 30</span></div><div class="cl s"><span>Hedefini arkadaşınla paylaş</span><span class="cnt">27 / 40</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t"><span>Move forward together</span><span class="cnt">21 / 30</span></div><div class="cl s"><span>Share a goal with a friend</span><span class="cnt">26 / 40</span></div></div></div>
+          <div><div class="cc"><div class="cl t ph"><span>Boş · tr'den yedeklenir</span><span class="cnt">0 / 30</span></div><div class="cl s ph"><span>Boş</span><span class="cnt">0 / 40</span></div><div class="note warn-t"><svg class="ic s12"><use href="#i-alert-t"/></svg> Boş başlık dışa aktarımda birincil dille (tr) çizilir.</div></div></div>
+          <div class="sn last"><div class="shot" data-v="6"></div><span class="mono">6</span></div>
+          <div class="lc-tr last"><div class="cc"><div class="cl t"><span>Senin düzenin</span><span class="cnt">13 / 30</span></div><div class="cl s"><span>Tema ve bildirimler sende</span><span class="cnt">25 / 40</span></div></div></div>
+          <div class="lc-en last"><div class="cc"><div class="cl t"><span>Your way</span><span class="cnt">8 / 30</span></div><div class="cl s"><span>Themes and alerts, your call</span><span class="cnt">28 / 40</span></div></div></div>
+          <div class="last"><div class="cc"><div class="cl t"><span>Dein Stil</span><span class="cnt">9 / 30</span></div><div class="cl s"><span>Designs und Mitteilungen nach Wunsch</span><span class="cnt">36 / 40</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-8" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">12.8</b><span class="fr-t">Yapay zeka önerisi (Faz 6)</span><code class="fr-r">/studio/:templateId/captions → öneri</code></figcaption>
+  <p class="fr-note">Hedef dil ve kapsam seçilir (yalnız boş ve taşan hücreler varsayılan). Öneri birincil dilden (tr) ve varsa en-US'ten üretilir, sınır ve ölçülen satır sayısına göre kısaltılır. Kabul edilen öneriler ızgaraya kaydedilmemiş hücre olarak düşer; kalıcı yazma yine <code>PUT mockups/captions</code>. Denetim kaydında <code>Channel = Web</code> ve "öneri kullanıldı" notu. <b>API:</b> <code>POST /api/v1.0/mockups/captions/suggest { TemplateId, TargetLocale, SourceLocales[], SlotOrders[] }</code> → <code>{ Items: [{ SlotOrder, Field, Before, After, Lines, Reason }] }</code>. <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> çekmece tam ekran. <span class="gap">Backend boşluğu:</span> <code>mockups/captions/suggest</code> ucu ve <code>Studio.AiCaptions</code> özellik bayrağı (kill switch, kapalıyken 503) planın uç listesinde yok; eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content"><div class="r gp10 mb12"><span class="aic s" style="--c:#0F766E">P</span><b class="h3 f1">Mağaza seti 2026</b></div><div class="tabs"><a class="tab">Düzenle</a><a class="tab on">Başlıklar</a><a class="tab">Dışa aktar</a></div><div class="capg" style="opacity:.45;height:420px"></div></div>
+    </div>
+    <div class="ovl" style="justify-content:flex-end;padding:0"><div class="drw" role="dialog" aria-labelledby="m128">
+      <div class="mdl-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><svg class="ic s24"><use href="#i-spark"/></svg><div class="f1"><h2 class="h2" id="m128">de-DE için öneri</h2><p class="t-s fg2 mt4">Kaynak: tr (birincil) ve en-US · 2 hücre</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="r gp6 wrap"><span class="chip on">Boş ve taşan · 2</span><span class="chip">Bütün hücreler · 12</span></div>
+        <div class="card"><div class="card-h"><span class="chk on"></span><b class="t-m f1">Slot 2 · başlık</b><span class="bdg ok sm">2 satıra sığar</span></div><div class="card-b c gp8">
+          <div class="diff"><div class="dl del"><del>Jeden einzelnen Schritt abhaken und festhalten</del></div><div class="dl add"><ins>Jeden Schritt abhaken</ins></div></div>
+          <div class="t-xs fg3">46 → 21 karakter · tr'deki "Her adımı işaretle" anlamına yakın</div></div></div>
+        <div class="card"><div class="card-h"><span class="chk on"></span><b class="t-m f1">Slot 5 · başlık ve alt başlık</b><span class="bdg sm">Boştu</span></div><div class="card-b c gp8">
+          <div class="diff"><div class="dl add"><ins>Gemeinsam vorankommen</ins></div><div class="dl add"><ins>Ziele mit Freunden teilen</ins></div></div>
+          <div class="t-xs fg3">Bir öneriyi hücrede elle değiştirebilirsin; kayıt yine Kaydet ile.</div></div></div>
+        <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Öneriler sunucuda üretilir ve mağazaya gitmez. Yalnız şablonun başlık metinleri gönderilir; ekran görüntüleri gönderilmez.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">2 öneriyi ızgaraya ekle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-9">
+  <figcaption class="fr-h"><b class="fr-n">12.9</b><span class="fr-t">Yapay zeka önerisi kapalı (503)</span><code class="fr-r">/studio/:templateId/captions</code></figcaption>
+  <p class="fr-note">Platform yöneticisi <code>Studio.AiCaptions</code> bayrağını kapattıysa (08 Platform · Özellik bayrakları) ya da sağlayıcı yanıt vermiyorsa uç 503 döner; mesaj metni sunucudan gelir. Düğme aynı oturumda pasifleşir, yanında gerekçe ipucu. Elle düzenleme ve dilden kopyalama etkilenmez. Self-host kurulumunda bayrak varsayılan kapalıdır; düğme "Yöneticin açabilir" ipucuyla görünür. <b>Telefonda</b> toast alttan, sekme çubuğunun üstünde.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content">
+        <div class="r gp10 mb12"><span class="aic s" style="--c:#0F766E">P</span><b class="h3 f1 trunc">Mağaza seti 2026</b></div>
+        <div class="tabs"><a class="tab">Düzenle</a><a class="tab on">Başlıklar <span class="n dng">1</span></a><a class="tab">Dışa aktar</a></div>
+        <div class="toolbar"><span class="chip on">Yalnız sorunlu · 2</span><span class="ml"></span><span class="btn hide-ph"><svg class="ic"><use href="#i-copy"/></svg>Dilden kopyala</span><span class="btn inv dis" aria-disabled="true" title="Yapay zeka önerisi kapalı"><svg class="ic"><use href="#i-spark"/></svg>Yapay zeka önerisi</span><span class="btn pri dis">Kaydet</span></div>
+        <div class="capg" data-a="pusula" data-f="island" data-ar="1206x2622">
+          <div class="sn hd">Slot</div><div class="hd lc-tr">tr</div><div class="hd lc-en">en-US</div><div class="hd">de-DE</div>
+          <div class="sn"><div class="shot" data-v="2"></div><span class="mono">2</span></div>
+          <div class="lc-tr"><div class="cc"><div class="cl t"><span>Her adımı işaretle</span><span class="cnt">18 / 30</span></div></div></div>
+          <div class="lc-en"><div class="cc"><div class="cl t"><span>Check off every step</span><span class="cnt">20 / 30</span></div></div></div>
+          <div><div class="cc"><div class="cl t bad"><span>Jeden einzelnen Schritt abhaken und festhalten</span><span class="cnt over">46 / 30</span></div></div></div>
+          <div class="sn last"><div class="shot" data-v="5"></div><span class="mono">5</span></div>
+          <div class="lc-tr last"><div class="cc"><div class="cl t"><span>Birlikte ilerle</span><span class="cnt">15 / 30</span></div></div></div>
+          <div class="lc-en last"><div class="cc"><div class="cl t"><span>Move forward together</span><span class="cnt">21 / 30</span></div></div></div>
+          <div class="last"><div class="cc"><div class="cl t ph"><span>Boş</span><span class="cnt">0 / 30</span></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast dng" role="alert"><svg class="ic"><use href="#i-x-c"/></svg><div class="f1"><b>Yapay zeka önerisi şu an kapalı</b><div class="fg2">Platform yöneticisi bu özelliği kapattı. Başlıkları elle ya da başka dilden kopyalayarak doldurabilirsin.</div><div class="t-xs fg3 mono mt4">503 · Studio.AiCaptions</div></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. DIŞA AKTARIM ============ -->
+<section class="sec" id="disa-aktarim">
+<div class="sec-h"><span class="k">Bölüm 12.10</span><h2>Bütün boyutlara dışa aktarım</h2><p>Hedef sınıflar kural kataloğundan gelir ve uygulamanın mağazalarına, cihaz ailelerine ve SDK'sına göre zorunlu, önerilen ya da isteğe bağlı işaretlenir. Üretim sunucuda yapılır; sonuç doğrudan ekran görüntüsü yükleme planına (07) girer, mağazaya yazma yine plan onayından sonradır. MCP'de aynı akış tek istektir ("Pusula için tr ve en setini üret ve yükle").</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-10" data-h="1060">
+  <figcaption class="fr-h"><b class="fr-n">12.10</b><span class="fr-t">Dışa aktarım: hedef sınıflar</span><code class="fr-r">/studio/:templateId/export</code></figcaption>
+  <p class="fr-note"><b>API:</b> sayfa açılınca ve her seçim değişince <code>POST /api/v1.0/mockups/export/plan { TemplateId, Locales[], Targets: [{ ClassKey, Width, Height }] }</code> (planlanan, yazma yok) → <code>MockupExportPlanDto { PlanId, Items: [{ ClassKey, Store, Label, Width, Height, Status (Required, Recommended, Optional), RuleId, PerLocaleCount, Selected, Note }], Rejected: [{ ClassKey, Width, Height, Reason }], Total, Warnings[] }</code>. Ana eylem <code>POST /api/v1.0/mockups/export { PlanId }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code> (<code>Kind = MockupExport</code>); iş bitince sunucu üretilen asset'lerle <code>POST screenshots/plan</code> çağırır ve <code>ChangePlanDto</code> döner (07). Kurallar: 6,1"/6,3" slotu yalnız 1206x2622 ve 1179x2556 kabul eder, 1320x2868 reddedilir; slot başına en çok 10 görsel; jpeg / png, alfa kanalı otomatik düzleştirilir. <b>İzin:</b> plan görme <code>View</code>, üretme <code>EditContent</code>; yükleme planını mağazaya uygulamak 07'deki izinlerle (<code>EditContent</code>). <b>Telefonda</b> özet kartı listenin üstüne çıkar, satırlarda durum rozeti metnin altına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content">
+        <div class="r gp10 mb12"><span class="aic s" style="--c:#0F766E">P</span><b class="h3 f1 trunc">Mağaza seti 2026</b><span class="t-xs fg3 hide-ph">Kaydedildi · 14:02</span></div>
+        <div class="tabs"><a class="tab"><svg class="ic"><use href="#i-sliders"/></svg>Düzenle</a><a class="tab"><svg class="ic"><use href="#i-lang"/></svg>Başlıklar <span class="n dng">1</span></a><a class="tab on"><svg class="ic"><use href="#i-layers"/></svg>Dışa aktar</a></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="rgrp"><div class="rgrp-h"><span class="st"><b>AS</b>App Store</span><span class="t-s fg3 ml">5 / 5 seçili</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">iPhone Dynamic Island (medium)</b><div class="r gp10 wrap mt4"><span class="r gp6 t-s"><span class="rad on"></span><span class="mono">1206x2622</span></span><span class="r gp6 t-s"><span class="rad"></span><span class="mono">1179x2556</span></span></div><div class="t-xs fg3 mt4">6,1"/6,3" slotu · iPhone'da çalışan her uygulama için en az bir görsel</div></div><span class="bdg sol sm">Zorunlu</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">iPhone Dynamic Island (large)</b><div class="sz mt4">1320x2868</div><div class="t-xs fg3 mt4">6,9" slotu · verilmezse Face ID (large) yedeği aranır</div></div><span class="bdg info sm">Önerilen</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">iPad 13"</b><div class="sz mt4">2064x2752</div><div class="t-xs fg3 mt4">Build iPad'i destekliyor (UIDeviceFamily 1, 2) · yedeği yok · tablet ham görüntüleri kullanılır</div></div><span class="bdg sol sm">Zorunlu</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">iPhone Duo dış ekran 1398x2034</b><div class="sz mt4">1398x2034 · Katlanır: dış ekran</div><div class="t-xs fg3 mt4">Nisan 2027'den itibaren iOS 27.1 SDK ile derlenen sürümlerde zorunlu</div></div><span class="bdg info sm">Önerilen</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">iPhone Duo iç ekran 2007x2853</b><div class="sz mt4">2007x2853 · Katlanır: iç ekran</div><div class="t-xs fg3 mt4">Aynı kural · kaynaklar çelişiyor, katalog SDK koşulunu tutuyor</div></div><span class="bdg info sm">Önerilen</span></div>
+              <div class="exr rej"><span class="chk dis"></span><div><b class="t-m dng-t">1320x2868 → 6,1"/6,3" slotu</b><div class="t-xs fg2 mt4">Reddedilir: bu slot yalnız 1206x2622 ve 1179x2556 kabul eder. storeasy 1320x2868'i yalnız 6,9" slotuna koyar.</div></div><span class="bdg dng sm">Reddedilir</span></div>
+            </div>
+            <div class="rgrp"><div class="rgrp-h"><span class="st"><b>GP</b>Google Play</span><span class="t-s fg3 ml">3 / 4 seçili</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">Telefon</b><div class="sz mt4">1080x1920 · 9:16</div><div class="t-xs fg3 mt4">En az 2, en çok 8 görsel</div></div><span class="bdg sol sm">Zorunlu</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">7" tablet</b><div class="sz mt4">1200x1920</div><div class="t-xs fg3 mt4">Uygulama tablet düzeni bildiriyor</div></div><span class="bdg info sm">Önerilen</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">10" tablet</b><div class="sz mt4">1600x2560</div></div><span class="bdg info sm">Önerilen</span></div>
+              <div class="exr off"><span class="chk"></span><div><b class="t-m">Öne çıkan görsel</b><div class="sz mt4">1024x500 · cihaz yok · slot değil, dil başına 1</div><div class="t-xs fg3 mt4">Play'de mevcut (12 Eki 2026). İşaretlersen dil başına 1 görsel eklenir (+3).</div></div><span class="bdg sol sm">Zorunlu</span></div>
+            </div>
+            <div class="rgrp"><div class="rgrp-h"><span class="st"><b>MS</b>Microsoft Store</span><span class="t-s fg3 ml">1 / 1 seçili</span></div>
+              <div class="exr"><span class="chk on"></span><div><b class="t-m">Masaüstü</b><div class="r gp10 wrap mt4"><span class="r gp6 t-s"><span class="rad on"></span><span class="mono">1920x1080</span></span><span class="r gp6 t-s"><span class="rad"></span><span class="mono">1366x768</span><span class="fg3">en küçük</span></span></div><div class="t-xs fg3 mt4">Masaüstü pencere çerçevesi · dil başına en çok 10</div></div><span class="bdg sol sm">Zorunlu</span></div>
+            </div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12">
+              <span class="eb">Üretilecek</span>
+              <div class="big-n tnum">162 görsel</div>
+              <div class="formula">3 dil x 6 slot x 9 boyut = 162 görsel</div>
+              <div class="r gp6 wrap"><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>tr</span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>en-US</span><span class="chip on"><svg class="ic"><use href="#i-check"/></svg>de-DE</span></div>
+              <dl class="kv"><dt>Tahmini süre</dt><dd>~3 dk</dd><dt>Tahmini boyut</dt><dd>~150 MB</dd><dt>Biçim</dt><dd>PNG, alfa yok</dd></dl>
+              <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-layers"/></svg><span>Alfa kanalı otomatik düzleştirilir (arka plan rengiyle).</span></div>
+              <span class="btn pri blk"><svg class="ic"><use href="#i-send"/></svg>Üret ve yükleme planına gönder</span>
+              <span class="t-xs fg3" style="text-align:center">Önce sunucuda üretilir. Mağazaya hiçbir şey yazılmaz; yükleme planı onayla çalışır.</span>
+            </div></div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div><b>1 uyarı</b><div class="t-s fg2 mt4">de-DE slot 2 başlığı taşıyor. Yine de üretilebilir; görselde başlık cihazın üstüne biner. <span class="lnk">Başlıklara git</span></div></div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-spark"/></svg><div class="t-s">MCP'de <span class="mono">mockup_export</span> aynı planı döner; üretim yine bu iş kuyruğundan geçer.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. İLERLEME VE SONUÇ ============ -->
+<section class="sec" id="uretim">
+<div class="sec-h"><span class="k">Bölüm 12.11-12.12</span><h2>Üretim ve sonuç</h2><p>Dışa aktarım bir mağaza işi gibi kuyruğa girer (<code>StoreJobs</code>, <code>Kind = MockupExport</code>) ve canlı akışta görünür. Adımlar boyut başına (<code>render.size</code>); her adım <code>job.step</code> olayıyla ilerler. Sekme kapansa da iş sunucuda sürer.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-11" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">12.11</b><span class="fr-t">Dışa aktarım sürüyor</span><code class="fr-r">/studio/:templateId/export/:jobId</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/jobs/job?JobId=</code> → <code>StoreJobDto { Id, Kind, Status, Steps: [{ Order, Kind (render.size, asset.store, plan.create), Label, Done, Total, Status, Message }] }</code>; SignalR <code>/hubs/activity</code> <code>job.step</code> ve <code>job.finished</code>. İptal <code>POST jobs/cancel</code> (üretilmiş görseller silinir, mağazaya bir şey gitmemiştir). Sıra: katalog sırası, zorunlular önce. Hareket azaltmada ilerleme çubukları kalır, parıltı durur. <b>İzin:</b> izleme <code>View</code>, iptal <code>EditContent</code>. <b>Telefonda</b> satırda ilerleme çubuğu adın altına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Dışa aktarım" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="aic s" style="--c:#0F766E">P</span><span class="t-s fg2">Pusula · Mağaza seti 2026</span></div><h1 class="pg-t">Görseller üretiliyor</h1><p class="pg-s">Sunucu her boyutu şablondan çiziyor. Bitince yükleme planı açılır; mağazaya yazma onayından sonra.</p></div><div class="pg-a"><span class="btn ghost"><svg class="ic"><use href="#i-stop"/></svg>İptal et</span></div></div>
+        <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-loader"/></svg><span class="h3">İş #8812 · MockupExport</span><span class="bdg live info sm ml"><span class="dot"></span>Üretiliyor</span></div>
+          <div class="card-b c gp8"><div class="r bt t-s"><span>97 / 162 görsel</span><span class="mono fg3">1 dk 38 sn · kalan ~1 dk</span></div><span class="prog"><i style="width:60%"></i></span></div>
+          <div class="lst" style="border-top:1px solid rgb(var(--border))">
+            <div class="pr"><span class="r gp8" style="min-width:0"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="trunc"><span class="st sm"><b>AS</b></span> iPhone DI medium · <span class="mono">1206x2622</span></span></span><span class="prog ok sm"><i style="width:100%"></i></span><span class="n">18 / 18</span></div>
+            <div class="pr"><span class="r gp8" style="min-width:0"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="trunc"><span class="st sm"><b>AS</b></span> iPhone DI large · <span class="mono">1320x2868</span></span></span><span class="prog ok sm"><i style="width:100%"></i></span><span class="n">18 / 18</span></div>
+            <div class="pr"><span class="r gp8" style="min-width:0"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="trunc"><span class="st sm"><b>AS</b></span> iPad 13" · <span class="mono">2064x2752</span></span></span><span class="prog ok sm"><i style="width:100%"></i></span><span class="n">18 / 18</span></div>
+            <div class="pr"><span class="r gp8" style="min-width:0"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="trunc"><span class="st sm"><b>GP</b></span> Telefon · <span class="mono">1080x1920</span></span></span><span class="prog ok sm"><i style="width:100%"></i></span><span class="n">18 / 18</span></div>
+            <div class="pr"><span class="r gp8" style="min-width:0"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg><span class="trunc"><span class="st sm"><b>MS</b></span> Masaüstü · <span class="mono">1920x1080</span></span></span><span class="prog ok sm"><i style="width:100%"></i></span><span class="n">18 / 18</span></div>
+            <div class="pr"><span class="r gp8" style="min-width:0"><span class="spinner" style="width:16px;height:16px"></span><span class="trunc"><span class="st sm"><b>AS</b></span> iPhone Duo dış ekran · <span class="mono">1398x2034</span></span></span><span class="prog sm"><i style="width:39%"></i></span><span class="n">7 / 18</span></div>
+            <div class="pr"><span class="r gp8 fg3" style="min-width:0"><svg class="ic s16"><use href="#i-circle-dash"/></svg><span class="trunc">iPhone Duo iç ekran · <span class="mono">2007x2853</span></span></span><span class="prog neu sm"><i style="width:0"></i></span><span class="n fg3">0 / 18</span></div>
+            <div class="pr"><span class="r gp8 fg3" style="min-width:0"><svg class="ic s16"><use href="#i-circle-dash"/></svg><span class="trunc">7" tablet · <span class="mono">1200x1920</span></span></span><span class="prog neu sm"><i style="width:0"></i></span><span class="n fg3">0 / 18</span></div>
+            <div class="pr"><span class="r gp8 fg3" style="min-width:0"><svg class="ic s16"><use href="#i-circle-dash"/></svg><span class="trunc">10" tablet · <span class="mono">1600x2560</span></span></span><span class="prog neu sm"><i style="width:0"></i></span><span class="n fg3">0 / 18</span></div>
+          </div>
+        </div>
+        <div class="r gp8 t-s fg3 mt12"><svg class="ic s16"><use href="#i-info"/></svg>Sekmeyi kapatabilirsin; iş Canlı akışta görünür, bitince bildirim gelir.</div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-12" data-h="1000">
+  <figcaption class="fr-h"><b class="fr-n">12.12</b><span class="fr-t">Sonuç: görseller hazır</span><code class="fr-r">/studio/:templateId/export/:jobId</code></figcaption>
+  <p class="fr-note">Sonuç boyut boyut ızgara; dil seçici üstte. Tek ana eylem "Yükleme planını aç": iş bitince oluşan <code>ChangePlanDto</code>'ya (07, ekran görüntüsü yükleme planı: eklenecek, değişecek, sıralama, MD5 diff) gider; orada onaylanınca <code>POST screenshots/apply</code> mağaza işini başlatır. Görsel tıklaması tam boyut önizleme. <b>API:</b> <code>GET jobs/job</code> → <code>Result { AssetIds[], ScreenshotPlanId, TotalBytes }</code>; zip <code>GET /api/v1.0/mockups/export/zip?JobId=</code> (imzalı URL'ye yönlendirir). <b>İzin:</b> indirme <code>View</code>; plan <code>EditContent</code>. <b>Telefonda</b> ızgara 3 sütun, masaüstü görselleri 2 sütun. <span class="gap">Backend boşluğu:</span> zip ucu (<code>GET mockups/export/zip</code>) planda yok; eklenecek. <code>AuditAction</code> değerleri <code>MockupTemplateCreated</code>, <code>MockupTemplateUpdated</code>, <code>MockupExported</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Dışa aktarım" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="aic s" style="--c:#0F766E">P</span><span class="t-s fg2">Pusula · Mağaza seti 2026</span></div><h1 class="pg-t">162 görsel hazır</h1><p class="pg-s">2 dk 41 sn · 148,6 MB · bugün 14:21. Mağazada henüz hiçbir şey değişmedi.</p></div>
+          <div class="pg-a"><span class="btn"><svg class="ic"><use href="#i-download"/></svg>Zip indir</span><span class="btn pri"><svg class="ic"><use href="#i-arrow-r"/></svg>Yükleme planını aç</span></div></div>
+        <div class="toolbar"><div class="seg"><span class="on">tr</span><span>en-US</span><span>de-DE</span></div><span class="chip on">Bütün boyutlar · 9</span><span class="t-s fg3 ml hide-ph">Alfa düzleştirildi: 6 görsel</span></div>
+        <div class="resh"><span class="st sm"><b>AS</b></span><b class="t-m">iPhone DI medium</b><span class="mono t-s fg3">1206x2622 · 6</span></div>
+        <div class="resg" data-a="pusula" data-f="island" data-ar="1206x2622"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div><div class="shot" data-v="5"></div><div class="shot" data-v="6"></div></div>
+        <div class="resh"><span class="st sm"><b>AS</b></span><b class="t-m">iPhone Duo iç ekran 2007x2853</b><span class="mono t-s fg3">6</span></div>
+        <div class="resg" data-a="pusula" data-f="duo-in" data-ar="2007x2853" data-sc="0.8"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div><div class="shot" data-v="5"></div><div class="shot" data-v="6"></div></div>
+        <div class="resh"><span class="st sm"><b>AS</b></span><b class="t-m">iPad 13"</b><span class="mono t-s fg3">2064x2752 · 6</span></div>
+        <div class="resg" data-a="pusula" data-f="tablet" data-ar="2064x2752" data-sc="0.82"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div><div class="shot" data-v="5"></div><div class="shot" data-v="6"></div></div>
+        <div class="resh"><span class="st sm"><b>MS</b></span><b class="t-m">Masaüstü</b><span class="mono t-s fg3">1920x1080 · 6</span></div>
+        <div class="resg ls" data-a="pusula" data-f="win" data-ar="1920x1080"><div class="shot" data-v="1"></div><div class="shot" data-v="3"></div><div class="shot" data-v="4"></div></div>
+        <div class="card mt16"><div class="lst">
+          <div class="lst-i"><span class="st sm"><b>AS</b></span><span class="f1 t-s">iPhone DI large · <span class="mono">1320x2868</span></span><span class="t-s fg3">6</span><span class="lnk t-s">Göster</span></div>
+          <div class="lst-i"><span class="st sm"><b>AS</b></span><span class="f1 t-s">iPhone Duo dış ekran 1398x2034</span><span class="t-s fg3">6</span><span class="lnk t-s">Göster</span></div>
+          <div class="lst-i"><span class="st sm"><b>GP</b></span><span class="f1 t-s">Telefon, 7" tablet, 10" tablet</span><span class="t-s fg3">18</span><span class="lnk t-s">Göster</span></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast ok" role="status"><svg class="ic"><use href="#i-check-c"/></svg><div class="f1"><b>Dışa aktarım bitti</b><div class="fg2">Yükleme planı hazır: 3 mağaza, 162 görsel.</div></div></div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 7. DURUMLAR ============ -->
+<section class="sec" id="durumlar">
+<div class="sec-h"><span class="k">Bölüm 12.13-12.16</span><h2>Durumlar</h2><p>Bir boyutta render hatası, şablon yükleme iskeleti, izinsiz rol ve kaydedilmemiş değişiklik. Genel hata ve 404 ekranları 18-Durum-Ekranlari dosyasında.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f12-13" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">12.13</b><span class="fr-t">Bir boyutta render hatası</span><code class="fr-r">/studio/:templateId/export/:jobId</code></figcaption>
+  <p class="fr-note">İş <code>Succeeded</code> değil <code>PartiallySucceeded</code> biter: başarısız adımın görselleri ızgarada boş kutu. Hata ham görüntü çok küçükse (büyütme sınırı %125) olur; %100-125 arası büyütme uyarıdır. Font: şablonun istediği kalınlık imajda yoksa en yakın gömülü kalınlıkla çizilir ve uyarı yazılır (K8: yalnız Inter ve Noto Sans gömülü). Hatalı boyut yükleme planına girmez; o sınıftaki mevcut mağaza görselleri korunur. <b>API:</b> adım <code>Status = Failed, Message, Code (AssetTooSmall, FontMissing, CaptionOverflow)</code>; yeniden deneme <code>POST /api/v1.0/jobs/retry { JobId, StepIds[] }</code>. <b>İzin:</b> <code>EditContent</code>. <span class="gap">Backend boşluğu:</span> <code>jobs/retry</code> bugün işin tamamını yeniden dener; adım seçimi (<code>StepIds</code>) ve <code>PartiallySucceeded</code> durumu eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Dışa aktarım" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">159 / 162 görsel hazır</h1><p class="pg-s">Bir boyutta 3 görsel üretilemedi. Kalanlar yükleme planına girebilir.</p></div>
+          <div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Zip indir</span><span class="btn pri"><svg class="ic"><use href="#i-arrow-r"/></svg>Yükleme planını aç · 159</span></div></div>
+        <div class="card dng"><div class="card-h"><svg class="ic s18 dng-t"><use href="#i-x-c"/></svg><b class="t-m f1">iPad 13" · slot 4 · 3 dil</b><span class="bdg dng sm">Üretilemedi</span></div>
+          <div class="card-b c gp10"><div class="t-s fg2">Tablet ham görüntüsü <span class="mono">1488x2266</span>. 13" ekrana sığması için <b>%139</b> büyütme gerekir; sınır %125. Görüntü bulanık çıkacağı için çizilmedi.</div>
+            <div class="r gp8 wrap"><span class="btn sm inv"><svg class="ic"><use href="#i-upload"/></svg>Ham görüntü yükle</span><span class="btn sm"><svg class="ic"><use href="#i-refresh"/></svg>Bu boyutu yeniden dene</span><span class="btn sm ghost">Bu slotu iPad'de atla</span></div></div></div>
+        <div class="c gp8 mt12">
+          <div class="wrn"><svg class="ic warn-t"><use href="#i-alert-t"/></svg><div><b>10" tablet · slot 4</b> %108 büyütüldü; keskinlik biraz düşebilir. <span class="lnk">Görsele bak</span></div></div>
+          <div class="wrn"><svg class="ic warn-t"><use href="#i-alert-t"/></svg><div><b>Font:</b> şablon Noto Sans 800 istiyor, imajda yok; Noto Sans 700 ile çizildi (de-DE, 18 görsel).</div></div>
+        </div>
+        <div class="resh"><span class="st sm"><b>AS</b></span><b class="t-m">iPad 13"</b><span class="mono t-s fg3">2064x2752 · 5 / 6</span></div>
+        <div class="resg" data-a="pusula" data-f="tablet" data-ar="2064x2752" data-sc="0.82">
+          <div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div>
+          <div class="cellx"><div class="shot" data-v="4" style="opacity:.25"></div><div class="x"><svg class="ic s16"><use href="#i-x-c"/></svg>Slot 4<br>%139</div></div>
+          <div class="shot" data-v="5"></div><div class="shot" data-v="6"></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-14" data-view="desktop">
+  <figcaption class="fr-h"><b class="fr-n">12.14</b><span class="fr-t">Şablon yükleniyor (iskelet)</span><code class="fr-r">/studio/:templateId</code></figcaption>
+  <p class="fr-note">İskelet düzenleyicinin üç panel şeklinde. Şablon (<code>GET mockups/template</code>) gelince paneller dolar; önizleme görselleri ayrıca gelir ve gelene kadar slot kutuları iskelet kalır. Önizleme 10 sn'de gelmezse slot kutusunda "Önizleme gecikti · Yeniden dene". Hareket azaltmada parıltı durur. Telefonda 12.5'in iskeleti (tek kart).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|..." data-act="">
+      <div class="content flush"><div class="edw">
+        <div class="topline"></div>
+        <div class="ed-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><span class="sk" style="width:28px;height:28px;border-radius:8px"></span><div class="c gp6 f1"><span class="sk t" style="width:220px"></span><span class="sk" style="width:300px"></span></div><span class="sk b" style="width:110px"></span></div>
+        <div class="std">
+          <aside class="pnl"><span class="sk" style="width:60px"></span><span class="sk b"></span><span class="sk b"></span><span class="sk b"></span><span class="sk b"></span><span class="sk" style="width:120px"></span><span class="sk b"></span><span class="sk b"></span></aside>
+          <section class="cnv"><div class="cnv-b"><span class="sk sk-shot"></span><span class="sk sk-shot"></span><span class="sk sk-shot"></span></div></section>
+          <aside class="pnl r"><span class="sk" style="width:40px"></span><span class="sk b"></span><span class="sk" style="width:50px"></span><span class="sk b"></span><span class="sk b"></span><span class="sk b"></span></aside>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-15">
+  <figcaption class="fr-h"><b class="fr-n">12.15</b><span class="fr-t">İzleyici: salt okunur önizleme (403)</span><code class="fr-r">/studio/:templateId</code></figcaption>
+  <p class="fr-note">Viewer rolü (yalnız <code>View</code>) şablonu açar, dil ve sınıf değiştirip önizler (<code>POST mockups/render-preview</code> izin <code>View</code>, yazma değildir), son dışa aktarımı indirir. Alanlar salt okunur çizgili, "Kaydet" ve "Dışa aktar" yok; doğrudan <code>PUT mockups/template</code> ya da <code>POST mockups/export</code> 403 döner ve sayfa üstünde aynı şerit kalır. Kenar menüde "Yeni şablon" yok. <b>Telefonda</b> 12.5 ile aynı, şerit üstte.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-role="Viewer" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026">
+      <div class="content flush"><div class="edw">
+        <div class="banner info"><svg class="ic s16"><use href="#i-lock"/></svg><span class="f1">İzleyici rolündesin: önizleyebilir ve indirebilirsin. Şablonu düzenlemek ve görsel üretmek Editör rolü ister.</span></div>
+        <div class="ed-h" style="padding-bottom:12px;border-bottom:1px solid rgb(var(--border))"><span class="aic s" style="--c:#0F766E">P</span><div class="f1" style="min-width:0"><b class="h3 trunc">Mağaza seti 2026</b><div class="t-xs fg3">Pusula · 6 slot · son dışa aktarım 12 Kas 2026</div></div><span class="btn hide-ph"><svg class="ic"><use href="#i-download"/></svg>Son dışa aktarımı indir</span></div>
+        <div class="std">
+          <aside class="pnl">
+            <div class="pgrp"><span class="eb">Slot 1 · başlık · tr</span><span class="inp ro">Hedeflerin tek bakışta</span><span class="inp ro">Bütün rotan tek ekranda</span></div>
+            <div class="pgrp"><span class="eb">Arka plan</span><div class="sws" style="opacity:.6"><span class="swc on" style="background:linear-gradient(160deg,#14B8A6,#0F4C45)"></span></div></div>
+            <div class="pgrp"><span class="eb">Cihaz</span><div class="rng ro"><span>Dikey</span><span class="tr" style="--v:27%"><i></i><b></b></span><span class="val">%27</span></div><div class="rng ro"><span>Ölçek</span><span class="tr" style="--v:78%"><i></i><b></b></span><span class="val">%78</span></div><span class="inp ro"><svg class="ic s16"><use href="#i-phone"/></svg>Telefon (ada) · Grafit</span></div>
+          </aside>
+          <section class="cnv"><div class="cnv-b" data-a="pusula" data-f="island" data-ar="1206x2622" data-l="en"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div></div></section>
+          <aside class="pnl r"><div class="pgrp"><span class="eb">Dil</span><div class="seg"><span>tr</span><span class="on">en-US</span><span>de-DE</span></div></div><div class="pgrp"><span class="eb">Sınıf</span><span class="inp sel"><span class="st sm"><b>AS</b></span>DI medium</span></div><div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg>Dışa aktarım Editör ister.</div></aside>
+        </div>
+      </div></div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f12-16">
+  <figcaption class="fr-h"><b class="fr-n">12.16</b><span class="fr-t">Kaydedilmemiş değişiklikler</span><code class="fr-r">/studio/:templateId → ayrılırken</code></figcaption>
+  <p class="fr-note">Düzenleyiciden ayrılırken (menü, sekme, geri) kaydedilmemiş değişiklik varsa. Değişiklik özeti istemcide tutulur. "Kaydet ve çık" <code>PUT mockups/template</code> + <code>PUT mockups/captions</code>; arada başka biri kaydettiyse 409 döner ve modal "Ece Yılmaz 14:05'te kaydetti: onun sürümünü aç / benimkini yeni şablon olarak kaydet" seçeneğine döner (üzerine yazma yok). "Değişiklikleri at" geri alınamaz, tehlikeli dış çizgili düğme. Tarayıcı kapanırken yalnız tarayıcının kendi uyarısı. <b>Telefonda</b> modal alttan.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="studio" data-crumbs="Stüdyo|Pusula|Mağaza seti 2026" data-act="">
+      <div class="content"><div class="r gp10 mb12"><span class="aic s" style="--c:#0F766E">P</span><b class="h3">Mağaza seti 2026</b></div><div class="g3" data-a="pusula" data-f="island" data-ar="1206x2622" style="opacity:.5;max-width:520px"><div class="shot" data-v="1"></div><div class="shot" data-v="2"></div><div class="shot" data-v="3"></div></div></div>
+    </div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1216">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1216">Kaydedilmemiş 3 değişiklik var</h2><p class="t-s fg2 mt4">Çıkarsan bu değişiklikler kaybolur.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-type"/></svg><span class="f1 t-s">Slot 2 başlığı (tr)</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-palette"/></svg><span class="f1 t-s">Arka plan: düz → gradyan</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-maximize"/></svg><span class="f1 t-s">Cihaz ölçeği %74 → %78</span></div>
+        </div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Sayfada kal</span><span class="btn dng-o">Değişiklikleri at</span><span class="btn pri">Kaydet ve çık</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<script>
+/* Stüdyo önizleme çizimi. Şablon Spec'inin (frame, background, layout) tasarım dosyasındaki karşılığı; üründe aynı Spec
+   sunucuda SkiaSharp ile çizilir (K8). Cihaz çerçeveleri storeasy'nin kendi parametrik çizimidir: gövde, çerçeve
+   kalınlığı, ada / delik / kamera kesiği, katlama çizgisi. Hex renkler kullanıcı içeriğidir (mockup arka planı). */
+(function () {
+  var APPS = {
+    pusula: { c: '#0F766E', l: '#CCFBF1', bg: '#14B8A6,#0F4C45', tc: '#FFFFFF' },
+    kumbara: { c: '#475569', l: '#E2E8F0', bg: '#EEF2F6', tc: '#1E293B' },
+    mola: { c: '#15803D', l: '#DCFCE7', bg: '#4ADE80,#14532D', tc: '#FFFFFF' },
+    tarla: { c: '#9A3412', l: '#FFEDD5', bg: '#FDBA74,#9A3412', tc: '#FFFFFF' }
+  };
+  var CAP = {
+    pusula: {
+      tr: [['Hedeflerin|tek bakışta', 'Bütün rotan tek ekranda'], ['Her adımı|işaretle', 'Küçük adımlar, düzenli ilerleme'], ['İlerlemeni|gör', 'Haftalık grafikler kendiliğinden'], ['Takvimine|yerleştir', 'Hatırlatmalar doğru saatte'], ['Birlikte|ilerle', 'Hedefini arkadaşınla paylaş'], ['Senin|düzenin', 'Tema ve bildirimler sende']],
+      en: [['Your goals|at a glance', 'Your whole route on one screen'], ['Check off|every step', 'Small steps, steady progress'], ['See your|progress', 'Weekly charts, automatically'], ['Put it on your|calendar', 'Reminders at the right time'], ['Move forward|together', 'Share a goal with a friend'], ['Your way', 'Themes and alerts, your call']]
+    },
+    kumbara: {
+      tr: [['Birikimin|kendiliğinden büyür', 'Küçük adımlar, büyük kumbara'], ['Hedefe ne|kadar kaldı?', 'Her kuruş takipte'], ['Harcamanı|gör', 'Kategoriler kendiliğinden'], ['Ödeme günü|hatırlatması', 'Faturayı unutma'], ['Aileyle|biriktir', 'Ortak kumbara aç'], ['Kumbara Plus', 'Sınırsız hedef, aylık 49,99 TL']]
+    },
+    mola: {
+      tr: [['Molanı|planla', 'Gün içinde kısa nefesler'], ['Odaklan', 'Sessiz mod tek dokunuş'], ['Haftanı|gör', 'Mola alışkanlığın grafikte'], ['Takvimle|uyumlu', 'Toplantı arasına yerleşir'], ['Ekibinle', 'Ortak mola saatleri'], ['Sana göre', 'Süre ve ses ayarı']]
+    },
+    tarla: {
+      tr: [['Tarlanı tek|ekrandan yönet', 'Parseller, ekim ve hasat'], ['Hava ve|sulama', 'Bugünün işi hazır'], ['Verimi|karşılaştır', 'Sezon sezon grafik'], ['Ekiple|planla', 'Görevler ve takvim']]
+    }
+  };
+  var FR = {
+    island: { bz: 0.035, cr: 0.15, cut: 'island' },
+    hole: { bz: 0.03, cr: 0.12, cut: 'hole' },
+    tablet: { bz: 0.045, cr: 0.06, cut: 'cam' },
+    'duo-out': { bz: 0.04, cr: 0.12, cut: 'hole' },
+    'duo-in': { bz: 0.035, cr: 0.07, cut: 'hole', fold: 1 }
+  };
+  var n = 0, INK = '#1F2328', MUT = '#A3A7AD', LINE = '#E4E4DF';
+  function r(v) { return Math.round(v * 10) / 10; }
+  function rect(x, y, w, h, rx, fill, ex) { return '<rect x="' + r(x) + '" y="' + r(y) + '" width="' + r(Math.max(w, 0)) + '" height="' + r(Math.max(h, 0)) + '" rx="' + r(rx) + '" fill="' + fill + '"' + (ex || '') + '/>'; }
+  function circ(cx, cy, rr, fill, ex) { return '<circle cx="' + r(cx) + '" cy="' + r(cy) + '" r="' + r(rr) + '" fill="' + fill + '"' + (ex || '') + '/>'; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function txt(x, y, fs, wg, fill, s, font, op, anc) {
+    return '<text x="' + r(x) + '" y="' + r(y) + '" font-size="' + r(fs) + '" font-weight="' + wg + '" fill="' + fill + '"' + (op ? ' fill-opacity="' + op + '"' : '') +
+      ' font-family="' + font + '" text-anchor="' + (anc || 'middle') + '" letter-spacing="-0.01em">' + esc(s) + '</text>';
+  }
+  function att(el, k, d) { var e = el.closest('[data-' + k + ']'); return e ? e.getAttribute('data-' + k) : d; }
+  function card(x, y, w, h, u) { return rect(x, y, w, h, u * 0.04, '#FFFFFF', ' stroke="' + LINE + '" stroke-width="' + r(u * 0.004) + '"'); }
+  function row(x, y, w, h, A, on, u) {
+    return card(x, y, w, h, u) + circ(x + h * 0.5, y + h * 0.5, h * 0.2, on ? A.c : A.l) +
+      rect(x + h, y + h * 0.3, w * 0.45, h * 0.15, h * 0.075, INK) + rect(x + h, y + h * 0.56, w * 0.3, h * 0.11, h * 0.055, MUT);
+  }
+  /* ekran içeriği: uygulamanın soyut arayüzü (bloklar, grafikler) */
+  function ui(A, v, x, y, w, h, k) {
+    var s = rect(x, y, w, h, 0, '#F6F6F3'), p = w * 0.07, cw = w - 2 * p, t = y + w * 0.15, i, yy, bx, bh;
+    s += rect(x + p, y + w * 0.05, w * 0.1, w * 0.026, w * 0.013, INK) + rect(x + w - p - w * 0.12, y + w * 0.05, w * 0.12, w * 0.026, w * 0.013, INK);
+    s += rect(x + p, t, w * 0.46, w * 0.055, w * 0.02, INK) + rect(x + p, t + w * 0.085, w * 0.3, w * 0.03, w * 0.015, MUT);
+    yy = t + w * 0.17;
+    v = ((v - 1) % 6) + 1;
+    if (v === 1) {
+      s += rect(x + p, yy, cw, cw * 0.62, w * 0.05, A.c);
+      if (k) {
+        s += rect(x + p + cw * 0.08, yy + cw * 0.1, cw * 0.3, cw * 0.04, cw * 0.02, 'rgba(255,255,255,.6)') + rect(x + p + cw * 0.08, yy + cw * 0.18, cw * 0.62, cw * 0.11, cw * 0.03, '#FFFFFF') +
+          rect(x + p + cw * 0.08, yy + cw * 0.42, cw * 0.84, cw * 0.05, cw * 0.025, 'rgba(255,255,255,.25)') + rect(x + p + cw * 0.08, yy + cw * 0.42, cw * 0.55, cw * 0.05, cw * 0.025, '#FFFFFF');
+      } else {
+        for (i = 0; i < 3; i++) {
+          var cx = x + p + cw * (0.2 + i * 0.3), cy = yy + cw * 0.28, rr = cw * 0.1, sw = r(cw * 0.032);
+          s += circ(cx, cy, rr, 'none', ' stroke="rgba(255,255,255,.28)" stroke-width="' + sw + '"') +
+            circ(cx, cy, rr, 'none', ' stroke="#FFFFFF" stroke-width="' + sw + '" stroke-linecap="round" stroke-dasharray="' + r(rr * 6.283 * (0.45 + i * 0.18)) + ' 9999" transform="rotate(-90 ' + r(cx) + ' ' + r(cy) + ')"') +
+            rect(cx - cw * 0.07, yy + cw * 0.47, cw * 0.14, cw * 0.035, cw * 0.017, 'rgba(255,255,255,.7)');
+        }
+      }
+      yy += cw * 0.7;
+      for (i = 0; i < 4; i++) { s += row(x + p, yy + i * cw * 0.24, cw, cw * 0.2, A, i < 2, w); }
+    } else if (v === 2) {
+      for (i = 0; i < 7; i++) {
+        bh = cw * 0.19; bx = yy + i * cw * 0.23;
+        s += card(x + p, bx, cw, bh, w) + circ(x + p + bh * 0.5, bx + bh * 0.5, bh * 0.22, i < 3 ? A.c : '#FFFFFF', i < 3 ? '' : ' stroke="' + MUT + '" stroke-width="' + r(w * 0.006) + '"');
+        if (i < 3) { s += '<path d="M' + r(x + p + bh * 0.4) + ' ' + r(bx + bh * 0.5) + ' l' + r(bh * 0.08) + ' ' + r(bh * 0.08) + ' l' + r(bh * 0.15) + ' ' + r(-bh * 0.16) + '" fill="none" stroke="#FFFFFF" stroke-width="' + r(w * 0.008) + '" stroke-linecap="round"/>'; }
+        s += rect(x + p + bh, bx + bh * 0.32, cw * (0.5 - (i % 3) * 0.08), bh * 0.15, bh * 0.07, i < 3 ? MUT : INK) + rect(x + p + bh, bx + bh * 0.56, cw * 0.25, bh * 0.11, bh * 0.05, MUT);
+      }
+    } else if (v === 3) {
+      s += card(x + p, yy, cw, cw * 0.82, w);
+      var hs = [0.35, 0.55, 0.42, 0.7, 0.62, 0.85, 0.74], bw = cw * 0.08, pts = '';
+      for (i = 0; i < 7; i++) {
+        bx = x + p + cw * 0.08 + i * cw * 0.125; bh = cw * 0.5 * hs[i];
+        s += rect(bx, yy + cw * 0.68 - bh, bw, bh, bw * 0.3, i === 5 ? A.c : A.l);
+        pts += r(bx + bw / 2) + ',' + r(yy + cw * 0.6 - bh * 0.9) + ' ';
+      }
+      s += '<polyline points="' + pts + '" fill="none" stroke="' + INK + '" stroke-width="' + r(w * 0.007) + '" stroke-linejoin="round"/>';
+      yy += cw * 0.9;
+      s += card(x + p, yy, cw * 0.48, cw * 0.36, w) + card(x + p + cw * 0.52, yy, cw * 0.48, cw * 0.36, w) +
+        rect(x + p + cw * 0.06, yy + cw * 0.08, cw * 0.2, cw * 0.04, cw * 0.02, MUT) + rect(x + p + cw * 0.06, yy + cw * 0.16, cw * 0.3, cw * 0.09, cw * 0.03, A.c) +
+        rect(x + p + cw * 0.58, yy + cw * 0.08, cw * 0.2, cw * 0.04, cw * 0.02, MUT) + rect(x + p + cw * 0.58, yy + cw * 0.16, cw * 0.26, cw * 0.09, cw * 0.03, INK);
+      s += row(x + p, yy + cw * 0.42, cw, cw * 0.2, A, true, w);
+    } else if (v === 4) {
+      s += card(x + p, yy, cw, cw * 0.95, w) + rect(x + p + cw * 0.06, yy + cw * 0.06, cw * 0.35, cw * 0.05, cw * 0.025, INK);
+      var g = cw * 0.88 / 7;
+      for (i = 0; i < 35; i++) {
+        var c = i % 7, rw = Math.floor(i / 7), on = (i === 17), lt = (i % 5 === 2 || i === 9 || i === 23);
+        s += rect(x + p + cw * 0.06 + c * g, yy + cw * 0.16 + rw * g, g * 0.82, g * 0.82, g * 0.2, on ? A.c : (lt ? A.l : '#F1F1EE'));
+      }
+      yy += cw * 1.02;
+      s += row(x + p, yy, cw, cw * 0.2, A, true, w) + row(x + p, yy + cw * 0.24, cw, cw * 0.2, A, false, w);
+    } else if (v === 5) {
+      for (i = 0; i < 4; i++) { s += circ(x + p + cw * 0.1 + i * cw * 0.13, yy + cw * 0.1, cw * 0.08, [A.c, A.l, '#FDE68A', '#E9D5FF'][i], ' stroke="#F6F6F3" stroke-width="' + r(w * 0.012) + '"'); }
+      yy += cw * 0.26;
+      for (i = 0; i < 4; i++) {
+        bx = yy + i * cw * 0.3;
+        s += card(x + p, bx, cw, cw * 0.26, w) + rect(x + p + cw * 0.06, bx + cw * 0.06, cw * 0.45, cw * 0.04, cw * 0.02, INK) +
+          rect(x + p + cw * 0.06, bx + cw * 0.15, cw * 0.88, cw * 0.035, cw * 0.017, '#EFEFEC') + rect(x + p + cw * 0.06, bx + cw * 0.15, cw * 0.88 * [0.8, 0.55, 0.35, 0.2][i], cw * 0.035, cw * 0.017, A.c);
+      }
+    } else {
+      for (i = 0; i < 7; i++) {
+        bx = yy + i * cw * 0.2; bh = cw * 0.17;
+        s += card(x + p, bx, cw, bh, w) + rect(x + p + cw * 0.06, bx + bh * 0.4, cw * (0.42 - (i % 3) * 0.06), bh * 0.18, bh * 0.09, INK) +
+          rect(x + p + cw * 0.76, bx + bh * 0.28, cw * 0.17, bh * 0.44, bh * 0.22, i % 3 === 1 ? '#D9D9D4' : A.c) + circ(x + p + cw * (i % 3 === 1 ? 0.805 : 0.885), bx + bh * 0.5, bh * 0.17, '#FFFFFF');
+      }
+    }
+    s += rect(x, y + h - w * 0.17, w, w * 0.17, 0, '#FFFFFF', ' stroke="' + LINE + '" stroke-width="' + r(w * 0.004) + '"');
+    for (i = 0; i < 4; i++) { s += rect(x + w * (0.15 + i * 0.21), y + h - w * 0.12, w * 0.07, w * 0.05, w * 0.015, i === ((v - 1) % 4) ? A.c : '#C9CCD1'); }
+    return s;
+  }
+  /* masaüstü uygulaması: kenar çubuğu, istatistik kartları, grafik */
+  function uiDesk(A, v, x, y, w, h) {
+    var s = rect(x, y, w, h, 0, '#F6F6F3'), sb = w * 0.18, p = w * 0.025, cx = x + sb + p, cw = w - sb - 2 * p, i, bh;
+    s += rect(x, y, sb, h, 0, A.l);
+    for (i = 0; i < 6; i++) { s += rect(x + p, y + h * (0.12 + i * 0.09), sb * (i === 1 ? 0.7 : 0.55), h * 0.035, h * 0.017, i === 1 ? A.c : 'rgba(0,0,0,.18)'); }
+    s += rect(cx, y + h * 0.07, cw * 0.3, h * 0.05, h * 0.02, INK);
+    for (i = 0; i < 3; i++) { s += card(cx + i * (cw * 0.34), y + h * 0.17, cw * 0.31, h * 0.2, w * 0.25) + rect(cx + i * (cw * 0.34) + cw * 0.03, y + h * 0.21, cw * 0.12, h * 0.03, h * 0.015, MUT) + rect(cx + i * (cw * 0.34) + cw * 0.03, y + h * 0.27, cw * 0.17, h * 0.06, h * 0.02, i === 0 ? A.c : INK); }
+    s += card(cx, y + h * 0.42, cw * 0.62, h * 0.5, w * 0.25);
+    for (i = 0; i < 10; i++) { bh = h * 0.3 * (0.3 + ((i * 37 + v * 11) % 70) / 100); s += rect(cx + cw * 0.04 + i * cw * 0.056, y + h * 0.86 - bh, cw * 0.035, bh, cw * 0.008, i === 7 ? A.c : A.l); }
+    s += card(cx + cw * 0.65, y + h * 0.42, cw * 0.35, h * 0.5, w * 0.25);
+    for (i = 0; i < 4; i++) { s += circ(cx + cw * 0.7, y + h * (0.5 + i * 0.1), h * 0.02, i < 2 ? A.c : A.l) + rect(cx + cw * 0.74, y + h * (0.49 + i * 0.1), cw * 0.2, h * 0.025, h * 0.012, INK); }
+    return s;
+  }
+  function device(x, y, dw, sa, f, fc, A, v, k, cut, fold) {
+    var P = FR[f] || FR.island, b = dw * P.bz, sw = dw - 2 * b, sh = sw / sa, dh = sh + 2 * b, R = dw * P.cr, rs = Math.max(R - b, R * 0.55), id = 'stc' + (++n), o = '';
+    cut = cut || P.cut;
+    o += rect(x, y, dw, dh, R, fc) + rect(x + b * 0.25, y + b * 0.25, dw - b * 0.5, dh - b * 0.5, R - b * 0.25, 'none', ' stroke="rgba(255,255,255,.12)" stroke-width="' + r(b * 0.2) + '"');
+    o += '<clipPath id="' + id + '">' + rect(x + b, y + b, sw, sh, rs, '#000000') + '</clipPath><g clip-path="url(#' + id + ')">' + ui(A, v, x + b, y + b, sw, sh, k) + '</g>';
+    if (cut === 'island') { o += rect(x + dw / 2 - sw * 0.14, y + b + sw * 0.03, sw * 0.28, sw * 0.08, sw * 0.04, '#0B0C0E'); }
+    else if (cut === 'hole') { o += circ(x + dw / 2, y + b + sw * 0.055, sw * 0.026, '#0B0C0E'); }
+    else if (cut === 'cam') { o += circ(x + dw / 2, y + b / 2, b * 0.2, '#2A2D33'); }
+    if (P.fold) {
+      if (fold === 'h') { o += rect(x + b, y + b + sh / 2 - sw * 0.02, sw, sw * 0.04, 0, 'rgba(0,0,0,.05)') + '<line x1="' + r(x + b) + '" y1="' + r(y + dh / 2) + '" x2="' + r(x + b + sw) + '" y2="' + r(y + dh / 2) + '" stroke="rgba(0,0,0,.28)" stroke-width="' + r(sw * 0.005) + '" stroke-dasharray="' + r(sw * 0.02) + ' ' + r(sw * 0.014) + '"/>'; }
+      else { o += rect(x + dw / 2 - sw * 0.03, y + b, sw * 0.06, sh, 0, 'rgba(0,0,0,.05)') + '<line x1="' + r(x + dw / 2) + '" y1="' + r(y + b) + '" x2="' + r(x + dw / 2) + '" y2="' + r(y + b + sh) + '" stroke="rgba(0,0,0,.28)" stroke-width="' + r(sw * 0.005) + '" stroke-dasharray="' + r(sw * 0.02) + ' ' + r(sw * 0.014) + '"/>'; }
+    }
+    return o;
+  }
+  function win(x, y, ww, wh, fc, A, v) {
+    var tb = ww * 0.035, id = 'stw' + (++n), o = '';
+    o += rect(x, y, ww, wh + tb, ww * 0.012, fc) + rect(x + tb * 0.4, y + tb * 0.3, tb * 0.4, tb * 0.4, tb * 0.1, A.c) + rect(x + tb * 1.1, y + tb * 0.38, ww * 0.1, tb * 0.24, tb * 0.12, 'rgba(255,255,255,.55)');
+    var gx = x + ww - tb * 3.2, gy = y + tb * 0.5, gs = tb * 0.26, st = ' stroke="rgba(255,255,255,.7)" stroke-width="' + r(tb * 0.06) + '" fill="none"';
+    o += '<path d="M' + r(gx) + ' ' + r(gy) + ' h' + r(gs) + '"' + st + '/>' + '<rect x="' + r(gx + tb) + '" y="' + r(gy - gs / 2) + '" width="' + r(gs) + '" height="' + r(gs) + '"' + st + '/>' +
+      '<path d="M' + r(gx + tb * 2) + ' ' + r(gy - gs / 2) + ' l' + r(gs) + ' ' + r(gs) + ' M' + r(gx + tb * 2 + gs) + ' ' + r(gy - gs / 2) + ' l' + r(-gs) + ' ' + r(gs) + '"' + st + '/>';
+    o += '<clipPath id="' + id + '">' + rect(x + 2, y + tb, ww - 4, wh - 2, ww * 0.008, '#000000') + '</clipPath><g clip-path="url(#' + id + ')">' + uiDesk(A, v, x + 2, y + tb, ww - 4, wh - 2) + '</g>';
+    return o;
+  }
+  function draw(el) {
+    var a = att(el, 'a', 'pusula'), A = APPS[a] || APPS.pusula, v = +att(el, 'v', '1'), l = att(el, 'l', 'tr');
+    var ar = att(el, 'ar', '1206x2622').split('x'), W = +ar[0], H = +ar[1];
+    var f = att(el, 'f', 'island'), bg = att(el, 'bg', A.bg), tc = att(el, 'tc', A.tc), fc = att(el, 'fc', '#16181D');
+    var font = att(el, 'font', 'inter') === 'noto' ? "'Noto Sans','Onest',sans-serif" : "'Inter','Onest',sans-serif";
+    var cap = (CAP[a] && CAP[a][l] && CAP[a][l][v - 1]) || (CAP[a] && CAP[a].tr[(v - 1) % CAP[a].tr.length]) || ['', ''];
+    var t = el.getAttribute('data-t') || cap[0], s = el.getAttribute('data-s') || cap[1];
+    var bare = el.hasAttribute('data-bare'), k = a === 'kumbara';
+    var sc = +att(el, 'sc', '0.78'), dy = +att(el, 'dy', '0.27');
+    var id = 'stg' + (++n), o = '', cs = bg.replace('img:', '').split(','), lines = t ? t.split('|') : [], i, fs;
+    if (!bare) {
+      if (cs.length > 1) { o += '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="' + cs[0] + '"/><stop offset="1" stop-color="' + cs[1] + '"/></linearGradient></defs>' + rect(0, 0, W, H, 0, 'url(#' + id + ')'); }
+      else { o += rect(0, 0, W, H, 0, cs[0]); }
+      if (bg.indexOf('img:') === 0) { o += circ(W * 0.85, H * 0.1, W * 0.38, 'rgba(255,255,255,.14)') + circ(W * 0.08, H * 0.6, W * 0.45, 'rgba(255,255,255,.07)') + circ(W * 0.75, H * 0.95, W * 0.3, 'rgba(0,0,0,.14)'); }
+    }
+    if (W > H) {
+      fs = H * 0.085;
+      if (f === 'win') {
+        var ww = W * (bare ? 0.9 : 0.6), wx = bare ? W * 0.05 : W * 0.36, wy = bare ? H * 0.06 : H * 0.17;
+        o += win(wx, wy, ww, ww * 0.56, fc, A, v);
+      } else {
+        var ts = H * 0.5, tx = W * 0.68, ty = H * 0.25;
+        o += circ(W * 0.92, H * 0.15, H * 0.35, 'rgba(255,255,255,.12)') + rect(tx, ty, ts, ts, ts * 0.24, '#FFFFFF') + txt(tx + ts / 2, ty + ts * 0.68, ts * 0.5, 800, A.c, (a.charAt(0).toUpperCase()), "'Onest',sans-serif");
+      }
+      if (!bare) {
+        var base = H / 2 - (lines.length * fs * 1.1) / 2 + fs * 0.75;
+        for (i = 0; i < lines.length; i++) { o += txt(W * 0.06, base + i * fs * 1.1, fs, 800, tc, lines[i], font, 0, 'start'); }
+        o += txt(W * 0.06, base + (lines.length - 1) * fs * 1.1 + fs * 0.95, fs * 0.5, 500, tc, s, font, 0.82, 'start');
+      }
+    } else {
+      var sa = W / H, dw, dx, dyy;
+      if (bare) { dw = W * 0.84; dx = W * 0.08; dyy = H * 0.06; }
+      else {
+        fs = W * 0.07;
+        var ty0 = H * 0.075 + fs;
+        for (i = 0; i < lines.length; i++) { o += txt(W / 2, ty0 + i * fs * 1.12, fs, 800, tc, lines[i], font); }
+        o += txt(W / 2, ty0 + (lines.length - 1) * fs * 1.12 + fs * 0.95, fs * 0.55, 500, tc, s, font, 0.82);
+        dw = W * sc; dx = (W - dw) / 2; dyy = H * dy;
+      }
+      o += device(dx, dyy, dw, sa, f, fc, A, v, k, el.getAttribute('data-cut'), el.getAttribute('data-fold'));
+      if (!bare && el.hasAttribute('data-over')) { o += rect(W * 0.04, H * 0.075 - fs * 0.1, W * 0.92, lines.length * fs * 1.12 + fs * 0.3, fs * 0.2, 'none', ' stroke="#E5484D" stroke-width="' + r(W * 0.006) + '" stroke-dasharray="' + r(W * 0.02) + ' ' + r(W * 0.014) + '"'); }
+    }
+    if (!bare && el.closest('[data-safe]')) { o += rect(W * 0.04, H * 0.025, W * 0.92, H * 0.95, W * 0.03, 'none', ' stroke="#F5A524" stroke-opacity=".9" stroke-width="' + r(W * 0.004) + '" stroke-dasharray="' + r(W * 0.016) + ' ' + r(W * 0.012) + '"'); }
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc((t || 'Çerçeve').replace(/\|/g, ' ')) + ' · ' + W + 'x' + H + '">' + o + '</svg>';
+  }
+  document.querySelectorAll('.shot').forEach(draw);
+})();
+</script>

@@ -1,0 +1,479 @@
+<!--
+title: Hesap ayarları, MCP ve token'lar
+kicker: 16 · Hesap ve geliştirici
+desc: Kenar çubuğundaki kullanıcı menüsü, profil, güvenlik (şifre ve oturumlar), gizlilik ve hesabı silme; kişisel erişim token'ları (PAT), token'ın bir kez gösterilmesi ve uzaktan MCP kurulumu. Bildirim tercihleri 14'te.
+-->
+<style>
+.acc-w{max-width:820px}
+.code.wr{white-space:pre-wrap;overflow-wrap:anywhere}
+.crop{position:relative;height:300px;border-radius:var(--r-md);overflow:hidden;background:linear-gradient(135deg,#0F766E 0%,#134E4A 45%,#1E293B 100%);display:grid;place-items:center}
+.crop::before{content:"";position:absolute;width:120px;height:120px;border-radius:50%;background:#F5D0A9;top:70px;left:calc(50% - 60px)}
+.crop::after{content:"";position:absolute;width:220px;height:140px;border-radius:110px 110px 0 0;background:#334155;bottom:-20px;left:calc(50% - 110px)}
+.crop .ring{position:absolute;width:220px;height:220px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 999px rgb(0 0 0/.55);z-index:2;top:40px;left:calc(50% - 110px)}
+.rng{position:relative;height:4px;border-radius:4px;background:rgb(var(--border-strong));flex:1}
+.rng>i{position:absolute;left:0;top:0;bottom:0;width:40%;border-radius:4px;background:rgb(var(--accent))}
+.rng>b{position:absolute;left:40%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--accent))}
+.otp{display:flex;gap:6px;padding:3px}
+.otp>span{width:42px;height:50px;flex:none;border:1px solid rgb(var(--border-strong));border-radius:10px;display:grid;place-items:center;font:600 20px/1 var(--font-mono);background:rgb(var(--surface))}
+.otp>span.foc{border-color:rgb(var(--fg));box-shadow:0 0 0 3px rgb(var(--fg)/.10)}
+.menu-me{display:flex;gap:10px;align-items:center;padding:8px 10px 10px}
+.pop .seg{margin:2px 6px 6px}
+.pop .seg>*{flex:1;justify-content:center}
+.endp{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 16px;font-size:13px}
+.endp dt{color:rgb(var(--fg-3))}
+.endp dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.tg{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 16px;border-bottom:1px solid rgb(var(--border))}
+.tg:last-child{border-bottom:0}
+.tg .tools{font:500 11.5px/1.6 var(--font-mono);color:rgb(var(--fg-3))}
+.legal{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgb(var(--border))}
+.legal:last-child{border-bottom:0}
+@container scr (max-width:760px){
+  .tg{grid-template-columns:28px minmax(0,1fr)}
+  .tg>:last-child{grid-column:2}
+  .endp{grid-template-columns:1fr;gap:2px}
+  .endp dd{margin-bottom:8px}
+  .crop{height:240px}
+  .crop .ring{width:180px;height:180px;top:30px;left:calc(50% - 90px)}
+  .legal{flex-wrap:wrap}
+}
+</style>
+
+<!-- ============ 1. KULLANICI MENÜSÜ ============ -->
+<section class="sec" id="menu">
+<div class="sec-h"><span class="k">Bölüm 16.1-16.2</span><h2>Kullanıcı menüsü</h2><p>Kenar çubuğunun altındaki kişi satırı menüyü açar: hesap sayfaları, tema, dil, kaynak kod bağlantısı ve çıkış. Tema ve dil anında uygulanır ve hesaba kaydedilir; başka cihazda da aynı gelir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-1" data-view="desktop">
+  <figcaption class="fr-h"><b class="fr-n">16.1</b><span class="fr-t">Kullanıcı menüsü</span><code class="fr-r">kenar çubuğu → kişi</code></figcaption>
+  <p class="fr-note">Menü yukarı açılır (ekranın altındaki öğe). Tema "Açık / Koyu / Sistem", dil "Türkçe / English"; seçim ilk boyamadan önce uygulanır (parlama yok). Kaynak kod bağlantısı AGPL-3.0 gereği her kullanıcıya görünür (plan 2.7), kurulumun sürümünü taşır. <b>API:</b> çıkış <code>POST /api/v1.0/account/logout { UserName, DeviceId }</code> (yalnız bu cihaz); tema ve dil <code>PUT /api/v1.0/account/preferences { Theme, Language }</code> (planlanan; kaydedilene kadar tarayıcıda tutulur). <b>İzin:</b> giriş yapmış her kullanıcı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar">
+      <div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div><div class="g3"><div class="card" style="height:200px"></div><div class="card" style="height:200px"></div><div class="card" style="height:200px"></div></div></div>
+    </div>
+    <div class="pop" style="left:12px;bottom:76px;width:264px" role="menu" aria-label="Kullanıcı menüsü">
+      <div class="menu-me"><span class="av">DA</span><div class="f1"><b class="t-m">Deniz Arslan</b><div class="t-xs fg3 trunc">deniz@kuzeylab.dev</div></div></div>
+      <div class="ms"></div>
+      <div class="mi"><svg class="ic"><use href="#i-user"/></svg>Profil</div>
+      <div class="mi"><svg class="ic"><use href="#i-shield"/></svg>Güvenlik</div>
+      <div class="mi"><svg class="ic"><use href="#i-bell"/></svg>Bildirimler</div>
+      <div class="mi"><svg class="ic"><use href="#i-terminal"/></svg>MCP ve token'lar</div>
+      <div class="ms"></div>
+      <div class="mh">Tema</div>
+      <div class="seg"><span><svg class="ic s14"><use href="#i-sun"/></svg>Açık</span><span class="on"><svg class="ic s14"><use href="#i-moon"/></svg>Koyu</span><span><svg class="ic s14"><use href="#i-monitor"/></svg>Sistem</span></div>
+      <div class="mh">Dil</div>
+      <div class="seg"><span class="on">Türkçe</span><span>English</span></div>
+      <div class="ms"></div>
+      <div class="mi"><svg class="ic"><use href="#i-code"/></svg><span class="f1">Kaynak kod · AGPL-3.0</span><svg class="ic s14"><use href="#i-ext"/></svg></div>
+      <div class="mi"><svg class="ic"><use href="#i-logout"/></svg>Çıkış yap</div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-2" data-view="phone">
+  <figcaption class="fr-h"><b class="fr-n">16.2</b><span class="fr-t">Kullanıcı menüsü telefonda</span><code class="fr-r">çekmece menü → kişi</code></figcaption>
+  <p class="fr-note">Telefonda kenar çubuğu soldan açılan çekmece; kişi satırına dokununca menü çekmecenin üstünde açılır. Dokunma hedefleri 44 px. Çıkış onay istemez (geri alınabilir: yeniden giriş).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell drawer" data-nav="apps" data-crumbs="Uygulamalar"><div class="content"><div class="pg-h"><h1 class="pg-t">Uygulamalar</h1></div></div></div>
+    <div class="pop" style="left:12px;bottom:76px;width:276px" role="menu" aria-label="Kullanıcı menüsü">
+      <div class="mi" style="min-height:44px"><svg class="ic"><use href="#i-user"/></svg>Profil</div>
+      <div class="mi" style="min-height:44px"><svg class="ic"><use href="#i-shield"/></svg>Güvenlik</div>
+      <div class="mi" style="min-height:44px"><svg class="ic"><use href="#i-bell"/></svg>Bildirimler</div>
+      <div class="ms"></div>
+      <div class="mh">Tema</div>
+      <div class="seg"><span>Açık</span><span class="on">Koyu</span><span>Sistem</span></div>
+      <div class="mh">Dil</div>
+      <div class="seg"><span class="on">Türkçe</span><span>English</span></div>
+      <div class="ms"></div>
+      <div class="mi" style="min-height:44px"><svg class="ic"><use href="#i-code"/></svg><span class="f1">Kaynak kod · AGPL-3.0</span><svg class="ic s14"><use href="#i-ext"/></svg></div>
+      <div class="mi" style="min-height:44px"><svg class="ic"><use href="#i-logout"/></svg>Çıkış yap</div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. PROFİL ============ -->
+<section class="sec" id="profil">
+<div class="sec-h"><span class="k">Bölüm 16.3-16.6</span><h2>Profil</h2><p>Hesap sayfaları organizasyondan bağımsızdır: kenar çubuğunda seçili öğe yok, üstte dört sekme (Profil, Güvenlik, Bildirimler, Gizlilik). Değiştirilemeyen alanlar kilit ikonlu ve salt okunur.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-3" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">16.3</b><span class="fr-t">Profil</span><code class="fr-r">/account</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/account/detail</code> → <code>AccountDetailDto { Id, UserName, Email, Name, Surname, Roles[{ Id, Name }] }</code> (var; <code>Roles</code> platform rolleridir, organizasyon rolü değil: burada gösterilmez). Organizasyonlar <code>GET /api/v1.0/organizations/mine</code> → <code>MyOrganizationDto { Id, Name, Slug, Role, Permissions[] }</code>. Kaydet <code>PUT /api/v1.0/account/profile { Name, Surname, PreferredLanguage }</code> (planlanan, kısmi). Kullanıcı adı e-postadan türetilir, gösterilmez. <b>Telefonda</b> kartlar alt alta, kaydet altta sabit. <span class="gap">Backend boşluğu:</span> <code>AccountDetailDto</code>'da <code>PreferredLanguage</code> (tabloda var), <code>AvatarUrl</code> ve <code>CreationDate</code> yok; kullanıcı fotoğrafı için alan ve hesap kapsamlı presigned uç yok (<code>POST /api/v1.0/account/avatar/upload-url</code>, <code>PUT /api/v1.0/account/avatar</code>; <code>assets/upload-url</code> organizasyona bağlı).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Profil" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Hesap</h1><p class="pg-s">Bilgilerin bütün organizasyonlarda aynı görünür.</p></div><div class="pg-a"><span class="btn ghost">Vazgeç</span><span class="btn pri">Kaydet</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Profil</a><a class="tab" href="#">Güvenlik</a><a class="tab" href="#">Bildirimler</a><a class="tab" href="#">Gizlilik</a></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Fotoğraf</span></div><div class="card-b r gp16 wrap">
+              <span class="av xl">DA</span>
+              <div class="c gp8 f1" style="min-width:200px"><div class="r gp8 wrap"><span class="btn"><svg class="ic"><use href="#i-upload"/></svg>Fotoğraf yükle</span><span class="btn ghost">Kaldır</span></div><span class="hint">PNG, JPG ya da WebP · en çok 5 MB · en az 256 x 256. Yüklemeden önce kırpılır.</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Kişisel bilgiler</span></div><div class="card-b c gp16">
+              <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp foc">Deniz</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Arslan</span></label></div>
+              <div class="fld"><span class="lbl">E-posta <svg class="ic s14"><use href="#i-lock"/></svg></span><div class="r gp8"><span class="inp ro f1 mono">deniz@kuzeylab.dev</span><span class="btn">Değiştir</span></div><span class="hint">Giriş adın. Değiştirmek için yeni adrese kod gönderilir; bütün oturumların kapanır.</span></div>
+              <label class="fld"><span class="lbl">Tercih edilen dil</span><span class="inp sel">Türkçe</span><span class="hint">Arayüz, e-postalar ve sunucu mesajları bu dilde gelir.</span></label>
+              <div class="fld"><span class="lbl">Üyelik tarihi <svg class="ic s14"><use href="#i-lock"/></svg></span><span class="inp ro">2 Eylül 2026</span></div>
+            </div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Organizasyonlarım</span></div><div class="lst">
+            <div class="lst-i"><span class="aic s" style="--c:#4636FF">K</span><div class="f1"><b class="t-s">Kuzey Lab</b><div class="t-xs fg3 mono">kuzey-lab</div></div><span class="bdg sm">Sahip</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#0E7490">A</span><div class="f1"><b class="t-s">Ada Stüdyo</b><div class="t-xs fg3 mono">ada-studyo</div></div><span class="bdg sm">Editör</span></div>
+            <div class="lst-i"><span class="aic s" style="--c:#7C3AED">D</span><div class="f1"><b class="t-s">Deniz'in projeleri</b><div class="t-xs fg3 mono">deniz</div></div><span class="bdg sm">Sahip</span></div>
+          </div><div class="card-f t-xs fg3" style="padding:12px 18px;border-top:1px solid rgb(var(--border))">Rolünü organizasyonun Sahip'i ya da Yöneticisi değiştirir.</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-4">
+  <figcaption class="fr-h"><b class="fr-n">16.4</b><span class="fr-t">Fotoğrafı kırp ve yükle</span><code class="fr-r">/account → fotoğraf</code></figcaption>
+  <p class="fr-note">Kırpma istemcide (kare, 512 x 512 WebP'ye küçültülür); dosya presigned URL ile doğrudan nesne depolamaya gider, sonra profil güncellenir. İlerleme gerçek bayt sayısından; iptal edilebilir. Hareket azaltmada ilerleme çubuğu yine dolar, yalnız geçiş animasyonu durur. <b>API:</b> <code>POST /api/v1.0/account/avatar/upload-url { ContentType, Size }</code> → <code>{ UploadUrl, ObjectKey, ExpiryDate }</code>; <code>PUT /api/v1.0/account/avatar { ObjectKey }</code> (ikisi de yeni, backend boşluğu).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Profil" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Hesap</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m164">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m164">Fotoğrafı kırp</h2><p class="t-s fg2 mt4">Sürükleyerek konumla, kaydırıcıyla yakınlaştır.</p></div></div>
+      <div class="mdl-b">
+        <div class="crop" aria-label="Kırpma alanı"><span class="ring"></span></div>
+        <div class="r gp12"><svg class="ic s16 fg3"><use href="#i-minus"/></svg><span class="rng" role="slider" aria-label="Yakınlaştırma" aria-valuenow="40"><i></i><b></b></span><svg class="ic s16 fg3"><use href="#i-plus"/></svg></div>
+        <div class="c gp6"><div class="r bt t-s"><span>deniz-2026.jpg</span><span class="mono">1,2 / 1,9 MB</span></div><span class="prog"><i style="width:63%"></i></span></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri ld" aria-busy="true">Kaydet</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-5">
+  <figcaption class="fr-h"><b class="fr-n">16.5</b><span class="fr-t">Fotoğraf hatası: boyut ve biçim</span><code class="fr-r">/account → fotoğraf</code></figcaption>
+  <p class="fr-note">Boyut ve biçim istemcide, seçim anında kontrol edilir; istek atılmaz. Sunucu da aynı sınırı uygular (presigned URL'de içerik uzunluğu koşulu); süresi dolan URL'de "Yükleme süresi doldu, tekrar dene".</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Profil" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Hesap</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m165">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m165">Fotoğraf yüklenemedi</h2></div></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-alert-c"/></svg><div><b>IMG_4021.heic kullanılamıyor</b><ul><li>Dosya 8,4 MB; en çok 5 MB olabilir.</li><li>HEIC desteklenmiyor; PNG, JPG ya da WebP seç.</li></ul></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri"><svg class="ic"><use href="#i-upload"/></svg>Başka dosya seç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-6">
+  <figcaption class="fr-h"><b class="fr-n">16.6</b><span class="fr-t">E-posta değiştir: yeni adrese kod</span><code class="fr-r">/account → e-posta</code></figcaption>
+  <p class="fr-note">İki adım: (1) yeni adres + mevcut şifre, (2) yeni adrese giden 6 haneli kod. Kod doğrulanınca e-posta değişir, eski adrese bilgi e-postası gider ve bütün oturumlar kapanır (bu cihaz dahil); kullanıcı yeni adresle giriş ekranına düşer. Kod 10 dakika geçerli, yeniden gönderme 60 saniyede bir. <b>API:</b> <code>POST /api/v1.0/account/email/change { NewEmail, Password }</code> (planlanan); <code>POST /api/v1.0/account/email/change/confirm { Code }</code> (yeni). 409 <code>EmailExists</code>: form üstünde. Kayıtlı token'lar (PAT) etkilenmez.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Profil" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Hesap</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m166">
+      <div class="mdl-h"><div class="f1"><div class="t-xs fg3 mb8">Adım 2 / 2</div><h2 class="h2" id="m166">Kodu gir</h2><p class="t-s fg2 mt4"><b class="mono">deniz.arslan@ornek.dev</b> adresine 6 haneli bir kod gönderdik.</p></div></div>
+      <div class="mdl-b">
+        <div class="otp" aria-label="Doğrulama kodu"><span>4</span><span>8</span><span>1</span><span class="foc">2</span><span></span><span></span></div>
+        <div class="t-s fg3">Kodu yeniden gönder · <span class="tnum">0:42</span></div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">E-posta değişince <b>bütün cihazlardaki oturumların kapanır</b>; yeni adresle yeniden giriş yaparsın.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri dis" aria-disabled="true">E-postayı değiştir</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. GÜVENLİK ============ -->
+<section class="sec" id="guvenlik">
+<div class="sec-h"><span class="k">Bölüm 16.7-16.8</span><h2>Güvenlik</h2><p>Şifre değiştirme ve açık oturumlar. Oturum, bir cihazdaki web girişidir; MCP ve API token'ları oturum değildir, ayrı sayfada (16.11) yönetilir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-7" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">16.7</b><span class="fr-t">Şifre ve oturumlar</span><code class="fr-r">/account/security</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PUT /api/v1.0/account/password/change { UserName, OldPassword, NewPassword }</code> (var; tekrar alanı yalnız istemcide). Başarıda bütün oturumlar kapanır ve giriş ekranına dönülür; 400 <code>WrongPassword</code> form üstünde. İpucu listesi config'deki politikayla aynı (politikayı dönen uç yok). Oturumlar <code>GET /api/v1.0/account/sessions</code> → <code>{ Id, DeviceId, IpAddress, CreationDate, ExpiryDate, IsCurrent }</code>, <code>DELETE /api/v1.0/account/session { SessionId }</code>, <code>DELETE /api/v1.0/account/sessions/others</code> (planlanan). <b>Telefonda</b> oturumlar kart listesi. <span class="gap">Backend boşluğu:</span> oturum uçları (08 E3; <code>UserSessions</code> tablosunda veri var) ve cihaz adı için <code>UserAgent</code> alanı (bugün yalnız <code>DeviceId</code>).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Güvenlik" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Hesap</h1></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Profil</a><a class="tab on" href="#">Güvenlik</a><a class="tab" href="#">Bildirimler</a><a class="tab" href="#">Gizlilik</a></div>
+        <div class="c gp16 acc-w">
+          <div class="card"><div class="card-h"><span class="h3">Şifre değiştir</span></div><div class="card-b c gp16">
+            <label class="fld"><span class="lbl">Mevcut şifre</span><span class="inp">••••••••••<svg class="ic ml"><use href="#i-eye"/></svg></span></label>
+            <div class="g2">
+              <label class="fld"><span class="lbl">Yeni şifre</span><span class="inp foc">••••••••••••<svg class="ic ml"><use href="#i-eye"/></svg></span></label>
+              <label class="fld"><span class="lbl">Yeni şifre tekrar</span><span class="inp">••••••••••••</span></label>
+            </div>
+            <div class="r gp16 wrap t-s"><span class="r gp6 ok-t"><svg class="ic s14"><use href="#i-check"/></svg>En az 6 karakter</span><span class="r gp6 ok-t"><svg class="ic s14"><use href="#i-check"/></svg>Büyük ve küçük harf</span><span class="r gp6 ok-t"><svg class="ic s14"><use href="#i-check"/></svg>Rakam</span><span class="r gp6 fg3"><svg class="ic s14"><use href="#i-circle"/></svg>Özel karakter</span></div>
+            <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">Şifren değişince <b>bütün cihazlardaki oturumların kapanır</b>, bu cihazda yeniden giriş yaparsın. Token'ların çalışmaya devam eder.</div></div>
+            <div class="r je"><span class="btn pri dis" aria-disabled="true">Şifreyi değiştir</span></div>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Oturumlarım</span><span class="t-s fg3">3 cihaz</span><span class="btn sm ml">Diğerlerini kapat</span></div>
+            <div class="tbl-w" style="border:0;border-radius:0"><table class="tbl">
+              <thead><tr><th>Cihaz</th><th>IP adresi</th><th>Açıldı</th><th>Bitiş</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="tm"><span class="r gp10"><svg class="ic s18 fg3"><use href="#i-monitor"/></svg><b class="t-s">Chrome · Windows</b><span class="bdg ok sm"><span class="dot"></span>Bu cihaz</span></span></td><td data-l="IP adresi" class="mono t-s">88.247.12.40</td><td data-l="Açıldı">18 Kas 2026, 08:51</td><td data-l="Bitiş">18 Ara 2026</td><td class="ta"></td></tr>
+                <tr><td class="tm"><span class="r gp10"><svg class="ic s18 fg3"><use href="#i-phone"/></svg><b class="t-s">Safari · iPhone</b></span></td><td data-l="IP adresi" class="mono t-s">88.247.12.40</td><td data-l="Açıldı">16 Kas 2026, 21:14</td><td data-l="Bitiş">16 Ara 2026</td><td class="ta"><span class="btn sm ghost">Kapat</span></td></tr>
+                <tr><td class="tm"><span class="r gp10"><svg class="ic s18 fg3"><use href="#i-monitor"/></svg><b class="t-s">Firefox · Ubuntu</b></span></td><td data-l="IP adresi" class="mono t-s">31.145.8.201</td><td data-l="Açıldı">2 Kas 2026, 10:02</td><td data-l="Bitiş">2 Ara 2026</td><td class="ta"><span class="btn sm ghost">Kapat</span></td></tr>
+              </tbody></table></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-8">
+  <figcaption class="fr-h"><b class="fr-n">16.8</b><span class="fr-t">Diğer oturumları kapat</span><code class="fr-r">/account/security → onay</code></figcaption>
+  <p class="fr-note">Oturum kapatan eylem onay ister ve bunu metinde söyler (08 bölüm 3.5); tek oturumu kapatma da aynı küçük diyalog. Bu cihaz açık kalır. Başarıda backend mesajıyla toast.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Güvenlik" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">Hesap</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m168">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m168">Diğer 2 oturum kapatılsın mı?</h2></div></div>
+      <div class="mdl-b"><p class="t-s fg2" style="margin:0">Safari · iPhone ve Firefox · Ubuntu cihazlarında çıkış yapılır. Bu cihazdaki oturumun açık kalır. MCP ve API token'ların etkilenmez; onları <span class="lnk">MCP ve token'lar</span> sayfasından iptal edebilirsin.</p></div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">Oturumları kapat</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. GİZLİLİK ============ -->
+<section class="sec" id="gizlilik">
+<div class="sec-h"><span class="k">Bölüm 16.9-16.10</span><h2>Gizlilik, verilerim ve hesabı silme</h2><p>Bildirim tercihleri 14'te çizildi; burada yalnız bağlantısı var. Verilerimi indir, yasal metinler ve hesabı silme. Hesap, tek Sahip olduğu bir organizasyon varken silinemez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-9" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">16.9</b><span class="fr-t">Gizlilik ve verilerim</span><code class="fr-r">/account/privacy</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/account/data-export</code> (planlanan): arka planda hazırlanır, hazır olunca uygulama içi bildirim ve 7 gün geçerli indirme bağlantısı; günde bir istek. İçerik: profil, üyelikler, kişinin denetim kayıtları, token adları (değerleri değil). Hesabı sil <code>DELETE /api/v1.0/account { Password, Confirm }</code> (planlanan) → 16.10. Yasal metinler herkese açık sayfalar (05). storeasy analitik toplamaz; ticari e-posta yok, bu yüzden rıza anahtarları çizilmez. <b>Telefonda</b> kartlar alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Gizlilik">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">Hesap</h1></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Profil</a><a class="tab" href="#">Güvenlik</a><a class="tab" href="#">Bildirimler</a><a class="tab on" href="#">Gizlilik</a></div>
+        <div class="c gp16 acc-w">
+          <div class="card"><div class="card-b r gp12 wrap"><svg class="ic s18 fg3"><use href="#i-bell"/></svg><div class="f1" style="min-width:200px"><b class="t-m">Bildirim tercihleri</b><div class="t-s fg2">Hangi olayların uygulama içinde ve e-postayla geleceği.</div></div><span class="btn">Bildirimleri yönet<svg class="ic"><use href="#i-chev-r"/></svg></span></div></div>
+          <div class="card"><div class="card-h"><span class="h3">Verilerim</span></div><div class="card-b r gp12 wrap"><div class="f1" style="min-width:220px"><b class="t-m">Verilerimi indir</b><div class="t-s fg2">Profilin, üyeliklerin, denetim kayıtların ve token adların tek ZIP'te. Hazır olunca bildirim gelir.</div><div class="t-xs fg3 mt4">Son istek: 2 Kas 2026 · bağlantının süresi doldu</div></div><span class="btn"><svg class="ic"><use href="#i-download"/></svg>İstek oluştur</span></div></div>
+          <div class="card"><div class="card-h"><span class="h3">Yasal metinler</span></div>
+            <div class="legal"><svg class="ic s16 fg3"><use href="#i-file-text"/></svg><span class="f1 t-s b6">Kullanım koşulları</span><span class="t-xs fg3">Sürüm 1.0 · 1 Kas 2026</span><svg class="ic s14 fg3"><use href="#i-ext"/></svg></div>
+            <div class="legal"><svg class="ic s16 fg3"><use href="#i-shield"/></svg><span class="f1 t-s b6">Gizlilik politikası</span><span class="t-xs fg3">Sürüm 1.0 · 1 Kas 2026</span><svg class="ic s14 fg3"><use href="#i-ext"/></svg></div>
+            <div class="legal"><svg class="ic s16 fg3"><use href="#i-cookie"/></svg><span class="f1 t-s b6">Çerez politikası</span><span class="t-xs fg3">Yalnız zorunlu çerezler</span><svg class="ic s14 fg3"><use href="#i-ext"/></svg></div>
+            <div class="legal"><svg class="ic s16 fg3"><use href="#i-code"/></svg><span class="f1 t-s b6">Lisans: AGPL-3.0-only ve kaynak kod</span><span class="t-xs fg3 mono">v1.0.0</span><svg class="ic s14 fg3"><use href="#i-ext"/></svg></div>
+          </div>
+          <div class="card dng"><div class="card-h"><span class="h3 dng-t">Hesabı sil</span></div><div class="card-b r gp12 wrap"><p class="t-s fg2 f1" style="margin:0;min-width:220px">Hesabın, token'ların ve oturumların kalıcı olarak silinir; organizasyonlardaki üyeliklerin sona erer. Denetim kayıtlarında adın kalır.</p><span class="btn dng-o"><svg class="ic"><use href="#i-trash"/></svg>Hesabı sil</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-10" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">16.10</b><span class="fr-t">Hesabı sil: önce sahipliği devret</span><code class="fr-r">/account/privacy → sil</code></figcaption>
+  <p class="fr-note">Tek Sahip olunan organizasyonlar silmeyi engeller (en az bir Sahip kuralı); diyalog bunları listeler ve her biri için çıkış yolu verir: başka üye varsa sahiplik devri (15.12), yalnız sen varsan organizasyonu silme (15.21). Diğer üyelikler (Ada Stüdyo, Editör) silmeyle kendiliğinden biter. Engel kalmayınca diyalog şifre ve e-posta yazmayı ister, kırmızı düğme açılır. <b>API:</b> <code>DELETE /api/v1.0/account</code> (planlanan) engeli 409 ve organizasyon listesiyle döner: <code>{ BlockingOrganizations[{ Id, Name, MemberCount }] }</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="none" data-crumbs="Hesap|Gizlilik"><div class="content"><div class="pg-h"><h1 class="pg-t">Hesap</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1610">
+      <div class="mdl-h"><span class="ib ghost dng-t" style="border:0"><svg class="ic s24"><use href="#i-trash"/></svg></span><div class="f1"><h2 class="h2" id="m1610">Hesabın henüz silinemez</h2><p class="t-s fg2 mt4">2 organizasyonun tek Sahip'isin. Her organizasyonda en az bir Sahip kalmalı.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="aic s" style="--c:#4636FF">K</span><div class="f1"><b class="t-s">Kuzey Lab</b><div class="t-xs fg3">4 üye · 6 uygulama</div></div><span class="btn sm"><svg class="ic"><use href="#i-switch"/></svg>Sahipliği devret</span></div>
+          <div class="lst-i"><span class="aic s" style="--c:#7C3AED">D</span><div class="f1"><b class="t-s">Deniz'in projeleri</b><div class="t-xs fg3">Yalnız sen · 1 uygulama</div></div><span class="btn sm dng-o">Organizasyonu sil</span></div>
+          <div class="lst-i"><span class="aic s" style="--c:#0E7490">A</span><div class="f1"><b class="t-s">Ada Stüdyo</b><div class="t-xs fg3">Editör · silmeyle üyeliğin biter</div></div><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg></div>
+        </div></div>
+        <p class="t-xs fg3" style="margin:0">Bu adımlardan sonra buraya dön; silme onayında şifreni ve e-postanı yazman istenir.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn dng dis" aria-disabled="true">Hesabı sil</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. TOKEN'LAR ============ -->
+<section class="sec" id="tokenlar">
+<div class="sec-h"><span class="k">Bölüm 16.11-16.14</span><h2>Kişisel erişim token'ları</h2><p>MCP ve REST API'ye kişisel token'la (PAT) bağlanılır. Token bir organizasyona bağlıdır, yetkisi kişinin o organizasyondaki rolünü aşamaz, isteğe bağlı salt okunurdur. Sunucuda yalnız hash'i tutulur; değer oluşturulduğunda bir kez gösterilir, sonra yalnız öneki (<span class="mono">sea_9c1…</span>). CI token'ları (<span class="mono">sci_</span>) uygulamaya bağlıdır ve Paket alma bölümündedir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-11" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">16.11</b><span class="fr-t">Token listesi</span><code class="fr-r">/developer</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>GET /api/v1.0/tokens</code> (planlanan) → <code>PersonalAccessTokenDto { Id, Name, OrganizationId, OrganizationName, ReadOnly, Prefix, ExpiryDate, LastUseDate, CreationDate, IsExpired }</code>; yalnız kişinin kendi token'ları, bütün organizasyonlarından. Süresi dolan token listede kalır (30 gün), soluk ve rozetli; "Yenile" aynı ad ve ayarlarla yeni token oluşturur. Token'ın etkin yetkisi her istekte hesaplanır: <code>min(token, üyelikteki rol)</code>. <b>İzin:</b> kendi token'ını her rol oluşturur (İzleyici yalnız salt okunur). <b>Telefonda</b> kart listesi, "Token oluştur" sağ altta. <span class="gap">Backend boşluğu:</span> <code>PersonalAccessTokens</code> tablosu (plan bölüm 5) ve <code>tokens</code> uçları henüz yok; denetim kaydına <code>TokenCreated</code> / <code>TokenRevoked</code> değerleri.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">MCP ve token'lar</h1><p class="pg-s">Claude ve başka MCP istemcileri bu token'larla senin adına çalışır; yaptıkları denetim kaydında senin adınla ve token önekiyle görünür.</p></div><div class="pg-a"><span class="btn pri hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Token'lar <span class="n">4</span></a><a class="tab" href="#">Kurulum</a></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Ad</th><th>Organizasyon</th><th>Erişim</th><th>Önek</th><th>Bitiş</th><th>Son kullanım</th><th>Oluşturuldu</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b>Claude Code · dizüstü</b></td><td data-l="Organizasyon">Kuzey Lab</td><td data-l="Erişim"><span class="bdg sm">Okuma ve yazma</span></td><td data-l="Önek" class="mono t-s">sea_9c1…</td><td data-l="Bitiş">16 Şub 2027</td><td data-l="Son kullanım">2 dk önce</td><td data-l="Oluşturuldu" class="tx">18 Kas 2026</td><td class="ta"><span class="btn sm dng-o">İptal et</span></td></tr>
+            <tr><td class="tm"><b>Haftalık rapor</b></td><td data-l="Organizasyon">Kuzey Lab</td><td data-l="Erişim"><span class="bdg info sm"><svg class="ic s12"><use href="#i-eye"/></svg>Salt okunur</span></td><td data-l="Önek" class="mono t-s">sea_41d…</td><td data-l="Bitiş">20 Eki 2027</td><td data-l="Son kullanım">Dün, 09:00</td><td data-l="Oluşturuldu" class="tx">20 Eki 2026</td><td class="ta"><span class="btn sm dng-o">İptal et</span></td></tr>
+            <tr><td class="tm"><b>Ada Stüdyo · okuma</b></td><td data-l="Organizasyon">Ada Stüdyo</td><td data-l="Erişim"><span class="bdg info sm"><svg class="ic s12"><use href="#i-eye"/></svg>Salt okunur</span></td><td data-l="Önek" class="mono t-s">sea_e07…</td><td data-l="Bitiş"><span class="warn-t b6">9 Ara 2026</span></td><td data-l="Son kullanım">3 gün önce</td><td data-l="Oluşturuldu" class="tx">9 Kas 2026</td><td class="ta"><span class="btn sm dng-o">İptal et</span></td></tr>
+            <tr style="opacity:.65"><td class="tm"><b>Eski deneme</b></td><td data-l="Organizasyon">Deniz'in projeleri</td><td data-l="Erişim"><span class="bdg sm">Okuma ve yazma</span></td><td data-l="Önek" class="mono t-s">sea_b52…</td><td data-l="Bitiş"><span class="bdg dng sm">Süresi doldu · 2 Kas</span></td><td data-l="Son kullanım">1 Kas 2026</td><td data-l="Oluşturuldu" class="tx">3 Eki 2026</td><td class="ta"><span class="r gp6 je"><span class="btn sm">Yenile</span><span class="ib sm ghost" aria-label="Listeden kaldır"><svg class="ic"><use href="#i-x"/></svg></span></span></td></tr>
+          </tbody></table></div>
+        <div class="r gp8 t-s fg2 mt16"><svg class="ic s16"><use href="#i-info"/></svg><span>Token değerleri saklanmaz; kaybettiysen iptal edip yenisini oluştur.</span></div>
+      </div>
+    </div>
+    <span class="btn pri fab"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-12" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">16.12</b><span class="fr-t">Token oluştur</span><code class="fr-r">/developer → yeni token</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>POST /api/v1.0/tokens/token { Name, OrganizationId, ReadOnly, ExpiryDays (30, 90, 365) }</code> (planlanan, <code>Idempotency-Key</code>) → <code>PersonalAccessTokenCreatedDto { Id, Token, Prefix, ExpiryDate }</code>; değer yalnız bu yanıtta. Organizasyon seçimi rolü gösterir; yazma token'ı rolün yazma izinlerini taşır, fazlasını değil. Süresiz token yok. Ad organizasyon içinde benzersiz (409 form üstünde).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">MCP ve token'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1612">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1612">Yeni token</h2><p class="t-s fg2 mt4">Token'ı nerede kullanacağını adından anlaşılır yaz.</p></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Ad</span><span class="inp foc">Claude Code · dizüstü</span><span class="cnt">21 / 60</span></label>
+        <label class="fld"><span class="lbl">Organizasyon</span><span class="inp sel">Kuzey Lab <span class="fg3 t-s">· rolün Sahip</span></span></label>
+        <div class="opt-row"><span class="sw"></span><div class="f1"><b class="t-m">Salt okunur</b><div class="t-s fg2">Kapalıyken token rolünün bütün yazma izinlerini taşır: içerik, yayın, incelemeye gönderme.</div></div></div>
+        <div class="fld"><span class="lbl">Geçerlilik</span><div class="seg"><span>30 gün</span><span class="on">90 gün</span><span>365 gün</span></div><span class="hint">16 Şubat 2027'de biter. Bitişten 7 gün önce bildirim gelir.</span></div>
+        <div class="callout info"><svg class="ic"><use href="#i-shield"/></svg><div class="t-s">Token'ın yetkisi bu organizasyondaki rolünü hiçbir zaman aşamaz. Rolün düşerse token da hemen düşer; üyeliğin biterse token çalışmaz. MCP'de her yazma yine dry run ve onay ister.</div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri">Token oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-13" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">16.13</b><span class="fr-t">Token yalnız bir kez gösterilir</span><code class="fr-r">/developer → token oluşturuldu</code></figcaption>
+  <p class="fr-note">Değer yalnız bu ekranda; kapatınca listede önekle görünür. Kurulum komutu token gömülü hazırlanır (kopyalanan metin ekranda kalmaz, panoya gider). "Kopyaladım" işaretlenmeden "Bitti" pasif: kazara kapatmaya karşı. Telefonda tam ekran, kod bloğu satır kırar.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">MCP ve token'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m1613">
+      <div class="mdl-h"><span class="ck-s ok" style="width:32px;height:32px"><svg class="ic"><use href="#i-check"/></svg></span><div class="f1"><h2 class="h2" id="m1613">"Claude Code · dizüstü" hazır</h2><p class="t-s fg2 mt4">Kuzey Lab · okuma ve yazma · 16 Şubat 2027'ye kadar</p></div></div>
+      <div class="mdl-b">
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Bu değeri bir daha göremezsin.</b> Şimdi kopyala ve şifre yöneticine ya da istemcinin yapılandırmasına koy. Kimseyle paylaşma, repoya koyma.</div></div>
+        <div class="fld"><span class="lbl">Token</span><div class="secret"><span class="f1">sea_9c1f4b7e2a6d0c83f15a9b2e7d4c61aa0f3e8b52</span><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyalandı</span></div></div>
+        <div class="fld"><span class="lbl">Claude Code'a ekle</span>
+          <div class="code wr"><span class="k1">claude</span> mcp add --transport http storeasy https://storeasy.milvasoft.com/mcp --header <span class="s1">"Authorization: Bearer sea_9c1f…8b52"</span></div>
+          <div class="r gp8 wrap"><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Komutu kopyala</span><span class="lnk t-s">Diğer istemciler için kurulum</span></div></div>
+        <div class="r gp8 t-s"><span class="chk on"></span>Token'ı güvenli bir yere kopyaladım</div>
+      </div>
+      <div class="mdl-f"><span class="btn pri">Bitti</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-14">
+  <figcaption class="fr-h"><b class="fr-n">16.14</b><span class="fr-t">Token'ı iptal et</span><code class="fr-r">/developer → iptal</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>DELETE /api/v1.0/tokens/token { TokenId }</code> (planlanan). İptal hemen geçerli: o token'la açık MCP oturumu bir sonraki çağrıda 401 alır. Geri alınamaz; yeni token yeni değer üretir. Denetim kaydına <code>TokenRevoked</code> (backend boşluğu, 16.11).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">MCP ve token'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m1614">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1614">"Claude Code · dizüstü" iptal edilsin mi?</h2></div></div>
+      <div class="mdl-b">
+        <p class="t-s fg2" style="margin:0"><span class="mono">sea_9c1…</span> öneki token hemen çalışmaz. Son kullanım 2 dk önce: bu token'la bağlı Claude oturumu bir sonraki araç çağrısında hata alır.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng">İptal et</span></div>
+    </div></div>
+    <div class="toasts"><div class="toast info" role="status"><svg class="ic"><use href="#i-info"/></svg><div class="f1"><b>Önceki işlem</b><div class="fg2">"Eski deneme" listeden kaldırıldı.</div></div></div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. MCP KURULUMU ============ -->
+<section class="sec" id="mcp">
+<div class="sec-h"><span class="k">Bölüm 16.15-16.17</span><h2>MCP kurulumu ve durumlar</h2><p>Uzaktan MCP Streamable HTTP ile <span class="mono">/mcp</span> ucunda, kimlik <span class="mono">Authorization: Bearer</span> başlığında PAT. Yerel dosya yolu gereken işler (ekran görüntüsü klasörü, AAB) için yerel <span class="mono">storeasy-mcp</span> köprüsü dosyaları presigned URL ile yükler. Her araç web'deki komutun aynısını çağırır: yetki, diff, dry run, onay ve denetim kaydı aynı.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f16-15" data-h="1400">
+  <figcaption class="fr-h"><b class="fr-n">16.15</b><span class="fr-t">MCP kurulumu</span><code class="fr-r">/developer/setup</code></figcaption>
+  <p class="fr-note">Sunucu adresi kurulumun kendi alan adından üretilir (self-host'ta <span class="mono">https://&lt;alan-adı&gt;/mcp</span>). Kod blokları seçili token'ın yalnız önekini gösterir; tam değer yalnız token oluşturulurken (16.13). Araç grupları sunucunun araç listesinden; her yazma aracı önce plan döner (dry run), uygulama ayrı çağrı. İncelemeye gönderme <span class="mono">confirm: true</span> ister ve <code>SubmitForReview</code> izni gerekir. Bağlantı kartı token'ın son kullanımından. <b>Telefonda</b> kartlar alt alta, kod blokları satır kırar. <span class="gap">Backend boşluğu:</span> son çağrılan araç ve istemci adı (<code>GET /api/v1.0/tokens/usage?TokenId=</code> → <code>{ LastUseDate, LastToolName, ClientName, CallCount24h }</code>); "Bağlantıyı test et" için <code>POST /api/v1.0/tokens/token/test</code>.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar|Kurulum" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">MCP ve token'lar</h1></div><div class="pg-a"><span class="btn pri hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span></div></div>
+        <div class="tabs mb16"><a class="tab" href="#">Token'lar <span class="n">4</span></a><a class="tab on" href="#">Kurulum</a></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-plug"/></svg><span class="h3">Sunucu</span></div><div class="card-b">
+              <dl class="endp">
+                <dt>Adres</dt><dd><span class="r gp8 wrap"><span class="mono t-s b6">https://storeasy.milvasoft.com/mcp</span><span class="ib sm ghost" aria-label="Adresi kopyala"><svg class="ic"><use href="#i-copy"/></svg></span></span></dd>
+                <dt>Taşıma</dt><dd>Streamable HTTP</dd>
+                <dt>Kimlik</dt><dd><span class="mono t-s">Authorization: Bearer sea_…</span> · kişisel token</dd>
+                <dt>Token</dt><dd><span class="inp sel" style="max-width:340px;min-height:34px">Claude Code · dizüstü <span class="fg3 mono t-s">sea_9c1…</span></span></dd>
+              </dl></div></div>
+            <div class="card"><div class="card-h"><span class="h3">Claude Code</span><span class="t-xs fg3">komut satırı</span></div><div class="card-b c gp8">
+              <div class="code wr"><span class="k1">claude</span> mcp add --transport http storeasy https://storeasy.milvasoft.com/mcp \
+  --header <span class="s1">"Authorization: Bearer sea_9c1…"</span></div>
+              <div class="r gp8"><span class="btn sm"><svg class="ic"><use href="#i-copy"/></svg>Kopyala</span><span class="t-xs fg3">Kopyalanan metinde token önekli yer tutucudur; değeri sen yapıştır.</span></div></div></div>
+            <div class="card"><div class="card-h"><span class="h3">JSON yapılandırma</span><span class="t-xs fg3">.mcp.json ve HTTP destekli istemciler</span></div><div class="card-b c gp8">
+              <div class="code wr">{
+  <span class="s1">"mcpServers"</span>: {
+    <span class="s1">"storeasy"</span>: {
+      <span class="s1">"type"</span>: <span class="s1">"http"</span>,
+      <span class="s1">"url"</span>: <span class="s1">"https://storeasy.milvasoft.com/mcp"</span>,
+      <span class="s1">"headers"</span>: { <span class="s1">"Authorization"</span>: <span class="s1">"Bearer ${STOREASY_TOKEN}"</span> }
+    }
+  }
+}</div>
+              <span class="t-xs fg3">Token'ı dosyaya yazma; ortam değişkeninden oku.</span></div></div>
+            <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-terminal"/></svg><span class="h3">Yerel köprü (stdio)</span><span class="bdg sm">npm · storeasy-mcp</span></div><div class="card-b c gp8">
+              <p class="t-s fg2" style="margin:0">Yerel dosya yolu ve klasör kabul eden araçlar için (ekran görüntüsü klasörü, AAB, IPA). Köprü dosyayı presigned URL ile yükler, aracı varlık kimliğiyle çağırır. Self-host'ta <span class="mono">STOREASY_URL</span> kendi adresin.</p>
+              <div class="code wr"><span class="k1">claude</span> mcp add storeasy-local \
+  -e STOREASY_URL=https://storeasy.milvasoft.com \
+  -e STOREASY_TOKEN=sea_9c1… \
+  -- npx -y storeasy-mcp</div></div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">Bağlantı</span><span class="bdg ok sm ml"><span class="dot"></span>Çalışıyor</span></div><div class="card-b c gp10">
+              <div class="r bt t-s"><span class="fg3">Son çağrı</span><span>2 dk önce</span></div>
+              <div class="r bt t-s"><span class="fg3">Araç</span><span class="mono">apps_summary</span></div>
+              <div class="r bt t-s"><span class="fg3">İstemci</span><span>Claude Code</span></div>
+              <div class="r bt t-s"><span class="fg3">Son 24 saat</span><span class="tnum">38 çağrı · 3 yazma</span></div>
+              <span class="btn blk mt8"><svg class="ic"><use href="#i-refresh"/></svg>Bağlantıyı test et</span>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Araç grupları</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-eye"/></svg><div><b class="t-s">Okuma</b><div class="tools">apps_summary · readiness_check · listings_get · jobs_list · audit_list · compliance_list</div></div><span class="bdg info sm">Salt okunur</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-edit"/></svg><div><b class="t-s">İçerik</b><div class="tools">listings_plan → listing_apply · screenshots_plan → screenshots_apply · mockup_export</div></div><span class="bdg sm">Dry run</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-rocket"/></svg><div><b class="t-s">Yayın</b><div class="tools">builds_link · releases_plan → release_apply · rollout_set · testflight_*</div></div><span class="bdg sm">Dry run</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-send"/></svg><div><b class="t-s">İncelemeye gönder</b><div class="tools">submit_for_review · confirm: true zorunlu</div></div><span class="bdg warn sm">Onay</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-msg"/></svg><div><b class="t-s">Geri bildirim</b><div class="tools">reviews_list · review_reply · rejection_case_get</div></div><span class="bdg sm">Dry run</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-hand"/></svg><div><b class="t-s">Asistanlı adımlar</b><div class="tools">assisted_step_get · assisted_step_complete</div></div><span class="bdg sm">Kayıt</span></div>
+              <div class="tg"><svg class="ic s18 fg3"><use href="#i-folder"/></svg><div><b class="t-s">Yerel dosya</b><div class="tools">screenshots_upload_dir · artifact_upload (yalnız köprüde)</div></div><span class="bdg sm">stdio</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-16">
+  <figcaption class="fr-h"><b class="fr-n">16.16</b><span class="fr-t">Boş: henüz token yok</span><code class="fr-r">/developer</code></figcaption>
+  <p class="fr-note">İlk açılış. Tek ana eylem "Token oluştur"; kurulum adımları token oluşunca açılır. Süresi dolmuş token'lar varsa liste boş sayılmaz (16.11'deki soluk satır).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-act="">
+      <div class="content">
+        <div class="pg-h"><div><h1 class="pg-t">MCP ve token'lar</h1></div></div>
+        <div class="tabs mb16"><a class="tab on" href="#">Token'lar</a><a class="tab" href="#">Kurulum</a></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-key"/></svg></span><h4>Henüz token yok</h4><p>Claude'u storeasy'ye bağlamak için bir organizasyona bağlı kişisel token oluştur. Salt okunur başlamak iyi bir fikir: özetleri ve hazırlık raporlarını okur, hiçbir şeyi değiştirmez.</p><span class="btn pri mt8"><svg class="ic"><use href="#i-plus"/></svg>Token oluştur</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f16-17">
+  <figcaption class="fr-h"><b class="fr-n">16.17</b><span class="fr-t">İzleyici: yalnız salt okunur token</span><code class="fr-r">/developer → yeni token</code></figcaption>
+  <p class="fr-note">Organizasyondaki rolü İzleyici olan kullanıcı (örnekte Kuzey Lab'de Selin Demir). "Salt okunur" açık ve kilitli; gerekçe altında. İstek yine de <code>ReadOnly: false</code> ile gelirse (eski istemci, doğrudan API) sunucu 403 <code>OrganizationForbidden</code> döner; mesaj form üstünde, form kapanmaz. <b>İzin:</b> <code>View</code> + salt okunur (rol matrisi son satır).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="mcp" data-crumbs="MCP ve token'lar" data-role="Viewer" data-act=""><div class="content"><div class="pg-h"><h1 class="pg-t">MCP ve token'lar</h1></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m1617">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m1617">Yeni token</h2></div><span class="ib ghost sm" aria-label="Kapat"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="ferr" role="alert"><svg class="ic s18 dng-t"><use href="#i-shield-x"/></svg><div><b>Yazma token'ı oluşturulamadı</b><div class="t-s fg2 mt4">Kuzey Lab'deki rolün İzleyici; bu organizasyonda yalnız salt okunur token oluşturabilirsin.</div></div></div>
+        <label class="fld"><span class="lbl">Ad</span><span class="inp">Haftalık özet</span></label>
+        <label class="fld"><span class="lbl">Organizasyon</span><span class="inp sel">Kuzey Lab <span class="fg3 t-s">· rolün İzleyici</span></span></label>
+        <div class="opt-row"><span class="sw on dis"></span><div class="f1"><b class="t-m r gp6">Salt okunur <svg class="ic s14 fg3"><use href="#i-lock"/></svg></b><div class="t-s fg2">İzleyici rolünde token yalnız okuyabilir. Yazma için bir Yöneticiden rolünü Editör yapmasını iste.</div></div></div>
+        <div class="fld"><span class="lbl">Geçerlilik</span><div class="seg"><span class="on">30 gün</span><span>90 gün</span><span>365 gün</span></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">İptal</span><span class="btn pri">Salt okunur token oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>

@@ -1,0 +1,179 @@
+<!--
+title: Backend uyumu
+kicker: 20 · Geliştirme öncesi onay
+desc: Tasarımın backend ile sözleşmesi: başlangıç kararları, standarttan sapmalar, ekran → uç eşlemesi (var olan ve planlanan), backend boşlukları ve kararları, 08 bölüm 9 kontrol listesi, görsel kaynakları ve koda geçiş. Geliştirme oturumları bu sayfa onaylandıktan sonra başlar.
+-->
+<style>
+.bt-t{width:100%;border-collapse:collapse;font-size:13px;background:rgb(var(--surface));border:1px solid rgb(var(--border));border-radius:var(--r-lg);overflow:hidden}
+.bt-t th{text-align:left;font:600 12px/1.3 var(--font-body);color:rgb(var(--fg-3));background:rgb(var(--bg-2));padding:10px 12px;border-bottom:1px solid rgb(var(--border))}
+.bt-t td{padding:10px 12px;border-bottom:1px solid rgb(var(--border));vertical-align:top;overflow-wrap:anywhere}
+.bt-t tr:last-child td{border-bottom:0}
+.bt-t code{font:500 12px/1.5 var(--font-mono)}
+.tw{overflow-x:auto;border-radius:var(--r-lg)}
+.ck2{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ck2 li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:13.5px}
+.ck2 .y{color:rgb(var(--success));font-weight:700}.ck2 .p{color:rgb(var(--warning));font-weight:700}
+@media (max-width:720px){.bt-t{min-width:640px}}
+</style>
+
+<section class="sec" id="kararlar">
+<div class="sec-h"><span class="k">1</span><h2>Başlangıç kararları</h2><p>09 bölüm 3 ve README başlangıç sorularının bu tasarımdaki cevapları. Cevabı ürün sahibinden gelenler "Karar", varsayılan alınanlar "Varsayım".</p></div>
+<div class="tw"><table class="bt-t">
+<thead><tr><th>Konu</th><th>Cevap</th><th>Tür</th></tr></thead>
+<tbody>
+<tr><td>Vurgu rengi</td><td>Ultramarin #4636FF (açık) / #857AFF (koyu); vurgu seçici kaldırıldı</td><td>Karar (18 Kas 2026)</td></tr>
+<tr><td>Logo</td><td>K3 "Dört kanat e", sprite'ta <code>#logo</code>; yazı markası Bricolage 800, ortadaki "e" vurgu renginde</td><td>Karar</td></tr>
+<tr><td>Fontlar</td><td>Bricolage Grotesque (başlık), Onest (gövde), JetBrains Mono (veri); tasarımda Google Fonts, kodda <code>@fontsource</code> ile self-host</td><td>Karar (kimlik)</td></tr>
+<tr><td>Kiracı modeli</td><td>Çok kiracılı: kullanıcı birden çok organizasyona üye; kenar çubuğunda organizasyon değiştirici; yetki istek başına üyelikten (K3)</td><td>Karar (plan 2.1)</td></tr>
+<tr><td>Giriş kimliği</td><td>E-posta (<code>LoginCommand.UserName</code> alanına e-posta gider)</td><td>Karar (K11)</td></tr>
+<tr><td>İstemciler</td><td>Yalnız web uygulaması (React, 02 standardı). Mobil uygulama yok (plan 3). Ayrı hub yok: platform yönetimi aynı API'de <code>Manager</code> kullanıcı tipiyle, aynı arayüzün "Platform" grubunda</td><td>Karar (plan 2.1, 3)</td></tr>
+<tr><td>Giriş sayfası görseli</td><td>Fotoğraf yerine markanın "Hat" çizgi illüstrasyonu (animasyonlu, hareket azaltmada durur)</td><td>Karar (kimlik önerisi)</td></tr>
+<tr><td>Alan adı</td><td><code>storeasy.milvasoft.com</code>, test <code>t-storeasy.milvasoft.com</code>; API <code>/api</code>, SignalR <code>/hubs</code>, MCP <code>/mcp</code> aynı origin</td><td>Karar (plan 10)</td></tr>
+<tr><td>Diller</td><td>Arayüz tr-TR varsayılan, en-US; bütün metinler i18n sözlüğüne dönecek cümleler olarak yazıldı</td><td>Varsayım (README)</td></tr>
+<tr><td>Tema</td><td>Açık, koyu, sistem; tasarım dosyalarında açık ve koyu çizildi</td><td>Varsayım (08)</td></tr>
+<tr><td>Kayıt</td><td>Herkese açık; self-host'ta <code>Registration:Mode</code> = Open, InviteOnly, Closed</td><td>Karar (K10)</td></tr>
+<tr><td>Ödeme</td><td>storeasy'nin kendi planı ve paywall'ı yok (06 modülü kapsam dışı); abonelik ekranları yalnız müşterinin mağaza ürünleri için</td><td>Karar (plan 3)</td></tr>
+<tr><td>Örnek veri</td><td>Uydurma tek set (Kuzey Lab, Deniz Arslan, Pusula, Defter, Halka, Mola, Tarla, Kumbara); repoya gerçek uygulama kimliği girmez (plan 2.7)</td><td>Varsayım</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="sec" id="sapmalar">
+<div class="sec-h"><span class="k">2</span><h2>09 standardından sapmalar</h2><p>Bilinçli farklar ve gerekçeleri.</p></div>
+<div class="tw"><table class="bt-t">
+<thead><tr><th>Standart</th><th>Bu tasarımda</th><th>Gerekçe</th></tr></thead>
+<tbody>
+<tr><td>Dosyalar <code>NN-Ad.dc.html</code>, ortak <code>support.js</code> runtime'ı, <code>&lt;x-dc&gt;</code> iskeleti</td><td>Tek başına açılan düz <code>NN-Ad.html</code>; kit CSS, ikon sprite'ı ve küçük runtime her dosyaya gömülü. Kaynak <code>_kaynak/</code> altında, <code>build.mjs</code> üretir ve denetler</td><td>Ürün sahibinin isteği: dosyalar diskten açılsın, Google Fonts dışında dış bağımlılık olmasın (dc runtime'ı React'i dışarıdan ister). Üst bar, tema anahtarı, bölüm ve çerçeve düzeni standarttaki gibi</td></tr>
+<tr><td>İçindekiler <code>00-Icindekiler</code></td><td><code>04-Icindekiler</code></td><td>00-03 kimlik ve logo turları olarak zaten var; numaralar onların arkasından devam ediyor</td></tr>
+<tr><td>Mobil çerçeve <code>.fr .ph</code> (390x844) ve web çerçeve ayrı çizilir</td><td>Her web ekranı tek işaretlemeyle iki genişlikte: üst bardaki "Telefon" seçimi aynı ekranı 390x844'te kapsayıcı sorgusuyla çizer. Yalnız telefonda anlamlı ekranlar ayrıca <code>data-view="phone"</code></td><td>Mobil uygulama yok; 08 "her ekran masaüstü ve telefon genişliğinde" istiyor. Tek işaretleme iki görünümün ayrışmasını engeller</td></tr>
+<tr><td>Giriş sayfasında fotoğraf</td><td>Marka çizimi ("Hat")</td><td>Kimlik kararı; lisans ve optimizasyon gerekmez</td></tr>
+<tr><td>Çerez bandı (web)</td><td>Bant yok, altbilgide depolama notu (05, 5.34)</td><td>Yalnız zorunlu depolama (oturum, tema); analitik ve izleme yok</td></tr>
+<tr><td>Hesap ve ayarlarda abonelik bölümü</td><td>Yok</td><td>storeasy'nin ödeme planı kapsam dışı</td></tr>
+<tr><td>08 E9 izin matrisi</td><td>Dikey gruplu izin listesi (17.17, 15.13)</td><td>09 bölüm 2 kuralı matrisi yasaklıyor; 09 08'e göre sonra yazıldı</td></tr>
+<tr><td>Hub girişi (ayrı panel)</td><td>Ayrı hub yok; <code>Manager</code> olmayan hesap platform ekranlarına girerse 17.26</td><td>Plan 2.1: platform yöneticisi yalnız self-host kurulumunu yöneten kişi</td></tr>
+<tr><td>Bütün metinler tr ve en için yazılır</td><td>Yalnız Türkçe çizildi; düğme ve kolonlarda %40 pay bırakıldı</td><td>en-US sözlüğü koda geçerken yazılacak; bu açık kalan bir madde</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="sec" id="eslesme">
+<div class="sec-h"><span class="k">3</span><h2>Ekran → uç eşlemesi</h2><p>Uç yolları <code class="mono">/api/v1.0/</code> önekli. <b>Var</b>: <code class="mono">storeasy-api/src/Storeasy.Api/Controllers</code> içinde bugün olan uç; <b>Plan</b>: BRIEF bölüm 6'daki planlanan uç; <b>Yeni</b>: bölüm yazarlarının aynı desende adlandırdığı, planda olmayan uç (hepsi boşluk tablosunda "Eklenecek"). Her çerçevenin notunda DTO alanları ayrıca yazılı.</p></div>
+<div class="tw"><table class="bt-t">
+<thead><tr><th>Dosya</th><th>Var</th><th>Plan</th><th>Yeni</th></tr></thead>
+<tbody>
+<tr><td>05 Giriş ve kurulum</td><td><code>account/login</code>, <code>account/login/refresh</code>, <code>organizations/mine</code>, <code>organizations/organization</code>, <code>organizations/invitation/accept</code>, <code>storeConnections</code> (GET, connection, verify)</td><td><code>account/register</code>, <code>account/email/verify</code>, <code>account/email/verify/resend</code>, <code>account/password/forgot</code>, <code>account/password/reset</code>, <code>organizations/invitation?Token=</code>, <code>apps/unlinked-store-apps</code>, <code>apps/sync</code></td><td><code>system/public-settings</code> (anonim), <code>account/password/reset/check</code>, <code>organizations/slug-availability</code>, <code>legal/document</code>, <code>account/consents</code></td></tr>
+<tr><td>06 Uygulamalar ve hazırlık</td><td><code>organizations/audit-logs</code></td><td><code>apps</code>, <code>apps/app</code>, <code>apps/unlinked-store-apps</code>, <code>apps/readiness</code>, <code>apps/compliance</code>, <code>compliance</code>, <code>apps/answers</code>, <code>apps/answers/copy</code>, <code>releases/submit-for-review</code>, <code>assisted-steps/*</code>, <code>assets/upload-url</code></td><td><code>releases/submit-request</code> (08'deki <code>releases/request</code> ile birleşir)</td></tr>
+<tr><td>07 Mağaza kaydı</td><td>-</td><td><code>listings</code>, <code>listings/plan</code>, <code>listings/apply</code>, <code>screenshots/sets|plan|apply</code>, <code>assets/upload-url</code>, <code>categories</code>, <code>age-rating</code>, <code>pricing</code>, <code>plans</code>, <code>jobs/job</code></td><td><code>plans/plan</code>, <code>listings/by-field</code>, <code>listings/translate-suggestion</code>, <code>previews/sets|plan|apply</code>, <code>pricing/price-points</code>, <code>listings/details</code></td></tr>
+<tr><td>08 Yayın ve TestFlight</td><td><code>organizations/mine</code></td><td><code>builds</code>, <code>builds/link</code>, <code>builds/export-compliance</code>, <code>releases</code>, <code>releases/plan|apply|rollout</code>, <code>review-info</code>, <code>testflight/*</code>, <code>ms/submissions</code>, <code>ms/flights</code>, <code>ms/flight</code></td><td><code>ms/packages</code>, <code>ms/packages/verify|plan|apply</code>, <code>testflight/testers</code>, <code>testflight/group</code> (PUT), <code>testflight/localizations</code>, <code>releases/request</code></td></tr>
+<tr><td>09 Yorumlar ve red</td><td><code>account/notifications</code> (PATCH, seen, DELETE)</td><td><code>reviews</code>, <code>reviews/reply</code>, <code>reviews/saved-replies</code>, <code>reviews/saved-reply</code>, <code>rejections/*</code>, <code>assisted-steps/*</code>, <code>jobs/retry</code></td><td><code>reviews/read</code>, <code>reviews/reply-draft</code>, <code>reviews/saved-reply</code> (PUT, DELETE), <code>rejections/history</code>, <code>account/notifications/unsubscribe</code></td></tr>
+<tr><td>10 Para</td><td>-</td><td><code>subscriptions/groups</code>, <code>subscriptions/subscription</code>, <code>subscriptions/plan|apply</code>, <code>iap</code>, <code>ms/addons</code></td><td><code>subscriptions/prices</code>, <code>subscriptions/price-points</code>, <code>subscriptions/offers</code>, <code>subscriptions/prices/convert</code>, <code>iap/product</code>, <code>iap/prices</code>, <code>iap/plan|apply</code>, <code>ms/addon</code>, <code>ms/addons/plan|apply</code></td></tr>
+<tr><td>11 Canlı akış ve işler</td><td><code>organizations/audit-logs</code>, <code>account/notifications</code></td><td><code>jobs</code>, <code>jobs/job</code>, <code>jobs/retry</code>, <code>jobs/cancel</code>, <code>plans</code>, <code>plans/approve|reject</code>; SignalR <code>/hubs/activity</code>: <code>job.created</code>, <code>job.step</code>, <code>job.finished</code>, <code>webhook.received</code>, <code>review.received</code></td><td><code>plans/plan</code>, <code>plans/request-approval</code>; hub olayları <code>artifact.progress</code>, <code>plan.created</code></td></tr>
+<tr><td>12 Stüdyo</td><td>-</td><td><code>mockups/templates|template|frames|captions|render-preview|export/plan|export</code>, <code>screenshots/plan|apply</code>, <code>jobs/*</code></td><td><code>mockups/captions/suggest</code>, <code>mockups/export/zip</code></td></tr>
+<tr><td>13 Paket alma</td><td>-</td><td><code>apps/{appId}/artifacts</code>, <code>artifacts/{id}/complete</code>, <code>artifacts/sessions|session</code>, <code>artifacts/trusted-publisher(s)</code>, <code>artifacts/ci-token(s)</code>, <code>artifacts/delivery-rules</code>, <code>artifacts/sources|source</code>, <code>oidc/exchange</code></td><td><code>artifacts/summary</code>, <code>artifacts/session/deliver</code>, <code>artifacts/session</code> (DELETE), <code>artifacts/trusted-publisher/test</code>; alıcılar <code>/webhooks/eas/{sourceId}</code>, <code>/webhooks/artifacts/{sourceId}</code></td></tr>
+<tr><td>14 Bağlantılar, webhook, bildirim</td><td><code>storeConnections</code> (GET, connection, connection/verify, DELETE connection), <code>account/notifications</code> (3 uç), <code>organizations/audit-logs</code></td><td><code>webhooks</code>, <code>webhooks/endpoint</code>, <code>webhooks/endpoint/rotate-secret</code>, <code>webhooks/events</code>, <code>/webhooks/apple/{endpointId}</code>, <code>account/preferences</code></td><td><code>storeConnections/connection/usage</code>, <code>storeConnections/connection/secret</code>, <code>webhooks/event</code>, <code>webhooks/event/reprocess</code></td></tr>
+<tr><td>15 Organizasyon ve denetim</td><td><code>organizations/members</code>, <code>invitation</code> (POST, DELETE), <code>invitation/accept</code>, <code>member/role</code>, <code>member</code> (DELETE), <code>audit-logs</code>, <code>organization</code> (PUT), <code>mine</code></td><td><code>organizations/owner</code>, <code>organizations/settings</code>, <code>organizations/organization</code> (DELETE)</td><td><code>organizations/roles</code>, <code>organizations/audit-logs/export</code></td></tr>
+<tr><td>16 Hesap ve MCP</td><td><code>account/detail</code>, <code>account/password/change</code>, <code>account/logout</code></td><td><code>account/profile</code>, <code>account/email/change</code>, <code>account/sessions</code>, <code>account/session</code>, <code>account/sessions/others</code>, <code>account/preferences</code>, <code>account/data-export</code>, <code>account</code> (DELETE), <code>tokens</code>, <code>tokens/token</code>; MCP <code>/mcp</code></td><td><code>account/email/change/confirm</code>, <code>account/avatar/upload-url</code>, <code>account/avatar</code>, <code>tokens/usage</code>, <code>tokens/token/test</code></td></tr>
+<tr><td>17 Kurallar ve platform</td><td><code>users</code> (5 uç), <code>roles</code> (4 uç), <code>permissions</code>, <code>activitylogs</code>, <code>languages</code>, <code>featureFlags</code>, <code>healthcheck</code>, <code>healthcheck/ready</code></td><td><code>rules</code>, <code>rules/rule</code>, <code>rules/proposals</code>, <code>rules/proposal/approve|reject</code>, <code>rules/sources</code>, <code>system/status</code>, <code>system/settings</code></td><td><code>rules/catalog</code>, <code>rules/proposals/proposal</code>, <code>rules/sources/fetch</code>, <code>users/user/sessions</code>, <code>users/user/organizations</code>; MCP aracı <code>rules_proposal_prepare</code></td></tr>
+<tr><td>18 Durum ekranları</td><td>Hepsi (yanıt zarfı, durum kodları)</td><td>-</td><td>-</td></tr>
+</tbody></table></div>
+<p class="doc-note">Adlandırma birleştirmeleri: 06'daki <code>releases/submit-request</code> ile 08'deki <code>releases/request</code> tek uçtur (<code>releases/request</code>, istek türü alanıyla); 11'deki <code>plans/request-approval</code> aynı bildirim türünü kullanır. <code>system/public-settings</code> (05) ile <code>account/registration-mode</code> (17) tek uçtur: <code>system/public-settings</code>. <code>plans/plan</code> 07 ve 11'de aynı uçtur.</p>
+</section>
+
+<section class="sec" id="bosluklar">
+<div class="sec-h"><span class="k">4</span><h2>Backend boşlukları</h2><p>Tasarımda olup bugünkü kodda ya da veri modelinde (plan bölüm 5) olmayan her şey. "Eklenecek" satırları uçtan uca (entity, persist, DTO, istemci, test) aynı işte eklenir; "Tasarımdan çıkarıldı" satırları çizimde yalnız notta kalır.</p></div>
+<div class="tw"><table class="bt-t">
+<thead><tr><th>Alan</th><th>Boşluk</th><th>Ekran</th><th>Karar</th></tr></thead>
+<tbody>
+<tr><td>Kimlik</td><td>Kayıt, e-posta doğrulama (bağlantı ve 6 haneli kod), şifremi unuttum / sıfırla uçtan uca, sıfırlama token'ı ön denetimi, "şifren değişti" e-postası</td><td>5.7-5.21</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>Girişte <code>EmailNotVerified</code> denetimi; doğrulanmamış hesapları 7 gün sonra silen iş</td><td>5.7</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>"Beni hatırla" (<code>LoginCommand.RememberMe</code>)</td><td>5.1</td><td>Eklenecek (eklenmezse kutu çıkar)</td></tr>
+<tr><td>Kimlik</td><td>Anonim <code>system/public-settings</code> (kayıt modu, sözleşme sürümleri, şifre politikası); <code>Registration:Mode</code> ayarı</td><td>5.8, 5.13, 17.24</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>Yasal belge saklama, okuma ve onay kaydı (<code>account/consents</code>), sürüm değişince yeniden onay</td><td>5.10, 5.33</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>Oturum listesi ve kapatma (kendi ve platform yöneticisi için), cihaz adı için <code>UserAgent</code></td><td>16.7, 16.8, 17.11</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>Profil güncelleme, e-posta değiştirme, fotoğraf yükleme; <code>AccountDetailDto</code>'ya <code>PreferredLanguage</code>, <code>AvatarUrl</code>, <code>CreationDate</code>, <code>UserType</code></td><td>16.3-16.6</td><td>Eklenecek</td></tr>
+<tr><td>Kimlik</td><td>Verilerimi indir, hesabı sil (tek Sahip olunan organizasyonlarda 409 + <code>BlockingOrganizations</code>)</td><td>16.9, 16.10</td><td>Eklenecek</td></tr>
+<tr><td>Organizasyon</td><td>Davet önizleme ucu, davete <code>InvitedByUserId</code> ve <code>Status</code>, davet e-postası gönderimi, yeniden gönder</td><td>5.22, 15.1</td><td>Eklenecek</td></tr>
+<tr><td>Organizasyon</td><td>Daveti reddetme ucu</td><td>5.22</td><td>Tasarımdan çıkarıldı ("Şimdi değil" yalnız sayfadan çıkar)</td></tr>
+<tr><td>Organizasyon</td><td>Slug değiştirme (<code>UpdateOrganizationCommand</code> yalnız <code>Name</code> alıyor), slug uygunluk ucu, <code>DefaultLocale</code>, paket ve denetim saklama ayarları, organizasyonu silme, sahiplik devri</td><td>5.27, 15.12, 15.20, 15.21</td><td>Eklenecek</td></tr>
+<tr><td>Organizasyon</td><td>Üye son etkinliği, <code>MyOrganizationDto.AppCount</code>, rol matrisini dönen <code>organizations/roles</code>, üye çıkarılınca token'larının iptali, "organizasyondan çıkarıldın" e-postası ve <code>OrganizationMembershipNotFound</code> anahtarı</td><td>15.1, 5.26, 15.13, 18.23</td><td>Eklenecek</td></tr>
+<tr><td>Organizasyon</td><td>Özel roller</td><td>15.13</td><td>Faz 8 (çizildi, pasif)</td></tr>
+<tr><td>Denetim</td><td><code>AuditAction</code>'a mağaza yazmaları ve diğer olaylar: ListingApplied, ScreenshotsApplied, ReleaseApplied, RolloutChanged, BuildLinked, SubmittedForReview, ReviewReplied, RejectionOpened/Closed, PlanApproved/Rejected, JobRetried/Canceled, AssistedStepCompleted, TokenCreated/Revoked, CiTokenCreated/Revoked, TrustedPublisherAdded/Removed, DeliveryRulesUpdated, MockupExported, SubscriptionChanged, PriceScheduled ve benzerleri</td><td>bütün yazma ekranları</td><td>Eklenecek</td></tr>
+<tr><td>Denetim</td><td><code>StoreAuditLogDto</code>'ya <code>StoreJobId</code>, <code>Ip</code>, <code>TokenPrefix</code>, <code>TokenName</code>, <code>AppName</code>; <code>Details</code> yapılandırılmış önce / sonra; <code>Summary</code> çevrilebilir şablon; dışa aktarma ucu</td><td>15.15-15.18</td><td>Eklenecek</td></tr>
+<tr><td>Bağlantı</td><td><code>StoreKind.Microsoft</code>; <code>ConnectionFingerprint</code>'e <code>TenantIdSuffix</code>, <code>ClientIdSuffix</code>, <code>SellerId</code>, <code>SecretExpiryDate</code>; sır güncelleme ucu; <code>LinkedAppCount</code> ve kullanım ucu</td><td>14.1, 14.7, 14.13, 14.14</td><td>Eklenecek</td></tr>
+<tr><td>Bağlantı</td><td><code>GetStoreConnectionListQuery</code> bugün <code>View</code> ile Viewer'a parmak izi döndürüyor; ekran <code>ManageConnections</code> istiyor</td><td>14.23</td><td>Eklenecek (izin daraltılır)</td></tr>
+<tr><td>Uygulama</td><td><code>Apps</code>, <code>StoreApps</code> uçları; hazırlık raporu; uyum listesi; kayıtlı cevaplar (demo şifresi şifreli, hiç dönmez); asistanlı adım tablosu ve uçları</td><td>06</td><td>Eklenecek (plan Faz 2)</td></tr>
+<tr><td>Değişiklik planı</td><td><code>ChangePlans</code> tablosu (OrganizationId, StoreAppId, Kind, Source, Items, Warnings, Calls, BaseHash, RequiredPermission, Status, CreatedBy, OnBehalfOf, DecidedBy, DecisionNote, ExpiryDate); <code>plans/plan</code>; plan izni ürünün satış durumuna göre</td><td>07.6-7.9, 10.17, 11.8-11.11</td><td>Eklenecek</td></tr>
+<tr><td>Değişiklik planı</td><td><code>PUT categories</code>, <code>age-rating</code>, <code>pricing</code> da dry run planıyla yazmalı (plan 2.2 "her yazmadan önce diff")</td><td>7.19-7.22</td><td>Eklenecek</td></tr>
+<tr><td>Mağaza kaydı</td><td>Karakter sınırları katalogdan (<code>MaxLength</code>); Microsoft <code>Features[]</code>, <code>SearchTerms[]</code>, <code>ActiveSubmission</code>; App Preview uçları ve boyutları; Microsoft görsel sınıfları, Play 7" ve 10" tablet ile Microsoft masaüstü dışa aktarım boyutları katalog v1'e</td><td>07, 12.10</td><td>Eklenecek</td></tr>
+<tr><td>Mağaza kaydı</td><td>Play kategorisi <code>edits.details</code> altında sayılmış ama orada kategori alanı yok</td><td>7.23</td><td>Tasarımdan çıkarıldı (asistanlı adıma bağlandı; plan 11.5 düzeltilmeli)</td></tr>
+<tr><td>Yayın</td><td><code>Build.Source</code>, <code>Build.InvalidReason</code> + ITMS kodu eşlemesi, <code>StoreVersionStateHistory</code>, Microsoft <code>ModifiedOutsideApi</code> bayrağı ve durum geçmişi, <code>MsFlightGroup</code>, MSI/EXE paket uçları ve Authenticode denetimi, TestFlight test kullanıcısı, grup ve beta lokalizasyon uçları, <code>testflight.build.expiring</code> olayı</td><td>08</td><td>Eklenecek</td></tr>
+<tr><td>Yayın</td><td>storeasy'den CI tetiklemek</td><td>8.16</td><td>Tasarımdan çıkarıldı ("CI'dan yükle" yalnız /intake'e gider)</td></tr>
+<tr><td>Geri bildirim</td><td>Yorum okundu bilgisi, Claude taslağının saklanması ve kill switch, kayıtlı yanıt düzenle / sil, gönderim geçmişi, red kaydında <code>ReplyDraft.SentDate</code> ve madde sahibi, hızlandırılmış inceleme sonucu, <code>rejection-opened</code> e-posta şablonu, tür başına abonelikten çıkma</td><td>09</td><td>Eklenecek</td></tr>
+<tr><td>Para</td><td>Retention mesajları ve çok koltuklu satın alma (API doğrulanacak), tek kullanımlık teklif kodu dosyası, Play yeni <code>onetimeproducts</code> API'si, Microsoft abonelik add-on'ları, 409'da otomatik asistanlı adım (<code>StoreJobStepResult.Assisted</code>)</td><td>10</td><td>Eklenecek (doğrulanamazsa asistanlı)</td></tr>
+<tr><td>Para</td><td>Mevcut abone sayısı; promosyon teklifi imzası üretmek</td><td>10</td><td>Tasarımdan çıkarıldı (API vermiyor; storeasy IAP anahtarı saklamaz)</td></tr>
+<tr><td>İşler</td><td><code>StoreJobSteps.Attempt</code>, <code>NextAttemptDate</code>, yapılandırılmış <code>Error { Code, Retryable, ConflictRef }</code>; <code>StoreJobs.Channel</code>'a <code>Ci</code>, <code>Source</code>, <code>MaxAttempt</code>, <code>ApprovedByUserId</code>, <code>PlanId</code>; <code>Kind = MockupExport</code>; <code>PartiallySucceeded</code> ve hatalı adımı yeniden deneme</td><td>11, 12.13</td><td>Eklenecek</td></tr>
+<tr><td>Stüdyo</td><td><code>MockupSlots</code> (slot, cihaz ailesi, dil, ham görüntü), <code>RowVersion</code> (409), başlık önerisi ucu ve <code>AiCaptionSuggestions</code> bayrağı, zip ucu</td><td>12</td><td>Eklenecek</td></tr>
+<tr><td>Stüdyo</td><td>Organizasyon çapında özel çerçeve kaydı; "bağlantıyı bana gönder"</td><td>12.6, 12.5</td><td>Tasarımdan çıkarıldı</td></tr>
+<tr><td>Paket alma</td><td>Bütün <code>artifacts/*</code> ve <code>oidc/exchange</code> uçları, tablolar (oturum, güven kuralı, CI token, teslim kuralı, kaynak), <code>artifact.progress</code> hub olayı</td><td>13</td><td>Eklenecek (plan Faz 3)</td></tr>
+<tr><td>Paket alma</td><td>Ayrı <code>ManageIntake</code> izni</td><td>13.12</td><td>Tasarımdan çıkarıldı (<code>ManageConnections</code> yeter)</td></tr>
+<tr><td>Webhook</td><td>Sır yenilemede 24 saatlik geçiş (<code>PreviousEncryptedSecret</code>, <code>PreviousSecretValidUntil</code>), olay ayrıntısı ve yeniden işleme uçları</td><td>14.15-14.18</td><td>Eklenecek</td></tr>
+<tr><td>Bildirim</td><td><code>NotificationType</code> bugün yalnız şablon değeri; gerekenler: Rejection, CertificationFailed, JobSucceeded, JobFailed, PlanPending, Deadline, NewReview, ReviewReplyFailed, Invitation, ConnectionAlert, ArtifactRejected, RuleChanged; <code>NotificationEntity</code> değerleri; <code>InternalNotification.OrganizationId</code>; tercihlerde <code>EmailDigest</code>, <code>QuietHours</code>; <code>notification.created</code> hub olayı</td><td>14.19-14.22, 9.20, 11.12</td><td>Eklenecek</td></tr>
+<tr><td>MCP</td><td><code>PersonalAccessTokens</code> tablosu ve uçları, kullanım bilgisi, bağlantı testi</td><td>16.11-16.17</td><td>Eklenecek (plan Faz 3)</td></tr>
+<tr><td>Kurallar</td><td>Kural uçları, <code>RuleSources</code>, <code>RuleProposals</code>, izleyici işi, <code>AffectedAppCount</code>; izin grupları <code>RuleCatalogManagement</code>, <code>SystemManagement</code>; <code>UserActivity</code> değerleri</td><td>17.1-17.8</td><td>Eklenecek</td></tr>
+<tr><td>Platform</td><td><code>system/*</code> uçları ve S3, mail, SignalR, iş kuyruğu yoklamaları; bakım bilgisi; <code>LastLoginDate</code>, <code>AccessFailedCount</code>, kullanıcının organizasyonları; kullanıcı silmede "tek sahip silinemez"; "tam yetkiyi yalnız tam yetkili verebilir" doğrulaması; dil kuralları validator'ı; storeasy özellik anahtarları; <code>X-Request-Id</code></td><td>17, 18.7, 18.22</td><td>Eklenecek</td></tr>
+<tr><td>Platform</td><td>Kullanıcı listesinde kayıt tarihi, rol adları, son giriş; rol listesinde kullanıcı / izin sayısı ve açıklama; gerekçeli askı; e-posta ve tip değiştirme; anahtar açıklaması ve son değiştiren</td><td>17.9, 17.16, 17.22</td><td>Tasarımdan çıkarıldı (08 E4, E8, E13 boşlukları)</td></tr>
+</tbody></table></div>
+<p class="doc-note">Kodla doğrulanan iki tutarlılık bulgusu: <code>InviteMemberCommand</code> Owner rolünü reddediyor (sahiplik devirle verilir, 15.12); "tam yetki" verme yolunda bir yetki yükseltme riski var (17.19 notu). Bunlar ayrı backend işi olarak açılmalı.</p>
+</section>
+
+<section class="sec" id="kontrol">
+<div class="sec-h"><span class="k">5</span><h2>08 bölüm 9 ve 09 bölüm 6 kontrol listesi</h2><p><b class="ok-t">✓</b> karşılandı, <b class="warn-t">!</b> kısmen ya da açık.</p></div>
+<div class="g2">
+<div class="doc-card"><ul class="ck2">
+<li><span class="y">✓</span>Her ekran açık ve koyu temada; renkler token'la (19 bölüm 2)</li>
+<li><span class="y">✓</span>Her ekran masaüstü ve telefon genişliğinde (tek işaretleme, Telefon görünümü); tablolar telefonda karta döner</li>
+<li><span class="y">✓</span>Durumlar: ilk yükleme, boş, arama sonucu yok, hata, 403, bulunamadı (her dosyada ve 18'de)</li>
+<li><span class="warn-t b7">!</span>Metinler yalnız Türkçe; en-US sözlüğü koda geçerken</li>
+<li><span class="y">✓</span>Tarih, sayı biçimi Türkçe; boş değer <code>-</code></li>
+<li><span class="y">✓</span>Odak halkası, ikon düğmesi etiketleri, dokunma hedefleri (19 bileşenleri)</li>
+<li><span class="warn-t b7">!</span>Kontrast: <code>--border-strong</code> yüzeyde 3:1'in altında, açık temada <code>--warning</code> metni 4,39:1. Koda geçerken alan kenarı için ayrı token önerilir (19 bölüm 2)</li>
+<li><span class="y">✓</span>Her kolon ve alan bir DTO alanına karşılık geliyor ya da boşluk tablosunda</li>
+</ul></div>
+<div class="doc-card"><ul class="ck2">
+<li><span class="y">✓</span>Enum ve bool filtreleri yalnız eşittir / eşit değildir; arama tek alan, alan seçicili</li>
+<li><span class="y">✓</span>Sayfalama 10 / 20 / 50 / 100, "Sayfa X / Y · Toplam: N"</li>
+<li><span class="y">✓</span>Her eylemin izni notta; menü izne göre süzülür (Editor ve Viewer bağlantı ve webhook öğesini görmez)</li>
+<li><span class="y">✓</span>Sistem kayıtları (Id &lt; 21) rozetli, eylemleri gizli (17)</li>
+<li><span class="y">✓</span><code>Manager</code> olmayan hesabın platform girişi reddi (17.26)</li>
+<li><span class="y">✓</span>Oturum kapatan eylemler onay metninde bunu söylüyor; rol formunda "sonraki token yenilemesinde" notu</li>
+<li><span class="y">✓</span>Dikey gruplu izin listesi, ara durumlu "Tümünü seç", ayrı ve onaylı "Tam yetki", telefonda açılır-kapanır</li>
+<li><span class="y">✓</span>Kilit geçici, süre metniyle; dil kuralları; özellik anahtarı taslağı, gerekçe ve onay; dışa aktarmada 5000 satır uyarısı (15.18)</li>
+<li><span class="y">✓</span>Etiket dengesi temiz, uzun tire ve en dash 0, tanımsız ikon yok (<code>build.mjs</code>)</li>
+<li><span class="y">✓</span>Ekranda en fazla bir ana eylem; vurgu yalnız izinli yerlerde</li>
+<li><span class="y">✓</span>Dosyalar arası örnek veri tutarlı (BRIEF bölüm 5)</li>
+</ul></div>
+</div>
+</section>
+
+<section class="sec" id="kaynaklar">
+<div class="sec-h"><span class="k">6</span><h2>Görsel kaynakları</h2><p>Tasarımda fotoğraf yok. Bütün görseller storeasy için çizildi.</p></div>
+<div class="tw"><table class="bt-t">
+<thead><tr><th>Öğe</th><th>Kaynak</th><th>Lisans</th></tr></thead>
+<tbody>
+<tr><td>Logo K3, "Hat" illüstrasyonları, cihaz çerçeveleri, ekran görüntüsü içerikleri</td><td>Kendi SVG çizimimiz</td><td>Proje lisansı (AGPL-3.0)</td></tr>
+<tr><td>İkonlar (24x24, çizgi 1,9)</td><td>Kendi çizimimiz; adları kodda lucide karşılığıyla eşleşir (19 bölüm 8)</td><td>Kodda lucide-react (ISC)</td></tr>
+<tr><td>Bricolage Grotesque, Onest, JetBrains Mono</td><td>Tasarımda Google Fonts, kodda <code>@fontsource</code></td><td>SIL Open Font License 1.1</td></tr>
+<tr><td>Mockup render fontları (stüdyo)</td><td>Inter, Noto Sans (K8)</td><td>SIL OFL 1.1</td></tr>
+<tr><td>Mağaza adları</td><td>Yalnız metin ve AS / GP / MS etiketleri; Apple, Google, Microsoft logosu ve cihaz görseli yok</td><td>-</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="sec" id="kod">
+<div class="sec-h"><span class="k">7</span><h2>Koda geçiş</h2><p>Geliştirme oturumları için kısa yol haritası.</p></div>
+<div class="doc-card"><ul style="margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px" class="fg2">
+<li>Token adları 02 standardının <code>src/index.css</code> adlarıyla aynı (RGB üçlüsü): <code>_kaynak/kit.css</code> başındaki iki tema bloğu doğrudan kopyalanır; tema <code>.dark</code> sınıfına çevrilir.</li>
+<li>Kit sınıfı → React bileşeni → Tailwind eşlemesi 19 bölüm 9'da. 02'nin temel setinde olmayan bileşenler orada "Ek" işaretli.</li>
+<li>Uygulama kabuğu (kenar menü 248 px, 60 px üst bar, organizasyon değiştirici, menü grupları ve izinleri) <code>kit.js</code>'teki <code>NAV</code> tablosu; uygulama detayı başlığı ve iki seviyeli sekmeler <code>APPS</code>, <code>TABS</code>, <code>SUBS</code> tabloları. Menü ve sekme yapısı kodda tek yerde tutulur.</li>
+<li>Değişiklik planı deseni (diff, uyarılar, mağaza çağrıları, onay, canlı iş) bütün yazma ekranlarında aynıdır: tek <code>ChangePlanView</code> bileşeni.</li>
+<li>Canlı akış animasyonu SVG ve <code>prefers-reduced-motion</code> ile; azaltılmış harekette yalnız durum listesi çizilir.</li>
+<li>Telefon davranışı kapsayıcı sorgusuyla tasarlandı; kodda 1024 px altı çekmece menü, 640 px altı tablo → kart (08 bölüm 3.11).</li>
+</ul></div>
+</section>

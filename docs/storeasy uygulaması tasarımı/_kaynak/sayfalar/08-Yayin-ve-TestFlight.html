@@ -1,0 +1,831 @@
+<!--
+title: Yayın: build'ler, sürümler ve TestFlight
+kicker: 08 · Uygulama detayı
+desc: Uygulama detayının Yayın sekmesi: üç mağazanın build ve paketleri, sürüme build bağlama ve ihracat uyumu, App Store sürüm durumu ve yayın türü, Play track panosu ve production'a yükseltme kapısı, aşamalı yayınlar, TestFlight grupları ve 90 günlük bitiş, Microsoft paket uçuşları ve sertifikasyon, inceleme bilgileri ve uca özgü durumlar.
+-->
+<style>
+.smach{display:flex;border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));overflow:hidden;min-width:0}
+.sm-s{flex:1;min-width:0;padding:12px 14px;border-right:1px solid rgb(var(--border));display:grid;gap:4px;align-content:start}
+.sm-s:last-child{border-right:0}
+.sm-s .k{font:600 10px/1.2 var(--font-mono);letter-spacing:.04em;color:rgb(var(--fg-3));overflow-wrap:anywhere}
+.sm-s b{font:600 13.5px/1.25 var(--font-body);display:flex;align-items:center;gap:6px}
+.sm-s small{font-size:11.5px;color:rgb(var(--fg-3));line-height:1.35}
+.sm-s.d b{color:rgb(var(--fg-2))}
+.sm-s.d b::before{content:"";width:8px;height:8px;border-radius:50%;background:rgb(var(--fg-2));flex:none}
+.sm-s.now{background:rgb(var(--accent)/.06);box-shadow:inset 0 -3px 0 rgb(var(--accent))}
+.sm-s.now b::before{content:"";width:8px;height:8px;border-radius:50%;background:rgb(var(--accent));flex:none;animation:pulse 1.6s infinite}
+.sm-s.x{background:rgb(var(--danger)/.06);box-shadow:inset 0 -3px 0 rgb(var(--danger))}
+.sm-s.x b{color:rgb(var(--danger))}
+.sm-s.x b::before{content:"";width:8px;height:8px;border-radius:50%;background:rgb(var(--danger));flex:none}
+.sm-s.f b{color:rgb(var(--fg-3));font-weight:500}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.trk{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));display:flex;flex-direction:column;min-width:0}
+.trk-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgb(var(--border))}
+.trk-h b{font:700 14px/1.2 var(--font-display)}
+.trk-b{padding:14px;display:grid;gap:10px;min-width:0}
+.trk-f{padding:10px 14px;border-top:1px solid rgb(var(--border));display:flex;gap:6px;flex-wrap:wrap}
+.trk.prod{border-color:rgb(var(--border-strong))}
+.trk.empty-t{border-style:dashed;background:none}
+.vc{font:600 18px/1.1 var(--font-mono);letter-spacing:-.01em}
+.phase{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.ph-d{border:1px solid rgb(var(--border));border-radius:12px;padding:10px;display:grid;gap:6px;min-width:0;background:rgb(var(--surface))}
+.ph-d .dn{font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.ph-d .pc{font:800 20px/1 var(--font-display);letter-spacing:-.02em}
+.ph-d .dt{font-size:11px;color:rgb(var(--fg-3))}
+.ph-d.d{background:rgb(var(--bg-2))}
+.ph-d.d .pc{color:rgb(var(--fg-2))}
+.ph-d.now{border-color:rgb(var(--accent));box-shadow:0 0 0 1px rgb(var(--accent))}
+.ph-d.pz{border-color:rgb(var(--warning)/.6);border-style:dashed}
+.rng{position:relative;height:6px;border-radius:3px;background:rgb(var(--bg-2));margin:10px 9px 0}
+.rng>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:rgb(var(--accent))}
+.rng>u{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:rgb(var(--fg-2));text-decoration:none}
+.rng>b{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--accent));transform:translate(-50%,-50%)}
+.rng-l{display:flex;justify-content:space-between;font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3));margin-top:10px}
+.big{font:800 44px/1 var(--font-display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.xp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center}
+.xp-n{width:84px;height:84px;border-radius:20px;border:2px solid rgb(var(--warning)/.6);display:grid;place-items:center;align-content:center;gap:2px;text-align:center}
+.xp-n b{font:800 34px/1 var(--font-display);color:rgb(var(--warning))}
+.xp-n small{font:500 11px/1 var(--font-mono);color:rgb(var(--fg-3))}
+.xp-a{display:grid;gap:8px;min-width:190px}
+.grp{border:1px solid rgb(var(--border));border-radius:var(--r-lg);background:rgb(var(--surface));padding:14px 16px;display:grid;gap:10px;min-width:0}
+.urlc{font:500 12px/1.4 var(--font-mono);overflow-wrap:anywhere;word-break:break-all}
+.fx{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-bottom:1px dashed rgb(var(--border))}
+.fx:last-child{border-bottom:0}
+@container scr (max-width:760px){
+  .smach{flex-direction:column}
+  .sm-s{border-right:0;border-bottom:1px solid rgb(var(--border));grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .sm-s:last-child{border-bottom:0}
+  .sm-s .k{grid-column:1 / -1;order:-1}
+  .board{grid-template-columns:1fr}
+  .phase{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .xp{grid-template-columns:auto minmax(0,1fr)}
+  .xp-a{grid-column:1 / -1;min-width:0}
+  .xp-n{width:64px;height:64px;border-radius:16px}.xp-n b{font-size:26px}
+  .big{font-size:36px}
+}
+</style>
+
+<!-- ============ 1. BUILD'LER ============ -->
+<section class="sec" id="buildler">
+<div class="sec-h"><span class="k">Bölüm 8.1-8.5</span><h2>Build'ler ve paketler</h2><p>Mağazaya giden her ikili dosya tek listede: App Store build'leri işlenme durumu ve TestFlight bitişiyle, Play bundle'ları versionCode ve track'leriyle, Microsoft Store'da MSIX paketleri ya da MSI/EXE yükleyici URL'leri. Kaynak sütunu build'in nereden geldiğini söyler (CI, EAS, Xcode Cloud, elle); paket alma akışı (plan 11.8) buraya düşer.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-1" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">8.1</b><span class="fr-t">Build'ler: App Store</span><code class="fr-r">/apps/:appId/release/builds?store=apple</code></figcaption>
+  <p class="fr-note"><b>API:</b> <code>PATCH /api/v1.0/builds</code> (planlanan; ListRequest, <code>StoreAppId</code> zorunlu, <code>ProcessingState</code> ve <code>Source</code> eşittir filtresi) → <code>BuildListDto { Id, StoreAppId, Store, VersionString, BuildNumber, UploadedDate, Source (Ci, Eas, XcodeCloud, Manual, Unknown), SourceDetail, ProcessingState (Processing, Valid, Invalid, Expired), MinOsVersion, SdkVersion, ExpirationDate?, LinkedVersionId?, UsesNonExemptEncryption?, InvalidReason? }</code>. İşlenen satır SignalR <code>job.step</code> ve Apple'ın build yükleme webhook'uyla canlı güncellenir; canlılık yalnız bu satırın rozetinde. Satır tıklaması build ayrıntısını açar (8.26). <b>İzin:</b> görme <code>View</code>, "Sürüme bağla" <code>EditContent</code>. <b>Telefonda</b> tablo karta döner; başlık "2.4", altında build no, durum, bitiş; SDK ve min iOS satırları gizlenir. <span class="gap">Backend boşluğu:</span> <code>Source</code> yalnız storeasy'den geçen yüklemelerde (paket alma oturumu, Xcode Cloud <code>ciBuildRuns</code> ilişkisi) bilinir; diğerleri "Bilinmiyor" olur, veri modeline <code>Build.Source</code> alanı eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-live="1 iş sürüyor" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="yayin" data-sub="Build'ler"><span class="btn hide-ph"><svg class="ic"><use href="#i-refresh"/></svg>Mağazadan çek</span><span class="btn pri"><svg class="ic"><use href="#i-link"/></svg>Sürüme bağla</span></div>
+        <div class="toolbar"><span class="chip on">Tümü · 42</span><span class="chip">Geçerli · 31</span><span class="chip">İşleniyor · 1</span><span class="chip">Geçersiz · 2</span><span class="chip">Süresi doldu · 8</span><span class="t-s fg3 ml hide-ph">Son senkron 3 dk önce · webhook açık</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">Sürüm <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Build no</th><th>Yükleme</th><th>Kaynak</th><th>Durum</th><th>Min iOS</th><th>SDK</th><th>TestFlight bitişi</th><th></th></tr></thead>
+          <tbody>
+            <tr class="hov"><td class="tm"><b class="mono">2.4</b></td><td data-l="Build no" class="mono">121</td><td data-l="Yükleme">18 Kas 2026, 14:20</td><td data-l="Kaynak"><span class="r gp6"><svg class="ic s14 fg3"><use href="#i-branch"/></svg>CI · GitHub Actions</span></td><td data-l="Durum"><span class="c gp4"><span class="bdg info sm live"><span class="dot"></span>İşleniyor</span><span class="t-xs fg3 mono">PROCESSING · 9 dk</span></span></td><td data-l="Min iOS" class="mono tx">16.0</td><td data-l="SDK" class="mono tx">iOS 26.1</td><td data-l="Bitiş" class="fg3">İşlenince başlar</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">2.3</b></td><td data-l="Build no" class="mono">118</td><td data-l="Yükleme">15 Kas 2026, 10:05</td><td data-l="Kaynak"><span class="r gp6"><svg class="ic s14 fg3"><use href="#i-zap"/></svg>EAS</span></td><td data-l="Durum"><span class="r gp6 wrap"><span class="bdg ok sm"><span class="dot"></span>Geçerli</span><span class="tag">2.3'e bağlı</span></span></td><td data-l="Min iOS" class="mono tx">16.0</td><td data-l="SDK" class="mono tx">iOS 26.1</td><td data-l="Bitiş">13 Şub 2027</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">2.3</b></td><td data-l="Build no" class="mono">117</td><td data-l="Yükleme">12 Kas 2026, 18:31</td><td data-l="Kaynak"><span class="r gp6"><svg class="ic s14 fg3"><use href="#i-cloud-up"/></svg>Xcode Cloud</span></td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Geçerli</span></td><td data-l="Min iOS" class="mono tx">16.0</td><td data-l="SDK" class="mono tx">iOS 26.1</td><td data-l="Bitiş">10 Şub 2027</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">2.3</b></td><td data-l="Build no" class="mono">116</td><td data-l="Yükleme">10 Kas 2026, 09:12</td><td data-l="Kaynak"><span class="r gp6"><svg class="ic s14 fg3"><use href="#i-upload"/></svg>Elle</span></td><td data-l="Durum"><span class="c gp4"><span class="bdg dng sm"><span class="dot"></span>Geçersiz</span><span class="t-xs dng-t mono">ITMS-90683</span></span></td><td data-l="Min iOS" class="mono tx">16.0</td><td data-l="SDK" class="mono tx">iOS 26.1</td><td data-l="Bitiş" class="fg3">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono fg2">2.2</b></td><td data-l="Build no" class="mono fg2">110</td><td data-l="Yükleme" class="fg2">14 Ağu 2026, 16:47</td><td data-l="Kaynak" class="fg2"><span class="r gp6"><svg class="ic s14 fg3"><use href="#i-zap"/></svg>EAS</span></td><td data-l="Durum"><span class="bdg sm">Süresi doldu</span></td><td data-l="Min iOS" class="mono tx fg2">15.0</td><td data-l="SDK" class="mono tx fg2">iOS 26.0</td><td data-l="Bitiş" class="fg3">12 Kas 2026</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 3 · Toplam: 42</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <div class="callout info mt16"><svg class="ic"><use href="#i-workflow"/></svg><div class="t-s">Teslim kuralı: <b>iOS → TestFlight iç grup</b>. 2.4 (121) işlenince "Kuzey içi" grubuna eklenir; sürüme bağlama ve incelemeye gönderme hiçbir zaman otomatik değildir. <span class="lnk">Kuralı düzenle</span></div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-2">
+  <figcaption class="fr-h"><b class="fr-n">8.2</b><span class="fr-t">Build'i sürüme bağla ve ihracat uyumu</span><code class="fr-r">/apps/:appId/release/builds → sürüme bağla</code></figcaption>
+  <p class="fr-note">Yalnız <b>Geçerli</b> build'ler seçilebilir; işlenen ve geçersiz olanlar gerekçesiyle pasif. Build'de <code>ITSAppUsesNonExemptEncryption</code> tanımlı değilse ihracat uyumu sorusu aynı pencerede cevaplanır; "Evet" seçilirse belge yükleme asistanlı adıma döner. Yazmadan önce mini diff gösterilir (sürüm: build <code>-</code> → <code>1.0 (12)</code>). <b>API:</b> <code>POST /api/v1.0/builds/link { StoreAppId, VersionId, BuildId }</code> ve gerekiyorsa <code>PUT /api/v1.0/builds/export-compliance { BuildId, UsesNonExemptEncryption }</code>, ikisi tek StoreJob'da sırayla (<code>Idempotency-Key</code>). <b>İzin:</b> <code>EditContent</code>. Hazırlık kontrolündeki "Build bağlı ve geçerli" ve "İhracat uyumu" satırları (6.8) kapanır. <b>Telefonda</b> alttan açılan tam sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Yayın"><div class="content"><div class="apphead" data-app="kumbara" data-store="apple" data-tab="yayin" data-sub="Build'ler"></div></div></div>
+    <div class="ovl"><div class="mdl lg" role="dialog" aria-labelledby="m82">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m82">1.0 sürümüne build bağla</h2><p class="t-s fg2 mt4">Kumbara · App Store · ilk gönderim</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="fld"><span class="lbl">Build</span>
+          <div class="card"><div class="lst">
+            <div class="lst-i"><span class="rad on"></span><div class="f1"><b class="t-m mono">1.0 (12)</b><div class="t-xs fg3">16 Kas 2026 · EAS · iOS 26.1 SDK · min iOS 16.0</div></div><span class="bdg ok sm"><span class="dot"></span>Geçerli</span></div>
+            <div class="lst-i"><span class="rad"></span><div class="f1"><b class="t-m mono">1.0 (11)</b><div class="t-xs fg3">14 Kas 2026 · EAS · iOS 26.1 SDK</div></div><span class="bdg ok sm"><span class="dot"></span>Geçerli</span></div>
+            <div class="lst-i" style="opacity:.55"><span class="rad"></span><div class="f1"><b class="t-m mono">1.0 (13)</b><div class="t-xs fg3">Apple işliyor; bitince seçilebilir.</div></div><span class="bdg info sm">İşleniyor</span></div>
+            <div class="lst-i" style="opacity:.55"><span class="rad"></span><div class="f1"><b class="t-m mono">1.0 (10)</b><div class="t-xs fg3">ITMS-90725: SDK sürümü desteklenmiyor.</div></div><span class="bdg dng sm">Geçersiz</span></div>
+          </div></div>
+        </div>
+        <div class="fld"><span class="lbl">İhracat uyumu: uygulama Apple'ın muaf tuttuğu dışında şifreleme kullanıyor mu?</span>
+          <div class="r gp16 wrap t-s"><span class="r gp8"><span class="rad on"></span>Hayır, yalnız HTTPS ve sistem şifrelemesi</span><span class="r gp8"><span class="rad"></span>Evet</span></div>
+          <span class="hint">Build'e <span class="mono">ITSAppUsesNonExemptEncryption = NO</span> eklersen bu soru sonraki build'lerde sorulmaz. "Evet" belge ister; o adım asistanlıdır.</span></div>
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-compare"/></svg>Değişiklik planı · 2 yazma</div>
+          <div class="dl del">Sürüm 1.0 · build: -</div><div class="dl add">Sürüm 1.0 · build: <ins>1.0 (12)</ins></div>
+          <div class="dl add">1.0 (12) · usesNonExemptEncryption: <ins>false</ins></div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri"><svg class="ic"><use href="#i-link"/></svg>Bağla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-3" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">8.3</b><span class="fr-t">Build'ler: Google Play bundle'ları</span><code class="fr-r">/apps/:appId/release/builds?store=google</code></figcaption>
+  <p class="fr-note">Play'de işlenme beklemesi yok: AAB bir edit içinde yüklenir ve track ataması aynı edit'te commit edilir. Hedef API kataloğa göre kontrol edilir (güncellemeler 31 Ağustos 2026'dan beri API 36); eski bundle'larda o günkü kural geçerli olduğu için uyarı çıkmaz. <b>API:</b> aynı <code>PATCH /api/v1.0/builds</code>, <code>Store = Google</code> → <code>BuildListDto</code> + <code>{ VersionCode, VersionName, TargetSdk, SizeBytes, Sha256, Tracks[{ Track, Status, UserFraction? }] }</code>. Satır eylemi "Track'e ata" 8.8'i açar. <b>İzin:</b> <code>View</code>; atama test track'leri için <code>ReleaseTest</code>, production için <code>ReleaseProduction</code>. <b>Telefonda</b> kart başlığı versionCode, track rozetleri altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Build'ler"><span class="btn pri"><svg class="ic"><use href="#i-upload"/></svg>AAB yükle</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th class="srt">versionCode <svg class="ic"><use href="#i-arrow-down"/></svg></th><th>Sürüm adı</th><th>Yükleme</th><th>Kaynak</th><th>targetSdk</th><th>Boyut</th><th>Track</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b class="mono">231</b></td><td data-l="Sürüm adı" class="mono">2.4.0</td><td data-l="Yükleme">18 Kas 2026, 11:48</td><td data-l="Kaynak">CI · GitHub Actions</td><td data-l="targetSdk" class="mono">36</td><td data-l="Boyut" class="mono">38,6 MB</td><td data-l="Track"><span class="r gp6 wrap"><span class="bdg sm">internal</span><span class="bdg sm">closed</span></span></td><td class="ta"><span class="btn sm">Track'e ata</span></td></tr>
+            <tr><td class="tm"><b class="mono">230</b></td><td data-l="Sürüm adı" class="mono">2.3.0</td><td data-l="Yükleme">12 Kas 2026, 17:02</td><td data-l="Kaynak">EAS</td><td data-l="targetSdk" class="mono">36</td><td data-l="Boyut" class="mono">38,2 MB</td><td data-l="Track"><span class="bdg info sm">production · %20</span></td><td class="ta"><span class="btn sm">Track'e ata</span></td></tr>
+            <tr><td class="tm"><b class="mono">229</b></td><td data-l="Sürüm adı" class="mono">2.3.0</td><td data-l="Yükleme">10 Kas 2026, 13:40</td><td data-l="Kaynak">CI · GitHub Actions</td><td data-l="targetSdk" class="mono">36</td><td data-l="Boyut" class="mono">38,1 MB</td><td data-l="Track" class="fg3">Yerini 230 aldı</td><td class="ta"><span class="btn sm">Track'e ata</span></td></tr>
+            <tr><td class="tm"><b class="mono">226</b></td><td data-l="Sürüm adı" class="mono">2.2.1</td><td data-l="Yükleme">20 Ağu 2026, 09:15</td><td data-l="Kaynak">Elle</td><td data-l="targetSdk" class="mono">35</td><td data-l="Boyut" class="mono">37,4 MB</td><td data-l="Track"><span class="bdg ok sm">production · kalan %80</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="pager"><span>Sayfa 1 / 2 · Toplam: 27</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">20</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+        <div class="callout mt16"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Yükleme varsayılan olarak <b>internal</b> track'e gider (teslim kuralı "Android → internal"). Aynı SHA-256 ikinci kez yüklenmez; versionCode öncekinden büyük olmalı.</div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-4" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">8.4</b><span class="fr-t">Build'ler: Microsoft Store MSIX paketleri</span><code class="fr-r">/apps/:appId/release/builds?store=ms</code></figcaption>
+  <p class="fr-note">MSIX paketleri gönderim (ya da uçuş gönderimi) içinde yaşar; liste paketleri bulundukları gönderimle gösterir. Paket kimliği ve sürümü yüklemede okunur (plan 11.8 adım 2); uygulamayla eşleşmeyen paket reddedilir. <b>API:</b> <code>PATCH /api/v1.0/builds</code>, <code>Store = Microsoft</code> → <code>BuildListDto</code> + <code>{ PackageFileName, Version, Architecture (x64, x86, arm64, neutral), SizeBytes, SubmissionId, FlightId?, FlightName? }</code>; gönderim durumu <code>GET /api/v1.0/ms/submissions</code>. <b>İzin:</b> <code>View</code>; yükleme <code>EditContent</code>. <b>Telefonda</b> kart başlığı dosya adı (kırılarak), mimari ve boyut altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Build'ler" data-meta="Store ID 9P4K7Q2MZL1D · MSIX"><span class="btn pri"><svg class="ic"><use href="#i-upload"/></svg>MSIX yükle</span></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Paket</th><th>Sürüm</th><th>Mimari</th><th>Boyut</th><th>Gönderim</th><th>Durum</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b class="mono">Pusula_2.4.0.0_x64.msix</b></td><td data-l="Sürüm" class="mono">2.4.0.0</td><td data-l="Mimari"><span class="tag">x64</span></td><td data-l="Boyut" class="mono">41,6 MB</td><td data-l="Gönderim">Uçuş · Kuzey içi</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Uçuşta · %25</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">Pusula_2.4.0.0_arm64.msix</b></td><td data-l="Sürüm" class="mono">2.4.0.0</td><td data-l="Mimari"><span class="tag">arm64</span></td><td data-l="Boyut" class="mono">40,1 MB</td><td data-l="Gönderim">Uçuş · Kuzey içi</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Uçuşta · %25</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">Pusula_2.3.0.0_x64.msix</b></td><td data-l="Sürüm" class="mono">2.3.0.0</td><td data-l="Mimari"><span class="tag">x64</span></td><td data-l="Boyut" class="mono">41,2 MB</td><td data-l="Gönderim" class="mono">1152921505698</td><td data-l="Durum"><span class="bdg info sm">Sertifikasyonda</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono">Pusula_2.3.0.0_arm64.msix</b></td><td data-l="Sürüm" class="mono">2.3.0.0</td><td data-l="Mimari"><span class="tag">arm64</span></td><td data-l="Boyut" class="mono">39,8 MB</td><td data-l="Gönderim" class="mono">1152921505698</td><td data-l="Durum"><span class="bdg info sm">Sertifikasyonda</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono fg2">Pusula_2.2.0.0_x64.msix</b></td><td data-l="Sürüm" class="mono fg2">2.2.0.0</td><td data-l="Mimari"><span class="tag">x64</span></td><td data-l="Boyut" class="mono fg2">40,7 MB</td><td data-l="Gönderim" class="mono fg2">1152921505403</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yayında</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="callout warn mt16"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s">2.3.0.0 sertifikasyonda; yeni paket ancak bu gönderim bitince ya da uçuşa eklenebilir. Microsoft aynı anda tek aktif gönderime izin verir.</div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-5" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">8.5</b><span class="fr-t">Microsoft Store: MSI/EXE yükleyici URL'leri</span><code class="fr-r">/apps/:appId/release/builds?store=ms (MSI/EXE)</code></figcaption>
+  <p class="fr-note">MSI ve EXE uygulamalarında storeasy dosyayı barındırmaz; yükleyici geliştiricinin sunucusunda durur, Store'a URL, mimari, dil ve sessiz kurulum parametreleri gider (plan 11.6). Kaydetmeden önce storeasy URL'yi izinli alan adı listesinden indirir, Authenticode imzasını doğrular (imzasız yükleyiciyi Store reddeder; hazırlık kontrolü de engel sayar). <b>API:</b> <span class="gap">Backend boşluğu:</span> planda MSI/EXE paket uçları yok; <code>GET /api/v1.0/ms/packages?StoreAppId=</code> → <code>MsInstallerPackageDto { Id, PackageUrl, PackageType (Exe, Msi), Architectures[], Languages[], InstallerParameters, IsSilentInstall, SignatureStatus (Valid, Unsigned, Invalid, Unchecked), SignerSubject, SignerExpiryDate, CheckedDate }</code>, <code>POST /api/v1.0/ms/packages/verify { PackageUrl }</code>, <code>POST /api/v1.0/ms/packages/plan</code> + <code>apply</code> eklenecek. <b>İzin:</b> <code>EditContent</code>. <b>Telefonda</b> URL satırı kırılarak tam görünür, form tablonun altına iner.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Tarla|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="tarla" data-store="ms" data-tab="yayin" data-sub="Build'ler" data-meta="com.kuzeylab.tarla · MSI/EXE uygulaması"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="tbl-w"><table class="tbl">
+              <thead><tr><th>Mimari</th><th>Yükleyici URL'si</th><th>Sessiz kurulum</th><th>İmza</th></tr></thead>
+              <tbody>
+                <tr><td class="tm"><span class="r gp6"><span class="tag">x64</span><span class="bdg ok sm"><span class="dot"></span>Yayında</span></span></td><td data-l="URL"><span class="urlc">https://indir.kuzeylab.dev/tarla/0.9.4/TarlaSetup.exe</span><div class="t-xs fg3">EXE · tr, en-US · 0.9.4</div></td><td data-l="Sessiz kurulum" class="mono">/S</td><td data-l="İmza"><span class="c gp4"><span class="bdg ok sm"><svg class="ic s12"><use href="#i-shield-check"/></svg>Geçerli</span><span class="t-xs fg3">CN=Kuzey Lab · 3 Mar 2027'ye kadar</span></span></td></tr>
+                <tr><td class="tm"><span class="r gp6"><span class="tag">arm64</span><span class="bdg sm">Taslak</span></span></td><td data-l="URL"><span class="urlc">https://indir.kuzeylab.dev/tarla/0.9.5/TarlaSetup-arm64.exe</span><div class="t-xs fg3">EXE · tr, en-US · 0.9.5</div></td><td data-l="Sessiz kurulum" class="mono">/S</td><td data-l="İmza"><span class="c gp4"><span class="bdg dng sm"><svg class="ic s12"><use href="#i-shield-x"/></svg>İmzasız</span><span class="t-xs dng-t">Store reddeder</span></span></td></tr>
+              </tbody></table></div>
+            <div class="callout dng"><svg class="ic"><use href="#i-shield-x"/></svg><div class="t-s"><b>arm64 yükleyicisi Authenticode ile imzalı değil.</b> Dosyayı imzalayıp aynı URL'ye koy ve yeniden kontrol et. Kontrol 18 Kas 2026, 13:05.</div></div>
+          </div>
+          <div class="card"><div class="card-h"><span class="h3">Yükleyici güncelle</span></div><div class="card-b c gp14" style="display:grid;gap:14px">
+            <label class="fld"><span class="lbl">Yükleyici URL'si</span><span class="inp foc mono" style="overflow-wrap:anywhere">https://indir.kuzeylab.dev/tarla/0.9.5/TarlaSetup.exe</span><span class="hint">Yalnız izinli alan adları: indir.kuzeylab.dev. HTTPS ve sürümlü yol zorunlu.</span></label>
+            <div class="fld"><span class="lbl">Mimari</span><div class="seg"><span class="on">x64</span><span>x86</span><span>arm64</span></div></div>
+            <div class="fld"><span class="lbl">Tür</span><div class="seg"><span class="on">EXE</span><span>MSI</span></div></div>
+            <label class="fld"><span class="lbl">Sessiz kurulum parametreleri</span><span class="inp mono">/S</span><span class="hint">MSI için boş bırakılabilir; Store /quiet kullanır.</span></label>
+            <div class="r gp10 t-s"><span class="sw on"></span>Sessiz kurulum destekleniyor</div>
+            <span class="btn blk"><svg class="ic"><use href="#i-shield-check"/></svg>URL'yi ve imzayı kontrol et</span>
+            <span class="btn pri blk">Değişiklik planını gör</span>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 2. SÜRÜMLER VE TRACK'LER ============ -->
+<section class="sec" id="surumler">
+<div class="sec-h"><span class="k">Bölüm 8.6-8.10</span><h2>Sürümler ve track'ler</h2><p>App Store'da bir sürümün durum makinesi ve yayın türü; Google Play'de dört track yan yana. Test track'lerine atama <code>ReleaseTest</code>, production'a her yazma <code>ReleaseProduction</code> ve ikinci onay ister (plan 8). Her değişiklik önce değişiklik planı olarak görünür.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-6" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">8.6</b><span class="fr-t">App Store sürümü: durum ve yayın türü</span><code class="fr-r">/apps/:appId/release/versions?store=apple</code></figcaption>
+  <p class="fr-note">Durum makinesi Apple'ın ham durumlarını beş adımda toplar: Hazırlanıyor (<code>PREPARE_FOR_SUBMISSION</code>) → İncelemeye hazır (<code>READY_FOR_REVIEW</code>) → İncelemede (<code>WAITING_FOR_REVIEW</code>, <code>IN_REVIEW</code>) → Onaylandı (<code>PENDING_DEVELOPER_RELEASE</code>) → Yayında (<code>READY_FOR_DISTRIBUTION</code>). Yan yollar (Reddedildi, Geliştirici geri çekti) adımın altında rozet olur; Reddedildi red kaydını açar. Yayın türü: elle, onaydan sonra otomatik, tarihli (en erken tarih; onay daha geç gelirse onayla yayınlanır). <b>API:</b> <code>GET /api/v1.0/releases?StoreAppId=</code> → <code>ReleaseOverviewDto { Versions: [{ VersionId, VersionString, State, StateHistory[{ State, Date, Channel }], BuildId, ReleaseType (Manual, AfterApproval, Scheduled), EarliestReleaseDate?, PhasedRelease { Enabled, State, CurrentDayNumber, StartDate } }] }</code>; değişiklik <code>POST /api/v1.0/releases/plan { Kind: SetReleaseType | WithdrawFromReview | ReleaseVersion }</code> + <code>apply</code>. <b>İzin:</b> yayın türü ve aşamalı yayın ayarı <code>EditContent</code>; incelemeden çekme <code>SubmitForReview</code>; onaylanan sürümü yayınlama <code>ReleaseProduction</code> + ikinci onay. <b>Telefonda</b> durum makinesi dikey listeye döner, sürüm listesi üstte yatay çip satırı olur. <span class="gap">Backend boşluğu:</span> Apple durum geçmişini vermez; <code>StoreVersionStateHistory</code> tablosu (senkron ve webhook geçişleri) veri modeline eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="yayin" data-sub="Sürümler ve track'ler"><span class="btn hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Yeni sürüm</span></div>
+        <div class="split-l">
+          <div class="card hide-ph"><div class="lst">
+            <div class="lst-i"><div class="f1"><b class="t-m mono">2.4</b><div class="t-xs fg3">Build yok · 3 dil</div></div><span class="bdg sm">Hazırlanıyor</span></div>
+            <div class="lst-i on"><div class="f1"><b class="t-m mono">2.3</b><div class="t-xs fg3">2.3 (118) · 17 Kas gönderildi</div></div><span class="bdg warn sm"><span class="dot"></span>İncelemede</span></div>
+            <div class="lst-i"><div class="f1"><b class="t-m mono">2.2.1</b><div class="t-xs fg3">2.2.1 (112) · 3 Eyl 2026</div></div><span class="bdg ok sm"><span class="dot"></span>Yayında</span></div>
+          </div></div>
+          <div class="r gp6 only-ph" style="overflow-x:auto"><span class="chip">2.4</span><span class="chip on">2.3 · İncelemede</span><span class="chip">2.2.1</span></div>
+          <div class="c gp16">
+            <div class="smach">
+              <div class="sm-s d"><span class="k">PREPARE_FOR_SUBMISSION</span><b>Hazırlanıyor</b><small>10 Kas 2026</small></div>
+              <div class="sm-s d"><span class="k">READY_FOR_REVIEW</span><b>İncelemeye hazır</b><small>17 Kas, 16:38 · hazırlık 12 / 12</small></div>
+              <div class="sm-s now"><span class="k">IN_REVIEW</span><b>İncelemede</b><small>17 Kas 16:40 gönderildi · 18 Kas 09:40'tan beri inceleniyor</small></div>
+              <div class="sm-s f"><span class="k">PENDING_DEVELOPER_RELEASE</span><b>Onaylandı</b><small>Elle yayın bekler</small></div>
+              <div class="sm-s f"><span class="k">READY_FOR_DISTRIBUTION</span><b>Yayında</b><small>-</small></div>
+            </div>
+            <div class="r gp8 wrap t-xs fg3"><span>Yan yollar:</span><span class="bdg sm">Reddedildi → red kaydı</span><span class="bdg sm">Geliştirici geri çekti → Hazırlanıyor</span><span class="bdg sm">Meta veri reddi</span></div>
+            <div class="card"><div class="card-h"><span class="h3">Yayın ayarları</span><span class="t-xs fg3 ml">2.3 · Deniz Arslan · 17 Kas</span></div><div class="card-b c gp16" style="display:grid;gap:16px">
+              <div class="fld"><span class="lbl">Yayın türü</span><div class="seg"><span class="on">Elle</span><span>Onaydan sonra otomatik</span><span>Tarihli</span></div><span class="hint">Elle: onaydan sonra bu ekrandaki "Yayınla" düğmesi açılır; o adım production yayınıdır ve ikinci onay ister.</span></div>
+              <div class="r gp12"><span class="sw on"></span><div class="f1"><b class="t-m">Aşamalı yayın</b><div class="t-s fg2">7 günde %1, 2, 5, 10, 20, 50, 100. Elle güncelleyen kullanıcılar hemen alır.</div></div></div>
+              <div class="hr d" style="margin:0"></div>
+              <div class="r gp8 wrap"><span class="btn dis" aria-disabled="true"><svg class="ic"><use href="#i-rocket"/></svg>Yayınla</span><span class="t-s fg3 f1">Onaydan sonra açılır.</span><span class="btn dng-o sm"><svg class="ic"><use href="#i-arrow-l"/></svg>İncelemeden çek</span></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-7" data-h="960">
+  <figcaption class="fr-h"><b class="fr-n">8.7</b><span class="fr-t">Google Play track panosu</span><code class="fr-r">/apps/:appId/release/versions?store=google</code></figcaption>
+  <p class="fr-note">Dört track yan yana; her sütunda track'teki sürümler (versionCode, ad, durum <code>draft / inProgress / halted / completed</code>, oran, ülke sayısı, not dilleri). Production'da aşamalı yayın sürerken önceki tamamlanmış sürüm kalan kullanıcılar için ayrı satırda görünür. Seçili sürümün notları dil başına alt kartta. <b>API:</b> <code>GET /api/v1.0/releases?StoreAppId=</code> → <code>PlayTrackDto { Track, Testers?, Releases: [{ Name, VersionCodes[], Status (Draft, InProgress, Halted, Completed), UserFraction?, ReleaseNotes[{ Language, Text }], CountryTargeting { Countries[], IncludeRestOfWorld } }] }</code>. <b>İzin:</b> <code>View</code>; test track'leri <code>ReleaseTest</code>, production <code>ReleaseProduction</code>. <b>Telefonda</b> pano alt alta kartlara döner (production en üstte değil, track sırası korunur); notlar kartı en altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Sürümler ve track'ler"><span class="btn pri"><svg class="ic"><use href="#i-layers"/></svg>Track'e ata</span></div>
+        <div class="board">
+          <div class="trk"><div class="trk-h"><b>internal</b><span class="t-xs fg3 ml">İç test</span></div><div class="trk-b">
+            <div class="r bt"><span class="vc">231</span><span class="bdg ok sm"><span class="dot"></span>completed</span></div>
+            <div class="t-s fg2">2.4.0 · 18 Kas, 11:48</div>
+            <div class="t-xs fg3">kuzey-ic@kuzeylab.dev · notlar 3 dil</div></div>
+            <div class="trk-f"><span class="btn sm"><svg class="ic"><use href="#i-arrow-r"/></svg>closed'a yükselt</span></div></div>
+          <div class="trk"><div class="trk-h"><b>closed</b><span class="t-xs fg3 ml">Kuzey beta</span></div><div class="trk-b">
+            <div class="r bt"><span class="vc">231</span><span class="bdg ok sm"><span class="dot"></span>completed</span></div>
+            <div class="t-s fg2">2.4.0 · 18 Kas, 11:52</div>
+            <div class="t-xs fg3">closed-beta@kuzeylab.dev · 3 ülke · notlar 3 dil</div></div>
+            <div class="trk-f"><span class="btn sm inv"><svg class="ic"><use href="#i-rocket"/></svg>Production'a yükselt</span></div></div>
+          <div class="trk empty-t"><div class="trk-h"><b>open</b><span class="t-xs fg3 ml">Açık test</span></div><div class="trk-b">
+            <div class="t-s fg3">Bu track'te sürüm yok. Açık test herkese görünür; katılım bağlantısı Play'de oluşur.</div></div>
+            <div class="trk-f"><span class="btn sm ghost"><svg class="ic"><use href="#i-plus"/></svg>Sürüm ata</span></div></div>
+          <div class="trk prod"><div class="trk-h"><b>production</b><span class="bdg info sm ml">Aşamalı</span></div><div class="trk-b">
+            <div class="r bt"><span class="vc">230</span><span class="bdg info sm"><span class="dot"></span>inProgress</span></div>
+            <div class="c gp4"><div class="r bt t-s"><span class="fg2">2.3.0 · 3. gün</span><b>%20</b></div><span class="prog"><i style="width:20%"></i></span></div>
+            <div class="t-xs fg3">177 ülke · notlar 3 dil</div>
+            <div class="hr d" style="margin:2px 0"></div>
+            <div class="r bt t-s"><span class="mono fg2">226 · 2.2.1</span><span class="bdg ok sm">completed · kalan %80</span></div></div>
+            <div class="trk-f"><span class="btn sm">Aşamalı yayın</span></div></div>
+        </div>
+        <div class="card mt16"><div class="card-h"><span class="h3">230 · 2.3.0 sürüm notları</span><div class="seg ml"><span class="on">tr-TR</span><span>en-US</span><span>de-DE</span></div></div><div class="card-b">
+          <p class="t-m" style="margin:0">Rota ekranı yenilendi: kayıtlı yerler artık tek dokunuşla açılıyor. Karanlık modda harita okunabilirliği iyileşti.</p>
+          <div class="r gp8 t-xs fg3 mt12"><span>148 / 500 karakter</span><span>·</span><span>Ece Yılmaz · 12 Kas 2026</span><span class="lnk ml">Düzenle</span></div>
+        </div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-8" data-h="920">
+  <figcaption class="fr-h"><b class="fr-n">8.8</b><span class="fr-t">Track'e ata: değişiklik planı</span><code class="fr-r">/apps/:appId/release/versions?store=google → track'e ata</code></figcaption>
+  <p class="fr-note">Üç adımlı çekmece: seç (build, hedef track, başlangıç oranı, notlar, ülkeler) → plan → onay. Plan sunucudan dry run olarak gelir; production'da süren aşamalı yayının değişeceği uyarı olarak çıkar. Test track'lerinde son adım doğrudan "Uygula"dır; production'da "Onaya geç" 8.9'u açar. <b>API:</b> <code>POST /api/v1.0/releases/plan { StoreAppId, Kind: AssignTrack, Track, VersionCodes[], UserFraction?, ReleaseNotes[{ Language, Text }], CopyNotesFromTrack?, Countries? }</code> → <code>ChangePlanDto { PlanId, Items[{ Field, Locale, Before, After, Action }], Warnings[] }</code>; <code>POST /api/v1.0/releases/apply { PlanId, Confirm? }</code> → StoreJob (edit oluştur, track güncelle, commit). <b>İzin:</b> internal, closed, open <code>ReleaseTest</code>; production <code>ReleaseProduction</code>. <b>Telefonda</b> çekmece tam genişlik, adım çubuğu üstte sabit.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Sürümler ve track'ler"></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m88">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m88">Track'e ata</h2><p class="t-s fg2 mt4">231 · 2.4.0 → <b>production</b></p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="c gp6"><div class="stp"><span class="d"></span><span class="d"></span><span></span></div><div class="r bt t-xs fg3"><span>Seç</span><b class="fg2">Plan</b><span>Onay</span></div></div>
+        <div class="diff"><div class="diff-h"><svg class="ic s14"><use href="#i-compare"/></svg>production · 4 değişiklik</div>
+          <div class="dl del">Sürüm: 230 · 2.3.0 · inProgress %20</div>
+          <div class="dl add">Sürüm: <ins>231 · 2.4.0 · inProgress %10</ins></div>
+          <div class="dl add">Notlar tr-TR, en-US, de-DE: <ins>closed'dan kopyalandı</ins></div>
+          <div class="dl">Ülkeler: 177 · değişmedi</div>
+          <div class="dl add">Kalan kullanıcılar: <ins>226 · 2.2.1 completed</ins> korunur</div>
+        </div>
+        <div class="callout warn"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>Production'da süren aşamalı yayın değişir.</b> 230'un %20'lik yayını bu sürümle yer değiştirir; 230'u almış kullanıcılara 231 güncelleme olarak sunulur.</div></div>
+        <div class="callout"><svg class="ic"><use href="#i-check-c"/></svg><div class="t-s">Kontroller: targetSdk 36 · versionCode 231 &gt; 230 · imza anahtarı aynı · closed'da 6 saattir sorunsuz.</div></div>
+        <div class="t-xs fg3">Plan <span class="mono">pln_8f21c4</span> · 10 dk geçerli · dry run 18 Kas 14:31</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Geri</span><span class="btn pri"><svg class="ic"><use href="#i-arrow-r"/></svg>Onaya geç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-9">
+  <figcaption class="fr-h"><b class="fr-n">8.9</b><span class="fr-t">Production'a yükseltme: ikinci onay</span><code class="fr-r">/apps/:appId/release/versions?store=google → onay</code></figcaption>
+  <p class="fr-note">6.10 incelemeye gönderme kapısıyla aynı desen (plan 8): özet, uygulama adı ve sürümün <b>aynen</b> yazılması, eşleşene kadar pasif düğme. <b>API:</b> <code>POST /api/v1.0/releases/apply { PlanId, Confirm: "Pusula 2.4.0" }</code> (<code>Idempotency-Key</code>) → <code>StoreJobId</code>; MCP'de aynı araç <code>confirm: true</code> ve plan kimliği ister. <b>İzin:</b> <code>ReleaseProduction</code> (Owner, Admin). Denetim kaydına <code>ReleaseApplied</code>, <code>Channel = Web</code> ile düşer. Hatalı yazımda alan altında "Yazdığın metin eşleşmiyor". <span class="gap">Backend boşluğu:</span> <code>AuditAction</code>'a yayın değerleri (<code>ReleaseApplied</code>, <code>RolloutChanged</code>, <code>BuildLinked</code>) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Sürümler ve track'ler"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m89">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24"><use href="#i-rocket"/></svg></span><div class="f1"><h2 class="h2" id="m89">Pusula 2.4.0 production'a yayınlansın mı?</h2><p class="t-s fg2 mt4">Google Play kullanıcılarının %10'u bu sürümü hemen almaya başlar.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-box"/></svg><span class="f1 t-s">Bundle</span><span class="mono t-s">231 · 38,6 MB</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-percent"/></svg><span class="f1 t-s">Başlangıç oranı</span><span class="t-s">%10, aşamalı</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-globe"/></svg><span class="f1 t-s">Ülkeler</span><span class="t-s">177</span></div>
+          <div class="lst-i"><svg class="ic s16"><use href="#i-replay"/></svg><span class="f1 t-s">Değişen</span><span class="t-s">230'un %20 yayını</span></div>
+        </div></div>
+        <label class="fld"><span class="lbl">Onaylamak için <span class="mono" style="color:rgb(var(--fg))">Pusula 2.4.0</span> yaz</span><span class="inp foc typecheck mono">Pusula 2.4.</span><span class="hint">Henüz eşleşmedi.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri dis" aria-disabled="true"><svg class="ic"><use href="#i-rocket"/></svg>Production'a yayınla</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-10">
+  <figcaption class="fr-h"><b class="fr-n">8.10</b><span class="fr-t">Yükseltme izni yok (Editor)</span><code class="fr-r">/apps/:appId/release/versions?store=google</code></figcaption>
+  <p class="fr-note">Editor test track'lerinde çalışır (<code>ReleaseTest</code>), production'a yükseltemez. Düğme gizlenmez; pasif ve gerekçesi altında (rol matrisi 6). "Yükseltme iste" sahip ve yöneticilere uygulama içi bildirim gönderir, istenen plan hazır bekler. <span class="gap">Backend boşluğu:</span> 6.11'deki "gönderim iste" ile birlikte <code>POST /api/v1.0/releases/request { PlanId, Kind: SubmitForReview | Production }</code> olarak eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-role="Editor" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content">
+      <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Sürümler ve track'ler"></div>
+      <div class="g2">
+        <div class="trk"><div class="trk-h"><b>closed</b><span class="t-xs fg3 ml">Kuzey beta</span></div><div class="trk-b">
+          <div class="r bt"><span class="vc">231</span><span class="bdg ok sm"><span class="dot"></span>completed</span></div>
+          <div class="t-s fg2">2.4.0 · 18 Kas, 11:52 · 3 ülke</div>
+          <span class="btn blk dis" aria-disabled="true"><svg class="ic"><use href="#i-rocket"/></svg>Production'a yükselt</span>
+          <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg><span>Production yayını yalnız <b>Sahip</b> ve <b>Yönetici</b> rolünde.</span></div>
+          <span class="btn blk"><svg class="ic"><use href="#i-bell"/></svg>Yükseltme iste</span></div></div>
+        <div class="trk"><div class="trk-h"><b>open</b><span class="t-xs fg3 ml">Açık test</span></div><div class="trk-b">
+          <div class="t-s fg2">Test track'lerine atama senin rolünde açık.</div>
+          <span class="btn blk"><svg class="ic"><use href="#i-layers"/></svg>231'i open'a ata</span></div></div>
+      </div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 3. AŞAMALI YAYIN ============ -->
+<section class="sec" id="asamali">
+<div class="sec-h"><span class="k">Bölüm 8.11-8.15</span><h2>Aşamalı yayın</h2><p>Üç mağazanın oranlı yayını aynı dille: App Store'da sabit 7 günlük takvim (duraklat, sürdür, tümüne yayınla), Play'de serbest yüzde (yalnız artar, durdurulabilir), Microsoft'ta paket dağıtım yüzdesi. Production oranına her dokunuş <code>ReleaseProduction</code> ister; paket uçuşlarında oran test kapsamındadır (<code>ReleaseTest</code>).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-11" data-h="860">
+  <figcaption class="fr-h"><b class="fr-n">8.11</b><span class="fr-t">App Store aşamalı yayın takvimi</span><code class="fr-r">/apps/:appId/release/rollout?store=apple</code></figcaption>
+  <p class="fr-note">Apple'ın takvimi sabit: 1-7. gün %1, 2, 5, 10, 20, 50, 100; yalnız otomatik güncellemesi açık kullanıcılara uygulanır. Duraklatma toplam 30 güne kadar; duraklatılınca bugünün kutusu kesikli uyarı çizgisi alır, "Duraklatıldı · N gün" rozeti çıkar ve "Sürdür" ana eylem olur. "Tümüne yayınla" geri alınamaz, onay penceresi açar. <b>API:</b> <code>PUT /api/v1.0/releases/rollout { StoreAppId, VersionId, Action: Pause | Resume | Complete }</code> → <code>appStoreVersionPhasedReleases</code> <code>PAUSED / ACTIVE / COMPLETE</code>. <b>İzin:</b> <code>ReleaseProduction</code>; diğer roller takvimi görür, düğmeler pasif. <b>Telefonda</b> 7 kutu 4 + 3 ızgara, özet kartı altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Mola|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="mola" data-store="apple" data-tab="yayin" data-sub="Aşamalı yayın"></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="h3">3.1.2 · aşamalı yayın</span><span class="bdg ok sm ml"><span class="dot"></span>Etkin · 5. gün</span></div><div class="card-b c gp16" style="display:grid;gap:16px">
+            <div class="phase">
+              <div class="ph-d d"><span class="dn">1. gün</span><span class="pc">%1</span><span class="dt">14 Kas</span></div>
+              <div class="ph-d d"><span class="dn">2. gün</span><span class="pc">%2</span><span class="dt">15 Kas</span></div>
+              <div class="ph-d d"><span class="dn">3. gün</span><span class="pc">%5</span><span class="dt">16 Kas</span></div>
+              <div class="ph-d d"><span class="dn">4. gün</span><span class="pc">%10</span><span class="dt">17 Kas</span></div>
+              <div class="ph-d now"><span class="dn">5. gün</span><span class="pc">%20</span><span class="dt">Bugün</span></div>
+              <div class="ph-d"><span class="dn">6. gün</span><span class="pc">%50</span><span class="dt">19 Kas</span></div>
+              <div class="ph-d"><span class="dn">7. gün</span><span class="pc">%100</span><span class="dt">20 Kas</span></div>
+            </div>
+            <span class="prog"><i style="width:64%"></i></span>
+            <div class="r gp8 wrap"><span class="btn"><svg class="ic"><use href="#i-pause"/></svg>Duraklat</span><span class="btn inv"><svg class="ic"><use href="#i-rocket"/></svg>Tümüne yayınla</span><span class="t-s fg3 ml hide-ph">App Store'dan elle güncelleyen herkes bugün de alır.</span></div>
+          </div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b"><dl class="kv"><dt>Başlangıç</dt><dd>14 Kas 2026</dd><dt>Bugünkü oran</dt><dd>%20</dd><dt>Duraklatma hakkı</dt><dd>30 gün · kullanılmadı</dd><dt>Tahmini bitiş</dt><dd>20 Kas 2026</dd><dt>Puan</dt><dd>4,7 · son 7 gün 4,6</dd></dl></div></div>
+            <div class="callout info"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Pusula 2.3 için aşamalı yayın açık; onaylanıp yayınlanınca aynı takvim başlar.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-12" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">8.12</b><span class="fr-t">Play aşamalı yayın: oranı artır</span><code class="fr-r">/apps/:appId/release/rollout?store=google</code></figcaption>
+  <p class="fr-note">Oran yalnız artar; hazır adımlar %20 → %50 → %100, "Özel" ile ara değer. Seçim ana eylemin metnini değiştirir ("Oranı %50'ye çıkar"); tıklama kısa bir onay penceresi açar (yazarak onay yok: sürüm zaten production'da). %100 seçilirse durum <code>completed</code> olur ve geri dönmez. <b>API:</b> <code>PUT /api/v1.0/releases/rollout { StoreAppId, Track: production, Action: SetPercentage | Halt | Resume | Complete, Percentage? }</code> → <code>edits.tracks.update</code> (<code>userFraction</code>) + commit, StoreJob. <b>İzin:</b> <code>ReleaseProduction</code>. Durdurma 8.13. <b>Telefonda</b> büyük oran ve kaydırıcı tam genişlik, geçmiş kartı altta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Aşamalı yayın"></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="h3">production · 230 · 2.3.0</span><span class="bdg info sm ml"><span class="dot"></span>inProgress</span></div><div class="card-b" style="display:grid;gap:18px">
+            <div class="r gp16 wrap"><div><div class="big">%20</div><div class="t-s fg3 mt4">3. gün · 177 ülke</div></div><div class="f1" style="min-width:200px"><div class="r bt t-xs fg3"><span>Şu an</span><span>Yeni oran %50</span></div><div class="rng"><u style="width:20%"></u><i style="left:20%;width:30%"></i><b style="left:50%"></b></div><div class="rng-l"><span>%0</span><span>%20</span><span>%50</span><span>%100</span></div></div></div>
+            <div class="fld"><span class="lbl">Yeni oran</span><div class="r gp6 wrap"><span class="chip">%20 · şu an</span><span class="chip on">%50</span><span class="chip">%100</span><span class="chip">Özel</span></div><span class="hint">Oran düşürülemez. Sorun görürsen yayını durdur.</span></div>
+            <div class="r gp8 wrap"><span class="btn dng-o"><svg class="ic"><use href="#i-stop"/></svg>Yayını durdur</span><span class="btn pri ml"><svg class="ic"><use href="#i-arrow-up"/></svg>Oranı %50'ye çıkar</span></div>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Geçmiş</span></div><div class="card-b"><div class="tl">
+            <div class="tl-i"><span class="tl-d now"></span><div><b class="t-s">%20</b><div class="t-xs fg3">18 Kas, 09:00 · Ece Yılmaz · web</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">%10</b><div class="t-xs fg3">17 Kas, 09:05 · Ece Yılmaz · web</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">%5 ile başladı</b><div class="t-xs fg3">16 Kas, 10:12 · Deniz Arslan · onaylı plan</div></div></div>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-13">
+  <figcaption class="fr-h"><b class="fr-n">8.13</b><span class="fr-t">Yayını durdur (tehlikeli onay)</span><code class="fr-r">/apps/:appId/release/rollout?store=google → durdur</code></figcaption>
+  <p class="fr-note">Tehlikeli eylem: kırmızı düğme, sonuç metinde. Durdurma sürümü geri çekmez; yeni kullanıcılar 230'u almaz, almış olanlarda kalır. Neden alanı isteğe bağlı, denetim kaydına yazılır. <b>API:</b> <code>PUT /api/v1.0/releases/rollout { Action: Halt, Reason? }</code> → status <code>halted</code>. <b>İzin:</b> <code>ReleaseProduction</code>. <b>Telefonda</b> alttan açılan sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Aşamalı yayın"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m813">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m813">2.3.0 yayını durdurulsun mu?</h2><p class="t-s fg2 mt4">Yeni kullanıcılar 230'u almaz. Şimdiye kadar alan %20 bu sürümde kalır; Play sürümü geri çekmez.</p></div></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Neden <span class="opt">· isteğe bağlı</span></span><span class="inp ta" style="min-height:72px">Oturum açma hatası raporları arttı.</span></label>
+        <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-history"/></svg>Durdurulan yayını aynı orandan sürdürebilirsin.</div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn dng"><svg class="ic"><use href="#i-stop"/></svg>Yayını durdur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-14">
+  <figcaption class="fr-h"><b class="fr-n">8.14</b><span class="fr-t">Durdurulmuş yayın</span><code class="fr-r">/apps/:appId/release/rollout?store=google</code></figcaption>
+  <p class="fr-note">Durum <code>halted</code>: oran donuk (nötr çubuk), kim, ne zaman, neden görünür. Ana eylem "Sürdür" (<code>Action: Resume</code>, aynı orandan <code>inProgress</code>); alternatif yeni versionCode atamaktır (8.8). Uygulama listesi ve genel bakış kartında Play şeridi "Durduruldu" rozeti alır. App Store'da duraklatılmış takvim aynı yerleşimle gösterilir (8.11 notu). <b>İzin:</b> <code>ReleaseProduction</code>. <b>Telefonda</b> tek sütun.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Aşamalı yayın"></div>
+        <div class="card dng"><div class="card-h"><span class="h3">production · 230 · 2.3.0</span><span class="bdg dng sm ml"><span class="dot"></span>Durduruldu</span></div><div class="card-b" style="display:grid;gap:16px">
+          <div class="r gp16 wrap"><div><div class="big fg2">%20</div><div class="t-s fg3 mt4">%20'de durduruldu</div></div><div class="f1" style="min-width:200px"><span class="prog neu"><i style="width:20%"></i></span><div class="t-s fg2 mt8">18 Kas, 15:12 · Ece Yılmaz · "Oturum açma hatası raporları arttı."</div></div></div>
+          <div class="r gp8 wrap"><span class="btn"><svg class="ic"><use href="#i-layers"/></svg>Yeni sürüm ata</span><span class="btn pri ml"><svg class="ic"><use href="#i-play"/></svg>%20'den sürdür</span></div>
+        </div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-15" data-h="880">
+  <figcaption class="fr-h"><b class="fr-n">8.15</b><span class="fr-t">Microsoft: paket dağıtım yüzdesi (uçuş)</span><code class="fr-r">/apps/:appId/release/rollout?store=ms</code></figcaption>
+  <p class="fr-note">MSIX gönderimlerinde ve paket uçuşlarında "aşamalı paket dağıtımı": yüzde artırılır, tamamlanır (finalize) ya da durdurulur (halt). Durdurulunca paketi almamış müşteriler önceki gönderimin paketlerini alır. MSI/EXE uygulamalarında bu özellik yok; ekranda yalnız bilgi satırı çıkar. <b>API:</b> <code>PUT /api/v1.0/releases/rollout { Store: Microsoft, SubmissionId, FlightId?, Action: SetPercentage | Halt | Complete, Percentage? }</code> → Microsoft <code>packageRollout</code> (<code>updatepackagerolloutpercentage</code>, <code>haltpackagerollout</code>, <code>finalizepackagerollout</code>). <b>İzin:</b> uçuşta <code>ReleaseTest</code>, genel gönderimde <code>ReleaseProduction</code>. <b>Telefonda</b> tek sütun.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Aşamalı yayın"></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="h3">Uçuş: Kuzey içi · 2.4.0.0</span><span class="bdg info sm ml"><span class="dot"></span>Dağıtılıyor</span></div><div class="card-b" style="display:grid;gap:18px">
+            <div class="r gp16 wrap"><div><div class="big">%25</div><div class="t-s fg3 mt4">Uçuş grubunun dörtte biri</div></div><div class="f1" style="min-width:200px"><div class="rng"><u style="width:25%"></u><i style="left:25%;width:25%"></i><b style="left:50%"></b></div><div class="rng-l"><span>%0</span><span>%25</span><span>%50</span><span>%100</span></div></div></div>
+            <div class="fld"><span class="lbl">Yeni yüzde</span><div class="r gp6 wrap"><span class="chip">%25 · şu an</span><span class="chip on">%50</span><span class="chip">%100</span></div></div>
+            <div class="r gp8 wrap"><span class="btn dng-o"><svg class="ic"><use href="#i-stop"/></svg>Durdur</span><span class="btn">Tamamla</span><span class="btn pri ml">Yüzdeyi %50 yap</span></div>
+          </div></div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b"><dl class="kv"><dt>Gönderim</dt><dd class="mono">1152921505744</dd><dt>Geri dönüş</dt><dd class="mono">1152921505403 · 2.2.0.0</dd><dt>Başlangıç</dt><dd>16 Kas 2026</dd></dl></div></div>
+            <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Genel gönderim 2.3.0.0 sertifikasyonda; geçince aynı kontrol orada da açılır.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 4. TESTFLIGHT ============ -->
+<section class="sec" id="testflight">
+<div class="sec-h"><span class="k">Bölüm 8.16-8.19</span><h2>TestFlight</h2><p>Yalnız App Store seçiliyken görünür. Gruplar, test kullanıcıları, "Neyi test etmeli" metinleri ve beta uygulama incelemesi. En önemli sinyal build'in 90 günlük ömrü: bitişe yaklaşan build ekranın tepesinde, son tarih uyum takvimine de düşer (6.13).</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-16" data-h="980">
+  <figcaption class="fr-h"><b class="fr-n">8.16</b><span class="fr-t">TestFlight: build'ler, bitiş ve gruplar</span><code class="fr-r">/apps/:appId/release/testflight</code></figcaption>
+  <p class="fr-note">Bitişe 14 günden az kalan build tepede uyarı kartı olur (7 günden az: sayaç vurgulu). "CI'dan yükle" paket alma ekranını (<code>/intake</code>) bu uygulamanın CI kurulumunda açar; "Yeni build bekle" teslim kuralını açık tutar: yeni build gelince iki gruba eklenir, "Neyi test etmeli" önceki build'den kopyalanır. Bildirim: bitişten 14, 7 ve 1 gün önce uygulama içi ve e-posta (tercihler <code>account/preferences</code>), webhook olayı abonelere. <b>API:</b> <code>GET /api/v1.0/testflight/builds?StoreAppId=</code> → <code>BetaBuildDto { BuildId, VersionString, BuildNumber, UploadedDate, ExpirationDate, Expired, DaysLeft, BetaReviewState (NotSubmitted, WaitingForReview, InReview, Approved, Rejected), GroupIds[], InstallCount? }</code>; <code>GET /api/v1.0/testflight/groups</code>. <b>İzin:</b> <code>View</code>; grup ve build işlemleri <code>ReleaseTest</code>. <b>Telefonda</b> uyarı kartında sayaç solda, eylemler alta tam genişlik; tablo karta döner; grup kartları alt alta. <span class="gap">Backend boşluğu:</span> "Neyi test etmeli"yi önceki build'den kopyalama teslim kuralında yok (<code>artifacts/delivery-rules</code>'a <code>CopyWhatToTest</code> eklenecek); webhook olayı <code>testflight.build.expiring</code> olay listesine eklenecek. CI'ı storeasy'den tetiklemek planda yok: tasarımda yalnız <code>/intake</code>'e bağlantı.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="halka" data-store="apple" data-tab="yayin" data-sub="TestFlight"><span class="btn hide-ph"><svg class="ic"><use href="#i-plus"/></svg>Grup oluştur</span></div>
+        <div class="card warn"><div class="card-b xp">
+          <div class="xp-n"><b>6</b><small>gün</small></div>
+          <div style="min-width:0"><div class="r gp8 wrap"><b class="t-l">1.0 (37) 24 Kasım'da bitiyor · 6 gün</b><span class="bdg warn sm">90 gün sınırı</span></div><p class="t-s fg2 mt4" style="margin-bottom:0">Bitince iki gruptaki 52 test kullanıcısı uygulamayı açamaz. Kuyrukta yeni build yok.</p>
+            <div class="c gp4 mt8"><div class="r bt t-xs fg3"><span>26 Ağu 2026 yüklendi</span><span>84 / 90 gün</span></div><span class="prog warn"><i style="width:93%"></i></span></div></div>
+          <div class="xp-a"><span class="btn inv"><svg class="ic"><use href="#i-cloud-up"/></svg>CI'dan yükle</span><span class="btn"><svg class="ic"><use href="#i-hourglass"/></svg>Yeni build bekle</span></div>
+        </div></div>
+        <div class="tbl-w mt16"><table class="tbl">
+          <thead><tr><th>Build</th><th>Yükleme</th><th>Bitiş</th><th>Beta inceleme</th><th>Gruplar</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><b class="mono">1.0 (37)</b></td><td data-l="Yükleme">26 Ağu 2026</td><td data-l="Bitiş"><span class="warn-t b6">24 Kas 2026 · 6 gün</span></td><td data-l="Beta inceleme"><span class="bdg ok sm"><span class="dot"></span>Onaylandı</span></td><td data-l="Gruplar">Kuzey içi, Erken erişim</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><b class="mono fg2">1.0 (35)</b></td><td data-l="Yükleme" class="fg2">11 Ağu 2026</td><td data-l="Bitiş"><span class="bdg sm">Süresi doldu · 9 Kas</span></td><td data-l="Beta inceleme" class="fg3">Onaylandı</td><td data-l="Gruplar" class="fg3">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="g2 mt16">
+          <div class="grp"><div class="r gp8"><svg class="ic s18"><use href="#i-building"/></svg><b class="t-m">Kuzey içi</b><span class="bdg sm ml">İç</span></div><div class="t-s fg2">4 test kullanıcısı · App Store Connect üyeleri · yeni build otomatik eklenir</div><div class="r bt t-xs fg3"><span>1.0 (37) · 4 yüklü</span><span class="lnk">Aç</span></div></div>
+          <div class="grp"><div class="r gp8"><svg class="ic s18"><use href="#i-users"/></svg><b class="t-m">Erken erişim</b><span class="bdg info sm ml">Dış</span></div><div class="t-s fg2">48 test kullanıcısı · herkese açık bağlantı açık · beta inceleme gerekir</div><div class="r bt t-xs fg3"><span>1.0 (37) · 41 yüklü</span><span class="lnk">Aç</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-17" data-h="920">
+  <figcaption class="fr-h"><b class="fr-n">8.17</b><span class="fr-t">Dış grup: test kullanıcıları ve herkese açık bağlantı</span><code class="fr-r">/apps/:appId/release/testflight/groups/:groupId</code></figcaption>
+  <p class="fr-note">Test kullanıcısı tablosu davet durumuyla: Yüklü, Kabul etti, Davet edildi, Davet edilmedi; kaynak e-posta daveti ya da herkese açık bağlantı. Bağlantı kapatılınca mevcut test kullanıcıları kalır, yeni katılım durur. <b>API:</b> <code>GET /api/v1.0/testflight/groups?StoreAppId=</code> → <code>BetaGroupDto { Id, Name, IsInternal, TesterCount, PublicLinkEnabled, PublicLink, PublicLinkLimit, PublicLinkLimitEnabled, BuildIds[] }</code>; <code>PUT /api/v1.0/testflight/group/testers { GroupId, Add[{ Email, FirstName, LastName }], Remove[] }</code>. <b>İzin:</b> <code>ReleaseTest</code>. <b>Telefonda</b> tablo karta döner (ad başlık, durum sağda), bağlantı kartı tablonun üstüne çıkar. <span class="gap">Backend boşluğu:</span> sayfalı test kullanıcısı listesi ve grup güncelleme planda yok; <code>PATCH /api/v1.0/testflight/testers</code> (ListRequest, <code>GroupId</code> filtresi → <code>BetaTesterDto { Id, FirstName, LastName, Email, InviteType (Email, PublicLink), State (Installed, Accepted, Invited, NotInvited), LastActivityDate }</code>) ve <code>PUT /api/v1.0/testflight/group</code> (bağlantı aç/kapat, sınır) eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|TestFlight" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>TestFlight</div>
+        <div class="pg-h"><div><div class="r gp8 mb8"><span class="st"><b>AS</b>App Store</span><span class="bdg info sm">Dış grup</span></div><h1 class="pg-t">Erken erişim</h1><p class="pg-s">48 test kullanıcısı · 1.0 (37) · beta inceleme onaylı</p></div><div class="pg-a"><span class="btn hide-ph"><svg class="ic"><use href="#i-upload"/></svg>CSV içe aktar</span><span class="btn pri"><svg class="ic"><use href="#i-user-plus"/></svg>Test kullanıcısı ekle</span></div></div>
+        <div class="split">
+          <div class="c gp12">
+            <div class="toolbar" style="margin:0"><div class="inp" style="max-width:280px"><svg class="ic"><use href="#i-search"/></svg><span class="ph">Ad ya da e-posta</span></div><span class="chip">Durum: hepsi</span></div>
+            <div class="tbl-w"><table class="tbl">
+              <thead><tr><th>Ad</th><th>E-posta</th><th>Kaynak</th><th>Durum</th><th>Son etkinlik</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="tm"><b>Aylin Çelik</b></td><td data-l="E-posta" class="mono t-s">aylin.celik@ornek.net</td><td data-l="Kaynak">E-posta daveti</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yüklü · 1.0 (37)</span></td><td data-l="Son etkinlik">17 Kas</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+                <tr><td class="tm"><b>Burak Şahin</b></td><td data-l="E-posta" class="mono t-s">burak@ornek.net</td><td data-l="Kaynak">Herkese açık bağlantı</td><td data-l="Durum"><span class="bdg ok sm"><span class="dot"></span>Yüklü · 1.0 (37)</span></td><td data-l="Son etkinlik">16 Kas</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+                <tr><td class="tm"><b>Cem Öztürk</b></td><td data-l="E-posta" class="mono t-s">cem.ozturk@ornek.net</td><td data-l="Kaynak">E-posta daveti</td><td data-l="Durum"><span class="bdg info sm">Kabul etti</span></td><td data-l="Son etkinlik">12 Kas</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+                <tr><td class="tm"><b>Derya Aksoy</b></td><td data-l="E-posta" class="mono t-s">derya.a@ornek.net</td><td data-l="Kaynak">E-posta daveti</td><td data-l="Durum"><span class="bdg sm">Davet edildi</span></td><td data-l="Son etkinlik" class="fg3">-</td><td class="ta"><span class="btn sm ghost">Yeniden gönder</span></td></tr>
+                <tr><td class="tm"><b>Emre Koç</b></td><td data-l="E-posta" class="mono t-s">emre.koc@ornek.net</td><td data-l="Kaynak">E-posta daveti</td><td data-l="Durum"><span class="bdg warn sm">Davet edilmedi</span></td><td data-l="Son etkinlik" class="fg3">-</td><td class="ta"><span class="btn sm ghost">Davet et</span></td></tr>
+              </tbody></table></div>
+            <div class="pager"><span>Sayfa 1 / 10 · Toplam: 48</span><span class="ml ps">Sayfa boyutu</span><span class="inp sel ps" style="width:76px;min-height:32px">5</span><span class="btn sm dis"><svg class="ic"><use href="#i-chev-l"/></svg>Önceki</span><span class="btn sm">Sonraki<svg class="ic"><use href="#i-chev-r"/></svg></span></div>
+          </div>
+          <div class="card"><div class="card-h"><svg class="ic s18"><use href="#i-link"/></svg><span class="h3">Herkese açık bağlantı</span><span class="sw on ml"></span></div><div class="card-b c gp12" style="display:grid;gap:12px">
+            <div class="secret"><span class="f1">testflight.apple.com/join/kZ4mQ2pL</span><span class="ib sm ghost"><svg class="ic"><use href="#i-copy"/></svg></span></div>
+            <div class="r bt t-s"><span class="fg2">Katılım sınırı</span><span>31 / 100</span></div><span class="prog sm"><i style="width:31%"></i></span>
+            <span class="hint">Kapatırsan mevcut 48 kişi kalır, yeni katılım durur.</span>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-18" data-h="900">
+  <figcaption class="fr-h"><b class="fr-n">8.18</b><span class="fr-t">Neyi test etmeli ve beta uygulama incelemesi</span><code class="fr-r">/apps/:appId/release/testflight/builds/:buildId</code></figcaption>
+  <p class="fr-note">"Neyi test etmeli" build ve dil başına (en çok 4.000 karakter); beta açıklaması ve geri bildirim e-postası dil başına uygulama düzeyinde. Dış gruba eklenen ilk build beta incelemeden geçer; durum makinesi Gönderilmedi → Bekliyor → İncelemede → Onaylandı (ya da Reddedildi). Beta inceleme iletişim bilgisi İnceleme bilgilerinden (8.23) gelir. <b>API:</b> <code>PUT /api/v1.0/testflight/build/what-to-test { BuildId, Locale, WhatsNew }</code>; <code>POST /api/v1.0/testflight/build/beta-review { BuildId }</code>; durum <code>GET /api/v1.0/testflight/builds</code> içinde. <b>İzin:</b> <code>ReleaseTest</code>. <b>Telefonda</b> dil seçici yatay kayar, inceleme kartı metnin altına iner. <span class="gap">Backend boşluğu:</span> beta açıklaması ve geri bildirim e-postası (<code>betaAppLocalizations</code>) planda yok; <code>GET/PUT /api/v1.0/testflight/localizations</code> eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|TestFlight" data-act="">
+      <div class="content">
+        <div class="r gp8 t-s fg2 mb12"><svg class="ic s16"><use href="#i-arrow-l"/></svg>TestFlight</div>
+        <div class="pg-h"><div><h1 class="pg-t">1.0 (37)</h1><p class="pg-s">26 Ağu 2026 · bitiş 24 Kas 2026 · 2 grup</p></div></div>
+        <div class="split">
+          <div class="card"><div class="card-h"><span class="h3">Neyi test etmeli</span><div class="seg ml"><span class="on">tr</span><span>en-US</span></div></div><div class="card-b" style="display:grid;gap:14px">
+            <label class="fld"><span class="lbl">tr <span class="cnt">212 / 4.000</span></span><span class="inp ta foc" style="min-height:160px">Yeni halka davet akışını dene: bir arkadaşını bağlantıyla davet et, onay e-postası geldi mi kontrol et.
+Bildirim ayarlarında "sessiz saatler" açıkken hatırlatıcılar ertelenmeli.</span></label>
+            <div class="r gp8 wrap"><span class="t-s fg3">en-US kayıtlı · 18 Kas, Ece Yılmaz</span><span class="btn pri ml">Kaydet</span></div>
+            <div class="hr d" style="margin:0"></div>
+            <dl class="kv"><dt>Beta açıklaması</dt><dd>Halka, yakın çevrenle küçük gruplar kurmanı sağlar.</dd><dt>Geri bildirim</dt><dd class="mono">beta@kuzeylab.dev</dd></dl>
+          </div></div>
+          <div class="card"><div class="card-h"><span class="h3">Beta uygulama incelemesi</span></div><div class="card-b"><div class="tl">
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Gönderildi</b><div class="t-xs fg3">27 Ağu, 10:14 · Deniz Arslan</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">İncelemede</b><div class="t-xs fg3">27 Ağu, 19:02</div></div></div>
+            <div class="tl-i"><span class="tl-d ok"></span><div><b class="t-s">Onaylandı</b><div class="t-xs fg3">28 Ağu, 08:40 · dış gruplara açık</div></div></div>
+          </div>
+          <span class="btn blk dis mt8" aria-disabled="true"><svg class="ic"><use href="#i-send"/></svg>Beta incelemeye gönder</span>
+          <p class="t-xs fg3" style="margin:8px 0 0">Bu build onaylı. Aynı sürümün sonraki build'leri çoğunlukla tam inceleme olmadan açılır.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-19">
+  <figcaption class="fr-h"><b class="fr-n">8.19</b><span class="fr-t">Süresi dolmuş build</span><code class="fr-r">/apps/:appId/release/testflight/builds/:buildId</code></figcaption>
+  <p class="fr-note">Süresi dolan build (<code>Expired = true</code>) salt okunur: gruplara eklenemez, metin düzenlenemez, beta incelemeye gönderilemez. Tek eylem yeni build yüklemek; teslim kuralı gelen build'i aynı gruplara ekler. Bildirim takvimi alt satırda: hangi uyarılar gitti, kime. <b>API:</b> <code>GET /api/v1.0/testflight/builds</code> (<code>Expired</code>, <code>ExpirationDate</code>). <b>İzin:</b> <code>View</code>; yükleme <code>EditContent</code>. <b>Telefonda</b> çekmece tam ekran.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Halka|Yayın"><div class="content"><div class="apphead" data-app="halka" data-store="apple" data-tab="yayin" data-sub="TestFlight"></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m819">
+      <div class="mdl-h"><div class="f1"><div class="r gp8 mb8"><span class="bdg sm">Süresi doldu</span><span class="t-xs mono fg3">EXPIRED</span></div><h2 class="h2" id="m819">1.0 (35)</h2><p class="t-s fg2 mt4">11 Ağu 2026 yüklendi · 9 Kas 2026'da kapandı</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="state" style="padding:20px 8px"><span class="sic"><svg class="ic"><use href="#i-hourglass"/></svg></span><h3 style="font-size:20px">Bu build artık açılmıyor</h3><p class="t-s">TestFlight build'leri 90 gün sonra kapanır. Test kullanıcıları 1.0 (37)'ye geçti.</p></div>
+        <div class="card"><div class="card-h"><svg class="ic s16"><use href="#i-bell"/></svg><span class="t-m b6">Gönderilen uyarılar</span></div><div class="lst">
+          <div class="lst-i t-s"><span class="f1">14 gün önce · uygulama içi, e-posta</span><span class="t-xs fg3">26 Eki · 3 kişi</span></div>
+          <div class="lst-i t-s"><span class="f1">7 gün önce · uygulama içi, e-posta, webhook</span><span class="t-xs fg3">2 Kas · 3 kişi</span></div>
+          <div class="lst-i t-s"><span class="f1">1 gün önce · uygulama içi, e-posta, webhook</span><span class="t-xs fg3">8 Kas · 3 kişi</span></div>
+        </div></div>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri"><svg class="ic"><use href="#i-cloud-up"/></svg>Yeni build yükle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 5. PAKET UÇUŞLARI ============ -->
+<section class="sec" id="ucuslar">
+<div class="sec-h"><span class="k">Bölüm 8.20-8.22</span><h2>Paket uçuşları ve sertifikasyon (Microsoft)</h2><p>Yalnız Microsoft Store seçiliyken görünür. Uçuş, belirli müşteri gruplarına farklı paket dağıtır; gruplar Partner Center'da tanımlanır. Gönderim ekranları plan 11.6'daki iki kuralı her zaman gösterir.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-20" data-h="920">
+  <figcaption class="fr-h"><b class="fr-n">8.20</b><span class="fr-t">Paket uçuşları listesi</span><code class="fr-r">/apps/:appId/release/flights</code></figcaption>
+  <p class="fr-note">Sıralama: bir müşteri birden çok uçuş grubundaysa en üst sıradaki uçuşun paketini alır. Sıra API'de yalnız oluştururken verilir (<code>rankHigherThan</code>); sonradan değiştirmek ve grup tanımlamak Partner Center'da asistanlı adım. <b>API:</b> <code>GET /api/v1.0/ms/flights?StoreAppId=</code> → <code>MsFlightDto { FlightId, FriendlyName, Rank, GroupIds[], Groups[{ Id, Name, MemberCount? }], LastPublishedSubmission { SubmissionId, PackageVersion, Status }, PendingSubmission? }</code>. <b>İzin:</b> <code>View</code>; uçuş oluşturma ve uçuş gönderimi <code>ReleaseTest</code>. <b>Telefonda</b> uyarı kartı en üstte kalır, tablo karta döner. <span class="gap">Backend boşluğu:</span> Microsoft API'si uçuş gruplarını listelemez; grup adları ve kişi sayısı kullanıcıdan alınır ya da asistanlı adımda kaydedilir (<code>MsFlightGroup</code> tablosu eklenecek).</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Paket uçuşları"><span class="btn pri"><svg class="ic"><use href="#i-plus"/></svg>Uçuş oluştur</span></div>
+        <div class="callout warn mb16"><svg class="ic"><use href="#i-alert-t"/></svg><div class="t-s"><b>API ile oluşturulan gönderim Partner Center'da elle değiştirilirse API onu bir daha değiştiremez.</b> Değişikliği buradan yap. Aynı anda tek aktif gönderim olabilir: 2.3.0.0 sertifikasyonda.</div></div>
+        <div class="tbl-w"><table class="tbl">
+          <thead><tr><th>Sıra</th><th>Uçuş</th><th>Gruplar</th><th>Yayımlanan paket</th><th>Bekleyen gönderim</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="tm"><span class="r gp10"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="mono">1</span><b>Kuzey içi</b></span></td><td data-l="Uçuş" class="tx">Kuzey içi</td><td data-l="Gruplar">Kuzey Lab çalışanları · 12</td><td data-l="Yayımlanan"><span class="r gp6 wrap"><span class="mono">2.4.0.0</span><span class="bdg info sm">%25 dağıtım</span></span></td><td data-l="Bekleyen" class="fg3">-</td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+            <tr><td class="tm"><span class="r gp10"><svg class="ic s16 fg3"><use href="#i-grip"/></svg><span class="mono">2</span><b>Genişletilmiş beta</b></span></td><td data-l="Uçuş" class="tx">Genişletilmiş beta</td><td data-l="Gruplar">Beta gönüllüleri · 230</td><td data-l="Yayımlanan"><span class="mono">2.3.0.0</span></td><td data-l="Bekleyen"><span class="bdg sm">Taslak · 2.4.0.0</span></td><td class="ta"><span class="ib sm ghost"><svg class="ic"><use href="#i-more"/></svg></span></td></tr>
+          </tbody></table></div>
+        <div class="g2 mt16">
+          <div class="card"><div class="card-h"><span class="h3">Uçuş grupları</span><span class="bdg sm ml">Asistanlı</span></div><div class="lst">
+            <div class="lst-i"><svg class="ic s16"><use href="#i-users"/></svg><span class="f1 t-s">Kuzey Lab çalışanları</span><span class="t-xs fg3">12 kişi</span></div>
+            <div class="lst-i"><svg class="ic s16"><use href="#i-users"/></svg><span class="f1 t-s">Beta gönüllüleri</span><span class="t-xs fg3">230 kişi</span></div>
+          </div><div class="card-f"><span class="btn sm"><svg class="ic"><use href="#i-ext"/></svg>Partner Center'da grup ekle</span></div></div>
+          <div class="card"><div class="card-h"><span class="h3">Sırayı değiştir</span></div><div class="card-b t-s fg2">Sıra Partner Center'da değişir. Adım listesi ve tarayıcı devri hazır. <div class="mt12"><span class="btn sm">Adımı aç</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-21">
+  <figcaption class="fr-h"><b class="fr-n">8.21</b><span class="fr-t">Uçuş oluştur</span><code class="fr-r">/apps/:appId/release/flights → yeni</code></figcaption>
+  <p class="fr-note">Ad, en az bir grup, sıra. Uçuş oluşunca boş bir uçuş gönderimi açılır; paket seçimi ikinci adımda (aynı anda tek aktif gönderim kuralı uçuş gönderimini de kapsar). <b>API:</b> <code>POST /api/v1.0/ms/flight { StoreAppId, FriendlyName, GroupIds[], RankHigherThan? }</code> (<code>Idempotency-Key</code>) → <code>MsFlightDto</code>. Form hatası: ad boş ya da aynı adda uçuş var (alan altında). <b>İzin:</b> <code>ReleaseTest</code>. <b>Telefonda</b> alttan açılan sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Paket uçuşları"></div></div></div>
+    <div class="ovl"><div class="mdl" role="dialog" aria-labelledby="m821">
+      <div class="mdl-h"><div class="f1"><h2 class="h2" id="m821">Uçuş oluştur</h2><p class="t-s fg2 mt4">Pusula · Microsoft Store</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <label class="fld"><span class="lbl">Uçuş adı</span><span class="inp foc">Erken Windows</span></label>
+        <div class="fld"><span class="lbl">Gruplar <span class="opt">· en az bir</span></span><div class="card"><div class="lst">
+          <div class="lst-i"><span class="chk on"></span><span class="f1 t-s">Kuzey Lab çalışanları</span><span class="t-xs fg3">12 kişi</span></div>
+          <div class="lst-i"><span class="chk"></span><span class="f1 t-s">Beta gönüllüleri</span><span class="t-xs fg3">230 kişi</span></div>
+        </div></div></div>
+        <label class="fld"><span class="lbl">Sıra</span><span class="inp sel">"Kuzey içi"nin üstünde (1. sıra)</span><span class="hint">Sonradan yalnız Partner Center'da değişir.</span></label>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Vazgeç</span><span class="btn pri">Uçuşu oluştur</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-22" data-h="940">
+  <figcaption class="fr-h"><b class="fr-n">8.22</b><span class="fr-t">Gönderim ve sertifikasyon durumu</span><code class="fr-r">/apps/:appId/release/versions?store=ms</code></figcaption>
+  <p class="fr-note">Microsoft gönderim durumları beş adımda: <code>PendingCommit</code> → <code>CommitStarted</code> → <code>PreProcessing</code> → <code>Certification</code> → <code>Release</code> (sonra <code>Published</code>). Başarısız adım (<code>CommitFailed</code>, <code>PreProcessingFailed</code>, <code>CertificationFailed</code>, <code>ReleaseFailed</code>) kırmızı; hata kodu ve ayrıntı API'den, sertifikasyon raporu Partner Center'da açılır (asistanlı: storeasy rapor bağlantısını verir, okuma kullanıcının oturumunda). <b>API:</b> <code>GET /api/v1.0/ms/submissions?StoreAppId=</code> → <code>MsSubmissionDto { SubmissionId, FlightId?, PackageVersion, Status, StatusHistory[{ Status, Date }], StatusDetails { Errors[{ Code, Details }], Warnings[], CertificationReports[{ Date, ReportUrl }] }, CreatedByStoreasy, ModifiedOutsideApi }</code>. <b>İzin:</b> <code>View</code>. <b>Telefonda</b> durum makinesi dikey. <span class="gap">Backend boşluğu:</span> <code>ModifiedOutsideApi</code> bayrağı (Partner Center'da elle değişiklik algısı) ve <code>StatusHistory</code> saklama eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Sürümler ve track'ler"></div>
+        <div class="c gp16">
+          <div class="card"><div class="card-h"><span class="h3">2.3.0.0 · genel gönderim</span><span class="t-xs mono fg3">1152921505698</span><span class="bdg sm ml">API ile yönetiliyor</span></div><div class="card-b" style="display:grid;gap:12px">
+            <div class="smach">
+              <div class="sm-s d"><span class="k">PendingCommit</span><b>Hazırlandı</b><small>17 Kas, 15:02</small></div>
+              <div class="sm-s d"><span class="k">CommitStarted</span><b>Gönderildi</b><small>17 Kas, 15:04</small></div>
+              <div class="sm-s d"><span class="k">PreProcessing</span><b>Ön işleme</b><small>17 Kas, 15:40</small></div>
+              <div class="sm-s now"><span class="k">Certification</span><b>Sertifikasyon</b><small>17 Kas 17:10'dan beri · 3 iş gününe kadar</small></div>
+              <div class="sm-s f"><span class="k">Release</span><b>Yayın</b><small>-</small></div>
+            </div>
+          </div></div>
+          <div class="card dng"><div class="card-h"><span class="h3">2.4.0.0 · uçuş: Kuzey içi</span><span class="t-xs mono fg3">1152921505612</span><span class="bdg dng sm ml">Sertifikasyon başarısız</span></div><div class="card-b" style="display:grid;gap:12px">
+            <div class="smach">
+              <div class="sm-s d"><span class="k">PendingCommit</span><b>Hazırlandı</b><small>13 Kas</small></div>
+              <div class="sm-s d"><span class="k">CommitStarted</span><b>Gönderildi</b><small>13 Kas</small></div>
+              <div class="sm-s d"><span class="k">PreProcessing</span><b>Ön işleme</b><small>13 Kas</small></div>
+              <div class="sm-s x"><span class="k">CertificationFailed</span><b>Sertifikasyon</b><small>14 Kas, 11:20</small></div>
+              <div class="sm-s f"><span class="k">Release</span><b>Yayın</b><small>-</small></div>
+            </div>
+            <div class="callout dng"><svg class="ic"><use href="#i-x-c"/></svg><div class="t-s"><b class="mono">10.1.2.10 · Uygulama başlatılamadı</b><div class="fg2 mt4">arm64 cihazda ilk açılışta kapandı. Ayrıntılı rapor yalnız Partner Center'da.</div></div></div>
+            <div class="r gp8 wrap"><span class="btn"><svg class="ic"><use href="#i-ext"/></svg>Partner Center raporunu aç</span><span class="btn ghost">Asistanlı adım olarak işaretle</span><span class="t-xs fg3 ml">2.4.0.0 sonra yeniden gönderildi ve yayımlandı.</span></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 6. İNCELEME BİLGİLERİ ============ -->
+<section class="sec" id="inceleme">
+<div class="sec-h"><span class="k">Bölüm 8.23</span><h2>İnceleme bilgileri</h2><p>App Review'a giden iletişim, demo hesap, notlar ve ek. Kaynak uygulamanın kayıtlı cevaplarıdır (6.14); burada düzenlenen değer kayıtlı cevaplara da yazılır. Demo hesap şifresi hiçbir ekranda ve MCP yanıtında gösterilmez.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-23" data-h="1120">
+  <figcaption class="fr-h"><b class="fr-n">8.23</b><span class="fr-t">İnceleme bilgileri</span><code class="fr-r">/apps/:appId/release/review-info</code></figcaption>
+  <p class="fr-note">"Oturum açma gerekli" kapalıysa demo hesap alanları gizlenir. Şifre yalnız yazılır (boş bırakılırsa değişmez). Mağazadaki değer kayıtlı cevaplardan farklıysa üstte "Mağazadaki farklı" satırı ve diff çıkar. Kaydet değişiklik planı üretir, uygula ile App Store Connect'e yazılır. Google Play'de karşılığı "Uygulama erişimi" beyanı (asistanlı), Microsoft'ta gönderimdeki "sertifikasyon notları" alanıdır. <b>API:</b> <code>GET /api/v1.0/review-info?StoreAppId=</code> → <code>ReviewInfoDto { ContactFirstName, ContactLastName, ContactEmail, ContactPhone, DemoAccountRequired, DemoAccountName, DemoPasswordSet, Notes, Attachments[{ Id, FileName, SizeBytes, State }], Source (SavedAnswers, Store), StoreDiffers }</code>; <code>PUT /api/v1.0/review-info { StoreAppId, ..., DemoPassword? }</code>; ek <code>POST /api/v1.0/assets/upload-url</code>. <b>İzin:</b> görme <code>View</code>, düzenleme <code>EditContent</code>. <b>Telefonda</b> tek sütun, ad ve soyad alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="yayin" data-sub="İnceleme bilgileri"></div>
+        <div class="split">
+          <div class="c gp16">
+            <div class="card"><div class="card-h"><span class="h3">İletişim</span></div><div class="card-b" style="display:grid;gap:14px">
+              <div class="g2"><label class="fld"><span class="lbl">Ad</span><span class="inp">Deniz</span></label><label class="fld"><span class="lbl">Soyad</span><span class="inp">Arslan</span></label></div>
+              <div class="g2"><label class="fld"><span class="lbl">E-posta</span><span class="inp mono">deniz@kuzeylab.dev</span></label><label class="fld"><span class="lbl">Telefon</span><span class="inp mono">+90 555 010 20 30</span></label></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Demo hesap</span><span class="r gp8 ml t-s"><span class="sw on"></span>Oturum açma gerekli</span></div><div class="card-b" style="display:grid;gap:14px">
+              <label class="fld"><span class="lbl">Kullanıcı adı</span><span class="inp mono">demo@kuzeylab.dev</span></label>
+              <div class="fld"><span class="lbl">Şifre <svg class="ic s14"><use href="#i-lock"/></svg></span><div class="secret">Kayıtlı · şifreli · kayıtlı cevaplardan · 3 Kas 2026<span class="btn sm ml">Değiştir</span></div><span class="hint">Yalnız App Review alanına yazılır; hiçbir rolde görünmez.</span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><span class="h3">Notlar ve ek</span></div><div class="card-b" style="display:grid;gap:14px">
+              <label class="fld"><span class="lbl">İnceleme notları <span class="cnt">318 / 4.000</span></span><span class="inp ta">Abonelik akışını denemek için demo hesapta sandbox satın alma açık. "Kumbara Plus" ekranına Ayarlar &gt; Plan yoluyla ulaşılır.</span></label>
+              <div class="fld"><span class="lbl">Ek <span class="opt">· isteğe bağlı</span></span><div class="lst-i card" style="padding:10px 12px"><svg class="ic s16"><use href="#i-file"/></svg><span class="f1 t-s mono">kumbara-abonelik-akisi.mp4 · 8,2 MB</span><span class="ib sm ghost"><svg class="ic"><use href="#i-trash"/></svg></span></div></div>
+            </div></div>
+          </div>
+          <div class="c gp16">
+            <div class="card"><div class="card-b c gp12" style="display:grid;gap:12px">
+              <div class="r gp8"><svg class="ic s18"><use href="#i-bookmark"/></svg><b class="t-m">Kayıtlı cevaplardan</b></div>
+              <p class="t-s fg2" style="margin:0">İnceleme giriş bilgileri ve notlar bölümleri. Burada değişen değer oraya da yazılır.</p>
+              <div class="r gp8 t-s"><svg class="ic s16 ok-t"><use href="#i-check-c"/></svg>App Store Connect ile aynı · 15 Kas</div>
+              <span class="btn pri blk">Kaydet</span>
+              <span class="lnk t-s">Kayıtlı cevaplarda aç</span>
+            </div></div>
+            <div class="callout"><svg class="ic"><use href="#i-info"/></svg><div class="t-s">Beta uygulama incelemesi (TestFlight) aynı iletişim ve demo hesabı kullanır.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
+
+<!-- ============ 7. DURUMLAR ============ -->
+<section class="sec" id="durumlar">
+<div class="sec-h"><span class="k">Bölüm 8.24-8.29</span><h2>Durumlar</h2><p>Yayın sekmesine özgü yükleme, boş, hata ve yetki durumları. Genel durum ekranları 18-Durum-Ekranlari dosyasında.</p></div>
+<div class="frames">
+
+<figure class="fr" id="f8-24">
+  <figcaption class="fr-h"><b class="fr-n">8.24</b><span class="fr-t">Build'ler yükleniyor (iskelet)</span><code class="fr-r">/apps/:appId/release/builds</code></figcaption>
+  <p class="fr-note">Başlık ve sekmeler hemen gelir (uygulama detayı önbellekte); yalnız tablo iskelet. Filtre ve sayfa değişiminde eski satırlar kalır, üstte ince çizgi akar. Hareket azaltmada parıltı durur. <b>Telefonda</b> iskelet kart şeklinde.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="yayin" data-sub="Build'ler"></div>
+        <div class="r gp8 mb16"><span class="sk" style="width:90px;height:30px;border-radius:15px"></span><span class="sk" style="width:90px;height:30px;border-radius:15px"></span><span class="sk" style="width:90px;height:30px;border-radius:15px"></span></div>
+        <div class="card"><div class="lst">
+          <div class="lst-i"><span class="sk" style="width:60px"></span><span class="sk f1"></span><span class="sk" style="width:90px;height:20px;border-radius:10px"></span><span class="sk hide-ph" style="width:110px"></span></div>
+          <div class="lst-i"><span class="sk" style="width:60px"></span><span class="sk f1"></span><span class="sk" style="width:90px;height:20px;border-radius:10px"></span><span class="sk hide-ph" style="width:110px"></span></div>
+          <div class="lst-i"><span class="sk" style="width:60px"></span><span class="sk f1"></span><span class="sk" style="width:90px;height:20px;border-radius:10px"></span><span class="sk hide-ph" style="width:110px"></span></div>
+          <div class="lst-i"><span class="sk" style="width:60px"></span><span class="sk f1"></span><span class="sk" style="width:90px;height:20px;border-radius:10px"></span><span class="sk hide-ph" style="width:110px"></span></div>
+        </div></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-25">
+  <figcaption class="fr-h"><b class="fr-n">8.25</b><span class="fr-t">Boş: henüz build yok</span><code class="fr-r">/apps/:appId/release/builds</code></figcaption>
+  <p class="fr-note">Mağazada hiç build yoksa (örnek: Kumbara, ilk yüklemeden önce). Ana eylem paket alma kurulumu (<code>/intake</code>, uygulama seçili); ikincil olarak elle yükleme. Yalnız <code>EditContent</code> olan roller düğmeyi görür; Viewer'da metin "Bir editörden CI kurulumunu iste" olur.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Kumbara|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="kumbara" data-store="apple" data-tab="yayin" data-sub="Build'ler"></div>
+        <div class="empty"><span class="eic"><svg class="ic"><use href="#i-box"/></svg></span><h4>Henüz build yok</h4><p>CI'ın build'i doğrudan storeasy'ye göndersin: GitHub Actions, Azure DevOps ya da EAS. storeasy paketi okur, kontrol eder ve TestFlight'a götürür.</p>
+          <div class="r gp8 wrap" style="justify-content:center"><span class="btn pri"><svg class="ic"><use href="#i-workflow"/></svg>CI kurulumunu aç</span><span class="btn"><svg class="ic"><use href="#i-upload"/></svg>Elle yükle</span></div>
+          <span class="t-xs fg3">Xcode Cloud ya da Transporter ile yüklenen build'ler de senkronla burada görünür.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-26">
+  <figcaption class="fr-h"><b class="fr-n">8.26</b><span class="fr-t">Geçersiz build ve nedeni</span><code class="fr-r">/apps/:appId/release/builds/:buildId</code></figcaption>
+  <p class="fr-note">Build ayrıntı çekmecesi. <code>INVALID</code> build'de neden kodu ve açıklaması, düzeltme önerisi (kataloğa bağlı bilinen hatalar) ve "Yeni build yükle". Neden yalnız yükleme storeasy'den geçtiyse (<code>buildUploads</code> durum hataları) ya da Apple webhook'u taşıyorsa bilinir; değilse "Apple nedeni e-postayla bildirdi" metni çıkar. <b>API:</b> <code>PATCH /api/v1.0/builds</code> satırındaki <code>InvalidReason { Code, Message, Source (Upload, Webhook) }</code>. <b>Telefonda</b> çekmece tam ekran. <span class="gap">Backend boşluğu:</span> <code>Build.InvalidReason</code> alanı ve bilinen ITMS kodlarının katalog eşlemesi eklenecek.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="apple" data-tab="yayin" data-sub="Build'ler"></div></div></div>
+    <div class="ovl"><div class="drw" role="dialog" aria-labelledby="m826">
+      <div class="mdl-h"><div class="f1"><div class="r gp8 mb8"><span class="bdg dng sm"><span class="dot"></span>Geçersiz</span><span class="t-xs mono fg3">INVALID</span></div><h2 class="h2" id="m826">2.3 (116)</h2><p class="t-s fg2 mt4">10 Kas 2026, 09:12 · elle · Transporter</p></div><span class="ib ghost sm"><svg class="ic"><use href="#i-x"/></svg></span></div>
+      <div class="mdl-b">
+        <div class="callout dng"><svg class="ic"><use href="#i-x-c"/></svg><div class="t-s"><b class="mono">ITMS-90683 · Eksik izin açıklaması</b><div class="fg2 mt4">Info.plist'te <span class="mono">NSLocationWhenInUseUsageDescription</span> yok; uygulama konum API'si kullanıyor.</div></div></div>
+        <div class="card"><div class="card-h"><svg class="ic s16"><use href="#i-wand"/></svg><span class="t-m b6">Nasıl düzelir</span></div><div class="card-b t-s fg2">Açıklamayı Info.plist'e (ya da Expo'da <span class="mono">ios.infoPlist</span>) ekle, build numarasını artır, yeniden yükle. 2.3 (117) bu hatayı düzeltmiş.</div></div>
+        <dl class="kv"><dt>Min iOS</dt><dd class="mono">16.0</dd><dt>SDK</dt><dd class="mono">iOS 26.1 · Xcode 26.1</dd><dt>Neden kaynağı</dt><dd>Apple webhook'u · 10 Kas 09:31</dd></dl>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn pri"><svg class="ic"><use href="#i-cloud-up"/></svg>Yeni build yükle</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-27">
+  <figcaption class="fr-h"><b class="fr-n">8.27</b><span class="fr-t">403: yetkisiz oran değişikliği (Viewer)</span><code class="fr-r">/apps/:appId/release/rollout?store=google</code></figcaption>
+  <p class="fr-note">Rol oturum sırasında Viewer'a düşürülmüş; açık sayfadan gelen "Oranı %50'ye çıkar" isteği <code>403</code> döner. Toast sunucunun mesajını gösterir, sayfa <code>organizations/mine</code> izinlerini yeniler ve kontroller pasifleşir, gerekçe satırı çıkar. Viewer sayfayı baştan açtığında kontroller zaten pasiftir; 403 yalnız bu yarış durumunda görülür. <b>Telefonda</b> toast alt gezinmenin üstünde.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-role="Viewer" data-crumbs="Uygulamalar|Pusula|Yayın">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="google" data-tab="yayin" data-sub="Aşamalı yayın"></div>
+        <div class="card"><div class="card-h"><span class="h3">production · 230 · 2.3.0</span><span class="bdg info sm ml"><span class="dot"></span>inProgress</span></div><div class="card-b" style="display:grid;gap:14px">
+          <div class="r gp16 wrap"><div class="big">%20</div><div class="f1" style="min-width:200px"><span class="prog"><i style="width:20%"></i></span><div class="t-s fg3 mt8">3. gün · 177 ülke</div></div></div>
+          <div class="r gp8 wrap"><span class="btn dng-o dis" aria-disabled="true">Yayını durdur</span><span class="btn dis ml" aria-disabled="true">Oranı %50'ye çıkar</span></div>
+          <div class="r gp8 t-s fg2"><svg class="ic s16"><use href="#i-lock"/></svg><span>Rolün <b>İzleyici</b>. Aşamalı yayını yalnız Sahip ve Yönetici değiştirebilir.</span></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="toasts"><div class="toast dng" role="alert"><svg class="ic"><use href="#i-shield-x"/></svg><div class="f1"><b>Bu işlem için yetkin yok</b><div class="fg2">Rolün değişmiş görünüyor; sayfa yeni izinlerle yenilendi.</div></div></div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-28">
+  <figcaption class="fr-h"><b class="fr-n">8.28</b><span class="fr-t">409: başka aktif gönderim var (Microsoft)</span><code class="fr-r">/apps/:appId/release/versions?store=ms → yeni gönderim</code></figcaption>
+  <p class="fr-note">Microsoft aynı anda tek aktif gönderime izin verir. Yeni gönderim (ya da uçuş gönderimi) planı <code>409</code> döner; pencere çakışan gönderimi adıyla gösterir. Çakışan gönderim Partner Center'da elle oluşturulduysa storeasy onu silemez; bağlantı Partner Center'a gider. <b>API:</b> <code>POST /api/v1.0/releases/plan</code> → <code>409 { Messages[{ Key: "Ms.ActiveSubmissionExists" }], Data: { SubmissionId, Status, CreatedByStoreasy } }</code>. <b>Telefonda</b> alttan açılan sayfa.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın"><div class="content"><div class="apphead" data-app="pusula" data-store="ms" data-tab="yayin" data-sub="Sürümler ve track'ler"></div></div></div>
+    <div class="ovl"><div class="mdl sm" role="dialog" aria-labelledby="m828">
+      <div class="mdl-h"><span class="ib ghost" style="border:0"><svg class="ic s24 warn-t"><use href="#i-alert-t"/></svg></span><div class="f1"><h2 class="h2" id="m828">Zaten aktif bir gönderim var</h2><p class="t-s fg2 mt4">Microsoft Store aynı anda tek gönderim kabul eder.</p></div></div>
+      <div class="mdl-b">
+        <div class="card"><div class="lst">
+          <div class="lst-i"><svg class="ic s16"><use href="#i-box"/></svg><div class="f1"><b class="t-s">2.3.0.0 · genel gönderim</b><div class="t-xs mono fg3">1152921505698 · storeasy ile oluşturuldu</div></div><span class="bdg info sm">Sertifikasyonda</span></div>
+        </div></div>
+        <p class="t-s fg2" style="margin:0">Sertifikasyon bitince yeni gönderimi başlatabilirsin. Bitince bildirim alırsın.</p>
+      </div>
+      <div class="mdl-f"><span class="btn ghost">Kapat</span><span class="btn inv">Gönderimi aç</span></div>
+    </div></div>
+  </div></div>
+</figure>
+
+<figure class="fr" id="f8-29">
+  <figcaption class="fr-h"><b class="fr-n">8.29</b><span class="fr-t">Mağazaya ulaşılamıyor</span><code class="fr-r">/apps/:appId/release/builds?store=apple</code></figcaption>
+  <p class="fr-note">App Store Connect 5xx ya da zaman aşımı döndüğünde (bağlantı durumu <code>Unreachable</code>). İstek sunucuda üç kez geri çekilerek denendi; ekran son başarılı senkronu ve önbellekteki listeyi gösterme seçeneğini verir. "Tekrar dene" senkronu yeniden başlatır (<code>POST /api/v1.0/apps/sync</code>). Kalıcıysa bağlantı ekranına bağlantı. <b>Telefonda</b> durum ortada, düğmeler alt alta.</p>
+  <div class="vp"><div class="scr">
+    <div class="shell" data-nav="apps" data-crumbs="Uygulamalar|Pusula|Yayın" data-act="">
+      <div class="content">
+        <div class="apphead" data-app="pusula" data-store="apple" data-tab="yayin" data-sub="Build'ler"></div>
+        <div class="state"><span class="sic"><svg class="ic"><use href="#i-wifi-off"/></svg></span><h3>App Store Connect'e ulaşılamadı</h3><p>Apple 503 döndü, 3 deneme başarısız. Son başarılı senkron bugün 14:02.</p>
+          <div class="r gp8 wrap" style="justify-content:center"><span class="btn pri"><svg class="ic"><use href="#i-refresh"/></svg>Tekrar dene</span><span class="btn">Önbellekteki listeyi göster</span></div>
+          <span class="t-xs fg3">Sorun sürerse <span class="lnk">Mağaza bağlantıları</span>ndan "Kuzey Lab ASC"yi doğrula.</span></div>
+      </div>
+    </div>
+  </div></div>
+</figure>
+
+</div>
+</section>
