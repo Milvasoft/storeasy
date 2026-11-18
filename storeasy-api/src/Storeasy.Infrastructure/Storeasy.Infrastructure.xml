@@ -452,6 +452,779 @@
             Assembly instance.
             </summary>
         </member>
+        <member name="T:Storeasy.Infrastructure.IntakeServiceCollectionExtensions">
+            <summary>
+            Registrations of the storeasy tokens (personal access, CI, upload) and the package intake (docs/urun-plani.md 11.8).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.IntakeServiceCollectionExtensions.AddIntakeServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager,Storeasy.Application.Utils.Models.StorageOptions)">
+            <summary>
+            Adds the token authentication services, the OIDC exchange, the intake service, the processing job, the package
+            readers, the download client and the intake cleanup job.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <param name="storageOptions"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.AppleBuildUploader">
+            <summary>
+            Uploads an IPA with the App Store Connect build upload resources (checked against Apple's documentation on
+            18 November 2026): <c>POST /v1/buildUploads</c> (cfBundleShortVersionString, cfBundleVersion, platform, app),
+            <c>POST /v1/buildUploadFiles</c> (assetType ASSET, fileName, fileSize, uti com.apple.ipa) whose response carries the
+            presigned <c>uploadOperations</c>, a PUT of each byte range streamed from the bucket, then
+            <c>PATCH /v1/buildUploadFiles/{id}</c> with <c>uploaded: true</c> and the file's MD5 in <c>sourceFileChecksums</c>. The
+            upload's state (AWAITING_UPLOAD, PROCESSING, FAILED, COMPLETE) and its build come from <c>GET /v1/buildUploads/{id}</c>.
+            End to end this path still needs one real build to confirm it (plan 11.8); <see cref="T:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader"/> is
+            the fallback.
+            </summary>
+            <param name="http"></param>
+            <param name="storage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleBuildUploader.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IArtifactStorage)">
+            <summary>
+            Uploads an IPA with the App Store Connect build upload resources (checked against Apple's documentation on
+            18 November 2026): <c>POST /v1/buildUploads</c> (cfBundleShortVersionString, cfBundleVersion, platform, app),
+            <c>POST /v1/buildUploadFiles</c> (assetType ASSET, fileName, fileSize, uti com.apple.ipa) whose response carries the
+            presigned <c>uploadOperations</c>, a PUT of each byte range streamed from the bucket, then
+            <c>PATCH /v1/buildUploadFiles/{id}</c> with <c>uploaded: true</c> and the file's MD5 in <c>sourceFileChecksums</c>. The
+            upload's state (AWAITING_UPLOAD, PROCESSING, FAILED, COMPLETE) and its build come from <c>GET /v1/buildUploads/{id}</c>.
+            End to end this path still needs one real build to confirm it (plan 11.8); <see cref="T:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader"/> is
+            the fallback.
+            </summary>
+            <param name="http"></param>
+            <param name="storage"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.AppleBuildUploader.Uploads">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleBuildUploader.UploadAsync(Storeasy.Application.Interfaces.AppleBuildUploadRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleBuildUploader.GetStateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader">
+            <summary>
+            The documented fallback of the Apple delivery (plan 11.8): the CI uploads the build to Apple itself (EAS Submit, Xcode
+            Cloud, Transporter); storeasy uploads nothing and the delivery waits for the build with the package's version and build
+            number to appear in App Store Connect, then applies the delivery rule. Selected with
+            <c>Storeasy:Intake:AppleUploadMode = External</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader.Uploads">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader.UploadAsync(Storeasy.Application.Interfaces.AppleBuildUploadRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ExternalAppleBuildUploader.GetStateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.AppleTestFlightClient">
+            <summary>
+            App Store Connect reads and writes the Apple delivery needs around the upload: the build of a version and build number,
+            its processing state and export compliance. TestFlight groups and "What to Test" go through the phase 4
+            <see cref="T:Storeasy.Application.Interfaces.ITestFlightGateway"/>.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleTestFlightClient.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp)">
+            <summary>
+            App Store Connect reads and writes the Apple delivery needs around the upload: the build of a version and build number,
+            its processing state and export compliance. TestFlight groups and "What to Test" go through the phase 4
+            <see cref="T:Storeasy.Application.Interfaces.ITestFlightGateway"/>.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleTestFlightClient.FindBuildAsync(System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            The build of <paramref name="versionName"/> (<paramref name="buildNumber"/>) of an app: id, processing state and
+            export compliance answer; null when App Store Connect has none yet.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="appleAppId"></param>
+            <param name="versionName"></param>
+            <param name="buildNumber"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleTestFlightClient.GetBuildAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads a build by id: processing state and export compliance answer.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="buildId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleTestFlightClient.SetExportComplianceAsync(System.String,System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Answers export compliance on a build (the IPA's ITSAppUsesNonExemptEncryption).
+            </summary>
+            <param name="secretJson"></param>
+            <param name="buildId"></param>
+            <param name="usesNonExemptEncryption"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.AppleTestFlightClient.CreateApi(Storeasy.Infrastructure.Stores.Content.StoreHttp,System.String)">
+            <summary>
+            A JSON:API client for the key in <paramref name="secretJson"/>.
+            </summary>
+            <param name="http"></param>
+            <param name="secretJson"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ArtifactChecks">
+            <summary>
+            The catalog checks of a package before delivery (docs/urun-plani.md 11.8 step 3): Android target API and an increasing
+            versionCode, Apple Xcode, SDK and deployment target minimums, a build number not used before and a distribution
+            signature, export compliance. A <see cref="F:Storeasy.Domain.Enums.ReadinessStatus.Missing"/> result rejects the package; a
+            <see cref="F:Storeasy.Domain.Enums.ReadinessStatus.Warning"/> may hold it (the delivery rule decides). No database, no network.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ArtifactChecks.Context">
+            <summary>
+            What the checks know besides the package.
+            </summary>
+            <param name="Catalog">Rules catalog.</param>
+            <param name="Today">UTC day of the check.</param>
+            <param name="KnownVersionCodes">Android: version codes the store or earlier deliveries already have.</param>
+            <param name="KnownBuilds">Apple: (version, build number) pairs App Store Connect already has.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactChecks.Context.#ctor(Storeasy.Domain.Rules.RuleCatalog,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.Int64},System.Collections.Generic.IReadOnlyCollection{System.ValueTuple{System.String,System.String}})">
+            <summary>
+            What the checks know besides the package.
+            </summary>
+            <param name="Catalog">Rules catalog.</param>
+            <param name="Today">UTC day of the check.</param>
+            <param name="KnownVersionCodes">Android: version codes the store or earlier deliveries already have.</param>
+            <param name="KnownBuilds">Apple: (version, build number) pairs App Store Connect already has.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ArtifactChecks.Context.Catalog">
+            <summary>Rules catalog.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ArtifactChecks.Context.Today">
+            <summary>UTC day of the check.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ArtifactChecks.Context.KnownVersionCodes">
+            <summary>Android: version codes the store or earlier deliveries already have.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ArtifactChecks.Context.KnownBuilds">
+            <summary>Apple: (version, build number) pairs App Store Connect already has.</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactChecks.Run(Storeasy.Domain.Intake.ArtifactPackageInfo,Storeasy.Infrastructure.Intake.ArtifactChecks.Context)">
+            <summary>
+            Runs the checks of <paramref name="package"/>.
+            </summary>
+            <param name="package"></param>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ArtifactDownloader">
+            <summary>
+            Downloads a pulled package (EAS, generic webhook) into the bucket, safe against server side request forgery: https
+            only, every URL of the redirect chain must be on the source's allowed domains (redirects are followed by hand), and the
+            connection refuses hosts that resolve to loopback, private, link local or other internal addresses (checked at connect
+            time, so DNS rebinding cannot slip past). The body streams into a multipart upload with a SHA-256 computed on the way
+            and a size limit.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloader.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IArtifactStorage,Storeasy.Application.Utils.Models.IntakeOptions)">
+            <summary>
+            Downloads a pulled package (EAS, generic webhook) into the bucket, safe against server side request forgery: https
+            only, every URL of the redirect chain must be on the source's allowed domains (redirects are followed by hand), and the
+            connection refuses hosts that resolve to loopback, private, link local or other internal addresses (checked at connect
+            time, so DNS rebinding cannot slip past). The body streams into a multipart upload with a SHA-256 computed on the way
+            and a size limit.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.ArtifactDownloader.HttpClientName">
+            <summary>
+            Name of the download HTTP client (tests replace its handler).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloader.CreateHandler">
+            <summary>
+            The primary handler of the download client: no proxy, no automatic redirects, internal addresses refused.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloader.ConnectAsync(System.Net.Http.SocketsHttpConnectionContext,System.Threading.CancellationToken)">
+            <summary>
+            Connects only when every address of the host is public.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloader.ResolveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Resolves <paramref name="host"/> and refuses it when any address is internal.
+            </summary>
+            <param name="host"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloader.DownloadAsync(System.String,System.Collections.Generic.IReadOnlyCollection{System.String},System.String,System.Int64,System.Func{System.Int64,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Downloads <paramref name="url"/> into <paramref name="objectKey"/> and returns its size and SHA-256.
+            </summary>
+            <param name="url"></param>
+            <param name="allowedDomains"></param>
+            <param name="objectKey"></param>
+            <param name="maxBytes"></param>
+            <param name="onProgress">Called with the bytes received so far.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ArtifactDownloadException">
+            <summary>
+            A pulled package could not be downloaded. The message is safe to store and show (no query string).
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactDownloadException.#ctor(System.String)">
+            <summary>
+            A pulled package could not be downloaded. The message is safe to store and show (no query string).
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ArtifactIntakeService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IArtifactIntakeService"/>. A session's file goes straight to the bucket through presigned part URLs
+            (the API never sees the bytes). Opening is idempotent per file: an open session of the same app and SHA-256 is resumed
+            (its stored parts listed, fresh URLs for the missing ones), a finished one makes a <c>Duplicate</c> record. Completing
+            is a conditional update from <c>Uploading</c>, so retries and concurrent calls queue one processing job.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="appRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="currentUser"></param>
+            <param name="currentToken"></param>
+            <param name="localizer"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IArtifactStorage,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.ICurrentToken,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.IntakeOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IArtifactIntakeService"/>. A session's file goes straight to the bucket through presigned part URLs
+            (the API never sees the bytes). Opening is idempotent per file: an open session of the same app and SHA-256 is resumed
+            (its stored parts listed, fresh URLs for the missing ones), a finished one makes a <c>Duplicate</c> record. Completing
+            is a conditional update from <c>Uploading</c>, so retries and concurrent calls queue one processing job.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="appRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="currentUser"></param>
+            <param name="currentToken"></param>
+            <param name="localizer"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.UnsafeFileNameCharacters">
+            <remarks>
+            Pattern:<br/>
+            <code>[^A-Za-z0-9._-]+</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a character in the set [^\-.0-9A-Z_a-z] atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.OpenAsync(Storeasy.Application.Interfaces.ArtifactOpenRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.CompleteAsync(System.Int32,System.Int64,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.UploadedPart},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.GetAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.AcceptPulledAsync(Storeasy.Application.Interfaces.ArtifactPullRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.DeliverHeldAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.DeletePackageAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.ObjectKey(System.Int32,System.Int32,System.String)">
+            <summary>
+            Object key of a package: <c>org/{org}/artifacts/{app}/{nonce}/{safe name}</c>.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="appId"></param>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.IntakeCleaner">
+            <summary>
+            The storage housekeeping of package intake and of the phase 1 asset uploads: deletes stored packages past their
+            organization's retention (default 30 days), closes upload sessions nobody completed (aborting their multipart upload),
+            removes assets that stayed <see cref="F:Storeasy.Domain.Enums.AssetStatus.Pending"/>, aborts any multipart upload of the bucket older than the
+            abandon limit and deletes expired upload tokens. Run by <c>IntakeCleanupJob</c>; each run handles at most
+            <see cref="F:Storeasy.Infrastructure.Intake.IntakeCleaner.BatchSize"/> rows of each kind.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.IntakeCleaner.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.UploadToken},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IArtifactStorage,Storeasy.Application.Utils.Models.IntakeOptions,System.TimeProvider)">
+            <summary>
+            The storage housekeeping of package intake and of the phase 1 asset uploads: deletes stored packages past their
+            organization's retention (default 30 days), closes upload sessions nobody completed (aborting their multipart upload),
+            removes assets that stayed <see cref="F:Storeasy.Domain.Enums.AssetStatus.Pending"/>, aborts any multipart upload of the bucket older than the
+            abandon limit and deletes expired upload tokens. Run by <c>IntakeCleanupJob</c>; each run handles at most
+            <see cref="F:Storeasy.Infrastructure.Intake.IntakeCleaner.BatchSize"/> rows of each kind.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="artifactStorage"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.IntakeCleaner.BatchSize">
+            <summary>
+            Most rows of each kind one run handles.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.IntakeCleaner.RunAsync(System.Threading.CancellationToken)">
+            <summary>
+            Runs one cleanup and returns the number of rows changed.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.OidcExchangeService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOidcExchangeService"/>. An unknown app and an app without rules answer the same 404, so apps cannot
+            be probed; a valid token that matches no rule is a 403 that does not say which claim failed (the claims of the attempt
+            are kept on the rules for the diagnosis drawer instead).
+            </summary>
+            <param name="appRepository"></param>
+            <param name="ruleRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="validator"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcExchangeService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.TrustedPublisher},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.UploadToken},Storeasy.Application.Interfaces.IOidcTokenValidator,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOidcExchangeService"/>. An unknown app and an app without rules answer the same 404, so apps cannot
+            be probed; a valid token that matches no rule is a 403 that does not say which claim failed (the claims of the attempt
+            are kept on the rules for the diagnosis drawer instead).
+            </summary>
+            <param name="appRepository"></param>
+            <param name="ruleRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="validator"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcExchangeService.ExchangeAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcExchangeService.TestAsync(System.Int32,System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.OidcTokenValidator">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOidcTokenValidator"/>. Signing keys come from the issuer's discovery document
+            (<c>{issuer}/.well-known/openid-configuration</c>, then its <c>jwks_uri</c>, which must be https on the issuer's host) and
+            are cached for <see cref="F:Storeasy.Infrastructure.Intake.OidcTokenValidator.KeyCacheLifetime"/>; an unknown key id refreshes them at most once a minute. Only allow-listed
+            issuers are ever contacted, so a token cannot make the server fetch an arbitrary address. Registered as a singleton.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcTokenValidator.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOidcTokenValidator"/>. Signing keys come from the issuer's discovery document
+            (<c>{issuer}/.well-known/openid-configuration</c>, then its <c>jwks_uri</c>, which must be https on the issuer's host) and
+            are cached for <see cref="F:Storeasy.Infrastructure.Intake.OidcTokenValidator.KeyCacheLifetime"/>; an unknown key id refreshes them at most once a minute. Only allow-listed
+            issuers are ever contacted, so a token cannot make the server fetch an arbitrary address. Registered as a singleton.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.OidcTokenValidator.HttpClientName">
+            <summary>
+            Name of the HTTP client that fetches discovery documents and key sets (tests replace its handler).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.OidcTokenValidator.KeyCacheLifetime">
+            <summary>
+            How long fetched keys are used.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.OidcTokenValidator.ClockSkew">
+            <summary>
+            Allowed clock difference for <c>exp</c>, <c>nbf</c> and <c>iat</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcTokenValidator.ValidateAsync(System.String,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.OidcTokenValidator.IsAllowedIssuer(System.String,System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <summary>
+            Whether <paramref name="issuer"/> may be trusted: GitHub, gitlab.com, an Azure DevOps organization issuer, or one of
+            <paramref name="extraIssuers"/> (https only).
+            </summary>
+            <param name="issuer"></param>
+            <param name="extraIssuers"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader">
+            <summary>
+            Reads the values storeasy needs from an Android manifest without aapt2: the protocol buffer form an App Bundle keeps in
+            <c>base/manifest/AndroidManifest.xml</c> (aapt2 <c>XmlNode</c>) and the binary XML form of an APK. Only the
+            <c>manifest</c> element (package, versionCode, versionName) and <c>uses-sdk</c> (minSdkVersion, targetSdkVersion) are read.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues">
+            <summary>
+            Values of a manifest.
+            </summary>
+            <param name="Package">Package name.</param>
+            <param name="VersionCode">versionCode.</param>
+            <param name="VersionName">versionName.</param>
+            <param name="MinSdk">minSdkVersion.</param>
+            <param name="TargetSdk">targetSdkVersion.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Values of a manifest.
+            </summary>
+            <param name="Package">Package name.</param>
+            <param name="VersionCode">versionCode.</param>
+            <param name="VersionName">versionName.</param>
+            <param name="MinSdk">minSdkVersion.</param>
+            <param name="TargetSdk">targetSdkVersion.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.Package">
+            <summary>Package name.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.VersionCode">
+            <summary>versionCode.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.VersionName">
+            <summary>versionName.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.MinSdk">
+            <summary>minSdkVersion.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ManifestValues.TargetSdk">
+            <summary>targetSdkVersion.</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ReadProto(System.Byte[])">
+            <summary>
+            Reads an App Bundle manifest (protocol buffer <c>XmlNode</c>).
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ReadBinaryXml(System.Byte[])">
+            <summary>
+            Reads an APK manifest (binary XML).
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ProtoElement">
+            <summary>
+            A protocol buffer <c>XmlElement</c>, with only what the reader needs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ProtoElement.ParseNode(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Parses an <c>XmlNode</c> (field 1 is the element).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ProtoElement.CompiledValue(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Value of an <c>Item</c>: a string (field 2 then field 1) or a primitive integer (field 7, then 6 or 7).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ProtoReader">
+            <summary>
+            A minimal protocol buffer wire reader.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.AndroidManifestReader.ProtoReader.#ctor(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            A minimal protocol buffer wire reader.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.PackageReader">
+            <summary>
+            Reads the identity and version of a stored package (docs/urun-plani.md 11.8 step 2) with ranged reads: IPA
+            (<c>Payload/*.app/Info.plist</c>, binary or XML, and the embedded provisioning profile), AAB (protocol buffer manifest),
+            APK (binary XML manifest) and MSIX/APPX packages, bundles and upload files (<c>AppxManifest.xml</c>,
+            <c>AppxMetadata/AppxBundleManifest.xml</c>). Throws <see cref="T:System.IO.InvalidDataException"/> or <see cref="T:System.FormatException"/>
+            for a file that is not what its extension says.
+            </summary>
+            <param name="storage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.#ctor(Storeasy.Application.Interfaces.IArtifactStorage)">
+            <summary>
+            Reads the identity and version of a stored package (docs/urun-plani.md 11.8 step 2) with ranged reads: IPA
+            (<c>Payload/*.app/Info.plist</c>, binary or XML, and the embedded provisioning profile), AAB (protocol buffer manifest),
+            APK (binary XML manifest) and MSIX/APPX packages, bundles and upload files (<c>AppxManifest.xml</c>,
+            <c>AppxMetadata/AppxBundleManifest.xml</c>). Throws <see cref="T:System.IO.InvalidDataException"/> or <see cref="T:System.FormatException"/>
+            for a file that is not what its extension says.
+            </summary>
+            <param name="storage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.InfoPlistRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^Payload/[^/]+\.app/Info\.plist$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match the string "Payload/".<br/>
+            ○ Match a character other than '/' greedily at least once.<br/>
+            ○ Match the string ".app/Info.plist".<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.ProvisionRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^Payload/[^/]+\.app/embedded\.mobileprovision$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match the string "Payload/".<br/>
+            ○ Match a character other than '/' greedily at least once.<br/>
+            ○ Match the string ".app/embedded.mobileprovision".<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.ReadAsync(System.String,System.Int64,Storeasy.Domain.Enums.PackageKind,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads the package stored at <paramref name="objectKey"/>.
+            </summary>
+            <param name="objectKey"></param>
+            <param name="size"></param>
+            <param name="kind"></param>
+            <param name="fileName"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.ReadAsync(System.IO.Stream,Storeasy.Domain.Enums.PackageKind,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads a package from a seekable stream.
+            </summary>
+            <param name="stream"></param>
+            <param name="kind"></param>
+            <param name="fileName"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.XcodeVersionOf(System.String)">
+            <summary>
+            Xcode version from <c>DTXcode</c> (<c>2610</c> is 26.1, <c>1640</c> is 16.4).
+            </summary>
+            <param name="dtXcode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.DescribeProvision(System.Byte[])">
+            <summary>
+            Summary of an embedded provisioning profile: distribution (App Store) or development / ad hoc, and the team.
+            </summary>
+            <param name="cms"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PackageReader.ReadAppxManifest(System.Byte[],System.Boolean)">
+            <summary>
+            Reads the identity of an <c>AppxManifest.xml</c> or <c>AppxBundleManifest.xml</c>.
+            </summary>
+            <param name="xml"></param>
+            <param name="signed"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.PropertyListReader">
+            <summary>
+            Reads Apple property lists, binary (<c>bplist00</c>) and XML, into plain values: dictionaries
+            (<see cref="T:System.Collections.Generic.Dictionary`2"/> of string to object), lists, strings, longs, doubles, booleans, dates and byte arrays.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PropertyListReader.Parse(System.Byte[])">
+            <summary>
+            Parses <paramref name="data"/>; throws <see cref="T:System.FormatException"/> when it is not a property list.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.PropertyListReader.ParseDictionary(System.Byte[])">
+            <summary>
+            The top level dictionary of a property list, or an empty one.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.Packages.RangeReadStream">
+            <summary>
+            A read only, seekable view of a stored object that fetches it in blocks with ranged reads, so a zip archive's central
+            directory and a few entries can be read without downloading a multi gigabyte package. Keeps the last few blocks.
+            </summary>
+            <param name="storage"></param>
+            <param name="key"></param>
+            <param name="length"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.#ctor(Storeasy.Application.Interfaces.IArtifactStorage,System.String,System.Int64)">
+            <summary>
+            A read only, seekable view of a stored object that fetches it in blocks with ranged reads, so a zip archive's central
+            directory and a few entries can be read without downloading a multi gigabyte package. Keeps the last few blocks.
+            </summary>
+            <param name="storage"></param>
+            <param name="key"></param>
+            <param name="length"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.BlockSize">
+            <summary>
+            Bytes per ranged read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.RangeReads">
+            <summary>
+            Number of ranged reads made (for tests and diagnostics).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.CanRead">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.CanSeek">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.CanWrite">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Length">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Position">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Read(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.ReadAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.ReadAsync(System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Seek(System.Int64,System.IO.SeekOrigin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Flush">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.SetLength(System.Int64)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.Packages.RangeReadStream.Write(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact"/> job (docs/urun-plani.md 11.8, design 13.14): downloads a pulled package,
+            verifies the SHA-256, reads the package and matches it with the app's store record, runs the catalog checks, picks the
+            target (the session's override or the app's delivery rule) and delivers through the existing store engines: Google
+            Play with an edit (bundle upload and a testing track release), App Store Connect with a build upload, waiting for
+            processing and adding the build to an internal TestFlight group. Production and review submission are never part of
+            it: such targets are refused and anything unclear is <c>Held</c> for a member. The job is phase driven by the
+            session's status, so a retry continues where the previous attempt stopped; waiting for Apple's processing is a
+            transient failure retried with backoff until the payload's attempts run out.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="ruleRepository"></param>
+            <param name="pullSourceRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="packageReader"></param>
+            <param name="downloader"></param>
+            <param name="gateways"></param>
+            <param name="appleUploader"></param>
+            <param name="testFlight"></param>
+            <param name="testFlightGateway"></param>
+            <param name="rulesCatalog"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact"/> job (docs/urun-plani.md 11.8, design 13.14): downloads a pulled package,
+            verifies the SHA-256, reads the package and matches it with the app's store record, runs the catalog checks, picks the
+            target (the session's override or the app's delivery rule) and delivers through the existing store engines: Google
+            Play with an edit (bundle upload and a testing track release), App Store Connect with a build upload, waiting for
+            processing and adding the build to an internal TestFlight group. Production and review submission are never part of
+            it: such targets are refused and anything unclear is <c>Held</c> for a member. The job is phase driven by the
+            session's status, so a retry continues where the previous attempt stopped; waiting for Apple's processing is a
+            transient failure retried with backoff until the payload's attempts run out.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="ruleRepository"></param>
+            <param name="pullSourceRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="packageReader"></param>
+            <param name="downloader"></param>
+            <param name="gateways"></param>
+            <param name="appleUploader"></param>
+            <param name="testFlight"></param>
+            <param name="testFlightGateway"></param>
+            <param name="rulesCatalog"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob">
             <summary>
             Deletes the activity logs older than 60 days (<c>activityLog_cleanup.sql</c>).
@@ -535,6 +1308,25 @@
             <param name="scopeFactory"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.IntakeCleanupJob">
+            <summary>
+            Runs <see cref="T:Storeasy.Infrastructure.Intake.IntakeCleaner"/> (package retention, abandoned uploads, pending assets, expired upload tokens). Logs and
+            swallows its errors like the other cleanup jobs.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.IntakeCleanupJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Runs <see cref="T:Storeasy.Infrastructure.Intake.IntakeCleaner"/> (package retention, abandoned uploads, pending assets, expired upload tokens). Logs and
+            swallows its errors like the other cleanup jobs.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.IntakeCleanupJob.ExecuteAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.NotificationCleanerJob">
@@ -1638,6 +2430,40 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.ApiTokenAuthenticator">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IApiTokenAuthenticator"/>. One indexed read by hash per request; a personal access token also
+            needs its owner's current membership (cached for a minute by <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>), so removing a member
+            or lowering a role takes effect on their tokens at once. The last use is written only when it is older than
+            <see cref="F:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.LastUseInterval"/>, with a conditional update so concurrent requests write once.
+            </summary>
+            <param name="personalTokenRepository"></param>
+            <param name="ciTokenRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="organizationAccess"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Tokens.PersonalAccessToken},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.CiToken},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.UploadToken},Storeasy.Application.Interfaces.IOrganizationAccess,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IApiTokenAuthenticator"/>. One indexed read by hash per request; a personal access token also
+            needs its owner's current membership (cached for a minute by <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>), so removing a member
+            or lowering a role takes effect on their tokens at once. The last use is written only when it is older than
+            <see cref="F:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.LastUseInterval"/>, with a conditional update so concurrent requests write once.
+            </summary>
+            <param name="personalTokenRepository"></param>
+            <param name="ciTokenRepository"></param>
+            <param name="uploadTokenRepository"></param>
+            <param name="organizationAccess"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.LastUseInterval">
+            <summary>
+            Least time between two last use writes of one token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.AuthenticateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.AuditTrail">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IAuditTrail"/>.
@@ -1711,6 +2537,45 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.DecideAsync(System.Int32,System.Int64,Storeasy.Domain.Enums.ChangePlanStatus,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.CurrentToken">
+            <summary>
+            Reads the storeasy token of the request from the claims the token authentication set (no database).
+            </summary>
+            <param name="httpContextAccessor"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.CurrentToken.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
+            <summary>
+            Reads the storeasy token of the request from the claims the token authentication set (no database).
+            </summary>
+            <param name="httpContextAccessor"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.TokenId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.ReadOnly">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.AllApps">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.AppIds">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.Prefix">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentToken.TrustedPublisherId">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.CurrentUser">
@@ -2460,6 +3325,32 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Storage.S3ArtifactStorage">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IArtifactStorage"/> on the same S3 compatible bucket as <see cref="T:Storeasy.Infrastructure.Storage.S3FileStorage"/>.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3ArtifactStorage.#ctor(Amazon.S3.IAmazonS3,Storeasy.Application.Utils.Models.StorageOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IArtifactStorage"/> on the same S3 compatible bucket as <see cref="T:Storeasy.Infrastructure.Storage.S3FileStorage"/>.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3ArtifactStorage.ListPartsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3ArtifactStorage.UploadPartAsync(System.String,System.String,System.Int32,System.IO.Stream,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3ArtifactStorage.ReadRangeAsync(System.String,System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3ArtifactStorage.ListMultipartUploadsAsync(System.String,System.DateTime,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Storage.S3FileStorage">
@@ -5575,265 +6466,361 @@
         <member name="M:Storeasy.Infrastructure.Utils.OpenApi.NullableEnumSchemaTransformer.TransformAsync(Microsoft.OpenApi.OpenApiSchema,Microsoft.AspNetCore.OpenApi.OpenApiSchemaTransformerContext,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DroppedRegex_0">
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the UnsafeFileNameCharacters method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the InfoPlistRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ProvisionRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ProvisionRegex_2.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DroppedRegex_3">
             <summary>Caches a <see cref="T:System.Text.RegularExpressions.Regex"/> instance for the DroppedRegex method.</summary>
             <remarks>A custom Regex-derived type could not be generated because the expression contains case-insensitive backreferences which are not supported by the source generator.</remarks>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DroppedRegex_0.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DroppedRegex_3.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BlockRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.BlockRegex_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.BlockRegex_4.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TagRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.TagRegex_2.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.TagRegex_5.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SpaceRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.SpaceRegex_3.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SpaceRegex_6.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DisplayFormatRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_5">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the VersionPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.VersionPattern_5.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.VersionPattern_8.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_5.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GuidRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.GuidRegex_6.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.GuidRegex_9.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SellerIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.SellerIdRegex_7.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SellerIdRegex_10.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_8.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_11.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -5863,6 +6850,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiHexDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFabcdef".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDashDotUnderscore">
+            <summary>Supports searching for characters in or not in "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersUpperAndDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>

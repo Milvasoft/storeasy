@@ -260,4 +260,59 @@ public enum AuditAction : short
     /// <summary>A package flight group name was recorded.</summary>
     [Description("Microsoft flight group saved")]
     MsFlightGroupSaved = 155,
+    /// <summary>A personal access token was created.</summary>
+    [Description("Token created")]
+    TokenCreated = 300,
+
+    /// <summary>A personal access token was revoked.</summary>
+    [Description("Token revoked")]
+    TokenRevoked = 301,
+
+    /// <summary>A CI token was created.</summary>
+    [Description("CI token created")]
+    CiTokenCreated = 302,
+
+    /// <summary>A CI token was revoked.</summary>
+    [Description("CI token revoked")]
+    CiTokenRevoked = 303,
+
+    /// <summary>A trusted publisher rule was added.</summary>
+    [Description("Trusted publisher added")]
+    TrustedPublisherAdded = 304,
+
+    /// <summary>A trusted publisher rule was removed.</summary>
+    [Description("Trusted publisher removed")]
+    TrustedPublisherRemoved = 305,
+
+    /// <summary>The delivery rules of an app changed.</summary>
+    [Description("Delivery rules updated")]
+    DeliveryRulesUpdated = 306,
+
+    /// <summary>A pull source (EAS or generic webhook) was saved or its secret rotated.</summary>
+    [Description("Artifact source updated")]
+    ArtifactSourceUpdated = 307,
+
+    /// <summary>A package upload was completed and queued for processing.</summary>
+    [Description("Package received")]
+    ArtifactReceived = 308,
+
+    /// <summary>A package was delivered to a store.</summary>
+    [Description("Package delivered")]
+    ArtifactDelivered = 309,
+
+    /// <summary>A package was rejected (wrong app, failed check).</summary>
+    [Description("Package rejected")]
+    ArtifactRejected = 310,
+
+    /// <summary>A package was held for a member before delivery.</summary>
+    [Description("Package held")]
+    ArtifactHeld = 311,
+
+    /// <summary>A stored package was deleted.</summary>
+    [Description("Package deleted")]
+    ArtifactDeleted = 312,
+
+    /// <summary>The package intake settings (retention) changed.</summary>
+    [Description("Intake settings updated")]
+    IntakeSettingsUpdated = 313,
 }

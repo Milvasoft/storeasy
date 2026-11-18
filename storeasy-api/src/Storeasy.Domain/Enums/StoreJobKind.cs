@@ -91,4 +91,7 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Check Microsoft Store installers")]
     MsCheckInstaller = 53,
+    /// <summary>Reads, checks and delivers an uploaded package (build intake).</summary>
+    [Description("Process a package")]
+    ProcessArtifact = 30,
 }

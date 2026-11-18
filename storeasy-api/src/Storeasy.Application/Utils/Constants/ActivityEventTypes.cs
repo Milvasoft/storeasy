@@ -88,4 +88,9 @@ public static class ActivityEventTypes
     /// A notification was created for the receiving user (sent to that user only).
     /// </summary>
     public const string NotificationCreated = "notification.created";
+
+    /// <summary>
+    /// A package upload session changed state (uploading, parsing, checking, delivering, final).
+    /// </summary>
+    public const string ArtifactProgress = "artifact.progress";
 }

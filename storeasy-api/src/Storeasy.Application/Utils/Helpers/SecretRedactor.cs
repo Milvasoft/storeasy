@@ -31,6 +31,9 @@ public static partial class SecretRedactor
     [GeneratedRegex(@"(https://[^\s""'?]+)\?[^\s""']*(?:Signature|signature|X-Amz|sig=|token=|access_token=)[^\s""']*")]
     private static partial Regex SignedUrlRegex();
 
+    [GeneratedRegex(@"\b(?<kind>sea|sci|sut|whsec)_[A-Za-z0-9_-]{8,}")]
+    private static partial Regex StoreasyTokenRegex();
+
     /// <summary>
     /// Returns <paramref name="text"/> with credentials replaced by markers. Null stays null.
     /// </summary>
@@ -48,6 +51,7 @@ public static partial class SecretRedactor
         output = AppleSignatureRegex().Replace(output, "hmacsha256=[redacted]");
         output = SignedUrlRegex().Replace(output, "$1?[redacted-query]");
         output = AccessTokenQueryRegex().Replace(output, "access_token=[redacted]");
+        output = StoreasyTokenRegex().Replace(output, match => match.Groups["kind"].Value + "_[redacted]");
 
         return output;
     }
