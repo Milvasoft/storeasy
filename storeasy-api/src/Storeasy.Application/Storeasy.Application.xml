@@ -89,6 +89,53 @@
         <member name="M:Storeasy.Application.Behaviours.UpdateNameDescriptionTranslationDtoValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Behaviours.UpdateNameDescriptionTranslationDtoValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Behaviours.MockupValidationExtensions">
+            <summary>
+            Validation rules shared by the mockup studio requests (template name, locales, design).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.MockupValidationExtensions.RuleForMockupName``1(FluentValidation.AbstractValidator{``0},System.Linq.Expressions.Expression{System.Func{``0,System.String}},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Template name: required, at most <see cref="F:Storeasy.Domain.Studio.MockupTemplate.NameMaxLength"/> characters.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="validator"></param>
+            <param name="name"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.MockupValidationExtensions.RuleForMockupLocales``1(FluentValidation.AbstractValidator{``0},System.Func{``0,System.Collections.Generic.List{System.String}},System.Func{``0,System.String},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Locales: one to <see cref="F:Storeasy.Domain.Studio.MockupTemplate.MaxLocaleCount"/> distinct language tags, the primary one among them.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="validator"></param>
+            <param name="locales"></param>
+            <param name="primaryLocale"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.MockupValidationExtensions.RuleForMockupExportSelection``1(FluentValidation.AbstractValidator{``0},System.Func{``0,System.Collections.Generic.List{System.String}},System.Func{``0,System.Collections.Generic.List{System.String}},System.Func{``0,System.Collections.Generic.List{Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget}},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Export selection: optional locales (language tags), optional class keys of the studio, optional size targets of
+            known classes with positive sizes.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="validator"></param>
+            <param name="locales"></param>
+            <param name="classKeys"></param>
+            <param name="targets"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Behaviours.MockupValidationExtensions.RuleForMockupSpec``1(FluentValidation.AbstractValidator{``0},System.Func{``0,Storeasy.Domain.JsonModels.MockupSpec},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.Boolean)">
+            <summary>
+            Design: every problem of <see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Validate(Storeasy.Domain.JsonModels.MockupSpec)"/> becomes one validation error. A null design passes
+            unless <paramref name="required"/>.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="validator"></param>
+            <param name="spec"></param>
+            <param name="localizer"></param>
+            <param name="required"></param>
+        </member>
         <member name="T:Storeasy.Application.Behaviours.OrganizationAccessBehavior`2">
             <summary>
             Checks <see cref="T:Storeasy.Application.Utils.Attributes.OrgAuthAttribute"/> before the handler runs. A caller who is not a member gets
@@ -1065,6 +1112,603 @@
             Projection expression for mapping Language entity to LanguageDto.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupCaptionDto">
+            <summary>
+            Title and subtitle of one slot in one locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionDto.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionDto.SlotOrder">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionDto.Title">
+            <summary>
+            Title (a new line is a manual line break).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionDto.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupCaptionsSavedDto">
+            <summary>
+            Outcome of a caption save: the cells written and the captions that overflow in the narrowest exported class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionsSavedDto.Saved">
+            <summary>
+            Cells written (an empty cell removes its row).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionsSavedDto.MeasuredClassKey">
+            <summary>
+            Narrowest class the captions were measured in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionsSavedDto.Warnings">
+            <summary>
+            Overflowing captions and font warnings.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionDto">
+            <summary>
+            Suggested captions for one locale. Nothing is saved: the client puts accepted suggestions into the grid as unsaved
+            cells and saves them with the caption endpoint.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionDto.TargetLocale">
+            <summary>
+            Locale the suggestions are written in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionDto.Items">
+            <summary>
+            Suggestions.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto">
+            <summary>
+            One suggested caption field.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto.SlotOrder">
+            <summary>
+            Slot position.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto.Field">
+            <summary>
+            <c>title</c> or <c>subtitle</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto.Before">
+            <summary>
+            Current text in the target locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto.After">
+            <summary>
+            Suggested text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupCaptionSuggestionItemDto.Reason">
+            <summary>
+            Short reason.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto">
+            <summary>
+            What an export of a template would produce: the screenshot classes of the app's stores from the rules catalog with
+            their requirement, the sizes that were refused, and the image count. Nothing is written.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.TemplateId">
+            <summary>
+            Template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.CatalogVersion">
+            <summary>
+            Rules catalog version the classes came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.Locales">
+            <summary>
+            Locales to export.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.Items">
+            <summary>
+            Classes, required first within each store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.Rejected">
+            <summary>
+            Requested sizes a class does not accept.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.Total">
+            <summary>
+            Images the selected classes produce.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanDto.Warnings">
+            <summary>
+            Plan warnings (more slots than a store accepts, missing captions).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto">
+            <summary>
+            One screenshot class in an export plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.ClassKey">
+            <summary>
+            Class key (rules catalog id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Label">
+            <summary>
+            English label.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.LabelTr">
+            <summary>
+            Turkish label.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Width">
+            <summary>
+            Pixel width that will be rendered.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Height">
+            <summary>
+            Pixel height that will be rendered.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Frame">
+            <summary>
+            Frame the class is drawn with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Status">
+            <summary>
+            How much the store wants the class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.RequiredFrom">
+            <summary>
+            Date the class becomes required.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Selected">
+            <summary>
+            Whether the export produces the class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.PerLocaleCount">
+            <summary>
+            Images per locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportPlanItemDto.Note">
+            <summary>
+            Catalog note of the requirement.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupExportRejectedDto">
+            <summary>
+            A requested size a class does not accept.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportRejectedDto.ClassKey">
+            <summary>
+            Class key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportRejectedDto.Width">
+            <summary>
+            Requested width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportRejectedDto.Height">
+            <summary>
+            Requested height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupExportRejectedDto.Reason">
+            <summary>
+            English reason.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto">
+            <summary>
+            One of storeasy's parametric device frames with its defaults and the screenshot classes drawn with it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto.Kind">
+            <summary>
+            Frame kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto.CornerRadius">
+            <summary>
+            Default corner radius as a fraction of the body width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto.Bezel">
+            <summary>
+            Default bezel as a fraction of the body width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto.Cutouts">
+            <summary>
+            Cutouts the frame can draw.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupFrameDto.Classes">
+            <summary>
+            Classes drawn with the frame.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupClassDto">
+            <summary>
+            A screenshot class of the rules catalog as the studio exports it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.ClassKey">
+            <summary>
+            Class key (rules catalog id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Label">
+            <summary>
+            English label.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.LabelTr">
+            <summary>
+            Turkish label.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Width">
+            <summary>
+            Export width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Height">
+            <summary>
+            Export height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Family">
+            <summary>
+            Raw screenshot family the class prefers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.Status">
+            <summary>
+            Requirement today when the export provides the default selection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.RequiredFrom">
+            <summary>
+            Date the class becomes required.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupClassDto.MaxCount">
+            <summary>
+            Most images per locale.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupPreviewDto">
+            <summary>
+            Preview images of a template in one locale and screenshot class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewDto.ClassKey">
+            <summary>
+            Screenshot class drawn.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewDto.Locale">
+            <summary>
+            Locale drawn.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewDto.Images">
+            <summary>
+            Images in slot order.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewDto.DurationMs">
+            <summary>
+            Server time of the render in milliseconds.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto">
+            <summary>
+            One preview image.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto.SlotOrder">
+            <summary>
+            Slot position.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto.Width">
+            <summary>
+            Pixel width of the preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto.Height">
+            <summary>
+            Pixel height of the preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto.Url">
+            <summary>
+            The PNG as a <c>data:image/png;base64,...</c> URL (nothing is stored for a preview). Null when the image failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupPreviewImageDto.Warnings">
+            <summary>
+            Warnings of the image (and its failure, if any).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupSlotDto">
+            <summary>
+            The raw screenshot of one slot for one device family (and optionally one locale).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupSlotDto.Order">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupSlotDto.Family">
+            <summary>
+            Device family of the screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupSlotDto.Locale">
+            <summary>
+            Locale the screenshot is for; null for every locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupSlotDto.AssetId">
+            <summary>
+            Uploaded screenshot asset.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto">
+            <summary>
+            A built in starter design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.Key">
+            <summary>
+            Stable key (send it as <c>StarterKey</c> to create a template from it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.Name">
+            <summary>
+            English name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.NameTr">
+            <summary>
+            Turkish name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.Description">
+            <summary>
+            English description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.DescriptionTr">
+            <summary>
+            Turkish description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.SampleLanguages">
+            <summary>
+            Languages with sample captions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupStarterTemplateDto.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupTemplateDetailDto">
+            <summary>
+            A mockup template with its design, slots and captions (the editor's document).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateDetailDto.Spec">
+            <summary>
+            The design (schema in storeasy-api/docs/studio.md).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateDetailDto.Slots">
+            <summary>
+            Raw screenshots of the slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateDetailDto.Captions">
+            <summary>
+            Captions per locale and slot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateDetailDto.Projection">
+            <summary>
+            Projection from a template row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto">
+            <summary>
+            A mockup template in the studio list.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.Id">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.AppId">
+            <summary>
+            App of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.AppName">
+            <summary>
+            Name of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.Name">
+            <summary>
+            Template name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.PrimaryLocale">
+            <summary>
+            Primary locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.Locales">
+            <summary>
+            Locales of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.StarterKey">
+            <summary>
+            Built in starter it was created from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.Version">
+            <summary>
+            Concurrency version (send it back with an update).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.CreationDate">
+            <summary>
+            UTC instant of the creation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.LastModificationDate">
+            <summary>
+            UTC instant of the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.LastModifierUserName">
+            <summary>
+            User name of the last editor.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.LastExportJobId">
+            <summary>
+            Last export job that produced images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.LastExportDate">
+            <summary>
+            UTC instant the last export finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.LastExportImageCount">
+            <summary>
+            Images of the last export.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupTemplateListDto.Projection">
+            <summary>
+            Projection from a template row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto">
+            <summary>
+            A render warning or failure, or a caption that overflows. Codes are listed in storeasy-api/docs/studio.md.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.Code">
+            <summary>
+            Machine code (e.g. <c>CaptionOverflow</c>, <c>AssetTooSmall</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.Message">
+            <summary>
+            English detail.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.ClassKey">
+            <summary>
+            Screenshot class the warning is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.Locale">
+            <summary>
+            Locale the warning is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.SlotOrder">
+            <summary>
+            Slot the warning is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.Field">
+            <summary>
+            <c>title</c> or <c>subtitle</c> for caption warnings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.Lines">
+            <summary>
+            Lines the caption needs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.MaxLines">
+            <summary>
+            Lines the caption style allows.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.MockupDtos.MockupWarningDto.From(Storeasy.Application.Interfaces.MockupRenderIssue,System.String,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Maps a renderer issue.
+            </summary>
+            <param name="issue"></param>
+            <param name="classKey"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Dtos.NameIntNavigationDto">
             <summary>
             It can be used to obtain Id-Name pair information for any domain.
@@ -1760,6 +2404,63 @@
             Projection from a connection row. Deliberately lists every column it reads, so the encrypted columns are never
             loaded for a read.
             </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport"/> job: the template, its version at the time of the request, and
+            what to render.
+            </summary>
+            <param name="TemplateId"></param>
+            <param name="TemplateVersion"></param>
+            <param name="Locales"></param>
+            <param name="Targets"></param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload.#ctor(System.Int32,System.Int32,System.Collections.Generic.List{System.String},System.Collections.Generic.List{Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget})">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport"/> job: the template, its version at the time of the request, and
+            what to render.
+            </summary>
+            <param name="TemplateId"></param>
+            <param name="TemplateVersion"></param>
+            <param name="Locales"></param>
+            <param name="Targets"></param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload.TemplateId">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload.TemplateVersion">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload.Locales">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportPayload.Targets">
+            <summary></summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget">
+            <summary>
+            A screenshot class and the size to render it at.
+            </summary>
+            <param name="ClassKey"></param>
+            <param name="Width"></param>
+            <param name="Height"></param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget.#ctor(System.String,System.Int32,System.Int32)">
+            <summary>
+            A screenshot class and the size to render it at.
+            </summary>
+            <param name="ClassKey"></param>
+            <param name="Width"></param>
+            <param name="Height"></param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget.ClassKey">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget.Width">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget.Height">
+            <summary></summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.StoreJobDtos.StoreJobDetailDto">
             <summary>
@@ -3405,6 +4106,878 @@
         </member>
         <member name="M:Storeasy.Application.Features.Languages.UpdateLanguage.UpdateLanguageCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Roles.UpdateRole.UpdateRoleCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand">
+            <summary>
+            Creates a mockup template for an app from a built in starter (design and sample captions) or as a copy of another
+            template of the organization (design, slots and optionally captions). Returns the template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.AppId">
+            <summary>
+            App the template belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.Name">
+            <summary>
+            Name, unique within the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.Locales">
+            <summary>
+            Locales of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.PrimaryLocale">
+            <summary>
+            Primary locale (one of <see cref="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.Locales"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.SlotCount">
+            <summary>
+            Number of slots; null for the count of the starter or of the copied template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.StarterKey">
+            <summary>
+            Built in starter to start from; null for the default starter. Ignored when copying.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.CopyFromTemplateId">
+            <summary>
+            Template of the organization to copy instead of a starter.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand.CopyCaptions">
+            <summary>
+            Copy the captions too (of the locales both templates have).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand"/>. The template, its slots and its captions are written in one
+            transaction. Starter captions go to the template locales of the same language (<c>en-US</c> takes the <c>en</c>
+            samples).
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="SlotRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StarterTemplateCatalog"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupSlot},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupCaption},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStarterTemplateCatalog,Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand"/>. The template, its slots and its captions are written in one
+            transaction. Starter captions go to the template locales of the same language (<c>en-US</c> takes the <c>en</c>
+            samples).
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="SlotRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StarterTemplateCatalog"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.SlotRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.CaptionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.StarterTemplateCatalog">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.DefaultStarterKey">
+            <summary>
+            Starter used when the request names none.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandHandler.Handle(Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand">
+            <summary>
+            Deletes a mockup template (soft delete; exported images and their jobs stay). Returns the template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand"/>. A template of another organization is reported as not found.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand"/>. A template of another organization is reported as not found.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandHandler.Handle(Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand">
+            <summary>
+            Queues a mockup export job (<see cref="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport"/>) for the plan the same selection gives: every
+            selected class, locale and slot is rendered on the server, stored as assets and zipped; progress streams on the activity
+            hub (<c>job.step</c>, one <c>render.size</c> step per class). Nothing is written to a store: the job's manifest feeds
+            the screenshot upload plan. Returns the job id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand.Locales">
+            <summary>
+            Locales to export; null for every locale of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand.ClassKeys">
+            <summary>
+            Classes to export; null for the required and recommended classes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand.Targets">
+            <summary>
+            Sizes to render instead of the class defaults (refused sizes fall back to the default).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand"/>: plans with <see cref="T:Storeasy.Application.Utils.Helpers.MockupExportPlanner"/>, queues one job with the
+            selected classes and their sizes, and writes the audit entry. The job draws the template version of this moment.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="ScreenshotSizeSource"></param>
+            <param name="ObjectContentStorage"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IScreenshotSizeSource,Storeasy.Application.Interfaces.IObjectContentStorage,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand"/>: plans with <see cref="T:Storeasy.Application.Utils.Helpers.MockupExportPlanner"/>, queues one job with the
+            selected classes and their sizes, and writes the audit entry. The job draws the template version of this moment.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="ScreenshotSizeSource"></param>
+            <param name="ObjectContentStorage"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.ScreenshotSizeSource">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.ObjectContentStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandHandler.Handle(Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery">
+            <summary>
+            Reads the manifest of a finished export job: image asset ids as sets by store, screenshot class and locale, in slot
+            order (the input of the screenshot upload plan; shape in storeasy-api/docs/studio.md).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery.JobId">
+            <summary>
+            Export job id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery"/>. A job of another organization or of another kind is not found; an
+            unfinished or failed export is 409.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery"/>. A job of another organization or of another kind is not found; an
+            unfinished or failed export is 409.
+            </summary>
+            <param name="jobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery">
+            <summary>
+            Plans an export of a template without writing anything: the classes of the app's stores with their requirement, the
+            default selection, refused sizes and the image count (docs 12.10).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery.Locales">
+            <summary>
+            Locales to export; null for every locale of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery.ClassKeys">
+            <summary>
+            Classes to export; null for the required and recommended classes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery.Targets">
+            <summary>
+            Sizes to render instead of the class defaults (each is checked against the sizes the store accepts).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery"/> with <see cref="T:Storeasy.Application.Utils.Helpers.MockupExportPlanner"/>, the same plan the export uses.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="appRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IScreenshotSizeSource,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery"/> with <see cref="T:Storeasy.Application.Utils.Helpers.MockupExportPlanner"/>, the same plan the export uses.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="appRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery">
+            <summary>
+            Returns a short lived presigned download URL of the zip of a finished export (every image and the manifest).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery.JobId">
+            <summary>
+            Export job id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery"/>. The URL downloads as <c>mockups-{jobId}.zip</c>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.StorageOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery"/>. The URL downloads as <c>mockups-{jobId}.zip</c>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery">
+            <summary>
+            Lists storeasy's device frames with their defaults and the screenshot classes (sizes from the rules catalog) drawn with
+            each.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery"/>. Classes come from the rules catalog, never from code.
+            </summary>
+            <param name="screenshotSizeSource"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryHandler.#ctor(Storeasy.Application.Interfaces.IScreenshotSizeSource,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery"/>. Classes come from the rules catalog, never from code.
+            </summary>
+            <param name="screenshotSizeSource"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryValidator.#ctor">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery">
+            <summary>
+            Lists the built in starter designs a new template can start from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery"/>.
+            </summary>
+            <param name="starterTemplateCatalog"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryHandler.#ctor(Storeasy.Application.Interfaces.IStarterTemplateCatalog)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery"/>.
+            </summary>
+            <param name="starterTemplateCatalog"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryValidator.#ctor">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery">
+            <summary>
+            Reads one mockup template with its design, slots and captions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery"/>. A template of another organization is reported as not found.
+            </summary>
+            <param name="templateRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery"/>. A template of another organization is reported as not found.
+            </summary>
+            <param name="templateRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery">
+            <summary>
+            Pages through the organization's mockup templates, optionally of one app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery.AppId">
+            <summary>
+            Only the templates of this app; null for every app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery"/>. Newest change first by default.
+            </summary>
+            <param name="templateRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery"/>. Newest change first by default.
+            </summary>
+            <param name="templateRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryHandler.Handle(Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery">
+            <summary>
+            Renders small previews of a template's slots in one locale and screenshot class, from the stored design or an
+            unsaved one sent with the request. Same renderer and layout as the export, scaled down; nothing is stored.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.MaxSlots">
+            <summary>
+            Most slots in one preview.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.MinWidth">
+            <summary>
+            Narrowest preview width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.Locale">
+            <summary>
+            Locale; null for the primary locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.ClassKey">
+            <summary>
+            Screenshot class; null for the design's canvas class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.SlotOrders">
+            <summary>
+            Slots to draw; null for the first three.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.Spec">
+            <summary>
+            Unsaved design to draw instead of the stored one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery.MaxWidth">
+            <summary>
+            Width of each preview in pixels; null for 400 (at most the configured maximum).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery"/>. Raw screenshots come through the studio cache; a too small screenshot
+            is drawn with a warning instead of failing, so the editor still shows the slot.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="mockupRenderer"></param>
+            <param name="studioAssetReader"></param>
+            <param name="objectContentStorage"></param>
+            <param name="studioOptions"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IScreenshotSizeSource,Storeasy.Application.Interfaces.IMockupRenderer,Storeasy.Application.Interfaces.IStudioAssetReader,Storeasy.Application.Interfaces.IObjectContentStorage,Storeasy.Application.Utils.Models.StudioOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery"/>. Raw screenshots come through the studio cache; a too small screenshot
+            is drawn with a warning instead of failing, so the editor still shows the slot.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="screenshotSizeSource"></param>
+            <param name="mockupRenderer"></param>
+            <param name="studioAssetReader"></param>
+            <param name="objectContentStorage"></param>
+            <param name="studioOptions"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryHandler.Handle(Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryHandler.LoadImagesAsync(System.Int32,Storeasy.Application.Utils.Models.MockupTemplateSnapshot,Storeasy.Domain.JsonModels.MockupSpec,System.Threading.CancellationToken)">
+            <summary>
+            Encoded images of the template by asset id; null when it has images but no bucket is configured.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand">
+            <summary>
+            Saves caption cells of a template (only the changed ones need to be sent): a cell with an empty title and subtitle
+            removes its row. Answers the captions that overflow their line limit in the narrowest class the app exports, measured
+            with the template's fonts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand.MaxItems">
+            <summary>
+            Most cells in one save.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand.Items">
+            <summary>
+            Cells to write.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand"/>. The cells are replaced in one transaction (delete the sent cells,
+            insert the non empty ones). Overflow is measured afterwards in the narrowest class of the app's stores, so a save never
+            fails for a long caption: the editor shows the warning.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="ScreenshotSizeSource"></param>
+            <param name="MockupRenderer"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupCaption},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IScreenshotSizeSource,Storeasy.Application.Interfaces.IMockupRenderer,Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand"/>. The cells are replaced in one transaction (delete the sent cells,
+            insert the non empty ones). Overflow is measured afterwards in the narrowest class of the app's stores, so a save never
+            fails for a long caption: the editor shows the warning.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="ScreenshotSizeSource"></param>
+            <param name="MockupRenderer"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.CaptionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.ScreenshotSizeSource">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.MockupRenderer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandHandler.Handle(Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand">
+            <summary>
+            Suggests the captions of a template in one locale from its other locales (docs 12.8). Behind the
+            <c>Studio.AiCaptions</c> kill switch and the configured translator: 503 when either is off. Nothing is saved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand.TargetLocale">
+            <summary>
+            Locale to write the suggestions in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand.SourceLocales">
+            <summary>
+            Locales to translate from; null for the primary locale (and English when the template has it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand.SlotOrders">
+            <summary>
+            Slots to suggest; null for the slots whose caption in the target locale is empty.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand"/>. Only caption texts go to the translator, never screenshots. The
+            translator answers 503 (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.TitleTranslatorUnavailable"/>) when none is configured; the controller's
+            feature flag answers 503 before that when the kill switch is off.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="TitleTranslator"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.ITitleTranslator)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand"/>. Only caption texts go to the translator, never screenshots. The
+            translator answers 503 (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.TitleTranslatorUnavailable"/>) when none is configured; the controller's
+            feature flag answers 503 before that when the kill switch is off.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="TitleTranslator"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandHandler.TitleTranslator">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandHandler.Handle(Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand">
+            <summary>
+            Saves a mockup template: name, design, locales, slot count and the raw screenshots of the slots (replaced as a set).
+            <see cref="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Version"/> is the version the editor started from; when someone saved in between the save is refused with
+            409 and nothing is overwritten. Returns the new version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.TemplateId">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Version">
+            <summary>
+            Version the change is based on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Name">
+            <summary>
+            Name, unique within the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Locales">
+            <summary>
+            Locales of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.PrimaryLocale">
+            <summary>
+            Primary locale (one of <see cref="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Locales"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand.Slots">
+            <summary>
+            Raw screenshots of the slots (the whole set).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand"/>. The version check is part of the update's condition, so two
+            concurrent saves of the same version cannot both win. The slot set is replaced and captions of removed slots or
+            locales are deleted in the same transaction. Every screenshot and the background image must be an uploaded asset of
+            the organization.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="SlotRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AssetRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupSlot},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupCaption},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand"/>. The version check is part of the update's condition, so two
+            concurrent saves of the same version cannot both win. The slot set is replaced and captions of removed slots or
+            locales are deleted in the same transaction. Every screenshot and the background image must be an uploaded asset of
+            the organization.
+            </summary>
+            <param name="TemplateRepository"></param>
+            <param name="SlotRepository"></param>
+            <param name="CaptionRepository"></param>
+            <param name="AssetRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.TemplateRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.SlotRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.CaptionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.AssetRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandHandler.Handle(Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommand">
             <summary>
@@ -5149,6 +6722,203 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IMockupRenderer">
+            <summary>
+            Draws mockups from a template's design (docs/urun-plani.md K8): background, storeasy's own device frame with the
+            screenshot, captions with the embedded open licensed fonts, badges and shapes. Output is a PNG without an alpha
+            channel at the exact class size (or scaled for a preview). Deterministic: the same request gives the same bytes on the
+            same platform. CPU bound and thread safe; registered as a singleton.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IMockupRenderer.Render(Storeasy.Application.Interfaces.MockupRenderRequest)">
+            <summary>
+            Renders one image. A failure (raw screenshot too small, unreadable) is returned in the result, not thrown.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IMockupRenderer.MeasureCaptions(Storeasy.Domain.JsonModels.MockupSpec,Storeasy.Domain.Studio.PixelSize,Storeasy.Domain.Enums.MockupFrameKind,System.String,System.String,System.String)">
+            <summary>
+            Lays out the captions of one image without drawing it: lines and sizes after auto fit, and overflow warnings.
+            </summary>
+            <param name="spec"></param>
+            <param name="size">Class size.</param>
+            <param name="frame">Frame the class is drawn with (decides the text box).</param>
+            <param name="locale"></param>
+            <param name="title"></param>
+            <param name="subtitle"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.MockupRenderRequest">
+            <summary>
+            One image to render.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Spec">
+            <summary>
+            The design (upgraded, see <see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Upgrade(Storeasy.Domain.JsonModels.MockupSpec)"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Size">
+            <summary>
+            Class size; the layout is computed at this size.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Frame">
+            <summary>
+            Frame to draw.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Locale">
+            <summary>
+            Locale of the captions (line breaking, casing, font fallback, direction).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.Screenshot">
+            <summary>
+            Encoded raw screenshot (PNG or JPEG); null for an empty screen.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.BackgroundImage">
+            <summary>
+            Encoded background image for an image background.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.OutputScale">
+            <summary>
+            Output scale, above 0 and at most 1 (previews render smaller with the same layout).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderRequest.FailWhenTooSmall">
+            <summary>
+            Whether a too small raw screenshot fails the image (export) or is drawn with a warning (preview).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.MockupRenderResult">
+            <summary>
+            A rendered image or its failure.
+            </summary>
+            <param name="Png">PNG bytes; null on failure.</param>
+            <param name="Width">Pixel width of the PNG.</param>
+            <param name="Height">Pixel height of the PNG.</param>
+            <param name="Warnings">Warnings of the image.</param>
+            <param name="Failure">Why the image was not produced; null on success.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.MockupRenderResult.#ctor(System.Byte[],System.Int32,System.Int32,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MockupRenderIssue},Storeasy.Application.Interfaces.MockupRenderIssue)">
+            <summary>
+            A rendered image or its failure.
+            </summary>
+            <param name="Png">PNG bytes; null on failure.</param>
+            <param name="Width">Pixel width of the PNG.</param>
+            <param name="Height">Pixel height of the PNG.</param>
+            <param name="Warnings">Warnings of the image.</param>
+            <param name="Failure">Why the image was not produced; null on success.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderResult.Png">
+            <summary>PNG bytes; null on failure.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderResult.Width">
+            <summary>Pixel width of the PNG.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderResult.Height">
+            <summary>Pixel height of the PNG.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderResult.Warnings">
+            <summary>Warnings of the image.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderResult.Failure">
+            <summary>Why the image was not produced; null on success.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.MockupRenderIssue">
+            <summary>
+            A warning or failure of a render.
+            </summary>
+            <param name="Code">One of <see cref="T:Storeasy.Domain.Studio.MockupWarningCodes"/>.</param>
+            <param name="Message">English detail.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c> for caption issues.</param>
+            <param name="Lines">Lines the caption needs.</param>
+            <param name="MaxLines">Lines the style allows.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.MockupRenderIssue.#ctor(System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            A warning or failure of a render.
+            </summary>
+            <param name="Code">One of <see cref="T:Storeasy.Domain.Studio.MockupWarningCodes"/>.</param>
+            <param name="Message">English detail.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c> for caption issues.</param>
+            <param name="Lines">Lines the caption needs.</param>
+            <param name="MaxLines">Lines the style allows.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderIssue.Code">
+            <summary>One of <see cref="T:Storeasy.Domain.Studio.MockupWarningCodes"/>.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderIssue.Message">
+            <summary>English detail.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderIssue.Field">
+            <summary><c>title</c> or <c>subtitle</c> for caption issues.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderIssue.Lines">
+            <summary>Lines the caption needs.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupRenderIssue.MaxLines">
+            <summary>Lines the style allows.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.MockupCaptionMeasure">
+            <summary>
+            Caption layout of one image.
+            </summary>
+            <param name="TitleLines">Lines of the title.</param>
+            <param name="TitleMaxLines">Lines the title style allows.</param>
+            <param name="TitleSize">Title font size in pixels after auto fit.</param>
+            <param name="SubtitleLines">Lines of the subtitle.</param>
+            <param name="SubtitleMaxLines">Lines the subtitle style allows.</param>
+            <param name="SubtitleSize">Subtitle font size in pixels after auto fit.</param>
+            <param name="Warnings">Overflow and font warnings.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.MockupCaptionMeasure.#ctor(System.Int32,System.Int32,System.Single,System.Int32,System.Int32,System.Single,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MockupRenderIssue})">
+            <summary>
+            Caption layout of one image.
+            </summary>
+            <param name="TitleLines">Lines of the title.</param>
+            <param name="TitleMaxLines">Lines the title style allows.</param>
+            <param name="TitleSize">Title font size in pixels after auto fit.</param>
+            <param name="SubtitleLines">Lines of the subtitle.</param>
+            <param name="SubtitleMaxLines">Lines the subtitle style allows.</param>
+            <param name="SubtitleSize">Subtitle font size in pixels after auto fit.</param>
+            <param name="Warnings">Overflow and font warnings.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.TitleLines">
+            <summary>Lines of the title.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.TitleMaxLines">
+            <summary>Lines the title style allows.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.TitleSize">
+            <summary>Title font size in pixels after auto fit.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.SubtitleLines">
+            <summary>Lines of the subtitle.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.SubtitleMaxLines">
+            <summary>Lines the subtitle style allows.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.SubtitleSize">
+            <summary>Subtitle font size in pixels after auto fit.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MockupCaptionMeasure.Warnings">
+            <summary>Overflow and font warnings.</summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.INotificationService">
             <summary>
             Manages in-app notifications.
@@ -5190,6 +6960,44 @@
             <summary>
             Deletes all of notifications belonging to the current user.
             </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IObjectContentStorage">
+            <summary>
+            Server side reads and writes of object contents in the private bucket, for work the API does itself (the studio reads
+            raw screenshots and writes rendered images). Clients still move files only through presigned URLs
+            (<see cref="T:Storeasy.Application.Interfaces.IFileStorage"/>). Calls the storage and throws when it fails.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IObjectContentStorage.IsConfigured">
+            <summary>
+            Whether a bucket is configured.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IObjectContentStorage.ReadAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads a whole object. Throws when there is no such object.
+            </summary>
+            <param name="key"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IObjectContentStorage.WriteAsync(System.String,System.IO.Stream,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Writes an object (replacing one with the same key).
+            </summary>
+            <param name="key"></param>
+            <param name="content">Content, read from its current position to the end.</param>
+            <param name="contentType"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IObjectContentStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an object; a missing object is not an error.
+            </summary>
+            <param name="key"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IOrganizationAccess">
             <summary>
@@ -5246,6 +7054,18 @@
             Migrate permissions to the database.
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IScreenshotSizeSource">
+            <summary>
+            The screenshot classes and sizes the studio exports to, read from the store rules catalog (rules/*.json). The file
+            based implementation reads the catalog files itself; once the rules catalog service of the readiness check is
+            available, an implementation over it replaces this one without touching the studio. Registered as a singleton.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IScreenshotSizeSource.Current">
+            <summary>
+            The loaded classes. Throws when the catalog cannot be found or does not hold a class the studio needs.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.ISecretProtector">
             <summary>
@@ -5331,6 +7151,24 @@
             <param name="userId"></param>
             <param name="tokenStamp"></param>
             <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IStarterTemplateCatalog">
+            <summary>
+            The built in starter templates (original storeasy designs with sample captions) that new mockup templates copy.
+            Registered as a singleton.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStarterTemplateCatalog.All">
+            <summary>
+            Every starter, in display order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStarterTemplateCatalog.Find(System.String)">
+            <summary>
+            The starter with <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IStoreasyDbContextAccessor">
@@ -5761,6 +7599,126 @@
         </member>
         <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.MaxAttempts">
             <summary>Attempts allowed; null for the configured default.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IStudioAssetReader">
+            <summary>
+            Reads the raw screenshots and background images of mockup templates with a bounded in-memory cache. Object keys are
+            never reused for other content, so a cached entry never goes stale. Registered as a singleton.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStudioAssetReader.ReadAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            The object's bytes. Throws when the storage fails or the object does not exist.
+            </summary>
+            <param name="objectKey"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ITitleTranslator">
+            <summary>
+            Suggests captions of a mockup template in another locale (studio caption suggestions, docs 12.8). Behind a kill switch:
+            the endpoint answers 503 when the <c>Studio.AiCaptions</c> feature flag is off or no translator is available. The
+            default implementation is a no-op without any paid service; a provider is plugged in by registering another
+            implementation. Suggestions are never saved by themselves: the client shows them as unsaved cells.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ITitleTranslator.IsAvailable">
+            <summary>
+            Whether a provider is configured and can be called.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ITitleTranslator.SuggestAsync(Storeasy.Application.Interfaces.TitleSuggestionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Suggests texts for <paramref name="request"/>. Only caption texts are sent, never screenshots.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.TitleSuggestionRequest">
+            <summary>
+            Captions to suggest a translation for.
+            </summary>
+            <param name="TargetLocale">Locale to write in.</param>
+            <param name="Items">The fields to suggest.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.TitleSuggestionRequest.#ctor(System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.TitleSuggestionItem})">
+            <summary>
+            Captions to suggest a translation for.
+            </summary>
+            <param name="TargetLocale">Locale to write in.</param>
+            <param name="Items">The fields to suggest.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionRequest.TargetLocale">
+            <summary>Locale to write in.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionRequest.Items">
+            <summary>The fields to suggest.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.TitleSuggestionItem">
+            <summary>
+            One caption field to suggest.
+            </summary>
+            <param name="SlotOrder">Slot position.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c>.</param>
+            <param name="Sources">Text of the field by source locale.</param>
+            <param name="Current">Current text in the target locale, if any.</param>
+            <param name="MaxLength">Soft character limit of the field.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.TitleSuggestionItem.#ctor(System.Int32,System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.String,System.Int32)">
+            <summary>
+            One caption field to suggest.
+            </summary>
+            <param name="SlotOrder">Slot position.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c>.</param>
+            <param name="Sources">Text of the field by source locale.</param>
+            <param name="Current">Current text in the target locale, if any.</param>
+            <param name="MaxLength">Soft character limit of the field.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionItem.SlotOrder">
+            <summary>Slot position.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionItem.Field">
+            <summary><c>title</c> or <c>subtitle</c>.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionItem.Sources">
+            <summary>Text of the field by source locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionItem.Current">
+            <summary>Current text in the target locale, if any.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestionItem.MaxLength">
+            <summary>Soft character limit of the field.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.TitleSuggestion">
+            <summary>
+            A suggested text.
+            </summary>
+            <param name="SlotOrder">Slot position.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c>.</param>
+            <param name="Text">Suggested text.</param>
+            <param name="Reason">Short reason (e.g. shortened to fit two lines).</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.TitleSuggestion.#ctor(System.Int32,System.String,System.String,System.String)">
+            <summary>
+            A suggested text.
+            </summary>
+            <param name="SlotOrder">Slot position.</param>
+            <param name="Field"><c>title</c> or <c>subtitle</c>.</param>
+            <param name="Text">Suggested text.</param>
+            <param name="Reason">Short reason (e.g. shortened to fit two lines).</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestion.SlotOrder">
+            <summary>Slot position.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestion.Field">
+            <summary><c>title</c> or <c>subtitle</c>.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestion.Text">
+            <summary>Suggested text.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.TitleSuggestion.Reason">
+            <summary>Short reason (e.g. shortened to fit two lines).</summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.ITransactionRunner">
             <summary>
@@ -6435,6 +8393,61 @@
             </code>
             </remarks>
         </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions">
+            <summary>
+            Reads shared by the mockup studio's handlers and its export job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions.GetMockupSnapshotAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Studio.MockupTemplate},System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            The template of the organization with its slots and captions, or null.
+            </summary>
+            <param name="templateRepository"></param>
+            <param name="organizationId"></param>
+            <param name="templateId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions.GetUploadedAssetKeysAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},System.Int32,System.Collections.Generic.IReadOnlyCollection{System.Int64},System.Threading.CancellationToken)">
+            <summary>
+            Object keys of the organization's uploaded assets among <paramref name="assetIds"/> (missing ones are left out).
+            </summary>
+            <param name="assetRepository"></param>
+            <param name="organizationId"></param>
+            <param name="assetIds"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions.GetAppStoresAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Stores the app has records in; empty when the app does not exist in the organization.
+            </summary>
+            <param name="appRepository"></param>
+            <param name="organizationId"></param>
+            <param name="appId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions.ReadStudioImagesAsync(Storeasy.Application.Interfaces.IStudioAssetReader,System.Collections.Generic.IReadOnlyDictionary{System.Int64,System.String},System.Threading.CancellationToken)">
+            <summary>
+            Reads the images of <paramref name="keys"/> through the studio cache.
+            </summary>
+            <param name="reader"></param>
+            <param name="keys">Object keys by asset id.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MockupRepositoryExtensions.GetMockupExportManifestAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            The manifest of a finished export job of the organization, or the message key of why there is none
+            (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.MockupExportNotFound"/>, <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.MockupExportNotReady"/>).
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="organizationId"></param>
+            <param name="jobId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Extensions.PagingExtensions">
             <summary>
             Contains helpers for the paging values of list requests.
@@ -6605,6 +8618,74 @@
             Prefixes <paramref name="key"/> with the application's prefix.
             </summary>
             <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.MockupExportPlanner">
+            <summary>
+            Plans a studio export (docs 12.10): the classes of the app's stores from the rules catalog, their requirement for the
+            app today, the default selection (required and recommended), size overrides checked against the sizes the store accepts
+            (for example 1320x2868 is refused for the 6.1"/6.3" class), and the image count. Pure; the plan and the export
+            endpoints share it so the export renders exactly what the plan showed.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.MockupExportPlanner.PlanForTemplate(Storeasy.Domain.Studio.ScreenshotSizeCatalog,Storeasy.Application.Utils.Models.MockupTemplateSnapshot,System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.StoreKind},System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Collections.Generic.List{Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget},System.DateOnly)">
+            <summary>
+            Plans an export of <paramref name="template"/>: requested locales must be locales of the template (null for all of
+            them). Returns the plan, or the message key of why there is none.
+            </summary>
+            <param name="catalog"></param>
+            <param name="template"></param>
+            <param name="appStores"></param>
+            <param name="locales"></param>
+            <param name="classKeys"></param>
+            <param name="targets"></param>
+            <param name="today"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.MockupExportPlanner.Plan(Storeasy.Domain.Studio.ScreenshotSizeCatalog,System.Int32,System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.StoreKind},System.Int32,System.Collections.Generic.List{System.String},System.Collections.Generic.IReadOnlyCollection{System.String},System.Collections.Generic.IReadOnlyDictionary{System.String,Storeasy.Domain.Studio.PixelSize},System.DateOnly)">
+            <summary>
+            Plans an export.
+            </summary>
+            <param name="catalog"></param>
+            <param name="templateId"></param>
+            <param name="appStores">Stores the app has records in; empty for every store.</param>
+            <param name="slotCount"></param>
+            <param name="locales"></param>
+            <param name="classKeys">Explicit selection; null for the default (required and recommended).</param>
+            <param name="sizes">Requested sizes by class; a size the class does not accept is refused and the class's export size is used.</param>
+            <param name="today"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.MockupRenderPlanner">
+            <summary>
+            Builds the render request of one image of a template (shared by the preview and the export job, so both draw the
+            same thing): the frame of the class, the slot's raw screenshot for the class's family and locale, the caption with
+            the primary locale fallback, and the background image.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.MockupRenderPlanner.Build(Storeasy.Application.Utils.Models.MockupTemplateSnapshot,Storeasy.Domain.JsonModels.MockupSpec,Storeasy.Domain.Studio.ScreenshotClass,Storeasy.Domain.Studio.PixelSize,System.String,System.Int32,System.Collections.Generic.IReadOnlyDictionary{System.Int64,System.Byte[]},System.Single,System.Boolean)">
+            <summary>
+            The request for slot <paramref name="slotOrder"/> of <paramref name="template"/> in <paramref name="locale"/> and
+            <paramref name="screenshotClass"/> at <paramref name="size"/>, with the notes the choice produced (caption or family
+            fallback).
+            </summary>
+            <param name="template"></param>
+            <param name="spec">The design to draw (upgraded).</param>
+            <param name="screenshotClass"></param>
+            <param name="size"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <param name="images">Encoded images by asset id.</param>
+            <param name="outputScale"></param>
+            <param name="failWhenTooSmall"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.MockupRenderPlanner.NarrowestCaptionClass(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.ScreenshotClass})">
+            <summary>
+            The class whose caption box is narrowest relative to the type size (the caption overflows there first): the
+            smallest width to shorter side ratio among <paramref name="classes"/>.
+            </summary>
+            <param name="classes"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Helpers.SecretRedactor">
@@ -7086,6 +9167,68 @@
         <member name="P:Storeasy.Application.Utils.Models.IdempotencyClaim.ResponseData">
             <summary>The first attempt's stored response envelope (JSON) when it already finished; null otherwise.</summary>
         </member>
+        <member name="T:Storeasy.Application.Utils.Models.MockupTemplateSnapshot">
+            <summary>
+            Everything a render of a mockup template needs, read in one query: design, locales, slots and captions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Id">
+            <summary>
+            Template id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.AppId">
+            <summary>
+            App of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Name">
+            <summary>
+            Template name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.PrimaryLocale">
+            <summary>
+            Primary locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Locales">
+            <summary>
+            Locales.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Version">
+            <summary>
+            Concurrency version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Spec">
+            <summary>
+            The design as stored.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Slots">
+            <summary>
+            Raw screenshots of the slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.Captions">
+            <summary>
+            Captions.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.MockupTemplateSnapshot.AssetIds(Storeasy.Domain.JsonModels.MockupSpec)">
+            <summary>
+            Asset ids the template draws (slot screenshots and the background image).
+            </summary>
+            <param name="spec">The design to draw (the stored one or an unsaved one).</param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Models.RegistrationOptions">
             <summary>
             Self service registration settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.RegistrationOptions.SectionName"/>), bound once and registered as a
@@ -7199,6 +9342,37 @@
         <member name="P:Storeasy.Application.Utils.Models.StoreJobOptions.RetryMaxDelaySeconds">
             <summary>
             Longest delay between two attempts, in seconds.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.StudioOptions">
+            <summary>
+            Mockup studio settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.StudioOptions.SectionName"/>), bound once and registered as a singleton.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.StudioOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StudioOptions.RulesPath">
+            <summary>
+            Folder of the store rules catalog (with <c>catalog.json</c>). Empty: a <c>rules</c> folder next to the application,
+            then the nearest <c>rules</c> folder above it (a source checkout).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StudioOptions.FontsPath">
+            <summary>
+            Folder of the embedded fonts. Empty: <c>StudioFonts</c> next to the application.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StudioOptions.PreviewMaxWidth">
+            <summary>
+            Widest preview image in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.StudioOptions.AssetCacheMegabytes">
+            <summary>
+            Memory the raw screenshot cache may use, in megabytes.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Utils.PermissionManager.PermissionCatalog.GetPermissionsAndGroups">

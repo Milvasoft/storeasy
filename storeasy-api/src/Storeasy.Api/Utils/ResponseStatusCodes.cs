@@ -69,6 +69,15 @@ public static class ResponseStatusCodes
         // 503 - the feature is switched off by an admin (see FeatureFlagAttribute).
         [MessageKey.FeatureDisabled] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.StorageNotConfigured] = StatusCodes.Status503ServiceUnavailable,
+
+        // Mockup studio (phase 6).
+        [MessageKey.MockupTemplateNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupStarterNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupExportNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupTemplateNameExists] = StatusCodes.Status409Conflict,
+        [MessageKey.MockupTemplateChanged] = StatusCodes.Status409Conflict,
+        [MessageKey.MockupExportNotReady] = StatusCodes.Status409Conflict,
+        [MessageKey.TitleTranslatorUnavailable] = StatusCodes.Status503ServiceUnavailable,
     }.ToFrozenDictionary();
 
     /// <summary>

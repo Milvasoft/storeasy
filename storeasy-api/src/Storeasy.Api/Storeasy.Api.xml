@@ -711,6 +711,139 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.MockupsController">
+            <summary>
+            Mockup and screenshot studio (docs/urun-plani.md 2.4, design 12): templates per app, server side previews and exports
+            rendered from the template JSON with storeasy's own device frames and embedded open licensed fonts, caption
+            localization, and the export manifest that feeds the screenshot upload plan. Reading and previewing is open to every
+            member; writing and exporting needs an editor.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Mockup and screenshot studio (docs/urun-plani.md 2.4, design 12): templates per app, server side previews and exports
+            rendered from the template JSON with storeasy's own device frames and embedded open licensed fonts, caption
+            localization, and the export manifest that feeds the screenshot upload plan. Reading and previewing is open to every
+            member; writing and exporting needs an editor.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetTemplatesAsync(Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's templates, optionally of one app (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetTemplateAsync(Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one template with its design, slots and captions (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.CreateTemplateAsync(Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates a template from a starter or as a copy of another template (editors and above). Retry safe with an
+            <c>Idempotency-Key</c> header.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.UpdateTemplateAsync(Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves a template's name, design, locales and slots (editors and above). 409 when someone saved since the given
+            version. Returns the new version.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.DeleteTemplateAsync(Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a template (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.SaveCaptionsAsync(Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves caption cells and answers the captions that overflow in the narrowest exported class (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.SuggestCaptionsAsync(Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Suggests captions in one locale (editors and above). Kill switch <c>Studio.AiCaptions</c>; 503 when it is off or no
+            translator is configured. Nothing is saved.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetFramesAsync(Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the device frames and the screenshot classes drawn with each (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetStarterTemplatesAsync(Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the built in starter designs (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.RenderPreviewAsync(Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            Renders small previews of up to four slots in one locale and class, from the stored or an unsaved design (any
+            member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportPlanAsync(Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery,System.Threading.CancellationToken)">
+            <summary>
+            Plans an export: classes of the app's stores with their requirement, refused sizes and the image count (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.ExportAsync(Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues the export job of the plan (editors and above); follow it on the activity hub. Retry safe with an
+            <c>Idempotency-Key</c> header. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportManifestAsync(Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the manifest of a finished export: asset ids by store, class and locale for the upload plan (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportZipAsync(Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery,System.Threading.CancellationToken)">
+            <summary>
+            Returns a presigned download URL of the zip of a finished export (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.OrganizationsController">
             <summary>
             Organization, member, invitation and audit log endpoints. Any signed in user may call them; the organization role
@@ -1212,6 +1345,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118140726_Phase6Studio">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118140726_Phase6Studio.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118140726_Phase6Studio.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118140726_Phase6Studio.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

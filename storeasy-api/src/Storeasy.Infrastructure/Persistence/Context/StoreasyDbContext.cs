@@ -6,6 +6,7 @@ using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
+using Storeasy.Domain.Studio;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
 
@@ -48,6 +49,9 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<App> Apps { get; set; }
     public DbSet<StoreApp> StoreApps { get; set; }
     public DbSet<Build> Builds { get; set; }
+    public DbSet<MockupTemplate> MockupTemplates { get; set; }
+    public DbSet<MockupSlot> MockupSlots { get; set; }
+    public DbSet<MockupCaption> MockupCaptions { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
