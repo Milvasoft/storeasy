@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: storeasy upload
+description: Upload an IPA, AAB, APK or MSIX to storeasy, which checks it and delivers it to a store test channel. OIDC, no stored secret.
+author: storeasy
+branding:
+  icon: upload-cloud
+  color: purple
+
+inputs:
+  app:
+    description: storeasy app id (the number in the app's URL). Required unless app-id is given.
+    required: false
+  app-id:
+    description: Same as app (the name used in the storeasy setup snippets).
+    required: false
+  file:
+    description: Path of the package to upload (IPA, AAB, APK, MSIX, MSIX bundle).
+    required: true
+  url:
+    description: storeasy base URL; set it for a self-hosted storeasy.
+    required: false
+    default: https://storeasy.milvasoft.com
+  store:
+    description: apple, google or microsoft. Optional; storeasy checks it against the package.
+    required: false
+  track:
+    description: Play test track (internal, alpha, beta or a closed track). Overrides the app's delivery rule for this upload.
+    required: false
+  group:
+    description: TestFlight internal group. Overrides the app's delivery rule for this upload.
+    required: false
+  notes:
+    description: Release notes or What to Test.
+    required: false
+  wait:
+    description: Wait for the delivery result; the step fails if the package is rejected or the store refuses it.
+    required: false
+    default: 'false'
+  timeout-minutes:
+    description: How long wait may take.
+    required: false
+    default: '30'
+  token:
+    description: A storeasy CI token (sci_...) from a secret, for a workflow without OIDC. Leave empty to use OIDC (needs permissions id-token write and a trusted publisher rule in storeasy).
+    required: false
+
+outputs:
+  session-id:
+    description: Upload session id.
+  duplicate:
+    description: true when storeasy already had this exact file (same SHA-256); nothing was uploaded or delivered again.
+  original-session-id:
+    description: For a duplicate, the session that received the file first.
+  sha256:
+    description: SHA-256 of the uploaded file.
+  status:
+    description: Final session status with wait (Delivered, Rejected, Held, Failed).
+  summary:
+    description: One line result with wait.
+  store-job-id:
+    description: storeasy store job of the delivery, with wait.
+  session-url:
+    description: Link to the session in storeasy.
+  exit-code:
+    description: 0 delivered or duplicate, 2 rejected, 3 identity, 4 store error, 5 wait timed out.
+
+runs:
+  using: node24
+  main: dist/index.cjs

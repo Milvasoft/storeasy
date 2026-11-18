@@ -1,0 +1,116 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "40c165d1-43a3-4c01-bcff-57d311788940",
+  "name": "StoreasyUpload",
+  "friendlyName": "storeasy upload",
+  "description": "Upload an IPA, AAB, APK or MSIX to storeasy, which checks it and delivers it to a store test channel. Workload identity (OIDC) or a CI token.",
+  "helpUrl": "https://storeasy.milvasoft.com/intake/setup?path=azure",
+  "helpMarkDown": "Uploads a build to storeasy build intake. Identity: an Azure Resource Manager service connection with workload identity federation (OIDC, matched by a storeasy trusted publisher rule) or a storeasy CI token from a secret variable.",
+  "category": "Deploy",
+  "visibility": ["Build", "Release"],
+  "runsOn": ["Agent"],
+  "author": "storeasy",
+  "version": { "Major": 1, "Minor": 0, "Patch": 0 },
+  "minimumAgentVersion": "3.232.1",
+  "instanceNameFormat": "storeasy upload $(file)",
+  "groups": [{ "name": "delivery", "displayName": "Delivery", "isExpanded": false }],
+  "inputs": [
+    {
+      "name": "connectedService",
+      "aliases": ["serviceConnection"],
+      "type": "connectedService:AzureRM",
+      "label": "Service connection (workload identity)",
+      "required": false,
+      "helpMarkDown": "A service connection that uses workload identity federation. Its OIDC token (subject sc://organization/project/connection) is exchanged for a 15 minute storeasy upload token. Add the matching trusted publisher rule in storeasy > Intake. Leave empty to use a CI token."
+    },
+    {
+      "name": "appId",
+      "type": "string",
+      "label": "storeasy app id",
+      "required": true,
+      "helpMarkDown": "The app's id in storeasy (the number in the app's URL)."
+    },
+    {
+      "name": "file",
+      "type": "filePath",
+      "label": "Package",
+      "required": true,
+      "helpMarkDown": "Path of the IPA, AAB, APK or MSIX to upload."
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "label": "storeasy URL",
+      "defaultValue": "https://storeasy.milvasoft.com",
+      "required": false,
+      "helpMarkDown": "Base URL; change it for a self-hosted storeasy."
+    },
+    {
+      "name": "token",
+      "type": "string",
+      "label": "CI token",
+      "required": false,
+      "helpMarkDown": "A storeasy CI token (sci_...) from a secret variable, for example $(STOREASY_TOKEN). Used when no service connection is set. Never paste the value here."
+    },
+    {
+      "name": "store",
+      "type": "pickList",
+      "label": "Store",
+      "required": false,
+      "defaultValue": "",
+      "groupName": "delivery",
+      "options": { "": "From the package", "apple": "App Store Connect", "google": "Google Play", "microsoft": "Microsoft Store" },
+      "helpMarkDown": "Optional; storeasy checks it against the package."
+    },
+    {
+      "name": "track",
+      "type": "string",
+      "label": "Play test track",
+      "required": false,
+      "groupName": "delivery",
+      "helpMarkDown": "internal, alpha, beta or a closed track. Overrides the app's delivery rule for this upload."
+    },
+    {
+      "name": "group",
+      "type": "string",
+      "label": "TestFlight internal group",
+      "required": false,
+      "groupName": "delivery",
+      "helpMarkDown": "Overrides the app's delivery rule for this upload."
+    },
+    {
+      "name": "notes",
+      "type": "multiLine",
+      "label": "Release notes",
+      "required": false,
+      "groupName": "delivery",
+      "helpMarkDown": "Release notes or What to Test."
+    },
+    {
+      "name": "wait",
+      "type": "boolean",
+      "label": "Wait for the delivery",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Follow the delivery and fail the task if the package is rejected or the store refuses it."
+    },
+    {
+      "name": "timeoutMinutes",
+      "type": "string",
+      "label": "Wait limit (minutes)",
+      "defaultValue": "30",
+      "required": false,
+      "visibleRule": "wait = true"
+    }
+  ],
+  "outputVariables": [
+    { "name": "StoreasySessionId", "description": "Upload session id." },
+    { "name": "StoreasyDuplicate", "description": "true when storeasy already had this exact file." },
+    { "name": "StoreasyStatus", "description": "Final session status (with wait)." },
+    { "name": "StoreasyExitCode", "description": "0 delivered or duplicate, 2 rejected, 3 identity, 4 store error, 5 wait timed out." },
+    { "name": "StoreasySessionUrl", "description": "Link to the session in storeasy." }
+  ],
+  "execution": {
+    "Node20_1": { "target": "dist/index.cjs", "argumentFormat": "" }
+  }
+}
