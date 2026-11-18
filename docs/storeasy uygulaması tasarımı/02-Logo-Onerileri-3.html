@@ -1,0 +1,155 @@
+﻿<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy logo turu 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --ultra:#4636FF;
+}
+html[data-theme="light"]{
+  --bg:250 250 248;--surface:255 255 255;--line:228 227 222;
+  --text:20 20 22;--text-2:92 92 98;--text-3:140 140 146;
+  --accent:70 54 255;--accent-text:255 255 255;
+}
+html[data-theme="dark"]{
+  --bg:10 10 11;--surface:18 18 20;--line:38 38 42;
+  --text:240 240 238;--text-2:168 168 172;--text-3:112 112 118;
+  --accent:133 122 255;--accent-text:10 10 11;
+}
+*{box-sizing:border-box}
+body{margin:0;background:rgb(var(--bg));color:rgb(var(--text));font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 16px 80px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+h1{font:800 40px/1.05 var(--font-display);letter-spacing:-.03em;margin:0 0 8px}
+h1 em{font-style:normal;color:rgb(var(--accent))}
+.lead{color:rgb(var(--text-2));max-width:660px;margin:0}
+.toggle{font:600 12px var(--font-mono);padding:8px 12px;border-radius:10px;border:1px solid rgb(var(--line));background:rgb(var(--surface));color:rgb(var(--text));cursor:pointer}
+.tag{display:inline-block;font:600 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgb(var(--accent)/.14);color:rgb(var(--accent))}
+
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:36px 0 12px}
+.hero{background:rgb(var(--surface));border:1px solid rgb(var(--line));border-radius:24px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.hero svg.big{width:112px;height:112px}
+.hero b{font:700 17px var(--font-display)}
+
+.opt{margin-top:28px;background:rgb(var(--surface));border:1px solid rgb(var(--line));border-radius:24px;padding:24px;display:grid;grid-template-columns:260px 1fr;gap:28px}
+.opt h2{font:800 26px var(--font-display);letter-spacing:-.02em;margin:8px 0 6px}
+.opt p{color:rgb(var(--text-2));margin:0 0 10px}
+.opt ul{margin:0;padding-left:18px;color:rgb(var(--text-2))}
+.opt li{margin:3px 0}
+.uses{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:stretch}
+.icon{width:120px;height:120px;border-radius:28px;background:var(--ultra);display:grid;place-items:center;box-shadow:0 10px 30px -12px rgba(70,54,255,.7)}
+.icon svg{width:72px;height:72px}
+.strips{display:grid;gap:10px}
+.strip{border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.strip.l{background:#FAFAF8;border:1px solid #E4E3DE;--a:#4636FF;--at:#fff;--t:#141416;--tabbg:#ECEBE6}
+.strip.d{background:#121214;border:1px solid #26262A;--a:#857AFF;--at:#0A0A0B;--t:#F0F0EE;--tabbg:#1E1E22}
+.lock{display:flex;align-items:center;gap:9px;font:800 24px var(--font-display);letter-spacing:-.035em;color:var(--t)}
+.lock svg{width:30px;height:30px}
+.lock i{font-style:normal;color:var(--a)}
+.sizes{display:flex;align-items:flex-end;gap:12px;margin-left:auto}
+.sizes svg{display:block}
+.sizes span{font:500 10px var(--font-mono);color:#8C8C92;display:block;text-align:center;margin-top:4px}
+.tab{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:9px 9px 0 0;background:var(--tabbg);font:500 12px var(--font-body);color:var(--t)}
+.tab svg{width:16px;height:16px}
+
+/* Mark color slots: --m1 main, --m2 second tone, --m3 detail on top of m1 */
+.ui{--m1:rgb(var(--accent));--m2:rgb(var(--accent)/.5);--m3:rgb(var(--accent-text))}
+.strip{--m1:var(--a);--m2:color-mix(in srgb,var(--a) 50%,transparent);--m3:var(--at)}
+.icon{--m1:#fff;--m2:rgba(255,255,255,.55);--m3:var(--ultra)}
+.icon.flat{--m1:transparent;--m3:#fff}
+
+.pick{margin-top:36px;padding:22px 24px;border-radius:20px;background:rgb(var(--accent)/.1);border:1px solid rgb(var(--accent)/.35)}
+.pick h3{font:800 20px var(--font-display);margin:0 0 6px}
+.pick p{margin:0;color:rgb(var(--text-2))}
+@media (max-width:900px){.row{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+@media (max-width:820px){.opt{grid-template-columns:1fr}.uses{grid-template-columns:1fr}.sizes{margin-left:0}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- G: Ruzgargulu. Four half-disc blades turning around one center -->
+    <symbol id="m-ruzgar" viewBox="0 0 48 48">
+      <path d="M24 24V5a9.5 9.5 0 0 1 0 19z" fill="var(--m1)"/>
+      <path d="M24 24h19a9.5 9.5 0 0 1-19 0z" fill="var(--m2)"/>
+      <path d="M24 24v19a9.5 9.5 0 0 1 0-19z" fill="var(--m1)"/>
+      <path d="M24 24H5a9.5 9.5 0 0 1 19 0z" fill="var(--m2)"/>
+    </symbol>
+    <!-- H: Ortak e. The letter where "store" and "easy" overlap -->
+    <symbol id="m-e" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="20" fill="var(--m1)"/>
+      <path d="M14.5 24.5h19A9.5 9.5 0 1 0 30.9 31" fill="none" stroke="var(--m3)" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <!-- I: Kuyrukluyildiz. A head with a tapering tail: something on its way -->
+    <symbol id="m-kuyruk" viewBox="0 0 48 48">
+      <path d="M6 42C12 30 21 20 31.5 13.5l4 6.5C24.5 25.5 15 33 6 42z" fill="var(--m2)"/>
+      <circle cx="35" cy="15" r="8" fill="var(--m1)"/>
+    </symbol>
+    <!-- J: Yorunge. A body, a ring, and one satellite on the ring -->
+    <symbol id="m-yorunge" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="11" fill="var(--m1)"/>
+      <ellipse cx="24" cy="24" rx="20" ry="8" transform="rotate(-28 24 24)" fill="none" stroke="var(--m2)" stroke-width="3"/>
+      <circle cx="40.5" cy="15.5" r="4" fill="var(--m1)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div>
+      <span class="tag">Logo turu 3 · Ultramarin</span>
+      <h1>Dört <em>bambaşka</em> yön</h1>
+      <p class="lead">İlk iki turdaki logolar ya bir nesneyi (çanta, pul, ekran) ya da yolu anlatıyordu. Bu turdaki dördü birbirinden de farklı: biri hareket, biri harf, biri hız, biri yörünge. Her biri app ikonu, menü, sekme ve küçük boyutlarda gösteriliyor.</p>
+    </div>
+    <button class="toggle" id="t">Açık tema</button>
+  </header>
+
+  <div class="row ui" id="row"></div>
+  <div id="opts"></div>
+
+  <div class="pick">
+    <h3>Önerim: H · Ortak e</h3>
+    <p>"storeasy" adı "store" ve "easy" kelimelerinin ortak "e" harfiyle birleşmesinden oluşuyor. Logo da tam bu harf. Hiçbir sektörün klişesine benzemiyor, yazı logoyla doğal olarak bütünleşiyor (ortadaki "e" vurgu renginde). Küçük boyutta sadece daire kalsa bile tanınıyor.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var marks=[
+    {id:'m-ruzgar',k:'G',n:'Rüzgârgülü',tag:'Alternatif',p:'Tek bir merkezin etrafında dönen dört kanat. Durmadan çalışan, kendi kendine dönen otomasyonu anlatıyor.',
+     li:['Saf geometri, her boyutta keskin.','Dönme animasyonu yükleme göstergesi olarak hazır.','Zayıf yanı: hareket fikri güçlü ama "mağaza" fikri yok.']},
+    {id:'m-e',k:'H',n:'Ortak e',tag:'Önerim',flat:true,lockE:true,p:'"store" ve "easy" kelimeleri ortak "e" harfinde birleşiyor. Logo bu harf, yazı logoda da o "e" vurgu renginde.',
+     li:['İsmin kendisinden çıkıyor, başka hiçbir ürüne benzemiyor.','Yazı logo ve işaret aynı fikri taşıyor.','App ikonunda yalnız harf kalıyor, daha sade.']},
+    {id:'m-kuyruk',k:'I',n:'Kuyrukluyıldız',tag:'Alternatif',p:'Bir baş ve incelen bir kuyruk: yola çıkmış, mağazaya giden bir şey. Hız ve gönderim hissi.',
+     li:['Dinamik, çapraz yönü sayesinde hareketli duruyor.','Canlı aktivite ekranındaki paketlerle aynı dil.','Zayıf yanı: soyut, ilk bakışta "storeasy" demiyor.']},
+    {id:'m-yorunge',k:'J',n:'Yörünge',tag:'Alternatif',p:'Ortada uygulama, çevresinde bir halka ve halkanın üstünde bir uydu. Uygulamanın etrafında dönen mağaza işleri.',
+     li:['Ölçek ve sistem hissi veriyor.','Uydu, durum rengini taşıyabilir (yeşil, sarı, kırmızı).','Zayıf yanı: 16 pikselde halka inceliyor.']}
+  ];
+  function use(id,w){return '<svg'+(w?' width="'+w+'" height="'+w+'"':'')+'><use href="#'+id+'"/></svg>'}
+  function strip(m,c){
+    var word=m.lockE?'stor<i>e</i>asy':'storeasy';
+    return '<div class="strip '+c+'"><div class="lock">'+use(m.id)+'<span>'+word+'</span></div><div class="tab">'+use(m.id)+'storeasy · Uygulamalar</div><div class="sizes">'+
+      [32,20,16].map(function(s){return '<div>'+use(m.id,s)+'<span>'+s+'</span></div>'}).join('')+'</div></div>';
+  }
+  document.getElementById('row').innerHTML=marks.map(function(m){return '<div class="hero"><svg class="big"><use href="#'+m.id+'"/></svg><b>'+m.k+' · '+m.n+'</b></div>'}).join('');
+  document.getElementById('opts').innerHTML=marks.map(function(m){
+    return '<section class="opt"><div><span class="tag">'+m.tag+'</span><h2>'+m.k+' · '+m.n+'</h2><p>'+m.p+'</p><ul>'+m.li.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>'+
+      '<div class="uses"><div class="icon'+(m.flat?' flat':'')+'">'+use(m.id)+'</div><div class="strips">'+strip(m,'l')+strip(m,'d')+'</div></div></section>';
+  }).join('');
+  var h=document.documentElement,b=document.getElementById('t');
+  function set(t){h.setAttribute('data-theme',t);b.textContent=t==='dark'?'Açık tema':'Koyu tema';try{localStorage.setItem('storeasy.logo3',t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem('storeasy.logo3')}catch(e){}
+  set(s==='light'?'light':'dark');
+  b.addEventListener('click',function(){set(h.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>
