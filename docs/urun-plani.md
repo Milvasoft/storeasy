@@ -179,17 +179,23 @@ Kurallar: en az bir Owner kalır; Owner kendini düşüremez (önce başka Owner
 
 ## 7. Fazlar
 
+İlke (Buğra, 18 Kasım 2026): "Hiçbir şey eksik olmamalı." Claude oturumlarının bu haftalarda tarayıcıda elle yaptığı her
+mağaza işi storeasy'de ve MCP'de olmalı. API'si olmayan iş de storeasy'nin içinde kalır: asistanlı adım olarak
+(bölüm 11.4). Fazlar kapsam matrisinin (bölüm 11) satırlarını sırayla kapatır.
+
 | Faz | İçerik | Bitti sayılır |
 |---|---|---|
-| 1. Temel | Repo, API şablondan, kayıt ve giriş (e-posta), organizasyon, üyelik, davet, roller, şifreli mağaza bağlantısı ve doğrulama, uygulama senkronu (liste), denetim kaydı, `StoreJob` kuyruğu ve SignalR olayları, docker-compose; web: tasarım (09), giriş, organizasyon değiştirici, uygulamalar, bağlantılar, üyeler, denetim kaydı | Testler yeşil, yerelde uçtan uca bağlantı ekleme ve uygulama listesi |
-| 2. Mağaza kaydı | Metinler (diff, dry run, push), ekran görüntüsü yükleme akışı, build bağlama, Play edit'leri, AAB, canlı aktivite animasyonu | Sousial iPad seti storeasy'den yüklenir |
-| 3. Stüdyo | Mockup şablonları, kendi çerçeveler, başlık lokalizasyonu, tüm boyutlara dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
-| 4. Olaylar | Webhook alıcısı, bildirimler (uygulama içi, e-posta), red takibi, Play yorum kutusu | Gerçek bir durum değişikliği bildirime düşer |
-| 5. MCP | PAT, `/mcp`, bütün araçlar, `storeasy-mcp` köprüsü | Claude oturumu store-ops yerine storeasy ile Sousial işini yapar |
-| 6. Yayın | Abonelik ve IAP ekranları, özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
+| 1. Temel | Repo, API, kayıt ve giriş, organizasyon, roller, davet, şifreli bağlantılar, denetim kaydı (yapıldı); `StoreJob` kuyruğu, SignalR olayları, S3 (MinIO yerelde, presigned), mağazadan uygulama ve build senkronu, kural kataloğu v1 (bölüm 12); web: tasarım, kabuk, giriş, uygulamalar, bağlantılar, üyeler, denetim kaydı | Yerelde bağlantı ekleme, uygulamaların iki mağazadan gelmesi |
+| 2. Hazırlık ve içerik | Hazırlık kontrolü (11.1) ve uygulama başına kayıtlı cevaplar; metinler ve kategoriler, yaş derecelendirmesi (yeni sorular dahil), fiyat ve bölgeler, ekran görüntüsü ve önizleme setleri (kataloğa göre zorunlu, yedekle karşılanan, eksik), build izleme ve bağlama, ihracat uyumu, inceleme bilgileri, yayın türü ve aşamalı yayın, incelemeye gönderme (onaylı); Play: uygulama ayrıntıları, listeler, görseller, track ve sürüm, aşamalı yayın, ülkeler, test kullanıcıları, AAB, Data safety; canlı aktivite görünümü | Sousial ve Crewhall için "eksik ne var" tek çağrıda doğru cevap; Sousial iPad seti storeasy'den yüklenir |
+| 3. MCP | PAT, `/mcp`, matristeki her API satırı için araç (yazmalar dry run + onay), tüm uygulamaların özeti tek çağrı, `storeasy-mcp` yerel köprüsü (yerel dosya yolları ve klasörler) | Bir Claude oturumu store-ops yerine storeasy ile Sousial işini baştan sona yapar |
+| 4. Olaylar ve takip | Webhook alıcısı, bildirimler, red akışı (11.3), yorum kutuları (Apple ve Play, yanıt), TestFlight (gruplar, test kullanıcıları, beta metinleri, beta inceleme, build bitiş tarihleri), kural izleyici ve uygulama başına uyum zaman çizelgesi (bölüm 12) | Gerçek bir red bildirime ve red kaydına düşer; Expenny ve Perry'nin TestFlight bitiş tarihleri görünür |
+| 5. Stüdyo | Mockup şablonları, kendi çizdiğimiz çerçeveler (iPhone Duo dış ve iç ekran dahil), başlık lokalizasyonu, kataloğa göre tüm zorunlu ve önerilen boyutlara tek seferde dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
+| 6. Para | Abonelik grupları, abonelikler, bölge fiyatları, tanıtım ve promosyon teklifleri, retention mesajları, IAP; Play abonelikleri, base plan'lar, teklifler, tek seferlik ürünler | Bir uygulamanın abonelikleri storeasy'den kurulur |
+| 7. Yayın | Asistanlı adımların tamamı (11.4), özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
 
-**MVP:** Faz 1 + Faz 2 + Faz 5. Bu üçüyle storeasy, store-ops'un yerini alır ve Milvasoft uygulamaları için günlük
-kullanılır. Stüdyo (Faz 3) MVP'den hemen sonra, çünkü ürünü dışarıya anlatan özellik o.
+**MVP:** Faz 1 + 2 + 3. Bu üçüyle Buğra'nın uygulamalarında "gönderime hazır mı, eksik ne" sorusu, metin, görsel,
+build ve gönderim storeasy ve MCP üzerinden yapılır; store-ops emekli olur. Faz 4 hemen arkasından gelir, çünkü red
+ve TestFlight takibi günlük iş. Stüdyo Faz 5'te; ondan önce görseller dışarıda üretilip storeasy'ye verilir.
 
 ## 8. Güvenlik
 
@@ -228,3 +234,174 @@ onayıyla.
 | CI/CD | GitHub Actions: test ve PR kontrolleri. Azure DevOps: yalnız imaj derleme ve Dokploy deploy'u. Dallar `master`, `test`, `dev` |
 | Sırlar | Azure DevOps variable group (`storeasy-test`, `storeasy-prod`); ana anahtar sürümlü (K6 zaten öyle), yedeği ayrı saklanır |
 | Gözlemlenebilirlik | Seq (test `seq:5341`); OTel toplayıcı yok, adres boşsa exporter tamamen kapalı. Health: `/health/live`, `/health/ready` |
+
+## 11. Kapsam matrisi
+
+Kaynak: Claude oturumlarının Kasım 2026'ya kadar Dump, Fenpo, Expenny, Perry, SaySay, Crewhall ve Sousial için
+yaptığı işler. Sütunlar: **API** (resmi API ile otomatik), **Asistanlı** (API yok; storeasy kontrol listesi,
+kayıtlı cevaplar ve tarayıcı devri ile yönetir, sonucu kaydeder), **Yok** (storeasy yapamaz, yalnız bilgi ve
+bağlantı verir). Faz sütunu bölüm 7'deki fazdır. Kontrol tarihi: 18 Kasım 2026.
+
+### 11.1 Ortak
+
+| İş | Tür | Faz | Not |
+|---|---|---|---|
+| Hazırlık kontrolü: uygulama ve mağaza başına "gönderimden önce eksik ne" | API + katalog | 2 | Metinler, kataloğa göre zorunlu ekran setleri (iPad yalnız tablet destekliyse), build bağlı ve VALID, ihracat uyumu, yaş derecelendirmesi, gizlilik (asistanlı adım tamam mı), fiyat ve bölge, abonelik inceleme görüntüleri, inceleme iletişimi ve demo hesap, sözleşmeler (asistanlı) |
+| Tüm uygulamaların özeti (iki mağaza, durum, eksikler) | API | 2-3 | MCP'de tek çağrı |
+| Uygulama başına kayıtlı cevaplar | Veri | 2 | Gizlilik etiketleri, Data safety, içerik derecelendirmesi, hedef kitle, inceleme için giriş bilgileri, inceleme notları. Uygulamalar arası kopyalanabilir. Demo hesap şifresi şifreli saklanır, yalnız App Review alanına gider |
+| Red akışı | Webhook + asistanlı | 4 | Bölüm 11.3 |
+| Asistanlı adımlar | Asistanlı | 2-7 | Bölüm 11.4 |
+| Birden çok geliştirici hesabı ve organizasyon | API | 1 | Organizasyon başına birden çok bağlantı (yapıldı) |
+| EAS'ten gelen build'leri görme, işlenmeyi bekleme, sürüme bağlama | API | 2 | Build senkronu + `StoreJob` ile bekleme |
+
+### 11.2 App Store Connect
+
+| İş | Tür | Faz | Not |
+|---|---|---|---|
+| Uygulama oluşturma | Asistanlı | 7 | API uygulama oluşturmaya izin vermiyor |
+| App info lokalizasyonları (ad, alt başlık, gizlilik URL'leri) | API | 2 | |
+| Sürüm lokalizasyonları (açıklama, EULA ve otomatik yenileme metni dahil, anahtar kelimeler, tanıtım metni, destek ve pazarlama URL'si, yenilikler) | API | 2 | en-US app info oluşunca sürüm lokalizasyonu da oluşur: POST yerine PATCH (store-ops'ta çözüldü) |
+| Kategoriler, telif, içerik hakları beyanı | API | 2 | |
+| Yaş derecelendirmesi (yeni sorular dahil) | API | 2 | Yeni descriptor'lar: Shared Location ve Dating and Relationships (18+), App Store Connect'te 16 Kasım 2026'dan beri, bütün uygulamalar için son tarih 12 Ocak 2027. Brezilya'da A16 ve A18. API alan adları canlıda doğrulanacak |
+| Fiyat ve bölgeler | API | 2 | Fiyat takvimi, bölge seçimi (ör. Çin hariç) |
+| App Privacy etiketleri | Asistanlı | 2 | Resmi API'de karşılığı bulunamadı (18 Kasım 2026); kayıtlı cevaplar + tarayıcı devri. API gelirse matris güncellenir |
+| App Compliance sayfası (ICP, oyun lisansı, tıbbi cihaz, Çin AIGC ve Security Assessment) | Asistanlı | 4 | 16 Kasım 2026'da yeni sayfaya taşındı. Çin'de dağıtılan her uygulama 31 Ocak 2027'ye kadar beyanları tamamlamalı (yeni uygulamalar hemen). Account Holder veya Admin yapar |
+| Ekran görüntüsü setleri, sıralama, silme | API | 2 | Katalog: zorunlu, yedekle karşılanan ve eksik slotlar uygulamanın cihaz ailesine ve SDK'sına göre |
+| Otomatik boyutlandırma ve alfa temizleme | Uygulama içi | 2 | Yüklemeden önce |
+| App Preview (video) | API | 2 | Boyutlar katalogda |
+| iPhone Duo ekran görüntüleri (dış 1398x2034, iç 2007x2853) | API | 2 | Bölüm 12.2 |
+| Build listesi, işlenme durumu, sürüme bağlama | API | 2 | |
+| İhracat uyumu (usesNonExemptEncryption) | API | 2 | |
+| İnceleme bilgileri (iletişim, demo hesap, notlar, ek) | API | 2 | |
+| Yayın türü, aşamalı yayın, elle yayın | API | 2 | |
+| İncelemeye gönderme (ilk abonelikler sürümle birlikte) | API | 2 | Onay adımı + `SubmitForReview` izni |
+| TestFlight: gruplar, test kullanıcıları, beta lokalizasyonları, "neyi test et", beta inceleme | API | 4 | |
+| TestFlight build bitiş tarihi (90 gün) | API | 4 | Expenny ve Perry yalnız TestFlight'ta; bitişten önce uyarı |
+| Abonelik grupları ve lokalizasyonları, abonelik oluşturma | API | 6 | |
+| Bölge fiyatları, tanıtım ve promosyon teklifleri, uygunluk, inceleme görüntüsü | API | 6 | İnceleme görüntüsü Faz 2'de (hazırlık kontrolü ister) |
+| Retention mesajları, çok koltuklu satın alma | API (doğrulanacak) | 6 | Abonelik ekranlarında yeni alanlar |
+| IAP | API | 6 | |
+| Müşteri yorumları ve yanıt | API | 4 | |
+| Sözleşme durumu (Paid Apps Agreement) | Asistanlı | 4 | API'de yok; hazırlık kontrolünde "son kontrol tarihi" ile |
+| App Store Server Notifications URL, sandbox test kullanıcıları | Asistanlı / API | 6 | Sandbox test kullanıcıları API'de listelenir ve güncellenir |
+| Hızlandırılmış inceleme talebi | Asistanlı | 4 | Yalnız web formu |
+
+### 11.3 Red akışı
+
+1. Webhook `APP_STORE_VERSION_APP_VERSION_STATE_UPDATED` (veya periyodik senkron) sürümü `REJECTED` / `METADATA_REJECTED` görür.
+2. Red kaydı açılır, sahiplere bildirim gider.
+3. Red metni API'de yok: kullanıcı yapıştırır ya da asistanlı tarayıcı adımı (Claude in Chrome) Resolution Center'dan okuyup
+   storeasy'ye yazar.
+4. Guideline numaraları ayrıştırılır, kontrol listesine dönüşür; Claude MCP ile yanıt taslağı hazırlar (Resolution Center
+   sınırı 4000 karakter, taslakta sayaç).
+5. Yanıt elle veya asistanlı adımla gönderilir; düzeltmeler storeasy üzerinden yapılır, yeniden gönderim onaylıdır.
+6. Uygulama başına red geçmişi kalır (ör. Dump: 3.1.2, sonra 4.3 + 4.2.6; Fenpo: 4.3, sonra alt başlıkta "iPhone" için 5.2.5).
+
+### 11.4 Asistanlı adım
+
+API'si olmayan iş storeasy'de bir **asistanlı adım** kaydıdır:
+
+- Kontrol listesi (adımlar, beklenen sonuç), ilgili mağaza sayfasının doğrudan bağlantısı ve uygulamanın kayıtlı cevapları.
+- Tarayıcı devri: MCP aracı adımı ve cevapları yapılandırılmış olarak verir; Claude in Chrome kullanıcının kendi oturumunda
+  uygular, sonucu (yapıldı, ekran görüntüsü, tarih) storeasy'ye kaydeder. Kullanıcı aynı listeyi kendisi de izleyebilir.
+- storeasy ve Claude hiçbir zaman kullanıcı şifresi saklamaz ya da girmez; mağaza oturumu kullanıcınındır.
+- Bilinen tuzaklar adıma not olarak yazılır (ör. Play iletişim kutusunda "Ekle"den sonra kaydetmeden sayfayı yenileme).
+
+### 11.5 Google Play
+
+| İş | Tür | Faz | Not |
+|---|---|---|---|
+| Uygulama oluşturma | Asistanlı | 7 | API yok |
+| Uygulama ayrıntıları (iletişim e-postası, web sitesi, kategori) | API | 2 | `edits.details` |
+| Dil başına mağaza listesi | API | 2 | |
+| Grafikler: ikon, öne çıkan görsel, telefon ve 7"/10" tablet ekranları | API | 2 | |
+| Track ve sürümler (internal, closed, open, production), sürüm notları, aşamalı yayın, ülke seçimi | API | 2 | Production yalnız `ReleaseProduction` izniyle |
+| Test kullanıcı listeleri | API | 2 | `edits.testers` (Google grupları) |
+| EAS çıktısından AAB yükleme | API | 2 | |
+| Data safety | API | 2 | `applications.dataSafety` CSV alır; kayıtlı cevaplardan CSV üretilir |
+| Abonelikler, base plan'lar, teklifler, tek seferlik ürünler | API | 6 | |
+| Yorumlar ve yanıt | API | 4 | API yalnız yakın tarihli, metinli yorumları döndürür; storeasy saklar |
+| Vitals (Reporting API) | API | 7 | İsteğe bağlı |
+| İçerik derecelendirme anketi, hedef kitle, reklam, devlet, finans ve sağlık beyanları | Asistanlı | 7 | Kayıtlı cevaplar |
+| Foreground service ve full-screen intent beyanları (demo videolu) | Asistanlı | 7 | |
+| Politika durumu | Asistanlı | 4 | |
+| Android geliştirici doğrulaması (paket adı kaydı) | Asistanlı | 4 | Play Console'da uygulama kaydı; kayıtsız uygulama Play'den kaldırılabilir. Gerekli hesap izni hazırlık kontrolünde |
+| Hedef API seviyesi | Build verisi + katalog | 2 | Yeni uygulamalar ve güncellemeler 31 Ağustos 2026'dan beri API 36; mevcut uygulamalar yeni kullanıcılara görünmek için API 35; uzatma 1 Kasım 2026'ya kadardı |
+
+### 11.6 MCP
+
+- Matristeki her API ve asistanlı satır bir araçtır; yazmalar dry run ve onay kapılı.
+- Tek çağrıda tüm uygulamaların özeti (iki mağaza, durum, eksikler).
+- Araçlar yerel dosya yolu ve klasör kabul eder. Uzaktan MCP dosyayı göremez; yerel `storeasy-mcp` köprüsü dosyaları presigned
+  URL ile S3'e yükleyip aracı varlık kimlikleriyle çağırır. Bu yüzden köprü MVP'de (Faz 3).
+
+## 12. Mağaza kuralları kataloğu ve izleyici
+
+### 12.1 Kurallar veri olarak
+
+Mağaza kuralları kodda değil, sürümlü bir katalogda durur (`rules/` altında JSON, repoda; ileride DB'ye yüklenir). Apple
+veya Google bir kuralı değiştirince sürüm değil veri güncellemesi yapılır. Her kural kaydı: kimlik, mağaza, tür (ekran
+sınıfı, önizleme sınıfı, son tarih, politika maddesi, build minimumu), değerler (boyutlar), yedek zinciri, "ne zaman
+zorunlu" koşulu (cihaz ailesi, SDK sürümü, ülke, uygulama özelliği), yürürlük ve son tarih, kaynak URL ve kontrol tarihi.
+Hazırlık kontrolü, stüdyo dışa aktarımı ve MCP araçları aynı katalogdan okur; Claude "eksik: Duo iç ekran (Nisan 2027'den
+itibaren zorunlu)" gibi bir cevap görür.
+
+### 12.2 Katalog v1 içeriği (18 Kasım 2026'da birincil kaynaklardan kontrol edildi)
+
+Apple ekran görüntüleri ([Screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)):
+
+| Sınıf | Boyutlar (dikey; yatayları da geçerli) | Zorunlu | Yedek |
+|---|---|---|---|
+| iPhone Dynamic Island (medium) | 1206x2622, 1179x2556 | Evet, iPhone'da çalışan her uygulama için en az bir görsel | Face ID (large) ölçeklenir |
+| iPhone Dynamic Island (large) | 1320x2868, 1290x2796, 1260x2736 | Hayır | Face ID (large) |
+| iPhone Face ID (large) | 1284x2778, 1242x2688 | Dynamic Island (large) verilmediyse | Dynamic Island (large) |
+| iPhone Face ID (medium) | 1170x2532, 1125x2436, 1080x2340 | Hayır | Dynamic Island (medium) |
+| iPhone Home Button (large, medium, 4", 3.5") | 1242x2208, 750x1334, 640x1136, 640x960 (durum çubuksuz varyantlar dahil) | Hayır | Bir üst sınıf |
+| iPhone Duo dış ekran | 1398x2034 | Nisan 2027'den itibaren (aşağıdaki not) | Belirtilmemiş |
+| iPhone Duo iç ekran | 2007x2853 | Nisan 2027'den itibaren | Belirtilmemiş |
+| iPad 13" | 2064x2752, 2048x2732 | Evet, iPad'de çalışıyorsa | Yok (en üst sınıf) |
+| iPad 12.9", 11", 10.5", 9.7" | Sayfadaki tüm boyutlar | Hayır | 13" veya bir üst sınıf |
+
+Genel: en az bir, sınıf başına en fazla 10 görsel; jpeg veya png; alfa kanalı yok.
+
+**Duo tutarsızlığı:** Ekran görüntüsü sayfası Duo'yu "Nisan 2027'den itibaren iOS 27.1 SDK veya sonrası ile derlenen
+uygulamalar için zorunlu" diyor; App Store Connect sürüm notu (5 Ekim 2026) "Nisan 2027'den itibaren gönderimler Duo
+ekran görüntüsü içermeli" diyor. Katalogda koşul SDK 27.1 olarak tutulur ve kaynak çelişkisi notlanır; izleyici
+netleşmeyi takip eder. Duo görseli gönderilince ürün sayfasında "made for iPhone Duo" rozeti çıkar.
+
+Apple diğer:
+- Build minimumu: Xcode 26 ve iOS 26 SDK (28 Nisan 2026'dan beri); dağıtım hedefi iOS 13+ (9 Eylül 2026'dan beri).
+- Yaş derecelendirmesi: Shared Location ve Dating and Relationships soruları, son tarih 12 Ocak 2027.
+- Çin anakarası App Compliance beyanları (AIGC, Security Assessment): mevcut uygulamalar için 31 Ocak 2027.
+- On-Demand Resources: 2027 başından itibaren yeni kullananlardan kabul edilmiyor (Background Assets'e geçiş).
+- App Preview boyutları (Duo dahil) ayrı sayfadan katalog v1'e eklenecek; henüz kontrol edilmedi.
+
+Google Play:
+- Hedef API: yeni uygulamalar ve güncellemeler API 36 (31 Ağustos 2026); mevcut uygulamalar görünürlük için API 35.
+- 15 Temmuz 2026 politika paketi: anonim ve rastgele sohbet uygulamalarına çocuk güvenliği kuralları; READ_CALL_LOG artık
+  telefonla hesap doğrulaması için kullanılamaz; Android geliştirici doğrulaması için uygulamaların Play Console'da kayıtlı
+  olması (kayıtsız uygulamalar kaldırılabilir); derecelendirmesiz uygulama yok. Maddelerin son tarihleri politika tablosundan
+  katalog v1'e girecek.
+
+### 12.3 Kural izleyici
+
+- Periyodik iş (worker zamanlayıcısı) Apple Developer News ve RSS, Upcoming Requirements, App Store Connect sürüm notları,
+  Play Console politika duyuruları ve hedef API sayfasını okur; içerik değişimini (hash) yakalar.
+- Değişiklik "katalog önerisi" olarak platform yöneticisine düşer (otomatik yayın yok); Claude MCP ile öneriyi okuyup katalog
+  güncellemesini hazırlayabilir, yönetici onaylar.
+- Onaylanan değişiklik hangi uygulamaları etkiliyorsa sahiplerine bildirim gider (ör. "Fenpo, iOS 27.1 SDK ile derlenince Duo
+  ekran görüntüsü isteyecek").
+
+### 12.4 Uygulama başına uyum zaman çizelgesi
+
+Her uygulamanın ekranında ona uyan bütün yaklaşan son tarihler: katalogdaki kural, uygulamanın verisiyle eşleşir (cihaz
+aileleri, build SDK'sı, hedef API, dağıtılan ülkeler, abonelik var mı). Hazırlık kontrolü ve MCP özeti aynı listeyi kullanır.
+
+Kaynaklar (18 Kasım 2026): [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/),
+[Apple upcoming requirements](https://developer.apple.com/news/upcoming-requirements/),
+[App Store Connect release notes](https://developer.apple.com/help/app-store-connect/release-notes/),
+[Yeni yaş derecelendirmesi descriptor'ları](https://developer.apple.com/news/?id=yxkh08us),
+[China mainland compliance](https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information),
+[Play target API](https://support.google.com/googleplay/android-developer/answer/11926878),
+[Play politika duyurusu, 15 Temmuz 2026](https://support.google.com/googleplay/android-developer/answer/17134731),
+[Play dataSafety API](https://developers.google.com/android-publisher/api-ref/rest/v3/applications/dataSafety).
