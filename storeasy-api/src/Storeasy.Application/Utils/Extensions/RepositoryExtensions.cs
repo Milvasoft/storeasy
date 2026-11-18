@@ -183,4 +183,41 @@ public static class RepositoryExtensions
 
         return id.Value;
     }
+
+    /// <summary>
+    /// Package intake settings of an organization: its row, or the defaults when it has none.
+    /// </summary>
+    /// <param name="settingRepository"></param>
+    /// <param name="organizationId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<Domain.Intake.IntakeSetting> GetIntakeSettingAsync(this IStoreasyRepositoryBase<Domain.Intake.IntakeSetting> settingRepository,
+                                                                               int organizationId,
+                                                                               CancellationToken cancellationToken)
+    {
+        var setting = await settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == organizationId,
+                                                                     projection: s => new Domain.Intake.IntakeSetting { Id = s.Id, OrganizationId = s.OrganizationId, ArtifactRetentionDays = s.ArtifactRetentionDays, MaxArtifactBytes = s.MaxArtifactBytes },
+                                                                     cancellationToken: cancellationToken);
+
+        return setting ?? new Domain.Intake.IntakeSetting { OrganizationId = organizationId };
+    }
+
+    /// <summary>
+    /// Records the outcome of a call to a pull source webhook (shown on the source).
+    /// </summary>
+    /// <param name="sourceRepository"></param>
+    /// <param name="sourceId"></param>
+    /// <param name="now"></param>
+    /// <param name="result"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static Task<int> RecordPullCallAsync(this IStoreasyRepositoryBase<Domain.Intake.ArtifactPullSource> sourceRepository,
+                                                int sourceId,
+                                                DateTime now,
+                                                string result,
+                                                CancellationToken cancellationToken)
+        => sourceRepository.ExecuteUpdateAsync(sourceId,
+                                               new SetPropertyBuilder<Domain.Intake.ArtifactPullSource>().SetPropertyValue(s => s.LastCallDate, (DateTime?)now)
+                                                                                                         .SetPropertyValue(s => s.LastCallResult, result.Length > 300 ? result[..300] : result),
+                                               cancellationToken);
 }
