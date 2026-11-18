@@ -4,6 +4,7 @@ using Milvasoft.DataAccess.EfCore.Configuration;
 using Storeasy.Domain;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
+using Storeasy.Domain.Content;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
 
@@ -48,6 +49,9 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<App> Apps { get; set; }
     public DbSet<StoreApp> StoreApps { get; set; }
     public DbSet<Build> Builds { get; set; }
+    public DbSet<SavedAnswer> SavedAnswers { get; set; }
+    public DbSet<ChangePlan> ChangePlans { get; set; }
+    public DbSet<AssistedStep> AssistedSteps { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
