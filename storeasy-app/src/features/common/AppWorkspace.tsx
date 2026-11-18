@@ -22,10 +22,30 @@ import { storeFromSlug, storeSlug } from './store'
 // The frame of the app screens of phase 2 (design 6.7: one store picker, the app's sections, the section's sub parts in a
 // chip row). The overview, builds and jobs tabs belong to AppDetailPage; this frame links to them and they link here.
 
-export type WorkspaceSection = 'readiness' | 'listing' | 'media' | 'release' | 'answers' | 'assisted' | 'compliance' | 'profile'
+export type WorkspaceSection =
+  | 'readiness'
+  | 'listing'
+  | 'media'
+  | 'release'
+  | 'reviews'
+  | 'rejections'
+  | 'answers'
+  | 'assisted'
+  | 'compliance'
+  | 'profile'
 
 export type WorkspaceSub =
-  'texts' | 'details' | 'category' | 'ageRating' | 'pricing' | 'screenshots' | 'previews' | 'versions' | 'testers' | 'reviewInfo'
+  | 'texts'
+  | 'details'
+  | 'category'
+  | 'ageRating'
+  | 'pricing'
+  | 'screenshots'
+  | 'previews'
+  | 'versions'
+  | 'testers'
+  | 'testflight'
+  | 'reviewInfo'
 
 interface SubItem {
   key: WorkspaceSub
@@ -53,6 +73,7 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
   release: [
     { key: 'versions', path: 'release/versions', stores: BOTH },
     { key: 'testers', path: 'release/testers', stores: GOOGLE },
+    { key: 'testflight', path: 'release/testflight', stores: APPLE },
     { key: 'reviewInfo', path: 'release/review-info', stores: APPLE },
   ],
 }
@@ -62,13 +83,26 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   listing: 'listing/texts',
   media: 'listing/screenshots',
   release: 'release/versions',
+  reviews: 'reviews',
+  rejections: 'rejections',
   answers: 'answers',
   assisted: 'assisted',
   compliance: 'compliance',
   profile: 'settings/profile',
 }
 
-const SECTIONS: WorkspaceSection[] = ['readiness', 'listing', 'media', 'release', 'answers', 'assisted', 'compliance', 'profile']
+const SECTIONS: WorkspaceSection[] = [
+  'readiness',
+  'listing',
+  'media',
+  'release',
+  'reviews',
+  'rejections',
+  'answers',
+  'assisted',
+  'compliance',
+  'profile',
+]
 
 function sectionLabel(section: WorkspaceSection, t: P2Dictionary): string {
   return t.workspace[section]

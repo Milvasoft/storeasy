@@ -7,6 +7,8 @@ export const p2en = {
     listing: 'Store listing',
     media: 'Media',
     release: 'Release',
+    reviews: 'Reviews',
+    rejections: 'Rejections',
     answers: 'Saved answers',
     assisted: 'Assisted steps',
     compliance: 'Compliance',
@@ -27,6 +29,7 @@ export const p2en = {
     previews: 'App previews',
     versions: 'Versions and tracks',
     testers: 'Testers',
+    testflight: 'TestFlight',
     reviewInfo: 'Review information',
   },
   plan: {

@@ -3,14 +3,18 @@ import { Menu } from '@/components/ui/Menu'
 import { IconButton } from '@/components/ui/primitives'
 import { useFeature } from '@/lib/features/FeatureFlagsContext'
 import { useT } from '@/lib/i18n/I18nContext'
+import { NotificationCenterBell } from '@/features/notifications/NotificationCenterBell'
 
 /**
- * The bell in the top bar (design 14.19). The notification center comes with its API round (types, organization field,
- * live counter); until then the bell opens a short note instead of an empty list.
+ * The bell in the top bar (design 14.19). With the Notifications section on it is the notification center's bell (live
+ * counter, newest notifications); with it off the bell opens a short note instead of an empty list.
  */
 export function NotificationBell() {
   const t = useT()
   const enabled = useFeature('Notifications')
+  if (enabled) {
+    return <NotificationCenterBell />
+  }
   return (
     <Menu
       label={t.notifications.label}
@@ -29,7 +33,7 @@ export function NotificationBell() {
               <span className="grid h-10 w-10 place-items-center rounded-md bg-bg2 text-fg2">
                 <BellOff className="h-5 w-5" aria-hidden />
               </span>
-              <b className="text-[13.5px]">{enabled ? t.notifications.empty : t.notifications.comingTitle}</b>
+              <b className="text-[13.5px]">{t.notifications.comingTitle}</b>
               <span className="text-xs text-fg3">{t.notifications.comingBody}</span>
             </div>
           ),

@@ -142,6 +142,11 @@ export const defaultHandlers: HttpHandler[] = [
   ),
   endpoint('post', '/StoreJobs/job/cancel', () => json(envelope(5))),
 
+  // ---- notifications (the bell of the shell calls these on every page) ------
+  endpoint('patch', '/Account/notifications', () => json(listEnvelope([]))),
+  endpoint('put', '/Account/notifications/seen', () => json(envelope(null))),
+  endpoint('delete', '/Account/notifications', () => json(envelope(null))),
+
   // ---- assets -------------------------------------------------------------
   endpoint('post', '/Assets/upload', () =>
     json(envelope({ AssetId: 501, UploadUrl: `${STORAGE_URL}/single`, PartSize: null, Parts: [], ExpiryDate: '2026-11-18T11:00:00Z' })),
