@@ -1,6 +1,7 @@
 ﻿using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.MsStore;
+using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
@@ -27,6 +28,7 @@ public static class MsStoreRepositoryExtensions
         => productRepository.GetFirstOrDefaultAsync(p => p.StoreAppId == storeAppId && p.OrganizationId == organizationId && p.StoreApp.Store == StoreKind.Microsoft && !p.StoreApp.App.IsDeleted,
                                                     projection: p => new MsProductContext
                                                     {
+                                                        OrganizationId = p.OrganizationId,
                                                         StoreAppId = p.StoreAppId,
                                                         AppId = p.StoreApp.AppId,
                                                         ProductId = p.StoreApp.ExternalId,
@@ -39,6 +41,51 @@ public static class MsStoreRepositoryExtensions
                                                         PendingSubmissionId = p.PendingSubmissionId,
                                                     },
                                                     cancellationToken: cancellationToken);
+
+    /// <summary>
+    /// Records Microsoft Store assisted steps (<c>ms.*</c> keys and catalog rule ids) in the assisted steps table: rows that
+    /// do not exist yet are added as to do; existing rows keep their progress. One read and one insert.
+    /// </summary>
+    /// <param name="stepRepository"></param>
+    /// <param name="organizationId"></param>
+    /// <param name="steps">App and step key pairs.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<int> EnsureMsAssistedStepsAsync(this IStoreasyRepositoryBase<AssistedStep> stepRepository,
+                                                             int organizationId,
+                                                             IReadOnlyCollection<(int AppId, string Key)> steps,
+                                                             CancellationToken cancellationToken)
+    {
+        var wanted = steps.Where(s => s.Key != null).Distinct().ToList();
+
+        if (wanted.Count == 0)
+            return 0;
+
+        var appIds = wanted.Select(s => s.AppId).Distinct().ToList();
+        var keys = wanted.Select(s => s.Key).Distinct().ToList();
+        var existing = await stepRepository.GetAllAsync(s => s.OrganizationId == organizationId && appIds.Contains(s.AppId) && s.Store == StoreKind.Microsoft && keys.Contains(s.Key),
+                                                        projection: s => new AssistedStep { AppId = s.AppId, Key = s.Key },
+                                                        cancellationToken: cancellationToken);
+
+        var missing = wanted.Where(w => !existing.Any(e => e.AppId == w.AppId && e.Key == w.Key))
+                            .Select(w => new AssistedStep { OrganizationId = organizationId, AppId = w.AppId, Store = StoreKind.Microsoft, Key = w.Key, Status = AssistedStepStatus.Todo })
+                            .ToList();
+
+        if (missing.Count == 0)
+            return 0;
+
+        try
+        {
+            await stepRepository.AddRangeAsync(missing, cancellationToken);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            // A concurrent request recorded them first.
+            return 0;
+        }
+
+        return missing.Count;
+    }
 
     /// <summary>
     /// Whether the organization has a Microsoft Store product for <paramref name="storeAppId"/>.
@@ -179,6 +226,7 @@ public static class MsStoreRepositoryExtensions
     /// <param name="submissionId"></param>
     /// <param name="addonStoreId"></param>
     /// <param name="assetFileNames"></param>
+    /// <param name="limits">Listing limits of the rule catalog; catalog v1 values when null.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static async Task<MsPlanContext> GetMsPlanContextAsync(this IStoreasyRepositoryBase<MsSubmission> submissionRepository,
@@ -189,6 +237,7 @@ public static class MsStoreRepositoryExtensions
                                                                   string submissionId,
                                                                   string addonStoreId,
                                                                   IReadOnlyDictionary<long, string> assetFileNames,
+                                                                  MsListingLimits limits,
                                                                   CancellationToken cancellationToken)
     {
         var pending = submissionId == null
@@ -217,6 +266,7 @@ public static class MsStoreRepositoryExtensions
             FlightNames = [.. flightNames.Select(f => f.FriendlyName).Where(n => n != null)],
             AddonProductIds = [.. addons.Select(a => a.ProductId).Where(p => p != null)],
             AssetFileNames = assetFileNames ?? new Dictionary<long, string>(),
+            Limits = limits ?? MsListingLimits.Default,
         };
     }
 }

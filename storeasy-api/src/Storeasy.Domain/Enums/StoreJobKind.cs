@@ -33,11 +33,6 @@ public enum StoreJobKind : short
     [Description("Sync Microsoft Store")]
     MsSync = 50,
 
-    /// <summary>
-    /// Writes one planned Microsoft Store change (listings, images, packages, pricing, flights, add-ons, rollout).
-    /// </summary>
-    [Description("Apply a Microsoft Store change")]
-    MsApplyChange = 51,
 
     /// <summary>
     /// Commits a Microsoft Store submission (sends it to certification) and polls its status.

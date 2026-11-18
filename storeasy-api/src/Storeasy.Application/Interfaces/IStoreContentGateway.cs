@@ -509,6 +509,12 @@ public sealed class ContentChangeSet
     public bool DemoPasswordFromAnswers { get; set; }
 
     /// <summary>
+    /// A Microsoft Store change and the fingerprint of the content it was planned on (plans of kind
+    /// <see cref="ChangePlanKind.MsChange"/>).
+    /// </summary>
+    public Dtos.MsStoreDtos.MsPlannedChange Microsoft { get; set; }
+
+    /// <summary>
     /// Secret values resolved by the job, in memory only.
     /// </summary>
     [JsonIgnore]
@@ -519,7 +525,7 @@ public sealed class ContentChangeSet
     /// </summary>
     [JsonIgnore]
     public bool IsEmpty => Fields.Count == 0 && Media.Count == 0 && Release == null && Rollout == null && Testers == null && Bundle == null
-                           && DataSafetyCsv == null && !SubmitForReview;
+                           && DataSafetyCsv == null && !SubmitForReview && Microsoft == null;
 }
 
 /// <summary>

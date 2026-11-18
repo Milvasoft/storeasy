@@ -79,4 +79,9 @@ public class MsChangePlanDto
     /// Apply job, when applied.
     /// </summary>
     public long? JobId { get; set; }
+
+    /// <summary>
+    /// The saved change plan (approve it through the shared plan endpoints, or apply through <c>ms/change</c>).
+    /// </summary>
+    public long? PlanId { get; set; }
 }

@@ -65,7 +65,7 @@ public sealed class ChangePlanService(IStoreasyRepositoryBase<ChangePlan> planRe
 
         var now = Now();
         var versionString = draft.VersionString ?? snapshot?.VersionString;
-        var permission = ChangePlanRules.RequiredPermission(draft.Kind, app.Store, draft.Track);
+        var permission = draft.RequiredPermission ?? ChangePlanRules.RequiredPermission(draft.Kind, app.Store, draft.Track);
 
         var plan = new ChangePlan
         {

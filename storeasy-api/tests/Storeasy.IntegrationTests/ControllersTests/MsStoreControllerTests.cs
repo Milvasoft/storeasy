@@ -401,7 +401,64 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         addons.Data.Single(a => a.StoreId == addonId).Should().Match<MsAddonDto>(a => !a.ApiWritable && a.AssistedReason == MsAssistedReason.StoreManagedConsumable);
         plan.Blocked.Should().BeTrue();
         plan.BlockKey.Should().Be(MessageKey.MsAddonAssisted);
-        product.Data.AssistedSteps.Should().Contain(s => s.Key == "ms.addon.assisted-update" && s.Pending);
+        product.Data.AssistedSteps.Should().Contain(s => s.Key == "ms.addon.assisted-update" && s.Pending && s.StepId != null && s.Status == AssistedStepStatus.Todo);
+
+        var appId = await _factory.DbAsync(db => db.StoreApps.Where(s => s.Id == storeAppId).Select(s => s.AppId).SingleAsync());
+        var (_, steps) = await setup.Owner.Client.PatchAsync<List<Storeasy.Application.Dtos.AssistedStepDtos.AssistedStepListDto>>("assisted-steps", new { organizationId = setup.OrganizationId, appId, store = StoreKind.Microsoft });
+
+        steps.Data.Should().Contain(s => s.Key == "ms.addon.assisted-update" && !string.IsNullOrEmpty(s.Title) && !s.Title.StartsWith("AssistedStep."), "the refusal is persisted as an assisted step with its texts");
+        steps.Data.Should().Contain(s => s.Key == "ms.reviews.reply");
+    }
+
+    [Fact]
+    public async Task ADryRunPlan_ShouldBeAChangePlan_ApprovedThroughTheSharedPlanEndpoints()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+
+        await SyncAsync(setup);
+
+        var storeAppId = await StoreAppIdAsync(setup, setup.AppId);
+        var editor = await AddMemberAsync(setup, OrgRole.Editor);
+        var plan = await PlanAsync(setup, storeAppId, ListingChange("Approved later"));
+
+        // Act
+        var (_, saved) = await setup.Owner.Client.GetAsync<Storeasy.Application.Dtos.ContentDtos.ChangePlanDto>($"plans/plan?organizationId={setup.OrganizationId}&planId={plan.PlanId}");
+        var (approved, approvedBody) = await editor.Client.PostAsync<Storeasy.Application.Dtos.ContentDtos.ChangePlanDto>("plans/approve", new { organizationId = setup.OrganizationId, planId = plan.PlanId });
+        var job = await WaitForJobAsync(approvedBody.Data.JobId.Value);
+        var plans = await _factory.DbAsync(db => db.ChangePlans.AsNoTracking().SingleAsync(p => p.Id == plan.PlanId));
+
+        // Assert
+        plan.PlanId.Should().NotBeNull();
+        saved.Data.Kind.Should().Be(ChangePlanKind.MsChange);
+        saved.Data.Store.Should().Be(StoreKind.Microsoft);
+        saved.Data.Items.Should().ContainSingle(i => i.Field == "description" && i.After == "Approved later");
+        approved.StatusCode.Should().Be(HttpStatusCode.OK);
+        job.Kind.Should().Be(StoreJobKind.ApplyChangePlan);
+        job.Status.Should().Be(StoreJobStatus.Succeeded, job.Error);
+        plans.Status.Should().Be(ChangePlanStatus.Applied);
+        Microsoft.Submissions[Microsoft.Apps[setup.AppId].PendingId]["listings"]!["en-us"]!["baseListing"]!["description"]!.GetValue<string>().Should().Be("Approved later");
+    }
+
+    [Fact]
+    public async Task ApprovingAPlan_ShouldBeRefused_WhenTheStoreChangedSinceThePlan()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+
+        await SyncAsync(setup);
+
+        var storeAppId = await StoreAppIdAsync(setup, setup.AppId);
+        var plan = await PlanAsync(setup, storeAppId, ListingChange("Mine"));
+
+        Microsoft.Submissions[Microsoft.Apps[setup.AppId].PublishedId]["listings"]!["en-us"]!["baseListing"]!["description"] = "Changed in Partner Center";
+
+        // Act
+        var (approved, approvedBody) = await setup.Owner.Client.PostAsync<Storeasy.Application.Dtos.ContentDtos.ChangePlanDto>("plans/approve", new { organizationId = setup.OrganizationId, planId = plan.PlanId });
+
+        // Assert
+        approved.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        approvedBody.Messages.Should().Contain(m => m.Key == MessageKey.PlanConflict);
     }
 
     [Fact]

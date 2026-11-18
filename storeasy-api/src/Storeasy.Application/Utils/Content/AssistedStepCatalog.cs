@@ -45,6 +45,7 @@ public static class AssistedStepCatalog
 
     private const string _appStoreConnect = "https://appstoreconnect.apple.com/apps/{externalId}/distribution";
     private const string _playConsole = "https://play.google.com/console";
+    private const string _partnerCenter = "https://partner.microsoft.com/dashboard/products/{externalId}/overview";
 
     /// <summary>
     /// Built in steps.
@@ -56,6 +57,22 @@ public static class AssistedStepCatalog
         new("google.target-audience", StoreKind.Google, null, _playConsole, [SavedAnswerKind.TargetAudience], 3, 0),
         new("google.app-access", StoreKind.Google, null, _playConsole, [SavedAnswerKind.ReviewLogin, SavedAnswerKind.ReviewNotes], 3, 1),
         new("google.category", StoreKind.Google, null, _playConsole, [], 2, 0),
+        new(MsStore.MsAssistedSteps.FlightGroups, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+        new(MsStore.MsAssistedSteps.Reviews, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+    ];
+
+    /// <summary>
+    /// Steps recorded only when they come up: Microsoft Store items the API refuses or that belong to Partner Center
+    /// (persisted by the Microsoft features, not listed for every app).
+    /// </summary>
+    public static IReadOnlyList<AssistedStepDefinition> Conditional { get; } =
+    [
+        new(MsStore.MsAssistedSteps.ReserveName, StoreKind.Microsoft, null, "https://partner.microsoft.com/dashboard/apps-and-games/overview", [], 2, 0),
+        new(MsStore.MsAssistedSteps.Pricing, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+        new(MsStore.MsAssistedSteps.AddonUpdate, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+        new(MsStore.MsAssistedSteps.MandatoryUpdate, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+        new(MsStore.MsAssistedSteps.ManualEdit, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
+        new(MsStore.MsAssistedSteps.CertificationReport, StoreKind.Microsoft, null, _partnerCenter, [], 2, 0),
     ];
 
     /// <summary>
@@ -75,7 +92,7 @@ public static class AssistedStepCatalog
                               .Select(r => new AssistedStepDefinition(r.Id,
                                                                       subject.Store,
                                                                       r.Id,
-                                                                      subject.Store == StoreKind.Apple ? _appStoreConnect + "/info" : _playConsole,
+                                                                      StoreUrlOf(subject.Store),
                                                                       AnswerKeysOf(r),
                                                                       GenericStepCount,
                                                                       0)));
@@ -92,7 +109,7 @@ public static class AssistedStepCatalog
     /// <returns></returns>
     public static AssistedStepDefinition Find(RuleCatalog catalog, StoreKind store, string key)
     {
-        var builtIn = BuiltIn.FirstOrDefault(s => s.Store == store && s.Key == key);
+        var builtIn = BuiltIn.Concat(Conditional).FirstOrDefault(s => s.Store == store && s.Key == key);
 
         if (builtIn != null)
             return builtIn;
@@ -101,7 +118,7 @@ public static class AssistedStepCatalog
 
         return rule == null || rule.StoreKind != store
             ? null
-            : new AssistedStepDefinition(rule.Id, store, rule.Id, store == StoreKind.Apple ? _appStoreConnect + "/info" : _playConsole, AnswerKeysOf(rule), GenericStepCount, 0);
+            : new AssistedStepDefinition(rule.Id, store, rule.Id, StoreUrlOf(store), AnswerKeysOf(rule), GenericStepCount, 0);
     }
 
     /// <summary>
@@ -119,4 +136,11 @@ public static class AssistedStepCatalog
 
         return inputs.Any(i => i.Contains("dataSafety", StringComparison.OrdinalIgnoreCase)) ? [SavedAnswerKind.DataSafety] : [];
     }
+
+    private static string StoreUrlOf(StoreKind store) => store switch
+    {
+        StoreKind.Apple => _appStoreConnect + "/info",
+        StoreKind.Microsoft => _partnerCenter,
+        _ => _playConsole,
+    };
 }

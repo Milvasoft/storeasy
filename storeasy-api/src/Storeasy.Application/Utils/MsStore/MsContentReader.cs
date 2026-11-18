@@ -48,6 +48,56 @@ public static class MsContentReader
     }
 
     /// <summary>
+    /// Prefix of an encoded read (<see cref="Encode"/>).
+    /// </summary>
+    public const string EncodedPrefix = "ms:";
+
+    /// <summary>
+    /// Encodes what a plan of <paramref name="kind"/> reads into a short text, kept as the change plan's version id so that
+    /// the shared approval can read the same content again (through the Microsoft content gateway) and compare its
+    /// fingerprint.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="kind"></param>
+    /// <returns></returns>
+    public static string Encode(Request request, MsChangeKind kind)
+        => $"{EncodedPrefix}{(int)kind}:{(int)request.Kind}:{(int)request.Target}:{request.FlightId}:{request.AddonStoreId}:{request.RolloutSubmissionId}";
+
+    /// <summary>
+    /// Decodes <see cref="Encode"/>; false when <paramref name="value"/> is not an encoded read.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="productId"></param>
+    /// <param name="request"></param>
+    /// <param name="kind"></param>
+    /// <returns></returns>
+    public static bool TryDecode(string value, string productId, out Request request, out MsChangeKind kind)
+    {
+        request = null;
+        kind = default;
+
+        var parts = value?.StartsWith(EncodedPrefix, StringComparison.Ordinal) == true ? value[EncodedPrefix.Length..].Split(':') : null;
+
+        if (parts?.Length != 6 || !int.TryParse(parts[0], out var kindValue) || !int.TryParse(parts[1], out var productKind) || !int.TryParse(parts[2], out var target))
+            return false;
+
+        static string Value(string part) => part.Length == 0 ? null : part;
+
+        kind = (MsChangeKind)kindValue;
+        request = new Request
+        {
+            Kind = (MsProductKind)productKind,
+            ProductId = productId,
+            Target = (MsSubmissionTarget)target,
+            FlightId = Value(parts[3]),
+            AddonStoreId = Value(parts[4]),
+            RolloutSubmissionId = Value(parts[5]),
+        };
+
+        return true;
+    }
+
+    /// <summary>
     /// Reads the content of <paramref name="request"/>.
     /// </summary>
     /// <param name="client"></param>

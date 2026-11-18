@@ -242,10 +242,10 @@ public class MsStoreRulesTests
             SearchTerms = ["ok", new string('t', 31)],
         };
 
-        MsListingLimits.Violations(listing).Select(v => v.Field).Should().BeEquivalentTo(["description", "whatsNew", "features", "searchTerms[]"]);
-        MsListingLimits.ScreenshotLimit("Screenshot").Should().Be(10);
-        MsListingLimits.ScreenshotLimit("XboxScreenshot").Should().Be(8);
-        MsListingLimits.ScreenshotLimit("StoreLogoSquare").Should().BeNull();
+        MsListingLimits.Default.Violations(listing).Select(v => v.Field).Should().BeEquivalentTo(["description", "whatsNew", "features", "searchTerms[]"]);
+        MsListingLimits.Default.ScreenshotLimit("Screenshot").Should().Be(10);
+        MsListingLimits.Default.ScreenshotLimit("XboxScreenshot").Should().Be(8);
+        MsListingLimits.Default.ScreenshotLimit("StoreLogoSquare").Should().BeNull();
     }
 
     [Theory]
@@ -354,8 +354,47 @@ public class MsStoreRulesTests
 
         var steps = MsAssistedSteps.For(product, assistedAddons: true, failedCertification: false, "https://partner.microsoft.com/dashboard/products/{productId}/overview", key => key);
 
-        steps.Where(s => s.Pending).Select(s => s.Key).Should().BeEquivalentTo([MsAssistedSteps.FirstSubmission, MsAssistedSteps.AgeRating, MsAssistedSteps.Pricing, MsAssistedSteps.AddonUpdate]);
+        steps.Where(s => s.Pending).Select(s => s.Key).Should().BeEquivalentTo([MsAssistedSteps.FirstSubmission, MsAssistedSteps.Pricing, MsAssistedSteps.AddonUpdate]);
         steps.Should().Contain(s => s.Key == MsAssistedSteps.Reviews && !s.Pending);
         steps.Single(s => s.Key == MsAssistedSteps.FirstSubmission).Url.Should().Contain("9NBLGGH4R315");
+    }
+
+    [Fact]
+    public void ListingLimits_ShouldComeFromTheRuleCatalogByRuleId()
+    {
+        var rule = new Storeasy.Domain.Rules.CatalogRule { Id = MsListingLimits.SearchTermsRule, Params = new Storeasy.Domain.Rules.RuleParams { MaxItems = 5, MaxCharsPerItem = 25 } };
+        var catalog = new Storeasy.Domain.Rules.RuleCatalog("test", DateTime.UtcNow, [rule], "test");
+
+        var limits = MsListingLimits.From(catalog);
+
+        limits.SearchTermCount.Should().Be(5);
+        limits.SearchTermLength.Should().Be(25);
+        limits.Description.Should().Be(10000, "a rule missing from the catalog keeps the catalog v1 value");
+        limits.Violations(new MsListingDto { Locale = "en-us", SearchTerms = ["a", "b", "c", "d", "e", "f"] }).Select(v => v.Field).Should().Equal("searchTerms");
+    }
+
+    [Fact]
+    public void EncodedRead_ShouldRoundTrip()
+    {
+        var request = new MsContentReader.Request { Kind = MsProductKind.Msix, ProductId = "9NBLGGH4R315", Target = MsSubmissionTarget.Flight, FlightId = "f1", RolloutSubmissionId = "115" };
+
+        var encoded = MsContentReader.Encode(request, MsChangeKind.Rollout);
+
+        MsContentReader.TryDecode(encoded, "9NBLGGH4R315", out var decoded, out var kind).Should().BeTrue();
+        kind.Should().Be(MsChangeKind.Rollout);
+        decoded.Should().BeEquivalentTo(request);
+        encoded.Length.Should().BeLessThanOrEqualTo(100, "it is kept in the change plan's version id column");
+        MsContentReader.TryDecode("1.2.0", "x", out _, out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(MsAssistedReason.PricingV2, MsAssistedSteps.Pricing)]
+    [InlineData(MsAssistedReason.ManualEdit, MsAssistedSteps.ManualEdit)]
+    [InlineData(MsAssistedReason.MandatoryUpdate, MsAssistedSteps.MandatoryUpdate)]
+    [InlineData(MsAssistedReason.StoreManagedConsumable, MsAssistedSteps.AddonUpdate)]
+    public void BlockedPlans_ShouldMapToPersistedAssistedSteps(MsAssistedReason reason, string key)
+    {
+        MsAssistedSteps.KeyOf(reason).Should().Be(key);
+        Storeasy.Application.Utils.Content.AssistedStepCatalog.Find(new Storeasy.Domain.Rules.RuleCatalog("test", DateTime.UtcNow, [], "test"), StoreKind.Microsoft, key).Should().NotBeNull();
     }
 }

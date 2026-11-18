@@ -13,11 +13,8 @@ public static class MsAssistedSteps
     /// <summary>Reserve the app name (the API cannot create apps).</summary>
     public const string ReserveName = "ms.app.reserve-name";
 
-    /// <summary>First submission in Partner Center.</summary>
-    public const string FirstSubmission = "ms.app.first-submission";
-
-    /// <summary>IARC age rating questionnaire.</summary>
-    public const string AgeRating = "ms.app.age-rating";
+    /// <summary>First submission in Partner Center, with the IARC age rating questionnaire (catalog rule id).</summary>
+    public const string FirstSubmission = "microsoft.api-access.first-submission-in-partner-center";
 
     /// <summary>Price on Pricing Version 2.</summary>
     public const string Pricing = "ms.pricing.v2";
@@ -60,7 +57,6 @@ public static class MsAssistedSteps
         if (product.Kind == MsProductKind.Msix)
         {
             steps.Add(Step(FirstSubmission, MessageKey.MsStepFirstSubmission, null, url, !product.FirstSubmissionDone, localize));
-            steps.Add(Step(AgeRating, MessageKey.MsStepAgeRating, null, url, !product.FirstSubmissionDone, localize));
             steps.Add(Step(FlightGroups, MessageKey.MsStepFlightGroups, null, url, false, localize));
         }
 
@@ -82,6 +78,32 @@ public static class MsAssistedSteps
         steps.Add(Step(Reviews, MessageKey.MsStepReviews, null, url, false, localize));
 
         return steps;
+    }
+
+    /// <summary>
+    /// The assisted step of an API refusal.
+    /// </summary>
+    /// <param name="reason"></param>
+    /// <returns></returns>
+    public static string KeyOf(MsAssistedReason reason) => reason switch
+    {
+        MsAssistedReason.PricingV2 => Pricing,
+        MsAssistedReason.MandatoryUpdate => MandatoryUpdate,
+        MsAssistedReason.ManualEdit => ManualEdit,
+        _ => AddonUpdate,
+    };
+
+    /// <summary>
+    /// The assisted step a blocked plan belongs to, or null when the block is not a Partner Center task.
+    /// </summary>
+    /// <param name="plan"></param>
+    /// <returns></returns>
+    public static string KeyOf(MsChangePlanDto plan)
+    {
+        if (plan.AssistedReason.HasValue)
+            return KeyOf(plan.AssistedReason.Value);
+
+        return plan.BlockKey == MessageKey.MsFirstSubmissionRequired ? FirstSubmission : null;
     }
 
     private static MsAssistedStepDto Step(string key, string titleKey, MsAssistedReason? reason, string url, bool pending, Func<string, string> localize) => new()

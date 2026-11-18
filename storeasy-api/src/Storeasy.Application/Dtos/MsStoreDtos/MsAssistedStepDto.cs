@@ -29,4 +29,15 @@ public class MsAssistedStepDto
     /// Whether the step still blocks API work.
     /// </summary>
     public bool Pending { get; set; }
+
+    /// <summary>
+    /// Row of the step in the assisted steps table (complete or hand it off through the assisted step endpoints); null
+    /// until the step came up.
+    /// </summary>
+    public int? StepId { get; set; }
+
+    /// <summary>
+    /// Recorded progress of the step.
+    /// </summary>
+    public AssistedStepStatus? Status { get; set; }
 }

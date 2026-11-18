@@ -2298,6 +2298,50 @@
             <param name="address"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway">
+            <summary>
+            The Microsoft Store side of the shared content engine (<see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>), used by change plans of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>:
+            <list type="bullet">
+            <item>Read: the plan's version id carries the encoded read (<see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>); the snapshot holds
+            the fingerprint of that content under <see cref="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey"/>, so the shared approval
+            compares it with the fingerprint the plan was made on. Without an encoded read the snapshot carries the listing
+            languages only.</item>
+            <item>Apply: the change set's Microsoft part is written by <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier"/>, which plans again and refuses a
+            changed fingerprint.</item>
+            </list>
+            </summary>
+            <param name="microsoftStoreClient"></param>
+            <param name="applier"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.#ctor(Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier)">
+            <summary>
+            The Microsoft Store side of the shared content engine (<see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>), used by change plans of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>:
+            <list type="bullet">
+            <item>Read: the plan's version id carries the encoded read (<see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>); the snapshot holds
+            the fingerprint of that content under <see cref="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey"/>, so the shared approval
+            compares it with the fingerprint the plan was made on. Without an encoded read the snapshot carries the listing
+            languages only.</item>
+            <item>Apply: the change set's Microsoft part is written by <see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier"/>, which plans again and refuses a
+            changed fingerprint.</item>
+            </list>
+            </summary>
+            <param name="microsoftStoreClient"></param>
+            <param name="applier"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftCredentials">
             <summary>
             Microsoft Entra application credentials of a Partner Center account.
@@ -2566,13 +2610,14 @@
             </summary>
             <param name="key"></param>
         </member>
-        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler">
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier">
             <summary>
-            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job: writes one planned Microsoft Store change. It reads the store and plans
-            again; when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits
-            go into the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files
-            uploaded as one ZIP to the draft's SAS address; the draft is sent to certification only by
-            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>. A 409 marks the product, add-on or submission as Partner Center only.
+            Writes one Microsoft Store change of an approved change plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>), called by the
+            Microsoft content gateway inside the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. It reads the store and plans again;
+            when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits go into
+            the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files uploaded
+            as one ZIP to the SAS address of the draft; the draft is sent to certification only by <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>.
+            A 409 marks the product, add-on or submission as Partner Center only and records the assisted step.
             </summary>
             <param name="productRepository"></param>
             <param name="submissionRepository"></param>
@@ -2580,19 +2625,21 @@
             <param name="addonRepository"></param>
             <param name="packageRepository"></param>
             <param name="assetRepository"></param>
+            <param name="stepRepository"></param>
             <param name="microsoftStoreClient"></param>
             <param name="fileStorage"></param>
-            <param name="auditTrail"></param>
+            <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.MicrosoftStoreOptions,System.TimeProvider)">
             <summary>
-            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job: writes one planned Microsoft Store change. It reads the store and plans
-            again; when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits
-            go into the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files
-            uploaded as one ZIP to the draft's SAS address; the draft is sent to certification only by
-            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>. A 409 marks the product, add-on or submission as Partner Center only.
+            Writes one Microsoft Store change of an approved change plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>), called by the
+            Microsoft content gateway inside the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. It reads the store and plans again;
+            when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits go into
+            the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files uploaded
+            as one ZIP to the SAS address of the draft; the draft is sent to certification only by <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/>.
+            A 409 marks the product, add-on or submission as Partner Center only and records the assisted step.
             </summary>
             <param name="productRepository"></param>
             <param name="submissionRepository"></param>
@@ -2600,35 +2647,41 @@
             <param name="addonRepository"></param>
             <param name="packageRepository"></param>
             <param name="assetRepository"></param>
+            <param name="stepRepository"></param>
             <param name="microsoftStoreClient"></param>
             <param name="fileStorage"></param>
-            <param name="auditTrail"></param>
+            <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.Kind">
-            <inheritdoc/>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.ApplyAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,System.String,Storeasy.Application.Dtos.MsStoreDtos.MsPlannedChange,System.Threading.CancellationToken)">
+            <summary>
+            Plans <paramref name="planned"/> again on fresh content and writes it. Returns one line per write.
+            </summary>
+            <param name="context"></param>
+            <param name="secretJson"></param>
+            <param name="productId"></param>
+            <param name="planned"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.EditSubmissionAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Application.Utils.MsStore.MsChangeEvaluation,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.EditSubmissionAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Application.Utils.MsStore.MsChangeEvaluation,System.Threading.CancellationToken)">
             <summary>
             Edits the pending draft (or a new one): listings, images, packages, pricing (MSIX) and add-on content.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.ApplyContentAsync(System.Int32,System.Text.Json.Nodes.JsonObject,Storeasy.Domain.Enums.MsSubmissionTarget,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.ApplyContentAsync(System.Int32,System.Text.Json.Nodes.JsonObject,Storeasy.Domain.Enums.MsSubmissionTarget,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto)">
             <summary>
             Writes the change into the submission document and returns the assets to upload (ZIP entry name, object key).
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.SaveDraftAsync(System.Int32,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.SaveDraftAsync(System.Int32,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
             <summary>
             Records the draft as storeasy's own, with the fingerprint of what was written, and makes it the owner's pending
             submission.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsApplyChangeJobHandler.CallAsync(System.Func{System.Threading.Tasks.Task{System.Text.Json.Nodes.JsonObject}},Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,System.String)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsChangeApplier.CallAsync(System.Func{System.Threading.Tasks.Task{System.Text.Json.Nodes.JsonObject}},Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,System.String)">
             <summary>
             Runs one write; a 409 records the Partner Center rule that caused it and fails the job permanently.
             </summary>
@@ -2818,8 +2871,9 @@
             <param name="buildRepository"></param>
             <param name="microsoftStoreClient"></param>
             <param name="timeProvider"></param>
+            <param name="stepRepository"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
             <list type="bullet">
@@ -2841,6 +2895,7 @@
             <param name="buildRepository"></param>
             <param name="microsoftStoreClient"></param>
             <param name="timeProvider"></param>
+            <param name="stepRepository"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.Kind">
             <inheritdoc/>
@@ -2852,6 +2907,12 @@
             <summary>
             Updates the known records and product rows, adds the new MSIX apps (app, record and product row in one insert) and
             removes never confirmed MSI/EXE products the store refused. Returns the store record id of every snapshot.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.AssistedStepsOf(System.Int32,Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot)">
+            <summary>
+            The Partner Center tasks a product read shows: first submission, Pricing Version 2, mandatory updates, refused
+            add-ons, drafts changed in Partner Center and failed certification.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.RankFlights(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsFlightRecord})">

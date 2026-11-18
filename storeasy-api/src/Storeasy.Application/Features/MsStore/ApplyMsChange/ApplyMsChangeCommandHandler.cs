@@ -4,8 +4,11 @@ using Milvasoft.Core.Abstractions;
 using Milvasoft.Core.Abstractions.Localization;
 using Milvasoft.Interception.Interceptors.Logging;
 using Storeasy.Application.Dtos.MsStoreDtos;
+using Storeasy.Application.Utils.Content;
 using Storeasy.Application.Utils.MsStore;
+using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
+using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
@@ -14,9 +17,12 @@ namespace Storeasy.Application.Features.MsStore.ApplyMsChange;
 
 /// <summary>
 /// Handles <see cref="ApplyMsChangeCommand"/>. Reads the store inside the request (the secret is opened only for these
-/// reads), plans with <see cref="MsChangeEvaluator"/> and, when applying, checks the plan's own permission against the
-/// caller's role, refuses blocked plans and stale hashes, queues the <see cref="StoreJobKind.MsApplyChange"/> job and
-/// writes the audit entry. The job plans again and refuses when the store content changed in between.
+/// reads) and plans with <see cref="MsChangeEvaluator"/>. A plan that is not blocked is saved as a change plan of kind
+/// <see cref="ChangePlanKind.MsChange"/> through <see cref="IChangePlanService"/>: a dry run leaves it pending (approve it
+/// with the shared plan endpoints); applying approves it right away with the same rules (the plan's permission, a second
+/// store read through the Microsoft content gateway compared by fingerprint) and queues the
+/// <see cref="StoreJobKind.ApplyChangePlan"/> job. A blocked plan is never saved; when it is a Partner Center task its
+/// assisted step is recorded.
 /// </summary>
 /// <param name="ProductRepository"></param>
 /// <param name="ConnectionRepository"></param>
@@ -24,11 +30,13 @@ namespace Storeasy.Application.Features.MsStore.ApplyMsChange;
 /// <param name="FlightRepository"></param>
 /// <param name="AddonRepository"></param>
 /// <param name="AssetRepository"></param>
+/// <param name="StepRepository"></param>
 /// <param name="SecretProtector"></param>
 /// <param name="MicrosoftStoreClient"></param>
+/// <param name="ContentService"></param>
+/// <param name="ChangePlanService"></param>
+/// <param name="RulesCatalog"></param>
 /// <param name="OrganizationAccess"></param>
-/// <param name="StoreJobQueue"></param>
-/// <param name="AuditTrail"></param>
 /// <param name="Localizer"></param>
 [Log]
 public record ApplyMsChangeCommandHandler(IStoreasyRepositoryBase<MsProduct> ProductRepository,
@@ -37,24 +45,33 @@ public record ApplyMsChangeCommandHandler(IStoreasyRepositoryBase<MsProduct> Pro
                                           IStoreasyRepositoryBase<MsFlight> FlightRepository,
                                           IStoreasyRepositoryBase<MsAddon> AddonRepository,
                                           IStoreasyRepositoryBase<Asset> AssetRepository,
+                                          IStoreasyRepositoryBase<AssistedStep> StepRepository,
                                           ISecretProtector SecretProtector,
                                           IMicrosoftStoreClient MicrosoftStoreClient,
+                                          IStoreContentService ContentService,
+                                          IChangePlanService ChangePlanService,
+                                          IRulesCatalog RulesCatalog,
                                           IOrganizationAccess OrganizationAccess,
-                                          IStoreJobQueue StoreJobQueue,
-                                          IAuditTrail AuditTrail,
                                           IMilvaLocalizer Localizer) : IInterceptable, ICommandHandler<ApplyMsChangeCommand, MsChangePlanDto>
 {
+    /// <summary>
+    /// Content key of the Microsoft fingerprint in the change plan's base keys.
+    /// </summary>
+    public const string BaseHashKey = "ms.basehash";
+
     private readonly IStoreasyRepositoryBase<MsProduct> _productRepository = ProductRepository;
     private readonly IStoreasyRepositoryBase<StoreConnection> _connectionRepository = ConnectionRepository;
     private readonly IStoreasyRepositoryBase<MsSubmission> _submissionRepository = SubmissionRepository;
     private readonly IStoreasyRepositoryBase<MsFlight> _flightRepository = FlightRepository;
     private readonly IStoreasyRepositoryBase<MsAddon> _addonRepository = AddonRepository;
     private readonly IStoreasyRepositoryBase<Asset> _assetRepository = AssetRepository;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = StepRepository;
     private readonly ISecretProtector _secretProtector = SecretProtector;
     private readonly IMicrosoftStoreClient _microsoftStoreClient = MicrosoftStoreClient;
+    private readonly IStoreContentService _contentService = ContentService;
+    private readonly IChangePlanService _changePlanService = ChangePlanService;
+    private readonly IRulesCatalog _rulesCatalog = RulesCatalog;
     private readonly IOrganizationAccess _organizationAccess = OrganizationAccess;
-    private readonly IStoreJobQueue _storeJobQueue = StoreJobQueue;
-    private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly IMilvaLocalizer _localizer = Localizer;
 
     /// <inheritdoc/>
@@ -79,7 +96,14 @@ public record ApplyMsChangeCommandHandler(IStoreasyRepositoryBase<MsProduct> Pro
                                                                request.OrganizationId,
                                                                product,
                                                                request.Change,
-                                                               new MsChangeRepositories { Submissions = _submissionRepository, Flights = _flightRepository, Addons = _addonRepository, Assets = _assetRepository },
+                                                               new MsChangeRepositories
+                                                               {
+                                                                   Submissions = _submissionRepository,
+                                                                   Flights = _flightRepository,
+                                                                   Addons = _addonRepository,
+                                                                   Assets = _assetRepository,
+                                                                   Limits = MsListingLimits.From(_rulesCatalog.Current),
+                                                               },
                                                                cancellationToken);
         }
         catch (StoreCallException ex)
@@ -95,35 +119,75 @@ public record ApplyMsChangeCommandHandler(IStoreasyRepositoryBase<MsProduct> Pro
         foreach (var warning in plan.Warnings)
             warning.Message = _localizer[warning.Key];
 
-        if (request.DryRun)
-            return Response<MsChangePlanDto>.Success(plan);
+        plan.DryRun = request.DryRun;
 
-        if (!OrgRoleRules.Allows(_organizationAccess.CurrentRole.GetValueOrDefault(OrgRole.Viewer), plan.RequiredPermission))
+        if (!request.DryRun && !OrgRoleRules.Allows(_organizationAccess.CurrentRole.GetValueOrDefault(OrgRole.Viewer), plan.RequiredPermission))
             return Response<MsChangePlanDto>.Error(plan, MessageKey.OrganizationForbidden);
 
         if (plan.Blocked)
-            return Response<MsChangePlanDto>.Error(plan, plan.BlockKey);
+        {
+            // A Partner Center task becomes (or stays) an assisted step of the app.
+            await _stepRepository.EnsureMsAssistedStepsAsync(request.OrganizationId, [(product.AppId, MsAssistedSteps.KeyOf(plan))], cancellationToken);
 
-        if (!string.Equals(plan.BaseHash, request.BaseHash, StringComparison.Ordinal))
+            return request.DryRun ? Response<MsChangePlanDto>.Success(plan) : Response<MsChangePlanDto>.Error(plan, plan.BlockKey);
+        }
+
+        if (!request.DryRun && !string.Equals(plan.BaseHash, request.BaseHash, StringComparison.Ordinal))
             return Response<MsChangePlanDto>.Error(plan, MessageKey.MsPlanStale);
 
-        var jobIds = await _storeJobQueue.EnqueueAsync([new StoreJobRequest(request.OrganizationId,
-                                                                            StoreJobKind.MsApplyChange,
-                                                                            new MsApplyChangePayload(product.StoreAppId, plan.BaseHash, request.Change),
-                                                                            StoreKind.Microsoft,
-                                                                            product.AppId)], cancellationToken);
+        var app = await _contentService.GetStoreAppAsync(request.OrganizationId, product.StoreAppId, cancellationToken);
 
-        plan.DryRun = false;
-        plan.JobId = jobIds[0];
+        if (app == null)
+            return Response<MsChangePlanDto>.Error(null, MessageKey.StoreAppNotFound);
 
-        await _auditTrail.WriteAsync(request.OrganizationId,
-                                     AuditAction.MsChangeQueued,
-                                     product.StoreAppId.ToString(),
-                                     $"Microsoft Store change {request.Change.Kind} of {product.ProductId} queued ({plan.Items.Count} items).",
-                                     StoreKind.Microsoft,
-                                     new { plan.Kind, plan.Target, plan.SubmissionId, plan.Items, plan.JobId },
-                                     cancellationToken);
+        var draft = Draft(plan, request.Change, MsContentReader.Encode(evaluation.Read, request.Change.Kind), product.ProductId);
+        var snapshot = new StoreContentSnapshot { Store = StoreKind.Microsoft, ExternalId = product.ProductId, VersionId = draft.VersionId };
+
+        snapshot.Values[BaseHashKey] = plan.BaseHash;
+
+        var saved = await _changePlanService.SaveAsync(app, snapshot, draft, request.DryRun, null, cancellationToken);
+
+        if (!saved.IsSuccess)
+        {
+            var message = saved.Messages?.FirstOrDefault();
+
+            return Response<MsChangePlanDto>.Error(plan, string.IsNullOrEmpty(message?.Key) ? message?.Message : message.Key);
+        }
+
+        plan.PlanId = saved.Data.PlanId;
+        plan.JobId = saved.Data.JobId;
 
         return Response<MsChangePlanDto>.Success(plan);
     }
+
+    /// <summary>
+    /// The change plan draft of a Microsoft plan: its diff, remarks and calls, the change itself with its fingerprint, the
+    /// encoded read and the plan's own permission.
+    /// </summary>
+    /// <param name="plan"></param>
+    /// <param name="change"></param>
+    /// <param name="versionId"></param>
+    /// <param name="productId"></param>
+    /// <returns></returns>
+    public static PlanDraft Draft(MsChangePlanDto plan, MsChangeInputDto change, string versionId, string productId) => new()
+    {
+        Kind = ChangePlanKind.MsChange,
+        Title = $"Microsoft Store {change.Kind} of {productId}",
+        Changes = new ContentChangeSet { Microsoft = new MsPlannedChange { Change = change, BaseHash = plan.BaseHash } },
+        Items = [.. plan.Items.Select(i => new PlanItem
+        {
+            Group = i.Group,
+            Locale = i.Locale,
+            Field = i.Field,
+            Before = i.Before,
+            After = i.After,
+            Action = i.Action switch { "add" => ChangeAction.Create, "remove" => ChangeAction.Delete, _ => ChangeAction.Update },
+        })],
+        Warnings = [.. plan.Warnings.Select(w => new PlanWarning { Key = w.Key, Message = w.Message, Field = w.Field, Locale = w.Locale })],
+        Calls = [.. plan.Calls.Select(c => new PlanCall { Method = c.Method, Path = c.Path, Target = c.Target })],
+        BaseKeys = [BaseHashKey],
+        VersionId = versionId,
+        VersionString = productId,
+        RequiredPermission = plan.RequiredPermission,
+    };
 }

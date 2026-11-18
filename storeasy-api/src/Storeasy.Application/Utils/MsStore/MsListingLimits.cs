@@ -1,62 +1,115 @@
 ﻿using Storeasy.Application.Dtos.MsStoreDtos;
+using Storeasy.Domain.Rules;
 
 namespace Storeasy.Application.Utils.MsStore;
 
 /// <summary>
-/// Microsoft Store listing limits, from the rule catalog (<c>rules/microsoft.json</c>, category <c>listing-limits</c> and
-/// <c>screenshots</c>). Kept as constants until the catalog is served by the API; each constant names its rule id.
+/// Microsoft Store listing limits read from the rule catalog by rule id (<c>rules/microsoft.json</c>). A rule missing from
+/// the catalog falls back to the value of catalog v1. Title and add-on texts are not in the catalog and stay fixed.
 /// </summary>
-public static class MsListingLimits
+public sealed class MsListingLimits
 {
-    /// <summary>microsoft.listing-limits.description</summary>
-    public const int Description = 10000;
+    /// <summary>Rule id of the description limit.</summary>
+    public const string DescriptionRule = "microsoft.listing-limits.description";
 
-    /// <summary>microsoft.listing-limits.short-description</summary>
-    public const int ShortDescription = 1000;
+    /// <summary>Rule id of the short description limit.</summary>
+    public const string ShortDescriptionRule = "microsoft.listing-limits.short-description";
 
-    /// <summary>microsoft.listing-limits.whats-new</summary>
-    public const int WhatsNew = 1500;
+    /// <summary>Rule id of the what's new limit.</summary>
+    public const string WhatsNewRule = "microsoft.listing-limits.whats-new";
 
-    /// <summary>microsoft.listing-limits.product-features (count)</summary>
-    public const int FeatureCount = 20;
+    /// <summary>Rule id of the product features limits.</summary>
+    public const string FeaturesRule = "microsoft.listing-limits.product-features";
 
-    /// <summary>microsoft.listing-limits.product-features (characters each)</summary>
-    public const int FeatureLength = 200;
+    /// <summary>Rule id of the search terms limits.</summary>
+    public const string SearchTermsRule = "microsoft.listing-limits.search-terms";
 
-    /// <summary>microsoft.listing-limits.search-terms (count)</summary>
-    public const int SearchTermCount = 7;
+    /// <summary>Rule id of the general screenshot rules (other device families, caption).</summary>
+    public const string ScreenshotsRule = "microsoft.screenshots.general";
 
-    /// <summary>microsoft.listing-limits.search-terms (characters each)</summary>
-    public const int SearchTermLength = 30;
+    /// <summary>Rule id of the desktop screenshot rules.</summary>
+    public const string DesktopScreenshotsRule = "microsoft.screenshots.desktop";
 
-    /// <summary>Title of an app listing (reserved name length in Partner Center).</summary>
-    public const int Title = 256;
+    /// <summary>Title of an app listing (reserved name length in Partner Center; not in the catalog).</summary>
+    public const int TitleLength = 256;
 
-    /// <summary>microsoft.screenshots.desktop (per language)</summary>
-    public const int DesktopScreenshots = 10;
-
-    /// <summary>microsoft.screenshots.general (other device families, per language)</summary>
-    public const int OtherScreenshots = 8;
-
-    /// <summary>microsoft.screenshots.general (caption)</summary>
-    public const int ImageCaption = 200;
-
-    /// <summary>Add-on listing title.</summary>
+    /// <summary>Add-on listing title (not in the catalog).</summary>
     public const int AddonTitle = 100;
 
-    /// <summary>Add-on listing description.</summary>
+    /// <summary>Add-on listing description (not in the catalog).</summary>
     public const int AddonDescription = 200;
+
+    /// <summary>
+    /// The values of catalog v1.
+    /// </summary>
+    public static MsListingLimits Default { get; } = new();
+
+    /// <summary>Description characters.</summary>
+    public int Description { get; init; } = 10000;
+
+    /// <summary>Short description characters.</summary>
+    public int ShortDescription { get; init; } = 1000;
+
+    /// <summary>What's new characters.</summary>
+    public int WhatsNew { get; init; } = 1500;
+
+    /// <summary>Product features.</summary>
+    public int FeatureCount { get; init; } = 20;
+
+    /// <summary>Characters of a product feature.</summary>
+    public int FeatureLength { get; init; } = 200;
+
+    /// <summary>Search terms.</summary>
+    public int SearchTermCount { get; init; } = 7;
+
+    /// <summary>Characters of a search term.</summary>
+    public int SearchTermLength { get; init; } = 30;
+
+    /// <summary>Desktop screenshots per language.</summary>
+    public int DesktopScreenshots { get; init; } = 10;
+
+    /// <summary>Screenshots of each other device family per language.</summary>
+    public int OtherScreenshots { get; init; } = 8;
+
+    /// <summary>Characters of an image caption.</summary>
+    public int ImageCaption { get; init; } = 200;
+
+    /// <summary>
+    /// Limits from <paramref name="catalog"/>; missing rules keep the catalog v1 values.
+    /// </summary>
+    /// <param name="catalog"></param>
+    /// <returns></returns>
+    public static MsListingLimits From(RuleCatalog catalog)
+    {
+        RuleParams Params(string id) => catalog?.Find(id)?.Params;
+
+        var screenshots = Params(ScreenshotsRule);
+
+        return new MsListingLimits
+        {
+            Description = Params(DescriptionRule)?.MaxChars ?? Default.Description,
+            ShortDescription = Params(ShortDescriptionRule)?.MaxChars ?? Default.ShortDescription,
+            WhatsNew = Params(WhatsNewRule)?.MaxChars ?? Default.WhatsNew,
+            FeatureCount = Params(FeaturesRule)?.MaxItems ?? Default.FeatureCount,
+            FeatureLength = Params(FeaturesRule)?.MaxCharsPerItem ?? Default.FeatureLength,
+            SearchTermCount = Params(SearchTermsRule)?.MaxItems ?? Default.SearchTermCount,
+            SearchTermLength = Params(SearchTermsRule)?.MaxCharsPerItem ?? Default.SearchTermLength,
+            DesktopScreenshots = Params(DesktopScreenshotsRule)?.MaxCount ?? screenshots?.MaxCount ?? Default.DesktopScreenshots,
+            OtherScreenshots = screenshots?.MaxCountOtherFamilies ?? Default.OtherScreenshots,
+            ImageCaption = screenshots?.CaptionMaxChars ?? Default.ImageCaption,
+        };
+    }
 
     /// <summary>
     /// The limit violations of one listing: field, limit. Empty when the listing fits.
     /// </summary>
     /// <param name="listing"></param>
     /// <returns></returns>
-    public static List<(string Field, int Limit)> Violations(MsListingDto listing)
+    public List<(string Field, int Limit)> Violations(MsListingDto listing)
     {
         var violations = new List<(string Field, int Limit)>();
 
-        Check(violations, "title", listing.Title, Title);
+        Check(violations, "title", listing.Title, TitleLength);
         Check(violations, "description", listing.Description, Description);
         Check(violations, "shortDescription", listing.ShortDescription, ShortDescription);
         Check(violations, "whatsNew", listing.WhatsNew, WhatsNew);
@@ -81,7 +134,7 @@ public static class MsListingLimits
     /// </summary>
     /// <param name="imageType"></param>
     /// <returns></returns>
-    public static int? ScreenshotLimit(string imageType)
+    public int? ScreenshotLimit(string imageType)
     {
         if (string.Equals(imageType, MsSubmissionJson.DesktopScreenshotType, StringComparison.OrdinalIgnoreCase))
             return DesktopScreenshots;

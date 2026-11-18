@@ -3045,6 +3045,17 @@
             Whether the step still blocks API work.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsAssistedStepDto.StepId">
+            <summary>
+            Row of the step in the assisted steps table (complete or hand it off through the assisted step endpoints); null
+            until the step came up.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsAssistedStepDto.Status">
+            <summary>
+            Recorded progress of the step.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto">
             <summary>
             One Microsoft Store change. <see cref="P:Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto.Kind"/> says which section is read; the others are ignored.
@@ -3188,6 +3199,11 @@
         <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsChangePlanDto.JobId">
             <summary>
             Apply job, when applied.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsChangePlanDto.PlanId">
+            <summary>
+            The saved change plan (approve it through the shared plan endpoints, or apply through <c>ms/change</c>).
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsContentDto">
@@ -3615,31 +3631,6 @@
         <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsSyncPayload.ConnectionId">
             <summary>Microsoft connection to read with.</summary>
         </member>
-        <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsApplyChangePayload">
-            <summary>
-            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job: the change and the fingerprint of the content it was planned on.
-            </summary>
-            <param name="StoreAppId">Store record.</param>
-            <param name="BaseHash">Fingerprint of the planned content; the job refuses to write when the store content changed.</param>
-            <param name="Change">The change.</param>
-        </member>
-        <member name="M:Storeasy.Application.Dtos.MsStoreDtos.MsApplyChangePayload.#ctor(System.Int32,System.String,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto)">
-            <summary>
-            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job: the change and the fingerprint of the content it was planned on.
-            </summary>
-            <param name="StoreAppId">Store record.</param>
-            <param name="BaseHash">Fingerprint of the planned content; the job refuses to write when the store content changed.</param>
-            <param name="Change">The change.</param>
-        </member>
-        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsApplyChangePayload.StoreAppId">
-            <summary>Store record.</summary>
-        </member>
-        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsApplyChangePayload.BaseHash">
-            <summary>Fingerprint of the planned content; the job refuses to write when the store content changed.</summary>
-        </member>
-        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsApplyChangePayload.Change">
-            <summary>The change.</summary>
-        </member>
         <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsSubmitPayload">
             <summary>
             Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSubmit"/> job.
@@ -3833,6 +3824,22 @@
         <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsPlanItemDto.Action">
             <summary>
             add, update or remove.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsPlannedChange">
+            <summary>
+            The Microsoft part of a change plan: the change and the fingerprint of the store content it was planned on. The apply
+            job plans again and refuses to write when the fingerprint changed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsPlannedChange.Change">
+            <summary>
+            The change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsPlannedChange.BaseHash">
+            <summary>
+            Fingerprint of the planned content (<see cref="P:Storeasy.Application.Dtos.MsStoreDtos.MsChangePlanDto.BaseHash"/>).
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.MsStoreDtos.MsPlanWarningDto">
@@ -9954,9 +9961,12 @@
         <member name="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand"/>. Reads the store inside the request (the secret is opened only for these
-            reads), plans with <see cref="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator"/> and, when applying, checks the plan's own permission against the
-            caller's role, refuses blocked plans and stale hashes, queues the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job and
-            writes the audit entry. The job plans again and refuses when the store content changed in between.
+            reads) and plans with <see cref="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator"/>. A plan that is not blocked is saved as a change plan of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/> through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>: a dry run leaves it pending (approve it
+            with the shared plan endpoints); applying approves it right away with the same rules (the plan's permission, a second
+            store read through the Microsoft content gateway compared by fingerprint) and queues the
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. A blocked plan is never saved; when it is a Partner Center task its
+            assisted step is recorded.
             </summary>
             <param name="ProductRepository"></param>
             <param name="ConnectionRepository"></param>
@@ -9964,19 +9974,24 @@
             <param name="FlightRepository"></param>
             <param name="AddonRepository"></param>
             <param name="AssetRepository"></param>
+            <param name="StepRepository"></param>
             <param name="SecretProtector"></param>
             <param name="MicrosoftStoreClient"></param>
+            <param name="ContentService"></param>
+            <param name="ChangePlanService"></param>
+            <param name="RulesCatalog"></param>
             <param name="OrganizationAccess"></param>
-            <param name="StoreJobQueue"></param>
-            <param name="AuditTrail"></param>
             <param name="Localizer"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+        <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IOrganizationAccess,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand"/>. Reads the store inside the request (the secret is opened only for these
-            reads), plans with <see cref="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator"/> and, when applying, checks the plan's own permission against the
-            caller's role, refuses blocked plans and stale hashes, queues the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsApplyChange"/> job and
-            writes the audit entry. The job plans again and refuses when the store content changed in between.
+            reads) and plans with <see cref="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator"/>. A plan that is not blocked is saved as a change plan of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/> through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>: a dry run leaves it pending (approve it
+            with the shared plan endpoints); applying approves it right away with the same rules (the plan's permission, a second
+            store read through the Microsoft content gateway compared by fingerprint) and queues the
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job. A blocked plan is never saved; when it is a Partner Center task its
+            assisted step is recorded.
             </summary>
             <param name="ProductRepository"></param>
             <param name="ConnectionRepository"></param>
@@ -9984,11 +9999,13 @@
             <param name="FlightRepository"></param>
             <param name="AddonRepository"></param>
             <param name="AssetRepository"></param>
+            <param name="StepRepository"></param>
             <param name="SecretProtector"></param>
             <param name="MicrosoftStoreClient"></param>
+            <param name="ContentService"></param>
+            <param name="ChangePlanService"></param>
+            <param name="RulesCatalog"></param>
             <param name="OrganizationAccess"></param>
-            <param name="StoreJobQueue"></param>
-            <param name="AuditTrail"></param>
             <param name="Localizer"></param>
         </member>
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.ProductRepository">
@@ -10009,31 +10026,53 @@
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.AssetRepository">
             <summary></summary>
         </member>
+        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.StepRepository">
+            <summary></summary>
+        </member>
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.SecretProtector">
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.MicrosoftStoreClient">
             <summary></summary>
         </member>
+        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.ChangePlanService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.RulesCatalog">
+            <summary></summary>
+        </member>
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.OrganizationAccess">
-            <summary></summary>
-        </member>
-        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.StoreJobQueue">
-            <summary></summary>
-        </member>
-        <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.AuditTrail">
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.Localizer">
             <summary></summary>
         </member>
+        <member name="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey">
+            <summary>
+            Content key of the Microsoft fingerprint in the change plan's base keys.
+            </summary>
+        </member>
         <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.Handle(Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.Draft(Storeasy.Application.Dtos.MsStoreDtos.MsChangePlanDto,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,System.String,System.String)">
+            <summary>
+            The change plan draft of a Microsoft plan: its diff, remarks and calls, the change itself with its fingerprint, the
+            encoded read and the plan's own permission.
+            </summary>
+            <param name="plan"></param>
+            <param name="change"></param>
+            <param name="versionId"></param>
+            <param name="productId"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator">
             <summary>
             Validations of <see cref="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand"/>: the section of the change kind is present and every text fits the
-            catalog limits (<see cref="T:Storeasy.Application.Utils.MsStore.MsListingLimits"/>).
+            catalog limits (<see cref="M:Storeasy.Application.Utils.MsStore.MsListingLimits.From(Storeasy.Domain.Rules.RuleCatalog)"/>).
             </summary>
         </member>
         <member name="F:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator.Architectures">
@@ -10041,7 +10080,7 @@
             Architectures the MSI/EXE API accepts.
             </summary>
         </member>
-        <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+        <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IRulesCatalog)">
             <inheritdoc cref="T:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator"/>
         </member>
         <member name="M:Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandValidator.HasSection(Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto)">
@@ -10344,10 +10383,11 @@
             <param name="productRepository"></param>
             <param name="submissionRepository"></param>
             <param name="addonRepository"></param>
+            <param name="stepRepository"></param>
             <param name="options"></param>
             <param name="localizer"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.MsStore.GetMsProductDetail.GetMsProductDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Utils.Models.MicrosoftStoreOptions,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+        <member name="M:Storeasy.Application.Features.MsStore.GetMsProductDetail.GetMsProductDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Utils.Models.MicrosoftStoreOptions,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.MsStore.GetMsProductDetail.GetMsProductDetailQuery"/>. A record of another organization or another store is reported as not
             found. The active submission is the newest pending one of the app (or the MSI/EXE product).
@@ -10355,6 +10395,7 @@
             <param name="productRepository"></param>
             <param name="submissionRepository"></param>
             <param name="addonRepository"></param>
+            <param name="stepRepository"></param>
             <param name="options"></param>
             <param name="localizer"></param>
         </member>
@@ -14374,6 +14415,12 @@
             Whether the demo account password comes from the app's saved answers.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Interfaces.ContentChangeSet.Microsoft">
+            <summary>
+            A Microsoft Store change and the fingerprint of the content it was planned on (plans of kind
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.MsChange"/>).
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Interfaces.ContentChangeSet.Secrets">
             <summary>
             Secret values resolved by the job, in memory only.
@@ -15802,6 +15849,12 @@
             Built in steps.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Utils.Content.AssistedStepCatalog.Conditional">
+            <summary>
+            Steps recorded only when they come up: Microsoft Store items the API refuses or that belong to Partner Center
+            (persisted by the Microsoft features, not listed for every app).
+            </summary>
+        </member>
         <member name="M:Storeasy.Application.Utils.Content.AssistedStepCatalog.For(Storeasy.Domain.Rules.RuleCatalog,Storeasy.Domain.Rules.RuleSubject)">
             <summary>
             Every step that applies (or may apply) to an app in a store: the built in steps of the store and the assisted catalog
@@ -16197,6 +16250,12 @@
         <member name="P:Storeasy.Application.Utils.Content.PlanDraft.VersionString">
             <summary>
             Version string (for the confirmation text).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Content.PlanDraft.RequiredPermission">
+            <summary>
+            Permission the plan needs when the kind alone does not decide it (Microsoft Store changes); null for the kind's
+            default.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.Content.PlanDraft.IsEmpty">
@@ -16729,6 +16788,17 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.MsStoreRepositoryExtensions.EnsureMsAssistedStepsAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},System.Int32,System.Collections.Generic.IReadOnlyCollection{System.ValueTuple{System.Int32,System.String}},System.Threading.CancellationToken)">
+            <summary>
+            Records Microsoft Store assisted steps (<c>ms.*</c> keys and catalog rule ids) in the assisted steps table: rows that
+            do not exist yet are added as to do; existing rows keep their progress. One read and one insert.
+            </summary>
+            <param name="stepRepository"></param>
+            <param name="organizationId"></param>
+            <param name="steps">App and step key pairs.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Application.Utils.Extensions.MsStoreRepositoryExtensions.MsProductExistsAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Whether the organization has a Microsoft Store product for <paramref name="storeAppId"/>.
@@ -16776,7 +16846,7 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
-        <member name="M:Storeasy.Application.Utils.Extensions.MsStoreRepositoryExtensions.GetMsPlanContextAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.Int64,System.String},System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Application.Utils.Extensions.MsStoreRepositoryExtensions.GetMsPlanContextAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.Int64,System.String},Storeasy.Application.Utils.MsStore.MsListingLimits,System.Threading.CancellationToken)">
             <summary>
             Builds the planning context of a product: storeasy's row of the pending submission the content came from, the
             add-on's writability and the names already taken.
@@ -16789,6 +16859,7 @@
             <param name="submissionId"></param>
             <param name="addonStoreId"></param>
             <param name="assetFileNames"></param>
+            <param name="limits">Listing limits of the rule catalog; catalog v1 values when null.</param>
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
@@ -18256,10 +18327,7 @@
             <summary>Reserve the app name (the API cannot create apps).</summary>
         </member>
         <member name="F:Storeasy.Application.Utils.MsStore.MsAssistedSteps.FirstSubmission">
-            <summary>First submission in Partner Center.</summary>
-        </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsAssistedSteps.AgeRating">
-            <summary>IARC age rating questionnaire.</summary>
+            <summary>First submission in Partner Center, with the IARC age rating questionnaire (catalog rule id).</summary>
         </member>
         <member name="F:Storeasy.Application.Utils.MsStore.MsAssistedSteps.Pricing">
             <summary>Price on Pricing Version 2.</summary>
@@ -18293,6 +18361,20 @@
             <param name="localize"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsAssistedSteps.KeyOf(Storeasy.Domain.Enums.MsAssistedReason)">
+            <summary>
+            The assisted step of an API refusal.
+            </summary>
+            <param name="reason"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsAssistedSteps.KeyOf(Storeasy.Application.Dtos.MsStoreDtos.MsChangePlanDto)">
+            <summary>
+            The assisted step a blocked plan belongs to, or null when the block is not a Partner Center task.
+            </summary>
+            <param name="plan"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.MsStore.MsChangeRepositories">
             <summary>
             Repositories <see cref="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator"/> reads.
@@ -18318,6 +18400,11 @@
             Assets.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsChangeRepositories.Limits">
+            <summary>
+            Listing limits of the rule catalog (<see cref="M:Storeasy.Application.Utils.MsStore.MsListingLimits.From(Storeasy.Domain.Rules.RuleCatalog)"/>).
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluation">
             <summary>
             Result of <see cref="M:Storeasy.Application.Utils.MsStore.MsChangeEvaluator.EvaluateAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.String,System.Int32,Storeasy.Application.Utils.MsStore.MsProductContext,Storeasy.Application.Dtos.MsStoreDtos.MsChangeInputDto,Storeasy.Application.Utils.MsStore.MsChangeRepositories,System.Threading.CancellationToken)"/>: either an error key, or the plan with what it was made from.
@@ -18341,6 +18428,11 @@
         <member name="P:Storeasy.Application.Utils.MsStore.MsChangeEvaluation.Context">
             <summary>
             Planning context.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsChangeEvaluation.Read">
+            <summary>
+            What was read (encoded into the change plan for the approval's second read).
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.MsStore.MsChangeEvaluator">
@@ -18475,6 +18567,31 @@
             Published submission whose gradual rollout is read instead (rollout changes).
             </summary>
         </member>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsContentReader.EncodedPrefix">
+            <summary>
+            Prefix of an encoded read (<see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)">
+            <summary>
+            Encodes what a plan of <paramref name="kind"/> reads into a short text, kept as the change plan's version id so that
+            the shared approval can read the same content again (through the Microsoft content gateway) and compare its
+            fingerprint.
+            </summary>
+            <param name="request"></param>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsContentReader.TryDecode(System.String,System.String,Storeasy.Application.Utils.MsStore.MsContentReader.Request@,Storeasy.Domain.Enums.MsChangeKind@)">
+            <summary>
+            Decodes <see cref="M:Storeasy.Application.Utils.MsStore.MsContentReader.Encode(Storeasy.Application.Utils.MsStore.MsContentReader.Request,Storeasy.Domain.Enums.MsChangeKind)"/>; false when <paramref name="value"/> is not an encoded read.
+            </summary>
+            <param name="value"></param>
+            <param name="productId"></param>
+            <param name="request"></param>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Application.Utils.MsStore.MsContentReader.ReadAsync(Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.String,Storeasy.Application.Utils.MsStore.MsContentReader.Request,System.Threading.CancellationToken)">
             <summary>
             Reads the content of <paramref name="request"/>.
@@ -18502,48 +18619,81 @@
         </member>
         <member name="T:Storeasy.Application.Utils.MsStore.MsListingLimits">
             <summary>
-            Microsoft Store listing limits, from the rule catalog (<c>rules/microsoft.json</c>, category <c>listing-limits</c> and
-            <c>screenshots</c>). Kept as constants until the catalog is served by the API; each constant names its rule id.
+            Microsoft Store listing limits read from the rule catalog by rule id (<c>rules/microsoft.json</c>). A rule missing from
+            the catalog falls back to the value of catalog v1. Title and add-on texts are not in the catalog and stay fixed.
             </summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.Description">
-            <summary>microsoft.listing-limits.description</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.DescriptionRule">
+            <summary>Rule id of the description limit.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.ShortDescription">
-            <summary>microsoft.listing-limits.short-description</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.ShortDescriptionRule">
+            <summary>Rule id of the short description limit.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.WhatsNew">
-            <summary>microsoft.listing-limits.whats-new</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.WhatsNewRule">
+            <summary>Rule id of the what's new limit.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.FeatureCount">
-            <summary>microsoft.listing-limits.product-features (count)</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.FeaturesRule">
+            <summary>Rule id of the product features limits.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.FeatureLength">
-            <summary>microsoft.listing-limits.product-features (characters each)</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.SearchTermsRule">
+            <summary>Rule id of the search terms limits.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.SearchTermCount">
-            <summary>microsoft.listing-limits.search-terms (count)</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.ScreenshotsRule">
+            <summary>Rule id of the general screenshot rules (other device families, caption).</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.SearchTermLength">
-            <summary>microsoft.listing-limits.search-terms (characters each)</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.DesktopScreenshotsRule">
+            <summary>Rule id of the desktop screenshot rules.</summary>
         </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.Title">
-            <summary>Title of an app listing (reserved name length in Partner Center).</summary>
-        </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.DesktopScreenshots">
-            <summary>microsoft.screenshots.desktop (per language)</summary>
-        </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.OtherScreenshots">
-            <summary>microsoft.screenshots.general (other device families, per language)</summary>
-        </member>
-        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.ImageCaption">
-            <summary>microsoft.screenshots.general (caption)</summary>
+        <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.TitleLength">
+            <summary>Title of an app listing (reserved name length in Partner Center; not in the catalog).</summary>
         </member>
         <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.AddonTitle">
-            <summary>Add-on listing title.</summary>
+            <summary>Add-on listing title (not in the catalog).</summary>
         </member>
         <member name="F:Storeasy.Application.Utils.MsStore.MsListingLimits.AddonDescription">
-            <summary>Add-on listing description.</summary>
+            <summary>Add-on listing description (not in the catalog).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.Default">
+            <summary>
+            The values of catalog v1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.Description">
+            <summary>Description characters.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.ShortDescription">
+            <summary>Short description characters.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.WhatsNew">
+            <summary>What's new characters.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.FeatureCount">
+            <summary>Product features.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.FeatureLength">
+            <summary>Characters of a product feature.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.SearchTermCount">
+            <summary>Search terms.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.SearchTermLength">
+            <summary>Characters of a search term.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.DesktopScreenshots">
+            <summary>Desktop screenshots per language.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.OtherScreenshots">
+            <summary>Screenshots of each other device family per language.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsListingLimits.ImageCaption">
+            <summary>Characters of an image caption.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsListingLimits.From(Storeasy.Domain.Rules.RuleCatalog)">
+            <summary>
+            Limits from <paramref name="catalog"/>; missing rules keep the catalog v1 values.
+            </summary>
+            <param name="catalog"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Application.Utils.MsStore.MsListingLimits.Violations(Storeasy.Application.Dtos.MsStoreDtos.MsListingDto)">
             <summary>
@@ -18620,6 +18770,11 @@
             File names of the uploaded assets the change adds, by asset id (as they will appear in the submission).
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsPlanContext.Limits">
+            <summary>
+            Listing limits of the rule catalog.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Utils.MsStore.MsPendingSubmissionInfo">
             <summary>
             storeasy's row of a pending submission.
@@ -18643,6 +18798,11 @@
         <member name="T:Storeasy.Application.Utils.MsStore.MsProductContext">
             <summary>
             A Microsoft Store record of an organization with what the handlers need from its product row.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.MsStore.MsProductContext.OrganizationId">
+            <summary>
+            Owning organization.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.MsStore.MsProductContext.StoreAppId">

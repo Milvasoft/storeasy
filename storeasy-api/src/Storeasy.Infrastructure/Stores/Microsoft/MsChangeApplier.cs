@@ -4,6 +4,7 @@ using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Application.Utils.MsStore;
+using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.MsStore;
@@ -12,11 +13,12 @@ using System.Text.Json.Nodes;
 namespace Storeasy.Infrastructure.Stores.Microsoft;
 
 /// <summary>
-/// The <see cref="StoreJobKind.MsApplyChange"/> job: writes one planned Microsoft Store change. It reads the store and plans
-/// again; when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits
-/// go into the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files
-/// uploaded as one ZIP to the draft's SAS address; the draft is sent to certification only by
-/// <see cref="StoreJobKind.MsSubmit"/>. A 409 marks the product, add-on or submission as Partner Center only.
+/// Writes one Microsoft Store change of an approved change plan (<see cref="ChangePlanKind.MsChange"/>), called by the
+/// Microsoft content gateway inside the <see cref="StoreJobKind.ApplyChangePlan"/> job. It reads the store and plans again;
+/// when the plan is blocked or its fingerprint differs from the approved one nothing is written. Submission edits go into
+/// the pending draft storeasy created (or a new draft, a copy of the last published submission), with new files uploaded
+/// as one ZIP to the SAS address of the draft; the draft is sent to certification only by <see cref="StoreJobKind.MsSubmit"/>.
+/// A 409 marks the product, add-on or submission as Partner Center only and records the assisted step.
 /// </summary>
 /// <param name="productRepository"></param>
 /// <param name="submissionRepository"></param>
@@ -24,22 +26,24 @@ namespace Storeasy.Infrastructure.Stores.Microsoft;
 /// <param name="addonRepository"></param>
 /// <param name="packageRepository"></param>
 /// <param name="assetRepository"></param>
+/// <param name="stepRepository"></param>
 /// <param name="microsoftStoreClient"></param>
 /// <param name="fileStorage"></param>
-/// <param name="auditTrail"></param>
+/// <param name="rulesCatalog"></param>
 /// <param name="options"></param>
 /// <param name="timeProvider"></param>
-public sealed class MsApplyChangeJobHandler(IStoreasyRepositoryBase<MsProduct> productRepository,
-                                            IStoreasyRepositoryBase<MsSubmission> submissionRepository,
-                                            IStoreasyRepositoryBase<MsFlight> flightRepository,
-                                            IStoreasyRepositoryBase<MsAddon> addonRepository,
-                                            IStoreasyRepositoryBase<MsInstallerPackage> packageRepository,
-                                            IStoreasyRepositoryBase<Asset> assetRepository,
-                                            IMicrosoftStoreClient microsoftStoreClient,
-                                            IFileStorage fileStorage,
-                                            IAuditTrail auditTrail,
-                                            MicrosoftStoreOptions options,
-                                            TimeProvider timeProvider) : IStoreJobHandler
+public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRepository,
+                                    IStoreasyRepositoryBase<MsSubmission> submissionRepository,
+                                    IStoreasyRepositoryBase<MsFlight> flightRepository,
+                                    IStoreasyRepositoryBase<MsAddon> addonRepository,
+                                    IStoreasyRepositoryBase<MsInstallerPackage> packageRepository,
+                                    IStoreasyRepositoryBase<Asset> assetRepository,
+                                    IStoreasyRepositoryBase<AssistedStep> stepRepository,
+                                    IMicrosoftStoreClient microsoftStoreClient,
+                                    IFileStorage fileStorage,
+                                    IRulesCatalog rulesCatalog,
+                                    MicrosoftStoreOptions options,
+                                    TimeProvider timeProvider)
 {
     private readonly IStoreasyRepositoryBase<MsProduct> _productRepository = productRepository;
     private readonly IStoreasyRepositoryBase<MsSubmission> _submissionRepository = submissionRepository;
@@ -47,38 +51,51 @@ public sealed class MsApplyChangeJobHandler(IStoreasyRepositoryBase<MsProduct> p
     private readonly IStoreasyRepositoryBase<MsAddon> _addonRepository = addonRepository;
     private readonly IStoreasyRepositoryBase<MsInstallerPackage> _packageRepository = packageRepository;
     private readonly IStoreasyRepositoryBase<Asset> _assetRepository = assetRepository;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = stepRepository;
     private readonly IMicrosoftStoreClient _microsoftStoreClient = microsoftStoreClient;
     private readonly IFileStorage _fileStorage = fileStorage;
-    private readonly IAuditTrail _auditTrail = auditTrail;
+    private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly MicrosoftStoreOptions _options = options;
     private readonly TimeProvider _timeProvider = timeProvider;
 
-    /// <inheritdoc/>
-    public StoreJobKind Kind => StoreJobKind.MsApplyChange;
-
-    /// <inheritdoc/>
-    public async Task<StoreJobOutcome> ExecuteAsync(IStoreJobContext context, CancellationToken cancellationToken)
+    /// <summary>
+    /// Plans <paramref name="planned"/> again on fresh content and writes it. Returns one line per write.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="secretJson"></param>
+    /// <param name="productId"></param>
+    /// <param name="planned"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<string>> ApplyAsync(IStoreJobContext context, string secretJson, string productId, MsPlannedChange planned, CancellationToken cancellationToken)
     {
-        var payload = context.GetPayload<MsApplyChangePayload>() ?? throw new StoreJobException("The job has no change.", transient: false);
-        var product = await _productRepository.GetMsProductAsync(context.OrganizationId, payload.StoreAppId, cancellationToken) ?? throw new StoreJobException("The Microsoft Store product was removed.", transient: false);
-        var connection = (product.ConnectionId.HasValue ? await context.OpenConnectionAsync(product.ConnectionId.Value, cancellationToken) : null)
-                         ?? throw new StoreJobException("The store connection was removed.", transient: false);
-        var change = payload.Change;
+        var storeAppId = await _productRepository.GetFirstOrDefaultAsync(p => p.OrganizationId == context.OrganizationId && p.StoreApp.Store == StoreKind.Microsoft && p.StoreApp.ExternalId == productId,
+                                                                         projection: p => (int?)p.StoreAppId,
+                                                                         cancellationToken: cancellationToken) ?? throw new StoreJobException("The Microsoft Store product was removed.", transient: false);
+        var product = await _productRepository.GetMsProductAsync(context.OrganizationId, storeAppId, cancellationToken) ?? throw new StoreJobException("The Microsoft Store product was removed.", transient: false);
+        var change = planned?.Change ?? throw new StoreJobException("The plan has no Microsoft change.", transient: false);
 
         // 1. Plan again on fresh store content.
         var planStep = await context.BeginStepAsync("plan.check", StepDirection.Outbound, $"{change.Kind} of {product.ProductId}", cancellationToken: cancellationToken);
         var evaluation = await MsChangeEvaluator.EvaluateAsync(_microsoftStoreClient,
-                                                               connection.SecretJson,
+                                                               secretJson,
                                                                context.OrganizationId,
                                                                product,
                                                                change,
-                                                               new MsChangeRepositories { Submissions = _submissionRepository, Flights = _flightRepository, Addons = _addonRepository, Assets = _assetRepository },
+                                                               new MsChangeRepositories
+                                                               {
+                                                                   Submissions = _submissionRepository,
+                                                                   Flights = _flightRepository,
+                                                                   Addons = _addonRepository,
+                                                                   Assets = _assetRepository,
+                                                                   Limits = MsListingLimits.From(_rulesCatalog.Current),
+                                                               },
                                                                cancellationToken);
 
         if (evaluation.ErrorKey != null || evaluation.Plan.Blocked)
             throw new StoreJobException($"The change cannot be applied: {evaluation.ErrorKey ?? evaluation.Plan.BlockKey}.", transient: false);
 
-        if (evaluation.Plan.BaseHash != payload.BaseHash)
+        if (evaluation.Plan.BaseHash != planned.BaseHash)
             throw new StoreJobException("The store content changed after the plan was approved; plan again.", transient: false);
 
         await context.EndStepAsync(planStep, StoreJobStepStatus.Succeeded, $"{evaluation.Plan.Items.Count} items.", cancellationToken);
@@ -86,25 +103,17 @@ public sealed class MsApplyChangeJobHandler(IStoreasyRepositoryBase<MsProduct> p
         // 2. Write.
         var summary = change.Kind switch
         {
-            MsChangeKind.Listings when product.Kind == MsProductKind.MsiExe => await PatchMetadataAsync(context, connection.SecretJson, product, [.. change.Listings.Select(MsSubmissionJson.ProductListingPatch)], cancellationToken),
-            MsChangeKind.Pricing when product.Kind == MsProductKind.MsiExe => await PatchMetadataAsync(context, connection.SecretJson, product, [MsSubmissionJson.AvailabilityPatch(change.Pricing)], cancellationToken),
-            MsChangeKind.InstallerPackages => await ReplaceInstallersAsync(context, connection.SecretJson, product, change.InstallerPackages, cancellationToken),
-            MsChangeKind.Rollout => await ChangeRolloutAsync(context, connection.SecretJson, product, change, cancellationToken),
-            MsChangeKind.CreateFlight => await CreateFlightAsync(context, connection.SecretJson, product, change.Flight, cancellationToken),
-            MsChangeKind.CreateAddon => await CreateAddonAsync(context, connection.SecretJson, product, change.Addon, cancellationToken),
-            MsChangeKind.DiscardSubmission => await DiscardAsync(context, connection.SecretJson, product, change, evaluation.Content, cancellationToken),
-            _ => await EditSubmissionAsync(context, connection.SecretJson, product, change, evaluation, cancellationToken),
+            MsChangeKind.Listings when product.Kind == MsProductKind.MsiExe => await PatchMetadataAsync(context, secretJson, product, [.. change.Listings.Select(MsSubmissionJson.ProductListingPatch)], cancellationToken),
+            MsChangeKind.Pricing when product.Kind == MsProductKind.MsiExe => await PatchMetadataAsync(context, secretJson, product, [MsSubmissionJson.AvailabilityPatch(change.Pricing)], cancellationToken),
+            MsChangeKind.InstallerPackages => await ReplaceInstallersAsync(context, secretJson, product, change.InstallerPackages, cancellationToken),
+            MsChangeKind.Rollout => await ChangeRolloutAsync(context, secretJson, product, change, cancellationToken),
+            MsChangeKind.CreateFlight => await CreateFlightAsync(context, secretJson, product, change.Flight, cancellationToken),
+            MsChangeKind.CreateAddon => await CreateAddonAsync(context, secretJson, product, change.Addon, cancellationToken),
+            MsChangeKind.DiscardSubmission => await DiscardAsync(context, secretJson, product, change, evaluation.Content, cancellationToken),
+            _ => await EditSubmissionAsync(context, secretJson, product, change, evaluation, cancellationToken),
         };
 
-        await _auditTrail.WriteAsync(context.OrganizationId,
-                                     AuditAction.MsChangeApplied,
-                                     product.StoreAppId.ToString(),
-                                     $"Microsoft Store change {change.Kind} of {product.ProductId} applied: {summary}",
-                                     StoreKind.Microsoft,
-                                     new { change.Kind, evaluation.Plan.Items, context.JobId },
-                                     cancellationToken);
-
-        return new StoreJobOutcome(summary, new { change.Kind, evaluation.Plan.Target, Items = evaluation.Plan.Items.Count });
+        return [summary];
     }
 
     /// <summary>
@@ -291,6 +300,10 @@ public sealed class MsApplyChangeJobHandler(IStoreasyRepositoryBase<MsProduct> p
 
     private async Task MarkRefusedAsync(MsProductContext product, MsChangeInputDto change, string submissionId)
     {
+        var reason = change.Kind == MsChangeKind.AddonContent ? MsAssistedReason.StoreManagedConsumable : submissionId != null ? MsAssistedReason.ManualEdit : MsAssistedReason.MandatoryUpdate;
+
+        await _stepRepository.EnsureMsAssistedStepsAsync(product.OrganizationId, [(product.AppId, MsAssistedSteps.KeyOf(reason))], CancellationToken.None);
+
         if (change.Kind == MsChangeKind.AddonContent)
         {
             await _addonRepository.ExecuteUpdateAsync(a => a.StoreAppId == product.StoreAppId && a.StoreId == change.AddonStoreId,

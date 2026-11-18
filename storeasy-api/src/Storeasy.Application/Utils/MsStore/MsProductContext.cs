@@ -6,6 +6,11 @@
 public sealed class MsProductContext
 {
     /// <summary>
+    /// Owning organization.
+    /// </summary>
+    public int OrganizationId { get; init; }
+
+    /// <summary>
     /// Store record.
     /// </summary>
     public int StoreAppId { get; init; }

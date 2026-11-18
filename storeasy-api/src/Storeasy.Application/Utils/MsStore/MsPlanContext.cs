@@ -60,6 +60,11 @@ public sealed class MsPlanContext
     /// File names of the uploaded assets the change adds, by asset id (as they will appear in the submission).
     /// </summary>
     public IReadOnlyDictionary<long, string> AssetFileNames { get; init; } = new Dictionary<long, string>();
+
+    /// <summary>
+    /// Listing limits of the rule catalog.
+    /// </summary>
+    public MsListingLimits Limits { get; init; } = MsListingLimits.Default;
 }
 
 /// <summary>

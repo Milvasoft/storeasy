@@ -8,7 +8,7 @@ namespace Storeasy.Application.Features.MsStore.ApplyMsChange;
 
 /// <summary>
 /// Validations of <see cref="ApplyMsChangeCommand"/>: the section of the change kind is present and every text fits the
-/// catalog limits (<see cref="MsListingLimits"/>).
+/// catalog limits (<see cref="MsListingLimits.From"/>).
 /// </summary>
 public sealed class ApplyMsChangeCommandValidator : AbstractValidator<ApplyMsChangeCommand>
 {
@@ -18,8 +18,10 @@ public sealed class ApplyMsChangeCommandValidator : AbstractValidator<ApplyMsCha
     public static readonly IReadOnlySet<string> Architectures = new HashSet<string>(StringComparer.Ordinal) { "Neutral", "X86", "X64", "Arm", "Arm64" };
 
     ///<inheritdoc cref="ApplyMsChangeCommandValidator"/>
-    public ApplyMsChangeCommandValidator(IMilvaLocalizer localizer)
+    public ApplyMsChangeCommandValidator(IMilvaLocalizer localizer, IRulesCatalog rulesCatalog)
     {
+        var limits = MsListingLimits.From(rulesCatalog.Current);
+
         RuleFor(command => command.StoreAppId)
             .GreaterThan(0)
             .WithMessage(localizer[MessageKey.PleaseSendCorrect, localizer[MessageKey.GlobalStoreApp]]);
@@ -48,14 +50,14 @@ public sealed class ApplyMsChangeCommandValidator : AbstractValidator<ApplyMsCha
                 .WithMessage(localizer[MessageKey.PleaseSendCorrect, "locale"])
                 .Custom((listing, context) =>
                 {
-                    foreach (var (field, limit) in MsListingLimits.Violations(listing))
+                    foreach (var (field, limit) in limits.Violations(listing))
                         context.AddFailure(localizer[MessageKey.MsListingLimitExceeded, field, listing.Locale, limit]);
                 })
                 .When(command => command.Change.Kind == MsChangeKind.Listings);
 
             RuleFor(command => command.Change.Images)
                 .Must(i => !string.IsNullOrWhiteSpace(i.Locale)
-                           && (i.Add ?? []).All(a => a.AssetId > 0 && !string.IsNullOrWhiteSpace(a.ImageType) && (a.Description?.Length ?? 0) <= MsListingLimits.ImageCaption))
+                           && (i.Add ?? []).All(a => a.AssetId > 0 && !string.IsNullOrWhiteSpace(a.ImageType) && (a.Description?.Length ?? 0) <= limits.ImageCaption))
                 .WithMessage(localizer[MessageKey.MsAssetInvalid])
                 .When(command => command.Change.Kind == MsChangeKind.Images && command.Change.Images != null);
 

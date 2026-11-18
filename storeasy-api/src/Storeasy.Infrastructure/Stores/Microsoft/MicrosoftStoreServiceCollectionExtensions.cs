@@ -28,7 +28,8 @@ public static class MicrosoftStoreServiceCollectionExtensions
         services.AddHttpClient(MicrosoftStoreClient.HttpClientName, client => client.Timeout = TimeSpan.FromMinutes(30));
 
         services.AddScoped<IStoreJobHandler, MsSyncJobHandler>();
-        services.AddScoped<IStoreJobHandler, MsApplyChangeJobHandler>();
+        services.AddScoped<MsChangeApplier>();
+        services.AddScoped<IStoreContentGateway, MicrosoftContentGateway>();
         services.AddScoped<IStoreJobHandler, MsSubmitJobHandler>();
         services.AddScoped<IStoreJobHandler, MsCheckInstallerJobHandler>();
 

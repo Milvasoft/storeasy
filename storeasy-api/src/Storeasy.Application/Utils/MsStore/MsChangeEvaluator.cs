@@ -28,6 +28,11 @@ public sealed class MsChangeRepositories
     /// Assets.
     /// </summary>
     public IStoreasyRepositoryBase<Asset> Assets { get; init; }
+
+    /// <summary>
+    /// Listing limits of the rule catalog (<see cref="MsListingLimits.From"/>).
+    /// </summary>
+    public MsListingLimits Limits { get; init; } = MsListingLimits.Default;
 }
 
 /// <summary>
@@ -54,6 +59,11 @@ public sealed class MsChangeEvaluation
     /// Planning context.
     /// </summary>
     public MsPlanContext Context { get; init; }
+
+    /// <summary>
+    /// What was read (encoded into the change plan for the approval's second read).
+    /// </summary>
+    public MsContentReader.Request Read { get; init; }
 }
 
 /// <summary>
@@ -116,9 +126,7 @@ public static class MsChangeEvaluator
         }
 
         var target = MsChangePlanner.TargetOf(product.Kind, change);
-        var content = await MsContentReader.ReadAsync(client,
-                                                      secretJson,
-                                                      new MsContentReader.Request
+        var read = new MsContentReader.Request
                                                       {
                                                           Kind = product.Kind,
                                                           ProductId = product.ProductId,
@@ -126,8 +134,8 @@ public static class MsChangeEvaluator
                                                           FlightId = change.FlightId,
                                                           AddonStoreId = change.AddonStoreId,
                                                           RolloutSubmissionId = change.Kind == MsChangeKind.Rollout ? change.Rollout.SubmissionId : null,
-                                                      },
-                                                      cancellationToken);
+                                                      };
+        var content = await MsContentReader.ReadAsync(client, secretJson, read, cancellationToken);
 
         var context = await repositories.Submissions.GetMsPlanContextAsync(repositories.Flights,
                                                                            repositories.Addons,
@@ -136,6 +144,7 @@ public static class MsChangeEvaluator
                                                                            content.SubmissionIsPending ? content.SubmissionId : null,
                                                                            change.AddonStoreId,
                                                                            assetNames,
+                                                                           repositories.Limits,
                                                                            cancellationToken);
 
         return new MsChangeEvaluation
@@ -143,6 +152,7 @@ public static class MsChangeEvaluator
             Plan = MsChangePlanner.Plan(product.StoreAppId, content, change, context),
             Content = content,
             Context = context,
+            Read = read,
         };
     }
 }

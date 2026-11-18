@@ -1,5 +1,6 @@
 ﻿using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Interfaces;
+using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.MsStore;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
@@ -29,6 +30,7 @@ namespace Storeasy.Infrastructure.Stores.Microsoft;
 /// <param name="buildRepository"></param>
 /// <param name="microsoftStoreClient"></param>
 /// <param name="timeProvider"></param>
+/// <param name="stepRepository"></param>
 public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                      IStoreasyRepositoryBase<App> appRepository,
                                      IStoreasyRepositoryBase<MsProduct> productRepository,
@@ -38,7 +40,8 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
                                      IStoreasyRepositoryBase<MsInstallerPackage> packageRepository,
                                      IStoreasyRepositoryBase<Build> buildRepository,
                                      IMicrosoftStoreClient microsoftStoreClient,
-                                     TimeProvider timeProvider) : IStoreJobHandler
+                                     TimeProvider timeProvider,
+                                     IStoreasyRepositoryBase<AssistedStep> stepRepository) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
@@ -50,6 +53,9 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
     private readonly IMicrosoftStoreClient _microsoftStoreClient = microsoftStoreClient;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = stepRepository;
+    private readonly Dictionary<int, int> _appIds = [];
+    private readonly HashSet<int> _modifiedOutsideApi = [];
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.MsSync;
@@ -126,6 +132,8 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
         var newBuilds = await SaveBuildsAsync(context.OrganizationId, products, now, cancellationToken);
 
+        await _stepRepository.EnsureMsAssistedStepsAsync(context.OrganizationId, [.. products.SelectMany(p => AssistedStepsOf(p.StoreAppId, p.Snapshot))], cancellationToken);
+
         await context.EndStepAsync(saveStep, StoreJobStepStatus.Succeeded, $"{products.Count} products saved, {newBuilds} new builds.", cancellationToken);
 
         return new StoreJobOutcome($"{products.Count} Microsoft Store products synced ({newBuilds} new builds).",
@@ -163,6 +171,7 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
                 Apply(product, snapshot, now);
                 rows.Add(product);
                 result.Add((product.StoreAppId, snapshot));
+                _appIds[product.StoreAppId] = product.StoreApp.AppId;
                 continue;
             }
 
@@ -209,6 +218,9 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
             await _productRepository.AddRangeAsync([.. created.Select(c => c.Row)], cancellationToken);
 
             result.AddRange(created.Select(c => (c.Row.StoreAppId, c.Snapshot)));
+
+            foreach (var (row, _) in created)
+                _appIds[row.StoreAppId] = row.StoreApp.AppId;
         }
 
         var neverConfirmed = refused.Where(r => r.SyncedDate == null).ToList();
@@ -225,6 +237,34 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The Partner Center tasks a product read shows: first submission, Pricing Version 2, mandatory updates, refused
+    /// add-ons, drafts changed in Partner Center and failed certification.
+    /// </summary>
+    private IEnumerable<(int AppId, string Key)> AssistedStepsOf(int storeAppId, MsProductSnapshot snapshot)
+    {
+        if (!_appIds.TryGetValue(storeAppId, out var appId))
+            yield break;
+
+        if (snapshot.Kind == MsProductKind.Msix && !snapshot.FirstSubmissionDone)
+            yield return (appId, MsAssistedSteps.FirstSubmission);
+
+        if (snapshot.PricingV2)
+            yield return (appId, MsAssistedSteps.Pricing);
+
+        if (snapshot.HasMandatoryUpdate)
+            yield return (appId, MsAssistedSteps.MandatoryUpdate);
+
+        if (snapshot.Addons.Any(a => a.Refused))
+            yield return (appId, MsAssistedSteps.AddonUpdate);
+
+        if (_modifiedOutsideApi.Contains(storeAppId))
+            yield return (appId, MsAssistedSteps.ManualEdit);
+
+        if (snapshot.Submissions.Any(s => s.Status == MsSubmissionStatus.CertificationFailed))
+            yield return (appId, MsAssistedSteps.CertificationReport);
     }
 
     private static void Apply(MsProduct row, MsProductSnapshot snapshot, DateTime now)
@@ -259,6 +299,9 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
             // changed or committed through the API.
             if (row.CreatedByStoreasy && snapshot.IsPending && row.ContentHash != null && snapshot.ContentHash != null && row.ContentHash != snapshot.ContentHash)
                 row.ModifiedOutsideApi = true;
+
+            if (row.ModifiedOutsideApi && snapshot.IsPending)
+                _modifiedOutsideApi.Add(storeAppId);
 
             row.FlightId = snapshot.FlightId;
             row.AddonStoreId = snapshot.AddonStoreId;

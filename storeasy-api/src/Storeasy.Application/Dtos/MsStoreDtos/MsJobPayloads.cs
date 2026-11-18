@@ -7,14 +7,6 @@
 public sealed record MsSyncPayload(int ConnectionId);
 
 /// <summary>
-/// Payload of a <see cref="StoreJobKind.MsApplyChange"/> job: the change and the fingerprint of the content it was planned on.
-/// </summary>
-/// <param name="StoreAppId">Store record.</param>
-/// <param name="BaseHash">Fingerprint of the planned content; the job refuses to write when the store content changed.</param>
-/// <param name="Change">The change.</param>
-public sealed record MsApplyChangePayload(int StoreAppId, string BaseHash, MsChangeInputDto Change);
-
-/// <summary>
 /// Payload of a <see cref="StoreJobKind.MsSubmit"/> job.
 /// </summary>
 /// <param name="StoreAppId">Store record.</param>

@@ -293,7 +293,7 @@ public static class MsChangePlanner
 
         foreach (var group in remaining.GroupBy(t => t, StringComparer.OrdinalIgnoreCase))
         {
-            var limit = MsListingLimits.ScreenshotLimit(group.Key);
+            var limit = context.Limits.ScreenshotLimit(group.Key);
 
             if (limit.HasValue && group.Count() > limit.Value)
             {
