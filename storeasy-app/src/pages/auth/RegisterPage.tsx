@@ -11,10 +11,13 @@ import { ApiError, apiErrorMessage, apiStatus, hasApiKey } from '@/lib/api/http'
 import { TEXT_LIMITS } from '@/lib/api/textLimits'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
+import { useAuth } from '@/lib/auth/AuthContext'
+import { StorageKey, writeStorage } from '@/lib/utils/storage'
 import { emailError, passwordError, requiredError } from '@/lib/validation'
 
-export const EMAIL_EXISTS_KEY = 'EmailExists'
-const CLOSED_KEYS = ['RegistrationInviteOnly', 'RegistrationClosed']
+// MessageKey.EmailExists and the 403 keys of a closed or invite-only installation (Storeasy.Application MessageKey).
+export const EMAIL_EXISTS_KEY = 'User.ExistWithSameEmail'
+const CLOSED_KEYS = ['RegistrationInvitationRequired', 'RegistrationClosed']
 
 interface Errors {
   name?: string | null
@@ -24,12 +27,14 @@ interface Errors {
 }
 
 /**
- * Create an account (design 5.10-5.13). Signing up does not sign in: the e-mail is verified first (5.14). An invitation
- * token from the invite link travels with the request so an invite-only installation accepts it.
+ * Create an account (design 5.10-5.13). The API lets a new account sign in at once, so the page signs in and shows
+ * "check your e-mail" (5.14); organizations and connections wait for the verification. An invitation token from the
+ * invite link travels with the request (accepted in the same step), so an invite-only installation lets it in.
  */
 export function RegisterPage() {
   const t = useT()
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [params] = useSearchParams()
   const invitationToken = params.get('invite')
   const [form, setForm] = useState({ name: '', surname: '', email: '', password: '' })
@@ -45,7 +50,6 @@ export function RegisterPage() {
     event.preventDefault()
     const next: Errors = {
       name: requiredError(form.name, t.validation.nameRequired),
-      surname: requiredError(form.surname, t.validation.surnameRequired),
       email: emailError(form.email, t),
       password: passwordError(form.password, t),
     }
@@ -55,15 +59,24 @@ export function RegisterPage() {
     }
     setBusy(true)
     setServer(null)
+    const email = form.email.trim()
     try {
       await registrationApi.register({
-        Email: form.email.trim(),
+        Email: email,
         Name: form.name.trim(),
-        Surname: form.surname.trim(),
+        Surname: form.surname.trim() || null,
         Password: form.password,
         InvitationToken: invitationToken,
       })
-      navigate('/verify-email', { state: { email: form.email.trim() } })
+      try {
+        await login(email, form.password)
+      } catch {
+        // The account exists; signing in failed for another reason (throttled, offline): the sign-in page takes over.
+        writeStorage(StorageKey.LastEmail, email)
+        navigate('/login')
+        return
+      }
+      navigate('/verify-email', { state: { email }, replace: true })
     } catch (error) {
       if (apiStatus(error) === 403 && CLOSED_KEYS.some((key) => hasApiKey(error, key))) {
         setClosed(apiErrorMessage(error, t.register.closedBody))
@@ -141,7 +154,7 @@ export function RegisterPage() {
               onChange={(event) => set('name')(event.target.value)}
             />
           </Field>
-          <Field label={t.fields.surname} error={errors.surname}>
+          <Field label={t.fields.surname} error={errors.surname} optional>
             <Input
               autoComplete="family-name"
               value={form.surname}

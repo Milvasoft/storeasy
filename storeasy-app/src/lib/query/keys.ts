@@ -22,4 +22,15 @@ export const queryKeys = {
     all: ['audit-logs'] as const,
     list: (organizationId: number, request: ListRequest) => ['audit-logs', 'list', organizationId, request] as const,
   },
+  apps: {
+    all: ['apps'] as const,
+    list: (organizationId: number, request: ListRequest) => ['apps', 'list', organizationId, request] as const,
+    detail: (organizationId: number, appId: number) => ['apps', 'detail', organizationId, appId] as const,
+  },
+  jobs: {
+    all: ['jobs'] as const,
+    list: (organizationId: number, request: ListRequest, appId?: number | null) =>
+      ['jobs', 'list', organizationId, request, appId ?? null] as const,
+    detail: (organizationId: number, jobId: number) => ['jobs', 'detail', organizationId, jobId] as const,
+  },
 }

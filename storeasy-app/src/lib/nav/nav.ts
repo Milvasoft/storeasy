@@ -69,7 +69,7 @@ export const NAV: NavGroup[] = [
   {
     key: 'main',
     items: [
-      { key: 'apps', path: '/apps', icon: LayoutGrid, feature: 'Apps' },
+      { key: 'apps', path: '/apps', icon: LayoutGrid },
       { key: 'activity', path: '/activity', icon: Activity },
       { key: 'reviews', path: '/reviews', icon: MessageSquare, feature: 'Reviews' },
       { key: 'compliance', path: '/compliance', icon: CalendarClock, feature: 'Compliance' },
@@ -127,6 +127,6 @@ export function navItemFor(pathname: string): NavItem | null {
   )
 }
 
-// The first screen after sign-in: the apps list (design 5.1). Until the apps API ships it shows its designed first-use
-// state, which leads to the store connections.
+// The first screen after sign-in: the apps list (design 5.1). A new organization sees its first-use state there, which
+// leads to the store connections.
 export const HOME_PATH = '/apps'

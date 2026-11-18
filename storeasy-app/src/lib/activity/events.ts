@@ -1,113 +1,63 @@
-import type { IsoDateTime, StoreKind } from '@/lib/api/types'
+import type {
+  ConnectionStatus,
+  IsoDateTime,
+  StepDirection,
+  StoreJobKind,
+  StoreJobStatus,
+  StoreJobStepStatus,
+  StoreKind,
+} from '@/lib/api/types'
 
-// The live activity contract (plan 2.3, K5; design 11.1). The hub is /hubs/activity, one group per organization, and
-// these are its events. The hub is being built on the API: names and fields follow the design notes, enums are numeric
-// like every other API enum, payload keys arrive camelCase and are pascalized. This file is the one place to adjust.
+// The live activity contract, as the API sends it (Storeasy.Api/Hubs/ActivityHub.cs, ActivityEventDto, ActivityEventTypes).
+// The hub is /hubs/activity: after connecting, the client calls JoinOrganization(organizationId) and the server checks the
+// membership (false joins nothing). Every event arrives on the one client method "activity" with its kind in Type. The
+// hub uses SignalR's default JSON protocol: camelCase keys (pascalized here) and enums as numbers, like the REST API.
 
-export const ActivityEventName = {
-  JobCreated: 'job.created',
+export const ACTIVITY_CLIENT_METHOD = 'activity'
+export const JOIN_ORGANIZATION_METHOD = 'JoinOrganization'
+export const LEAVE_ORGANIZATION_METHOD = 'LeaveOrganization'
+
+export const ActivityEventType = {
+  JobQueued: 'job.queued',
+  // Changed state without finishing: started, or a retry was scheduled (JobStatus Queued, Message the reason).
+  JobProgress: 'job.progress',
   JobStep: 'job.step',
-  JobFinished: 'job.finished',
-  WebhookReceived: 'webhook.received',
-  ReviewReceived: 'review.received',
-  // Planned (design 11.1 backend gap): a CI upload is an intake session, not a StoreJob.
-  ArtifactProgress: 'artifact.progress',
+  JobSucceeded: 'job.succeeded',
+  JobFailed: 'job.failed',
+  JobCancelled: 'job.cancelled',
+  ConnectionVerified: 'connection.verified',
+  AppSynced: 'app.synced',
 } as const
-export type ActivityEventName = (typeof ActivityEventName)[keyof typeof ActivityEventName]
+export type ActivityEventType = (typeof ActivityEventType)[keyof typeof ActivityEventType]
 
-export const JobStatus = { Queued: 1, Running: 2, Succeeded: 3, Failed: 4, Canceled: 5 } as const
-export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus]
+export const JOB_FINISHED_TYPES: readonly string[] = [
+  ActivityEventType.JobSucceeded,
+  ActivityEventType.JobFailed,
+  ActivityEventType.JobCancelled,
+]
 
-export const StepDirection = { Outbound: 1, Inbound: 2 } as const
-export type StepDirection = (typeof StepDirection)[keyof typeof StepDirection]
-
-// Retrying: the step failed and waits for its next attempt (design 11.1 "Tekrar bekliyor").
-export const StepStatus = { Running: 1, Succeeded: 2, Failed: 3, Retrying: 4 } as const
-export type StepStatus = (typeof StepStatus)[keyof typeof StepStatus]
-
-export const JobChannel = { Web: 1, Mcp: 2, Api: 3, Ci: 4 } as const
-export type JobChannel = (typeof JobChannel)[keyof typeof JobChannel]
-
-export interface JobCreatedEvent {
-  JobId: number
-  Kind: string
-  Title: string
-  AppName?: string | null
-  Store: StoreKind
-  Channel?: JobChannel | null
-  RequestedByUserName?: string | null
-  StepCount?: number | null
-  Date: IsoDateTime
-}
-
-export interface JobStepEvent {
-  JobId: number
-  Order: number
-  // "asset.upload", "edits.bundles.upload"...
-  Kind: string
-  Direction: StepDirection
-  Status: StepStatus
-  Bytes?: number | null
-  Total?: number | null
-  // File name and part ("04-takvim.png · parça 2/3"), or the store's answer.
-  Message?: string | null
+/** ActivityEventDto: ids, states and a short redacted message; never a secret. Which fields are filled depends on Type. */
+export interface ActivityEvent {
+  Type: ActivityEventType | string
+  OrganizationId: number
+  JobId?: number | null
+  JobKind?: StoreJobKind | null
+  JobStatus?: StoreJobStatus | null
   Attempt?: number | null
-  MaxAttempt?: number | null
-  NextAttemptDate?: IsoDateTime | null
-  Date: IsoDateTime
-}
-
-export interface JobFinishedEvent {
-  JobId: number
-  Status: JobStatus
-  Title: string
-  AppName?: string | null
-  Store: StoreKind
-  DurationMs?: number | null
+  Store?: StoreKind | null
+  AppId?: number | null
+  ConnectionId?: number | null
+  StepOrder?: number | null
+  StepName?: string | null
+  StepStatus?: StoreJobStepStatus | null
+  Direction?: StepDirection | null
+  // Units done and in total for a step that reports progress (bytes for an upload).
+  Progress?: number | null
+  Total?: number | null
+  ConnectionStatus?: ConnectionStatus | null
   Message?: string | null
-  RequestedByUserName?: string | null
   Date: IsoDateTime
 }
-
-export interface WebhookReceivedEvent {
-  Store: StoreKind
-  EventType: string
-  AppName?: string | null
-  OldValue?: string | null
-  NewValue?: string | null
-  SignatureValid: boolean
-  Date: IsoDateTime
-}
-
-export interface ReviewReceivedEvent {
-  Store: StoreKind
-  AppName: string
-  Rating: number
-  Locale?: string | null
-  Title?: string | null
-  Date: IsoDateTime
-}
-
-export interface ArtifactProgressEvent {
-  SessionId: string
-  AppName: string
-  // "GitHub Actions", "Azure DevOps", "EAS".
-  Source: string
-  FileName: string
-  Bytes: number
-  Total: number
-  Date: IsoDateTime
-}
-
-export type ActivityEvent =
-  | { type: typeof ActivityEventName.JobCreated; data: JobCreatedEvent }
-  | { type: typeof ActivityEventName.JobStep; data: JobStepEvent }
-  | { type: typeof ActivityEventName.JobFinished; data: JobFinishedEvent }
-  | { type: typeof ActivityEventName.WebhookReceived; data: WebhookReceivedEvent }
-  | { type: typeof ActivityEventName.ReviewReceived; data: ReviewReceivedEvent }
-  | { type: typeof ActivityEventName.ArtifactProgress; data: ArtifactProgressEvent }
-
-export const ACTIVITY_EVENT_NAMES: readonly ActivityEventName[] = Object.values(ActivityEventName)
 
 // 'connecting' on start, 'reconnecting' between retries, 'disconnected' when the retries gave up (design 18.12).
 export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
@@ -120,6 +70,8 @@ export interface ConnectionInfo {
   nextRetryAt?: number | null
   // The stream is the in-browser demo, not the API (dev only).
   demo?: boolean
+  // The hub answered JoinOrganization with false: the caller is not (or no longer) a member.
+  refused?: boolean
 }
 
 /**

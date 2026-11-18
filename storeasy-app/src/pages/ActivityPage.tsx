@@ -1,26 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ClipboardCheck, ListChecks, Pause, Play } from 'lucide-react'
-import { HatScene, HatScenePhone, HatStatusList, laneDetail } from '@/components/activity/Hat'
+import { ClipboardCheck, Pause, Play } from 'lucide-react'
+import { HatScene, HatScenePhone, HatStatusList, jobTitle, progressText } from '@/components/activity/Hat'
 import { Badge, StoreTag } from '@/components/ui/Badge'
 import { Banner } from '@/components/ui/Feedback'
-import { StepBar, type StepState } from '@/components/ui/Progress'
 import { Tabs } from '@/components/ui/Tabs'
 import { Button, Chip, EmptyState, PageHeader } from '@/components/ui/primitives'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import { JobChannel, JobStatus } from '@/lib/activity/events'
-import { lanesOf, type FeedItem, type JobView, type Lane } from '@/lib/activity/hatState'
+import { ActivityEventType } from '@/lib/activity/events'
+import { isActive, jobsOf, lanesOf, type FeedItem, type JobView } from '@/lib/activity/hatState'
 import { StoreKind } from '@/lib/api/types'
 import { useFeature } from '@/lib/features/FeatureFlagsContext'
 import { usePrefersReducedMotion } from '@/lib/hooks/usePrefersReducedMotion'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import type { Dictionary } from '@/lib/i18n/en'
+import { connectionStatusLabel, jobKindLabel, jobStatusView } from '@/lib/jobs/labels'
+import { channelLabel } from '@/lib/org/auditLabels'
 import { cn } from '@/lib/utils/cn'
 
 const STORE_PARAM: Record<string, StoreKind> = { apple: StoreKind.Apple, google: StoreKind.Google, microsoft: StoreKind.Microsoft }
 
-function ActivityTabs() {
+export function ActivityTabs() {
   const t = useT()
   return (
     <Tabs
@@ -34,23 +35,8 @@ function ActivityTabs() {
   )
 }
 
-function channelText(channel: JobChannel | null, t: Dictionary): string | null {
-  switch (channel) {
-    case JobChannel.Web:
-      return t.enums.channel.web
-    case JobChannel.Mcp:
-      return t.enums.channel.mcp
-    case JobChannel.Api:
-      return t.enums.channel.api
-    case JobChannel.Ci:
-      return t.enums.channel.ci
-    default:
-      return null
-  }
-}
-
-// Ticks once a second while a retry countdown is on screen.
-function useNow(active: boolean): number {
+// Ticks once a second while `active` (a countdown or a running duration is on screen).
+export function useNow(active: boolean): number {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     if (!active) {
@@ -87,6 +73,13 @@ function ConnectionBanner() {
         {state.lastEventAt ? (
           <span className="text-fg3"> · {interpolate(t.activity.lastEvent, { time: format.time(state.lastEventAt) })}</span>
         ) : null}
+      </Banner>
+    )
+  }
+  if (connection.state === 'disconnected' && connection.refused) {
+    return (
+      <Banner tone="danger" role="alert">
+        {t.activity.refused}
       </Banner>
     )
   }
@@ -127,17 +120,30 @@ function LiveBadge() {
   return <Badge tone={connection.state === 'reconnecting' ? 'info' : 'danger'}>{t.activity.offline}</Badge>
 }
 
-const FEED_DIR: Record<FeedItem['kind'], { className: string; key: 'out' | 'in' | 'webhook' | 'error' }> = {
+const FEED_DIR: Record<FeedItem['kind'], { className: string; key: keyof Dictionary['activity']['direction'] }> = {
   out: { className: 'out', key: 'out' },
   in: { className: '', key: 'in' },
-  webhook: { className: 'wh', key: 'webhook' },
+  event: { className: '', key: 'event' },
   error: { className: 'err', key: 'error' },
+}
+
+// What a feed row is about: the app and the job kind for job events, the result for a connection check.
+function feedSubject(item: FeedItem, t: Dictionary, appName: string | null): string | null {
+  if (item.name === ActivityEventType.ConnectionVerified) {
+    return item.connectionStatus
+      ? interpolate(t.activity.connectionChecked, { status: connectionStatusLabel(item.connectionStatus, t) })
+      : null
+  }
+  if (item.name === ActivityEventType.AppSynced) {
+    return appName
+  }
+  return [appName, item.jobKind ? jobKindLabel(item.jobKind, t) : null].filter(Boolean).join(' · ') || null
 }
 
 function Feed({ items }: { items: FeedItem[] }) {
   const t = useT()
   const format = useFormat()
-  const { frozen } = useActivity()
+  const { frozen, appName } = useActivity()
   return (
     <section className="feed" aria-label={t.activity.events}>
       <div className="card-h">
@@ -148,16 +154,19 @@ function Feed({ items }: { items: FeedItem[] }) {
         <p className="m-0 p-4 text-[13px] text-fg3">{t.activity.noEvents}</p>
       ) : (
         <ol className="feed-b" aria-live="off">
-          {items.map((item) => (
-            <li key={item.id} className={cn('ev', item.kind === 'error' && 'x')}>
-              <time dateTime={item.date}>{format.time(item.date)}</time>
-              <div className="min-w-0">
-                <span className={cn('dir', FEED_DIR[item.kind].className)}>{t.activity.direction[FEED_DIR[item.kind].key]}</span>
-                <b className="mono text-[12px]">{item.name}</b> {item.subject ? <span className="text-fg2">{item.subject}</span> : null}
-                {item.detail ? <div className="m">{item.detail}</div> : null}
-              </div>
-            </li>
-          ))}
+          {items.map((item) => {
+            const subject = feedSubject(item, t, appName(item.appId))
+            return (
+              <li key={item.id} className={cn('ev', item.kind === 'error' && 'x')}>
+                <time dateTime={item.date}>{format.time(item.date)}</time>
+                <div className="min-w-0">
+                  <span className={cn('dir', FEED_DIR[item.kind].className)}>{t.activity.direction[FEED_DIR[item.kind].key]}</span>
+                  <b className="mono text-[12px]">{item.name}</b> {subject ? <span className="text-fg2">{subject}</span> : null}
+                  {item.detail ? <div className="m">{item.detail}</div> : null}
+                </div>
+              </li>
+            )
+          })}
         </ol>
       )}
       <div className="card-f text-xs text-fg3">{t.activity.feedFooter}</div>
@@ -165,58 +174,56 @@ function Feed({ items }: { items: FeedItem[] }) {
   )
 }
 
-function stepStates(job: JobView): StepState[] {
-  const count = job.stepCount ?? 0
-  return Array.from({ length: count }, (_, index) => {
-    if (index < job.doneSteps) {
-      return 'done'
-    }
-    if (index === job.doneSteps) {
-      return job.status === JobStatus.Failed ? 'failed' : 'now'
-    }
-    return 'pending'
-  })
-}
-
-function ActiveJobs({ lanes }: { lanes: Lane[] }) {
+/** One job as a row: store, title, the current step and its progress, status; the title opens the job (design 11.5). */
+export function JobRow({ job }: { job: JobView }) {
   const t = useT()
   const format = useFormat()
-  const jobs = lanes.flatMap((lane) => lane.jobs.map((job) => ({ job, lane })))
-  const finished = lanes.map((lane) => lane.last).filter((job): job is JobView => !!job)
+  const { appName } = useActivity()
+  const status = jobStatusView(job.status, t, { retrying: job.retrying })
+  const step = job.stepName
+    ? [job.stepOrder ? interpolate(t.activity.stepN, { order: job.stepOrder }) : null, job.stepName, progressText(job, format)]
+        .filter(Boolean)
+        .join(' · ')
+    : null
+  const meta = [step, job.channel ? channelLabel(job.channel, t) : null, job.requestedBy].filter(Boolean).join(' · ')
+  return (
+    <li className="jb">
+      {job.store ? <StoreTag store={job.store} small codeOnly /> : <span />}
+      <div className="min-w-0">
+        <Link className="block truncate text-[13.5px] font-semibold hover:underline" to={`/activity/jobs/${job.id}`}>
+          {jobTitle(job, t, appName(job.appId))}
+        </Link>
+        <span className="s">{job.retrying || (!isActive(job) && job.message) ? job.message : meta}</span>
+      </div>
+      <span className="max-md:hidden" />
+      <span className="text-right">
+        <Badge tone={status.tone} dot={status.dot} small>
+          {status.label}
+        </Badge>
+      </span>
+    </li>
+  )
+}
+
+function ActiveJobs({ jobs }: { jobs: JobView[] }) {
+  const t = useT()
+  const active = jobs.filter(isActive)
+  const shown = active.length > 0 ? active : jobs.slice(0, 5)
   return (
     <section className="card mt-4">
       <div className="card-h">
-        <h2 className="h3">{jobs.length > 0 ? t.activity.activeJobs : t.activity.recentJobs}</h2>
-        <span className="mono text-xs text-fg3">{jobs.length > 0 ? jobs.length : finished.length}</span>
+        <h2 className="h3">{active.length > 0 ? t.activity.activeJobs : t.activity.recentJobs}</h2>
+        <span className="mono text-xs text-fg3">{shown.length}</span>
+        <Link className="lnk ml-auto text-[13px]" to="/activity/jobs">
+          {t.app.allJobs}
+        </Link>
       </div>
-      {jobs.length === 0 && finished.length === 0 ? (
+      {shown.length === 0 ? (
         <p className="m-0 p-[18px] text-[13px] text-fg3">{t.activity.firstJobHint}</p>
       ) : (
         <ul className="m-0 list-none p-0">
-          {(jobs.length > 0 ? jobs : finished.map((job) => ({ job, lane: null }))).map(({ job, lane }) => (
-            <li key={job.id} className="jb">
-              <StoreTag store={job.store} small codeOnly />
-              <div className="min-w-0">
-                <b className="block truncate text-[13.5px]">{[job.appName, job.title].filter(Boolean).join(' · ')}</b>
-                <span className="s">{[job.stepKind, channelText(job.channel, t), job.requestedBy].filter(Boolean).join(' · ')}</span>
-              </div>
-              {job.stepCount ? (
-                <div className="stpc">
-                  <StepBar steps={stepStates(job)} label={interpolate(t.activity.stepOf, { done: job.doneSteps, total: job.stepCount })} />
-                </div>
-              ) : (
-                <span className="max-md:hidden" />
-              )}
-              <span className={cn('mono text-right text-xs', lane?.failed ? 'text-danger' : 'text-fg2')}>
-                {lane
-                  ? laneDetail(lane, t, format)
-                  : job.status === JobStatus.Succeeded
-                    ? t.activity.succeeded
-                    : job.status === JobStatus.Failed
-                      ? t.activity.failed
-                      : t.activity.canceled}
-              </span>
-            </li>
+          {shown.map((job) => (
+            <JobRow key={job.id} job={job} />
           ))}
         </ul>
       )}
@@ -225,7 +232,7 @@ function ActiveJobs({ lanes }: { lanes: Lane[] }) {
 }
 
 /**
- * The live view (design 11.1-11.3, 11.13, 11.14): the Hat scene and its event feed, driven by the activity stream. With
+ * The live view (design 11.1-11.3, 11.13, 11.14): the Hat scene and its event feed, driven by the activity hub. With
  * reduced motion the scene is replaced by one status row per lane. Store chips filter on the client; the filter lives
  * in the address (?store=apple).
  */
@@ -235,12 +242,11 @@ export function ActivityPage() {
   const { state, frozen, setFrozen } = useActivity()
   const [params, setParams] = useSearchParams()
   const storeFilter = STORE_PARAM[params.get('store') ?? ''] ?? null
-  const now = useNow(Object.keys(state.webhooks).length > 0)
 
-  const lanes = useMemo(() => lanesOf(state, now).filter((lane) => !storeFilter || lane.store === storeFilter), [state, now, storeFilter])
-  const artifacts = storeFilter ? [] : Object.values(state.artifacts)
+  const lanes = useMemo(() => lanesOf(state).filter((lane) => !storeFilter || lane.store === storeFilter), [state, storeFilter])
+  const jobs = useMemo(() => jobsOf(state).filter((job) => !storeFilter || job.store === storeFilter), [state, storeFilter])
   const feed = storeFilter ? state.feed.filter((item) => item.store === storeFilter) : state.feed
-  const quiet = lanes.every((lane) => lane.jobs.length === 0) && artifacts.length === 0
+  const quiet = lanes.every((lane) => lane.jobs.length === 0)
 
   const setStore = (key: string | null) => {
     const next = new URLSearchParams(params)
@@ -294,24 +300,20 @@ export function ActivityPage() {
                 {t.activity.legendIn}
               </li>
               <li>
-                <i className="lw" />
-                {t.activity.legendWebhook}
-              </li>
-              <li>
                 <i className="lx" />
                 {t.activity.legendError}
               </li>
             </ul>
           </div>
           {reduced ? (
-            <HatStatusList lanes={lanes} artifacts={artifacts} />
+            <HatStatusList lanes={lanes} />
           ) : (
             <div className={cn('stage-b', frozen && 'frozen')}>
               <div className="w-full max-md:hidden">
-                <HatScene lanes={lanes} artifacts={artifacts} frozen={frozen} />
+                <HatScene lanes={lanes} frozen={frozen} />
               </div>
               <div className="w-full md:hidden">
-                <HatScenePhone lanes={lanes} artifacts={artifacts} frozen={frozen} />
+                <HatScenePhone lanes={lanes} frozen={frozen} />
               </div>
               {quiet ? (
                 <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center">
@@ -324,33 +326,12 @@ export function ActivityPage() {
         </section>
         <Feed items={feed} />
       </div>
-      <ActiveJobs lanes={lanes} />
+      <ActiveJobs jobs={jobs} />
     </>
   )
 }
 
-/** Jobs (11.4) and the approval queue (11.8) wait for their endpoints (PATCH jobs, PATCH plans). */
-export function ActivityJobsPage() {
-  const t = useT()
-  const enabled = useFeature('Jobs')
-  return (
-    <>
-      <PageHeader title={t.activity.title} subtitle={t.activity.subtitle} />
-      <ActivityTabs />
-      <EmptyState
-        icon={<ListChecks aria-hidden />}
-        title={enabled ? t.activity.jobsEmpty : t.activity.jobsComingTitle}
-        description={t.activity.jobsComingBody}
-        action={
-          <Link className="btn" to="/activity">
-            {t.activity.backToHat}
-          </Link>
-        }
-      />
-    </>
-  )
-}
-
+/** The approval queue (11.8) waits for its endpoint (PATCH plans). */
 export function ActivityPlansPage() {
   const t = useT()
   const enabled = useFeature('Plans')

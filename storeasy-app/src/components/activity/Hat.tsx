@@ -1,14 +1,14 @@
 import { useId } from 'react'
-import { StoreTag } from '@/components/ui/Badge'
-import { Badge } from '@/components/ui/Badge'
-import { StepDirection } from '@/lib/activity/events'
-import type { ArtifactView, JobView, Lane } from '@/lib/activity/hatState'
-import { StoreKind } from '@/lib/api/types'
+import { Badge, StoreTag } from '@/components/ui/Badge'
 import { LOGO_PATHS } from '@/components/layout/Logo'
+import { useActivity } from '@/lib/activity/ActivityContext'
+import type { JobView, Lane } from '@/lib/activity/hatState'
+import { StepDirection, StoreKind } from '@/lib/api/types'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import type { Dictionary } from '@/lib/i18n/en'
 import type { Formatters } from '@/lib/i18n/format'
+import { jobKindLabel } from '@/lib/jobs/labels'
 import { cn } from '@/lib/utils/cn'
 
 // The scene's geometry, from design 11.1 (viewBox 720 x 470): storeasy in the middle left, the three stores on the right,
@@ -47,19 +47,18 @@ const LANE_GEOMETRY: Record<
 }
 const CI_PATH = 'M118 372 C 118 320, 250 340, 250 302'
 
-// Bytes as the lane's progress text ("31,4 / 48,0 MB").
-function progressText(job: JobView, format: Formatters): string | null {
-  if (job.bytes !== null && job.total) {
-    return `${format.bytes(job.bytes)} / ${format.bytes(job.total)}`
+// A step's progress: bytes for a transfer ("31,4 / 48,0 MB"), plain units otherwise ("4 / 5").
+export function progressText(job: Pick<JobView, 'progress' | 'total' | 'stepName'>, format: Formatters): string | null {
+  if (job.progress === null || !job.total) {
+    return null
   }
-  if (job.stepCount) {
-    return `${job.doneSteps} / ${job.stepCount}`
-  }
-  return null
+  return /upload|download/.test(job.stepName ?? '')
+    ? `${format.bytes(job.progress)} / ${format.bytes(job.total)}`
+    : `${format.number(job.progress)} / ${format.number(job.total)}`
 }
 
 function packetLabel(job: JobView): string {
-  const first = (job.message ?? job.stepKind ?? '').split(' · ')[0]
+  const first = job.stepName ?? ''
   return first.length > 14 ? `${first.slice(0, 13)}…` : first
 }
 
@@ -73,15 +72,22 @@ export function laneDetail(lane: Lane, t: Dictionary, format: Formatters): strin
     return lane.last ? t.activity.lastFinished : t.activity.idle
   }
   if (lane.failed) {
-    return job.attempt && job.maxAttempt
-      ? interpolate(t.activity.retrying, { attempt: job.attempt, max: job.maxAttempt })
+    return job.retrying && job.attempt && job.maxAttempts
+      ? interpolate(t.activity.retrying, { attempt: job.attempt, max: job.maxAttempts })
       : t.activity.failedStep
   }
-  return [job.stepKind, progressText(job, format)].filter(Boolean).join(' · ') || t.activity.queued
+  return [job.stepName, progressText(job, format)].filter(Boolean).join(' · ') || t.activity.queued
 }
 
-function jobTitle(job: JobView | null, fallback: string): string {
-  return job ? [job.appName, job.title].filter(Boolean).join(' · ') : fallback
+/** "Pusula · Sync apps and builds": the app when the job has one, then what the job does. */
+export function jobTitle(job: JobView, t: Dictionary, appName: string | null): string {
+  return [appName, jobKindLabel(job.kind, t)].filter(Boolean).join(' · ')
+}
+
+function useJobTitle(): (job: JobView | null, fallback: string) => string {
+  const t = useT()
+  const { appName } = useActivity()
+  return (job, fallback) => (job ? jobTitle(job, t, appName(job.appId)) : fallback)
 }
 
 function Packet({ lane, pathId, reverse }: { lane: Lane; pathId: string; reverse?: boolean }) {
@@ -114,15 +120,15 @@ function Packet({ lane, pathId, reverse }: { lane: Lane; pathId: string; reverse
 
 /**
  * The animated "Hat" (design 11.1): outbound steps travel as accent packets, answers come back as neutral rings, a
- * webhook pulses on its store, a failing lane turns red and stops. Nothing moves when nothing is on the way. Under
+ * failing lane turns red and stops. The CI node stays idle until package intake has its events. Nothing moves when nothing is on the way. Under
  * reduced motion the page shows HatStatusList instead of this scene.
  */
-export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifacts: ArtifactView[]; frozen?: boolean }) {
+export function HatScene({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean }) {
   const t = useT()
   const format = useFormat()
+  const titleOf = useJobTitle()
   const id = useId().replace(/:/g, '')
   const activeJobs = lanes.reduce((sum, lane) => sum + lane.jobs.length, 0)
-  const artifact = artifacts[0] ?? null
   const animate = !frozen
 
   return (
@@ -159,7 +165,7 @@ export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifact
               fontSize="10"
               fill="rgb(var(--fg-3))"
             >
-              {[job.stepKind, job.message?.split(' · ').slice(1).join(' · ')].filter(Boolean).join(' · ')}
+              {[job.stepName, job.message].filter(Boolean).join(' · ')}
             </text>
             {lane.moving && animate ? (
               <Packet lane={lane} pathId={`${id}-${lane.store}`} reverse={job.direction === StepDirection.Inbound} />
@@ -183,48 +189,6 @@ export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifact
         )
       })}
 
-      {artifact && animate ? (
-        <g>
-          <rect x="-30" y="-11" width="60" height="22" rx="6" className="in" />
-          <text y="3.5" textAnchor="middle" className="in-t">
-            {artifact.fileName.split('.').pop()}
-          </text>
-          <animateMotion dur="3.2s" repeatCount="indefinite">
-            <mpath href={`#${id}-ci`} />
-          </animateMotion>
-        </g>
-      ) : null}
-
-      {lanes.map((lane) =>
-        lane.webhookAt && animate ? (
-          <rect
-            key={`wh-${lane.store}`}
-            x={LANE_GEOMETRY[lane.store].node.x}
-            y={LANE_GEOMETRY[lane.store].node.y}
-            width="190"
-            height="96"
-            rx="22"
-            className="wh"
-          >
-            <animate
-              attributeName="x"
-              values={`${LANE_GEOMETRY[lane.store].node.x};${LANE_GEOMETRY[lane.store].node.x - 18}`}
-              dur="2.4s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y"
-              values={`${LANE_GEOMETRY[lane.store].node.y};${LANE_GEOMETRY[lane.store].node.y - 18}`}
-              dur="2.4s"
-              repeatCount="indefinite"
-            />
-            <animate attributeName="width" values="190;226" dur="2.4s" repeatCount="indefinite" />
-            <animate attributeName="height" values="96;132" dur="2.4s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values=".8;0" dur="2.4s" repeatCount="indefinite" />
-          </rect>
-        ) : null,
-      )}
-
       <rect x="180" y="160" width="140" height="140" rx="36" className="hub" />
       <g transform="translate(214 180) scale(1.5)">
         {LOGO_PATHS.map((path, index) => (
@@ -237,21 +201,19 @@ export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifact
 
       <rect x="12" y="372" width="212" height="82" rx="20" className="node" />
       <text x="30" y="396" className="lbl">
-        {artifact ? artifact.source.toLocaleUpperCase('en') : t.activity.ciLabel}
+        {t.activity.ciLabel}
       </text>
       <text x="30" y="420" className="ttl">
-        {artifact ? artifact.appName : t.activity.ciIdle}
+        {t.activity.ciIdle}
       </text>
       <text x="30" y="442" className="det">
-        {artifact
-          ? `${artifact.fileName.split('.').pop()} · ${format.bytes(artifact.bytes)} / ${format.bytes(artifact.total)}`
-          : t.activity.ciHint}
+        {t.activity.ciHint}
       </text>
 
       {lanes.map((lane) => {
         const { x, y } = LANE_GEOMETRY[lane.store].node
         const job = lane.jobs[0] ?? null
-        const percent = job && job.bytes !== null && job.total ? Math.min(1, job.bytes / job.total) : null
+        const percent = job && job.progress !== null && job.total ? Math.min(1, job.progress / job.total) : null
         return (
           <g key={`node-${lane.store}`}>
             <rect x={x} y={y} width="190" height="96" rx="22" className={cn('node', lane.failed && 'x')} />
@@ -259,7 +221,7 @@ export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifact
               {storeLabel(lane.store, t)}
             </text>
             <text x={x + 18} y={y + 50} className="ttl">
-              {truncate(jobTitle(job ?? lane.last, t.activity.nodeIdle), 22)}
+              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 22)}
             </text>
             <text x={x + 18} y={y + 74} className={cn('det', lane.failed && 'dng')}>
               {truncate(laneDetail(lane, t, format), 30)}
@@ -268,14 +230,6 @@ export function HatScene({ lanes, artifacts, frozen }: { lanes: Lane[]; artifact
               <>
                 <rect x={x + 18} y={y + 80} width="154" height="4" rx="2" className="bt" />
                 <rect x={x + 18} y={y + 80} width={154 * percent} height="4" rx="2" className="bf" />
-              </>
-            ) : null}
-            {lane.webhookAt ? (
-              <>
-                <rect x={x + 116} y={y - 9} width="62" height="18" rx="9" className="wh-tag" />
-                <text x={x + 147} y={y + 3.5} textAnchor="middle" className="wh-t">
-                  {t.activity.webhookTag}
-                </text>
               </>
             ) : null}
           </g>
@@ -290,26 +244,12 @@ function truncate(text: string, length: number): string {
 }
 
 /** The same lanes as text: one row per lane (design 11.2), what the reduced motion view shows instead of the scene. */
-export function HatStatusList({ lanes, artifacts }: { lanes: Lane[]; artifacts: ArtifactView[] }) {
+export function HatStatusList({ lanes }: { lanes: Lane[] }) {
   const t = useT()
   const format = useFormat()
+  const titleOf = useJobTitle()
   return (
     <ul className="m-0 list-none p-0" aria-label={t.activity.statusListLabel}>
-      {artifacts.map((artifact) => (
-        <li key={artifact.sessionId} className="rml">
-          <span className="ei" aria-hidden>
-            CI
-          </span>
-          <div>
-            <div className="rt">{interpolate(t.activity.routeIn, { source: artifact.source.toLocaleUpperCase('en') })}</div>
-            <b className="text-sm">{artifact.appName}</b>
-            <div className="s">
-              {artifact.fileName} · {format.bytes(artifact.bytes)} / {format.bytes(artifact.total)}
-            </div>
-          </div>
-          <Badge small>{t.activity.incoming}</Badge>
-        </li>
-      ))}
       {lanes.map((lane) => {
         const job = lane.jobs[0] ?? null
         return (
@@ -319,9 +259,8 @@ export function HatStatusList({ lanes, artifacts }: { lanes: Lane[]; artifacts: 
             </span>
             <div>
               <div className="rt">{interpolate(t.activity.routeOut, { store: storeLabel(lane.store, t) })}</div>
-              <b className="text-sm">{jobTitle(job ?? lane.last, t.activity.nodeIdle)}</b>
+              <b className="text-sm">{titleOf(job ?? lane.last, t.activity.nodeIdle)}</b>
               <div className={cn('s', lane.failed && 'text-danger')}>{laneDetail(lane, t, format)}</div>
-              {lane.webhookAt ? <div className="s text-warning">{t.activity.webhookTag}</div> : null}
             </div>
             {job ? (
               lane.failed ? (
@@ -350,12 +289,12 @@ const PHONE_GEOMETRY: Record<StoreKind, { path: string; node: Point; width: numb
 }
 
 /** The phone form of the scene (design 11.1): storeasy on top, the stores below, packets as unlabeled dots. */
-export function HatScenePhone({ lanes, artifacts, frozen }: { lanes: Lane[]; artifacts: ArtifactView[]; frozen?: boolean }) {
+export function HatScenePhone({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean }) {
   const t = useT()
   const format = useFormat()
+  const titleOf = useJobTitle()
   const id = useId().replace(/:/g, '')
   const activeJobs = lanes.reduce((sum, lane) => sum + lane.jobs.length, 0)
-  const artifact = artifacts[0] ?? null
   return (
     <svg className="hs" viewBox="0 0 358 250" role="img" aria-label={t.activity.sceneLabel}>
       <defs>
@@ -387,14 +326,6 @@ export function HatScenePhone({ lanes, artifacts, frozen }: { lanes: Lane[]; art
           </g>
         ) : null,
       )}
-      {artifact && !frozen ? (
-        <g>
-          <circle r="5" className="in" />
-          <animateMotion dur="2s" repeatCount="indefinite">
-            <mpath href={`#${id}-pci`} />
-          </animateMotion>
-        </g>
-      ) : null}
       <rect x="144" y="10" width="72" height="72" rx="20" className="hub" />
       <g transform="translate(162 16) scale(0.75)">
         {LOGO_PATHS.map((path, index) => (
@@ -409,7 +340,7 @@ export function HatScenePhone({ lanes, artifacts, frozen }: { lanes: Lane[]; art
         {t.activity.ciShort}
       </text>
       <text x="10" y="58" className="ttl s">
-        {truncate(artifact ? artifact.appName : t.activity.ciIdle, 11)}
+        {truncate(t.activity.ciIdle, 11)}
       </text>
       {lanes.map((lane) => {
         const { node, width } = PHONE_GEOMETRY[lane.store]
@@ -421,7 +352,7 @@ export function HatScenePhone({ lanes, artifacts, frozen }: { lanes: Lane[]; art
               {truncate(storeLabel(lane.store, t), 14)}
             </text>
             <text x={node.x + 12} y={node.y + 37} className="ttl s">
-              {truncate(jobTitle(job ?? lane.last, t.activity.nodeIdle), 12)}
+              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 12)}
             </text>
             <text x={node.x + 12} y={node.y + 54} className={cn('det s', lane.failed && 'dng')}>
               {truncate(laneDetail(lane, t, format), 17)}

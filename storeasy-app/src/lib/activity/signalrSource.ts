@@ -10,7 +10,14 @@ import { ACTIVITY_HUB_URL } from '@/config'
 import { ensureRefresh } from '@/lib/api/http'
 import { pascalizeKeys } from '@/lib/api/pascalize'
 import { tokenStore } from '@/lib/api/tokenStore'
-import { ACTIVITY_EVENT_NAMES, createEmitter, type ActivityEvent, type ActivitySource, type ConnectionInfo } from './events'
+import {
+  ACTIVITY_CLIENT_METHOD,
+  createEmitter,
+  JOIN_ORGANIZATION_METHOD,
+  type ActivityEvent,
+  type ActivitySource,
+  type ConnectionInfo,
+} from './events'
 
 // Design 18.12: retry after 0, 2, 10 and 30 s, then every 30 s; give up after 5 minutes and offer "Reconnect".
 const RETRY_DELAYS_MS = [0, 2_000, 10_000, 30_000]
@@ -25,60 +32,88 @@ export const activityRetryPolicy: IRetryPolicy = {
   },
 }
 
-// The organization group is chosen with a query parameter on the hub URL; the token goes as access_token (K5: the
-// browser cannot set headers on a WebSocket). Both are the planned hub contract.
-export function activityHubUrl(organizationId: number): string {
-  return `${ACTIVITY_HUB_URL}?organizationId=${encodeURIComponent(String(organizationId))}`
+/** The hub's payload as the app reads it: PascalCase keys, numeric enums kept as they are. */
+export function readActivityEvent(payload: unknown): ActivityEvent | null {
+  const event = pascalizeKeys(payload) as ActivityEvent | null
+  return event && typeof event === 'object' && typeof event.Type === 'string' ? event : null
+}
+
+export interface SignalRSourceOptions {
+  // Tests build the connection themselves; the app uses the real builder.
+  build?: (url: string, accessTokenFactory: () => string) => HubConnection
+}
+
+function buildHub(url: string, accessTokenFactory: () => string, retry: IRetryPolicy): HubConnection {
+  return new HubConnectionBuilder()
+    .withUrl(url, { accessTokenFactory })
+    .withAutomaticReconnect(retry)
+    .configureLogging(LogLevel.None)
+    .build()
 }
 
 /**
- * The live source: a SignalR connection to /hubs/activity with the current access token. A 401 while connecting renews
- * the token through the same single-flight refresh the HTTP layer uses, then tries once more.
+ * The live source: a SignalR connection to /hubs/activity with the current access token (sent as access_token by the
+ * client for websockets). After every (re)connect the source joins the organization's group; the server checks the
+ * membership and answers false for a stranger. A 401 while connecting renews the token through the same single-flight
+ * refresh the HTTP layer uses, then tries once more.
  */
-export function createSignalRSource(organizationId: number): ActivitySource {
+export function createSignalRSource(organizationId: number, options: SignalRSourceOptions = {}): ActivitySource {
   const events = createEmitter<ActivityEvent>()
   const connection = createEmitter<ConnectionInfo>()
   let hub: HubConnection | null = null
   let attempt = 0
 
-  const build = () =>
-    new HubConnectionBuilder()
-      .withUrl(activityHubUrl(organizationId), { accessTokenFactory: () => tokenStore.get()?.accessToken ?? '' })
-      .withAutomaticReconnect({
-        nextRetryDelayInMilliseconds: (context) => {
-          const delay = activityRetryPolicy.nextRetryDelayInMilliseconds(context)
-          attempt = context.previousRetryCount + 1
-          connection.emit({
-            state: delay === null ? 'disconnected' : 'reconnecting',
-            attempt,
-            nextRetryAt: delay === null ? null : Date.now() + delay,
-          })
-          return delay
-        },
+  const retry: IRetryPolicy = {
+    nextRetryDelayInMilliseconds: (context) => {
+      const delay = activityRetryPolicy.nextRetryDelayInMilliseconds(context)
+      attempt = context.previousRetryCount + 1
+      connection.emit({
+        state: delay === null ? 'disconnected' : 'reconnecting',
+        attempt,
+        nextRetryAt: delay === null ? null : Date.now() + delay,
       })
-      .configureLogging(LogLevel.None)
-      .build()
+      return delay
+    },
+  }
+
+  const tokenFactory = () => tokenStore.get()?.accessToken ?? ''
+
+  // Groups do not survive a reconnect (a new connection id), so the join runs after every connect.
+  const join = async (current: HubConnection): Promise<void> => {
+    const joined = await current.invoke<boolean>(JOIN_ORGANIZATION_METHOD, organizationId)
+    connection.emit(joined ? { state: 'connected' } : { state: 'disconnected', refused: true })
+  }
 
   const connect = async (renewed = false): Promise<void> => {
-    hub = build()
-    for (const name of ACTIVITY_EVENT_NAMES) {
-      hub.on(name, (payload: unknown) => events.emit({ type: name, data: pascalizeKeys(payload) } as ActivityEvent))
-    }
-    hub.onreconnecting(() => connection.emit({ state: 'reconnecting', attempt, nextRetryAt: null }))
-    hub.onreconnected(() => {
-      attempt = 0
-      connection.emit({ state: 'connected' })
+    const current = options.build ? options.build(ACTIVITY_HUB_URL, tokenFactory) : buildHub(ACTIVITY_HUB_URL, tokenFactory, retry)
+    hub = current
+    current.on(ACTIVITY_CLIENT_METHOD, (payload: unknown) => {
+      const event = readActivityEvent(payload)
+      // The group is the organization's, but a stray event of another organization never reaches its state.
+      if (event && event.OrganizationId === organizationId) {
+        events.emit(event)
+      }
     })
-    hub.onclose(() => connection.emit({ state: 'disconnected' }))
+    current.onreconnecting(() => connection.emit({ state: 'reconnecting', attempt, nextRetryAt: null }))
+    current.onreconnected(() => {
+      attempt = 0
+      void join(current).catch(() => connection.emit({ state: 'disconnected' }))
+    })
+    current.onclose(() => connection.emit({ state: 'disconnected' }))
     connection.emit({ state: 'connecting' })
     try {
-      await hub.start()
-      connection.emit({ state: 'connected' })
+      await current.start()
     } catch (error) {
       const unauthorized = /401|unauthori[sz]ed/i.test(String((error as Error)?.message ?? error))
       if (unauthorized && !renewed && (await ensureRefresh())) {
         return connect(true)
       }
+      connection.emit({ state: 'disconnected' })
+      throw error
+    }
+    try {
+      await join(current)
+    } catch (error) {
       connection.emit({ state: 'disconnected' })
       throw error
     }

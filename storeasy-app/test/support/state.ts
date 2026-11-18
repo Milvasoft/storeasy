@@ -1,5 +1,15 @@
-import type { AccountDetailDto, MemberListDto, MyOrganizationDto, StoreAuditLogDto, StoreConnectionDto } from '@/lib/api/types'
-import { accountDetail, auditLog, connection, memberList, organization } from './factories'
+import type {
+  AccountDetailDto,
+  AppDetailDto,
+  AppListDto,
+  MemberListDto,
+  MyOrganizationDto,
+  StoreAuditLogDto,
+  StoreConnectionDto,
+  StoreJobDetailDto,
+  StoreJobListDto,
+} from '@/lib/api/types'
+import { accountDetail, app, appDetail, auditLog, connection, job, jobDetail, memberList, organization } from './factories'
 
 /**
  * The fake backend's data. Default handlers read from here, so a test changes what the API returns by assigning a field
@@ -11,6 +21,12 @@ export interface TestState {
   members: MemberListDto
   connections: StoreConnectionDto[]
   auditLogs: StoreAuditLogDto[]
+  apps: AppListDto[]
+  appDetail: AppDetailDto
+  jobs: StoreJobListDto[]
+  jobDetail: StoreJobDetailDto
+  /** Job ids POST apps/sync answers. */
+  syncJobIds: number[]
   /** Every request the handlers saw, so a test can assert what the app sent. */
   requests: Array<{ method: string; path: string; body: unknown; query: Record<string, string>; headers: Record<string, string> }>
 }
@@ -22,6 +38,11 @@ function initialState(): TestState {
     members: memberList(),
     connections: [connection()],
     auditLogs: [auditLog()],
+    apps: [app()],
+    appDetail: appDetail(),
+    jobs: [job()],
+    jobDetail: jobDetail(),
+    syncJobIds: [48300],
     requests: [],
   }
 }
