@@ -24,4 +24,24 @@ public class ConnectionFingerprint
     /// Google Cloud project id of the service account. Null for Apple.
     /// </summary>
     public string ProjectId { get; set; }
+
+    /// <summary>
+    /// Last 4 characters of the Microsoft Entra tenant id. Microsoft only.
+    /// </summary>
+    public string TenantIdSuffix { get; set; }
+
+    /// <summary>
+    /// Last 4 characters of the Microsoft Entra application (client) id. Microsoft only.
+    /// </summary>
+    public string ClientIdSuffix { get; set; }
+
+    /// <summary>
+    /// Partner Center seller id (sent as <c>X-Seller-Account-Id</c>). Microsoft only.
+    /// </summary>
+    public string SellerId { get; set; }
+
+    /// <summary>
+    /// UTC instant the client secret expires, as entered by the user. Microsoft only.
+    /// </summary>
+    public DateTime? SecretExpiryDate { get; set; }
 }

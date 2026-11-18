@@ -29,5 +29,11 @@ public static class TableNames
     public const string Apps = nameof(Apps);
     public const string StoreApps = nameof(StoreApps);
     public const string Builds = nameof(Builds);
+    public const string MsProducts = nameof(MsProducts);
+    public const string MsSubmissions = nameof(MsSubmissions);
+    public const string MsFlights = nameof(MsFlights);
+    public const string MsFlightGroups = nameof(MsFlightGroups);
+    public const string MsAddons = nameof(MsAddons);
+    public const string MsInstallerPackages = nameof(MsInstallerPackages);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

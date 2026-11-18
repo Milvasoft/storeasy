@@ -12,4 +12,29 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Sync apps and builds")]
     SyncApps = 1,
+
+    /// <summary>
+    /// Reads the Microsoft Store products of one connection: MSIX apps, MSI/EXE products, submissions and their status,
+    /// package flights, add-ons and installer packages.
+    /// </summary>
+    [Description("Sync Microsoft Store")]
+    MsSync = 50,
+
+    /// <summary>
+    /// Writes one planned Microsoft Store change (listings, images, packages, pricing, flights, add-ons, rollout).
+    /// </summary>
+    [Description("Apply a Microsoft Store change")]
+    MsApplyChange = 51,
+
+    /// <summary>
+    /// Commits a Microsoft Store submission (sends it to certification) and polls its status.
+    /// </summary>
+    [Description("Submit to Microsoft Store")]
+    MsSubmit = 52,
+
+    /// <summary>
+    /// Downloads MSI/EXE installers and checks their Authenticode signature.
+    /// </summary>
+    [Description("Check Microsoft Store installers")]
+    MsCheckInstaller = 53,
 }

@@ -77,6 +77,12 @@ public class StoreConnection : FullAuditableEntity<int>
     public string LastVerifyError { get; set; }
 
     /// <summary>
+    /// UTC instant the secret stops working, when the store's secrets expire (Microsoft Entra client secrets, at most 24
+    /// months). Entered by the user; the expiry reminders read it.
+    /// </summary>
+    public DateTime? SecretExpiryDate { get; set; }
+
+    /// <summary>
     /// Navigation property of the organization.
     /// </summary>
     public virtual Organization Organization { get; set; }
