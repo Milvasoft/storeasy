@@ -34,7 +34,6 @@ const AuditPage = lazyPage(() => import('@/pages/org/AuditPage'), 'AuditPage')
 const OrgSettingsPage = lazyPage(() => import('@/pages/org/OrgSettingsPage'), 'OrgSettingsPage')
 const AccountPage = lazyPage(() => import('@/pages/account/AccountPage'), 'AccountPage')
 const SecurityPage = lazyPage(() => import('@/pages/account/AccountPage'), 'SecurityPage')
-const SectionPage = lazyPage(() => import('@/pages/SectionPages'), 'SectionPage')
 const PlatformPage = lazyPage(() => import('@/pages/SectionPages'), 'PlatformPage')
 const StudioRoutes = lazyPage(() => import('@/features/studio/StudioRoutes'), 'StudioRoutes')
 
@@ -186,12 +185,10 @@ export function App() {
         <Route path="/activity/jobs" element={<JobsPage />} />
         <Route path="/activity/jobs/:jobId" element={<JobDetailPage />} />
         <Route path="/studio/*" element={<StudioRoutes />} />
-        <Route path="/intake" element={<SectionPage section="intake" />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/members" element={<MembersPage />} />
         <Route path="/audit" element={<AuditPage />} />
         <Route path="/settings" element={<OrgSettingsPage />} />
-        <Route path="/developer" element={<SectionPage section="developer" />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/account/security" element={<SecurityPage />} />
         <Route path="/admin/users" element={<PlatformPage section="adminUsers" />} />
