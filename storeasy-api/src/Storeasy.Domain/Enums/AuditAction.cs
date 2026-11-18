@@ -126,6 +126,26 @@ public enum AuditAction : short
     [Description("Assisted step completed")]
     AssistedStepCompleted = 63,
 
+    /// <summary>A subscription group or subscription was written to a store.</summary>
+    [Description("Subscription changed")]
+    SubscriptionChanged = 80,
+
+    /// <summary>A price or a price schedule was written to a store.</summary>
+    [Description("Price scheduled")]
+    PriceScheduled = 81,
+
+    /// <summary>A subscription offer was written to a store.</summary>
+    [Description("Offer changed")]
+    OfferChanged = 82,
+
+    /// <summary>An In-App Purchase or a Play one-time product was written to a store.</summary>
+    [Description("In-App Purchase changed")]
+    IapChanged = 83,
+
+    /// <summary>A purchase setting (server notifications, sandbox tester) was written to a store.</summary>
+    [Description("Purchase settings changed")]
+    PurchaseSettingsChanged = 84,
+
     /// <summary>A mockup template was created.</summary>
     [Description("Mockup template created")]
     MockupTemplateCreated = 70,

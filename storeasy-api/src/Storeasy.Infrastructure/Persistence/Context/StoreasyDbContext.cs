@@ -5,6 +5,7 @@ using Storeasy.Domain;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Content;
+using Storeasy.Domain.Monetization;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
 using Storeasy.Domain.Studio;
@@ -59,6 +60,8 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<SavedAnswer> SavedAnswers { get; set; }
     public DbSet<ChangePlan> ChangePlans { get; set; }
     public DbSet<AssistedStep> AssistedSteps { get; set; }
+    public DbSet<ProductGroup> ProductGroups { get; set; }
+    public DbSet<StoreProduct> StoreProducts { get; set; }
     public DbSet<MockupTemplate> MockupTemplates { get; set; }
     public DbSet<MockupSlot> MockupSlots { get; set; }
     public DbSet<MockupCaption> MockupCaptions { get; set; }

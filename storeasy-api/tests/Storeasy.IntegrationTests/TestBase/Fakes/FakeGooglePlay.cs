@@ -12,7 +12,7 @@ namespace Storeasy.IntegrationTests.TestBase.Fakes;
 /// a copy and change the app only on commit, details, listings, images, tracks, testers, resumable bundle uploads and
 /// the Data safety form. <see cref="OpenEdits"/> shows whether an edit was left open.
 /// </summary>
-public sealed class FakeGooglePlay
+public sealed partial class FakeGooglePlay
 {
     private readonly Lock _lock = new();
     private int _sequence;
@@ -85,6 +85,10 @@ public sealed class FakeGooglePlay
     {
         Match m;
         var body = bytes.Length > 0 && request.Content?.Headers.ContentType?.MediaType == "application/json" ? JsonNode.Parse(bytes)?.AsObject() : null;
+        var money = RouteMonetization(method, path, request.RequestUri.Query, body);
+
+        if (money != null)
+            return money;
 
         if (method == "POST" && (m = Regex.Match(path, "^/androidpublisher/v3/applications/([^/]+)/dataSafety$")).Success)
         {

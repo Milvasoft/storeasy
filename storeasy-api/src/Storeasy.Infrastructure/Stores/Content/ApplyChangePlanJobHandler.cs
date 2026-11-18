@@ -27,6 +27,7 @@ namespace Storeasy.Infrastructure.Stores.Content;
 /// <param name="auditTrail"></param>
 /// <param name="activityPublisher"></param>
 /// <param name="timeProvider"></param>
+/// <param name="extensions"></param>
 public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan> planRepository,
                                              IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                              IStoreasyRepositoryBase<SavedAnswer> answerRepository,
@@ -34,7 +35,8 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
                                              ISecretProtector secretProtector,
                                              IAuditTrail auditTrail,
                                              IActivityPublisher activityPublisher,
-                                             TimeProvider timeProvider) : IStoreJobHandler
+                                             TimeProvider timeProvider,
+                                             IEnumerable<IChangePlanExtension> extensions) : IStoreJobHandler
 {
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
@@ -46,6 +48,7 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
     private readonly IAuditTrail _auditTrail = auditTrail;
     private readonly IActivityPublisher _activityPublisher = activityPublisher;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IEnumerable<IChangePlanExtension> _extensions = extensions;
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.ApplyChangePlan;
@@ -88,15 +91,19 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
             throw new StoreJobException("The store record has no connection.", transient: false);
 
         var connection = await context.OpenConnectionAsync(record.StoreConnectionId.Value, cancellationToken) ?? throw new StoreJobException("The store connection was removed.", transient: false);
-        var gateway = _gateways.LastOrDefault(g => g.Store == connection.Store) ?? throw new StoreJobException($"{connection.Store} is not supported yet.", transient: false);
-        var changes = JsonSerializer.Deserialize<ContentChangeSet>(plan.Changes, _json) ?? new ContentChangeSet();
+        var extension = _extensions.FirstOrDefault(e => e.Handles(plan.Kind));
+        IReadOnlyList<string> outcome;
 
-        if (changes.DemoPasswordFromAnswers)
-            await OpenDemoPasswordAsync(context.OrganizationId, plan.AppId, changes, cancellationToken);
-
-        var outcome = await gateway.ApplyAsync(new StoreContentTarget(connection.SecretJson, record.ExternalId, plan.VersionId), changes, context, cancellationToken);
-
-        changes.Secrets.Clear();
+        if (extension != null)
+        {
+            outcome = await extension.ApplyAsync(new ChangePlanApplyRequest(context.OrganizationId, plan.AppId, plan.StoreAppId, plan.Id, plan.Kind, connection.Store, new StoreContentTarget(connection.SecretJson, record.ExternalId, plan.VersionId), plan.Changes),
+                                                 context,
+                                                 cancellationToken);
+        }
+        else
+        {
+            outcome = await ApplyContentAsync(context, plan, record.ExternalId, connection, cancellationToken);
+        }
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -105,11 +112,10 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
                                                                                      .SetPropertyValue(p => p.AppliedDate, (DateTime?)now),
                                                  cancellationToken);
 
-        var action = ChangePlanRules.AuditActionOf(plan.Kind);
         var items = plan.Items?.Count > 0 ? plan.Items : [new Domain.JsonModels.PlanItem { Field = plan.Kind.ToString(), Action = ChangeAction.Update }];
 
         await _auditTrail.WriteManyAsync([.. items.Select(item => new AuditEntry(context.OrganizationId,
-                                                                                   action,
+                                                                                   extension?.AuditActionOf(plan.Kind, item) ?? ChangePlanRules.AuditActionOf(plan.Kind),
                                                                                    plan.StoreAppId.ToString(),
                                                                                    $"Plan {plan.Id}: {item.Action} {item.Group} {item.Locale} {item.Field}".Replace("  ", " "),
                                                                                    plan.Store,
@@ -132,6 +138,24 @@ public sealed class ApplyChangePlanJobHandler(IStoreasyRepositoryBase<ChangePlan
         }, cancellationToken);
 
         return new StoreJobOutcome(SecretRedactor.RedactAndTrim($"Plan {plan.Id} applied: {string.Join(" ", outcome)}", 500), new { PlanId = plan.Id, Steps = outcome });
+    }
+
+    private async Task<IReadOnlyList<string>> ApplyContentAsync(IStoreJobContext context, ChangePlan plan, string externalId, OpenedStoreConnection connection, CancellationToken cancellationToken)
+    {
+        var gateway = _gateways.LastOrDefault(g => g.Store == connection.Store) ?? throw new StoreJobException($"{connection.Store} is not supported yet.", transient: false);
+        var changes = JsonSerializer.Deserialize<ContentChangeSet>(plan.Changes, _json) ?? new ContentChangeSet();
+
+        if (changes.DemoPasswordFromAnswers)
+            await OpenDemoPasswordAsync(context.OrganizationId, plan.AppId, changes, cancellationToken);
+
+        try
+        {
+            return await gateway.ApplyAsync(new StoreContentTarget(connection.SecretJson, externalId, plan.VersionId), changes, context, cancellationToken);
+        }
+        finally
+        {
+            changes.Secrets.Clear();
+        }
     }
 
     private async Task OpenDemoPasswordAsync(int organizationId, int appId, ContentChangeSet changes, CancellationToken cancellationToken)

@@ -1680,8 +1680,9 @@
             <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension})">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>. Approval is a single conditional UPDATE (pending and not expired), so two
             members approving at once queue one job; the store is read again before it and a changed fingerprint refuses the
@@ -1698,6 +1699,7 @@
             <param name="rulesCatalog"></param>
             <param name="options"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.SaveAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,Storeasy.Application.Utils.Content.PlanDraft,System.Boolean,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -1936,6 +1938,153 @@
         <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.ReleaseAsync(System.Int32,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationReadiness">
+            <summary>
+            Readiness items of the products an app sells (docs/urun-plani.md 11.1 and 11.2): on the App Store every subscription
+            and In-App Purchase needs a review screenshot and a localization, and the app's first ones cannot be submitted on
+            their own (they go to review with the version); on Play a subscription without an active base plan cannot be bought
+            and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
+            read becomes one unknown item and never fails the check.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="stepRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Readiness items of the products an app sells (docs/urun-plani.md 11.1 and 11.2): on the App Store every subscription
+            and In-App Purchase needs a review screenshot and a localization, and the app's first ones cannot be submitted on
+            their own (they go to review with the version); on Play a subscription without an active base plan cannot be bought
+            and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
+            read becomes one unknown item and never fails the check.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="stepRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.EvaluateAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IMonetizationService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>. Planning reads only the touched products, asks the store for equalized price
+            points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
+            apply job are the same as for content plans.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="groupRepository"></param>
+            <param name="productRepository"></param>
+            <param name="planRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.ProductGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.StoreProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IStoreJobQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IMonetizationService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>. Planning reads only the touched products, asks the store for equalized price
+            points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
+            apply job are the same as for content plans.
+            </summary>
+            <param name="storeAccess"></param>
+            <param name="groupRepository"></param>
+            <param name="productRepository"></param>
+            <param name="planRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreAppContext,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.PlanAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.ChangePlanKind,System.Collections.Generic.List{Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto},System.Boolean,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ApproveAsync(System.Int32,System.Int64,System.String,System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.ChangePlanKind},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.SaveAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Utils.Monetization.MonetizationSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.QueueSyncAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ResolvePricePointsAsync(Storeasy.Application.Interfaces.IMonetizationGateway,Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationSnapshot,System.Collections.Generic.List{Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto},System.Threading.CancellationToken)">
+            <summary>
+            Equalized price points of the requested base prices (subscriptions) and the price points of the other requested
+            territory prices, for the diff. Store calls only, no database.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.Upsert``1(System.Collections.Generic.List{``0},System.Collections.Generic.List{``0},System.Func{``0,System.String},System.Action{``0,``0})">
+            <summary>
+            Matches stored rows to a read by the store's id: existing rows to update, new rows to add, ids no longer in the
+            store to delete.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationStoreAccess">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Reads the record's products live; failures come back as a message key.
+            </summary>
+            <param name="app"></param>
+            <param name="parts"></param>
+            <param name="productIds"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.OpenAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <summary>
+            The store's gateway and a target with the connection secret opened (the decrypted bytes are cleared at once).
+            </summary>
+            <param name="app"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.Failure(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreCallException)">
+            <summary>
+            Logs a failed store call (redacted) and maps it to a message key and a redacted detail.
+            </summary>
+            <param name="app"></param>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.NotificationService">
             <summary>
             Provides functionality for managing and delivering notifications to users.
@@ -2058,8 +2207,9 @@
             <param name="rulesCatalog"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
+            <param name="contributors"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IRulesCatalog,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IRulesCatalog,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IReadinessContributor})">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IReadinessService"/>.
             </summary>
@@ -2070,6 +2220,7 @@
             <param name="rulesCatalog"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
+            <param name="contributors"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ReadinessService.CheckAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -2860,8 +3011,9 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: writes an approved plan to its store through the store's
             <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
@@ -2877,6 +3029,7 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="extensions"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.Kind">
             <inheritdoc/>
@@ -3074,6 +3227,11 @@
         <member name="P:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.AppPath">
             <summary>
             Path of the app (<c>/applications/{package}</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.PackageName">
+            <summary>
+            Package name of the app.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.OpenEditAsync(System.Threading.CancellationToken)">
@@ -4178,6 +4336,249 @@
             <param name="name"></param>
             <param name="cancellationToken"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway">
+            <summary>
+            App Store Connect monetization engine (App Store Connect API 4.4.1 paths):
+            <list type="bullet">
+            <item>Subscription groups and subscriptions (<c>/v1/subscriptionGroups</c>, <c>/v1/subscriptions</c>), In-App
+            Purchases v2 (<c>/v2/inAppPurchases</c>).</item>
+            <item>Localizations through versions: a draft version (<c>PREPARE_FOR_SUBMISSION</c>) of the group, subscription or
+            In-App Purchase holds the localizations (<c>/v2/...Localizations</c>); when there is none a version is created and the
+            localizations of the latest version are copied into it first. The pre 4.4.1 endpoints are not used.</item>
+            <item>Subscription prices per territory (<c>/v1/subscriptionPrices</c>, equalized with
+            <c>/v1/subscriptionPricePoints/{id}/equalizations</c>); In-App Purchase price schedules with a base territory.</item>
+            <item>Introductory, promotional, offer code and win-back offers; availability; review screenshots (reserve, upload,
+            commit with the MD5); retention message names and multiseat status are read.</item>
+            <item>App Store Server Notifications addresses (<c>subscriptionStatusUrl</c> attributes of the app) and sandbox
+            testers (<c>/v2/sandboxTesters</c>).</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.UpsertLocalizationAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned,System.String,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <summary>
+            Writes a localization into the draft version of a resource: the draft is reused, or created with the
+            localizations of the newest version copied first; an existing locale is patched, a new one created.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ProductIdAsync(Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun,Storeasy.Application.Dtos.MonetizationDtos.MonetizationChangeDto,System.Threading.CancellationToken)">
+            <summary>
+            The store id of the product of an operation: planned, created earlier in this run, or looked up by product id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun">
+            <summary>
+            State of one apply run: store ids of groups and products created by earlier operations.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ApplyRun.#ctor(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String)">
+            <summary>
+            State of one apply run: store ids of groups and products created by earlier operations.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IFileStorage)">
+            <summary>
+            App Store Connect monetization engine (App Store Connect API 4.4.1 paths):
+            <list type="bullet">
+            <item>Subscription groups and subscriptions (<c>/v1/subscriptionGroups</c>, <c>/v1/subscriptions</c>), In-App
+            Purchases v2 (<c>/v2/inAppPurchases</c>).</item>
+            <item>Localizations through versions: a draft version (<c>PREPARE_FOR_SUBMISSION</c>) of the group, subscription or
+            In-App Purchase holds the localizations (<c>/v2/...Localizations</c>); when there is none a version is created and the
+            localizations of the latest version are copied into it first. The pre 4.4.1 endpoints are not used.</item>
+            <item>Subscription prices per territory (<c>/v1/subscriptionPrices</c>, equalized with
+            <c>/v1/subscriptionPricePoints/{id}/equalizations</c>); In-App Purchase price schedules with a base territory.</item>
+            <item>Introductory, promotional, offer code and win-back offers; availability; review screenshots (reserve, upload,
+            commit with the MD5); retention message names and multiseat status are read.</item>
+            <item>App Store Server Notifications addresses (<c>subscriptionStatusUrl</c> attributes of the app) and sandbox
+            testers (<c>/v2/sandboxTesters</c>).</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.EqualizeAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.LatestVersionAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned,System.String,System.Threading.CancellationToken)">
+            <summary>
+            The draft version of a resource when it has one, otherwise the newest; null when there is no version.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned">
+            <summary>
+            A resource whose localizations live in versions.
+            </summary>
+            <param name="VersionsPath">Versions of a parent (format item 0: parent id).</param>
+            <param name="VersionType">JSON:API type of a version.</param>
+            <param name="ParentRelation">Relationship of a version to its parent.</param>
+            <param name="ParentType">JSON:API type of the parent.</param>
+            <param name="LocalizationsPath">Localizations of a version (format item 0: version id).</param>
+            <param name="LocalizationType">JSON:API type of a localization (v2 path).</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.#ctor(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            A resource whose localizations live in versions.
+            </summary>
+            <param name="VersionsPath">Versions of a parent (format item 0: parent id).</param>
+            <param name="VersionType">JSON:API type of a version.</param>
+            <param name="ParentRelation">Relationship of a version to its parent.</param>
+            <param name="ParentType">JSON:API type of the parent.</param>
+            <param name="LocalizationsPath">Localizations of a version (format item 0: version id).</param>
+            <param name="LocalizationType">JSON:API type of a localization (v2 path).</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.VersionsPath">
+            <summary>Versions of a parent (format item 0: parent id).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.VersionType">
+            <summary>JSON:API type of a version.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.ParentRelation">
+            <summary>Relationship of a version to its parent.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.ParentType">
+            <summary>JSON:API type of the parent.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.LocalizationsPath">
+            <summary>Localizations of a version (format item 0: version id).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway.Versioned.LocalizationType">
+            <summary>JSON:API type of a localization (v2 path).</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway">
+            <summary>
+            Google Play monetization engine (Play Developer API v3, <c>monetization</c> resources): subscriptions with base plans
+            and offers (<c>/subscriptions</c>), regional prices and Play's price conversion (<c>pricing:convertRegionPrices</c>),
+            base plan and offer activation, price migration of existing subscribers (<c>basePlans:migratePrices</c>) and one-time
+            products with purchase options (<c>/oneTimeProducts</c>; the older <c>inappproducts</c> resource is not used). Prices
+            are what the member entered or Play converted; storeasy never computes one.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Utils.Monetization.MonetizationChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp)">
+            <summary>
+            Google Play monetization engine (Play Developer API v3, <c>monetization</c> resources): subscriptions with base plans
+            and offers (<c>/subscriptions</c>), regional prices and Play's price conversion (<c>pricing:convertRegionPrices</c>),
+            base plan and offer activation, price migration of existing subscribers (<c>basePlans:migratePrices</c>) and one-time
+            products with purchase options (<c>/oneTimeProducts</c>; the older <c>inappproducts</c> resource is not used). Prices
+            are what the member entered or Play converted; storeasy never computes one.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.DefaultRegionsVersion">
+            <summary>
+            Regions version used when a plan does not carry the one of a price conversion.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ListPricePointsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.EqualizeAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.StoreProductKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ListSandboxTestersAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.ConvertPricesAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Amount(System.Text.Json.JsonElement)">
+            <summary>
+            Amount text of a Play Money ("59.99"), or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.GoogleMonetizationGateway.Money(System.String,System.String)">
+            <summary>
+            A Play Money of an amount text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension">
+            <summary>
+            Change plans of subscriptions, In-App Purchases and purchase settings (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization"/>,
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications"/>, <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters"/>): on approval the touched
+            products are read again for the fingerprint; the apply job writes through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Change plans of subscriptions, In-App Purchases and purchase settings (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization"/>,
+            <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications"/>, <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters"/>): on approval the touched
+            products are read again for the fingerprint; the apply job writes through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncMonetization"/> job: reads every subscription group, subscription and In-App Purchase
+            (Play subscriptions and one-time products) of a store record with all their details and saves them, so the money
+            screens show the last read state when the store cannot be reached. A store that cannot be reached fails the step
+            transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="monetizationService"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IMonetizationService)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncMonetization"/> job: reads every subscription group, subscription and In-App Purchase
+            (Play subscriptions and one-time products) of a store record with all their details and saves them, so the money
+            screens show the last read state when the store cannot be reached. A store that cannot be reached fails the step
+            transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="monetizationService"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.SyncMonetizationJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">
             <summary>

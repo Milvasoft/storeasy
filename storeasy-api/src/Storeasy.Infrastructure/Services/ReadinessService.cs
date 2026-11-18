@@ -21,13 +21,15 @@ namespace Storeasy.Infrastructure.Services;
 /// <param name="rulesCatalog"></param>
 /// <param name="localizer"></param>
 /// <param name="timeProvider"></param>
+/// <param name="contributors"></param>
 public sealed class ReadinessService(IStoreContentService contentService,
                                     IStoreasyRepositoryBase<SavedAnswer> answerRepository,
                                     IStoreasyRepositoryBase<AssistedStep> stepRepository,
                                     IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                     IRulesCatalog rulesCatalog,
                                     IMilvaLocalizer localizer,
-                                    TimeProvider timeProvider) : IReadinessService
+                                    TimeProvider timeProvider,
+                                    IEnumerable<IReadinessContributor> contributors) : IReadinessService
 {
     private readonly IStoreContentService _contentService = contentService;
     private readonly IStoreasyRepositoryBase<SavedAnswer> _answerRepository = answerRepository;
@@ -36,6 +38,7 @@ public sealed class ReadinessService(IStoreContentService contentService,
     private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly IMilvaLocalizer _localizer = localizer;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IEnumerable<IReadinessContributor> _contributors = contributors;
 
     /// <inheritdoc/>
     public async Task<Response<ReadinessReportDto>> CheckAsync(StoreAppContext app, CancellationToken cancellationToken)
@@ -66,6 +69,9 @@ public sealed class ReadinessService(IStoreContentService contentService,
                                                                    DateOnly.FromDateTime(now),
                                                                    CultureInfo.CurrentUICulture.Name,
                                                                    _localizer));
+
+        foreach (var contributor in _contributors)
+            items.AddRange(await contributor.EvaluateAsync(app, read.Snapshot, cancellationToken));
 
         var report = new ReadinessReportDto
         {

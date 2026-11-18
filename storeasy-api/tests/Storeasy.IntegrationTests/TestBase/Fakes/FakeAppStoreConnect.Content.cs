@@ -215,7 +215,8 @@ public sealed partial class FakeAppStoreConnect
             return Ok(new JsonObject { ["data"] = new JsonObject { ["type"] = "reviewSubmissions", ["id"] = m.Groups[1].Value, ["attributes"] = new JsonObject { ["state"] = "WAITING_FOR_REVIEW" } } });
         }
 
-        return new HttpResponseMessage(HttpStatusCode.NotImplemented) { Content = new StringContent($"Fake App Store Connect has no route for {method} {path}") };
+        return RouteMonetization(method, path, query, body)
+               ?? new HttpResponseMessage(HttpStatusCode.NotImplemented) { Content = new StringContent($"Fake App Store Connect has no route for {method} {path}") };
     }
 
     private HttpResponseMessage Patch(Dictionary<string, JsonObject> store, string type, string id, JsonObject body)

@@ -33,6 +33,7 @@ using Storeasy.Infrastructure.Storage;
 using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
 using Storeasy.Infrastructure.Stores.Content;
+using Storeasy.Infrastructure.Stores.Monetization;
 using Storeasy.Infrastructure.Studio;
 using Storeasy.Infrastructure.Stores.Microsoft;
 using Npgsql;
@@ -77,6 +78,12 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IStoreContentService, StoreContentService>();
         services.AddScoped<IChangePlanService, ChangePlanService>();
         services.AddScoped<IReadinessService, ReadinessService>();
+        services.AddScoped<IMonetizationGateway, AppleMonetizationGateway>();
+        services.AddScoped<IMonetizationGateway, GoogleMonetizationGateway>();
+        services.AddScoped<MonetizationStoreAccess>();
+        services.AddScoped<IMonetizationService, MonetizationService>();
+        services.AddScoped<IChangePlanExtension, MonetizationPlanExtension>();
+        services.AddScoped<IReadinessContributor, MonetizationReadiness>();
         services.AddSingleton(TimeProvider.System);
 
         // Store secrets are sealed with the master key from Storeasy__Encryption__MasterKey (user secrets locally). The
@@ -208,6 +215,7 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<StoreJobExecutor>();
         services.AddScoped<IStoreJobHandler, SyncAppsJobHandler>();
         services.AddScoped<IStoreJobHandler, ApplyChangePlanJobHandler>();
+        services.AddScoped<IStoreJobHandler, SyncMonetizationJobHandler>();
 
         // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
         services.AddHostedService<StoreJobRunner>();
