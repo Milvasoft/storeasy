@@ -1,8 +1,12 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+using Storeasy.Application.Interfaces;
 using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Enums;
+using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.IntegrationTests.TestBase;
 using System.Globalization;
 using System.Net;
@@ -103,5 +107,23 @@ public class OrgWebhooksTests(StoreasyApiFactory factory) : IntegrationTestBase(
         foreign.StatusCode.Should().Be(HttpStatusCode.NotFound);
         foreignDelete.StatusCode.Should().Be(HttpStatusCode.NotFound);
         unknownEvent.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task SendDue_ShouldPickTheBatchInADeterministicOrder()
+    {
+        // Arrange: a host whose queries fail on a row limit without an order (EF Core logged that warning on every poll of
+        // the delivery runner).
+        await using var host = _factory.CreateHost(configureServices: services => services.ConfigureDbContext<StoreasyDbContext>(options => options.ConfigureWarnings(warnings => warnings.Throw(CoreEventId.RowLimitingOperationWithoutOrderByWarning))));
+
+        using var scope = host.Services.CreateScope();
+
+        var sender = scope.ServiceProvider.GetRequiredService<IOrgWebhookSender>();
+
+        // Act
+        var send = () => sender.SendDueAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        await send.Should().NotThrowAsync();
     }
 }
