@@ -23,7 +23,7 @@ import { storeFromSlug, storeSlug } from './store'
 // chip row). The overview, builds and jobs tabs belong to AppDetailPage; this frame links to them and they link here.
 
 export type WorkspaceSection =
-  'readiness' | 'listing' | 'media' | 'release' | 'reviews' | 'rejections' | 'answers' | 'assisted' | 'compliance' | 'profile'
+  'readiness' | 'listing' | 'media' | 'release' | 'reviews' | 'rejections' | 'answers' | 'assisted' | 'compliance' | 'profile' | 'microsoft'
 
 export type WorkspaceSub =
   | 'texts'
@@ -80,6 +80,15 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   assisted: 'assisted',
   compliance: 'compliance',
   profile: 'settings/profile',
+  microsoft: 'ms/product',
+}
+
+// Sections that exist only for some stores: their tab shows when the app has a record there.
+const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = { microsoft: [StoreKind.Microsoft] }
+
+function sectionShown(section: WorkspaceSection, stores: StoreKind[]): boolean {
+  const only = SECTION_STORES[section]
+  return !only || only.some((store) => stores.includes(store))
 }
 
 const SECTIONS: WorkspaceSection[] = [
@@ -93,6 +102,7 @@ const SECTIONS: WorkspaceSection[] = [
   'assisted',
   'compliance',
   'profile',
+  'microsoft',
 ]
 
 function sectionLabel(section: WorkspaceSection, t: P2Dictionary): string {
@@ -100,8 +110,16 @@ function sectionLabel(section: WorkspaceSection, t: P2Dictionary): string {
 }
 
 /** The phase 2 tabs, for the app detail's own tab row (route tabs; the store goes along when known). */
-export function workspaceTabs(appId: number, t: P2Dictionary): Array<{ value: string; label: string; to: string }> {
-  return SECTIONS.map((section) => ({ value: section, label: sectionLabel(section, t), to: `/apps/${appId}/${SECTION_PATHS[section]}` }))
+export function workspaceTabs(
+  appId: number,
+  t: P2Dictionary,
+  stores: StoreKind[] = [],
+): Array<{ value: string; label: string; to: string }> {
+  return SECTIONS.filter((section) => sectionShown(section, stores)).map((section) => ({
+    value: section,
+    label: sectionLabel(section, t),
+    to: `/apps/${appId}/${SECTION_PATHS[section]}`,
+  }))
 }
 
 export interface WorkspaceContext {
@@ -173,7 +191,12 @@ export function AppWorkspace({ section, sub, stores, appWide, children }: AppWor
     { key: 'overview', label: base.app.overview, to: `/apps/${data.Id}`, on: false },
     { key: 'builds', label: base.app.builds, to: `/apps/${data.Id}/builds`, on: false },
     { key: 'jobs', label: base.app.jobs, to: `/apps/${data.Id}/jobs`, on: false },
-    ...SECTIONS.map((item) => ({
+    ...SECTIONS.filter((item) =>
+      sectionShown(
+        item,
+        records.map((record) => record.Store),
+      ),
+    ).map((item) => ({
       key: item,
       label: sectionLabel(item, t),
       to: `/apps/${data.Id}/${SECTION_PATHS[item]}${storeQuery}`,

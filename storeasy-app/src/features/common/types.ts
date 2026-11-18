@@ -42,6 +42,7 @@ export const ChangePlanKind = {
   BundleUpload: 15,
   DataSafety: 16,
   SubmitForReview: 17,
+  MsChange: 50,
 } as const
 export type ChangePlanKind = (typeof ChangePlanKind)[keyof typeof ChangePlanKind]
 

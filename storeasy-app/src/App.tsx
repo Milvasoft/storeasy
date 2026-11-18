@@ -7,6 +7,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { PageSkeleton } from '@/components/ui/primitives'
 import { contentRoutes } from '@/features/routes'
+import { microsoftRoutes } from '@/features/microsoft/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
@@ -200,6 +201,7 @@ export function App() {
         <Route path="/admin/feature-flags" element={<PlatformPage section="adminFlags" />} />
         <Route path="/admin/system" element={<PlatformPage section="adminSystem" />} />
         {contentRoutes()}
+        {microsoftRoutes()}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

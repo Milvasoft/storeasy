@@ -10,13 +10,16 @@ import { Button, Field, Input, Textarea } from '@/components/ui/primitives'
 import { connectionsApi } from '@/lib/api/endpoints'
 import { ApiError, apiErrorMessage } from '@/lib/api/http'
 import { TEXT_LIMITS } from '@/lib/api/textLimits'
-import { ConnectionStatus, StoreKind, type StoreConnectionDto } from '@/lib/api/types'
+import { ConnectionStatus, StoreKind, type DateOnly, type StoreConnectionDto } from '@/lib/api/types'
 import { appleSecret, checkP8, ISSUER_ID, KEY_ID, keyIdFromFileName, readServiceAccount } from '@/lib/connections/secrets'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { cn } from '@/lib/utils/cn'
+import { EMPTY_CREDENTIALS, MsCredentialForm, msFieldErrors } from '@/features/microsoft/connections'
+import { useMs } from '@/features/microsoft/i18n/useMs'
+import { defaultExpiry, expiryInstant, msSecret, type MsCredentialFields } from '@/features/microsoft/rules'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
 
 type Step = 'pick' | 'form' | 'result'
@@ -78,6 +81,7 @@ export function AddConnectionDialog({
   onAdded?: (connection: StoreConnectionDto) => void
 }) {
   const t = useT()
+  const tm = useMs()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<Step>('pick')
   const [store, setStore] = useState<StoreKind>(StoreKind.Apple)
@@ -87,6 +91,8 @@ export function AddConnectionDialog({
   const [keyId, setKeyId] = useState('')
   const [secretText, setSecretText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
+  const [ms, setMs] = useState<MsCredentialFields>(EMPTY_CREDENTIALS)
+  const [expiry, setExpiry] = useState<DateOnly | null>(defaultExpiry)
   const [errors, setErrors] = useState<Record<string, string | null>>({})
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
   const [result, setResult] = useState<StoreConnectionDto | null>(null)
@@ -100,6 +106,8 @@ export function AddConnectionDialog({
     setKeyId('')
     setSecretText('')
     setFileName(null)
+    setMs(EMPTY_CREDENTIALS)
+    setExpiry(defaultExpiry())
     setErrors({})
     setServer(null)
     setResult(null)
@@ -115,8 +123,14 @@ export function AddConnectionDialog({
 
   const save = useMutation({
     mutationFn: async () => {
-      const secret = store === StoreKind.Apple ? appleSecret(issuerId, keyId, secretText) : secretText.trim()
-      const id = await connectionsApi.create(organizationId, { Store: store, Name: name.trim(), Secret: secret })
+      const microsoft = store === StoreKind.Microsoft
+      const secret = store === StoreKind.Apple ? appleSecret(issuerId, keyId, secretText) : microsoft ? msSecret(ms) : secretText.trim()
+      const id = await connectionsApi.create(organizationId, {
+        Store: store,
+        Name: name.trim(),
+        Secret: secret,
+        CredentialExpiryDate: microsoft && expiry ? expiryInstant(expiry) : null,
+      })
       // Saved as NotVerified; the check runs at once and its answer is shown here (design 14.10).
       try {
         return await connectionsApi.verify(organizationId, id)
@@ -142,6 +156,7 @@ export function AddConnectionDialog({
       // Only the secret is chosen again after a refusal; the other values stay (design 18.17).
       setSecretText('')
       setFileName(null)
+      setMs((current) => ({ ...current, clientSecret: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -166,6 +181,8 @@ export function AddConnectionDialog({
       next.keyId = KEY_ID.test(keyId.trim().toUpperCase()) ? null : t.connections.keyIdInvalid
       const p8 = secretText ? checkP8(secretText) : 'notPem'
       next.secret = !secretText ? t.connections.keyRequired : p8 ? t.connections.p8Invalid : null
+    } else if (store === StoreKind.Microsoft) {
+      Object.assign(next, msFieldErrors(ms, expiry, tm))
     } else {
       const problem = secretText ? readServiceAccount(secretText).problem : 'notJson'
       next.secret = !secretText ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null
@@ -191,7 +208,9 @@ export function AddConnectionDialog({
         ? t.connections.savedTitle
         : store === StoreKind.Apple
           ? t.connections.appleTitle
-          : t.connections.googleTitle
+          : store === StoreKind.Microsoft
+            ? tm.connection.title
+            : t.connections.googleTitle
 
   return (
     <Modal
@@ -250,10 +269,8 @@ export function AddConnectionDialog({
             title={t.connections.stores.microsoft.title}
             body={t.connections.stores.microsoft.body}
             time={t.connections.stores.microsoft.time}
-            selected={false}
-            disabled
-            badge={<Badge small>{t.coming.short}</Badge>}
-            onSelect={() => undefined}
+            selected={store === StoreKind.Microsoft}
+            onSelect={() => setStore(StoreKind.Microsoft)}
           />
           <Callout>{t.connections.encryptedNote}</Callout>
         </div>
@@ -282,76 +299,83 @@ export function AddConnectionDialog({
               </Field>
             </div>
           ) : null}
-          <div className="grid gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="lbl">{store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}</span>
-              <span className="ml-auto">
-                <SegmentedControl
-                  label={t.connections.sourceLabel}
-                  value={source}
-                  onChange={(value) => {
-                    setSource(value)
-                    setSecretText('')
-                    setFileName(null)
-                  }}
-                  options={[
-                    { value: 'file', label: t.connections.sourceFile },
-                    { value: 'paste', label: t.connections.sourcePaste },
-                  ]}
-                />
-              </span>
-            </div>
-            {source === 'file' ? (
-              fileName ? (
-                <div className="secret">
-                  <FileKey className="h-4 w-4 flex-none text-fg3" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate">{fileName}</span>
-                  <Badge tone="success" small>
-                    {t.connections.fileRead}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setFileName(null)
+          {store === StoreKind.Microsoft ? (
+            <>
+              <MsCredentialForm fields={ms} onChange={setMs} expiry={expiry} onExpiry={setExpiry} errors={errors} />
+              <Callout tone="info">{tm.connection.roleNote}</Callout>
+            </>
+          ) : (
+            <div className="grid gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="lbl">{store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}</span>
+                <span className="ml-auto">
+                  <SegmentedControl
+                    label={t.connections.sourceLabel}
+                    value={source}
+                    onChange={(value) => {
+                      setSource(value)
                       setSecretText('')
+                      setFileName(null)
                     }}
-                  >
-                    {t.connections.changeFile}
-                  </Button>
-                </div>
+                    options={[
+                      { value: 'file', label: t.connections.sourceFile },
+                      { value: 'paste', label: t.connections.sourcePaste },
+                    ]}
+                  />
+                </span>
+              </div>
+              {source === 'file' ? (
+                fileName ? (
+                  <div className="secret">
+                    <FileKey className="h-4 w-4 flex-none text-fg3" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate">{fileName}</span>
+                    <Badge tone="success" small>
+                      {t.connections.fileRead}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setFileName(null)
+                        setSecretText('')
+                      }}
+                    >
+                      {t.connections.changeFile}
+                    </Button>
+                  </div>
+                ) : (
+                  <FileDrop
+                    label={store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}
+                    accept={store === StoreKind.Apple ? ['.p8'] : ['.json']}
+                    maxBytes={MAX_FILE_BYTES}
+                    hint={store === StoreKind.Apple ? t.connections.p8Hint : t.connections.json.hint}
+                    onFile={(file) => void takeFile(file)}
+                    onReject={(file, reason) =>
+                      setErrors((current) => ({
+                        ...current,
+                        secret: interpolate(reason === 'type' ? t.connections.fileWrongType : t.connections.fileTooLarge, {
+                          name: file.name,
+                        }),
+                      }))
+                    }
+                  />
+                )
               ) : (
-                <FileDrop
-                  label={store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}
-                  accept={store === StoreKind.Apple ? ['.p8'] : ['.json']}
-                  maxBytes={MAX_FILE_BYTES}
-                  hint={store === StoreKind.Apple ? t.connections.p8Hint : t.connections.json.hint}
-                  onFile={(file) => void takeFile(file)}
-                  onReject={(file, reason) =>
-                    setErrors((current) => ({
-                      ...current,
-                      secret: interpolate(reason === 'type' ? t.connections.fileWrongType : t.connections.fileTooLarge, {
-                        name: file.name,
-                      }),
-                    }))
-                  }
+                <Textarea
+                  mono
+                  rows={6}
+                  aria-label={store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}
+                  value={secretText}
+                  maxLength={TEXT_LIMITS.connectionSecret}
+                  spellCheck={false}
+                  autoComplete="off"
+                  placeholder={store === StoreKind.Apple ? '-----BEGIN PRIVATE KEY-----' : '{ "type": "service_account", ... }'}
+                  onChange={(event) => setSecretText(event.target.value)}
                 />
-              )
-            ) : (
-              <Textarea
-                mono
-                rows={6}
-                aria-label={store === StoreKind.Apple ? t.connections.p8 : t.connections.json.label}
-                value={secretText}
-                maxLength={TEXT_LIMITS.connectionSecret}
-                spellCheck={false}
-                autoComplete="off"
-                placeholder={store === StoreKind.Apple ? '-----BEGIN PRIVATE KEY-----' : '{ "type": "service_account", ... }'}
-                onChange={(event) => setSecretText(event.target.value)}
-              />
-            )}
-            {errors.secret ? <span className="err-t">{errors.secret}</span> : null}
-          </div>
+              )}
+              {errors.secret ? <span className="err-t">{errors.secret}</span> : null}
+            </div>
+          )}
           {google && secretText && (google.info.clientEmail || google.info.projectId) ? (
             <dl className="kv rounded-md border border-border p-3">
               <dt>{t.connections.serviceAccount}</dt>
