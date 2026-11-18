@@ -156,6 +156,28 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
     }
 
     [Fact]
+    public async Task SecretExpiry_ShouldBeRemindedOncePerThreshold_ByTheDeadlineNotifier()
+    {
+        // Arrange
+        var setup = await NewSetupAsync(withApp: false);
+        var expiry = DateTime.UtcNow.AddDays(20);
+
+        await _factory.DbAsync(db => db.StoreConnections.Where(c => c.Id == setup.ConnectionId).ExecuteUpdateAsync(s => s.SetProperty(c => c.SecretExpiryDate, expiry)));
+
+        var now = DateTime.UtcNow;
+
+        // Act
+        await _factory.WithServiceAsync<Storeasy.Application.Interfaces.IDeadlineNotifier, int>(n => n.NotifyMsSecretExpiryAsync(now, CancellationToken.None));
+        await _factory.WithServiceAsync<Storeasy.Application.Interfaces.IDeadlineNotifier, int>(n => n.NotifyMsSecretExpiryAsync(now.AddHours(1), CancellationToken.None));
+        await _factory.WithServiceAsync<Storeasy.Application.Interfaces.IDeadlineNotifier, int>(n => n.NotifyMsSecretExpiryAsync(now.AddDays(14), CancellationToken.None));
+
+        var reminders = await _factory.DbAsync(db => db.DeadlineReminders.AsNoTracking().Where(r => r.Subject.StartsWith($"ms-secret:{setup.ConnectionId}:")).Select(r => r.ThresholdDays).ToListAsync());
+
+        // Assert
+        reminders.Should().BeEquivalentTo([30, 7], "one reminder per threshold, never twice");
+    }
+
+    [Fact]
     public async Task Sync_ShouldBringAppsSubmissionsFlightsAddonsAndPackages()
     {
         // Arrange
