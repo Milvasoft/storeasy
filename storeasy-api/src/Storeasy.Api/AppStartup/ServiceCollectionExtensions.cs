@@ -251,6 +251,7 @@ public static partial class StartupExtensions
 
         // Registered before the infrastructure services, which fall back to a publisher that drops events.
         services.AddSingleton<IActivityPublisher, SignalRActivityPublisher>();
+        services.AddSingleton<IUserNotificationPublisher, SignalRUserNotificationPublisher>();
 
         return services;
     }

@@ -1,4 +1,4 @@
-# Storeasy Api
+﻿# Storeasy Api
 
 This document is a guide to what you need to know about the project.
 
@@ -211,6 +211,15 @@ Files live in a private bucket and move only through presigned URLs (`IFileStora
 ### Apps and builds
 
 A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, later the Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store answers "not supported yet". `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
+
+### Events, notifications and tracking (phase 4)
+
+- **Inbound webhooks**: `/api/webhooks/apple/{publicId}` (App Store Connect, `x-apple-signature: hmacsha256=<hex>`) and `/api/webhooks/signed/{publicId}` (any sender: `X-Storeasy-Signature: sha256=<hex>` over `{timestamp}.{body}`, `X-Storeasy-Timestamp`, `X-Storeasy-Event-Id`). Anonymous, rate limited, 256 KB body limit; an event id is accepted once per endpoint. Endpoints are managed under `webhooks` (owners and admins); an App Store Connect endpoint is registered at Apple by a `RegisterWebhooks` job (one webhook per app). `Storeasy:Webhooks`: `PublicBaseUrl` (defaults to `Storeasy:App:BaseUrl`), `SecretGraceHours` (24), `MaxEventAgeHours` (168), `SignedToleranceSeconds` (300).
+- **Outgoing webhooks**: `webhooks/subscription(s)`, `webhooks/deliveries`; HTTPS only, public addresses only (checked on save and again at connection time), signed like the signed receiver, retried with backoff. `Storeasy:OrgWebhooks`: `Enabled`, `PollIntervalMilliseconds`, `MaxAttempts` (6), `RetryBaseDelaySeconds` (30), `TimeoutSeconds` (10), `AllowHttp` (false), `MaxSubscriptions` (20).
+- **Notifications**: in-app (`account/notifications`, now with `organizationId`), e-mail, live `notification.created` on the user's own hub group; per kind preferences at `account/preferences` (security and connection alerts cannot be turned off; web push is stored for phase 8).
+- **Rejections, reviews, TestFlight**: `rejections/*`, `reviews/*`, `testflight/*`; store writes are store jobs.
+- **Schedules** (`Storeasy:Events:SchedulesEnabled`, UTC): version state sync every 15 minutes, reviews every 30 minutes, TestFlight every 6 hours, deadline reminders daily 08:00 (TestFlight expiry 14/7/1 days, compliance 30/7/1 days), rule watcher daily 06:00.
+- **Rule watcher**: `rules/sources`, `rules/proposals` (platform admins, `RuleCatalogManagement`). `Storeasy:RuleWatcher`: `Enabled`, `MaxBytes`, `AllowedHosts` (official domains only), `Sources`.
 
 ### Health checks
 
