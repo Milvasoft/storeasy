@@ -1,0 +1,1081 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.0.0",
+  "store": "microsoft",
+  "generatedAt": "2026-11-18T12:00:00Z",
+  "rules": [
+    {
+      "id": "microsoft.listing-limits.description",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Description: up to 10000 characters (required)",
+        "tr": "Açıklama: en fazla 10.000 karakter (zorunlu)"
+      },
+      "description": {
+        "en": "Required plain text description, up to 10,000 characters. Do not put HTML, code or URLs in it."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 10000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.listing-limits.short-description",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Short description: up to 1000 characters",
+        "tr": "Kısa açıklama: en fazla 1000 karakter"
+      },
+      "description": {
+        "en": "Up to 1000 characters; some Store views show only the first 270. If missing, the Store uses the start of the description."
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 1000,
+        "displayedChars": 270
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.listing-limits.whats-new",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "What's new in this version: up to 1500 characters",
+        "tr": "Bu sürümdeki yenilikler: en fazla 1500 karakter"
+      },
+      "description": {
+        "en": "What's new in this version: up to 1500 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 1500
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "Leave empty for the first submission."
+    },
+    {
+      "id": "microsoft.listing-limits.product-features",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Product features: up to 20, 200 characters each",
+        "tr": "Ürün özellikleri: en fazla 20 adet, her biri 200 karakter"
+      },
+      "description": {
+        "en": "Product features: up to 20, 200 characters each."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxItems": 20,
+        "maxCharsPerItem": 200
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.listing-limits.additional-system-requirements",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Additional system requirements: up to 11 items, 200 characters each",
+        "tr": "Ek sistem gereksinimleri: en fazla 11 madde, her biri 200 karakter"
+      },
+      "description": {
+        "en": "Additional system requirements: up to 11 items, 200 characters each."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxItems": 11,
+        "maxCharsPerItem": 200
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "Applies separately to Minimum hardware and Recommended hardware."
+    },
+    {
+      "id": "microsoft.listing-limits.search-terms",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Search terms: up to 7, 30 characters each",
+        "tr": "Arama terimleri: en fazla 7 adet, her biri 30 karakter"
+      },
+      "description": {
+        "en": "Up to 7 unique search terms, each up to 30 characters, relevant to the product, without other products' titles (unless also yours) or pricing terms."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxItems": 7,
+        "maxCharsPerItem": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/faq/submit-your-app",
+          "title": "Microsoft Learn: Submit your app FAQ",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/store-policies",
+          "title": "Microsoft Store Policies",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "A cap of 21 words across all search terms is often quoted (and in the storeasy plan) but was not found in an official Microsoft source on 2026-11-18; it is left out of params."
+    },
+    {
+      "id": "microsoft.listing-limits.short-title",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Short title: up to 50 characters",
+        "tr": "Kısa başlık: en fazla 50 karakter"
+      },
+      "description": {
+        "en": "Short title: up to 50 characters."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "msix"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 50
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.listing-limits.sort-title",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Sort title: up to 255 characters",
+        "tr": "Sıralama başlığı: en fazla 255 karakter"
+      },
+      "description": {
+        "en": "Sort title: up to 255 characters."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "msix"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 255
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.listing-limits.voice-title",
+      "store": "microsoft",
+      "category": "listing-limits",
+      "title": {
+        "en": "Voice title: up to 255 characters",
+        "tr": "Sesli başlık: en fazla 255 karakter"
+      },
+      "description": {
+        "en": "Voice title: up to 255 characters."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "msix"
+        ]
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 255
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.screenshots.general",
+      "store": "microsoft",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: general rules",
+        "tr": "Ekran görüntüleri: genel kurallar"
+      },
+      "description": {
+        "en": "One screenshot (any device family) is required. Up to 10 desktop screenshots and up to 8 for other device families, uploaded separately for each listing language. PNG, up to 50 MB each, landscape or portrait. Optional caption up to 200 characters. At least four per supported device family is recommended."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minCount": 1,
+        "maxCount": 10,
+        "maxCountOtherFamilies": 8,
+        "countScope": "per language, per device family",
+        "formats": [
+          "png"
+        ],
+        "maxFileSizeBytes": 50000000,
+        "captionMaxChars": 200
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/add-and-edit-store-listing-info",
+          "title": "Microsoft Learn: Store listing info for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "50 MB stored as 50,000,000 bytes."
+    },
+    {
+      "id": "microsoft.screenshots.desktop",
+      "store": "microsoft",
+      "category": "screenshots",
+      "title": {
+        "en": "Desktop screenshots: 1366x768 or larger",
+        "tr": "Masaüstü ekran görüntüleri: 1366x768 veya büyük"
+      },
+      "description": {
+        "en": "Desktop screenshots must be 1366 x 768 px or larger; 4K (3840 x 2160) is supported. Also shown on Surface Hub."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "desktop"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "At least one screenshot overall is required; see microsoft.screenshots.general."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minWidth": 1366,
+        "minHeight": 768,
+        "maxWidth": 3840,
+        "maxHeight": 2160,
+        "maxCount": 10
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "minWidth/minHeight are given for landscape; for portrait screenshots the evaluator should swap them."
+    },
+    {
+      "id": "microsoft.screenshots.xbox",
+      "store": "microsoft",
+      "category": "screenshots",
+      "title": {
+        "en": "Xbox screenshots: 1920x1080 to 3840x2160",
+        "tr": "Xbox ekran görüntüleri: 1920x1080 ile 3840x2160 arası"
+      },
+      "description": {
+        "en": "Xbox screenshots must be 1920 x 1080 px or larger; 4K (3840 x 2160) is supported."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "xbox"
+        ]
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minWidth": 1920,
+        "minHeight": 1080,
+        "maxWidth": 3840,
+        "maxHeight": 2160,
+        "maxCount": 8
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "conflicts": [
+        {
+          "description": "The page says Xbox screenshots must be \"3480 x 2160 pixels or smaller\" and in the same sentence \"Supports 4K images (3840 x 2160)\". 3480 looks like a typo for 3840.",
+          "sources": [
+            "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images"
+          ],
+          "catalogChoice": "Upper bound 3840 x 2160."
+        }
+      ]
+    },
+    {
+      "id": "microsoft.screenshots.holographic",
+      "store": "microsoft",
+      "category": "screenshots",
+      "title": {
+        "en": "Holographic screenshots: 1268x720 or larger",
+        "tr": "Holographic ekran görüntüleri: 1268x720 veya büyük"
+      },
+      "description": {
+        "en": "Holographic screenshots must be 1268 x 720 px or larger; 4K (3840 x 2160) is supported."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "holographic"
+        ]
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minWidth": 1268,
+        "minHeight": 720,
+        "maxWidth": 3840,
+        "maxHeight": 2160,
+        "maxCount": 8
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.app-tile-icon",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "1:1 app tile icon 300x300",
+        "tr": "1:1 uygulama kutucuk ikonu 300x300"
+      },
+      "description": {
+        "en": "Strongly recommended for apps. If uploaded, the Store prefers it over the icon in the package. PNG up to 50 MB."
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 300,
+            "height": 300
+          }
+        ],
+        "formats": [
+          "png"
+        ],
+        "maxFileSizeBytes": 50000000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.poster-art-2x3",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "2:3 poster art 720x1080 or 1440x2160",
+        "tr": "2:3 poster görseli 720x1080 veya 1440x2160"
+      },
+      "description": {
+        "en": "Main logo for games on Windows and Xbox (strongly recommended for games, not used for apps). Required when the product is available on Xbox and must then include the title in the top two thirds."
+      },
+      "appliesWhen": {
+        "appTypes": [
+          "game"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Required if available on Xbox."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 720,
+            "height": 1080
+          },
+          {
+            "width": 1440,
+            "height": 2160
+          }
+        ],
+        "formats": [
+          "png"
+        ],
+        "maxFileSizeBytes": 50000000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.box-art-1x1",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "1:1 box art 1080x1080 or 2160x2160",
+        "tr": "1:1 kutu görseli 1080x1080 veya 2160x2160"
+      },
+      "description": {
+        "en": "For games; used as main logo if 2:3 poster art is missing. Required when available on Xbox (must include the title)."
+      },
+      "appliesWhen": {
+        "appTypes": [
+          "game"
+        ]
+      },
+      "requirement": {
+        "level": "optional",
+        "fallbackTo": [
+          "microsoft.graphics.poster-art-2x3"
+        ],
+        "condition": "Required if available on Xbox."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1080,
+            "height": 1080
+          },
+          {
+            "width": 2160,
+            "height": 2160
+          }
+        ],
+        "formats": [
+          "png"
+        ],
+        "maxFileSizeBytes": 50000000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.super-hero-art",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "16:9 super hero art 1920x1080 or 3840x2160",
+        "tr": "16:9 super hero görseli 1920x1080 veya 3840x2160"
+      },
+      "description": {
+        "en": "Recommended for all products; required for games whose listing has trailers (otherwise trailers do not show at the top). PNG, no title or other text."
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Required for games with trailers."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1920,
+            "height": 1080
+          },
+          {
+            "width": 3840,
+            "height": 2160
+          }
+        ],
+        "formats": [
+          "png"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.xbox-images",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "Xbox images: key art, hero art, promotional square",
+        "tr": "Xbox görselleri: key art, hero art, tanıtım karesi"
+      },
+      "description": {
+        "en": "Required for proper display on Xbox: branded key art 584x800 (with title and branding bar), titled hero art 1920x1080 (with title), featured promotional square art 1080x1080 (without title)."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "xbox"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 584,
+            "height": 800,
+            "note": "branded key art"
+          },
+          {
+            "width": 1920,
+            "height": 1080,
+            "note": "titled hero art"
+          },
+          {
+            "width": 1080,
+            "height": 1080,
+            "note": "featured promotional square art"
+          }
+        ],
+        "formats": [
+          "png"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.graphics.holographic-2x1",
+      "store": "microsoft",
+      "category": "graphics",
+      "title": {
+        "en": "Holographic 2:1 image 2400x1200",
+        "tr": "Holographic 2:1 görsel 2400x1200"
+      },
+      "description": {
+        "en": "Used only when the app supports the Holographic device family; recommended then."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "holographic"
+        ]
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 2400,
+            "height": 1200
+          }
+        ],
+        "formats": [
+          "png"
+        ]
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.trailers.general",
+      "store": "microsoft",
+      "category": "trailers",
+      "title": {
+        "en": "Trailers: up to 15, 1920x1080, MP4 or MOV",
+        "tr": "Fragmanlar: en fazla 15, 1920x1080, MP4 veya MOV"
+      },
+      "description": {
+        "en": "Up to 15 trailers per listing. Video MOV or MP4, 1920 x 1080, up to 2 GB; thumbnail PNG 1920 x 1080; title up to 255 characters; no age ratings in the trailer; captions WebVTT under 50 MB; audio description MP3 under 500 MB. 60 seconds or less recommended."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxCount": 15,
+        "sizes": [
+          {
+            "width": 1920,
+            "height": 1080
+          }
+        ],
+        "formats": [
+          "mp4",
+          "mov"
+        ],
+        "maxFileSizeBytes": 2000000000,
+        "titleMaxChars": 255,
+        "recommendedMaxDurationSeconds": 60
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.listings.trailers"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images",
+          "title": "Microsoft Learn: App screenshots, images, and trailers for MSIX app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.packages.msi-exe-signing",
+      "store": "microsoft",
+      "category": "packages",
+      "title": {
+        "en": "MSI/EXE installer and all PE files must be code signed",
+        "tr": "MSI/EXE yükleyici ve bütün PE dosyaları imzalı olmalı"
+      },
+      "description": {
+        "en": "The installer binary and all of its Portable Executable files must be signed with a code signing certificate that chains to a CA in the Microsoft Trusted Root Program (Authenticode). The Store does not re-sign MSI/EXE installers."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "msi",
+          "exe"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.authenticodeSignature"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements",
+          "title": "Microsoft Learn: App package requirements for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "storeasy can verify the outer installer signature; signatures of embedded PE files need extraction and may be assisted."
+    },
+    {
+      "id": "microsoft.packages.msi-exe-installer",
+      "store": "microsoft",
+      "category": "packages",
+      "title": {
+        "en": "MSI/EXE: versioned HTTPS URL, silent and standalone installer",
+        "tr": "MSI/EXE: sürümlü HTTPS URL'si, sessiz ve tek başına kurulum"
+      },
+      "description": {
+        "en": "Submit an HTTPS direct download URL to an .msi or .exe. The URL must be versioned and its binary must not change after submission; each update needs a new versioned URL. Install must be silent (UAC prompt allowed) and the installer must be standalone, not a downloader stub."
+      },
+      "appliesWhen": {
+        "packageTypes": [
+          "msi",
+          "exe"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "msstore.packages"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements",
+          "title": "Microsoft Learn: App package requirements for MSI/EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.api-access.client-secret-lifetime",
+      "store": "microsoft",
+      "category": "api-access",
+      "title": {
+        "en": "Entra client secret: at most 24 months",
+        "tr": "Entra client secret: en fazla 24 ay"
+      },
+      "description": {
+        "en": "Client secret lifetime is limited to 24 months; Microsoft recommends less than 12 months. storeasy stores the expiry and warns before it."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxMonths": 24,
+        "recommendedMaxMonths": 12,
+        "warnDaysBefore": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "connection.clientSecretExpiresAt"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/store-submission-api",
+          "title": "Microsoft Learn: Microsoft Store submission API for MSI or EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "warnDaysBefore is the storeasy plan default, not a store rule."
+    },
+    {
+      "id": "microsoft.api-access.first-submission-in-partner-center",
+      "store": "microsoft",
+      "category": "api-access",
+      "title": {
+        "en": "First submission and age rating (IARC) in Partner Center",
+        "tr": "İlk gönderim ve yaş derecelendirmesi (IARC) Partner Center'da"
+      },
+      "description": {
+        "en": "The API cannot create an app. Before creating submissions with the API, one submission must be created in Partner Center, including the age ratings questionnaire."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "msstore.apps",
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/store-submission-api",
+          "title": "Microsoft Learn: Microsoft Store submission API for MSI or EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "microsoft.api-access.single-active-submission",
+      "store": "microsoft",
+      "category": "api-access",
+      "title": {
+        "en": "Only one active submission at a time",
+        "tr": "Aynı anda tek aktif gönderim"
+      },
+      "description": {
+        "en": "Creating a submission through the API fails with an error if an active submission already exists."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "msstore.submissions"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://learn.microsoft.com/en-us/windows/apps/publish/store-submission-api",
+          "title": "Microsoft Learn: Microsoft Store submission API for MSI or EXE app",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

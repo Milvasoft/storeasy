@@ -1,0 +1,1568 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.0.0",
+  "store": "google",
+  "generatedAt": "2026-11-18T12:00:00Z",
+  "rules": [
+    {
+      "id": "google.target-api.mobile-new-and-updates",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Target API 36 for new apps and updates",
+        "tr": "Yeni uygulamalar ve güncellemeler için hedef API 36"
+      },
+      "description": {
+        "en": "New apps and app updates (phones and tablets) must target Android 16 (API level 36) or higher to be submitted. An extension until 2026-11-01 could be requested; that window has passed.",
+        "tr": "Yeni uygulamalar ve güncellemeler Android 16 (API 36) veya üstünü hedeflemeli."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ],
+        "distribution": [
+          "new-app",
+          "update"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 36
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "Permanently private apps for a single organization (internal distribution only) are exempt."
+    },
+    {
+      "id": "google.target-api.mobile-existing",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Existing apps: target API 35 to stay visible to new users",
+        "tr": "Mevcut uygulamalar: yeni kullanıcılara görünmek için hedef API 35"
+      },
+      "description": {
+        "en": "Existing apps must target Android 15 (API level 35) or higher to remain available to new users on devices running newer Android versions."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ],
+        "distribution": [
+          "existing-app"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 35
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.target-api.wear-os",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Wear OS: target API 35 for new apps and updates",
+        "tr": "Wear OS: yeni uygulama ve güncellemelerde hedef API 35"
+      },
+      "description": {
+        "en": "Wear OS new apps and updates must target Android 15 (API 35) or higher; existing apps need Android 14 (API 34) to remain available."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "wear-os"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 35,
+        "minTargetSdkExistingApps": 34
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.target-api.android-tv",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Android TV: target API 34 for new apps and updates",
+        "tr": "Android TV: yeni uygulama ve güncellemelerde hedef API 34"
+      },
+      "description": {
+        "en": "Android TV new apps and updates must target Android 14 (API 34) or higher; existing apps need Android 13 (API 33)."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-tv"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2025-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 34,
+        "minTargetSdkExistingApps": 33
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page gives different existing-app thresholds in different sections; Play Console shows the authoritative status per app."
+    },
+    {
+      "id": "google.target-api.android-automotive",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Android Automotive OS: target API 35 for new apps and updates",
+        "tr": "Android Automotive OS: hedef API 35"
+      },
+      "description": {
+        "en": "Android Automotive OS new apps and updates must target Android 15 (API 35) or higher; existing apps need Android 12L (API 32)."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-automotive"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 35,
+        "minTargetSdkExistingApps": 32
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page gives different existing-app thresholds in different sections; Play Console shows the authoritative status per app."
+    },
+    {
+      "id": "google.target-api.android-xr",
+      "store": "google",
+      "category": "target-api",
+      "title": {
+        "en": "Android XR: target API 34",
+        "tr": "Android XR: hedef API 34"
+      },
+      "description": {
+        "en": "Android XR new apps, updates and existing apps must target Android 14 (API 34) or higher."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-xr"
+        ],
+        "packageTypes": [
+          "aab",
+          "apk"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-08-31",
+      "deadline": null,
+      "params": {
+        "minTargetSdk": 34,
+        "minTargetSdkExistingApps": 34
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.targetSdk",
+          "play.tracks"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/11926878",
+          "title": "Play Console Help: Target API level requirements",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.graphics.app-icon",
+      "store": "google",
+      "category": "graphics",
+      "title": {
+        "en": "App icon 512x512",
+        "tr": "Uygulama ikonu 512x512"
+      },
+      "description": {
+        "en": "32-bit PNG with alpha, 512 x 512 px, up to 1024 KB."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "formats": [
+          "png-32"
+        ],
+        "alphaAllowed": true,
+        "maxFileSizeBytes": 1048576
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": false,
+      "notes": "Dimensions, format and size verified on the preview assets page. The required status comes from the Play Console store listing form and is not stated on that page. 1024 KB stored as 1,048,576 bytes."
+    },
+    {
+      "id": "google.graphics.feature-graphic",
+      "store": "google",
+      "category": "graphics",
+      "title": {
+        "en": "Feature graphic 1024x500",
+        "tr": "Öne çıkan görsel 1024x500"
+      },
+      "description": {
+        "en": "JPEG or 24-bit PNG without alpha, 1024 x 500 px."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1024,
+            "height": 500
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": false,
+      "notes": "Dimensions and format verified. The required status is not stated on the preview assets page, and no file size limit is given there."
+    },
+    {
+      "id": "google.screenshots.general",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots: general rules",
+        "tr": "Ekran görüntüleri: genel kurallar"
+      },
+      "description": {
+        "en": "At least 2 screenshots across device types to publish; JPEG or 24-bit PNG without alpha; each side 320 to 3840 px; the long side at most twice the short side; up to 8 per supported device type."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false,
+        "minDimension": 320,
+        "maxDimension": 3840,
+        "maxAspectRatio": 2,
+        "maxCount": 8,
+        "countScope": "per device type, per language",
+        "minCount": 2
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.screenshots.phone",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Phone screenshots",
+        "tr": "Telefon ekran görüntüleri"
+      },
+      "description": {
+        "en": "Phone screenshots follow the general rules. For promotion eligibility apps should provide at least 4 screenshots of at least 1080 px (1080x1920 portrait or 1920x1080 landscape minimum); games at least 3."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "phone"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Recommended counts and sizes are for promotion eligibility."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false,
+        "minDimension": 320,
+        "maxDimension": 3840,
+        "maxAspectRatio": 2,
+        "maxCount": 8,
+        "countScope": "per device type, per language",
+        "recommendedMinCount": 4,
+        "recommendedMinCountGames": 3,
+        "recommendedMinShortSide": 1080
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.screenshots.tablet-7",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "7-inch tablet screenshots",
+        "tr": "7 inç tablet ekran görüntüleri"
+      },
+      "description": {
+        "en": "Large screen (7-inch tablet) screenshots: at least 4, each side 1080 to 7680 px, 16:9 landscape or 9:16 portrait."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "tablet-7"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Provide when the app supports this form factor."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false,
+        "minCount": 4,
+        "maxCount": 8,
+        "minDimension": 1080,
+        "maxDimension": 7680,
+        "aspectRatio": "16:9"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page lists the large screen minimum of 4; whether missing large screen screenshots block publishing is not stated."
+    },
+    {
+      "id": "google.screenshots.tablet-10",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "10-inch tablet screenshots",
+        "tr": "10 inç tablet ekran görüntüleri"
+      },
+      "description": {
+        "en": "Large screen (10-inch tablet) screenshots: at least 4, each side 1080 to 7680 px, 16:9 landscape or 9:16 portrait."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "tablet-10"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Provide when the app supports this form factor."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false,
+        "minCount": 4,
+        "maxCount": 8,
+        "minDimension": 1080,
+        "maxDimension": 7680,
+        "aspectRatio": "16:9"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page lists the large screen minimum of 4; whether missing large screen screenshots block publishing is not stated."
+    },
+    {
+      "id": "google.screenshots.chromebook",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Chromebook screenshots",
+        "tr": "Chromebook ekran görüntüleri"
+      },
+      "description": {
+        "en": "Large screen (Chromebook) screenshots: at least 4, each side 1080 to 7680 px, 16:9 landscape or 9:16 portrait."
+      },
+      "appliesWhen": {
+        "deviceFamilies": [
+          "chromebook"
+        ]
+      },
+      "requirement": {
+        "level": "recommended",
+        "condition": "Provide when the app supports this form factor."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false,
+        "minCount": 4,
+        "maxCount": 8,
+        "minDimension": 1080,
+        "maxDimension": 7680,
+        "aspectRatio": "16:9"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "The page lists the large screen minimum of 4; whether missing large screen screenshots block publishing is not stated."
+    },
+    {
+      "id": "google.screenshots.wear-os",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Wear OS screenshots",
+        "tr": "Wear OS ekran görüntüleri"
+      },
+      "description": {
+        "en": "At least 1 screenshot of the current version, 1:1, minimum 384 x 384 px, app interface only, no device frames, no transparency or masking."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "wear-os"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minCount": 1,
+        "aspectRatio": "1:1",
+        "minWidth": 384,
+        "minHeight": 384,
+        "alphaAllowed": false
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.screenshots.android-tv",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Android TV screenshots",
+        "tr": "Android TV ekran görüntüleri"
+      },
+      "description": {
+        "en": "At least 1 TV screenshot before publishing."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-tv"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minCount": 1
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.graphics.tv-banner",
+      "store": "google",
+      "category": "graphics",
+      "title": {
+        "en": "Android TV banner 1280x720",
+        "tr": "Android TV banner 1280x720"
+      },
+      "description": {
+        "en": "Required TV banner: JPEG or 24-bit PNG without alpha, 1280 x 720 px."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-tv"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 1280,
+            "height": 720
+          }
+        ],
+        "formats": [
+          "jpeg",
+          "png-24"
+        ],
+        "alphaAllowed": false
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.screenshots.android-automotive",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Android Automotive OS screenshots",
+        "tr": "Android Automotive OS ekran görüntüleri"
+      },
+      "description": {
+        "en": "Required for apps outside the parked app categories (optional for parked categories). If provided: at least 2 portrait at 800 x 1280 px and 2 landscape at 1024 x 768 px."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-automotive"
+        ]
+      },
+      "requirement": {
+        "level": "required",
+        "condition": "Required unless the app is in a parked app category."
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "sizes": [
+          {
+            "width": 800,
+            "height": 1280
+          },
+          {
+            "width": 1024,
+            "height": 768
+          }
+        ],
+        "minCountPortrait": 2,
+        "minCountLandscape": 2
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.screenshots.android-xr",
+      "store": "google",
+      "category": "screenshots",
+      "title": {
+        "en": "Android XR screenshots",
+        "tr": "Android XR ekran görüntüleri"
+      },
+      "description": {
+        "en": "4 to 8 screenshots, PNG or JPEG, up to 8 MB each, 8:5, recommended 3840 x 2400 px (minimum 1920 x 1200 px)."
+      },
+      "appliesWhen": {
+        "platforms": [
+          "android-xr"
+        ]
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minCount": 4,
+        "maxCount": 8,
+        "formats": [
+          "png",
+          "jpeg"
+        ],
+        "maxFileSizeBytes": 8000000,
+        "aspectRatio": "8:5",
+        "minWidth": 1920,
+        "minHeight": 1200
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.images"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "8 MB stored as 8,000,000 bytes; the page does not say whether MB means 10^6 or 2^20."
+    },
+    {
+      "id": "google.app-previews.video",
+      "store": "google",
+      "category": "app-previews",
+      "title": {
+        "en": "Preview video (YouTube URL)",
+        "tr": "Tanıtım videosu (YouTube URL'si)"
+      },
+      "description": {
+        "en": "Optional single YouTube video URL (no playlist, channel or timecode), public or unlisted, not age restricted, ads off, embeddable. Only the first 30 seconds may autoplay."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "autoplaySeconds": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/9866151",
+          "title": "Play Console Help: Add preview assets",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.listing-limits.title",
+      "store": "google",
+      "category": "listing-limits",
+      "title": {
+        "en": "App name: up to 30 characters",
+        "tr": "Uygulama adı: en fazla 30 karakter"
+      },
+      "description": {
+        "en": "App name: up to 30 characters. Limits apply equally to full-width and half-width characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 30
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/113469",
+          "title": "Play Console Help: Create and set up your app (store listing)",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.listing-limits.short-description",
+      "store": "google",
+      "category": "listing-limits",
+      "title": {
+        "en": "Short description: up to 80 characters",
+        "tr": "Kısa açıklama: en fazla 80 karakter"
+      },
+      "description": {
+        "en": "Short description: up to 80 characters. Limits apply equally to full-width and half-width characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 80
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/113469",
+          "title": "Play Console Help: Create and set up your app (store listing)",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.listing-limits.full-description",
+      "store": "google",
+      "category": "listing-limits",
+      "title": {
+        "en": "Full description: up to 4000 characters",
+        "tr": "Tam açıklama: en fazla 4000 karakter"
+      },
+      "description": {
+        "en": "Full description: up to 4000 characters. Limits apply equally to full-width and half-width characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 4000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.edits.listings"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/113469",
+          "title": "Play Console Help: Create and set up your app (store listing)",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.review.reply-length",
+      "store": "google",
+      "category": "review",
+      "title": {
+        "en": "Review reply: up to 350 characters",
+        "tr": "Yorum yanıtı: en fazla 350 karakter"
+      },
+      "description": {
+        "en": "A reply to a user review can contain at most 350 characters (well-formed HTML tags do not count). The API returns only production reviews with text, created or modified in the last week."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 350,
+        "apiReviewWindowDays": 7
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "play.reviews"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/android-publisher/reply-to-reviews",
+          "title": "Google Play Developer API: Reply to reviews",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.privacy.data-safety",
+      "store": "google",
+      "category": "privacy",
+      "title": {
+        "en": "Data safety form (writable via API as CSV)",
+        "tr": "Data safety formu (API ile CSV olarak yazılır)"
+      },
+      "description": {
+        "en": "The Data safety declaration can be written with applications.dataSafety: POST with a body field safetyLabels holding the CSV contents (template from Play Console). The API only writes; it does not return the current declaration."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "apiMethod": "POST /androidpublisher/v3/applications/{packageName}/dataSafety",
+        "bodyField": "safetyLabels",
+        "bodyFormat": "csv"
+      },
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.savedAnswers.dataSafety"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/applications/dataSafety",
+          "title": "Google Play Developer API: applications.dataSafety",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": false,
+      "notes": "API shape verified. That the form is required for every app is from the Play User Data policy, which was not re-checked for this catalog version."
+    },
+    {
+      "id": "google.policy.anonymous-chat-families",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Families: anonymous chat apps may not target children",
+        "tr": "Aileler politikası: anonim sohbet uygulamaları çocukları hedefleyemez"
+      },
+      "description": {
+        "en": "The Families Policy requirements now prohibit anonymous chat apps from targeting children."
+      },
+      "appliesWhen": {
+        "features": [
+          "anonymous-chat"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2026-08-26"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": "2026-08-26",
+      "params": {
+        "announced": "2026-07-15"
+      },
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.anonymous-chat-child-safety",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Child Safety Standards apply to anonymous and random chat apps",
+        "tr": "Çocuk güvenliği standartları anonim ve rastgele sohbet uygulamalarına uygulanır"
+      },
+      "description": {
+        "en": "The Child Endangerment policy expands the Child Safety Standards to anonymous chat and random chat apps."
+      },
+      "appliesWhen": {
+        "features": [
+          "anonymous-chat",
+          "random-chat"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2026-08-26"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": "2026-08-26",
+      "params": {
+        "announced": "2026-07-15"
+      },
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.anonymous-chat-age-restricted",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Age-Restricted Content rules apply to anonymous and random chat apps",
+        "tr": "Yaş sınırlı içerik kuralları anonim ve rastgele sohbet uygulamalarına uygulanır"
+      },
+      "description": {
+        "en": "The Age-Restricted Content and Functionality policy expands to anonymous chat and random chat apps."
+      },
+      "appliesWhen": {
+        "features": [
+          "anonymous-chat",
+          "random-chat"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2026-08-26"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": "2026-08-26",
+      "params": {
+        "announced": "2026-07-15"
+      },
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.app-registration",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Register Play apps in Play Console (Android developer verification)",
+        "tr": "Play uygulamalarını Play Console'da kaydet (Android geliştirici doğrulaması)"
+      },
+      "description": {
+        "en": "Play apps must be registered in Play Console for Android developer verification. Unregistered apps risk global removal from Google Play. Apps distributed outside Play can also be registered there."
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2026-09-30"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": "2026-09-30",
+      "params": {
+        "announced": "2026-07-15"
+      },
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.read-call-log-verification",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "READ_CALL_LOG no longer allowed for phone call account verification",
+        "tr": "READ_CALL_LOG telefonla hesap doğrulaması için kullanılamaz"
+      },
+      "description": {
+        "en": "Account verification via phone call is no longer a permitted use case for READ_CALL_LOG. Alternatives: Digital Credentials API (directly or via a provider) or SMS Retriever API."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-read-call-log"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-27"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": "2027-01-27",
+      "params": {
+        "announced": "2026-07-15"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "build.permissions"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "storeasy can detect READ_CALL_LOG in the AAB manifest; whether it is used for verification is a user answer."
+    },
+    {
+      "id": "google.policy.unrated-apps",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Unrated apps are not allowed",
+        "tr": "Derecelendirmesiz uygulamaya izin yok"
+      },
+      "description": {
+        "en": "The Content Ratings policy now states that unrated apps are not allowed on Google Play. Announced as a clarification on 2026-07-15; enforcement standards unchanged."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": "2026-07-15",
+      "deadline": null,
+      "check": {
+        "kind": "assisted",
+        "inputs": [
+          "storeasy.assistedSteps"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/17134731",
+          "title": "Play policy announcement, July 15, 2026",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true,
+      "notes": "Clarification only; the deadlines table has no row for it."
+    },
+    {
+      "id": "google.policy.contacts-permissions",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Contacts permissions policy update",
+        "tr": "Kişiler izni politika güncellemesi"
+      },
+      "description": {
+        "en": "Permissions and APIs that Access Sensitive Information: Contacts Permissions. See the policy page for the details."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-contacts"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-27"
+      },
+      "effectiveDate": "2026-04-15",
+      "deadline": "2027-01-27",
+      "params": {
+        "announced": "2026-04-15"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.location-permissions",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Location permissions: location button as recommended minimum scope",
+        "tr": "Konum izni: önerilen asgari kapsam konum düğmesi"
+      },
+      "description": {
+        "en": "Permissions and APIs that Access Sensitive Information: Location Permissions, with the location button as the recommended minimum scope."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-location"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-27"
+      },
+      "effectiveDate": "2026-04-15",
+      "deadline": "2027-01-27",
+      "params": {
+        "announced": "2026-04-15"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.fgs-geofencing",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Foreground service: geofencing removed as a use case",
+        "tr": "Foreground service: geofencing kullanım durumu kaldırıldı"
+      },
+      "description": {
+        "en": "Foreground service and full-screen intent requirements: geofencing is removed as a foreground service use case."
+      },
+      "appliesWhen": {
+        "features": [
+          "foreground-service"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-27"
+      },
+      "effectiveDate": "2026-04-15",
+      "deadline": "2027-01-27",
+      "params": {
+        "announced": "2026-04-15"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.subscriptions-eligibility-discounts",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Subscriptions with ongoing eligibility-based discounts",
+        "tr": "Süreğen uygunluğa bağlı indirimli abonelikler"
+      },
+      "description": {
+        "en": "Subscriptions policy: rules for subscriptions with ongoing eligibility-based discounts."
+      },
+      "appliesWhen": {
+        "features": [
+          "subscriptions"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-01-27"
+      },
+      "effectiveDate": "2026-10-29",
+      "deadline": "2027-01-27",
+      "params": {
+        "announced": "2026-10-29"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.appfunctions-api",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "AppFunctions API policy",
+        "tr": "AppFunctions API politikası"
+      },
+      "description": {
+        "en": "Permissions and APIs that Access Sensitive Information: AppFunctions API."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-appfunctions"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-04-14"
+      },
+      "effectiveDate": "2026-10-29",
+      "deadline": "2027-04-14",
+      "params": {
+        "announced": "2026-10-29"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.local-network-permission",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Local Network permission policy",
+        "tr": "Yerel ağ izni politikası"
+      },
+      "description": {
+        "en": "Permissions and APIs that Access Sensitive Information: Local Network Permission."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-local-network"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-08-25"
+      },
+      "effectiveDate": "2026-10-29",
+      "deadline": "2027-08-25",
+      "params": {
+        "announced": "2026-10-29"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "google.policy.manage-contacts-permission",
+      "store": "google",
+      "category": "policy",
+      "title": {
+        "en": "Manage Contacts permission policy",
+        "tr": "Kişileri yönetme izni politikası"
+      },
+      "description": {
+        "en": "Permissions and APIs that Access Sensitive Information: Manage Contacts Permission."
+      },
+      "appliesWhen": {
+        "features": [
+          "uses-contacts"
+        ]
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2027-08-25"
+      },
+      "effectiveDate": "2026-10-29",
+      "deadline": "2027-08-25",
+      "params": {
+        "announced": "2026-10-29"
+      },
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/googleplay/android-developer/table/12921780",
+          "title": "Play Console Help: Policy deadlines table",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

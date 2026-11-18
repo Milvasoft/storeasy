@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storeasy.dev/rules/schema/catalog.schema.json",
+  "title": "storeasy store rules catalog",
+  "description": "Versioned catalog of App Store Connect, Google Play and Microsoft Store rules. A catalog is one manifest (catalog.json) plus one rules file per store. Rules are data: the API loads them, the readiness check and the compliance timeline evaluate them, the rule watcher proposes changes to them.",
+  "type": "object",
+  "required": ["kind"],
+  "if": { "properties": { "kind": { "const": "manifest" } }, "required": ["kind"] },
+  "then": { "$ref": "#/$defs/manifest" },
+  "else": { "$ref": "#/$defs/storeFile" },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "version": {
+      "description": "Semver-like catalog version: MAJOR.MINOR.PATCH.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+    },
+    "store": {
+      "type": "string",
+      "enum": ["apple", "google", "microsoft"]
+    },
+    "ruleId": {
+      "description": "Stable id: <store>.<category>.<slug>. Never reuse or rename an id; deprecate instead.",
+      "type": "string",
+      "pattern": "^(apple|google|microsoft)\\.[a-z0-9-]+\\.[a-z0-9][a-z0-9.-]*[a-z0-9]$"
+    },
+    "localizedText": {
+      "type": "object",
+      "required": ["en", "tr"],
+      "additionalProperties": false,
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "tr": { "type": "string", "minLength": 1 }
+      }
+    },
+    "description": {
+      "type": "object",
+      "required": ["en"],
+      "additionalProperties": false,
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "tr": { "type": "string", "minLength": 1 }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["kind", "catalogVersion", "generatedAt", "files"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "kind": { "const": "manifest" },
+        "catalogVersion": { "$ref": "#/$defs/version" },
+        "generatedAt": { "$ref": "#/$defs/dateTime" },
+        "license": { "type": "string" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["store", "path"],
+            "additionalProperties": false,
+            "properties": {
+              "store": { "$ref": "#/$defs/store" },
+              "path": { "type": "string", "pattern": "^[a-z0-9-]+\\.json$" }
+            }
+          }
+        }
+      }
+    },
+    "storeFile": {
+      "type": "object",
+      "required": ["kind", "catalogVersion", "store", "generatedAt", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "kind": { "const": "store-rules" },
+        "catalogVersion": { "$ref": "#/$defs/version" },
+        "store": { "$ref": "#/$defs/store" },
+        "generatedAt": { "$ref": "#/$defs/dateTime" },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/rule" }
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "store", "category", "title", "description", "requirement", "check", "sources", "verified"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "store": { "$ref": "#/$defs/store" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "screenshots",
+            "app-previews",
+            "graphics",
+            "trailers",
+            "listing-limits",
+            "age-rating",
+            "compliance",
+            "privacy",
+            "sdk",
+            "target-api",
+            "packages",
+            "testflight",
+            "policy",
+            "review",
+            "api-access"
+          ]
+        },
+        "title": { "$ref": "#/$defs/localizedText" },
+        "description": { "$ref": "#/$defs/description" },
+        "appliesWhen": { "$ref": "#/$defs/appliesWhen" },
+        "requirement": { "$ref": "#/$defs/requirement" },
+        "effectiveDate": {
+          "description": "Date the rule started or starts to apply. Null when the source gives no exact day (see dateNote).",
+          "oneOf": [{ "$ref": "#/$defs/date" }, { "type": "null" }]
+        },
+        "deadline": {
+          "description": "Date by which affected apps must comply (for example existing apps). Null when none.",
+          "oneOf": [{ "$ref": "#/$defs/date" }, { "type": "null" }]
+        },
+        "dateNote": {
+          "description": "Source wording when the date is approximate (for example 'early 2027').",
+          "type": "string"
+        },
+        "params": { "$ref": "#/$defs/params" },
+        "check": { "$ref": "#/$defs/check" },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/source" }
+        },
+        "verified": {
+          "description": "true when every fact in the rule was confirmed against the cited sources on checkedAt.",
+          "type": "boolean"
+        },
+        "notes": { "type": "string" },
+        "conflicts": {
+          "description": "Documented disagreements between official sources.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["description", "sources", "catalogChoice"],
+            "additionalProperties": false,
+            "properties": {
+              "description": { "type": "string", "minLength": 1 },
+              "sources": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "format": "uri", "pattern": "^https://" }
+              },
+              "catalogChoice": {
+                "description": "Which reading the catalog encodes until the conflict is resolved.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "deprecated": {
+          "type": "object",
+          "required": ["since"],
+          "additionalProperties": false,
+          "properties": {
+            "since": { "$ref": "#/$defs/version" },
+            "replacedBy": { "$ref": "#/$defs/ruleId" },
+            "reason": { "type": "string" }
+          }
+        }
+      }
+    },
+    "appliesWhen": {
+      "description": "All listed keys must match the app (AND). Inside one list, any value matches (OR). A missing key means no restriction.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["ios", "ipados", "macos", "tvos", "visionos", "watchos", "android", "wear-os", "android-tv", "android-automotive", "android-xr", "chromeos", "windows", "xbox", "holographic"]
+          }
+        },
+        "deviceFamilies": {
+          "description": "The app runs on (supports) one of these device families.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["iphone", "iphone-duo", "ipad", "mac", "apple-tv", "apple-watch", "apple-vision", "phone", "tablet-7", "tablet-10", "chromebook", "wear-os", "android-tv", "android-automotive", "android-xr", "desktop", "xbox", "holographic"]
+          }
+        },
+        "regions": {
+          "description": "App is distributed in one of these regions (ISO 3166-1 alpha-2; CN means China mainland).",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z]{2}$" }
+        },
+        "developerRegions": {
+          "description": "Developer account is based in one of these regions.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z]{2}$" }
+        },
+        "appTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["app", "game"] }
+        },
+        "packageTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["ipa", "pkg", "aab", "apk", "msix", "msi", "exe"] }
+        },
+        "distribution": {
+          "description": "Submission situation: a new app, an update to a live app, or an existing live app with no new submission.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["new-app", "update", "existing-app"] }
+        },
+        "features": {
+          "description": "App declares or uses one of these features (storeasy feature flags kept per app).",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+        },
+        "build": {
+          "description": "Constraints read from the uploaded build.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "sdkName": { "type": "string", "enum": ["iOS", "iPadOS", "macOS", "tvOS", "visionOS", "watchOS"] },
+            "sdkVersionAtLeast": { "type": "string", "pattern": "^\\d+(\\.\\d+){0,2}$" }
+          }
+        },
+        "expression": {
+          "description": "Human readable summary of the condition, for display and for conditions the keys above cannot express.",
+          "type": "string"
+        }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "required": ["level"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "description": "required: must be met now. required-from: becomes required on 'from'. recommended: not blocking. optional: may be omitted; 'fallbackTo' says what the store uses instead.",
+          "type": "string",
+          "enum": ["required", "required-from", "recommended", "optional"]
+        },
+        "from": { "$ref": "#/$defs/date" },
+        "fallbackTo": {
+          "description": "When this asset is missing the store derives it (for example scales it) from the first of these rules that is satisfied.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ruleId" }
+        },
+        "satisfiedBy": {
+          "description": "The requirement is also met when any of these rules is satisfied (for example Face ID (large) screenshots are not needed when Dynamic Island (large) screenshots exist).",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ruleId" }
+        },
+        "condition": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "level": { "const": "required-from" } }, "required": ["level"] },
+          "then": { "required": ["from"] }
+        }
+      ]
+    },
+    "size": {
+      "type": "object",
+      "required": ["width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "note": { "type": "string" }
+      }
+    },
+    "params": {
+      "description": "Machine-checkable values. Known keys are typed; other keys are allowed for store specific data.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "sizes": {
+          "description": "Accepted pixel sizes (exact match).",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/size" }
+        },
+        "orientations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["portrait", "landscape"] }
+        },
+        "landscapeAllowed": { "type": "boolean" },
+        "minWidth": { "type": "integer", "minimum": 1 },
+        "minHeight": { "type": "integer", "minimum": 1 },
+        "maxWidth": { "type": "integer", "minimum": 1 },
+        "maxHeight": { "type": "integer", "minimum": 1 },
+        "minDimension": { "type": "integer", "minimum": 1 },
+        "maxDimension": { "type": "integer", "minimum": 1 },
+        "maxAspectRatio": { "type": "number", "minimum": 1 },
+        "aspectRatio": { "type": "string", "pattern": "^\\d+(\\.\\d+)?:\\d+(\\.\\d+)?$" },
+        "minCount": { "type": "integer", "minimum": 0 },
+        "maxCount": { "type": "integer", "minimum": 1 },
+        "countScope": { "type": "string" },
+        "minChars": { "type": "integer", "minimum": 0 },
+        "maxChars": { "type": "integer", "minimum": 1 },
+        "maxBytes": { "type": "integer", "minimum": 1 },
+        "maxItems": { "type": "integer", "minimum": 1 },
+        "maxCharsPerItem": { "type": "integer", "minimum": 1 },
+        "formats": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "alphaAllowed": { "type": "boolean" },
+        "maxFileSizeBytes": { "type": "integer", "minimum": 1 },
+        "minDurationSeconds": { "type": "number", "minimum": 0 },
+        "maxDurationSeconds": { "type": "number", "minimum": 0 },
+        "maxFrameRate": { "type": "number", "minimum": 1 },
+        "minTargetSdk": { "type": "integer", "minimum": 1 },
+        "minXcodeVersion": { "type": "string", "pattern": "^\\d+(\\.\\d+){0,2}$" },
+        "minSdkVersion": { "type": "string", "pattern": "^\\d+(\\.\\d+){0,2}$" },
+        "minDeploymentTarget": { "type": "string", "pattern": "^\\d+(\\.\\d+){0,2}$" },
+        "maxDays": { "type": "integer", "minimum": 1 },
+        "maxMonths": { "type": "integer", "minimum": 1 },
+        "recommendedMaxMonths": { "type": "integer", "minimum": 1 },
+        "warnDaysBefore": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "automatic: storeasy decides from store API or build data. assisted: a checklist step the user (or a browser hand-off) confirms. info: shown in the timeline only.",
+          "type": "string",
+          "enum": ["automatic", "assisted", "info"]
+        },
+        "inputs": {
+          "description": "Data the evaluator needs, as storeasy data keys (for example asc.appScreenshotSets, build.targetSdk).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-zA-Z0-9_.]+$" }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["url", "checkedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "title": { "type": "string" },
+        "checkedAt": { "$ref": "#/$defs/date" },
+        "quote": {
+          "description": "Short excerpt (under 15 words) supporting the rule.",
+          "type": "string"
+        }
+      }
+    }
+  }
+}
