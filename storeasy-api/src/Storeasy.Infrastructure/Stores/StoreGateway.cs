@@ -1,5 +1,6 @@
 ﻿using Milvasoft.Core.Abstractions;
 using Storeasy.Application.Interfaces;
+using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.JsonModels;
@@ -47,6 +48,11 @@ public sealed class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvi
     /// <inheritdoc/>
     public StoreSecretInspection Inspect(StoreKind store, string secretJson)
     {
+        if (store is not (StoreKind.Apple or StoreKind.Google))
+        {
+            return new StoreSecretInspection(false, MessageKey.StoreNotSupported, null, null);
+        }
+
         if (store == StoreKind.Apple)
         {
             var apple = StoreCredentialParser.ParseApple(secretJson, out var appleError);
@@ -86,9 +92,12 @@ public sealed class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvi
     {
         try
         {
-            return store == StoreKind.Apple
-                ? await VerifyAppleAsync(secretJson, cancellationToken)
-                : await VerifyGoogleAsync(secretJson, packageName, cancellationToken);
+            return store switch
+            {
+                StoreKind.Apple => await VerifyAppleAsync(secretJson, cancellationToken),
+                StoreKind.Google => await VerifyGoogleAsync(secretJson, packageName, cancellationToken),
+                _ => new StoreVerification(ConnectionStatus.Rejected, NotSupportedMessage(store)),
+            };
         }
         catch (HttpRequestException ex)
         {
@@ -185,6 +194,11 @@ public sealed class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvi
 
         return new StoreVerification(ConnectionStatus.Verified, null);
     }
+
+    /// <summary>
+    /// Error text for a store the engine does not talk to yet (Microsoft Store until phase 5).
+    /// </summary>
+    internal static string NotSupportedMessage(StoreKind store) => $"{store} is not supported yet.";
 
     private static async Task<StoreVerification> ToVerificationAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {

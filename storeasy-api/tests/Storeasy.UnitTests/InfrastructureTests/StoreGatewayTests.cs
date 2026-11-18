@@ -77,6 +77,20 @@ public class StoreGatewayTests
         JsonSerializer.Serialize(result.Fingerprint).Should().NotContain("PRIVATE");
     }
 
+    [Fact]
+    public async Task Microsoft_ShouldBeRejectedAsNotSupportedWithoutANetworkCall()
+    {
+        var (gateway, requests) = CreateGateway(_ => throw new InvalidOperationException("no network"));
+
+        var inspection = gateway.Inspect(StoreKind.Microsoft, "{}");
+        var verification = await gateway.VerifyAsync(StoreKind.Microsoft, "{}", null, TestContext.Current.CancellationToken);
+
+        inspection.IsValid.Should().BeFalse();
+        inspection.ErrorKey.Should().Be(Storeasy.Application.Utils.Constants.MessageKey.StoreNotSupported);
+        verification.Status.Should().Be(ConnectionStatus.Rejected);
+        requests.Should().BeEmpty();
+    }
+
     [Theory]
     [InlineData("not json")]
     [InlineData("{\"issuerId\":\"x\",\"keyId\":\"ABC123DEFG\",\"privateKey\":\"k\"}")]

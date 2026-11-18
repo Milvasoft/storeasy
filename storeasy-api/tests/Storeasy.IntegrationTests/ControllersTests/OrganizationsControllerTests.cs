@@ -287,6 +287,18 @@ public class OrganizationsControllerTests(StoreasyApiFactory factory) : Integrat
     }
 
     [Fact]
+    public async Task AddConnection_ForMicrosoftStore_ShouldBe400NotSupportedYet()
+    {
+        var owner = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+
+        var (http, body) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Microsoft, name = "Partner Center", secret = "{\"tenantId\":\"x\"}" });
+
+        http.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        body.Messages.Should().Contain(m => m.Key == Storeasy.Application.Utils.Constants.MessageKey.StoreNotSupported);
+    }
+
+    [Fact]
     public async Task DeleteConnection_ShouldWipeTheSecret()
     {
         // Arrange

@@ -326,7 +326,7 @@
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreKind">
             <summary>
-            A store storeasy talks to.
+            A store storeasy talks to. Shared models never assume a fixed set: an app may live in one, two or all three stores.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreKind.Apple">
@@ -337,6 +337,12 @@
         <member name="F:Storeasy.Domain.Enums.StoreKind.Google">
             <summary>
             Google Play Developer API (service account JSON key).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Microsoft">
+            <summary>
+            Microsoft Store (Partner Center submission APIs, Microsoft Entra app). Connections and sync arrive in phase 5;
+            until then the store engine answers "not supported yet".
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.UserActivity">
