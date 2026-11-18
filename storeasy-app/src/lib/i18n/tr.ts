@@ -903,12 +903,14 @@ export const tr: Dictionary = {
       admin: 'Yönetici',
       editor: 'Editör',
       viewer: 'İzleyici',
+      custom: 'Özel rol',
     },
     roleDescription: {
       owner: 'Her şey; sahiplik ve organizasyonu silme dahil',
       admin: 'Bağlantılar, üyeler, production',
       editor: 'İçerik, test yayını, yorum yanıtı',
       viewer: 'Yalnız görüntüleme',
+      custom: 'Organizasyonun seçtiği izinler',
     },
     store: {
       apple: 'App Store',

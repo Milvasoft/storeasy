@@ -50,6 +50,7 @@ export const intakeEn = {
     rejected: 'Rejected (7 days)',
     held: 'Waiting for approval',
     recentNote: 'From the last {count} sessions.',
+    bySource: '{source} {count}',
     lastTitle: 'Last package per app',
     allSessions: 'All sessions',
     app: 'App',
@@ -431,6 +432,8 @@ export const intakeEn = {
     failed: 'The upload failed',
     retry: 'Try again',
     noApps: 'No app yet.',
+    hold: 'Hold for confirmation',
+    holdHint: 'storeasy reads and checks the package, then waits until you deliver it from the session.',
   },
   settings: {
     title: 'Intake settings',
@@ -493,6 +496,7 @@ export const intakeTr: IntakeDictionary = {
     rejected: 'Reddedildi (7 gün)',
     held: 'Onay bekleyen',
     recentNote: 'Son {count} oturumdan.',
+    bySource: '{source} {count}',
     lastTitle: 'Uygulama başına son paket',
     allSessions: 'Bütün oturumlar',
     app: 'Uygulama',
@@ -873,6 +877,8 @@ export const intakeTr: IntakeDictionary = {
     failed: 'Yükleme başarısız',
     retry: 'Yeniden dene',
     noApps: 'Henüz uygulama yok.',
+    hold: 'Teslimden önce onay bekle',
+    holdHint: 'storeasy paketi okur ve kontrol eder, sonra sen oturumdan teslim edene kadar bekler.',
   },
   settings: {
     title: 'Paket alma ayarları',

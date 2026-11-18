@@ -15,6 +15,7 @@ import {
   OidcProvider,
   PackageKind,
   type ArtifactAppSummaryDto,
+  type ArtifactCountsDto,
   type ArtifactSessionDetailDto,
   type ArtifactSessionListDto,
   type ArtifactSourceDto,
@@ -206,6 +207,7 @@ export function pullSource(overrides: Partial<ArtifactSourceDto> = {}): Artifact
 export interface Phase3State {
   tokens: PersonalAccessTokenDto[]
   summary: ArtifactAppSummaryDto[]
+  counts: ArtifactCountsDto
   sessions: ArtifactSessionListDto[]
   session: ArtifactSessionDetailDto
   ciTokens: CiTokenDto[]
@@ -224,6 +226,21 @@ function initialPhase3(): Phase3State {
       pat(),
       pat({ Id: 52, Name: 'Eski deneme', Prefix: 'sea_b52', IsExpired: true, ExpiryDate: '2026-11-01T00:00:00Z', ReadOnly: true }),
     ],
+    counts: {
+      From: '2026-10-19T00:00:00Z',
+      To: '2026-11-18T12:00:00Z',
+      Total: 5,
+      ByStatus: [
+        { Status: ArtifactSessionStatus.Delivered, Count: 14 },
+        { Status: ArtifactSessionStatus.Rejected, Count: 1 },
+        { Status: ArtifactSessionStatus.Held, Count: 2 },
+      ],
+      BySource: [
+        { Source: ArtifactSource.GitHubActions, Count: 2 },
+        { Source: ArtifactSource.AzureDevOps, Count: 2 },
+        { Source: ArtifactSource.Eas, Count: 1 },
+      ],
+    },
     summary: [
       {
         AppId: 101,
@@ -334,6 +351,7 @@ export const phase3Handlers: HttpHandler[] = [
 
   // ---- artifacts -------------------------------------------------------------------------------------------------------
   endpoint('get', '/Artifacts/summary', () => json(envelope(phase3State.summary))),
+  endpoint('get', '/Artifacts/counts', () => json(envelope(phase3State.counts))),
   endpoint('patch', '/Artifacts/sessions', () => json(listEnvelope(phase3State.sessions))),
   endpoint('get', '/Artifacts/session', () => json(envelope(phase3State.session))),
   endpoint('post', '/Artifacts/session/deliver', () =>

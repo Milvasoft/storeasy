@@ -154,8 +154,9 @@ export function AppsPage() {
   const editor = can(OrgPermission.EditContent)
 
   const apps = useQuery({
-    queryKey: queryKeys.apps.list(organization.Id, request),
-    queryFn: () => appsApi.list(organization.Id, request),
+    // The store chip filters on the server (GetAppListQuery.Store), so paging counts the filtered apps.
+    queryKey: [...queryKeys.apps.list(organization.Id, request), storeFilter],
+    queryFn: () => appsApi.list(organization.Id, request, storeFilter),
     placeholderData: keepPreviousData,
   })
   const connections = useQuery({
@@ -190,7 +191,8 @@ export function AppsPage() {
   }, [search])
 
   const all = apps.data?.Data ?? []
-  const rows = storeFilter ? all.filter((app) => recordFor(app, storeFilter)) : all
+  const rows = all
+  // Per store counts are known only for the unfiltered list; a filtered page says how many matched the chosen store.
   const counts = storeCounts(all)
   const lastSync = lastSyncOf(all)
   const searching = !!params.get('q')
@@ -304,6 +306,14 @@ export function AppsPage() {
         }
       />
     )
+  } else if (all.length === 0 && storeFilter) {
+    body = (
+      <EmptyState
+        icon={<SearchX aria-hidden />}
+        title={interpolate(t.common.noResultsFor, { term: storeName(storeFilter, t.enums.store) })}
+        action={<Button onClick={() => update({ store: null })}>{t.activity.allStores}</Button>}
+      />
+    )
   } else if (all.length === 0 && noConnections) {
     // Design 6.4: the first open of a new organization leads to the store connections, or says who can add one.
     body = (
@@ -390,13 +400,18 @@ export function AppsPage() {
           />
         </span>
         <span role="group" aria-label={t.activity.storeFilter} className="flex flex-wrap gap-2">
-          <Chip selected={!storeFilter} onClick={() => update({ store: null }, false)}>
+          <Chip selected={!storeFilter} onClick={() => update({ store: null })}>
             {t.activity.allStores}
           </Chip>
           {STORE_ORDER.map((store) => (
-            <Chip key={store} selected={storeFilter === store} onClick={() => update({ store: PARAM_OF[store] }, false)}>
+            <Chip key={store} selected={storeFilter === store} onClick={() => update({ store: PARAM_OF[store] })}>
               <StoreTag store={store} small codeOnly />
-              {interpolate(t.apps.storeChip, { store: storeName(store, t.enums.store), count: counts[store] })}
+              {storeFilter && storeFilter !== store
+                ? storeName(store, t.enums.store)
+                : interpolate(t.apps.storeChip, {
+                    store: storeName(store, t.enums.store),
+                    count: storeFilter ? (apps.data?.TotalDataCount ?? counts[store]) : counts[store],
+                  })}
             </Chip>
           ))}
         </span>

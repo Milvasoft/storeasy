@@ -3,6 +3,7 @@ import type { ListRequest } from '@/lib/api/list'
 import { getDeviceId } from '@/lib/api/tokenStore'
 import type {
   AccountDetailDto,
+  AccountSessionDto,
   AppAddedDto,
   AppDetailDto,
   AppListDto,
@@ -10,18 +11,29 @@ import type {
   AssetDto,
   AssetPurpose,
   AssetUploadDto,
+  FeatureFlagStateDto,
+  GoogleSignInStartDto,
   InvitationCreatedDto,
+  InvitationPreviewDto,
   LoginResponseDto,
   MemberListDto,
   MyOrganizationDto,
-  OrgRole,
+  OrganizationRoleInput,
+  OrganizationSettingsDto,
+  OrgRoleDto,
+  PublicSettingsDto,
+  RoleChoice,
+  SaveWebPushSubscriptionInput,
   StoreAuditLogDto,
   StoreConnectionDto,
   StoreJobDetailDto,
   StoreJobListDto,
   StoreJobStatus,
   StoreKind,
+  UpdateOrganizationSettingsInput,
+  UpdateProfileInput,
   UploadedPart,
+  WebPushSubscriptionDto,
 } from '@/lib/api/types'
 
 // ---- Account ---------------------------------------------------------------
@@ -39,6 +51,58 @@ export const authApi = {
   // On success the security stamp changes and every other session gets 401 on its next request.
   changePassword: (userName: string, oldPassword: string, newPassword: string) =>
     apiPut<unknown>('/Account/password/change', { UserName: userName, OldPassword: oldPassword, NewPassword: newPassword }),
+
+  // Google sign in (OpenID Connect code flow; the PKCE verifier and the state live on the server). 404 GoogleSignInDisabled.
+  googleStart: () => apiPost<GoogleSignInStartDto>('/Account/login/google/start', {}, { auth: false }),
+
+  // The callback's code and state; the same token pair as the password login. An invitation token lets an invite only
+  // installation create the account and joins the organization in the same step.
+  googleLogin: (code: string, state: string, invitationToken?: string | null) =>
+    apiPost<LoginResponseDto>(
+      '/Account/login/google',
+      { Code: code, State: state, DeviceId: getDeviceId(), InvitationToken: invitationToken || null },
+      { auth: false },
+    ),
+
+  updateProfile: (input: UpdateProfileInput) => apiPut<number>('/Account/profile', input),
+
+  // The caller's signed in devices; IsCurrent marks this one.
+  sessions: () => apiGet<AccountSessionDto[]>('/Account/sessions'),
+
+  // Its tokens stop working and its live connection closes. 404 SessionNotFound.
+  revokeSession: (sessionId: number) => apiDelete<number>('/Account/session', undefined, { Id: sessionId }),
+
+  // Answers how many sessions were signed out.
+  revokeOtherSessions: () => apiDelete<number>('/Account/sessions/others'),
+}
+
+// ---- Account: browser push ---------------------------------------------------
+export const pushApi = {
+  subscriptions: () => apiGet<WebPushSubscriptionDto[]>('/Account/push/subscriptions'),
+
+  // 404 WebPushDisabled when the instance has no VAPID key pair.
+  subscribe: (input: SaveWebPushSubscriptionInput) => apiPost<number>('/Account/push/subscription', input),
+
+  // By the subscription's address (this browser) or its id (another one).
+  unsubscribe: (target: { Id?: number | null; Endpoint?: string | null }) =>
+    apiDelete<number>('/Account/push/subscription', undefined, { Id: target.Id ?? null, Endpoint: target.Endpoint ?? null }),
+
+  // Answers how many browsers it was queued to; 429 after 5 an hour.
+  test: () => apiPost<number>('/Account/push/test', {}),
+}
+
+// ---- System ------------------------------------------------------------------
+export const systemApi = {
+  // Anonymous: registration mode, Google sign in, the version and the web push public key.
+  publicSettings: () => apiGet<PublicSettingsDto>('/System/public-settings', undefined, { auth: false }),
+
+  // Every signed in user: whether each server side feature is on.
+  featureFlags: () => apiGet<FeatureFlagStateDto[]>('/System/feature-flags'),
+}
+
+/** A role choice as the member and invitation commands take it: a seeded role, or Custom with its id. */
+function roleFields(choice: RoleChoice) {
+  return { Role: choice.role, CustomRoleId: choice.customRoleId }
 }
 
 // ---- Account: registration and recovery -----------------------------------
@@ -94,12 +158,16 @@ export const organizationsApi = {
   members: (organizationId: number) => apiGet<MemberListDto>('/Organizations/members', { OrganizationId: organizationId }),
 
   // The token comes back once, for the accept link. 409 OrganizationAlreadyMember; 429 with Retry-After.
-  invite: (organizationId: number, email: string, role: OrgRole) =>
+  invite: (organizationId: number, email: string, choice: RoleChoice) =>
     apiPost<InvitationCreatedDto>(
       '/Organizations/invitation',
-      { OrganizationId: organizationId, Email: email, Role: role },
+      { OrganizationId: organizationId, Email: email, ...roleFields(choice) },
       { idempotent: true },
     ),
+
+  // Anonymous: organization, inviter, role, masked address and expiry of the link's invitation. 404 for an unknown token.
+  invitationPreview: (token: string) =>
+    apiGet<InvitationPreviewDto>('/Organizations/invitation/preview', { Token: token }, { auth: false }),
 
   revokeInvitation: (organizationId: number, invitationId: number) =>
     apiDelete<number>('/Organizations/invitation', undefined, { OrganizationId: organizationId, InvitationId: invitationId }),
@@ -108,8 +176,29 @@ export const organizationsApi = {
   acceptInvitation: (token: string) => apiPost<number>('/Organizations/invitation/accept', { Token: token }),
 
   // 400 OrganizationLastOwner when the last owner would step down; 403 when an admin touches an owner.
-  changeRole: (organizationId: number, memberId: number, role: OrgRole) =>
-    apiPut<number>('/Organizations/member/role', { OrganizationId: organizationId, MemberId: memberId, Role: role }),
+  changeRole: (organizationId: number, memberId: number, choice: RoleChoice) =>
+    apiPut<number>('/Organizations/member/role', { OrganizationId: organizationId, MemberId: memberId, ...roleFields(choice) }),
+
+  // The seeded roles (locked) and the custom ones, with member and pending invitation counts.
+  roles: (organizationId: number) => apiGet<OrgRoleDto[]>('/Organizations/roles', { OrganizationId: organizationId }),
+
+  // Permissions the caller holds only, never ManageOrganization. 409 OrganizationRoleNameExists; answers the new id.
+  createRole: (organizationId: number, input: OrganizationRoleInput) =>
+    apiPost<number>('/Organizations/role', { OrganizationId: organizationId, ...input }, { idempotent: true }),
+
+  updateRole: (organizationId: number, roleId: number, input: OrganizationRoleInput) =>
+    apiPut<number>('/Organizations/role', { OrganizationId: organizationId, RoleId: roleId, ...input }),
+
+  // 409 OrganizationRoleInUse while a member or a pending invitation holds it.
+  deleteRole: (organizationId: number, roleId: number) =>
+    apiDelete<number>('/Organizations/role', undefined, { OrganizationId: organizationId, RoleId: roleId }),
+
+  // Member managers read; viewers get 403.
+  settings: (organizationId: number) => apiGet<OrganizationSettingsDto>('/Organizations/settings', { OrganizationId: organizationId }),
+
+  // Owners (ManageOrganization). Only the fields sent change.
+  updateSettings: (organizationId: number, input: UpdateOrganizationSettingsInput) =>
+    apiPut<number>('/Organizations/settings', { OrganizationId: organizationId, ...input }),
 
   // Removes a member, or leaves the organization when the id is the caller's own membership.
   removeMember: (organizationId: number, memberId: number) =>
@@ -155,7 +244,9 @@ export const connectionsApi = {
 // ---- Apps and builds -------------------------------------------------------
 export const appsApi = {
   // Every store in one list, with the store records of each app.
-  list: (organizationId: number, request: ListRequest) => apiPatchList<AppListDto>('/Apps', { OrganizationId: organizationId, ...request }),
+  // Store narrows the list on the server to the apps with a record in that store.
+  list: (organizationId: number, request: ListRequest, store?: StoreKind | null) =>
+    apiPatchList<AppListDto>('/Apps', { OrganizationId: organizationId, ...request, ...(store ? { Store: store } : {}) }),
 
   // The app with its store records and its newest 100 builds. 404 AppNotFound.
   detail: (organizationId: number, appId: number) => apiGet<AppDetailDto>('/Apps/app', { OrganizationId: organizationId, AppId: appId }),

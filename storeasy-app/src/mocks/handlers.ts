@@ -28,6 +28,8 @@ const PERMISSIONS: Record<OrgRole, OrgPermission[]> = {
   [OrgRole.Admin]: ALL_PERMISSIONS.filter((permission) => permission !== OrgPermission.ManageOrganization),
   [OrgRole.Editor]: [OrgPermission.View, OrgPermission.EditContent, OrgPermission.ReleaseTest, OrgPermission.ReplyReviews],
   [OrgRole.Viewer]: [OrgPermission.View],
+  // A custom role's own set comes with the membership; View is its floor.
+  [OrgRole.Custom]: [OrgPermission.View],
 }
 
 function envelope<T>(data: T) {
@@ -317,6 +319,53 @@ export const mockHandlers: HttpHandler[] = [
   }),
   ...studioMockHandlers,
   ...appsMockHandlers,
+  // Phase 8: instance settings, server feature flags, organization roles and settings, sessions and push.
+  http.get(`${BASE}/System/public-settings`, () =>
+    envelope({ registrationMode: 1, googleSignInEnabled: false, version: '1.0.0-dev', webPushPublicKey: null }),
+  ),
+  http.get(`${BASE}/System/feature-flags`, () =>
+    envelope([
+      { key: 'Export', isEnabled: true, description: 'Excel export' },
+      { key: 'Studio.AiCaptions', isEnabled: false, description: 'AI caption suggestions' },
+    ]),
+  ),
+  http.get(`${BASE}/Organizations/roles`, () =>
+    envelope(
+      [OrgRole.Owner, OrgRole.Admin, OrgRole.Editor, OrgRole.Viewer].map((role) => ({
+        id: null,
+        role,
+        name: String(role),
+        description: null,
+        permissions: PERMISSIONS[role],
+        memberCount: db.members.filter((member) => member.Role === role).length,
+        invitationCount: db.invitations.filter((invitation) => invitation.Role === role).length,
+        isLocked: true,
+      })),
+    ),
+  ),
+  http.get(`${BASE}/Organizations/settings`, () =>
+    envelope({
+      auditRetentionDays: 365,
+      artifactRetentionDays: 30,
+      seenNotificationRetentionDays: 30,
+      unseenNotificationRetentionDays: 90,
+      defaultLocale: 'tr-TR',
+    }),
+  ),
+  http.get(`${BASE}/Account/sessions`, () =>
+    envelope([
+      {
+        id: 1,
+        deviceId: 'this-browser',
+        userAgent: navigator.userAgent,
+        ipAddress: '127.0.0.1',
+        lastSeenDate: hoursAgo(0),
+        expiryDate: hoursAgo(-24 * 7),
+        isCurrent: true,
+      },
+    ]),
+  ),
+  http.get(`${BASE}/Account/push/subscriptions`, () => envelope([])),
   http.delete(`${BASE}/StoreConnections/connection`, async ({ request }) => {
     const { ConnectionId } = await body<{ ConnectionId: number }>(request)
     const connection = db.connections.find((item) => item.Id === ConnectionId)

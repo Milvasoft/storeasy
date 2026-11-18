@@ -34,7 +34,12 @@ describe('MembersPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Rolü değiştir' }))
 
     await waitFor(() =>
-      expect(lastRequestTo('/Organizations/member/role')?.body).toEqual({ OrganizationId: TEST_ORG_ID, MemberId: 3, Role: OrgRole.Viewer }),
+      expect(lastRequestTo('/Organizations/member/role')?.body).toEqual({
+        OrganizationId: TEST_ORG_ID,
+        MemberId: 3,
+        Role: OrgRole.Viewer,
+        CustomRoleId: null,
+      }),
     )
     expect(await screen.findByText('Mert Kaya artık İzleyici')).toBeInTheDocument()
   })
@@ -75,8 +80,8 @@ describe('MembersPage', () => {
 
     expect(await screen.findByText('Bağlantılar yalnız şimdi gösteriliyor')).toBeInTheDocument()
     expect(requestsTo('/Organizations/invitation').map((request) => request.body)).toEqual([
-      { OrganizationId: TEST_ORG_ID, Email: 'a@kuzeylab.dev', Role: OrgRole.Editor },
-      { OrganizationId: TEST_ORG_ID, Email: 'b@kuzeylab.dev', Role: OrgRole.Editor },
+      { OrganizationId: TEST_ORG_ID, Email: 'a@kuzeylab.dev', Role: OrgRole.Editor, CustomRoleId: null },
+      { OrganizationId: TEST_ORG_ID, Email: 'b@kuzeylab.dev', Role: OrgRole.Editor, CustomRoleId: null },
     ])
     expect(screen.getByText(/\/invite\/token-for-a%40kuzeylab\.dev$/)).toBeInTheDocument()
     expect(requestsTo('/Organizations/invitation')[0].headers['idempotency-key']).toBeTruthy()

@@ -6,14 +6,15 @@ import { Modal } from '@/components/ui/Modal'
 import { Button, Field, RadioGroup, Textarea } from '@/components/ui/primitives'
 import { organizationsApi } from '@/lib/api/endpoints'
 import { type ApiError, apiErrorMessage, apiStatus } from '@/lib/api/http'
-import { OrgRole, type InvitationCreatedDto } from '@/lib/api/types'
+import { OrgRole, type InvitationCreatedDto, type OrgRoleDto } from '@/lib/api/types'
 import { formatCountdown, useCountdown } from '@/lib/hooks/useCountdown'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
-import { canAssign, roleDescription, roleLabel } from '@/lib/org/roles'
+import { choiceValue, parseChoice, type Access } from '@/lib/org/roles'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { emailError } from '@/lib/validation'
+import { roleOptions } from '@/features/access/roles'
 
 const MAX_ADDRESSES = 10
 
@@ -39,24 +40,29 @@ interface Created {
 
 /**
  * Inviting people (design 15.5-15.8): one request per address (the API takes one e-mail), the link of each invitation
- * shown once because e-mails are not sent yet, 409 per address keeps that address in the form, 429 counts down.
+ * shown once because e-mails are not sent yet, 409 per address keeps that address in the form, 429 counts down. The
+ * organization's custom roles are offered next to the seeded ones; a role the inviter could not grant is disabled.
  */
+const DEFAULT_CHOICE = choiceValue(OrgRole.Editor)
+
 export function InviteDialog({
   open,
   onClose,
   organizationId,
-  actorRole,
+  actor,
+  roles,
 }: {
   open: boolean
   onClose: () => void
   organizationId: number
-  actorRole: OrgRole
+  actor: Access
+  roles?: OrgRoleDto[]
 }) {
   const t = useT()
   const format = useFormat()
   const queryClient = useQueryClient()
   const [addresses, setAddresses] = useState('')
-  const [role, setRole] = useState<OrgRole>(OrgRole.Editor)
+  const [role, setRole] = useState<string>(DEFAULT_CHOICE)
   const [error, setError] = useState<string | null>(null)
   const [failures, setFailures] = useState<string[]>([])
   const [created, setCreated] = useState<Created[]>([])
@@ -66,7 +72,7 @@ export function InviteDialog({
 
   const close = () => {
     setAddresses('')
-    setRole(OrgRole.Editor)
+    setRole(DEFAULT_CHOICE)
     setError(null)
     setFailures([])
     setCreated([])
@@ -96,7 +102,7 @@ export function InviteDialog({
     const left: string[] = []
     for (const email of list) {
       try {
-        done.push({ email, invitation: await organizationsApi.invite(organizationId, email, role) })
+        done.push({ email, invitation: await organizationsApi.invite(organizationId, email, parseChoice(role)) })
       } catch (failure) {
         if (apiStatus(failure) === 429) {
           countdown.start((failure as ApiError).retryAfterSeconds ?? 60)
@@ -122,7 +128,12 @@ export function InviteDialog({
     }
   }
 
-  const roles = [OrgRole.Admin, OrgRole.Editor, OrgRole.Viewer, OrgRole.Owner]
+  // Owner last: the validator refuses it (OrganizationRoleInvalid: ownership comes by transfer).
+  const options = roleOptions(roles, actor, null, t, { ownerAllowed: false })
+  const ordered = [
+    ...options.filter((option) => option.value !== choiceValue(OrgRole.Owner)),
+    ...options.filter((option) => option.value === choiceValue(OrgRole.Owner)),
+  ]
 
   return (
     <Modal
@@ -178,17 +189,14 @@ export function InviteDialog({
         </Field>
         <fieldset className="grid gap-1 border-0 p-0">
           <legend className="lbl mb-1">{t.members.role}</legend>
-          <RadioGroup
+          <RadioGroup<string>
             name="invite-role"
             label={t.members.role}
             value={role}
             onChange={setRole}
-            options={roles.map((value) => ({
-              value,
-              label: roleLabel(value, t),
-              description: value === OrgRole.Owner ? t.members.ownerViaTransfer : roleDescription(value, t),
-              // The validator refuses Owner (OrganizationRoleInvalid: ownership comes by transfer); the rest follow CanAssign.
-              disabled: value === OrgRole.Owner || !canAssign(actorRole, null, value),
+            options={ordered.map((option) => ({
+              ...option,
+              description: option.value === choiceValue(OrgRole.Owner) ? t.members.ownerViaTransfer : option.description,
             }))}
           />
         </fieldset>

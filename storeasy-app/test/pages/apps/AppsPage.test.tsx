@@ -43,6 +43,9 @@ describe('AppsPage', () => {
 
     expect(await screen.findByRole('link', { name: 'Pusula' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Halka' })).not.toBeInTheDocument()
+    expect(requestsTo('/Apps').map((request) => request.body)).toContainEqual(
+      expect.objectContaining({ Store: StoreKind.Apple, PageNumber: 1 }),
+    )
   })
 
   it('shows the table view and opens an app from its row', async () => {

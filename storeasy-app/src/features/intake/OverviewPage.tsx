@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CloudUpload } from 'lucide-react'
@@ -8,7 +8,6 @@ import { Callout } from '@/components/ui/Feedback'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { CardSkeleton, EmptyState } from '@/components/ui/primitives'
 import { connectionsApi } from '@/lib/api/endpoints'
-import { SortType } from '@/lib/api/list'
 import { OrgPermission } from '@/lib/api/types'
 import { useFormat } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -17,14 +16,25 @@ import { queryKeys } from '@/lib/query/keys'
 import { intakeApi, intakeKeys } from './api'
 import { useIntakeText } from './i18n'
 import { IntakeShell, useLivePoll } from './IntakeShell'
-import { isFinal, ruleText, sourceText, statusView } from './labels'
-import { ArtifactPullSourceKind, ArtifactSessionStatus, OidcProvider, type ArtifactAppSummaryDto } from './types'
+import { isFinal, ruleText, sourceLabel, sourceText, statusView } from './labels'
+import { ArtifactPullSourceKind, ArtifactSessionStatus, OidcProvider, type ArtifactAppSummaryDto, type ArtifactCountsDto } from './types'
 
-// Design 13.1-13.2: counters from the latest sessions, the last package of every app with its delivery rules, and the
-// ways in with how many rules or sources each has. The first open leads to the GitHub Action setup.
+// Design 13.1-13.2: counters from artifacts/counts (today by source, the last 7 days by status, the held ones of the API's
+// default 30 days), the last package of every app with its delivery rules, and the ways in with how many rules or sources
+// each has. The first open leads to the GitHub Action setup.
 
-const RECENT = { PageNumber: 1, RowCount: 100, Sorting: { SortBy: 'StartDate', Type: SortType.Desc } }
 const DAY = 24 * 60 * 60 * 1000
+
+function statusCount(counts: ArtifactCountsDto | undefined, status: ArtifactSessionStatus): number {
+  return counts?.ByStatus?.find((item) => item.Status === status)?.Count ?? 0
+}
+
+/** The period starts, fixed when the page opens so the query keys stay stable. */
+function periodStarts(): { today: string; week: string } {
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+  return { today: startOfDay.toISOString(), week: new Date(Date.now() - 7 * DAY).toISOString() }
+}
 
 export function IntakeOverviewPage() {
   const t = useIntakeText()
@@ -41,9 +51,18 @@ export function IntakeOverviewPage() {
     queryFn: () => intakeApi.summary(organization.Id),
     refetchInterval: poll,
   })
-  const recent = useQuery({
-    queryKey: intakeKeys.sessions(organization.Id, RECENT),
-    queryFn: () => intakeApi.sessions(organization.Id, RECENT),
+  const [starts] = useState(periodStarts)
+  const today = useQuery({
+    queryKey: intakeKeys.counts(organization.Id, starts.today),
+    queryFn: () => intakeApi.counts(organization.Id, { From: starts.today }),
+  })
+  const week = useQuery({
+    queryKey: intakeKeys.counts(organization.Id, starts.week),
+    queryFn: () => intakeApi.counts(organization.Id, { From: starts.week }),
+  })
+  const month = useQuery({
+    queryKey: intakeKeys.counts(organization.Id, 'default'),
+    queryFn: () => intakeApi.counts(organization.Id),
   })
   const publishers = useQuery({ queryKey: intakeKeys.publishers(organization.Id), queryFn: () => intakeApi.publishers(organization.Id) })
   const sources = useQuery({ queryKey: intakeKeys.sources(organization.Id), queryFn: () => intakeApi.sources(organization.Id) })
@@ -53,20 +72,16 @@ export function IntakeOverviewPage() {
     enabled: manage,
   })
 
-  const counters = useMemo(() => {
-    const sessions = recent.data?.Data ?? []
-    const now = Date.now()
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
-    const lastWeek = (date: string) => now - new Date(date).getTime() <= 7 * DAY
-    return {
-      count: sessions.length,
-      today: sessions.filter((s) => new Date(s.StartDate).getTime() >= startOfDay.getTime()).length,
-      delivered: sessions.filter((s) => s.Status === ArtifactSessionStatus.Delivered && lastWeek(s.StartDate)).length,
-      rejected: sessions.filter((s) => s.Status === ArtifactSessionStatus.Rejected && lastWeek(s.StartDate)).length,
-      held: sessions.filter((s) => s.Status === ArtifactSessionStatus.Held).length,
-    }
-  }, [recent.data])
+  const counters = {
+    today: today.data?.Total ?? 0,
+    todaySources: (today.data?.BySource ?? [])
+      .filter((item) => item.Count > 0)
+      .map((item) => interpolate(t.overview.bySource, { source: sourceLabel(item.Source, t), count: item.Count }))
+      .join(' · '),
+    delivered: statusCount(week.data, ArtifactSessionStatus.Delivered),
+    rejected: statusCount(week.data, ArtifactSessionStatus.Rejected),
+    held: statusCount(month.data, ArtifactSessionStatus.Held),
+  }
 
   const countOf = (provider: OidcProvider) => (publishers.data ?? []).filter((rule) => rule.Provider === provider).length
   const sourcesOf = (kind: ArtifactPullSourceKind) => (sources.data ?? []).filter((source) => source.Kind === kind).length
@@ -190,7 +205,7 @@ export function IntakeOverviewPage() {
             <>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {[
-                  { label: t.overview.today, value: counters.today },
+                  { label: t.overview.today, value: counters.today, detail: counters.todaySources },
                   { label: t.overview.delivered, value: counters.delivered },
                   { label: t.overview.rejected, value: counters.rejected },
                   { label: t.overview.held, value: counters.held },
@@ -198,12 +213,10 @@ export function IntakeOverviewPage() {
                   <div key={item.label} className="card grid gap-1 p-4">
                     <span className="text-xs text-fg3">{item.label}</span>
                     <b className="text-[22px] tabular-nums">{format.number(item.value)}</b>
+                    {item.detail ? <span className="text-xs text-fg3">{item.detail}</span> : null}
                   </div>
                 ))}
               </div>
-              {counters.count >= RECENT.RowCount ? (
-                <p className="text-xs text-fg3">{interpolate(t.overview.recentNote, { count: RECENT.RowCount })}</p>
-              ) : null}
               <section className="grid gap-2">
                 <span className="flex items-center justify-between gap-2">
                   <h2 className="text-[15px] font-semibold">{t.overview.lastTitle}</h2>

@@ -2,9 +2,10 @@ import { useMemo } from 'react'
 import { tokenStore } from '@/lib/api/tokenStore'
 import { useAuth } from '@/lib/auth/AuthContext'
 
-// Platform (global) permissions: the backend writes every permission of the user's roles into the access token as a role
-// claim "Group.Action" (AccountManager.BuildRoleClaims), and App.SuperAdmin passes every check. The client reads them
-// only to hide what the API would refuse (08 section 1.5); the API still checks every request.
+// Platform (global) permissions: account/detail lists them (AccountDetailDto.Permissions, App.SuperAdmin already expanded);
+// an older API that does not send the list falls back to the access token, whose role claims carry "Group.Action"
+// (AccountManager.BuildRoleClaims). The client reads them only to hide what the API would refuse (08 section 1.5); the API
+// still checks every request.
 export const SUPER_ADMIN = 'App.SuperAdmin'
 
 const ROLE_CLAIMS = ['role', 'roles', 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
@@ -48,15 +49,16 @@ export interface GlobalPermissions {
 export function useGlobalPermissions(): GlobalPermissions {
   const { isManager, user } = useAuth()
   const accessToken = user ? tokenStore.get()?.accessToken : null
+  const listed = user?.permissions ?? null
   return useMemo(() => {
     if (!isManager) {
       return { has: () => false, isSuperAdmin: false }
     }
-    const permissions = readGlobalPermissions(accessToken)
+    const permissions = listed ? new Set(listed) : readGlobalPermissions(accessToken)
     if (!permissions) {
       return { has: () => true, isSuperAdmin: false }
     }
     const isSuperAdmin = permissions.has(SUPER_ADMIN)
     return { has: (permission) => isSuperAdmin || permissions.has(permission), isSuperAdmin }
-  }, [isManager, accessToken])
+  }, [isManager, accessToken, listed])
 }

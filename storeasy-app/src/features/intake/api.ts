@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPatchList, apiPost, apiPut } from '@/lib/api/http
 import type { ListRequest } from '@/lib/api/list'
 import type {
   ArtifactAppSummaryDto,
+  ArtifactCountsDto,
   ArtifactSessionDetailDto,
   ArtifactSessionListDto,
   ArtifactSessionStatus,
@@ -33,6 +34,10 @@ export interface SessionFilter {
 // tokens, trusted publishers, rules, sources and settings ManageConnections. The anonymous pull receivers are not called.
 export const intakeApi = {
   summary: (organizationId: number) => apiGet<ArtifactAppSummaryDto[]>('/Artifacts/summary', { OrganizationId: organizationId }),
+
+  // Package counters of a period (at most 366 days; the API defaults to the last 30), by status and by source.
+  counts: (organizationId: number, period: { From?: string | null; To?: string | null; AppId?: number | null } = {}) =>
+    apiGet<ArtifactCountsDto>('/Artifacts/counts', { OrganizationId: organizationId, ...period }),
 
   sessions: (organizationId: number, request: ListRequest & SessionFilter) =>
     apiPatchList<ArtifactSessionListDto>('/Artifacts/sessions', { OrganizationId: organizationId, ...request }),
@@ -100,6 +105,7 @@ export const intakeApi = {
 export const intakeKeys = {
   all: ['intake'] as const,
   summary: (organizationId: number) => ['intake', 'summary', organizationId] as const,
+  counts: (organizationId: number, from: string) => ['intake', 'counts', organizationId, from] as const,
   sessions: (organizationId: number, request: ListRequest & SessionFilter) => ['intake', 'sessions', organizationId, request] as const,
   session: (organizationId: number, sessionId: number) => ['intake', 'session', organizationId, sessionId] as const,
   ciTokens: (organizationId: number) => ['intake', 'ci-tokens', organizationId] as const,

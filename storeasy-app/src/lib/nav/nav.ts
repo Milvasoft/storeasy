@@ -127,8 +127,7 @@ export const NAV: NavGroup[] = [
         feature: 'Platform',
         globalPermission: 'FeatureFlagManagement.List',
       },
-      // No SystemManagement permission group exists yet (design 17.24 backend gap): every platform administrator sees it.
-      { key: 'adminSystem', path: '/admin/system', icon: Server, feature: 'Platform' },
+      { key: 'adminSystem', path: '/admin/system', icon: Server, feature: 'Platform', globalPermission: 'SystemManagement.Status' },
     ],
   },
 ]

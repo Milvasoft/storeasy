@@ -7,7 +7,9 @@ import {
   BuildProcessingState,
   ConnectionStatus,
   OrgPermission,
+  InvitationStatus,
   OrgRole,
+  RegistrationMode,
   StepDirection,
   StoreJobKind,
   StoreJobStatus,
@@ -15,6 +17,8 @@ import {
   StoreKind,
   UserType,
   type AccountDetailDto,
+  type AccountSessionDto,
+  type InvitationPreviewDto,
   type AppDetailDto,
   type AppListDto,
   type AppStoreRecordDto,
@@ -25,6 +29,9 @@ import {
   type MyOrganizationDto,
   type OrganizationInvitationDto,
   type OrganizationMemberDto,
+  type OrganizationSettingsDto,
+  type OrgRoleDto,
+  type PublicSettingsDto,
   type StoreAuditLogDto,
   type StoreConnectionDto,
   type StoreJobDetailDto,
@@ -50,6 +57,8 @@ export const PERMISSIONS_OF: Record<OrgRole, OrgPermission[]> = {
   [OrgRole.Admin]: ALL.filter((permission) => permission !== OrgPermission.ManageOrganization),
   [OrgRole.Editor]: [OrgPermission.View, OrgPermission.EditContent, OrgPermission.ReleaseTest, OrgPermission.ReplyReviews],
   [OrgRole.Viewer]: [OrgPermission.View],
+  // A custom role's own set comes with the membership; View is its floor.
+  [OrgRole.Custom]: [OrgPermission.View],
 }
 
 export function loginResponse(overrides: Partial<LoginResponseDto> = {}): LoginResponseDto {
@@ -314,4 +323,87 @@ export function asset(overrides: Partial<AssetDto> = {}): AssetDto {
 /** One hub event of the test organization, as the app reads it (ActivityEventDto, pascalized). */
 export function activityEvent(overrides: Partial<ActivityEvent> & Pick<ActivityEvent, 'Type'>): ActivityEvent {
   return { OrganizationId: TEST_ORG_ID, Date: '2026-11-18T09:12:00Z', ...overrides }
+}
+
+// ---- Phase 8: organization roles, instance settings, sessions -------------------------------------------------------
+
+export function orgRole(overrides: Partial<OrgRoleDto> = {}): OrgRoleDto {
+  const role = overrides.Role ?? OrgRole.Custom
+  return make<OrgRoleDto>(
+    {
+      Id: role === OrgRole.Custom ? 14 : null,
+      Role: role,
+      Name: role === OrgRole.Custom ? 'Yayın sorumlusu' : String(role),
+      Description: null,
+      Permissions: role === OrgRole.Custom ? [OrgPermission.View, OrgPermission.ReleaseTest] : PERMISSIONS_OF[role],
+      MemberCount: 0,
+      InvitationCount: 0,
+      IsLocked: role !== OrgRole.Custom,
+      CreationDate: '2026-11-10T09:00:00Z',
+    },
+    overrides,
+  )
+}
+
+/** The seeded roles as GET organizations/roles lists them, then one custom role. */
+export function orgRoles(): OrgRoleDto[] {
+  return [
+    orgRole({ Role: OrgRole.Owner, Name: 'Owner', MemberCount: 1 }),
+    orgRole({ Role: OrgRole.Admin, Name: 'Admin', MemberCount: 1 }),
+    orgRole({ Role: OrgRole.Editor, Name: 'Editor', MemberCount: 1, InvitationCount: 1 }),
+    orgRole({ Role: OrgRole.Viewer, Name: 'Viewer' }),
+    orgRole(),
+  ]
+}
+
+export function publicSettings(overrides: Partial<PublicSettingsDto> = {}): PublicSettingsDto {
+  return make<PublicSettingsDto>(
+    { RegistrationMode: RegistrationMode.Open, GoogleSignInEnabled: false, Version: '1.0.0', WebPushPublicKey: null },
+    overrides,
+  )
+}
+
+export function accountSession(overrides: Partial<AccountSessionDto> = {}): AccountSessionDto {
+  return make<AccountSessionDto>(
+    {
+      Id: 501,
+      DeviceId: 'this-device',
+      UserAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0 Safari/537.36',
+      IpAddress: '88.241.10.4',
+      LastSeenDate: '2026-11-18T09:00:00Z',
+      ExpiryDate: '2026-11-25T09:00:00Z',
+      IsCurrent: true,
+    },
+    overrides,
+  )
+}
+
+export function orgSettings(overrides: Partial<OrganizationSettingsDto> = {}): OrganizationSettingsDto {
+  return make<OrganizationSettingsDto>(
+    {
+      AuditRetentionDays: 365,
+      ArtifactRetentionDays: 30,
+      SeenNotificationRetentionDays: 30,
+      UnseenNotificationRetentionDays: 90,
+      DefaultLocale: 'tr-TR',
+    },
+    overrides,
+  )
+}
+
+export function invitationPreview(overrides: Partial<InvitationPreviewDto> = {}): InvitationPreviewDto {
+  return make<InvitationPreviewDto>(
+    {
+      Status: InvitationStatus.Pending,
+      OrganizationName: 'Kuzey Lab',
+      OrganizationSlug: 'kuzey-lab',
+      InviterName: 'Deniz Arslan',
+      Role: OrgRole.Editor,
+      CustomRoleName: null,
+      Permissions: PERMISSIONS_OF[OrgRole.Editor],
+      MaskedEmail: 'c**@kuzeylab.dev',
+      ExpiryDate: '2099-11-25T12:00:00Z',
+    },
+    overrides,
+  )
 }

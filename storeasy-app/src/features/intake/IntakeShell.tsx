@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Progress } from '@/components/ui/Progress'
 import { Select } from '@/components/ui/Select'
 import { Tabs } from '@/components/ui/Tabs'
-import { Button, Field, PageHeader, Spinner, Textarea } from '@/components/ui/primitives'
+import { Button, Checkbox, Field, PageHeader, Spinner, Textarea } from '@/components/ui/primitives'
 import { useActivity } from '@/lib/activity/ActivityContext'
 import { appsApi } from '@/lib/api/endpoints'
 import { apiErrorMessage } from '@/lib/api/http'
@@ -75,6 +75,8 @@ export function UploadDialog({ initialAppId, onClose }: { initialAppId?: number 
   })
   const [appId, setAppId] = useState<number | null>(initialAppId ?? null)
   const [notes, setNotes] = useState('')
+  // The web upload holds the package by default, so its checks are seen before anything reaches a store.
+  const [hold, setHold] = useState(true)
   const [state, setState] = useState<UploadState>({ kind: 'idle', error: null })
   const controller = useRef<AbortController | null>(null)
   const maxBytes = settings.data?.MaxArtifactBytes ?? DEFAULT_MAX_BYTES
@@ -91,6 +93,7 @@ export function UploadDialog({ initialAppId, onClose }: { initialAppId?: number 
     try {
       const result = await uploadArtifact(organization.Id, appId, file, {
         notes,
+        hold,
         signal: abort.signal,
         onHashed: () => setState({ kind: 'uploading', file, loaded: 0, total: file.size }),
         onProgress: ({ loaded, total }) => setState({ kind: 'uploading', file, loaded, total }),
@@ -142,6 +145,12 @@ export function UploadDialog({ initialAppId, onClose }: { initialAppId?: number 
         <Field label={t.upload.notes} optional>
           <Textarea value={notes} rows={2} maxLength={4000} disabled={busy} onChange={(event) => setNotes(event.target.value)} />
         </Field>
+        <div className="grid gap-0.5">
+          <Checkbox checked={hold} disabled={busy} onChange={setHold}>
+            {t.upload.hold}
+          </Checkbox>
+          <span className="pl-6 text-xs text-fg3">{t.upload.holdHint}</span>
+        </div>
         {state.kind === 'hashing' ? (
           <div className="drop up" role="status">
             <span className="flex items-center gap-2 text-[13px]">

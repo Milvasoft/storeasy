@@ -8,6 +8,7 @@ import { ScreenState } from '@/components/ui/ScreenState'
 import { Button, CardSkeleton, EmptyState, Field, Input, PageHeader, Switch } from '@/components/ui/primitives'
 import type { ListRequest } from '@/lib/api/list'
 import { useGlobalPermissions } from '@/lib/auth/globalPermissions'
+import { useFormat } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { showToast } from '@/lib/toast/toast'
 import { platformApi, platformKeys } from './api'
@@ -16,7 +17,8 @@ import { usePlatformText, type PlatformDictionary } from './i18n'
 import { FLAG_REASON_MAX, updated, type FeatureFlagListDto, type UpdateFeatureFlagCommand } from './types'
 
 // Design 17.22-17.23: the runtime kill switches. Each row keeps its own draft and is saved alone; turning a feature off
-// needs a reason (the audit note, at most 200) and a confirmation, turning it on does not.
+// needs a reason (the audit note, at most 200) and a confirmation, turning it on does not. Each row says what the feature
+// is (the server's description) and who changed it last.
 
 const REQUEST: ListRequest = { PageNumber: 1, RowCount: MAX_ROWS }
 
@@ -39,6 +41,7 @@ export function flagCommand(flag: FeatureFlagListDto, enabled: boolean, reason: 
 
 function FlagRow({ flag, canUpdate }: { flag: FeatureFlagListDto; canUpdate: boolean }) {
   const t = usePlatformText()
+  const format = useFormat()
   const confirm = useConfirm()
   const queryClient = useQueryClient()
   const [enabled, setEnabled] = useState(flag.IsEnabled)
@@ -101,6 +104,12 @@ function FlagRow({ flag, canUpdate }: { flag: FeatureFlagListDto; canUpdate: boo
             </Badge>
           ) : null}
         </span>
+        {flag.Description ? <span className="text-[13px] text-fg2">{flag.Description}</span> : null}
+        {flag.LastModifierUserName ? (
+          <span className="text-xs text-fg3">
+            {interpolate(t.flags.lastChange, { user: flag.LastModifierUserName, time: format.dateTime(flag.LastModificationDate) })}
+          </span>
+        ) : null}
         {canUpdate ? (
           <Field
             label={interpolate(t.flags.reasonLabel, { name: label })}

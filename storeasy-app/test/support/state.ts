@@ -1,5 +1,12 @@
 import type {
   AccountDetailDto,
+  AccountSessionDto,
+  FeatureFlagStateDto,
+  InvitationPreviewDto,
+  OrganizationSettingsDto,
+  OrgRoleDto,
+  PublicSettingsDto,
+  WebPushSubscriptionDto,
   AppDetailDto,
   AppListDto,
   MemberListDto,
@@ -9,7 +16,22 @@ import type {
   StoreJobDetailDto,
   StoreJobListDto,
 } from '@/lib/api/types'
-import { accountDetail, app, appDetail, auditLog, connection, job, jobDetail, memberList, organization } from './factories'
+import {
+  accountDetail,
+  accountSession,
+  app,
+  appDetail,
+  auditLog,
+  invitationPreview,
+  connection,
+  job,
+  jobDetail,
+  memberList,
+  organization,
+  orgRoles,
+  orgSettings,
+  publicSettings,
+} from './factories'
 
 /**
  * The fake backend's data. Default handlers read from here, so a test changes what the API returns by assigning a field
@@ -27,6 +49,15 @@ export interface TestState {
   jobDetail: StoreJobDetailDto
   /** Job ids POST apps/sync answers. */
   syncJobIds: number[]
+  /** Phase 8: anonymous instance settings, the server flags (none by default: the client defaults apply). */
+  publicSettings: PublicSettingsDto
+  featureFlags: FeatureFlagStateDto[]
+  orgRoles: OrgRoleDto[]
+  orgSettings: OrganizationSettingsDto
+  /** Null answers 404 (an unknown token). */
+  invitationPreview: InvitationPreviewDto | null
+  sessions: AccountSessionDto[]
+  pushSubscriptions: WebPushSubscriptionDto[]
   /** Every request the handlers saw, so a test can assert what the app sent. */
   requests: Array<{ method: string; path: string; body: unknown; query: Record<string, string>; headers: Record<string, string> }>
 }
@@ -43,6 +74,13 @@ function initialState(): TestState {
     jobs: [job()],
     jobDetail: jobDetail(),
     syncJobIds: [48300],
+    publicSettings: publicSettings(),
+    featureFlags: [],
+    orgRoles: orgRoles(),
+    orgSettings: orgSettings(),
+    invitationPreview: invitationPreview(),
+    sessions: [accountSession()],
+    pushSubscriptions: [],
     requests: [],
   }
 }

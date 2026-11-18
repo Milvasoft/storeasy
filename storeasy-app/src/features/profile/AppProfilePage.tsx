@@ -11,9 +11,11 @@ import { useP2 } from '@/features/common/i18n/useP2'
 import { contentKeys } from '@/features/common/keys'
 import { splitList } from '@/features/common/text'
 import type { AppProfileInput } from '@/features/common/types'
+import { queryKeys } from '@/lib/query/keys'
 
 // The app's catalog profile (UpdateAppProfileCommand): what the rules need to know that the stores do not report. The
-// values are the catalog's own vocabulary (rules/*.json appliesWhen), so a rule matches exactly.
+// values are the catalog's own vocabulary (rules/*.json appliesWhen), so a rule matches exactly. The form opens with the
+// saved profile (AppDetailDto.Profile); null fields stay "unknown".
 
 export const PLATFORMS = [
   'ios',
@@ -107,15 +109,18 @@ function listOrNull(list: string[]): string[] | null {
 function ProfileForm({ context, t }: { context: WorkspaceContext; t: P2Dictionary }) {
   const queryClient = useQueryClient()
   const { app, organizationId, editor } = context
-  const [platforms, setPlatforms] = useState<string[]>([])
-  const [families, setFamilies] = useState<string[]>([])
-  const [features, setFeatures] = useState<string[]>([])
-  const [regions, setRegions] = useState('')
-  const [developerRegion, setDeveloperRegion] = useState('')
-  const [appType, setAppType] = useState<'unknown' | 'app' | 'game'>('unknown')
-  const [buildSdk, setBuildSdk] = useState('')
-  const [targetSdk, setTargetSdk] = useState('')
-  const [live, setLive] = useState<LiveChoice>('auto')
+  const saved = app.Profile ?? null
+  const [platforms, setPlatforms] = useState<string[]>(() => saved?.Platforms ?? [])
+  const [families, setFamilies] = useState<string[]>(() => saved?.DeviceFamilies ?? [])
+  const [features, setFeatures] = useState<string[]>(() => saved?.Features ?? [])
+  const [regions, setRegions] = useState(() => (saved?.Regions ?? []).join(', '))
+  const [developerRegion, setDeveloperRegion] = useState(() => saved?.DeveloperRegion ?? '')
+  const [appType, setAppType] = useState<'unknown' | 'app' | 'game'>(() =>
+    saved?.AppType === 'app' || saved?.AppType === 'game' ? saved.AppType : 'unknown',
+  )
+  const [buildSdk, setBuildSdk] = useState(() => saved?.BuildSdkVersion ?? '')
+  const [targetSdk, setTargetSdk] = useState(() => (saved?.TargetSdk != null ? String(saved.TargetSdk) : ''))
+  const [live, setLive] = useState<LiveChoice>(() => (saved?.IsLive == null ? 'auto' : saved.IsLive ? 'yes' : 'no'))
   const [errors, setErrors] = useState<{ regions?: string; developerRegion?: string; targetSdk?: string }>({})
 
   const save = useMutation({
@@ -123,6 +128,7 @@ function ProfileForm({ context, t }: { context: WorkspaceContext; t: P2Dictionar
     onSuccess: () => {
       showToast(t.profile.saved, 'success')
       void queryClient.invalidateQueries({ queryKey: contentKeys.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.apps.detail(organizationId, app.Id) })
     },
   })
 

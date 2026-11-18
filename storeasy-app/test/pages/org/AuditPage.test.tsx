@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ActionChannel, AuditAction, OrgRole } from '@/lib/api/types'
 import { AuditPage } from '@/pages/org/AuditPage'
@@ -86,7 +86,7 @@ describe('OrgSettingsPage', () => {
     const name = await screen.findByLabelText('Ad')
     await user.clear(name)
     await user.type(name, 'Kuzey Labs')
-    await user.click(screen.getByRole('button', { name: 'Kaydet' }))
+    await user.click(within(screen.getByRole('form', { name: 'Genel' })).getByRole('button', { name: 'Kaydet' }))
 
     await waitFor(() =>
       expect(lastRequestTo('/Organizations/organization')?.body).toEqual({ OrganizationId: TEST_ORG_ID, Name: 'Kuzey Labs', Slug: null }),

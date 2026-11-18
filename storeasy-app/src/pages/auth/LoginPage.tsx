@@ -13,6 +13,7 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { emailError } from '@/lib/validation'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
+import { GoogleSignInButton } from '@/features/access/GoogleSignIn'
 
 // Retry-After is missing on some proxies; the API's window for sign-in is a minute.
 const DEFAULT_RETRY_SECONDS = 60
@@ -125,6 +126,7 @@ export function LoginPage() {
         <Button type="submit" variant="primary" size="lg" block loading={busy} disabled={throttle.seconds > 0}>
           {throttle.seconds > 0 ? `${t.login.submit} · ${formatCountdown(throttle.seconds)}` : t.login.submit}
         </Button>
+        <GoogleSignInButton returnTo={returnTo} />
         <p className="m-0 text-center text-[12.5px] text-fg2">
           {t.login.noAccount}{' '}
           <Link className="lnk" to="/register">

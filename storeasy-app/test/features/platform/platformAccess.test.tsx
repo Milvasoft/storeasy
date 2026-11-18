@@ -46,11 +46,15 @@ describe('platform routes', () => {
   })
 
   it('filters the Platform menu by the global permissions', async () => {
-    await renderApp({ ...MANAGER, route: '/admin/system', accessToken: permissionToken('RuleCatalogManagement.List', 'ActivityLogManagement.List') })
+    await renderApp({
+      ...MANAGER,
+      route: '/admin/activity-logs',
+      accessToken: permissionToken('RuleCatalogManagement.List', 'ActivityLogManagement.List'),
+    })
 
-    await screen.findByRole('heading', { name: 'Sistem durumu', level: 1 })
+    await screen.findByRole('heading', { name: 'Aktivite logu', level: 1 })
     expect(within(menu()).getByRole('link', { name: /Aktivite logu/ })).toBeInTheDocument()
-    expect(within(menu()).getByRole('link', { name: /Sistem durumu/ })).toBeInTheDocument()
+    expect(within(menu()).queryByRole('link', { name: /Sistem durumu/ })).not.toBeInTheDocument()
     expect(within(menu()).queryByRole('link', { name: /Roller/ })).not.toBeInTheDocument()
     expect(within(menu()).queryByRole('link', { name: /Kullanıcılar/ })).not.toBeInTheDocument()
   })
@@ -71,24 +75,35 @@ describe('platform routes', () => {
   })
 })
 
-const HELPER_METHOD: Record<string, string> = { apiGet: 'GET', apiPost: 'POST', apiPut: 'PUT', apiPatchList: 'PATCH', apiDelete: 'DELETE', apiProbe: 'GET' }
+const HELPER_METHOD: Record<string, string> = {
+  apiGet: 'GET',
+  apiPost: 'POST',
+  apiPut: 'PUT',
+  apiPatchList: 'PATCH',
+  apiDelete: 'DELETE',
+  apiProbe: 'GET',
+}
 
 describe('platform api contract', () => {
   const source = readFileSync(resolve(process.cwd(), 'src/features/platform/api.ts'), 'utf-8')
   const called = new Set(
-    [...source.matchAll(/(api(?:Get|Post|Put|PatchList|Delete|Probe))(?:<[^>]*>)?\(\s*'(\/[^']+)'/g)].map((match) => `${HELPER_METHOD[match[1]]} ${match[2]}`),
+    [...source.matchAll(/(api(?:Get|Post|Put|PatchList|Delete|Probe))(?:<[^>]*>)?\(\s*'(\/[^']+)'/g)].map(
+      (match) => `${HELPER_METHOD[match[1]]} ${match[2]}`,
+    ),
   )
   const stubbed = new Set(
-    platformHandlers.map((handler) => `${String(handler.info.method).toUpperCase()} ${String(handler.info.path).replace('*/api/v1.0', '')}`),
+    platformHandlers.map(
+      (handler) => `${String(handler.info.method).toUpperCase()} ${String(handler.info.path).replace('*/api/v1.0', '')}`,
+    ),
   )
 
   it('answers every endpoint the platform screens call', () => {
-    expect(called.size).toBe(18)
+    expect(called.size).toBe(22)
     expect([...called].filter((call) => !stubbed.has(call))).toEqual([])
   })
 
-  it('stubs nothing the screens never call (the rules catalog belongs to the content screens)', () => {
-    expect([...stubbed].filter((stub) => !called.has(stub))).toEqual(['GET /Rules/catalog'])
+  it('stubs nothing the screens never call', () => {
+    expect([...stubbed].filter((stub) => !called.has(stub))).toEqual([])
   })
 })
 
@@ -118,7 +133,9 @@ describe('platform dictionary', () => {
     const english = leaves(platformEn)
     const turkish = leaves(platformTr)
     expect([...turkish.keys()].sort()).toEqual([...english.keys()].sort())
-    expect([...turkish].filter(([path, text]) => placeholders(text) !== placeholders(english.get(path) ?? '')).map(([path]) => path)).toEqual([])
+    expect(
+      [...turkish].filter(([path, text]) => placeholders(text) !== placeholders(english.get(path) ?? '')).map(([path]) => path),
+    ).toEqual([])
     expect([...english, ...turkish].filter(([, text]) => text.trim() === '').map(([path]) => path)).toEqual([])
   })
 })

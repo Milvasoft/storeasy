@@ -1,30 +1,89 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
-import { Link2Off, MailWarning, UserPlus } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Clock, Link2Off, MailWarning, UserPlus } from 'lucide-react'
 import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
 import { FormErrors } from '@/components/ui/Feedback'
-import { Avatar, Button } from '@/components/ui/primitives'
+import { Avatar, Button, SpinnerCenter } from '@/components/ui/primitives'
 import { organizationsApi } from '@/lib/api/endpoints'
 import { apiErrorMessage, apiStatus, hasApiKey } from '@/lib/api/http'
+import { InvitationStatus, type InvitationPreviewDto } from '@/lib/api/types'
 import { displayName, initialsOf, useAuth } from '@/lib/auth/AuthContext'
-import { useT } from '@/lib/i18n/I18nContext'
-import { withPlaceholders } from '@/lib/i18n/interpolate'
+import { useFormat, useT } from '@/lib/i18n/I18nContext'
+import { interpolate, withPlaceholders } from '@/lib/i18n/interpolate'
+import { roleLabel } from '@/lib/org/roles'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
+import { useAccessText } from '@/features/access/i18n'
+import { permissionName } from '@/features/access/roles'
 
 export const INVITATION_EMAIL_MISMATCH_KEY = 'InvitationEmailMismatch'
 
 type Outcome = { kind: 'mismatch'; message: string } | { kind: 'invalid'; message: string } | { kind: 'error'; message: string } | null
 
+/** What the invitation offers, before anything is accepted: organization, role and its permissions, inviter, expiry. */
+function PreviewDetails({ preview }: { preview: InvitationPreviewDto }) {
+  const t = useT()
+  const access = useAccessText()
+  const format = useFormat()
+  const role = preview.Role ? roleLabel(preview.Role, t, preview.CustomRoleName) : null
+  return (
+    <div className="grid gap-3 rounded-md border border-border bg-bg2/50 p-4 text-left text-[13px]">
+      <dl className="kv">
+        <dt>{access.invitePreview.organization}</dt>
+        <dd>
+          <b>{preview.OrganizationName}</b>
+          {preview.OrganizationSlug ? <span className="mono ml-1.5 text-xs text-fg3">{preview.OrganizationSlug}</span> : null}
+        </dd>
+        {role ? (
+          <>
+            <dt>{access.invitePreview.role}</dt>
+            <dd>{role}</dd>
+          </>
+        ) : null}
+        {preview.InviterName ? (
+          <>
+            <dt>{access.invitePreview.inviter}</dt>
+            <dd>{preview.InviterName}</dd>
+          </>
+        ) : null}
+        {preview.MaskedEmail ? (
+          <>
+            <dt>{access.invitePreview.sentTo}</dt>
+            <dd className="mono">{preview.MaskedEmail}</dd>
+          </>
+        ) : null}
+        {preview.ExpiryDate ? (
+          <>
+            <dt>{access.invitePreview.expires}</dt>
+            <dd>{format.dateTime(preview.ExpiryDate)}</dd>
+          </>
+        ) : null}
+      </dl>
+      {(preview.Permissions ?? []).length > 0 ? (
+        <div className="grid gap-1">
+          <b>{access.invitePreview.permissions}</b>
+          <ul className="m-0 grid list-none gap-1 p-0 text-fg2" aria-label={access.invitePreview.permissions}>
+            {(preview.Permissions ?? []).map((permission) => (
+              <li key={permission}>{access.roles.permission[permissionName(permission)]}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 /**
- * Accepting an invitation (design 5.22-5.25). The invitation preview endpoint (organization, inviter, role, status) is not
- * on the API yet, so the page speaks of "an organization" until the accept call answers; the accept itself is real.
+ * Accepting an invitation (design 5.22-5.25). The anonymous preview (organizations/invitation/preview) shows the
+ * organization, role, inviter, masked address and expiry before anything is accepted; an expired, revoked or used
+ * invitation gets its own card. The accept call stays the authority.
  */
 export function InvitePage() {
   const t = useT()
+  const access = useAccessText()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { token: pathToken } = useParams()
@@ -35,6 +94,12 @@ export function InvitePage() {
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState<Outcome>(null)
   const returnUrl = `/invite/${encodeURIComponent(token)}`
+  const preview = useQuery({
+    queryKey: ['invitation-preview', token],
+    queryFn: () => organizationsApi.invitationPreview(token),
+    enabled: !!token,
+    retry: false,
+  })
 
   const accept = async () => {
     setBusy(true)
@@ -67,7 +132,15 @@ export function InvitePage() {
     navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`, { replace: true })
   }
 
-  if (!token || outcome?.kind === 'invalid') {
+  if (token && preview.isLoading) {
+    return (
+      <SoloLayout>
+        <SpinnerCenter label={access.invitePreview.loading} />
+      </SoloLayout>
+    )
+  }
+
+  if (!token || outcome?.kind === 'invalid' || apiStatus(preview.error) === 404) {
     return (
       <SoloLayout>
         <AuthCard icon={<Link2Off aria-hidden />} tone="warn" title={t.invite.invalidTitle}>
@@ -101,15 +174,59 @@ export function InvitePage() {
     )
   }
 
+  const details = preview.data
+  if (details && details.Status !== InvitationStatus.Pending) {
+    const names = { organization: details.OrganizationName ?? '', inviter: details.InviterName || access.invitePreview.someone }
+    const view =
+      details.Status === InvitationStatus.Expired
+        ? {
+            icon: <Clock aria-hidden />,
+            title: access.invitePreview.expiredTitle,
+            body: interpolate(access.invitePreview.expiredBody, names),
+          }
+        : details.Status === InvitationStatus.Revoked
+          ? {
+              icon: <Link2Off aria-hidden />,
+              title: access.invitePreview.revokedTitle,
+              body: interpolate(access.invitePreview.revokedBody, names),
+            }
+          : {
+              icon: <UserPlus aria-hidden />,
+              title: access.invitePreview.acceptedTitle,
+              body: interpolate(access.invitePreview.acceptedBody, names),
+            }
+    return (
+      <SoloLayout>
+        <AuthCard icon={view.icon} tone="warn" title={view.title}>
+          <p className="m-0 text-sm text-fg2">{view.body}</p>
+          <Link className="btn inv blk" to={status === 'authed' ? HOME_PATH : '/login'}>
+            {status === 'authed' ? t.invite.backToApp : t.invite.toLogin}
+          </Link>
+        </AuthCard>
+      </SoloLayout>
+    )
+  }
+
   return (
     <SoloLayout>
-      <AuthCard icon={<UserPlus aria-hidden />} title={t.invite.title}>
-        <p className="m-0 text-sm text-fg2">{t.invite.body}</p>
-        <ul className="m-0 grid list-none gap-1.5 rounded-md border border-border bg-bg2/50 p-4 text-left text-[13px] text-fg2">
-          {t.invite.points.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
+      <AuthCard
+        icon={<UserPlus aria-hidden />}
+        title={
+          details?.OrganizationName ? interpolate(access.invitePreview.title, { organization: details.OrganizationName }) : t.invite.title
+        }
+      >
+        {details ? (
+          <PreviewDetails preview={details} />
+        ) : (
+          <>
+            <p className="m-0 text-sm text-fg2">{t.invite.body}</p>
+            <ul className="m-0 grid list-none gap-1.5 rounded-md border border-border bg-bg2/50 p-4 text-left text-[13px] text-fg2">
+              {t.invite.points.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          </>
+        )}
         {outcome?.kind === 'error' ? <FormErrors title={outcome.message} /> : null}
         {status === 'authed' && user ? (
           <>
