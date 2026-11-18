@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118154640_Phase3McpIntake";
+    public override string LastMigrationId => "20261118182350_Phase8Final";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -591,6 +591,53 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("OrganizationId", "Status");
 
                 b.ToTable("ChangePlans");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.EmailOutboxItem", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("Attempt")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedPayload")
+                    .HasColumnType("bytea");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Language")
+                    .HasMaxLength(16)
+                    .HasColumnType("character varying(16)");
+
+                b.Property<string>("LastError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("LockedUntil")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime>("NextAttemptDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("NextAttemptDate");
+
+                b.ToTable("EmailOutbox");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Events.AppVersionState", b =>
@@ -2610,11 +2657,18 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
 
+                b.Property<int>("AuditRetentionDays")
+                    .HasColumnType("integer");
+
                 b.Property<DateTime?>("CreationDate")
                     .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("CreatorUserName")
                     .HasColumnType("text");
+
+                b.Property<string>("DefaultLocale")
+                    .HasMaxLength(10)
+                    .HasColumnType("character varying(10)");
 
                 b.Property<string>("DeleterUserName")
                     .HasColumnType("text");
@@ -2664,6 +2718,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("CreatorUserName")
                     .HasColumnType("text");
 
+                b.Property<int?>("CustomRoleId")
+                    .HasColumnType("integer");
+
                 b.Property<string>("Email")
                     .HasMaxLength(256)
                     .HasColumnType("character varying(256)");
@@ -2693,6 +2750,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
+                b.HasIndex("CustomRoleId");
+
+                b.HasIndex("InviterUserId");
+
                 b.HasIndex("TokenHash")
                     .IsUnique();
 
@@ -2715,6 +2776,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("CreatorUserName")
                     .HasColumnType("text");
 
+                b.Property<int?>("CustomRoleId")
+                    .HasColumnType("integer");
+
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
 
@@ -2726,12 +2790,59 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
+                b.HasIndex("CustomRoleId");
+
                 b.HasIndex("UserId");
 
                 b.HasIndex("OrganizationId", "UserId")
                     .IsUnique();
 
                 b.ToTable("OrganizationMembers");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationRole", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<byte>("AudienceRole")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Description")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.PrimitiveCollection<string>("Permissions")
+                    .HasColumnType("jsonb");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "Name")
+                    .IsUnique();
+
+                b.ToTable("OrganizationRoles");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Permission", b =>
@@ -3378,6 +3489,42 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("MockupTemplates");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.SystemSetting", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Key")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Value")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Key")
+                    .IsUnique();
+
+                b.ToTable("SystemSettings");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.TestFlight.BetaAppLocalization", b =>
             {
                 var id = b.Property<int>("Id")
@@ -3704,6 +3851,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<bool>("PhoneNumberConfirmed")
                     .HasColumnType("boolean");
 
+                b.Property<string>("PreferredLanguage")
+                    .HasMaxLength(10)
+                    .HasColumnType("character varying(10)");
+
                 b.Property<string>("SecurityStamp")
                     .HasMaxLength(64)
                     .HasColumnType("character varying(64)");
@@ -3738,6 +3889,47 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("Users");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.UserExternalLogin", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Email")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<DateTime?>("LastLoginDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Provider")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("Subject")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<int>("UserId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserId");
+
+                b.HasIndex("Provider", "Subject")
+                    .IsUnique();
+
+                b.ToTable("UserExternalLogins");
             });
 
         modelBuilder.Entity("Storeasy.Domain.UserRoleRelation", b =>
@@ -3798,6 +3990,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("RefreshToken")
                     .HasColumnType("text");
 
+                b.Property<string>("UserAgent")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
+
                 b.Property<int>("UserId")
                     .HasColumnType("integer");
 
@@ -3857,6 +4053,52 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.HasKey("Id");
 
                 b.ToTable("UserSessionHistories");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.WebPushSubscription", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("Auth")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Endpoint")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<DateTime?>("LastSuccessDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("P256dh")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("UserAgent")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
+
+                b.Property<int>("UserId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Endpoint")
+                    .IsUnique();
+
+                b.HasIndex("UserId");
+
+                b.ToTable("WebPushSubscriptions");
             });
 
         modelBuilder.Entity("Storeasy.Domain.AccountToken", b =>
@@ -4146,17 +4388,35 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>
             {
+                b.HasOne("Storeasy.Domain.Organizations.OrganizationRole", "CustomRole")
+                    .WithMany()
+                    .HasForeignKey("CustomRoleId");
+
+                b.HasOne("Storeasy.Domain.User", "Inviter")
+                    .WithMany()
+                    .HasForeignKey("InviterUserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
                 b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
                     .WithMany()
                     .HasForeignKey("OrganizationId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
+                b.Navigation("CustomRole");
+
+                b.Navigation("Inviter");
+
                 b.Navigation("Organization");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationMember", b =>
             {
+                b.HasOne("Storeasy.Domain.Organizations.OrganizationRole", "CustomRole")
+                    .WithMany()
+                    .HasForeignKey("CustomRoleId");
+
                 b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
                     .WithMany("Members")
                     .HasForeignKey("OrganizationId")
@@ -4169,9 +4429,22 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
+                b.Navigation("CustomRole");
+
                 b.Navigation("Organization");
 
                 b.Navigation("User");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationRole", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
             });
 
         modelBuilder.Entity("Storeasy.Domain.RolePermissionRelation", b =>
@@ -4297,6 +4570,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("User");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.UserExternalLogin", b =>
+            {
+                b.HasOne("Storeasy.Domain.User", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("User");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.UserRoleRelation", b =>
             {
                 b.HasOne("Storeasy.Domain.Role", "Role")
@@ -4320,6 +4604,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
             {
                 b.HasOne("Storeasy.Domain.User", "User")
                     .WithMany("Sessions")
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("User");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.WebPushSubscription", b =>
+            {
+                b.HasOne("Storeasy.Domain.User", "User")
+                    .WithMany()
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
