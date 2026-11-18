@@ -76,7 +76,9 @@ export const FormErrors = forwardRef<
       {tone === 'danger' ? (
         icon
       ) : (
-        <span className={cn('flex-none [&>svg]:h-[18px] [&>svg]:w-[18px]', tone === 'warning' ? 'text-warningText' : 'text-info')}>{icon}</span>
+        <span className={cn('flex-none [&>svg]:h-[18px] [&>svg]:w-[18px]', tone === 'warning' ? 'text-warningText' : 'text-info')}>
+          {icon}
+        </span>
       )}
       <div className="min-w-0">
         <b>{title}</b>
