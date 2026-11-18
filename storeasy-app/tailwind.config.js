@@ -12,6 +12,8 @@ export default {
         surface: 'rgb(var(--surface) / <alpha-value>)',
         border: 'rgb(var(--border) / <alpha-value>)',
         borderStrong: 'rgb(var(--border-strong) / <alpha-value>)',
+        // Control boundaries, 3:1 on every surface (WCAG 1.4.11).
+        borderControl: 'rgb(var(--border-control) / <alpha-value>)',
         fg: 'rgb(var(--fg) / <alpha-value>)',
         fg2: 'rgb(var(--fg-2) / <alpha-value>)',
         fg3: 'rgb(var(--fg-3) / <alpha-value>)',
@@ -24,6 +26,8 @@ export default {
         },
         success: 'rgb(var(--success) / <alpha-value>)',
         warning: 'rgb(var(--warning) / <alpha-value>)',
+        // Warning as text (AA 4.5:1); the fill above is for dots, bars and tints.
+        warningText: 'rgb(var(--warning-text) / <alpha-value>)',
         danger: 'rgb(var(--danger) / <alpha-value>)',
         info: 'rgb(var(--info) / <alpha-value>)',
         overlay: 'rgb(var(--overlay) / <alpha-value>)',

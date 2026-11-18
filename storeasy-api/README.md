@@ -1,10 +1,10 @@
 # Storeasy Api
 
-This document is a guide to what you need to know about the project.
+This document is a guide to what you need to know about the project. Running storeasy on a server: [docs/self-host.md](../docs/self-host.md); contributing: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Tech Stack
 
-- .Net 10
+- .NET 11
 - PostgreSql
 - Redis (cache, token revocation stamps, feature flags, rate limits)
 - Serilog (Console, Seq, OpenTelemetry)
@@ -56,8 +56,10 @@ docker compose up -d
 | `Storeasy:Email:Notifike:BaseUrl` | `Storeasy__Email__Notifike__BaseUrl` | Notifike API base address (`POST {BaseUrl}/notifications/send`). |
 | `Storeasy:Email:Notifike:ApiKey` | `Storeasy__Email__Notifike__ApiKey` | Secret. Notifike API key (`X-Api-Key` header). |
 | `Storeasy:Jobs:Enabled`, `Workers`, `PollIntervalMilliseconds`, `LeaseSeconds`, `DefaultMaxAttempts`, `RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | `Storeasy__Jobs__...` | Store job runner: whether this instance runs jobs, parallel jobs per instance, idle poll pause, lease of a running attempt (renewed on every step), attempts and the exponential retry backoff. |
-| `Storage:S3:Bucket`, `Region`, `ServiceUrl`, `ForcePathStyle`, `PresignedUrlLifetimeMinutes` | `Storage__S3__...` | Private S3 compatible bucket for files (presigned URLs only). Empty bucket disables uploads (503). `ServiceUrl` + `ForcePathStyle` for MinIO; empty `ServiceUrl` for AWS S3. |
-| `Storage:S3:AccessKey`, `Storage:S3:SecretKey` | `Storage__S3__AccessKey`, `Storage__S3__SecretKey` | Secret. Bucket credentials; without an access key the AWS default credential chain is used. `appsettings.Development.json` carries only the local MinIO defaults of `docker-compose.yml`. |
+| `Storage:S3:Bucket`, `Region`, `ServiceUrl`, `ForcePathStyle`, `PresignedUrlLifetimeMinutes` | `Storage__S3__...` | Private S3 compatible bucket for files (presigned URLs only). Empty bucket disables uploads (503). `ServiceUrl` + `ForcePathStyle` for SeaweedFS (or another S3 compatible server); empty `ServiceUrl` for AWS S3. |
+| `Storage:S3:AccessKey`, `Storage:S3:SecretKey` | `Storage__S3__AccessKey`, `Storage__S3__SecretKey` | Secret. Bucket credentials; without an access key the AWS default credential chain is used. `appsettings.Development.json` carries only the local SeaweedFS credentials of `seaweedfs/s3.json` (local only values). |
+| `Storeasy:Stores:MaxRetries`, `RetryBaseDelayMilliseconds`, `RetryMaxDelaySeconds`, `AssetPollIntervalMilliseconds`, `AssetPollTimeoutSeconds`, `UploadChunkBytes`, `PlanLifetimeMinutes` | `Storeasy__Stores__...` | Store content engine: retries of 429/5xx answers with exponential backoff (a `Retry-After` wins), the wait for Apple to process an uploaded screenshot, the chunk size of resumable Play bundle uploads and how long a pending change plan can be approved (48 hours). |
+| `Storeasy:Stores:RulesPath` | `Storeasy__Stores__RulesPath` | Folder of the store rules catalog (`catalog.json` and the store files). Empty: the `rules` folder copied next to the application, then the copy embedded at build time. A catalog that does not validate stops the startup. |
 | - | `MILVA_ENV` | `dev`, `test` or `prod`, see [Environment](#environment-milva_env). |
 
 #### Secrets
@@ -206,11 +208,17 @@ Store work runs as jobs (`StoreJobs`, steps in `StoreJobSteps`), never inside a 
 
 ### Files (S3)
 
-Files live in a private bucket and move only through presigned URLs (`IFileStorage`, AWSSDK.S3; MinIO locally, `docker compose up -d minio minio-init` creates the `storeasy-local` bucket). `POST assets/upload` declares a file (purpose, name, type, exact size, optional SHA-256) and returns one presigned PUT, or for files over 64 MB a multipart upload with one presigned PUT per 16 MB part. `POST assets/asset/complete` completes the multipart upload with the parts' ETags and confirms the file only when the stored size equals the declared one (otherwise the object is deleted and the asset rejected). `GET assets/asset/download-url` hands out a short lived GET URL. Rows are in `Assets` (organization, purpose, key, type, size, SHA-256, status); keys are `org/{id}/{purpose}/{nonce}/{safe name}`.
+Files live in a private bucket and move only through presigned URLs (`IFileStorage`, AWSSDK.S3; SeaweedFS locally, `docker compose up -d seaweedfs seaweedfs-init` starts its S3 gateway and creates the `storeasy-local` bucket). `POST assets/upload` declares a file (purpose, name, type, exact size, optional SHA-256) and returns one presigned PUT, or for files over 64 MB a multipart upload with one presigned PUT per 16 MB part. `POST assets/asset/complete` completes the multipart upload with the parts' ETags and confirms the file only when the stored size equals the declared one (otherwise the object is deleted and the asset rejected). `GET assets/asset/download-url` hands out a short lived GET URL. Rows are in `Assets` (organization, purpose, key, type, size, SHA-256, status); keys are `org/{id}/{purpose}/{nonce}/{safe name}`.
 
 ### Apps and builds
 
 A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, later the Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store answers "not supported yet". `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
+
+### Store content, change plans and readiness
+
+Every write to a store goes through a change plan (`ChangePlans`): a planning endpoint reads the store live, computes the field level diff against the desired values (per locale), fingerprints the touched store values and saves a pending plan; nothing is written. Approving it (`POST plans/approve`, or the `listings/apply`, `screenshots/apply`, `previews/apply`, `releases/apply` aliases, or `DryRun: false` on the PUT endpoints) checks the plan's own permission (production and App Store rollouts `ReleaseProduction`, submission `SubmitForReview`, test tracks `ReleaseTest`, the rest `EditContent`) and typed confirmation (app name and version for submissions and Play production), reads the store again and answers 409 when the touched values changed, then queues an `ApplyChangePlan` job. The job writes through `IStoreContentGateway` (App Store Connect JSON:API; Play edits that are always committed or deleted), every store call a step on the live activity hub, and writes one audit entry per changed field. Plans expire after 48 hours (410); `plans/reject` and `plans/discard` close them without writing.
+
+Areas: listing texts (`listings`, catalog limits, App Store keywords counted in UTF-8 bytes), screenshots and previews (`screenshots/*`, `previews/*`: files checked against the catalog, MD5 already in the set skipped, reserve / upload / commit / reorder), `categories`, `age-rating`, `pricing`, `review-info` (the demo password is sealed into the saved answers and opened only by the job), `builds` (link a VALID build, export compliance, Play bundle upload with the resumable protocol), `releases` (release type and phased release, Play track releases with staged rollout, countries and notes, rollout changes, testers, submission for review). The readiness check (`GET apps/readiness`) lists what blocks a submission from one live read, the rules catalog (`rules/`, `IRulesCatalog`), the app profile (`PUT apps/profile`: device families, regions, features, SDK, target API), the saved answers (`apps/answers`) and the assisted steps (`assisted-steps`); `GET apps/overview` summarizes every app and `GET apps/compliance` / `GET compliance` list the catalog deadlines. The rules catalog is read from the repository root `rules/` folder at build time; a Docker build whose context is `storeasy-api/` has no copy of it, so mount the folder and set `Storeasy__Stores__RulesPath` there.
 
 ### Health checks
 
@@ -229,7 +237,7 @@ dotnet test --solution Storeasy.slnx --no-build
 The test projects use xunit v3, so each test assembly is also an executable that runs itself, with filters:
 
 ```
-cd tests/Storeasy.UnitTests/bin/Debug/net10.0
+cd tests/Storeasy.UnitTests/bin/Debug/net11.0
 dotnet exec Storeasy.UnitTests.dll -namespace "Storeasy.UnitTests.ArchitectureTests"
 dotnet exec Storeasy.UnitTests.dll -class "*ExceptionMiddlewareTests"
 ```

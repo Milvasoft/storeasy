@@ -13,7 +13,8 @@ import { useT } from '@/lib/i18n/I18nContext'
 import { withPlaceholders } from '@/lib/i18n/interpolate'
 import { emailError, passwordError } from '@/lib/validation'
 
-export const RESET_TOKEN_INVALID_KEY = 'ResetTokenInvalid'
+// MessageKey.AccountTokenInvalid: an expired, used or replaced reset link.
+export const RESET_TOKEN_INVALID_KEY = 'AccountTokenInvalid'
 const RESEND_SECONDS = 60
 
 /**

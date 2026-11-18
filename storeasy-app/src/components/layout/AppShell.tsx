@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Menu as MenuIcon } from 'lucide-react'
+import { EmailVerificationBanner } from '@/components/account/EmailVerificationBanner'
 import { ThemeMenuButton } from '@/components/common/ThemeSwitcher'
 import { Banner } from '@/components/ui/Feedback'
 import { Modal } from '@/components/ui/Modal'
@@ -128,6 +129,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
         </header>
         <OfflineBanner />
+        <EmailVerificationBanner />
         <main id="main" className="content relative">
           <TopProgress />
           {children}

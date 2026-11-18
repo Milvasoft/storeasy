@@ -89,7 +89,7 @@ describe('OrgSettingsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Kaydet' }))
 
     await waitFor(() =>
-      expect(lastRequestTo('/Organizations/organization')?.body).toEqual({ OrganizationId: TEST_ORG_ID, Name: 'Kuzey Labs' }),
+      expect(lastRequestTo('/Organizations/organization')?.body).toEqual({ OrganizationId: TEST_ORG_ID, Name: 'Kuzey Labs', Slug: null }),
     )
     expect(await screen.findByText('Ayarlar kaydedildi')).toBeInTheDocument()
   })

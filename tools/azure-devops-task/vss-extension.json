@@ -1,0 +1,23 @@
+{
+  "manifestVersion": 1,
+  "id": "storeasy-upload",
+  "publisher": "storeasy",
+  "version": "1.0.0",
+  "name": "storeasy upload",
+  "description": "StoreasyUpload@1: upload an IPA, AAB, APK or MSIX to storeasy with workload identity (OIDC) or a CI token.",
+  "public": false,
+  "categories": ["Azure Pipelines"],
+  "tags": ["storeasy", "app store", "testflight", "google play", "microsoft store", "release"],
+  "targets": [{ "id": "Microsoft.VisualStudio.Services" }],
+  "content": { "details": { "path": "README.md" } },
+  "links": { "license": { "uri": "https://www.gnu.org/licenses/agpl-3.0.html" } },
+  "files": [{ "path": "StoreasyUploadV1" }],
+  "contributions": [
+    {
+      "id": "storeasy-upload-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": ["ms.vss-distributed-task.tasks"],
+      "properties": { "name": "StoreasyUploadV1" }
+    }
+  ]
+}

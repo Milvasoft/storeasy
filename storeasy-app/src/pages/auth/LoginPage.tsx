@@ -4,8 +4,7 @@ import { safeReturnPath, type LoginState } from '@/components/common/ProtectedRo
 import { AuthLayout, AuthLead } from '@/components/layout/AuthLayout'
 import { FormErrors } from '@/components/ui/Feedback'
 import { Button, Field, Input, PasswordInput } from '@/components/ui/primitives'
-import { registrationApi } from '@/lib/api/endpoints'
-import { apiErrorMessage, apiStatus, type ApiError, hasApiKey } from '@/lib/api/http'
+import { apiErrorMessage, apiStatus, type ApiError } from '@/lib/api/http'
 import { TEXT_LIMITS } from '@/lib/api/textLimits'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { formatCountdown, useCountdown } from '@/lib/hooks/useCountdown'
@@ -15,14 +14,15 @@ import { HOME_PATH } from '@/lib/nav/nav'
 import { emailError } from '@/lib/validation'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
 
-export const EMAIL_NOT_VERIFIED_KEY = 'EmailNotVerified'
 // Retry-After is missing on some proxies; the API's window for sign-in is a minute.
 const DEFAULT_RETRY_SECONDS = 60
-const RESEND_SECONDS = 60
 
-type Problem = { kind: 'error'; title: string; detail?: string } | { kind: 'unverified' } | { kind: 'throttled' }
+type Problem = { kind: 'error'; title: string; detail?: string } | { kind: 'throttled' }
 
-/** Sign in by e-mail (design 5.1-5.7): wrong credentials, lockout text, 429 countdown, unverified e-mail, session ended. */
+/**
+ * Sign in by e-mail (design 5.1-5.7): wrong credentials, lockout text, 429 countdown, session ended. An unverified e-mail
+ * does not stop the sign-in (the API lets the account in); the shell says what waits for the verification.
+ */
 export function LoginPage() {
   const t = useT()
   const { login, sessionEnded } = useAuth()
@@ -37,9 +37,7 @@ export function LoginPage() {
   const [emailProblem, setEmailProblem] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<Problem | null>(null)
-  const [resent, setResent] = useState(false)
   const throttle = useCountdown()
-  const resend = useCountdown()
   const passwordRef = useRef<HTMLInputElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
 
@@ -62,8 +60,6 @@ export function LoginPage() {
       if (apiStatus(error) === 429) {
         throttle.start((error as ApiError).retryAfterSeconds ?? DEFAULT_RETRY_SECONDS)
         setProblem({ kind: 'throttled' })
-      } else if (hasApiKey(error, EMAIL_NOT_VERIFIED_KEY)) {
-        setProblem({ kind: 'unverified' })
       } else {
         // The server never says which field is wrong: the box stays above the form, the password is cleared (5.2).
         setProblem({
@@ -77,16 +73,6 @@ export function LoginPage() {
       window.setTimeout(() => errorRef.current?.focus(), 0)
     } finally {
       setBusy(false)
-    }
-  }
-
-  const resendLink = async () => {
-    try {
-      await registrationApi.resendVerification(email.trim())
-      setResent(true)
-      resend.start(RESEND_SECONDS)
-    } catch (error) {
-      resend.start((error as ApiError).retryAfterSeconds ?? RESEND_SECONDS)
     }
   }
 
@@ -109,26 +95,6 @@ export function LoginPage() {
             ref={errorRef}
             title={t.login.throttled}
             detail={throttle.seconds > 0 ? interpolate(t.login.throttledDetail, { seconds: throttle.seconds }) : t.login.throttledDone}
-          />
-        ) : null}
-        {problem?.kind === 'unverified' ? (
-          <FormErrors
-            ref={errorRef}
-            tone="warning"
-            title={resent ? t.login.resent : t.login.unverified}
-            detail={
-              <span className="grid gap-2">
-                <span>{interpolate(t.login.unverifiedDetail, { email: email.trim() })}</span>
-                <span className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="inverse" disabled={resend.seconds > 0} onClick={() => void resendLink()}>
-                    {resend.seconds > 0 ? `${t.login.resend} · ${formatCountdown(resend.seconds)}` : t.login.resend}
-                  </Button>
-                  <Link className="btn sm" to="/verify-email" state={{ email: email.trim() }}>
-                    {t.login.enterCode}
-                  </Link>
-                </span>
-              </span>
-            }
           />
         ) : null}
         {info && !problem ? <FormErrors tone="info" title={info.title} detail={info.detail} /> : null}

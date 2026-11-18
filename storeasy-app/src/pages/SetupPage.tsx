@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Check, Plug } from 'lucide-react'
+import { EmailVerificationBanner } from '@/components/account/EmailVerificationBanner'
 import { AddConnectionDialog } from '@/components/connections/AddConnectionDialog'
 import { AuthFooter } from '@/components/layout/AuthLayout'
 import { Brand } from '@/components/layout/Logo'
@@ -19,7 +20,7 @@ type StepKey = 'organization' | 'connect' | 'apps'
 
 /**
  * First setup for a user without an organization (design 5.29-5.31): create the organization, connect a store, map the
- * apps. Every step can be skipped; progress is read from the data, not stored. Step 3 waits for the apps API.
+ * apps. Every step can be skipped; progress is read from the data, not stored.
  */
 export function SetupPage() {
   const t = useT()
@@ -49,6 +50,8 @@ export function SetupPage() {
           </span>
         ) : null}
       </header>
+      {/* A new account lands here first; creating the organization waits for the e-mail verification. */}
+      <EmailVerificationBanner />
       <div className="grid flex-1 content-start gap-6 px-4 py-6 sm:gap-10 sm:px-12 sm:py-9 lg:grid-cols-[260px_minmax(0,1fr)]">
         <ol className="m-0 grid list-none grid-cols-3 gap-1 self-start p-0 lg:grid-cols-1" aria-label={t.setup.label}>
           {steps.map((item, position) => (

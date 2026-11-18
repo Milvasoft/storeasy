@@ -3,7 +3,18 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
+using Storeasy.Application.Dtos.AnswerDtos;
 using Storeasy.Application.Dtos.AppDtos;
+using Storeasy.Application.Dtos.ContentDtos;
+using Storeasy.Application.Dtos.ReadinessDtos;
+using Storeasy.Application.Features.Answers.CopySavedAnswers;
+using Storeasy.Application.Features.Answers.GetSavedAnswers;
+using Storeasy.Application.Features.Answers.PlanDataSafety;
+using Storeasy.Application.Features.Answers.UpdateSavedAnswers;
+using Storeasy.Application.Features.Apps.UpdateAppProfile;
+using Storeasy.Application.Features.Readiness.GetAppCompliance;
+using Storeasy.Application.Features.Readiness.GetAppsOverview;
+using Storeasy.Application.Features.Readiness.GetReadiness;
 using Storeasy.Application.Features.Apps.AddGoogleApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
@@ -82,4 +93,80 @@ public class AppsController(IMediator mediator) : ControllerBase
     [HttpPost("sync")]
     [RateLimit(30, 3600, "apps-sync")]
     public Task<Response<List<long>>> SyncAppsAsync(SyncAppsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Sets the app's catalog profile: device families, regions, features, build SDK, target API level (editors and above).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("profile")]
+    public Task<Response<int>> UpdateProfileAsync(UpdateAppProfileCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// What is missing before a submission of the app in one store, read live (any member).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("readiness")]
+    [RateLimit(240, 3600, "apps-readiness")]
+    public Task<Response<ReadinessReportDto>> GetReadinessAsync([FromQuery] GetReadinessQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Every app of the organization with each store's last readiness check and the next deadline; Refresh checks live
+    /// first (any member).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("overview")]
+    [RateLimit(60, 3600, "apps-overview")]
+    public Task<Response<List<AppOverviewDto>>> GetOverviewAsync([FromQuery] GetAppsOverviewQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The app's compliance timeline: catalog deadlines that apply to it, with their state (any member).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("compliance")]
+    public Task<Response<List<ComplianceItemDto>>> GetComplianceAsync([FromQuery] GetAppComplianceQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The app's saved answer documents (any member; the demo password is never returned).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("answers")]
+    public Task<Response<SavedAnswerSetDto>> GetAnswersAsync([FromQuery] GetSavedAnswersQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Writes one saved answer document (editors and above).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("answers")]
+    public Task<Response<int>> UpdateAnswersAsync(UpdateSavedAnswersCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Copies saved answer documents from another app (editors and above; never the demo password).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("answers/copy")]
+    public Task<Response<int>> CopyAnswersAsync(CopySavedAnswersCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Plans sending the Play Data safety form generated from the saved answers (editors and above).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("answers/data-safety")]
+    [RateLimit(60, 3600, "content-plan")]
+    public Task<Response<ChangePlanDto>> PlanDataSafetyAsync(PlanDataSafetyCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 }

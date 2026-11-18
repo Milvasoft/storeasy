@@ -4,6 +4,7 @@ using Milvasoft.DataAccess.EfCore.Configuration;
 using Storeasy.Domain;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
+using Storeasy.Domain.Content;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
 using Storeasy.Domain.MsStore;
@@ -49,6 +50,9 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<App> Apps { get; set; }
     public DbSet<StoreApp> StoreApps { get; set; }
     public DbSet<Build> Builds { get; set; }
+    public DbSet<SavedAnswer> SavedAnswers { get; set; }
+    public DbSet<ChangePlan> ChangePlans { get; set; }
+    public DbSet<AssistedStep> AssistedSteps { get; set; }
     public DbSet<MsProduct> MsProducts { get; set; }
     public DbSet<MsSubmission> MsSubmissions { get; set; }
     public DbSet<MsFlight> MsFlights { get; set; }

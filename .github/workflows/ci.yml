@@ -1,0 +1,135 @@
+# CI for pull requests and pushes (plan K12): tests and builds of every package, the rules catalog, a secret scan and
+# the text rules. Deployment is not done here. Third-party actions are pinned to full commit SHAs (tag in the comment).
+name: ci
+
+on:
+  push:
+    branches: [master, test, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NODE_VERSION: '22'
+
+jobs:
+  api:
+    name: api (build, unit and integration tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: storeasy-api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '11.0.x'
+      - name: Restore
+        run: dotnet restore Storeasy.slnx
+      # The tests are written for Debug (storeasy-api/README.md "Tests"). The build also embeds the rules/ catalog.
+      - name: Build
+        run: dotnet build Storeasy.slnx -c Debug --no-restore
+      - name: Unit tests
+        run: dotnet test --project tests/Storeasy.UnitTests/Storeasy.UnitTests.csproj -c Debug --no-build
+      # Testcontainers starts PostgreSQL and Redis on the runner's Docker engine (preinstalled on ubuntu-latest).
+      - name: Integration tests
+        run: dotnet test --project tests/Storeasy.IntegrationTests/Storeasy.IntegrationTests.csproj -c Debug --no-build
+
+  web:
+    name: web (lint, typecheck, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: storeasy-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: storeasy-app/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  tools:
+    name: tools (lint, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tools
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - run: npm ci
+      # Includes the text rules, the license check and the freshness of the committed action and task bundles.
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Committed bundles match the build
+        run: git diff --exit-code -- upload-action/dist azure-devops-task/StoreasyUploadV1/dist
+
+  rules:
+    name: rules catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: node rules/validate.mjs
+
+  secrets:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # SHA-256 of gitleaks_8.30.1_linux_x64.tar.gz from the release's checksums file.
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the whole history, not only the last commit
+      # The gitleaks CLI instead of gitleaks-action: the action needs a license key for organization repositories.
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf gitleaks.tar.gz gitleaks
+          rm gitleaks.tar.gz
+      - name: Scan the git history
+        run: ./gitleaks git --config .gitleaks.toml --redact --no-banner --verbose .
+
+  text:
+    name: text rules (no em or en dashes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The design folder is excluded: its build script contains the dash pattern it checks for.
+      - name: Check tracked text files
+        run: |
+          if git grep -n -I -P '[\x{2013}\x{2014}]' -- . ':(exclude)docs/storeasy*'; then
+            echo "::error::Em or en dashes found (U+2014, U+2013). Use a colon, a comma, parentheses or a new sentence."
+            exit 1
+          fi
+          echo "No em or en dashes."

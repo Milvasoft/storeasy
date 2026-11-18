@@ -80,6 +80,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeFileStorage FileStorage { get; } = new();
 
     /// <summary>
+    /// App Store Connect and Google Play as the content engine sees them (the store HTTP client's primary handler).
+    /// </summary>
+    public FakeStoreServer Stores { get; } = new();
+
+    /// <summary>
     /// The Microsoft every test host talks to (Entra, both Microsoft Store APIs, blob uploads, installer downloads).
     /// </summary>
     public FakeMicrosoftStore MicrosoftStore { get; } = new();
@@ -152,6 +157,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
+
+            // The content engine talks HTTP to the stores; every call goes to the in-memory fakes.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Stores);
 
             services.RemoveAll<IFileStorage>();
             services.AddSingleton<IFileStorage>(FileStorage);
@@ -263,6 +271,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         [StoreJobsEnabledKey] = "true",
         ["Storeasy:Jobs:PollIntervalMilliseconds"] = "100",
         ["Storeasy:Jobs:RetryBaseDelaySeconds"] = "0",
+        ["Storeasy:Stores:RetryBaseDelayMilliseconds"] = "1",
+        ["Storeasy:Stores:AssetPollIntervalMilliseconds"] = "10",
+        ["Storeasy:Stores:UploadChunkBytes"] = "262144",
         ["Serilog:MinimumLevel:Default"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Warning",

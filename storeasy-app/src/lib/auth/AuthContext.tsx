@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/lib/api/endpoints'
-import { AUTH_LOST_EVENT } from '@/lib/api/http'
+import { API_REFUSAL_EVENT, AUTH_LOST_EVENT, type ApiRefusal } from '@/lib/api/http'
 import { tokenStore, type AuthTokens } from '@/lib/api/tokenStore'
 import { UserType, type LoginResponseDto } from '@/lib/api/types'
 import { removeStorage, StorageKey, writeStorage } from '@/lib/utils/storage'
@@ -14,7 +14,11 @@ export interface CurrentUser {
   name?: string | null
   surname?: string | null
   userType: UserType
+  // False until the e-mail link is opened; null when unknown (the detail call failed). Platform managers count as verified.
+  emailConfirmed: boolean | null
 }
+
+export const EMAIL_NOT_VERIFIED_KEY = 'EmailNotVerified'
 
 type AuthStatus = 'loading' | 'authed' | 'guest'
 
@@ -25,6 +29,8 @@ interface AuthContextValue {
   isManager: boolean
   // True after the http layer ended the session (refresh failed): the sign-in screen says so (design 5.6, 18.16).
   sessionEnded: boolean
+  // Signed in with an e-mail that is not verified yet: organizations and connections are refused (403 EmailNotVerified).
+  needsVerification: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   // Ends the session locally after the API already invalidated it (password changed, account removed).
@@ -60,9 +66,10 @@ async function hydrate(tokens: AuthTokens): Promise<CurrentUser> {
       name: detail.Name,
       surname: detail.Surname,
       userType: tokens.userType,
+      emailConfirmed: tokens.userType === UserType.Manager ? true : (detail.EmailConfirmed ?? null),
     }
   } catch {
-    return { id: tokens.userId, userName: tokens.userName, email: tokens.userName, userType: tokens.userType }
+    return { id: tokens.userId, userName: tokens.userName, email: tokens.userName, userType: tokens.userType, emailConfirmed: null }
   }
 }
 
@@ -151,6 +158,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(AUTH_LOST_EVENT, onLost)
   }, [queryClient])
 
+  // A refusal for an unverified e-mail, whichever screen made the call: the account is not verified (any more), so the
+  // shell shows the verification banner even when the cached detail said otherwise.
+  useEffect(() => {
+    const onRefusal = (event: Event) => {
+      if ((event as CustomEvent<ApiRefusal>).detail?.keys.includes(EMAIL_NOT_VERIFIED_KEY)) {
+        setUser((current) => (current ? { ...current, emailConfirmed: false } : current))
+      }
+    }
+    window.addEventListener(API_REFUSAL_EVENT, onRefusal)
+    return () => window.removeEventListener(API_REFUSAL_EVENT, onRefusal)
+  }, [])
+
   const refreshUser = useCallback(async () => {
     const stored = tokenStore.get()
     if (!stored) {
@@ -160,7 +179,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, isManager: user?.userType === UserType.Manager, sessionEnded, login, logout, endSession, refreshUser }),
+    () => ({
+      status,
+      user,
+      isManager: user?.userType === UserType.Manager,
+      sessionEnded,
+      needsVerification: status === 'authed' && user?.emailConfirmed === false,
+      login,
+      logout,
+      endSession,
+      refreshUser,
+    }),
     [status, user, sessionEnded, login, logout, endSession, refreshUser],
   )
 

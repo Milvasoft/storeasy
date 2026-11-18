@@ -14,6 +14,12 @@ public enum StoreJobKind : short
     SyncApps = 1,
 
     /// <summary>
+    /// Applies an approved change plan to a store.
+    /// </summary>
+    [Description("Apply a change plan")]
+    ApplyChangePlan = 2,
+
+    /// <summary>
     /// Reads the Microsoft Store products of one connection: MSIX apps, MSI/EXE products, submissions and their status,
     /// package flights, add-ons and installer packages.
     /// </summary>

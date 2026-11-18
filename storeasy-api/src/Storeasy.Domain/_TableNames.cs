@@ -29,6 +29,9 @@ public static class TableNames
     public const string Apps = nameof(Apps);
     public const string StoreApps = nameof(StoreApps);
     public const string Builds = nameof(Builds);
+    public const string SavedAnswers = nameof(SavedAnswers);
+    public const string ChangePlans = nameof(ChangePlans);
+    public const string AssistedSteps = nameof(AssistedSteps);
     public const string MsProducts = nameof(MsProducts);
     public const string MsSubmissions = nameof(MsSubmissions);
     public const string MsFlights = nameof(MsFlights);

@@ -6,7 +6,8 @@ import { VerifyEmailPage, VerifyEmailTokenPage } from '@/pages/auth/VerifyEmailP
 import { endpoint, errorResponse } from '../../support/handlers'
 import { renderWithProviders } from '../../support/render'
 import { server } from '../../support/server'
-import { lastRequestTo, requestsTo } from '../../support/state'
+import { accountDetail } from '../../support/factories'
+import { lastRequestTo, requestsTo, testState } from '../../support/state'
 
 describe('ForgotPasswordPage', () => {
   it('sends the address and says "if there is an account", then counts down the resend', async () => {
@@ -46,7 +47,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('shows the single "link no longer works" state for an invalid token', async () => {
-    server.use(endpoint('post', '/Account/password/reset', () => errorResponse('ResetTokenInvalid', 'Geçersiz.', 400)))
+    server.use(endpoint('post', '/Account/password/reset', () => errorResponse('AccountTokenInvalid', 'Geçersiz.', 400)))
     const { user } = renderWithProviders(<ResetPasswordPage />, { authed: false, route: '/reset-password?token=old' })
 
     await user.type(screen.getByLabelText('Yeni şifre'), 'Kuzey!2026')
@@ -66,21 +67,68 @@ describe('VerifyEmail pages', () => {
     expect(lastRequestTo('/Account/email/verify')?.body).toEqual({ Token: 'abc' })
   })
 
-  it('offers a new link when the token expired', async () => {
-    server.use(endpoint('post', '/Account/email/verify', () => errorResponse('VerificationTokenExpired', 'Süresi dolmuş.', 400)))
+  it('asks a signed-out visitor to sign in for a new link when the token no longer works', async () => {
+    server.use(endpoint('post', '/Account/email/verify', () => errorResponse('AccountTokenInvalid', 'Geçersiz bağlantı.', 400)))
     renderWithProviders(<VerifyEmailTokenPage />, { authed: false, route: '/verify-email/old', path: '/verify-email/:token' })
 
-    expect(await screen.findByRole('heading', { name: 'Bağlantının süresi dolmuş' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Yeni bağlantı gönder' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Bu bağlantı artık geçerli değil' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Yeni bağlantı için giriş yap' })).toHaveAttribute('href', '/login')
   })
 
-  it('resends the link to the address it came with', async () => {
-    const { user } = renderWithProviders(<VerifyEmailPage />, { authed: false, route: '/verify-email?email=deniz%40kuzeylab.dev' })
+  it('sends a new link to the signed-in account when the token no longer works', async () => {
+    server.use(endpoint('post', '/Account/email/verify', () => errorResponse('AccountTokenInvalid', 'Geçersiz bağlantı.', 400)))
+    const { user } = renderWithProviders(<VerifyEmailTokenPage />, {
+      route: '/verify-email/old',
+      path: '/verify-email/:token',
+      needsOrganization: false,
+    })
 
-    await user.click(screen.getByRole('button', { name: 'Yeniden gönder' }))
+    await user.click(await screen.findByRole('button', { name: 'Yeni bağlantı gönder' }))
 
     expect(await screen.findByText('Yeni bağlantıyı gönderdik. Öncekisi artık çalışmaz.')).toBeInTheDocument()
-    expect(lastRequestTo('/Account/email/verify/resend')?.body).toEqual({ Email: 'deniz@kuzeylab.dev' })
+    expect(lastRequestTo('/Account/email/verify/resend')?.body).toEqual({})
+    expect(lastRequestTo('/Account/email/verify/resend')?.headers.authorization).toBe('Bearer access-token')
+  })
+
+  it('reads the account again after a signed-in tab verified the link', async () => {
+    renderWithProviders(<VerifyEmailTokenPage />, { route: '/verify-email/abc', path: '/verify-email/:token', needsOrganization: false })
+
+    expect(await screen.findByText('Hesabın hazır. Artık organizasyon kurabilir ve mağaza bağlayabilirsin.')).toBeInTheDocument()
+    await waitFor(() => expect(requestsTo('/Account/detail').length).toBeGreaterThan(1))
+  })
+
+  it('resends the link for the signed-in account and counts down', async () => {
+    testState.account = accountDetail({ EmailConfirmed: false })
+    const { user } = renderWithProviders(<VerifyEmailPage />, { route: '/verify-email', needsOrganization: false })
+
+    await user.click(await screen.findByRole('button', { name: 'Yeniden gönder' }))
+
+    expect(await screen.findByText('Yeni bağlantıyı gönderdik. Öncekisi artık çalışmaz.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Yeniden gönder · 1:00/ })).toBeDisabled()
+    expect(screen.getByText('deniz@kuzeylab.dev')).toBeInTheDocument()
+  })
+
+  it('treats a 409 on resend as already verified', async () => {
+    testState.account = accountDetail({ EmailConfirmed: false })
+    server.use(
+      endpoint('post', '/Account/email/verify/resend', () => {
+        // The link was opened in another tab meanwhile.
+        testState.account = accountDetail({ EmailConfirmed: true })
+        return errorResponse('EmailAlreadyVerified', 'Zaten doğrulandı.', 409)
+      }),
+    )
+    const { user } = renderWithProviders(<VerifyEmailPage />, { route: '/verify-email', needsOrganization: false })
+
+    await user.click(await screen.findByRole('button', { name: 'Yeniden gönder' }))
+
+    expect(await screen.findByRole('heading', { name: 'E-postan doğrulandı' })).toBeInTheDocument()
+  })
+
+  it('asks a signed-out visitor to sign in before resending', () => {
+    renderWithProviders(<VerifyEmailPage />, { authed: false, route: '/verify-email' })
+
+    expect(screen.getByRole('link', { name: 'Yeni bağlantı için giriş yap' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Yeniden gönder' })).not.toBeInTheDocument()
   })
 })
 

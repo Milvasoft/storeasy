@@ -15,12 +15,13 @@ async function fill(user: ReturnType<typeof renderWithProviders>['user'], passwo
 }
 
 describe('RegisterPage', () => {
-  it('sends the planned register contract with the invitation token and goes to "check your e-mail"', async () => {
+  it('registers with the invitation token, signs in and goes to "check your e-mail"', async () => {
     const { user } = renderWithProviders(<RegisterPage />, { authed: false, route: '/register?invite=tok-1' })
 
     await fill(user)
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/verify-email'))
+    expect(lastRequestTo('/Account/login')?.body).toMatchObject({ UserName: 'deniz@kuzeylab.dev', Password: 'Kuzey!2026' })
     expect(lastRequestTo('/Account/register')?.body).toEqual({
       Email: 'deniz@kuzeylab.dev',
       Name: 'Deniz',
@@ -28,6 +29,26 @@ describe('RegisterPage', () => {
       Password: 'Kuzey!2026',
       InvitationToken: 'tok-1',
     })
+  })
+
+  it('sends no surname when it is left empty (the API takes it as optional)', async () => {
+    const { user } = renderWithProviders(<RegisterPage />, { authed: false, route: '/register' })
+
+    await user.type(screen.getByLabelText('Ad'), 'Deniz')
+    await user.type(screen.getByLabelText('E-posta'), 'deniz@kuzeylab.dev')
+    await user.type(screen.getByLabelText('Şifre'), 'Kuzey!2026')
+    await user.click(screen.getByRole('button', { name: 'Hesap oluştur' }))
+
+    await waitFor(() => expect(lastRequestTo('/Account/register')?.body).toMatchObject({ Surname: null, InvitationToken: null }))
+  })
+
+  it('leaves the user on sign-in when the automatic sign-in fails after registering', async () => {
+    server.use(endpoint('post', '/Account/login', () => errorResponse('TooManyRequests', 'Çok fazla deneme.', 429)))
+    const { user } = renderWithProviders(<RegisterPage />, { authed: false, route: '/register' })
+
+    await fill(user)
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/login$/))
   })
 
   it('shows the password rules live and refuses a weak password before sending', async () => {
@@ -41,7 +62,7 @@ describe('RegisterPage', () => {
   })
 
   it('marks the e-mail and offers sign-in when the address already has an account (409)', async () => {
-    server.use(endpoint('post', '/Account/register', () => errorResponse('EmailExists', 'Bu e-posta kayıtlı.', 409)))
+    server.use(endpoint('post', '/Account/register', () => errorResponse('User.ExistWithSameEmail', 'Bu e-posta kayıtlı.', 409)))
     const { user } = renderWithProviders(<RegisterPage />, { authed: false, route: '/register' })
 
     await fill(user)
@@ -76,7 +97,7 @@ describe('RegisterPage', () => {
   })
 
   it('shows the invite-only state when the installation refuses open sign-up', async () => {
-    server.use(endpoint('post', '/Account/register', () => errorResponse('RegistrationInviteOnly', 'Yalnız davetle.', 403)))
+    server.use(endpoint('post', '/Account/register', () => errorResponse('RegistrationInvitationRequired', 'Yalnız davetle.', 403)))
     const { user } = renderWithProviders(<RegisterPage />, { authed: false, route: '/register' })
 
     await fill(user)

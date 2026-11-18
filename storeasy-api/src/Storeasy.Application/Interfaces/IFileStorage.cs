@@ -1,7 +1,7 @@
 ﻿namespace Storeasy.Application.Interfaces;
 
 /// <summary>
-/// The private S3 compatible bucket (S3, or MinIO for self-host). Clients never get bucket credentials: they upload and
+/// The private S3 compatible bucket (S3, or SeaweedFS for self-host). Clients never get bucket credentials: they upload and
 /// download with short lived presigned URLs, large files (CI artifacts) with presigned multipart uploads. URL creation
 /// makes no network call; the other methods call the storage and throw when it fails.
 /// </summary>
@@ -84,6 +84,14 @@ public interface IFileStorage
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task DeleteAsync(string key, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Opens an object for reading (the store engine streams assets to the stores). Throws when there is no such object.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken);
 }
 
 /// <summary>

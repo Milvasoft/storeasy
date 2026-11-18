@@ -30,6 +30,14 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.connectionRemoved
     case AuditAction.ConnectionVerified:
       return t.enums.auditAction.connectionVerified
+    case AuditAction.JobCancelled:
+      return t.enums.auditAction.jobCancelled
+    case AuditAction.AppAdded:
+      return t.enums.auditAction.appAdded
+    case AuditAction.StoreAppLinked:
+      return t.enums.auditAction.storeAppLinked
+    case AuditAction.StoreAppUnlinked:
+      return t.enums.auditAction.storeAppUnlinked
     default:
       return String(action)
   }
@@ -43,6 +51,8 @@ export function channelLabel(channel: ActionChannel, t: Dictionary): string {
       return t.enums.channel.mcp
     case ActionChannel.Api:
       return t.enums.channel.api
+    case ActionChannel.Ci:
+      return t.enums.channel.ci
     default:
       return t.enums.channel.system
   }
