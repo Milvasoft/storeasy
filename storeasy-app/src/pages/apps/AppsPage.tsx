@@ -20,6 +20,8 @@ import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
+import { AddMsProductDialog } from '@/features/microsoft/AddMsProductDialog'
+import { useMs } from '@/features/microsoft/i18n/useMs'
 
 const DEFAULT_PAGE_SIZE = 20
 const SEARCH_DELAY_MS = 400
@@ -135,6 +137,7 @@ function StoreCell({ app, store }: { app: AppListDto; store: StoreKind }) {
  */
 export function AppsPage() {
   const t = useT()
+  const tm = useMs()
   const format = useFormat()
   const navigate = useNavigate()
   const organization = useCurrentOrganization()
@@ -145,6 +148,7 @@ export function AppsPage() {
   const storeFilter = STORE_PARAM[params.get('store') ?? ''] ?? null
   const [search, setSearch] = useState(params.get('q') ?? '')
   const [adding, setAdding] = useState(false)
+  const [addingMs, setAddingMs] = useState(false)
   const running = useRunningApps()
   const sync = useSyncApps()
   const editor = can(OrgPermission.EditContent)
@@ -257,6 +261,10 @@ export function AppsPage() {
                 <Plus aria-hidden />
                 {t.apps.addGoogle}
               </Button>
+              <Button onClick={() => setAddingMs(true)}>
+                <Plus aria-hidden />
+                {tm.addProduct.open}
+              </Button>
               <Button variant="primary" loading={sync.isPending} disabled={noConnections} onClick={() => sync.mutate(null)}>
                 <RefreshCw aria-hidden />
                 {t.apps.sync}
@@ -329,6 +337,7 @@ export function AppsPage() {
                 {t.apps.sync}
               </Button>
               <Button onClick={() => setAdding(true)}>{t.apps.addGoogle}</Button>
+              <Button onClick={() => setAddingMs(true)}>{tm.addProduct.open}</Button>
             </>
           ) : undefined
         }
@@ -397,7 +406,10 @@ export function AppsPage() {
       </div>
       {body}
       {editor ? (
-        <AddGoogleAppDialog open={adding} onClose={() => setAdding(false)} onAdded={(appId) => navigate(`/apps/${appId}`)} />
+        <>
+          <AddGoogleAppDialog open={adding} onClose={() => setAdding(false)} onAdded={(appId) => navigate(`/apps/${appId}`)} />
+          <AddMsProductDialog open={addingMs} onClose={() => setAddingMs(false)} onAdded={(appId) => navigate(`/apps/${appId}`)} />
+        </>
       ) : null}
     </>
   )

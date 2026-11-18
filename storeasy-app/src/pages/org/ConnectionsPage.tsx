@@ -17,9 +17,20 @@ import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationC
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { cn } from '@/lib/utils/cn'
+import {
+  MsExpiringBanner,
+  MsFingerprint,
+  RenewSecretButton,
+  RenewSecretDialog,
+  SecretExpiryBadge,
+  secretExpiring,
+} from '@/features/microsoft/connections'
 
 function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   const t = useT()
+  if (connection.Store === StoreKind.Microsoft) {
+    return <MsFingerprint connection={connection} />
+  }
   const fingerprint = connection.Fingerprint ?? {}
   const rows: Array<[string, string | null | undefined]> =
     connection.Store === StoreKind.Apple
@@ -43,7 +54,15 @@ function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   )
 }
 
-function ConnectionCard({ connection, organizationId }: { connection: StoreConnectionDto; organizationId: number }) {
+function ConnectionCard({
+  connection,
+  organizationId,
+  onRenew,
+}: {
+  connection: StoreConnectionDto
+  organizationId: number
+  onRenew: (connection: StoreConnectionDto) => void
+}) {
   const t = useT()
   const format = useFormat()
   const confirm = useConfirm()
@@ -90,13 +109,14 @@ function ConnectionCard({ connection, organizationId }: { connection: StoreConne
       className={cn(
         'card flex flex-col',
         connection.Status === ConnectionStatus.Rejected && 'dng',
-        connection.Status === ConnectionStatus.Unreachable && 'warn',
+        (connection.Status === ConnectionStatus.Unreachable || secretExpiring(connection)) && 'warn',
       )}
       aria-label={connection.Name}
     >
       <div className="card-h">
         <StoreTag store={connection.Store} />
         <h2 className="h3 min-w-0 flex-1 truncate">{connection.Name}</h2>
+        <SecretExpiryBadge connection={connection} />
         <ConnectionStatusBadge status={connection.Status} verifying={verify.isPending} />
       </div>
       <div className="card-b grid flex-1 gap-3">
@@ -115,6 +135,7 @@ function ConnectionCard({ connection, organizationId }: { connection: StoreConne
           <RefreshCw aria-hidden />
           {t.connections.verify}
         </Button>
+        {connection.Store === StoreKind.Microsoft ? <RenewSecretButton onClick={() => onRenew(connection)} /> : null}
         <Button size="sm" variant="danger-outline" className="ml-auto" loading={remove.isPending} onClick={() => void askRemove()}>
           <Trash2 aria-hidden />
           {t.connections.remove}
@@ -152,6 +173,7 @@ export function ConnectionsPage() {
   const organization = useCurrentOrganization()
   const { can } = useOrganization()
   const [adding, setAdding] = useState(false)
+  const [renewing, setRenewing] = useState<StoreConnectionDto | null>(null)
   const allowed = can(OrgPermission.ManageConnections)
 
   const connections = useQuery({
@@ -187,6 +209,11 @@ export function ConnectionsPage() {
   return (
     <>
       <PageHeader title={t.connections.title} subtitle={t.connections.subtitle} actions={list.length > 0 ? addButton : undefined} />
+      <MsExpiringBanner
+        organizationId={organization.Id}
+        enabled={list.some((connection) => connection.Store === StoreKind.Microsoft)}
+        onRenew={(connectionId) => setRenewing(list.find((connection) => connection.Id === connectionId) ?? null)}
+      />
       {connections.isLoading ? (
         <CardSkeleton />
       ) : connections.isError ? (
@@ -198,11 +225,12 @@ export function ConnectionsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((connection) => (
-            <ConnectionCard key={connection.Id} connection={connection} organizationId={organization.Id} />
+            <ConnectionCard key={connection.Id} connection={connection} organizationId={organization.Id} onRenew={setRenewing} />
           ))}
         </div>
       )}
       <AddConnectionDialog open={adding} onClose={() => setAdding(false)} organizationId={organization.Id} />
+      <RenewSecretDialog key={renewing?.Id ?? 0} connection={renewing} organizationId={organization.Id} onClose={() => setRenewing(null)} />
     </>
   )
 }

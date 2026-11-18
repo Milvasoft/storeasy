@@ -124,8 +124,11 @@ export const organizationsApi = {
 export interface AddConnectionInput {
   Store: StoreKind
   Name: string
-  // Apple: JSON {"issuerId","keyId","privateKey"}; Google: the service account JSON file content. Never comes back.
+  // Apple: JSON {"issuerId","keyId","privateKey"}; Google: the service account JSON file content; Microsoft: JSON
+  // {"tenantId","clientId","clientSecret","sellerId"}. Never comes back.
   Secret: string
+  // Microsoft only, required: when the Entra client secret expires (at most 24 months away).
+  CredentialExpiryDate?: string | null
 }
 
 export const connectionsApi = {

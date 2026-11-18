@@ -365,7 +365,11 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
           { value: 'overview', label: t.app.overview, to: `/apps/${data.Id}` },
           { value: 'builds', label: t.app.builds, to: `/apps/${data.Id}/builds`, count: (data.Builds ?? []).length },
           { value: 'jobs', label: t.app.jobs, to: `/apps/${data.Id}/jobs` },
-          ...workspaceTabs(data.Id, p2),
+          ...workspaceTabs(
+            data.Id,
+            p2,
+            (data.Stores ?? []).map((record) => record.Store),
+          ),
         ]}
       />
       {tab === 'overview' ? <Overview app={data} connections={connections.data ?? []} started={started} /> : null}

@@ -52,7 +52,6 @@ export const OrgPermission = {
 } as const
 export type OrgPermission = (typeof OrgPermission)[keyof typeof OrgPermission]
 
-// Microsoft is planned (design 14.7, backend gap); the client already knows the value the API will use.
 export const StoreKind = { Apple: 1, Google: 2, Microsoft: 3 } as const
 export type StoreKind = (typeof StoreKind)[keyof typeof StoreKind]
 
@@ -198,6 +197,11 @@ export interface ConnectionFingerprint {
   IssuerIdSuffix?: string | null
   ServiceAccountEmail?: string | null
   ProjectId?: string | null
+  // Microsoft: last 4 characters of the Entra tenant and client ids, the Partner Center seller id, the secret's expiry.
+  TenantIdSuffix?: string | null
+  ClientIdSuffix?: string | null
+  SellerId?: string | null
+  SecretExpiryDate?: IsoDateTime | null
 }
 
 export interface StoreConnectionDto {
@@ -208,6 +212,8 @@ export interface StoreConnectionDto {
   Status: ConnectionStatus
   LastVerifiedDate?: IsoDateTime | null
   LastVerifyError?: string | null
+  // When the secret expires (Microsoft Entra client secrets); null for stores whose secrets do not expire.
+  CredentialExpiryDate?: IsoDateTime | null
   CreationDate?: IsoDateTime | null
 }
 

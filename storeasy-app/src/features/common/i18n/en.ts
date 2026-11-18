@@ -11,6 +11,7 @@ export const p2en = {
     assisted: 'Assisted steps',
     compliance: 'Compliance',
     profile: 'Profile',
+    microsoft: 'Microsoft Store',
     store: 'Store',
     noRecord: 'This app has no {store} record.',
     notForStore: 'This part is not available for {store}.',
@@ -576,6 +577,7 @@ export const p2en = {
       bundleUpload: 'Bundle upload',
       dataSafety: 'Data safety',
       submitForReview: 'Submit for review',
+      msChange: 'Microsoft Store change',
     },
     assistedStatus: { todo: 'To do', inProgress: 'In progress', handedOff: 'Handed off', done: 'Done', skipped: 'Not needed' },
     permission: {
