@@ -103,7 +103,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 |---|---|---|
 | `storeasy-api` | .NET 10, Milvonion şablonu, PostgreSQL 17, Redis 7 | REST API, kimlik, organizasyon ve roller, mağaza motoru, iş kuyruğu, SignalR, webhook alıcısı, uzaktan MCP, mockup render |
 | `storeasy-app` | React 18, Vite, React Query, Tailwind 3 (02 standardı) | Web arayüzü, canlı aktivite animasyonları, stüdyo editörü |
-| Nesne depolama | S3 uyumlu (self-host'ta MinIO) | Ham görüntüler, mockup çıktıları, AAB'ler (geçici) |
+| Nesne depolama | S3 uyumlu (self-host'ta SeaweedFS) | Ham görüntüler, mockup çıktıları, AAB'ler (geçici) |
 | `storeasy-mcp` | Node (store-ops'tan türetilmiş küçük köprü) | Yerel stdio MCP -> uzak `/mcp` |
 
 ### 4.2 Kararlar ve gerekçeleri
@@ -185,7 +185,7 @@ mağaza işi storeasy'de ve MCP'de olmalı. API'si olmayan iş de storeasy'nin i
 
 | Faz | İçerik | Bitti sayılır |
 |---|---|---|
-| 1. Temel | Repo, API, kayıt ve giriş, organizasyon, roller, davet, şifreli bağlantılar, denetim kaydı (yapıldı); `StoreJob` kuyruğu, SignalR olayları, S3 (MinIO yerelde, presigned), mağazadan uygulama ve build senkronu, kural kataloğu v1 (bölüm 12); web: tasarım, kabuk, giriş, uygulamalar, bağlantılar, üyeler, denetim kaydı | Yerelde bağlantı ekleme, uygulamaların iki mağazadan gelmesi |
+| 1. Temel | Repo, API, kayıt ve giriş, organizasyon, roller, davet, şifreli bağlantılar, denetim kaydı (yapıldı); `StoreJob` kuyruğu, SignalR olayları, S3 (SeaweedFS yerelde, presigned), mağazadan uygulama ve build senkronu, kural kataloğu v1 (bölüm 12); web: tasarım, kabuk, giriş, uygulamalar, bağlantılar, üyeler, denetim kaydı | Yerelde bağlantı ekleme, uygulamaların iki mağazadan gelmesi |
 | 2. Hazırlık ve içerik | Hazırlık kontrolü (11.1) ve uygulama başına kayıtlı cevaplar; metinler ve kategoriler, yaş derecelendirmesi (yeni sorular dahil), fiyat ve bölgeler, ekran görüntüsü ve önizleme setleri (kataloğa göre zorunlu, yedekle karşılanan, eksik), build izleme ve bağlama, ihracat uyumu, inceleme bilgileri, yayın türü ve aşamalı yayın, incelemeye gönderme (onaylı); Play: uygulama ayrıntıları, listeler, görseller, track ve sürüm, aşamalı yayın, ülkeler, test kullanıcıları, AAB, Data safety; canlı aktivite görünümü | Sousial ve Crewhall için "eksik ne var" tek çağrıda doğru cevap; Sousial iPad seti storeasy'den yüklenir |
 | 3. MCP ve paket alma | PAT, `/mcp`, CI'dan paket alma (bölüm 11.8: OIDC güvenilir yayıncı, CI token'ı, CLI, GitHub Action, Azure DevOps görevi, EAS webhook'u), matristeki her API satırı için araç (yazmalar dry run + onay), tüm uygulamaların özeti tek çağrı, `storeasy-mcp` yerel köprüsü (yerel dosya yolları ve klasörler) | Bir Claude oturumu store-ops yerine storeasy ile Sousial işini baştan sona yapar; bir GitHub Actions çalışması sır saklamadan AAB'yi internal track'e gönderir |
 | 4. Olaylar ve takip | Webhook alıcısı, bildirimler, red akışı (11.3), yorum kutuları (Apple ve Play, yanıt), TestFlight (gruplar, test kullanıcıları, beta metinleri, beta inceleme, build bitiş tarihleri), kural izleyici ve uygulama başına uyum zaman çizelgesi (bölüm 12) | Gerçek bir red bildirime ve red kaydına düşer; Expenny ve Perry'nin TestFlight bitiş tarihleri görünür |
@@ -237,7 +237,7 @@ onayıyla.
 | Domain | Buğra kararı: `storeasy.milvasoft.com`, test `t-storeasy.milvasoft.com`. API aynı host'ta `/api`, SignalR `/hubs`, MCP `/mcp` (web konteynerindeki nginx API'ye yönlendirir). Gerekçe: Cloudflare'in ücretsiz sertifikası iki seviyeli alt alanı (`api.storeasy.milvasoft.com`) kapsamaz; tek origin CORS ve cookie sorununu da kaldırır. 07'deki `api.`/`app.` düzeninden sapma |
 | PostgreSQL | Paylaşılan instance, kendi rolü ve `StoreasyDb` (prod'da `TEMPLATE template0`) |
 | Redis | Paylaşılan instance, anahtar öneki `storeasy:` |
-| Depolama | Onaylandı: `storeasy-s3-{test,prod}-bucket`, eu-central-1, herkese kapalı, CloudFront yok; okuma ve yazma presigned URL ile. Ayarlar `Storage__S3__Bucket`, `Region`, `AccessKey`, `SecretKey`, isteğe bağlı `ServiceUrl` (MinIO, ForcePathStyle). Bucket'lar kuruldu (SSE-S3, CORS doğrulandı); erişim anahtarları deploy zamanı |
+| Depolama | Onaylandı: `storeasy-s3-{test,prod}-bucket`, eu-central-1, herkese kapalı, CloudFront yok; okuma ve yazma presigned URL ile. Ayarlar `Storage__S3__Bucket`, `Region`, `AccessKey`, `SecretKey`, isteğe bağlı `ServiceUrl` (SeaweedFS, ForcePathStyle). Bucket'lar kuruldu (SSE-S3, CORS doğrulandı); erişim anahtarları deploy zamanı |
 | Mail | Notifike (Milvasoft barındırması), yanında SMTP uygulaması (self-host) |
 | CI/CD | GitHub Actions: test ve PR kontrolleri. Azure DevOps: yalnız imaj derleme ve Dokploy deploy'u. Dallar `master`, `test`, `dev` |
 | Sırlar | Azure DevOps variable group (`storeasy-test`, `storeasy-prod`); ana anahtar sürümlü (K6 zaten öyle), yedeği ayrı saklanır |

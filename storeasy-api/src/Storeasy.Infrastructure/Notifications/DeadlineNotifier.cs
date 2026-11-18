@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Storeasy.Application.Dtos.NotificationDtos;
+using Storeasy.Application.Dtos.ReadinessDtos;
+using Storeasy.Application.Utils.Content;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Notifications;
+using Storeasy.Domain.Organizations;
 using System.Globalization;
 
 namespace Storeasy.Infrastructure.Notifications;
@@ -16,14 +19,18 @@ namespace Storeasy.Infrastructure.Notifications;
 /// the notifications go out, so two runs never send one twice (unique subject and threshold).
 /// </summary>
 /// <param name="buildRepository"></param>
-/// <param name="appRepository"></param>
 /// <param name="reminderRepository"></param>
-/// <param name="catalogSource"></param>
+/// <param name="organizationRepository"></param>
+/// <param name="contentService"></param>
+/// <param name="readinessService"></param>
+/// <param name="rulesCatalog"></param>
 /// <param name="notificationDispatcher"></param>
 public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildRepository,
-                                     IStoreasyRepositoryBase<App> appRepository,
                                      IStoreasyRepositoryBase<DeadlineReminder> reminderRepository,
-                                     IRulesCatalogSource catalogSource,
+                                     IStoreasyRepositoryBase<Organization> organizationRepository,
+                                     IStoreContentService contentService,
+                                     IReadinessService readinessService,
+                                     IRulesCatalog rulesCatalog,
                                      INotificationDispatcher notificationDispatcher) : IDeadlineNotifier
 {
     /// <summary>
@@ -37,9 +44,11 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
     public static readonly int[] ComplianceThresholds = [30, 7, 1];
 
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
-    private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<DeadlineReminder> _reminderRepository = reminderRepository;
-    private readonly IRulesCatalogSource _catalogSource = catalogSource;
+    private readonly IStoreasyRepositoryBase<Organization> _organizationRepository = organizationRepository;
+    private readonly IStoreContentService _contentService = contentService;
+    private readonly IReadinessService _readinessService = readinessService;
+    private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
 
     /// <inheritdoc/>
@@ -72,38 +81,53 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
     /// <inheritdoc/>
     public async Task<int> NotifyComplianceDeadlinesAsync(DateTime now, CancellationToken cancellationToken)
     {
-        var apps = await _appRepository.GetAllAsync(a => !a.IsDeleted && a.StoreApps.Any(),
-                                                    projection: a => new { a.Id, a.OrganizationId, a.Name, Stores = a.StoreApps.Select(s => s.Store).ToList() },
-                                                    cancellationToken: cancellationToken);
+        var catalog = _rulesCatalog.Current;
 
-        if (apps.Count == 0)
+        if (catalog == null)
             return 0;
 
-        var contexts = apps.Select(a => new CatalogAppContext(a.Id, a.OrganizationId, a.Name, a.Stores)).ToList();
-        var deadlines = await _catalogSource.GetDeadlinesAsync(contexts, now, now.AddDays(ComplianceThresholds.Max()), cancellationToken);
-        var byId = apps.ToDictionary(a => a.Id);
+        var today = DateOnly.FromDateTime(now);
+        var horizon = today.AddDays(ComplianceThresholds.Max());
+        var language = CultureInfo.CurrentUICulture.Name;
+        var organizations = await _organizationRepository.GetAllAsync(o => !o.IsDeleted, projection: o => new Organization { Id = o.Id }, cancellationToken: cancellationToken);
+        var due = new List<Reminder>();
 
-        var due = deadlines.Where(d => byId.ContainsKey(d.AppId) && d.DueDate > now).Select(d =>
+        foreach (var organization in organizations)
         {
-            var app = byId[d.AppId];
+            var records = await _contentService.GetStoreAppsAsync(organization.Id, null, cancellationToken);
 
-            return new Reminder(app.OrganizationId, $"rule:{d.RuleId}:app:{d.AppId}:{d.DueDate:yyyyMMdd}", d.DueDate, new OrgNotification
-            {
-                OrganizationId = app.OrganizationId,
-                Kind = NotificationType.Deadline,
-                Roles = NotificationAudiences.OwnersAndAdmins,
-                TextKey = MessageKey.NotificationComplianceDeadline,
-                TextArgs = [app.Name, d.Title, d.DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), DaysLeft(d.DueDate, now)],
-                Data = new { appId = d.AppId, ruleId = d.RuleId, store = d.Store.ToString(), dueDate = d.DueDate, d.SourceUrl, d.MatchReason, daysLeft = DaysLeft(d.DueDate, now) },
-                AppId = d.AppId,
-                RelatedEntity = NotificationEntity.Rule,
-                RelatedEntityId = d.RuleId,
-                ActionLink = $"/apps/{d.AppId}/compliance",
-                WebhookEventType = OrgWebhookEventTypes.ComplianceDeadline,
-            });
-        }).ToList();
+            if (records.Count == 0)
+                continue;
+
+            var steps = await _readinessService.GetStepsAsync(organization.Id, null, cancellationToken);
+
+            var items = records.SelectMany(r => ComplianceTimeline.Evaluate(r, _contentService.Subject(r, null), catalog, steps.GetValueOrDefault((r.AppId, r.Store)) ?? [], today, language))
+                               .Where(i => i.DueDate > today && i.DueDate <= horizon && i.Status != ComplianceStatus.Done);
+
+            due.AddRange(items.Select(i => ComplianceReminder(organization.Id, i, now)));
+        }
 
         return await SendAsync(due, ComplianceThresholds, now, cancellationToken);
+    }
+
+    private static Reminder ComplianceReminder(int organizationId, ComplianceItemDto item, DateTime now)
+    {
+        var dueDate = item.DueDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        return new Reminder(organizationId, $"rule:{item.RuleId}:app:{item.AppId}:{dueDate:yyyyMMdd}", dueDate, new OrgNotification
+        {
+            OrganizationId = organizationId,
+            Kind = NotificationType.Deadline,
+            Roles = NotificationAudiences.OwnersAndAdmins,
+            TextKey = MessageKey.NotificationComplianceDeadline,
+            TextArgs = [item.AppName, item.Title, dueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), DaysLeft(dueDate, now)],
+            Data = new { appId = item.AppId, ruleId = item.RuleId, store = item.Store.ToString(), dueDate, item.SourceUrl, item.MatchReason, status = item.Status.ToString(), daysLeft = DaysLeft(dueDate, now) },
+            AppId = item.AppId,
+            RelatedEntity = NotificationEntity.Rule,
+            RelatedEntityId = item.RuleId,
+            ActionLink = $"/apps/{item.AppId}/compliance",
+            WebhookEventType = OrgWebhookEventTypes.ComplianceDeadline,
+        });
     }
 
     private async Task<int> SendAsync(List<Reminder> due, int[] thresholds, DateTime now, CancellationToken cancellationToken)

@@ -15,20 +15,23 @@ namespace Storeasy.Application.Features.RuleWatcher.ApproveRuleProposal;
 /// get one success and one conflict.
 /// </summary>
 /// <param name="ProposalRepository"></param>
-/// <param name="CatalogSource"></param>
+/// <param name="RulesCatalog"></param>
+/// <param name="ImpactFinder"></param>
 /// <param name="NotificationDispatcher"></param>
 /// <param name="CurrentUser"></param>
 /// <param name="TimeProvider"></param>
 [Log]
 [UserActivityTrack(UserActivity.ApproveRuleProposal)]
 public record ApproveRuleProposalCommandHandler(IStoreasyRepositoryBase<RuleProposal> ProposalRepository,
-                                               IRulesCatalogSource CatalogSource,
+                                               IRulesCatalog RulesCatalog,
+                                               IRuleImpactFinder ImpactFinder,
                                                INotificationDispatcher NotificationDispatcher,
                                                ICurrentUser CurrentUser,
                                                TimeProvider TimeProvider) : IInterceptable, ICommandHandler<ApproveRuleProposalCommand, RuleProposalDecisionDto>
 {
     private readonly IStoreasyRepositoryBase<RuleProposal> _proposalRepository = ProposalRepository;
-    private readonly IRulesCatalogSource _catalogSource = CatalogSource;
+    private readonly IRulesCatalog _rulesCatalog = RulesCatalog;
+    private readonly IRuleImpactFinder _impactFinder = ImpactFinder;
     private readonly INotificationDispatcher _notificationDispatcher = NotificationDispatcher;
     private readonly ICurrentUser _currentUser = CurrentUser;
     private readonly TimeProvider _timeProvider = TimeProvider;
@@ -56,14 +59,16 @@ public record ApproveRuleProposalCommandHandler(IStoreasyRepositoryBase<RuleProp
             return Response<RuleProposalDecisionDto>.Error(null, MessageKey.RuleProposalDecided);
 
         var ruleIds = proposal.RuleIds ?? [];
-        var version = await _catalogSource.ApplyChangeAsync(new CatalogChange(proposal.Id, ruleIds, proposal.CatalogPatch, _currentUser.UserName), cancellationToken);
+        // The catalog is versioned data in the repository (rules/): the approved patch goes in by a pull request and the next
+        // catalog version is published with it. The decision records the version it was approved against.
+        var version = _rulesCatalog.Current?.Version;
 
         var organizations = 0;
         var users = 0;
 
         if (request.Notify && ruleIds.Count > 0)
         {
-            var affected = await _catalogSource.FindAffectedAppsAsync(ruleIds, cancellationToken);
+            var affected = await _impactFinder.FindAsync(ruleIds, cancellationToken);
 
             foreach (var organization in affected.GroupBy(a => a.OrganizationId))
             {

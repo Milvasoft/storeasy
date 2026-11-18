@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net11.0</TargetFramework>
@@ -26,12 +26,16 @@
 		<PackageReference Include="AWSSDK.S3" Version="4.1.1" />
 		<PackageReference Include="Bogus" Version="35.6.5" />
 		<PackageReference Include="ClosedXML" Version="0.105.1" />
+		<PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.4.0.200" />
 		<PackageReference Include="Milvasoft.Caching.Redis" Version="11.0.1" />
 		<PackageReference Include="Milvasoft.JobScheduling" Version="11.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="11.0.0-rc.3" />
 		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
 		<PackageReference Include="Serilog.Expressions" Version="5.1.0-dev-02309" />
+		<PackageReference Include="SkiaSharp" Version="4.157.0" />
+		<PackageReference Include="SkiaSharp.HarfBuzz" Version="4.157.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
 	</ItemGroup>
@@ -41,5 +45,20 @@
 	  <ProjectReference Include="..\Storeasy.Application\Storeasy.Application.csproj" />
 	</ItemGroup>
 
+	<!-- The store rules catalog (repository root rules/) travels with the application: copied next to it and embedded as the
+	     fallback. A build without the repository root (the API's Docker context) has neither; the catalog folder is then
+	     mounted and named with Storeasy__Stores__RulesPath. -->
+	<ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\rules\catalog.json')">
+	  <EmbeddedResource Include="..\..\..\rules\*.json" LogicalName="rules/%(Filename)%(Extension)" />
+	  <None Include="..\..\..\rules\*.json" Link="rules\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+
+	<!-- Mockup studio fonts (SIL OFL 1.1, licenses next to the files): copied next to the application as StudioFonts/ and
+	     loaded by the renderer from there, so the Docker image carries them. -->
+	<ItemGroup>
+	  <None Include="Studio\Fonts\**\*.ttf;Studio\Fonts\**\*.otf;Studio\Fonts\**\OFL.txt" Link="StudioFonts\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	  <EmbeddedResource Include="Studio\StarterTemplates\*.json" LogicalName="studio/starters/%(Filename)%(Extension)" />
+	</ItemGroup>
 
 </Project>

@@ -37,20 +37,22 @@ public class DeadlineNotifierTests(StoreasyApiFactory factory) : IntegrationTest
     [Fact]
     public async Task ComplianceDeadline_ShouldComeFromTheCatalogAt30Days()
     {
-        // Arrange
+        // Arrange: the age rating questions of the catalog are due on 2027-01-12 for every App Store app.
         var org = await _factory.NewOrgAsync();
         var (appId, _, _) = await _factory.AddAppAsync(org, name: "Pusula");
-        var now = DateTime.UtcNow;
-        _factory.Catalog.Deadlines[appId] = [new CatalogDeadline(appId, "apple.age-rating.shared-location-dating", StoreKind.Apple, "Age rating: new questions", now.AddDays(20), "https://developer.apple.com/news/", "Runs on iOS")];
+        var now = new DateTime(2026, 12, 23, 8, 0, 0, DateTimeKind.Utc);
+        const string ruleId = "apple.age-rating.shared-location-dating";
 
         // Act
         await _factory.WithServiceAsync<IDeadlineNotifier, int>(n => n.NotifyComplianceDeadlinesAsync(now, CancellationToken.None));
-        var reminder = await _factory.DbAsync(db => db.DeadlineReminders.AsNoTracking().SingleAsync(r => r.Subject.StartsWith($"rule:apple.age-rating.shared-location-dating:app:{appId}:")));
-        var notice = await _factory.DbAsync(db => db.InternalNotifications.AsNoTracking().SingleAsync(n => n.OrganizationId == org.OrganizationId && n.Type == NotificationType.Deadline));
+        var again = await _factory.WithServiceAsync<IDeadlineNotifier, int>(n => n.NotifyComplianceDeadlinesAsync(now.AddHours(1), CancellationToken.None));
+        var reminder = await _factory.DbAsync(db => db.DeadlineReminders.AsNoTracking().SingleAsync(r => r.Subject == $"rule:{ruleId}:app:{appId}:20270112"));
+        var notices = await _factory.DbAsync(db => db.InternalNotifications.AsNoTracking().Where(n => n.OrganizationId == org.OrganizationId && n.Type == NotificationType.Deadline && n.RelatedEntityId == ruleId).ToListAsync());
 
         // Assert
         reminder.ThresholdDays.Should().Be(30);
-        notice.Text.Should().Contain("Pusula").And.Contain("Age rating");
-        notice.RelatedEntityId.Should().Be("apple.age-rating.shared-location-dating");
+        notices.Should().ContainSingle().Which.Text.Should().Contain("Pusula").And.Contain("2027-01-12");
+        await _factory.DbAsync(async db => (await db.DeadlineReminders.CountAsync(r => r.Subject == $"rule:{ruleId}:app:{appId}:20270112")).Should().Be(1));
+        again.Should().BeGreaterThanOrEqualTo(0);
     }
 }

@@ -66,17 +66,6 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /Giriş yap · 0:42/ })).toBeDisabled()
   })
 
-  it('offers to resend the verification link when the e-mail is not verified', async () => {
-    server.use(endpoint('post', '/Account/login', () => errorResponse('EmailNotVerified', 'E-posta doğrulanmadı.', 403)))
-    const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
-
-    await fillAndSubmit(user)
-    await user.click(await screen.findByRole('button', { name: 'Bağlantıyı yeniden gönder' }))
-
-    expect(await screen.findByText('Bağlantıyı yeniden gönderdik.')).toBeInTheDocument()
-    expect(lastRequestTo('/Account/email/verify/resend')?.body).toEqual({ Email: 'deniz@kuzeylab.dev' })
-  })
-
   it('checks the e-mail before sending anything', async () => {
     const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
 

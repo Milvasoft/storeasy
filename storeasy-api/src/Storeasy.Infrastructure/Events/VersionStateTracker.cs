@@ -1,6 +1,7 @@
 ﻿using Storeasy.Application.Dtos.NotificationDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
@@ -18,6 +19,7 @@ namespace Storeasy.Infrastructure.Events;
 /// <param name="storeAppRepository"></param>
 /// <param name="stateRepository"></param>
 /// <param name="caseRepository"></param>
+/// <param name="stepRepository"></param>
 /// <param name="notificationDispatcher"></param>
 /// <param name="orgWebhookPublisher"></param>
 /// <param name="auditTrail"></param>
@@ -25,6 +27,7 @@ namespace Storeasy.Infrastructure.Events;
 public sealed class VersionStateTracker(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                         IStoreasyRepositoryBase<AppVersionState> stateRepository,
                                         IStoreasyRepositoryBase<RejectionCase> caseRepository,
+                                        IStoreasyRepositoryBase<AssistedStep> stepRepository,
                                         INotificationDispatcher notificationDispatcher,
                                         IOrgWebhookPublisher orgWebhookPublisher,
                                         IAuditTrail auditTrail,
@@ -33,6 +36,7 @@ public sealed class VersionStateTracker(IStoreasyRepositoryBase<StoreApp> storeA
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<AppVersionState> _stateRepository = stateRepository;
     private readonly IStoreasyRepositoryBase<RejectionCase> _caseRepository = caseRepository;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = stepRepository;
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
     private readonly IOrgWebhookPublisher _orgWebhookPublisher = orgWebhookPublisher;
     private readonly IAuditTrail _auditTrail = auditTrail;
@@ -137,7 +141,10 @@ public sealed class VersionStateTracker(IStoreasyRepositoryBase<StoreApp> storeA
             await _stateRepository.UpdateAsync(updated, cancellationToken, s => s.State, s => s.PreviousState, s => s.ChangedDate, s => s.SubmittedDate, s => s.VersionString, s => s.BuildNumber);
 
         if (opened.Count > 0)
+        {
             await _caseRepository.AddRangeAsync(opened, cancellationToken);
+            await _stepRepository.OpenReplyStepsAsync(organizationId, [.. opened.Where(c => c.Store == StoreKind.Apple).Select(c => c.AppId)], cancellationToken);
+        }
 
         if (closed.Count > 0)
             await _caseRepository.UpdateAsync(closed, cancellationToken, c => c.State, c => c.ClosedDate, c => c.ClosedVia, c => c.Timeline);

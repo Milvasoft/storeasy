@@ -71,6 +71,9 @@ public class RejectionCaseDto
     /// <summary>Fix items.</summary>
     public List<RejectionChecklistItem> Checklist { get; set; }
 
+    /// <summary>Assisted step of the Resolution Center reply (App Store), if one.</summary>
+    public int? ReplyStepId { get; set; }
+
     /// <summary>Reply draft.</summary>
     public RejectionReplyDraftDto ReplyDraft { get; set; }
 

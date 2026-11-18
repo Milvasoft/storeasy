@@ -1,0 +1,48 @@
+# Dependency updates. Minor and patch updates are grouped per ecosystem to keep the pull request count low; major
+# updates come one by one.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: nuget
+    directory: /storeasy-api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      nuget-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /storeasy-app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      web-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /tools
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      tools-minor:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories: [/storeasy-api, /storeasy-app]
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose
+    directories: [/deploy, /storeasy-api]
+    schedule:
+      interval: weekly

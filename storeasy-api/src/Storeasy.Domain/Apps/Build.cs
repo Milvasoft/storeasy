@@ -87,6 +87,11 @@ public class Build : CreationAuditableEntity<long>
     public DateTime SyncedDate { get; set; }
 
     /// <summary>
+    /// Export compliance answer of the build (App Store <c>usesNonExemptEncryption</c>); null while unanswered.
+    /// </summary>
+    public bool? UsesNonExemptEncryption { get; set; }
+
+    /// <summary>
     /// Navigation property of the store record.
     /// </summary>
     [ForeignKey(nameof(StoreAppId))]

@@ -14,11 +14,14 @@ namespace Storeasy.Application.Features.Rejections.GetRejectionCaseDetail;
 /// </summary>
 /// <param name="CaseRepository"></param>
 /// <param name="StoreAppRepository"></param>
+/// <param name="StepRepository"></param>
 public record GetRejectionCaseDetailQueryHandler(IStoreasyRepositoryBase<RejectionCase> CaseRepository,
-                                                 IStoreasyRepositoryBase<StoreApp> StoreAppRepository) : IInterceptable, IQueryHandler<GetRejectionCaseDetailQuery, RejectionCaseDto>
+                                                 IStoreasyRepositoryBase<StoreApp> StoreAppRepository,
+                                                 IStoreasyRepositoryBase<AssistedStep> StepRepository) : IInterceptable, IQueryHandler<GetRejectionCaseDetailQuery, RejectionCaseDto>
 {
     private readonly IStoreasyRepositoryBase<RejectionCase> _caseRepository = CaseRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = StoreAppRepository;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = StepRepository;
 
     /// <inheritdoc/>
     public async Task<Response<RejectionCaseDto>> Handle(GetRejectionCaseDetailQuery request, CancellationToken cancellationToken)
@@ -38,6 +41,24 @@ public record GetRejectionCaseDetailQueryHandler(IStoreasyRepositoryBase<Rejecti
 
         var earlierCodes = earlier.SelectMany(c => c.Guidelines ?? []).Select(g => g.Code).ToHashSet();
 
-        return Response<RejectionCaseDto>.Success(RejectionCases.ToDto(rejectionCase, storeApp?.AppName, storeApp?.ExternalId, earlierCodes));
+        var dto = RejectionCases.ToDto(rejectionCase, storeApp?.AppName, storeApp?.ExternalId, earlierCodes);
+
+        if (rejectionCase.Store == StoreKind.Apple)
+        {
+            var step = await _stepRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == request.OrganizationId && s.AppId == rejectionCase.AppId && s.Store == StoreKind.Apple && s.Key == RejectionReplyStepExtensions.ReplyStepKey,
+                                                                    projection: s => new AssistedStep { Id = s.Id, Status = s.Status, CompletedDate = s.CompletedDate, CompletedByUserName = s.CompletedByUserName },
+                                                                    cancellationToken: cancellationToken);
+
+            dto.ReplyStepId = step?.Id;
+
+            // The reply may have been recorded on the assisted step screen instead of here.
+            if (dto.ReplyDraft.SentDate == null && step?.Status == AssistedStepStatus.Done && step.CompletedDate >= rejectionCase.OpenedDate)
+            {
+                dto.ReplyDraft.SentDate = step.CompletedDate;
+                dto.ReplyDraft.SentByUserName = step.CompletedByUserName;
+            }
+        }
+
+        return Response<RejectionCaseDto>.Success(dto);
     }
 }

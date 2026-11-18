@@ -11,14 +11,14 @@ namespace Storeasy.Application.Features.RuleWatcher.GetRuleProposalDetail;
 /// </summary>
 /// <param name="ProposalRepository"></param>
 /// <param name="SourceRepository"></param>
-/// <param name="CatalogSource"></param>
+/// <param name="ImpactFinder"></param>
 public record GetRuleProposalDetailQueryHandler(IStoreasyRepositoryBase<RuleProposal> ProposalRepository,
-                                                IStoreasyRepositoryBase<RuleSource> SourceRepository,
-                                                IRulesCatalogSource CatalogSource) : IInterceptable, IQueryHandler<GetRuleProposalDetailQuery, RuleProposalDetailDto>
+                                                IStoreasyRepositoryBase<RuleWatchSource> SourceRepository,
+                                                IRuleImpactFinder ImpactFinder) : IInterceptable, IQueryHandler<GetRuleProposalDetailQuery, RuleProposalDetailDto>
 {
     private readonly IStoreasyRepositoryBase<RuleProposal> _proposalRepository = ProposalRepository;
-    private readonly IStoreasyRepositoryBase<RuleSource> _sourceRepository = SourceRepository;
-    private readonly IRulesCatalogSource _catalogSource = CatalogSource;
+    private readonly IStoreasyRepositoryBase<RuleWatchSource> _sourceRepository = SourceRepository;
+    private readonly IRuleImpactFinder _impactFinder = ImpactFinder;
 
     /// <inheritdoc/>
     public async Task<Response<RuleProposalDetailDto>> Handle(GetRuleProposalDetailQuery request, CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ public record GetRuleProposalDetailQueryHandler(IStoreasyRepositoryBase<RuleProp
         }
 
         if (proposal.RuleIds?.Count > 0)
-            proposal.Impact = [.. await _catalogSource.FindAffectedAppsAsync(proposal.RuleIds, cancellationToken)];
+            proposal.Impact = [.. await _impactFinder.FindAsync(proposal.RuleIds, cancellationToken)];
 
         return Response<RuleProposalDetailDto>.Success(proposal);
     }

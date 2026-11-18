@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.EntityBases.Concrete.Auditing;
+using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.Organizations;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -35,6 +36,13 @@ public class App : FullAuditableEntity<int>
     /// </summary>
     [MaxLength(1000)]
     public string IconUrl { get; set; }
+
+    /// <summary>
+    /// What the rules catalog needs to know about the app that the stores do not report (device families, regions,
+    /// features). Null until a member fills it.
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public AppProfile Profile { get; set; }
 
     /// <summary>
     /// Store records of the app.

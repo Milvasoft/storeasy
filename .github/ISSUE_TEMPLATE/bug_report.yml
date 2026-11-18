@@ -1,0 +1,68 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Do not paste store credentials, tokens, presigned URLs or personal data.
+        Security problems go through SECURITY.md, not here.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - storeasy-api
+        - storeasy-app (web)
+        - tools (CLI, MCP bridge, GitHub Action, Azure DevOps task)
+        - rules catalog
+        - deploy / self-host
+        - docs
+    validations:
+      required: true
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store
+      options:
+        - Not store specific
+        - App Store Connect
+        - Google Play
+        - Microsoft Store
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: e.g. 0.1.0 or a1b2c3d
+    validations:
+      required: true
+  - type: dropdown
+    id: hosting
+    attributes:
+      label: Where does it run
+      options:
+        - Self-hosted (deploy/docker-compose.yml)
+        - Self-hosted (other)
+        - Local development
+        - Hosted storeasy
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or job steps
+      description: Redact tokens and URLs with query strings.
+      render: text

@@ -78,14 +78,14 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeFileStorage FileStorage { get; } = new();
 
     /// <summary>
+    /// App Store Connect and Google Play as the content engine sees them (the store HTTP client's primary handler).
+    /// </summary>
+    public FakeStoreServer Stores { get; } = new();
+
+    /// <summary>
     /// The events phase store calls (webhooks, versions, reviews, TestFlight) every test host uses.
     /// </summary>
     public FakeStoreEventGateway StoreEvents { get; } = new();
-
-    /// <summary>
-    /// The rules catalog the events phase reads.
-    /// </summary>
-    public FakeRulesCatalogSource Catalog { get; } = new();
 
     /// <summary>
     /// The official pages the rule watcher reads.
@@ -171,6 +171,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
 
+            // The content engine talks HTTP to the stores; every call goes to the in-memory fakes.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Stores);
+
             services.RemoveAll<IFileStorage>();
             services.AddSingleton<IFileStorage>(FileStorage);
 
@@ -184,8 +187,6 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.AddSingleton<IStoreReviewGateway>(StoreEvents);
             services.RemoveAll<ITestFlightGateway>();
             services.AddSingleton<ITestFlightGateway>(StoreEvents);
-            services.RemoveAll<IRulesCatalogSource>();
-            services.AddSingleton<IRulesCatalogSource>(Catalog);
             services.RemoveAll<IRuleSourceFetcher>();
             services.AddSingleton<IRuleSourceFetcher>(RulePages);
             services.RemoveAll<IHostResolver>();
@@ -290,6 +291,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         [StoreJobsEnabledKey] = "true",
         ["Storeasy:Jobs:PollIntervalMilliseconds"] = "100",
         ["Storeasy:Jobs:RetryBaseDelaySeconds"] = "0",
+        ["Storeasy:Stores:RetryBaseDelayMilliseconds"] = "1",
+        ["Storeasy:Stores:AssetPollIntervalMilliseconds"] = "10",
+        ["Storeasy:Stores:UploadChunkBytes"] = "262144",
         ["Storeasy:Events:SchedulesEnabled"] = "false",
         ["Storeasy:OrgWebhooks:PollIntervalMilliseconds"] = "100",
         ["Storeasy:OrgWebhooks:RetryBaseDelaySeconds"] = "0",

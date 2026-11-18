@@ -82,6 +82,7 @@ public class RejectionsControllerTests(StoreasyApiFactory factory) : Integration
         var (_, closed) = await org.Owner.Client.PutAsync<int>("rejections/case/close", new { organizationId = org.OrganizationId, caseId = caseId.Data, note = "Version withdrawn" });
         var (afterClose, _) = await org.Owner.Client.PutAsync<RejectionReplyDraftDto>("rejections/case/reply-draft", new { organizationId = org.OrganizationId, caseId = caseId.Data, body = "late" });
         var (_, detail) = await org.Owner.Client.GetAsync<RejectionCaseDto>($"rejections/case?organizationId={org.OrganizationId}&caseId={caseId.Data}");
+        var step = await _factory.DbAsync(db => db.AssistedSteps.AsNoTracking().SingleAsync(s => s.AppId == appId && s.Key == "apple.review.resolution-center-reply"));
 
         // Assert
         withText.Data.Guidelines.Select(g => g.Code).Should().Equal("2.1", "5.1.1");
@@ -97,6 +98,8 @@ public class RejectionsControllerTests(StoreasyApiFactory factory) : Integration
         sent.Data.Length.Should().Be("Hello App Review team,\nwe fixed both issues.".Length, "a line break counts once");
         closed.IsSuccess.Should().BeTrue();
         afterClose.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        step.Status.Should().Be(AssistedStepStatus.Done, "marking the reply sent completes the Resolution Center assisted step");
+        detail.Data.ReplyStepId.Should().Be(step.Id);
         detail.Data.Timeline.Select(t => t.Kind).Should().Contain(["opened", "text", "checklist", "draft", "sent", "closed"]);
     }
 

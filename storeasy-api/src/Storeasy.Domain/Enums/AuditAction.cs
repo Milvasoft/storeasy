@@ -66,6 +66,85 @@ public enum AuditAction : short
     /// <summary>A store record was split off into its own storeasy app.</summary>
     [Description("Store record unlinked")]
     StoreAppUnlinked = 42,
+    /// <summary>A storeasy app's catalog profile (device families, regions, features) changed.</summary>
+    [Description("App profile updated")]
+    AppProfileUpdated = 43,
+
+    /// <summary>A change plan was approved and its apply job queued.</summary>
+    [Description("Change plan approved")]
+    PlanApproved = 50,
+
+    /// <summary>A change plan was rejected.</summary>
+    [Description("Change plan rejected")]
+    PlanRejected = 51,
+
+    /// <summary>A change plan was withdrawn.</summary>
+    [Description("Change plan discarded")]
+    PlanDiscarded = 52,
+
+    /// <summary>A listing field was written to a store.</summary>
+    [Description("Listing applied")]
+    ListingApplied = 53,
+
+    /// <summary>A screenshot, preview or graphic set was written to a store.</summary>
+    [Description("Media applied")]
+    MediaApplied = 54,
+
+    /// <summary>A release (track release, release type) was written to a store.</summary>
+    [Description("Release applied")]
+    ReleaseApplied = 55,
+
+    /// <summary>A staged or phased rollout changed.</summary>
+    [Description("Rollout changed")]
+    RolloutChanged = 56,
+
+    /// <summary>A build was attached to a version or its export compliance answered.</summary>
+    [Description("Build linked")]
+    BuildLinked = 57,
+
+    /// <summary>A version was submitted for review.</summary>
+    [Description("Submitted for review")]
+    SubmittedForReview = 58,
+
+    /// <summary>Other store content (categories, age rating, pricing, review details, details, testers, data safety) was written.</summary>
+    [Description("Store content applied")]
+    ContentApplied = 59,
+
+    /// <summary>Saved answers of an app changed.</summary>
+    [Description("Saved answers updated")]
+    AnswersUpdated = 60,
+
+    /// <summary>Saved answers were copied from another app.</summary>
+    [Description("Saved answers copied")]
+    AnswersCopied = 61,
+
+    /// <summary>An assisted step was handed off to a browser agent.</summary>
+    [Description("Assisted step handed off")]
+    AssistedStepHandedOff = 62,
+
+    /// <summary>An assisted step was recorded as done or skipped.</summary>
+    [Description("Assisted step completed")]
+    AssistedStepCompleted = 63,
+
+    /// <summary>A mockup template was created.</summary>
+    [Description("Mockup template created")]
+    MockupTemplateCreated = 70,
+
+    /// <summary>A mockup template's design, slots or locales changed.</summary>
+    [Description("Mockup template updated")]
+    MockupTemplateUpdated = 71,
+
+    /// <summary>A mockup template was deleted.</summary>
+    [Description("Mockup template deleted")]
+    MockupTemplateDeleted = 72,
+
+    /// <summary>Captions of a mockup template changed.</summary>
+    [Description("Mockup captions updated")]
+    MockupCaptionsUpdated = 73,
+
+    /// <summary>A mockup export job was queued.</summary>
+    [Description("Mockups exported")]
+    MockupExported = 74,
 
     /// <summary>Inbound webhook endpoint added.</summary>
     [Description("Webhook endpoint added")]

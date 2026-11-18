@@ -12,16 +12,19 @@ namespace Storeasy.Application.Features.Rejections.MarkRejectionReplySent;
 /// Handles <see cref="MarkRejectionReplySentCommand"/>.
 /// </summary>
 /// <param name="CaseRepository"></param>
+/// <param name="StepRepository"></param>
 /// <param name="AuditTrail"></param>
 /// <param name="CurrentUser"></param>
 /// <param name="TimeProvider"></param>
 [Log]
 public record MarkRejectionReplySentCommandHandler(IStoreasyRepositoryBase<RejectionCase> CaseRepository,
+                                                   IStoreasyRepositoryBase<Domain.Apps.AssistedStep> StepRepository,
                                                    IAuditTrail AuditTrail,
                                                    ICurrentUser CurrentUser,
                                                    TimeProvider TimeProvider) : IInterceptable, ICommandHandler<MarkRejectionReplySentCommand, RejectionReplyDraftDto>
 {
     private readonly IStoreasyRepositoryBase<RejectionCase> _caseRepository = CaseRepository;
+    private readonly IStoreasyRepositoryBase<Domain.Apps.AssistedStep> _stepRepository = StepRepository;
     private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly ICurrentUser _currentUser = CurrentUser;
     private readonly TimeProvider _timeProvider = TimeProvider;
@@ -53,6 +56,9 @@ public record MarkRejectionReplySentCommandHandler(IStoreasyRepositoryBase<Rejec
         RejectionCases.AddTimeline(rejectionCase, now, "sent", $"{_currentUser.UserName}: {length} characters", _auditTrail.Channel);
 
         await _caseRepository.UpdateAsync(rejectionCase, cancellationToken, c => c.ReplySentDate, c => c.ReplySentByUserName, c => c.Timeline);
+
+        if (rejectionCase.Store == StoreKind.Apple)
+            await _stepRepository.CompleteReplyStepAsync(request.OrganizationId, rejectionCase.AppId, _currentUser.UserName, _auditTrail.Channel, now, cancellationToken);
 
         await _auditTrail.WriteAsync(request.OrganizationId, AuditAction.RejectionReplySent, rejectionCase.Id.ToString(), $"Resolution Center reply of {rejectionCase.VersionString} marked as sent.", rejectionCase.Store, cancellationToken: cancellationToken);
 

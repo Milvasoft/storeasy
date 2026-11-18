@@ -45,5 +45,5 @@ public class RuleProposalDetailDto : RuleProposalListDto
     public int NotifiedOrganizationCount { get; set; }
 
     /// <summary>Apps the change affects (from the catalog).</summary>
-    public List<CatalogAffectedApp> Impact { get; set; } = [];
+    public List<RuleImpact> Impact { get; set; } = [];
 }

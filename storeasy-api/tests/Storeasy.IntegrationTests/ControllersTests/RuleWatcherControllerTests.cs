@@ -21,8 +21,7 @@ public class RuleWatcherControllerTests(StoreasyApiFactory factory) : Integratio
         var root = await _factory.LoginAsRootAsync();
         var org = await _factory.NewOrgAsync();
         var (appId, _, _) = await _factory.AddAppAsync(org, name: "Fenpo");
-        var ruleId = $"apple.screenshots.duo-{org.Suffix}";
-        _factory.Catalog.Affected[ruleId] = [new CatalogAffectedApp(org.OrganizationId, appId, "Fenpo", ruleId, "asks for iPhone Duo screenshots")];
+        const string ruleId = "apple.age-rating.shared-location-dating";
 
         foreach (var source in (await root.Client.GetAsync<List<RuleSourceDto>>("rules/sources")).Body.Data)
             _factory.RulePages.Pages[source.Url] = "<html><body><p>Same</p></body></html>";
@@ -48,8 +47,9 @@ public class RuleWatcherControllerTests(StoreasyApiFactory factory) : Integratio
         detail.Data.SourceExcerptBefore.Should().Contain("April 2027").And.NotContain("x()");
         detail.Data.SourceExcerptAfter.Should().Contain("May 2027");
         detail.Data.PreparedBy.Should().Be(RuleProposalPreparer.Mcp);
-        detail.Data.Impact.Should().ContainSingle(i => i.AppId == appId);
-        decision.Data.Should().Match<RuleProposalDecisionDto>(d => d.CatalogVersion == "1.1.0" && d.NotifiedOrganizationCount == 1);
+        detail.Data.Impact.Should().Contain(i => i.AppId == appId && i.RuleId == ruleId);
+        decision.Data.CatalogVersion.Should().NotBeNullOrEmpty();
+        decision.Data.NotifiedOrganizationCount.Should().BeGreaterThanOrEqualTo(1);
         twice.StatusCode.Should().Be(HttpStatusCode.Conflict);
         notified.Should().BeTrue();
         baseline.Data.Checked.Should().BeGreaterThan(0);

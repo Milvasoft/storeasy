@@ -4,8 +4,10 @@ using Milvasoft.DataAccess.EfCore.Configuration;
 using Storeasy.Domain;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
+using Storeasy.Domain.Content;
 using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
+using Storeasy.Domain.Studio;
 using Storeasy.Domain.Events;
 using Storeasy.Domain.Feedback;
 using Storeasy.Domain.Notifications;
@@ -53,6 +55,12 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<App> Apps { get; set; }
     public DbSet<StoreApp> StoreApps { get; set; }
     public DbSet<Build> Builds { get; set; }
+    public DbSet<SavedAnswer> SavedAnswers { get; set; }
+    public DbSet<ChangePlan> ChangePlans { get; set; }
+    public DbSet<AssistedStep> AssistedSteps { get; set; }
+    public DbSet<MockupTemplate> MockupTemplates { get; set; }
+    public DbSet<MockupSlot> MockupSlots { get; set; }
+    public DbSet<MockupCaption> MockupCaptions { get; set; }
     public DbSet<WebhookEndpoint> WebhookEndpoints { get; set; }
     public DbSet<WebhookEvent> WebhookEvents { get; set; }
     public DbSet<AppVersionState> AppVersionStates { get; set; }
@@ -68,7 +76,7 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<BetaTester> BetaTesters { get; set; }
     public DbSet<BetaBuild> BetaBuilds { get; set; }
     public DbSet<BetaAppLocalization> BetaAppLocalizations { get; set; }
-    public DbSet<RuleSource> RuleSources { get; set; }
+    public DbSet<RuleWatchSource> RuleSources { get; set; }
     public DbSet<RuleProposal> RuleProposals { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 

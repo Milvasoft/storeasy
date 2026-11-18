@@ -11,9 +11,9 @@ namespace Storeasy.Application.Features.RuleWatcher.GetRuleSourceList;
 /// </summary>
 /// <param name="SourceRepository"></param>
 /// <param name="RuleWatcher"></param>
-public record GetRuleSourceListQueryHandler(IStoreasyRepositoryBase<RuleSource> SourceRepository, IRuleWatcher RuleWatcher) : IInterceptable, IQueryHandler<GetRuleSourceListQuery, List<RuleSourceDto>>
+public record GetRuleSourceListQueryHandler(IStoreasyRepositoryBase<RuleWatchSource> SourceRepository, IRuleWatcher RuleWatcher) : IInterceptable, IQueryHandler<GetRuleSourceListQuery, List<RuleSourceDto>>
 {
-    private readonly IStoreasyRepositoryBase<RuleSource> _sourceRepository = SourceRepository;
+    private readonly IStoreasyRepositoryBase<RuleWatchSource> _sourceRepository = SourceRepository;
     private readonly IRuleWatcher _ruleWatcher = RuleWatcher;
 
     /// <inheritdoc/>

@@ -46,7 +46,7 @@ public class RuleSourceDto
     /// Projection from the entity.
     /// </summary>
     [JsonIgnore]
-    public static Expression<Func<RuleSource, RuleSourceDto>> Projection { get; } = s => new RuleSourceDto
+    public static Expression<Func<RuleWatchSource, RuleSourceDto>> Projection { get; } = s => new RuleSourceDto
     {
         Id = s.Id,
         Name = s.Name,

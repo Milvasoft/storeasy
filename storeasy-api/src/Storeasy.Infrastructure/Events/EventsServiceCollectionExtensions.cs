@@ -21,8 +21,8 @@ namespace Storeasy.Infrastructure.Events;
 public static class EventsServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the events phase services. The rules catalog source defaults to one that knows no rules; phase 2 registers
-    /// its catalog as <see cref="IRulesCatalogSource"/> before this call (or replaces it).
+    /// Adds the events phase services. The rules catalog (<see cref="IRulesCatalog"/>) and the store content services
+    /// come from the content phase.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configurationManager"></param>
@@ -73,7 +73,7 @@ public static class EventsServiceCollectionExtensions
         services.AddScoped<IStoreJobHandler, UpdateTestFlightJobHandler>();
 
         // Rules catalog watcher.
-        services.TryAddScoped<IRulesCatalogSource, NullRulesCatalogSource>();
+        services.AddScoped<IRuleImpactFinder, RuleImpactFinder>();
         services.AddScoped<IRuleSourceFetcher, RuleSourceFetcher>();
         services.AddScoped<IRuleWatcher, RuleWatcher>();
 

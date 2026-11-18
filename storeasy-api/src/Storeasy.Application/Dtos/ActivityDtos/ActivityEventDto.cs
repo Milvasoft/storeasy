@@ -52,6 +52,11 @@ public class ActivityEventDto
     public int? ConnectionId { get; set; }
 
     /// <summary>
+    /// Change plan, for plan events.
+    /// </summary>
+    public long? PlanId { get; set; }
+
+    /// <summary>
     /// Step position for step events.
     /// </summary>
     public int? StepOrder { get; set; }

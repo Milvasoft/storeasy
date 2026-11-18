@@ -13,18 +13,21 @@ namespace Storeasy.Application.Features.Rejections.OpenRejectionCase;
 /// </summary>
 /// <param name="CaseRepository"></param>
 /// <param name="StoreAppRepository"></param>
+/// <param name="StepRepository"></param>
 /// <param name="AuditTrail"></param>
 /// <param name="CurrentUser"></param>
 /// <param name="TimeProvider"></param>
 [Log]
 public record OpenRejectionCaseCommandHandler(IStoreasyRepositoryBase<RejectionCase> CaseRepository,
                                               IStoreasyRepositoryBase<StoreApp> StoreAppRepository,
+                                              IStoreasyRepositoryBase<AssistedStep> StepRepository,
                                               IAuditTrail AuditTrail,
                                               ICurrentUser CurrentUser,
                                               TimeProvider TimeProvider) : IInterceptable, ICommandHandler<OpenRejectionCaseCommand, int>
 {
     private readonly IStoreasyRepositoryBase<RejectionCase> _caseRepository = CaseRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = StoreAppRepository;
+    private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = StepRepository;
     private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly ICurrentUser _currentUser = CurrentUser;
     private readonly TimeProvider _timeProvider = TimeProvider;
@@ -52,6 +55,9 @@ public record OpenRejectionCaseCommandHandler(IStoreasyRepositoryBase<RejectionC
         var rejectionCase = RejectionCases.Open(request.OrganizationId, storeApp.AppId, storeApp.Id, request.Store, null, versionString, request.BuildNumber?.Trim(), request.Kind, RejectionSource.Manual, now, _auditTrail.Channel, _currentUser.UserName);
 
         await _caseRepository.AddAsync(rejectionCase, cancellationToken);
+
+        if (request.Store == StoreKind.Apple)
+            await _stepRepository.OpenReplyStepsAsync(request.OrganizationId, [storeApp.AppId], cancellationToken);
 
         await _auditTrail.WriteAsync(request.OrganizationId, AuditAction.RejectionOpened, rejectionCase.Id.ToString(), $"Rejection case of {versionString} opened by hand.", request.Store, cancellationToken: cancellationToken);
 

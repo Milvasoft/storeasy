@@ -5,7 +5,6 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react'
 // There is no anonymous flag endpoint for app users yet (02 section 10.1 GET Public/feature-flags), so the values live
 // here, in code; when the API gains one, this provider reads it and these become the fallback.
 export type FeatureFlagKey =
-  | 'Apps'
   | 'Compliance'
   | 'Reviews'
   | 'Studio'
@@ -14,7 +13,6 @@ export type FeatureFlagKey =
   | 'Rules'
   | 'Developer'
   | 'Notifications'
-  | 'Jobs'
   | 'Plans'
   | 'OrganizationRetention'
   | 'AccountSessions'
@@ -23,7 +21,6 @@ export type FeatureFlagKey =
 export type FeatureFlags = Record<FeatureFlagKey, boolean>
 
 export const DEFAULT_FLAGS: FeatureFlags = {
-  Apps: false,
   Compliance: false,
   Reviews: false,
   Studio: false,
@@ -32,7 +29,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   Rules: false,
   Developer: false,
   Notifications: false,
-  Jobs: false,
   Plans: false,
   OrganizationRetention: false,
   AccountSessions: false,

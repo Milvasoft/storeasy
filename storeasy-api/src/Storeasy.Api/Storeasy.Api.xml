@@ -478,6 +478,32 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AgeRatingController">
+            <summary>
+            App Store age rating declaration; the new descriptors the API lacks are assisted steps.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AgeRatingController.#ctor(MediatR.IMediator)">
+            <summary>
+            App Store age rating declaration; the new descriptors the API lacks are assisted steps.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AgeRatingController.GetAgeRatingAsync(Storeasy.Application.Features.Listings.GetAgeRating.GetAgeRatingQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the age rating declaration live.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AgeRatingController.PlanAgeRatingAsync(Storeasy.Application.Features.Listings.PlanAgeRating.PlanAgeRatingCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans age rating answers (DryRun false approves at once).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.AppsController">
             <summary>
             App endpoints: storeasy apps and their records in each store (App Store Connect, Google Play, later Microsoft Store),
@@ -539,6 +565,71 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.UpdateProfileAsync(Storeasy.Application.Features.Apps.UpdateAppProfile.UpdateAppProfileCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sets the app's catalog profile: device families, regions, features, build SDK, target API level (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetReadinessAsync(Storeasy.Application.Features.Readiness.GetReadiness.GetReadinessQuery,System.Threading.CancellationToken)">
+            <summary>
+            What is missing before a submission of the app in one store, read live (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetOverviewAsync(Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            Every app of the organization with each store's last readiness check and the next deadline; Refresh checks live
+            first (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetComplianceAsync(Storeasy.Application.Features.Readiness.GetAppCompliance.GetAppComplianceQuery,System.Threading.CancellationToken)">
+            <summary>
+            The app's compliance timeline: catalog deadlines that apply to it, with their state (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetAnswersAsync(Storeasy.Application.Features.Answers.GetSavedAnswers.GetSavedAnswersQuery,System.Threading.CancellationToken)">
+            <summary>
+            The app's saved answer documents (any member; the demo password is never returned).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.UpdateAnswersAsync(Storeasy.Application.Features.Answers.UpdateSavedAnswers.UpdateSavedAnswersCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes one saved answer document (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.CopyAnswersAsync(Storeasy.Application.Features.Answers.CopySavedAnswers.CopySavedAnswersCommand,System.Threading.CancellationToken)">
+            <summary>
+            Copies saved answer documents from another app (editors and above; never the demo password).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.PlanDataSafetyAsync(Storeasy.Application.Features.Answers.PlanDataSafety.PlanDataSafetyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans sending the Play Data safety form generated from the saved answers (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.AssetsController">
             <summary>
             File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
@@ -572,6 +663,184 @@
         <member name="M:Storeasy.Api.Controllers.AssetsController.GetDownloadUrlAsync(Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery,System.Threading.CancellationToken)">
             <summary>
             Returns a short lived presigned download URL of a confirmed file (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.AssistedStepsController">
+            <summary>
+            Assisted step endpoints (docs/urun-plani.md 11.4): store work without an API, its checklist and prepared answers, the hand-off to a browser agent in the member's own session and the recorded result. No store password is ever stored or asked for.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssistedStepsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Assisted step endpoints (docs/urun-plani.md 11.4): store work without an API, its checklist and prepared answers, the hand-off to a browser agent in the member's own session and the recorded result. No store password is ever stored or asked for.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssistedStepsController.GetStepsAsync(Storeasy.Application.Features.AssistedSteps.GetAssistedStepList.GetAssistedStepListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the assisted steps of the organization's apps (created on first read).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssistedStepsController.GetStepAsync(Storeasy.Application.Features.AssistedSteps.GetAssistedStepDetail.GetAssistedStepDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one step with its checklist, store page and prepared answers.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssistedStepsController.HandOffAsync(Storeasy.Application.Features.AssistedSteps.HandOffAssistedStep.HandOffAssistedStepCommand,System.Threading.CancellationToken)">
+            <summary>
+            Hands a step off to a browser agent: the structured step, without any password.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssistedStepsController.CompleteAsync(Storeasy.Application.Features.AssistedSteps.CompleteAssistedStep.CompleteAssistedStepCommand,System.Threading.CancellationToken)">
+            <summary>
+            Records the progress or result of a step.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.BuildsController">
+            <summary>
+            Build endpoints: synced builds of a store record, attaching a build to an App Store version, export compliance and Play bundle uploads, all as change plans.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Build endpoints: synced builds of a store record, attaching a build to an App Store version, export compliance and Play bundle uploads, all as change plans.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.GetBuildsAsync(Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the synced builds of a store record, newest first.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.PlanBuildLinkAsync(Storeasy.Application.Features.Builds.PlanBuildLink.PlanBuildLinkCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans attaching a VALID build (and its export compliance answer) to the App Store version.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.PlanExportComplianceAsync(Storeasy.Application.Features.Builds.PlanExportCompliance.PlanExportComplianceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans the export compliance answer of the attached build.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.PlanBundleAsync(Storeasy.Application.Features.Builds.PlanBundleUpload.PlanBundleUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans uploading an Android App Bundle (an uploaded asset) and putting it on a track.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.CategoriesController">
+            <summary>
+            App Store categories, copyright and content rights declaration.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.CategoriesController.#ctor(MediatR.IMediator)">
+            <summary>
+            App Store categories, copyright and content rights declaration.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.CategoriesController.GetCategoriesAsync(Storeasy.Application.Features.Listings.GetCategories.GetCategoriesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the categories, copyright and content rights live, with the categories the store offers.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.CategoriesController.PlanCategoriesAsync(Storeasy.Application.Features.Listings.PlanCategories.PlanCategoriesCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans categories, copyright and content rights (DryRun false approves at once).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ChangePlansController">
+            <summary>
+            Change plan endpoints (docs/urun-plani.md 2.2): the approval queue, one plan with its diff, approve (which queues the apply job), reject and discard. Every store write of storeasy goes through a plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.#ctor(MediatR.IMediator)">
+            <summary>
+            Change plan endpoints (docs/urun-plani.md 2.2): the approval queue, one plan with its diff, approve (which queues the apply job), reject and discard. Every store write of storeasy goes through a plan.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.GetPlansAsync(Storeasy.Application.Features.ChangePlans.GetChangePlanList.GetChangePlanListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's change plans (default: pending, the approval queue).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.GetPlanAsync(Storeasy.Application.Features.ChangePlans.GetChangePlanDetail.GetChangePlanDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one plan with its diff, remarks, store calls and state.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.ApprovePlanAsync(Storeasy.Application.Features.ChangePlans.ApplyChangePlan.ApplyChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a pending plan (the plan's own permission and typed confirmation) and queues its apply job. 409 when the store changed since the plan was made, 410 when it expired.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.RejectPlanAsync(Storeasy.Application.Features.ChangePlans.RejectChangePlan.RejectChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Rejects a pending plan with a reason; nothing is written.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChangePlansController.DiscardPlanAsync(Storeasy.Application.Features.ChangePlans.DiscardChangePlan.DiscardChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Withdraws a pending plan; nothing is written.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ComplianceController">
+            <summary>
+            Compliance calendar of the organization: the catalog deadlines of every app.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ComplianceController.#ctor(MediatR.IMediator)">
+            <summary>
+            Compliance calendar of the organization: the catalog deadlines of every app.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ComplianceController.GetComplianceAsync(Storeasy.Application.Features.Readiness.GetOrganizationCompliance.GetOrganizationComplianceQuery,System.Threading.CancellationToken)">
+            <summary>
+            Deadlines of every app between From and To, nearest first.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -738,6 +1007,189 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.ListingsController">
+            <summary>
+            Listing text endpoints: live reads of App Store and Play listings with the catalog limits, and change plans for them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Listing text endpoints: live reads of App Store and Play listings with the catalog limits, and change plans for them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.GetListingAsync(Storeasy.Application.Features.Listings.GetListing.GetListingQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the listing texts of a store record live, with the catalog limits.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.GetListingByFieldAsync(Storeasy.Application.Features.Listings.GetListingByField.GetListingByFieldQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one field in every locale.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.GetDetailsAsync(Storeasy.Application.Features.Listings.GetListingDetails.GetListingDetailsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the Google Play app details.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.PlanListingAsync(Storeasy.Application.Features.Listings.PlanListing.PlanListingCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans listing text changes (texts and Play app details) and returns the change plan.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.ApplyListingAsync(Storeasy.Application.Features.ChangePlans.ApplyChangePlan.ApplyChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a listing plan and queues its apply job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.MockupsController">
+            <summary>
+            Mockup and screenshot studio (docs/urun-plani.md 2.4, design 12): templates per app, server side previews and exports
+            rendered from the template JSON with storeasy's own device frames and embedded open licensed fonts, caption
+            localization, and the export manifest that feeds the screenshot upload plan. Reading and previewing is open to every
+            member; writing and exporting needs an editor.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Mockup and screenshot studio (docs/urun-plani.md 2.4, design 12): templates per app, server side previews and exports
+            rendered from the template JSON with storeasy's own device frames and embedded open licensed fonts, caption
+            localization, and the export manifest that feeds the screenshot upload plan. Reading and previewing is open to every
+            member; writing and exporting needs an editor.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetTemplatesAsync(Storeasy.Application.Features.Mockups.GetMockupTemplateList.GetMockupTemplateListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's templates, optionally of one app (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetTemplateAsync(Storeasy.Application.Features.Mockups.GetMockupTemplateDetail.GetMockupTemplateDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one template with its design, slots and captions (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.CreateTemplateAsync(Storeasy.Application.Features.Mockups.CreateMockupTemplate.CreateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates a template from a starter or as a copy of another template (editors and above). Retry safe with an
+            <c>Idempotency-Key</c> header.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.UpdateTemplateAsync(Storeasy.Application.Features.Mockups.UpdateMockupTemplate.UpdateMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves a template's name, design, locales and slots (editors and above). 409 when someone saved since the given
+            version. Returns the new version.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.DeleteTemplateAsync(Storeasy.Application.Features.Mockups.DeleteMockupTemplate.DeleteMockupTemplateCommand,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a template (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.SaveCaptionsAsync(Storeasy.Application.Features.Mockups.SaveMockupCaptions.SaveMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves caption cells and answers the captions that overflow in the narrowest exported class (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.SuggestCaptionsAsync(Storeasy.Application.Features.Mockups.SuggestMockupCaptions.SuggestMockupCaptionsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Suggests captions in one locale (editors and above). Kill switch <c>Studio.AiCaptions</c>; 503 when it is off or no
+            translator is configured. Nothing is saved.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetFramesAsync(Storeasy.Application.Features.Mockups.GetMockupFrames.GetMockupFramesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the device frames and the screenshot classes drawn with each (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetStarterTemplatesAsync(Storeasy.Application.Features.Mockups.GetMockupStarterTemplates.GetMockupStarterTemplatesQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the built in starter designs (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.RenderPreviewAsync(Storeasy.Application.Features.Mockups.RenderMockupPreview.RenderMockupPreviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            Renders small previews of up to four slots in one locale and class, from the stored or an unsaved design (any
+            member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportPlanAsync(Storeasy.Application.Features.Mockups.GetMockupExportPlan.GetMockupExportPlanQuery,System.Threading.CancellationToken)">
+            <summary>
+            Plans an export: classes of the app's stores with their requirement, refused sizes and the image count (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.ExportAsync(Storeasy.Application.Features.Mockups.ExportMockups.ExportMockupsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues the export job of the plan (editors and above); follow it on the activity hub. Retry safe with an
+            <c>Idempotency-Key</c> header. Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportManifestAsync(Storeasy.Application.Features.Mockups.GetMockupExportManifest.GetMockupExportManifestQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the manifest of a finished export: asset ids by store, class and locale for the upload plan (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MockupsController.GetExportZipAsync(Storeasy.Application.Features.Mockups.GetMockupExportZip.GetMockupExportZipQuery,System.Threading.CancellationToken)">
+            <summary>
+            Returns a presigned download URL of the zip of a finished export (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.OrganizationsController">
             <summary>
             Organization, member, invitation and audit log endpoints. Any signed in user may call them; the organization role
@@ -854,6 +1306,74 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.PreviewsController">
+            <summary>
+            App preview endpoints: catalog evaluated classes per locale (required, filled by a fallback, missing) and change plans from uploaded assets (reserve, upload, commit, reorder when applied).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreviewsController.#ctor(MediatR.IMediator)">
+            <summary>
+            App preview endpoints: catalog evaluated classes per locale (required, filled by a fallback, missing) and change plans from uploaded assets (reserve, upload, commit, reorder when applied).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreviewsController.GetSetsAsync(Storeasy.Application.Features.Media.GetMediaSets.GetMediaSetsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the classes of one locale with the catalog requirement and the items.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreviewsController.PlanSetAsync(Storeasy.Application.Features.Media.PlanMediaSet.PlanMediaSetCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans one set from existing items and uploaded assets; files are checked against the catalog.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreviewsController.ApplySetAsync(Storeasy.Application.Features.ChangePlans.ApplyChangePlan.ApplyChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a media plan and queues its apply job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.PricingController">
+            <summary>
+            App Store price schedule and territory availability.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PricingController.#ctor(MediatR.IMediator)">
+            <summary>
+            App Store price schedule and territory availability.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PricingController.GetPricingAsync(Storeasy.Application.Features.Listings.GetPricing.GetPricingQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the price schedule and availability live.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PricingController.GetPricePointsAsync(Storeasy.Application.Features.Listings.GetPricePoints.GetPricePointsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the price points of a territory.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PricingController.PlanPricingAsync(Storeasy.Application.Features.Listings.PlanPricing.PlanPricingCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans the base price and territory availability (DryRun false approves at once).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RejectionsController">
             <summary>
             Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
@@ -933,6 +1453,98 @@
         <member name="M:Storeasy.Api.Controllers.RejectionsController.GetHistoryAsync(Storeasy.Application.Features.Rejections.GetRejectionHistory.GetRejectionHistoryQuery,System.Threading.CancellationToken)">
             <summary>
             The submission history of an app with its rejections.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ReleasesController">
+            <summary>
+            Release endpoints: versions and tracks, release type and phased release, track releases with staged rollout and countries, rollout changes, testers and submission for review (typed confirmation, SubmitForReview).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.#ctor(MediatR.IMediator)">
+            <summary>
+            Release endpoints: versions and tracks, release type and phased release, track releases with staged rollout and countries, rollout changes, testers and submission for review (typed confirmation, SubmitForReview).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.GetReleasesAsync(Storeasy.Application.Features.Releases.GetReleaseOverview.GetReleaseOverviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads versions (App Store) or tracks (Play) live.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.PlanReleaseAsync(Storeasy.Application.Features.Releases.PlanRelease.PlanReleaseCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans release settings (App Store) or a track release (Play).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.ApplyReleaseAsync(Storeasy.Application.Features.ChangePlans.ApplyChangePlan.ApplyChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a release plan (production needs ReleaseProduction and the typed confirmation) and queues its apply job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.PlanRolloutAsync(Storeasy.Application.Features.Releases.PlanRollout.PlanRolloutCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a staged or phased rollout change (DryRun false approves at once).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.SubmitForReviewAsync(Storeasy.Application.Features.Releases.SubmitForReview.SubmitForReviewCommand,System.Threading.CancellationToken)">
+            <summary>
+            Submits the version for App Review behind the typed confirmation (Owner, Admin).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.GetTestersAsync(Storeasy.Application.Features.Releases.GetPlayTesters.GetPlayTestersQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the tester groups of a Play testing track.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReleasesController.PlanTestersAsync(Storeasy.Application.Features.Releases.PlanPlayTesters.PlanPlayTestersCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans the tester groups of a Play testing track.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ReviewInfoController">
+            <summary>
+            App Review details of an App Store version, compared with the app's saved answers. Passwords are write only.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewInfoController.#ctor(MediatR.IMediator)">
+            <summary>
+            App Review details of an App Store version, compared with the app's saved answers. Passwords are write only.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewInfoController.GetReviewInfoAsync(Storeasy.Application.Features.Listings.GetReviewInfo.GetReviewInfoQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the review details live.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewInfoController.PlanReviewInfoAsync(Storeasy.Application.Features.Listings.PlanReviewInfo.PlanReviewInfoCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans the review details (a demo password is sealed into the saved answers, never into the plan).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1071,6 +1683,40 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.RulesController">
+            <summary>
+            Store rules catalog endpoints (docs/urun-plani.md 12): the loaded catalog's version, its rules with the organization's matching apps. Read only; any member.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RulesController.#ctor(MediatR.IMediator)">
+            <summary>
+            Store rules catalog endpoints (docs/urun-plani.md 12): the loaded catalog's version, its rules with the organization's matching apps. Read only; any member.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RulesController.GetCatalogAsync(Storeasy.Application.Features.Rules.GetRuleCatalog.GetRuleCatalogQuery,System.Threading.CancellationToken)">
+            <summary>
+            Version of the loaded rules catalog.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RulesController.GetRulesAsync(Storeasy.Application.Features.Rules.GetRuleList.GetRuleListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the catalog rules with the number of the organization's apps each applies to.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RulesController.GetRuleAsync(Storeasy.Application.Features.Rules.GetRuleDetail.GetRuleDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one rule with its sources and the organization's matching apps.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RuleWatcherController">
             <summary>
             The rule watcher of the platform admins (docs/urun-plani.md 12.3): watched sources and catalog proposals. The catalog
@@ -1132,6 +1778,40 @@
         <member name="M:Storeasy.Api.Controllers.RuleWatcherController.RejectProposalAsync(Storeasy.Application.Features.RuleWatcher.RejectRuleProposal.RejectRuleProposalCommand,System.Threading.CancellationToken)">
             <summary>
             Rejects a proposal.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.ScreenshotsController">
+            <summary>
+            Screenshot and Play graphics endpoints: catalog evaluated classes per locale (required, filled by a fallback, missing) and change plans from uploaded assets (reserve, upload, commit, reorder when applied).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ScreenshotsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Screenshot and Play graphics endpoints: catalog evaluated classes per locale (required, filled by a fallback, missing) and change plans from uploaded assets (reserve, upload, commit, reorder when applied).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ScreenshotsController.GetSetsAsync(Storeasy.Application.Features.Media.GetMediaSets.GetMediaSetsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the classes of one locale with the catalog requirement and the items.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ScreenshotsController.PlanSetAsync(Storeasy.Application.Features.Media.PlanMediaSet.PlanMediaSetCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans one set from existing items and uploaded assets; files are checked against the catalog.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ScreenshotsController.ApplySetAsync(Storeasy.Application.Features.ChangePlans.ApplyChangePlan.ApplyChangePlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a media plan and queues its apply job.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1767,16 +2447,40 @@
         <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261118142408_Phase4Events">
+        <member name="T:Storeasy.Api.Migrations._20261118133903_AddContentPlansAnswersAndSteps">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118142408_Phase4Events.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118133903_AddContentPlansAnswersAndSteps.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118142408_Phase4Events.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118133903_AddContentPlansAnswersAndSteps.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261118142408_Phase4Events.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261118133903_AddContentPlansAnswersAndSteps.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118141754_Phase6Studio">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118141754_Phase6Studio.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118141754_Phase6Studio.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118141754_Phase6Studio.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118144228_Phase4Events">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

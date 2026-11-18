@@ -4,7 +4,7 @@ using Storeasy.Application.Dtos.RuleDtos;
 namespace Storeasy.Application.Features.RuleWatcher.ApproveRuleProposal;
 
 /// <summary>
-/// Approves a pending proposal: the catalog change is published (through <see cref="IRulesCatalogSource"/>) and, with
+/// Approves a pending proposal (the catalog patch is published with the next catalog version of the repository) and, with
 /// <see cref="Notify"/>, the owners and admins of every affected app are told.
 /// </summary>
 public record ApproveRuleProposalCommand : ICommand<RuleProposalDecisionDto>

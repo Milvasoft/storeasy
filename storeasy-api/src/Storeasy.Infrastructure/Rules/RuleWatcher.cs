@@ -19,15 +19,15 @@ namespace Storeasy.Infrastructure.Rules;
 /// <param name="sourceRepository"></param>
 /// <param name="proposalRepository"></param>
 /// <param name="fetcher"></param>
-/// <param name="catalogSource"></param>
+/// <param name="rulesCatalog"></param>
 /// <param name="notificationDispatcher"></param>
 /// <param name="options"></param>
 /// <param name="timeProvider"></param>
 /// <param name="logger"></param>
-public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceRepository,
+public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleWatchSource> sourceRepository,
                                 IStoreasyRepositoryBase<RuleProposal> proposalRepository,
                                 IRuleSourceFetcher fetcher,
-                                IRulesCatalogSource catalogSource,
+                                IRulesCatalog rulesCatalog,
                                 INotificationDispatcher notificationDispatcher,
                                 RuleWatcherOptions options,
                                 TimeProvider timeProvider,
@@ -35,10 +35,10 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceReposi
 {
     private const int _diffLines = 200;
 
-    private readonly IStoreasyRepositoryBase<RuleSource> _sourceRepository = sourceRepository;
+    private readonly IStoreasyRepositoryBase<RuleWatchSource> _sourceRepository = sourceRepository;
     private readonly IStoreasyRepositoryBase<RuleProposal> _proposalRepository = proposalRepository;
     private readonly IRuleSourceFetcher _fetcher = fetcher;
-    private readonly IRulesCatalogSource _catalogSource = catalogSource;
+    private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
     private readonly RuleWatcherOptions _options = options;
     private readonly TimeProvider _timeProvider = timeProvider;
@@ -53,8 +53,8 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceReposi
             return;
 
         var urls = configured.Select(s => s.Url).ToList();
-        var known = (await _sourceRepository.GetAllAsync(s => urls.Contains(s.Url), projection: s => new RuleSource { Url = s.Url }, cancellationToken: cancellationToken)).Select(s => s.Url).ToHashSet();
-        var missing = configured.Where(s => !known.Contains(s.Url)).Select(s => new RuleSource { Name = s.Name, Store = s.Store, Url = s.Url, IsActive = true, Status = RuleSourceStatus.New }).ToList();
+        var known = (await _sourceRepository.GetAllAsync(s => urls.Contains(s.Url), projection: s => new RuleWatchSource { Url = s.Url }, cancellationToken: cancellationToken)).Select(s => s.Url).ToHashSet();
+        var missing = configured.Where(s => !known.Contains(s.Url)).Select(s => new RuleWatchSource { Name = s.Name, Store = s.Store, Url = s.Url, IsActive = true, Status = RuleSourceStatus.New }).ToList();
 
         if (missing.Count == 0)
             return;
@@ -75,7 +75,7 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceReposi
         await EnsureSourcesAsync(cancellationToken);
 
         var sources = await _sourceRepository.GetAllAsync(s => s.IsActive,
-                                                          projection: s => new RuleSource { Id = s.Id, Name = s.Name, Store = s.Store, Url = s.Url, ContentHash = s.ContentHash, PreviousContentHash = s.PreviousContentHash, Content = s.Content, Status = s.Status, LastChangeDate = s.LastChangeDate },
+                                                          projection: s => new RuleWatchSource { Id = s.Id, Name = s.Name, Store = s.Store, Url = s.Url, ContentHash = s.ContentHash, PreviousContentHash = s.PreviousContentHash, Content = s.Content, Status = s.Status, LastChangeDate = s.LastChangeDate },
                                                           cancellationToken: cancellationToken);
 
         var sourceIds = sources.Select(s => s.Id).ToList();
@@ -83,7 +83,7 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceReposi
                                                               projection: p => new RuleProposal { RuleSourceId = p.RuleSourceId, ContentHash = p.ContentHash },
                                                               cancellationToken: cancellationToken)).Select(p => (p.RuleSourceId.Value, p.ContentHash)).ToHashSet();
 
-        var catalogVersion = await _catalogSource.GetCatalogVersionAsync(cancellationToken);
+        var catalogVersion = _rulesCatalog.Current?.Version;
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var proposals = new List<RuleProposal>();
         int changed = 0, unreachable = 0;
@@ -96,7 +96,7 @@ public sealed class RuleWatcher(IStoreasyRepositoryBase<RuleSource> sourceReposi
 
             try
             {
-                content = ContentNormalizer.Normalize(await _fetcher.FetchAsync(source.Url, cancellationToken), RuleSource.ContentMaxLength);
+                content = ContentNormalizer.Normalize(await _fetcher.FetchAsync(source.Url, cancellationToken), RuleWatchSource.ContentMaxLength);
             }
             catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
             {

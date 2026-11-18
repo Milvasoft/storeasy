@@ -30,6 +30,12 @@ public static class ResponseStatusCodes
         [MessageKey.EmailNotVerified] = StatusCodes.Status403Forbidden,
 
         // 404 - the target does not exist (or is invisible to the caller, which is reported the same way).
+        [MessageKey.RuleNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.ChangePlanNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.VersionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.SavedAnswerNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BuildNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.AssistedStepNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.UserNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.RoleNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.PageNotFound] = StatusCodes.Status404NotFound,
@@ -44,6 +50,11 @@ public static class ResponseStatusCodes
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
+        [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
+        [MessageKey.PlanNotPending] = StatusCodes.Status409Conflict,
+        [MessageKey.StoreAppNotConnected] = StatusCodes.Status409Conflict,
+        [MessageKey.VersionNotEditable] = StatusCodes.Status409Conflict,
+        [MessageKey.BuildNotValid] = StatusCodes.Status409Conflict,
         [MessageKey.UserExists] = StatusCodes.Status409Conflict,
         [MessageKey.EmailExists] = StatusCodes.Status409Conflict,
         [MessageKey.PostgreDuplicateDataException] = StatusCodes.Status409Conflict,
@@ -59,6 +70,16 @@ public static class ResponseStatusCodes
         [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
         [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
 
+        // 410 - the plan expired.
+        [MessageKey.PlanExpired] = StatusCodes.Status410Gone,
+
+        // 422 - the store refused, or nothing usable was sent.
+        [MessageKey.StoreRejected] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.MediaRejected] = StatusCodes.Status422UnprocessableEntity,
+
+        // 502 - the store did not answer.
+        [MessageKey.StoreUnreachable] = StatusCodes.Status502BadGateway,
+
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,
 
@@ -69,6 +90,16 @@ public static class ResponseStatusCodes
         // 503 - the feature is switched off by an admin (see FeatureFlagAttribute).
         [MessageKey.FeatureDisabled] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.StorageNotConfigured] = StatusCodes.Status503ServiceUnavailable,
+        [MessageKey.RulesCatalogUnavailable] = StatusCodes.Status503ServiceUnavailable,
+
+        // Mockup studio (phase 6).
+        [MessageKey.MockupTemplateNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupStarterNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupExportNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MockupTemplateNameExists] = StatusCodes.Status409Conflict,
+        [MessageKey.MockupTemplateChanged] = StatusCodes.Status409Conflict,
+        [MessageKey.MockupExportNotReady] = StatusCodes.Status409Conflict,
+        [MessageKey.TitleTranslatorUnavailable] = StatusCodes.Status503ServiceUnavailable,
 
         // Phase 4 (events and tracking).
         [MessageKey.WebhookSignatureInvalid] = StatusCodes.Status401Unauthorized,

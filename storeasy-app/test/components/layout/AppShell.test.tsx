@@ -53,7 +53,7 @@ describe('app shell and routing', () => {
   it('shows the menu with the not-yet-built sections marked and opens their designed first-use state', async () => {
     const { user } = await renderApp({ route: '/apps' })
 
-    expect(await screen.findByRole('heading', { name: 'Hat henüz boş' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })).toBeInTheDocument()
     expect(within(menu()).getByRole('link', { name: /Mağaza bağlantıları/ })).toBeInTheDocument()
     expect(within(menu()).getByRole('link', { name: /Yorumlar/ })).toHaveTextContent('Yakında')
     await user.click(within(menu()).getByRole('link', { name: /Yorumlar/ }))
@@ -73,7 +73,7 @@ describe('app shell and routing', () => {
   it('shows the Platform group only to a platform administrator', async () => {
     await renderApp({ route: '/apps', userType: UserType.Manager })
 
-    await screen.findByRole('heading', { name: 'Hat henüz boş' })
+    await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })
     expect(within(menu()).getByText('Platform')).toBeInTheDocument()
     expect(within(menu()).getByRole('link', { name: /Sistem durumu/ })).toBeInTheDocument()
   })
@@ -98,7 +98,7 @@ describe('app shell and routing', () => {
   it('changes the theme from the top bar', async () => {
     const { user } = await renderApp({ route: '/apps' })
 
-    await screen.findByRole('heading', { name: 'Hat henüz boş' })
+    await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })
     await user.click(screen.getByRole('button', { name: 'Tema' }))
     await user.click(screen.getByRole('menuitemradio', { name: 'Koyu' }))
 
@@ -108,7 +108,7 @@ describe('app shell and routing', () => {
   it('signs out from the account menu', async () => {
     const { user } = await renderApp({ route: '/apps' })
 
-    await screen.findByRole('heading', { name: 'Hat henüz boş' })
+    await screen.findByRole('heading', { name: 'Uygulamalar', level: 1 })
     await user.click(within(menu()).getByRole('button', { name: 'Hesap menüsü' }))
     await user.click(screen.getByRole('menuitem', { name: 'Çıkış yap' }))
 

@@ -114,6 +114,12 @@
             Icon address, when known.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Apps.App.Profile">
+            <summary>
+            What the rules catalog needs to know about the app that the stores do not report (device families, regions,
+            features). Null until a member fills it.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Apps.App.StoreApps">
             <summary>
             Store records of the app.
@@ -136,6 +142,94 @@
             </summary>
             <param name="bundleId"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.AssistedStep">
+            <summary>
+            An assisted step of an app in one store (docs/urun-plani.md 11.4): store work without an API, done by the member or a
+            browser agent in the member's own store session, and recorded here. The checklist comes from the step definition
+            (a catalog rule or a built in step, <see cref="P:Storeasy.Domain.Apps.AssistedStep.Key"/>); the row keeps its progress, hand-off and result. storeasy never
+            stores or asks for a store password.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.AssistedStep.KeyMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.AssistedStep.Key"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.AssistedStep.NoteMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.AssistedStep.Note"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.Store">
+            <summary>
+            Store the step is done in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.Key">
+            <summary>
+            Step definition: a catalog rule id or a built in step key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.Status">
+            <summary>
+            Progress.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.DoneItems">
+            <summary>
+            Positions (from 1) of the checklist items marked done.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.HandedOffDate">
+            <summary>
+            UTC instant of the last hand-off to a browser agent.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.HandedOffByUserName">
+            <summary>
+            Member who handed the step off.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.CompletedDate">
+            <summary>
+            UTC instant the step was recorded as done or skipped.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.CompletedByUserName">
+            <summary>
+            Member who recorded the result.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.CompletedChannel">
+            <summary>
+            Channel the result came from (web, MCP).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.EvidenceAssetId">
+            <summary>
+            Evidence screenshot, if one was uploaded.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.Note">
+            <summary>
+            Note on the result.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.AssistedStep.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Apps.Build">
             <summary>
@@ -209,9 +303,266 @@
             UTC instant of the last sync that saw the build.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Apps.Build.UsesNonExemptEncryption">
+            <summary>
+            Export compliance answer of the build (App Store <c>usesNonExemptEncryption</c>); null while unanswered.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Apps.Build.StoreApp">
             <summary>
             Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.SavedAnswer">
+            <summary>
+            One saved answer document of an app (docs/urun-plani.md 11.1): the answers to a store form that has no API (App Privacy,
+            content rating, target audience) or that storeasy writes from them (Data safety CSV, App Review details). One row per
+            app and <see cref="P:Storeasy.Domain.Apps.SavedAnswer.Kind"/>. <see cref="P:Storeasy.Domain.Apps.SavedAnswer.Answers"/> is the typed JSON document of the kind; the only secret (the demo
+            account password of <see cref="F:Storeasy.Domain.Enums.SavedAnswerKind.ReviewLogin"/>) is envelope encrypted in <see cref="P:Storeasy.Domain.Apps.SavedAnswer.EncryptedSecret"/>,
+            is never returned and never copied to another app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.Kind">
+            <summary>
+            Which form the answers are for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.Answers">
+            <summary>
+            The answers as the typed JSON document of <see cref="P:Storeasy.Domain.Apps.SavedAnswer.Kind"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.EncryptedSecret">
+            <summary>
+            The secret sealed with the data key; null when there is none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.EncryptedDataKey">
+            <summary>
+            The data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.KeyVersion">
+            <summary>
+            Version of the master key that sealed <see cref="P:Storeasy.Domain.Apps.SavedAnswer.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.SavedAnswer.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.SavedAnswerDocuments">
+            <summary>
+            The typed JSON documents of saved answers, one per <see cref="T:Storeasy.Domain.Enums.SavedAnswerKind"/>. Parsing is strict (unknown members
+            are refused), so a typo never silently drops an answer.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Apps.SavedAnswerDocuments.TypeOf(Storeasy.Domain.Enums.SavedAnswerKind)">
+            <summary>
+            Document type of <paramref name="kind"/>.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Apps.SavedAnswerDocuments.Normalize(Storeasy.Domain.Enums.SavedAnswerKind,System.String,System.String@)">
+            <summary>
+            Parses and normalizes <paramref name="json"/> as the document of <paramref name="kind"/>. Returns null (and the
+            reason) when it does not fit.
+            </summary>
+            <param name="kind"></param>
+            <param name="json"></param>
+            <param name="error"></param>
+            <returns>The canonical JSON of the document.</returns>
+        </member>
+        <member name="M:Storeasy.Domain.Apps.SavedAnswerDocuments.Read``1(System.String)">
+            <summary>
+            Reads a stored document; null when there is none or it does not parse.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="json"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.PrivacyLabelsAnswers">
+            <summary>
+            App Store privacy nutrition labels (no API: an assisted step).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyLabelsAnswers.CollectsData">
+            <summary>
+            Whether the app or its third parties collect any data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyLabelsAnswers.DataTypes">
+            <summary>
+            Collected data types.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyLabelsAnswers.PrivacyPolicyUrl">
+            <summary>
+            Privacy policy address.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.PrivacyDataTypeAnswer">
+            <summary>
+            One collected data type of the App Privacy labels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyDataTypeAnswer.Category">
+            <summary>
+            Category (Contact Info, Identifiers, Usage Data...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyDataTypeAnswer.Type">
+            <summary>
+            Data type (Email Address, User ID, Product Interaction...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyDataTypeAnswer.Purposes">
+            <summary>
+            Purposes (App Functionality, Analytics...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyDataTypeAnswer.LinkedToUser">
+            <summary>
+            Whether it is linked to the user's identity.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PrivacyDataTypeAnswer.UsedForTracking">
+            <summary>
+            Whether it is used for tracking.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.DataSafetyAnswers">
+            <summary>
+            Google Play Data safety answers, kept as the machine readable rows of Play's own CSV (question id, response id, value),
+            so the CSV sent through <c>applications.dataSafety</c> is generated exactly. Export the CSV once from Play Console to
+            start from the app's current answers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.DataSafetyAnswers.Rows">
+            <summary>
+            Rows of the form.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.DataSafetyRow">
+            <summary>
+            One row of the Data safety CSV.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.DataSafetyRow.QuestionId">
+            <summary>
+            Question ID (machine readable).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.DataSafetyRow.ResponseId">
+            <summary>
+            Response ID (machine readable); empty for free text questions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.DataSafetyRow.ResponseValue">
+            <summary>
+            Response value (true, false, or text).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.DataSafetyRow.Label">
+            <summary>
+            Human friendly question label (kept for readability, ignored by Play).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.ContentRatingAnswers">
+            <summary>
+            Play content rating questionnaire (IARC) answers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ContentRatingAnswers.Category">
+            <summary>
+            Questionnaire category (e.g. "Social Networking, Forums, Blogs and UGC Sharing").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ContentRatingAnswers.Email">
+            <summary>
+            Contact e-mail for the rating authorities.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ContentRatingAnswers.Answers">
+            <summary>
+            Answers by question.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.TargetAudienceAnswers">
+            <summary>
+            Play target audience and content answers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.TargetAudienceAnswers.AgeGroups">
+            <summary>
+            Target age groups (e.g. "18+").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.TargetAudienceAnswers.AppealsToChildren">
+            <summary>
+            Whether the app may unintentionally appeal to children.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.TargetAudienceAnswers.ContainsAds">
+            <summary>
+            Whether the app contains ads.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.ReviewLoginAnswers">
+            <summary>
+            App Review contact and demo account. The password is not part of the document; it is sealed separately.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.ContactFirstName">
+            <summary>
+            Contact first name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.ContactLastName">
+            <summary>
+            Contact last name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.ContactEmail">
+            <summary>
+            Contact e-mail.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.ContactPhone">
+            <summary>
+            Contact phone (international format).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.DemoAccountRequired">
+            <summary>
+            Whether the reviewer must sign in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewLoginAnswers.DemoAccountName">
+            <summary>
+            Demo account user name.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Apps.ReviewNotesAnswers">
+            <summary>
+            Notes for the reviewer.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.ReviewNotesAnswers.Notes">
+            <summary>
+            Notes.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Apps.StoreApp">
@@ -264,6 +615,11 @@
         <member name="P:Storeasy.Domain.Apps.StoreApp.SyncedDate">
             <summary>
             UTC instant of the last successful sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.StoreApp.LastReadiness">
+            <summary>
+            Summary of the last readiness check (for the organization overview).
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Apps.StoreApp.App">
@@ -426,6 +782,572 @@
             <param name="fileName"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Domain.Assets.ImageHeader">
+            <summary>
+            Format, size and alpha of a PNG or JPEG read from its header (the stores reject screenshots with an alpha channel).
+            A PNG has alpha when its color type carries one (4, 6) or it has a <c>tRNS</c> chunk before the image data.
+            </summary>
+            <param name="Format">png or jpeg.</param>
+            <param name="Width">Width in pixels.</param>
+            <param name="Height">Height in pixels.</param>
+            <param name="HasAlpha">Whether the image has an alpha channel or transparency.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.ImageHeader.#ctor(System.String,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Format, size and alpha of a PNG or JPEG read from its header (the stores reject screenshots with an alpha channel).
+            A PNG has alpha when its color type carries one (4, 6) or it has a <c>tRNS</c> chunk before the image data.
+            </summary>
+            <param name="Format">png or jpeg.</param>
+            <param name="Width">Width in pixels.</param>
+            <param name="Height">Height in pixels.</param>
+            <param name="HasAlpha">Whether the image has an alpha channel or transparency.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.ImageHeader.Format">
+            <summary>png or jpeg.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.ImageHeader.Width">
+            <summary>Width in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.ImageHeader.Height">
+            <summary>Height in pixels.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Assets.ImageHeader.HasAlpha">
+            <summary>Whether the image has an alpha channel or transparency.</summary>
+        </member>
+        <member name="M:Storeasy.Domain.Assets.ImageHeader.Read(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Reads the header of <paramref name="data"/>; null when it is neither a PNG nor a JPEG with a frame header.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ChangePlan">
+            <summary>
+            A change plan: every write to a store goes through one (docs/urun-plani.md 2.2). It is made from the store's current
+            values and the desired ones (<see cref="P:Storeasy.Domain.Content.ChangePlan.Items"/> is the field level diff), shown to the members, and written only when a
+            member with <see cref="P:Storeasy.Domain.Content.ChangePlan.RequiredPermission"/> approves it; then a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job applies
+            <see cref="P:Storeasy.Domain.Content.ChangePlan.Changes"/>. <see cref="P:Storeasy.Domain.Content.ChangePlan.BaseHash"/> fingerprints the touched store values at planning time, so an approval
+            after someone changed the store is refused instead of overwriting. Plans that need a typed confirmation
+            (submission, production release) carry <see cref="P:Storeasy.Domain.Content.ChangePlan.ConfirmText"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ChangePlan.TitleMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Content.ChangePlan.Title"/> and <see cref="P:Storeasy.Domain.Content.ChangePlan.ConfirmText"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ChangePlan.DecisionNoteMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Content.ChangePlan.DecisionNote"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.StoreAppId">
+            <summary>
+            Store record the plan writes to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Kind">
+            <summary>
+            What the plan changes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Status">
+            <summary>
+            Stored state (Pending, Approved, Applied, Rejected, Discarded); Failed and Expired are derived when read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Title">
+            <summary>
+            One line description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Source">
+            <summary>
+            Where the plan was made (web, MCP, API, CI).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.CreatedByUserId">
+            <summary>
+            Member who made the plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.CreatedByUserName">
+            <summary>
+            User name of the member who made the plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.RequiredPermission">
+            <summary>
+            Permission needed to approve (apply) the plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.ConfirmText">
+            <summary>
+            Text the approver must type (e.g. "Kumbara 1.0"); null when no typed confirmation is needed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.VersionId">
+            <summary>
+            Store version the plan writes to (App Store version id), if one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.VersionString">
+            <summary>
+            User facing version string of <see cref="P:Storeasy.Domain.Content.ChangePlan.VersionId"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Items">
+            <summary>
+            Field level diff.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Warnings">
+            <summary>
+            Non blocking remarks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Calls">
+            <summary>
+            Store calls the apply job makes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Files">
+            <summary>
+            Check results of the uploaded files of a media plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.Changes">
+            <summary>
+            What the apply job writes, as JSON. Never a secret: secrets (the demo account password) are resolved by the job
+            from their sealed column.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.BaseKeys">
+            <summary>
+            Content keys whose store values <see cref="P:Storeasy.Domain.Content.ChangePlan.BaseHash"/> fingerprints.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.BaseHash">
+            <summary>
+            SHA-256 of the touched store values at planning time.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.CatalogVersion">
+            <summary>
+            Rules catalog version the plan was checked against.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.DecidedByUserId">
+            <summary>
+            Member who approved, rejected or discarded the plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.DecidedByUserName">
+            <summary>
+            User name of <see cref="P:Storeasy.Domain.Content.ChangePlan.DecidedByUserId"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.DecisionChannel">
+            <summary>
+            Channel of the decision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.DecisionNote">
+            <summary>
+            Reason of a rejection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.DecisionDate">
+            <summary>
+            UTC instant of the decision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.ExpiryDate">
+            <summary>
+            UTC instant after which a pending plan can no longer be approved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.StoreJobId">
+            <summary>
+            The apply job, once approved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.AppliedDate">
+            <summary>
+            UTC instant the store accepted every change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ChangePlan.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ChangePlanRules">
+            <summary>
+            Pure rules of change plans: who may approve which plan (docs/urun-plani.md section 6), which plans need a typed
+            confirmation, and the state a plan shows. No database.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ChangePlanRules.ProductionTrack">
+            <summary>
+            Name of the Play production track.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.RequiredPermission(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            Permission needed to approve a plan of <paramref name="kind"/> (writing to <paramref name="track"/> on Play).
+            Production releases, phased releases and rollouts need <see cref="F:Storeasy.Domain.Enums.OrgPermission.ReleaseProduction"/>, test tracks and
+            testers <see cref="F:Storeasy.Domain.Enums.OrgPermission.ReleaseTest"/>, a submission <see cref="F:Storeasy.Domain.Enums.OrgPermission.SubmitForReview"/>, everything
+            else <see cref="F:Storeasy.Domain.Enums.OrgPermission.EditContent"/>.
+            </summary>
+            <param name="kind"></param>
+            <param name="store"></param>
+            <param name="track"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.NeedsConfirmation(Storeasy.Domain.Enums.ChangePlanKind,System.String)">
+            <summary>
+            Whether a plan needs the approver to type its confirmation text: submissions and releases to Play production.
+            </summary>
+            <param name="kind"></param>
+            <param name="track"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.ConfirmationText(System.String,System.String)">
+            <summary>
+            The text an approver types: the app name and the version, e.g. "Kumbara 1.0".
+            </summary>
+            <param name="appName"></param>
+            <param name="version"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.ConfirmationMatches(System.String,System.String)">
+            <summary>
+            Whether <paramref name="typed"/> matches <paramref name="expected"/> (surrounding and repeated spaces ignored, case
+            sensitive). A plan without a confirmation text accepts anything.
+            </summary>
+            <param name="expected"></param>
+            <param name="typed"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.Effective(Storeasy.Domain.Enums.ChangePlanStatus,System.DateTime,System.Nullable{Storeasy.Domain.Enums.StoreJobStatus},System.DateTime)">
+            <summary>
+            The state a plan shows: a pending plan past its expiry is <see cref="F:Storeasy.Domain.Enums.ChangePlanStatus.Expired"/>; an approved plan
+            whose apply job failed or was cancelled is <see cref="F:Storeasy.Domain.Enums.ChangePlanStatus.Failed"/>.
+            </summary>
+            <param name="stored"></param>
+            <param name="expiryDate"></param>
+            <param name="jobStatus"></param>
+            <param name="now"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind)">
+            <summary>
+            Audit action of the writes of a plan of <paramref name="kind"/>.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ChangePlanRules.IsProduction(System.String)">
+            <summary>
+            Whether <paramref name="track"/> is the Play production track.
+            </summary>
+            <param name="track"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ContentDiff">
+            <summary>
+            Pure diff of the content model: desired values against the values the store has now, field by field. Only keys the
+            desired set names are compared (a plan is a partial update). Null and empty count as "no value".
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentDiff.Compute(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+            <summary>
+            Items for every desired key whose value differs from the current one: <see cref="F:Storeasy.Domain.Enums.ChangeAction.Create"/> when there
+            is no current value, <see cref="F:Storeasy.Domain.Enums.ChangeAction.Delete"/> when the desired value is empty, otherwise
+            <see cref="F:Storeasy.Domain.Enums.ChangeAction.Update"/>.
+            </summary>
+            <param name="current"></param>
+            <param name="desired"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentDiff.Same(System.String,System.String)">
+            <summary>
+            Whether two values are the same (null and empty are equal; otherwise ordinal).
+            </summary>
+            <param name="left"></param>
+            <param name="right"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentDiff.Hash(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Lower case hex SHA-256 over the current values of <paramref name="keys"/> (sorted, so the order of the keys does not
+            matter). A plan stores it; applying the plan reads the store again and refuses when it changed meanwhile.
+            </summary>
+            <param name="current"></param>
+            <param name="keys"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentDiff.ByteCount(System.String)">
+            <summary>
+            Number of UTF-8 bytes of <paramref name="value"/> (Apple counts keywords in bytes).
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentDiff.CharCount(System.String)">
+            <summary>
+            Number of characters as the stores count them (Unicode text elements, so an emoji counts once).
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ContentKey">
+            <summary>
+            The content model of a store app (docs/urun-plani.md 2.2, "diff and dry run"): every value storeasy reads from or writes
+            to a store is a string addressed by group, locale and field. Complex values (age rating answers) are kept as their raw
+            JSON text. A change plan is the difference between the desired and the current values of the touched keys.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentKey.Of(System.String,System.String,System.String)">
+            <summary>
+            Key of one value. <paramref name="locale"/> is empty for values that are not localized.
+            </summary>
+            <param name="group"></param>
+            <param name="locale"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ContentKey.Parse(System.String)">
+            <summary>
+            Splits a key made by <see cref="M:Storeasy.Domain.Content.ContentKey.Of(System.String,System.String,System.String)"/>.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ContentGroups">
+            <summary>
+            Groups of the content model.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.AppInfo">
+            <summary>
+            App Store app info (name, subtitle, privacy URLs, categories): independent of versions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Version">
+            <summary>
+            App Store version (localized texts, copyright, release type).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.App">
+            <summary>
+            App level values (content rights declaration, EULA).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Listing">
+            <summary>
+            Play store listing per language.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Details">
+            <summary>
+            Play app details.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.AgeRating">
+            <summary>
+            Age rating declaration answers (raw JSON values).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Pricing">
+            <summary>
+            Base territory and price point.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Availability">
+            <summary>
+            Territory availability: field is the territory code, value "true" or "false".
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Review">
+            <summary>
+            App Review details.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Build">
+            <summary>
+            Build of a version and its export compliance answer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Phased">
+            <summary>
+            Phased release of a version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Media">
+            <summary>
+            Media set: locale and class key address one set, the value is the ordered list of item checksums.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Track">
+            <summary>
+            Play track: field is the track, the value its releases as JSON.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Content.ContentGroups.Testers">
+            <summary>
+            Play testers: field is the track, the value the Google Group addresses.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ListingField">
+            <summary>
+            A listing field a store has.
+            </summary>
+            <param name="Store">Store.</param>
+            <param name="Group">Content group.</param>
+            <param name="Field">Field name, as the store API names it.</param>
+            <param name="LimitRuleId">Catalog rule that limits the field, if any.</param>
+            <param name="Required">Whether a submission needs it.</param>
+            <param name="IsUrl">Whether the value is an address.</param>
+            <param name="Localized">Whether the field exists per locale.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ListingField.#ctor(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            A listing field a store has.
+            </summary>
+            <param name="Store">Store.</param>
+            <param name="Group">Content group.</param>
+            <param name="Field">Field name, as the store API names it.</param>
+            <param name="LimitRuleId">Catalog rule that limits the field, if any.</param>
+            <param name="Required">Whether a submission needs it.</param>
+            <param name="IsUrl">Whether the value is an address.</param>
+            <param name="Localized">Whether the field exists per locale.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.Store">
+            <summary>Store.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.Group">
+            <summary>Content group.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.Field">
+            <summary>Field name, as the store API names it.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.LimitRuleId">
+            <summary>Catalog rule that limits the field, if any.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.Required">
+            <summary>Whether a submission needs it.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.IsUrl">
+            <summary>Whether the value is an address.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingField.Localized">
+            <summary>Whether the field exists per locale.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Content.ListingFields">
+            <summary>
+            Listing fields of each store that storeasy reads and writes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.ListingFields.All">
+            <summary>
+            Every listing field.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ListingFields.Find(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            The field named <paramref name="field"/> of <paramref name="store"/> (case insensitive), or null.
+            </summary>
+            <param name="store"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.ListingFields.Of(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Fields of one store.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Content.MediaClass">
+            <summary>
+            A store's media class and the catalog rule that describes it.
+            </summary>
+            <param name="Store">Store.</param>
+            <param name="Kind">Screenshot (graphics too) or preview.</param>
+            <param name="ClassKey">The store's own key (App Store display type, Play image type).</param>
+            <param name="RuleId">Catalog rule of the class.</param>
+            <param name="Single">Whether the class holds one item that a new one replaces (Play icon, feature graphic).</param>
+        </member>
+        <member name="M:Storeasy.Domain.Content.MediaClass.#ctor(Storeasy.Domain.Enums.StoreKind,Storeasy.Domain.Enums.MediaKind,System.String,System.String,System.Boolean)">
+            <summary>
+            A store's media class and the catalog rule that describes it.
+            </summary>
+            <param name="Store">Store.</param>
+            <param name="Kind">Screenshot (graphics too) or preview.</param>
+            <param name="ClassKey">The store's own key (App Store display type, Play image type).</param>
+            <param name="RuleId">Catalog rule of the class.</param>
+            <param name="Single">Whether the class holds one item that a new one replaces (Play icon, feature graphic).</param>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClass.Store">
+            <summary>Store.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClass.Kind">
+            <summary>Screenshot (graphics too) or preview.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClass.ClassKey">
+            <summary>The store's own key (App Store display type, Play image type).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClass.RuleId">
+            <summary>Catalog rule of the class.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClass.Single">
+            <summary>Whether the class holds one item that a new one replaces (Play icon, feature graphic).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Content.MediaClasses">
+            <summary>
+            Media classes of each store mapped to catalog rules. The catalog is the source of sizes and requirements; this table only
+            names the store's key of each class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Content.MediaClasses.All">
+            <summary>
+            Every known class.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Content.MediaClasses.Find(Storeasy.Domain.Enums.StoreKind,Storeasy.Domain.Enums.MediaKind,System.String)">
+            <summary>
+            The class with <paramref name="classKey"/> of a store, or null.
+            </summary>
+            <param name="store"></param>
+            <param name="kind"></param>
+            <param name="classKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Content.MediaClasses.Of(Storeasy.Domain.Enums.StoreKind,Storeasy.Domain.Enums.MediaKind)">
+            <summary>
+            Classes of one store and kind.
+            </summary>
+            <param name="store"></param>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AccountTokenPurpose">
             <summary>
             What a one time account token proves. Values are explicit and never reused.
@@ -516,6 +1438,36 @@
             The upload did not match its declaration and was removed.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.AssistedStepStatus">
+            <summary>
+            State of an assisted step.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssistedStepStatus.Todo">
+            <summary>
+            Not started.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssistedStepStatus.InProgress">
+            <summary>
+            Some checklist items are done.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssistedStepStatus.HandedOff">
+            <summary>
+            Handed off to a browser agent.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssistedStepStatus.Done">
+            <summary>
+            Recorded as done.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AssistedStepStatus.Skipped">
+            <summary>
+            Recorded as not needed.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AuditAction">
             <summary>
             Kinds of organization audit entries. Values are explicit and never reused.
@@ -565,6 +1517,66 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.StoreAppUnlinked">
             <summary>A store record was split off into its own storeasy app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppProfileUpdated">
+            <summary>A storeasy app's catalog profile (device families, regions, features) changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PlanApproved">
+            <summary>A change plan was approved and its apply job queued.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PlanRejected">
+            <summary>A change plan was rejected.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PlanDiscarded">
+            <summary>A change plan was withdrawn.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ListingApplied">
+            <summary>A listing field was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MediaApplied">
+            <summary>A screenshot, preview or graphic set was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ReleaseApplied">
+            <summary>A release (track release, release type) was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RolloutChanged">
+            <summary>A staged or phased rollout changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.BuildLinked">
+            <summary>A build was attached to a version or its export compliance answered.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.SubmittedForReview">
+            <summary>A version was submitted for review.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ContentApplied">
+            <summary>Other store content (categories, age rating, pricing, review details, details, testers, data safety) was written.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AnswersUpdated">
+            <summary>Saved answers of an app changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AnswersCopied">
+            <summary>Saved answers were copied from another app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AssistedStepHandedOff">
+            <summary>An assisted step was handed off to a browser agent.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AssistedStepCompleted">
+            <summary>An assisted step was recorded as done or skipped.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateCreated">
+            <summary>A mockup template was created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateUpdated">
+            <summary>A mockup template's design, slots or locales changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateDeleted">
+            <summary>A mockup template was deleted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupCaptionsUpdated">
+            <summary>Captions of a mockup template changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MockupExported">
+            <summary>A mockup export job was queued.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.WebhookEndpointAdded">
             <summary>Inbound webhook endpoint added.</summary>
@@ -701,6 +1713,156 @@
             The build expired (TestFlight builds expire after 90 days).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ChangeAction">
+            <summary>
+            What a plan item does to one field.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangeAction.Create">
+            <summary>
+            The field or item is added.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangeAction.Update">
+            <summary>
+            The field or item changes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangeAction.Delete">
+            <summary>
+            The field or item is removed.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChangePlanKind">
+            <summary>
+            What a change plan changes in a store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Listing">
+            <summary>
+            Store listing texts (app info and version localizations, Play listings).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Details">
+            <summary>
+            Play app details (contact e-mail, phone, website, default language).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Categories">
+            <summary>
+            Categories, copyright and content rights declaration.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.AgeRating">
+            <summary>
+            Age rating declaration.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Pricing">
+            <summary>
+            Base price and territory availability.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Screenshots">
+            <summary>
+            Screenshot sets (Apple) and graphics (Play).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Previews">
+            <summary>
+            App preview videos.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.ReviewInfo">
+            <summary>
+            App Review contact, demo account and notes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.BuildLink">
+            <summary>
+            Attaching a build to a version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.ExportCompliance">
+            <summary>
+            Export compliance answer of a build.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.ReleaseSettings">
+            <summary>
+            Release type and phased release of a version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.TrackRelease">
+            <summary>
+            A release on a Play track.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Rollout">
+            <summary>
+            Staged or phased rollout change.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Testers">
+            <summary>
+            Tester groups of a Play track.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.BundleUpload">
+            <summary>
+            Android App Bundle upload.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.DataSafety">
+            <summary>
+            Play Data safety form.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.SubmitForReview">
+            <summary>
+            Submitting a version for App Review.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChangePlanStatus">
+            <summary>
+            State of a change plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Pending">
+            <summary>
+            Waiting for a decision.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Approved">
+            <summary>
+            Approved; the apply job is queued or running.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Applied">
+            <summary>
+            The store accepted every change.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Failed">
+            <summary>
+            The apply job failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Rejected">
+            <summary>
+            Rejected by a member; nothing was written.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Discarded">
+            <summary>
+            Withdrawn; nothing was written.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanStatus.Expired">
+            <summary>
+            Not decided in time; nothing was written.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.ChecklistItemStatus">
             <summary>
             State of one fix item of a rejection case. Values are explicit and never reused.
@@ -714,6 +1876,31 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.ChecklistItemStatus.Done">
             <summary>Done.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ComplianceStatus">
+            <summary>
+            State of an app against one deadline of the compliance timeline.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ComplianceStatus.Done">
+            <summary>
+            The app complies.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ComplianceStatus.Missing">
+            <summary>
+            The app does not comply yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ComplianceStatus.Unknown">
+            <summary>
+            storeasy cannot tell.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ComplianceStatus.NotApplicable">
+            <summary>
+            The rule does not apply to the app.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ConnectionStatus">
             <summary>
@@ -740,6 +1927,71 @@
             The check could not reach a verdict (network error, store 5xx).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ContentParts">
+            <summary>
+            Parts of a store's content a read covers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.None">
+            <summary>
+            Nothing beyond the version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Texts">
+            <summary>
+            Listing texts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Categories">
+            <summary>
+            Categories, copyright, content rights.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.AgeRating">
+            <summary>
+            Age rating declaration.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Pricing">
+            <summary>
+            Price schedule and territory availability.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Screenshots">
+            <summary>
+            Screenshot sets and graphics.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Previews">
+            <summary>
+            App preview sets.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Review">
+            <summary>
+            App Review details.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Release">
+            <summary>
+            Versions, attached build, release type, phased release, tracks.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Details">
+            <summary>
+            Play app details.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.Testers">
+            <summary>
+            Play tester groups.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ContentParts.All">
+            <summary>
+            Everything.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.EmailProvider">
             <summary>
             How e-mails leave the application (<c>Storeasy:Email:Provider</c>).
@@ -758,6 +2010,119 @@
         <member name="F:Storeasy.Domain.Enums.EmailProvider.Log">
             <summary>
             Nothing is sent, the e-mail is only logged. Development only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MediaKind">
+            <summary>
+            Kind of store media.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MediaKind.Screenshot">
+            <summary>
+            Screenshots and graphics.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MediaKind.Preview">
+            <summary>
+            App preview videos.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MediaSlotFill">
+            <summary>
+            How a media class (slot) is filled.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MediaSlotFill.Own">
+            <summary>
+            The class has its own items.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MediaSlotFill.Fallback">
+            <summary>
+            The store derives the class from another class.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MediaSlotFill.None">
+            <summary>
+            Neither own items nor a fallback.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupDeviceFamily">
+            <summary>
+            Device family of a raw screenshot in a mockup slot. A class without a raw screenshot of its own family falls back to the
+            phone screenshot (see <see cref="M:Storeasy.Domain.Studio.MockupExportRules.PickSlotAsset(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupSlot},System.Int32,Storeasy.Domain.Enums.MockupDeviceFamily,System.String)"/>). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Phone">
+            <summary>
+            Phone screenshot (also used for foldable classes).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Tablet">
+            <summary>
+            Tablet screenshot.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupDeviceFamily.Desktop">
+            <summary>
+            Desktop screenshot (window content).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupFrameKind">
+            <summary>
+            storeasy's own parametric device frames, drawn in code (no manufacturer artwork). A screenshot class names the frame
+            its images are drawn with; a template can turn the frame off. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.None">
+            <summary>
+            No device: the screenshot (or only the caption, for a feature graphic) on the background.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Phone">
+            <summary>
+            Phone body with a bezel and an island, notch, hole or no cutout.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Tablet">
+            <summary>
+            Tablet body with an even bezel and a camera dot.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.FoldableOuter">
+            <summary>
+            Foldable, folded: the narrow outer display with a hinge edge.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.FoldableInner">
+            <summary>
+            Foldable, open: the wide inner display with a crease hint along the fold.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupFrameKind.Desktop">
+            <summary>
+            Desktop window with a title bar.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MockupRequirement">
+            <summary>
+            How much a store wants a screenshot class, read from the rules catalog for the export plan. Values are explicit and
+            never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Required">
+            <summary>
+            The store requires the class (selected for export by default).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Recommended">
+            <summary>
+            The store recommends the class, or will require it from a future date (selected by default).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MockupRequirement.Optional">
+            <summary>
+            The store accepts the class; another class already covers it (not selected by default).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.NotificationEntity">
@@ -931,6 +2296,41 @@
             Read only.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ReadinessStatus">
+            <summary>
+            Outcome of one readiness check.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Ok">
+            <summary>
+            Met.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Missing">
+            <summary>
+            Blocks the submission.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Warning">
+            <summary>
+            Does not block, should be looked at.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Assisted">
+            <summary>
+            Done outside the API; an assisted step is open.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.NotApplicable">
+            <summary>
+            Does not apply to the app.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Unknown">
+            <summary>
+            storeasy cannot tell (data missing).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.RegistrationMode">
             <summary>
             Who may create an account on this instance (<c>Storeasy:Registration:Mode</c>).
@@ -1001,6 +2401,41 @@
         <member name="F:Storeasy.Domain.Enums.RejectionState.Closed">
             <summary>Resubmitted or closed by hand; read only history.</summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ReleasePlanKind">
+            <summary>
+            What a release plan does.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleasePlanKind.SetReleaseType">
+            <summary>
+            Release type and phased release of an App Store version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleasePlanKind.AssignTrack">
+            <summary>
+            Put version codes on a Play track.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ReleaseType">
+            <summary>
+            How an approved App Store version is released.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseType.Manual">
+            <summary>
+            The developer releases it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseType.AfterApproval">
+            <summary>
+            Released when approved.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseType.Scheduled">
+            <summary>
+            Released on a date (or on approval, if later).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.ReviewReplyState">
             <summary>
             State of the developer reply of a store review. Values are explicit and never reused.
@@ -1017,6 +2452,56 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.ReviewReplyState.Failed">
             <summary>The last reply attempt failed.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RolloutAction">
+            <summary>
+            A change to a staged or phased rollout.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RolloutAction.Pause">
+            <summary>
+            Pause an Apple phased release.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RolloutAction.Resume">
+            <summary>
+            Resume a paused or halted rollout.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RolloutAction.Complete">
+            <summary>
+            Release to everyone.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RolloutAction.SetPercentage">
+            <summary>
+            Change the Play user fraction.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RolloutAction.Halt">
+            <summary>
+            Halt a Play rollout.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RuleApplicability">
+            <summary>
+            Whether a catalog rule applies to an app.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleApplicability.Applies">
+            <summary>
+            Every condition matches.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleApplicability.DoesNotApply">
+            <summary>
+            A condition does not match.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleApplicability.Unknown">
+            <summary>
+            The app data needed by a condition is missing.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.RuleProposalPreparer">
             <summary>
@@ -1077,6 +2562,61 @@
         <member name="F:Storeasy.Domain.Enums.RuleSourceStatus.Unreachable">
             <summary>The source could not be read.</summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.RuleStatus">
+            <summary>
+            State of a catalog rule on a day.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleStatus.InForce">
+            <summary>
+            Applies now.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleStatus.Upcoming">
+            <summary>
+            Starts to apply later.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RuleStatus.Deprecated">
+            <summary>
+            Retired.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.SavedAnswerKind">
+            <summary>
+            Kind of a saved answer document of an app.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.PrivacyLabels">
+            <summary>
+            App Store privacy nutrition labels.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.DataSafety">
+            <summary>
+            Google Play Data safety form.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.ContentRating">
+            <summary>
+            Play content rating questionnaire.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.TargetAudience">
+            <summary>
+            Play target audience and content.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.ReviewLogin">
+            <summary>
+            Contact and demo account for App Review (password sealed).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.SavedAnswerKind.ReviewNotes">
+            <summary>
+            Notes for the reviewer.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.StepDirection">
             <summary>
             Which way a store job step moves data, for the live activity view.
@@ -1107,11 +2647,18 @@
             Pulls the apps and builds of one store connection and links them to storeasy apps.
             </summary>
         </member>
-        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent">
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan">
             <summary>
-            Processes one inbound webhook event (App Store version state change: state, rejection case, notifications).
+            Applies an approved change plan to a store.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport">
+            <summary>
+            Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
+            studio's own band.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent" -->
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks">
             <summary>
             Registers, updates or removes the App Store Connect webhooks of an inbound endpoint.
@@ -1689,6 +3236,9 @@
         <member name="F:Storeasy.Domain.FeatureFlagKeys.Export">
             <summary>Excel exports (one export reads up to the export row limit in a single request).</summary>
         </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.StudioAiCaptions">
+            <summary>Mockup studio caption suggestions (a paid translation provider when one is configured; 503 when off).</summary>
+        </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
             <summary>All known keys, in display order.</summary>
         </member>
@@ -2158,6 +3708,56 @@
             Organization the notification comes from; null for platform notifications.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.AppProfile">
+            <summary>
+            What the rules catalog needs to know about an app that the stores do not report: device families, regions, features. Members fill it; null fields are "not known" and make the rules that depend on them evaluate to unknown.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.Platforms">
+            <summary>
+            Platforms (ios, ipados, macos, android, wear-os...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.DeviceFamilies">
+            <summary>
+            Device families the app supports (iphone, ipad, phone, tablet-7, tablet-10...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.Regions">
+            <summary>
+            Distribution regions (ISO 3166-1 alpha-2); null means every region.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.DeveloperRegion">
+            <summary>
+            Region of the developer account.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.AppType">
+            <summary>
+            app or game.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.Features">
+            <summary>
+            Feature flags (subscriptions, aigc, shared-location, uses-location...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.BuildSdkVersion">
+            <summary>
+            iOS SDK version the newest build is built with (e.g. 26.1).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.TargetSdk">
+            <summary>
+            Android target API level of the newest bundle.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AppProfile.IsLive">
+            <summary>
+            Whether the app is already live in the stores (update) or not yet (new app); null to derive it from the store.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.ConnectionFingerprint">
             <summary>
             Non secret identifiers of a store connection, shown in place of the secret.
@@ -2212,6 +3812,656 @@
         <member name="P:Storeasy.Domain.JsonModels.LocalizedText.Text">
             <summary>
             Text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportManifest">
+            <summary>
+            Result of a mockup export job (the job's <c>Result</c>, also <c>manifest.json</c> in the zip): the produced images as
+            sets by store, screenshot class and locale, in slot order. This is the hand over to the screenshot upload plan: one
+            <see cref="T:Storeasy.Domain.JsonModels.MockupExportSet"/> is one screenshot set of a store (an App Store display type in a localization, a Play
+            image type in a language, a Microsoft Store device family in a language). Documented in storeasy-api/docs/studio.md;
+            <see cref="P:Storeasy.Domain.JsonModels.MockupExportManifest.SchemaVersion"/> changes when a field changes meaning.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.SchemaVersion">
+            <summary>
+            Version of this shape.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.JobId">
+            <summary>
+            Export job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TemplateId">
+            <summary>
+            Template the images were drawn from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.AppId">
+            <summary>
+            App of the template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TemplateVersion">
+            <summary>
+            Template version that was drawn.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.CatalogVersion">
+            <summary>
+            Rules catalog version the classes and sizes came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.CreatedDate">
+            <summary>
+            UTC instant the export finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.ZipAssetId">
+            <summary>
+            Asset of the zip with every image and this manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.ImageCount">
+            <summary>
+            Images produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.TotalBytes">
+            <summary>
+            Bytes of the images produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Sets">
+            <summary>
+            Image sets by store, class and locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Failures">
+            <summary>
+            Images that could not be produced (they are not in any set).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportManifest.Warnings">
+            <summary>
+            Warnings of produced images.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportSet">
+            <summary>
+            The images of one store screenshot set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.ClassKey">
+            <summary>
+            Screenshot class key (= rules catalog id, e.g. <c>apple.screenshots.iphone-dynamic-island-medium</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.StoreClassKey">
+            <summary>
+            The store's own key of the class (App Store display type such as <c>APP_IPHONE_61</c>, Play image type such as
+            <c>phoneScreenshots</c>), the <c>classKey</c> of <c>POST screenshots/plan</c>; null when the store API has no key
+            for the class yet (iPhone Duo, Microsoft Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Width">
+            <summary>
+            Pixel width of every image of the set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Height">
+            <summary>
+            Pixel height of every image of the set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportSet.Images">
+            <summary>
+            Images in slot order.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportImage">
+            <summary>
+            One produced image.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.SlotOrder">
+            <summary>
+            Slot position, from 1 (the display order in the store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.AssetId">
+            <summary>
+            The PNG asset (purpose MockupOutput, uploaded, no alpha channel).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Size">
+            <summary>
+            Size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Sha256">
+            <summary>
+            Lower case hex SHA-256 of the PNG.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.Md5">
+            <summary>
+            Lower case hex MD5 of the PNG (App Store Connect compares checksums with it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportImage.ZipPath">
+            <summary>
+            Path inside the zip.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupExportIssue">
+            <summary>
+            A failure or warning of one image.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.ClassKey">
+            <summary>
+            Screenshot class key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.SlotOrder">
+            <summary>
+            Slot position.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Code">
+            <summary>
+            Code (see <see cref="T:Storeasy.Domain.Studio.MockupWarningCodes"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupExportIssue.Message">
+            <summary>
+            English detail.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupSpec">
+            <summary>
+            The design of a mockup template, stored as jsonb and versioned by <see cref="P:Storeasy.Domain.JsonModels.MockupSpec.SchemaVersion"/>. It is the single source
+            of the preview and of the export (docs/urun-plani.md K8): the server renders both from it. Every length is a fraction,
+            so one design renders at every catalog size: horizontal values of the canvas width, vertical values of the canvas
+            height, type and frame sizes of the shorter canvas side (the "unit"). Text content is not here: titles and subtitles
+            live per locale and slot in <see cref="T:Storeasy.Domain.Studio.MockupCaption"/>. See <see cref="T:Storeasy.Domain.Studio.MockupSpecRules"/> for the
+            allowed values and the defaults, and storeasy-api/docs/studio.md for the documented schema.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.SchemaVersion">
+            <summary>
+            Schema version of this document. Readers upgrade older versions (<see cref="M:Storeasy.Domain.Studio.MockupSpecRules.Upgrade(Storeasy.Domain.JsonModels.MockupSpec)"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Canvas">
+            <summary>
+            Design canvas.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Background">
+            <summary>
+            Background.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Frame">
+            <summary>
+            Device frame and the placement of the screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Text">
+            <summary>
+            Caption styling.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupSpec.Layers">
+            <summary>
+            Badges and shapes, drawn in order.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupCanvasSpec">
+            <summary>
+            The canvas a template is designed on. Exports render to every selected class; this is the class the editor opens with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupCanvasSpec.ClassKey">
+            <summary>
+            Screenshot class key (a rules catalog id, e.g. <c>apple.screenshots.iphone-dynamic-island-medium</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupBackgroundSpec">
+            <summary>
+            Background of a mockup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Kind">
+            <summary>
+            <c>solid</c>, <c>gradient</c> or <c>image</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Colors">
+            <summary>
+            Colors as <c>#RRGGBB</c>: one for solid, two to five for a gradient (the first is also the fill under an image).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.Angle">
+            <summary>
+            Gradient angle in degrees (0 = left to right, 90 = top to bottom).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupBackgroundSpec.AssetId">
+            <summary>
+            Image asset of the organization for <c>image</c>, drawn to cover the canvas.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupFrameSpec">
+            <summary>
+            Device frame parameters and screenshot placement. The frame drawn depends on the class (phone, tablet, foldable, desktop
+            window) unless <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind"/> forces one; radius and bezel are fractions of the body width and scale the other
+            kinds' defaults by the same ratio.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind">
+            <summary>
+            <c>auto</c> (by class), <c>none</c> (screenshot without a device), or a fixed <c>phone</c>, <c>tablet</c>,
+            <c>foldable</c>, <c>desktop</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Cutout">
+            <summary>
+            Phone cutout: <c>island</c>, <c>notch</c>, <c>hole</c> or <c>none</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Color">
+            <summary>
+            Body color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.CornerRadius">
+            <summary>
+            Corner radius as a fraction of the body width; null for the frame's default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Bezel">
+            <summary>
+            Bezel thickness as a fraction of the body width; null for the frame's default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Scale">
+            <summary>
+            Body width as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.OffsetX">
+            <summary>
+            Horizontal shift of the device center as a fraction of the canvas width (0 = centered).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.OffsetY">
+            <summary>
+            Top of the device as a fraction of the canvas height. Negative or large values let the device bleed off the canvas.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Rotation">
+            <summary>
+            Rotation in degrees around the device center (clockwise).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Shadow">
+            <summary>
+            Soft shadow under the device.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupTextSpec">
+            <summary>
+            Caption block: where it sits and how the title and subtitle look.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Font">
+            <summary>
+            <c>inter</c> or <c>noto-sans</c>. Scripts the family lacks (Arabic, Hebrew, Thai, Devanagari, CJK) fall back to the
+            embedded Noto Sans fonts of that script.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Color">
+            <summary>
+            Default text color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Position">
+            <summary>
+            <c>top</c> or <c>bottom</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Alignment">
+            <summary>
+            <c>center</c>, <c>start</c> or <c>end</c> (start is right for right to left text).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Margin">
+            <summary>
+            Distance of the block from the canvas edges, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Gap">
+            <summary>
+            Space between title and subtitle, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Uppercase">
+            <summary>
+            Upper case the captions with the rules of their locale (Turkish dotted and dotless i included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Title">
+            <summary>
+            Title style.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextSpec.Subtitle">
+            <summary>
+            Subtitle style.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupTextStyleSpec">
+            <summary>
+            Style of one caption line group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Size">
+            <summary>
+            Font size as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Weight">
+            <summary>
+            Font weight, 100 to 900. A weight the embedded fonts lack is drawn with the nearest one (with a warning).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MaxLines">
+            <summary>
+            Most lines before the text counts as overflowing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.AutoFit">
+            <summary>
+            Shrink the size (down to <see cref="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MinSize"/>) until the text fits in <see cref="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MaxLines"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.MinSize">
+            <summary>
+            Smallest size auto fit may use, as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.LineHeight">
+            <summary>
+            Line height as a multiple of the font size.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupTextStyleSpec.Color">
+            <summary>
+            Color as <c>#RRGGBB</c>; null for the block's color.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.MockupLayerSpec">
+            <summary>
+            A badge (a pill with a short localized text) or a shape (rectangle, rounded rectangle, ellipse).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Type">
+            <summary>
+            <c>badge</c> or <c>shape</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Shape">
+            <summary>
+            For shapes: <c>rect</c>, <c>round-rect</c> or <c>ellipse</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.X">
+            <summary>
+            Left edge (shape) or center (badge) as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Y">
+            <summary>
+            Top edge (shape) or center (badge) as a fraction of the canvas height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Width">
+            <summary>
+            Shape width as a fraction of the canvas width.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Height">
+            <summary>
+            Shape height as a fraction of the canvas height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Radius">
+            <summary>
+            Corner radius of a rounded rectangle as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Color">
+            <summary>
+            Fill color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Opacity">
+            <summary>
+            Opacity, 0 to 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Above">
+            <summary>
+            Draw over the device and the captions instead of under the device.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.Texts">
+            <summary>
+            Badge text by locale; the <c>*</c> entry is used for locales without their own.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.TextSize">
+            <summary>
+            Badge font size as a fraction of the unit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.MockupLayerSpec.TextColor">
+            <summary>
+            Badge text color as <c>#RRGGBB</c>.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.PlanCall">
+            <summary>
+            A store call the plan makes when applied (shown before the approval).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanCall.Method">
+            <summary>
+            HTTP method.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanCall.Path">
+            <summary>
+            Path, without host and query.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanCall.Target">
+            <summary>
+            What the call changes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.PlanFile">
+            <summary>
+            The check result of one uploaded file of a media plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.AssetId">
+            <summary>
+            Asset id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.FileName">
+            <summary>
+            File name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.Width">
+            <summary>
+            Width in pixels, for images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.Height">
+            <summary>
+            Height in pixels, for images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.Md5">
+            <summary>
+            Lower case hex MD5 of the content.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.Result">
+            <summary>
+            Accepted, Skipped (already in the store) or Rejected.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.Reason">
+            <summary>
+            Why it was rejected or skipped.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanFile.SuggestedClassKey">
+            <summary>
+            A class the file fits, when it was rejected for its size.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.PlanItem">
+            <summary>
+            One field level change of a change plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.Group">
+            <summary>
+            Content group (see Content.ContentGroups).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.Locale">
+            <summary>
+            Locale; null for values that are not localized.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.Field">
+            <summary>
+            Field (or class key, territory, track).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.Before">
+            <summary>
+            Value in the store when the plan was made; null when there is none. Secrets are masked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.After">
+            <summary>
+            Value the plan writes; null to clear. Secrets are masked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanItem.Action">
+            <summary>
+            What the item does.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.PlanWarning">
+            <summary>
+            A non blocking remark on a change plan (blocking problems never produce a plan).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanWarning.Key">
+            <summary>
+            Message key of the remark.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanWarning.Message">
+            <summary>
+            Text in the language of the request that made the plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanWarning.Field">
+            <summary>
+            Field the remark is about, if one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PlanWarning.Locale">
+            <summary>
+            Locale the remark is about, if one.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ReadinessSummary">
+            <summary>
+            The last readiness check of a store record, kept for the organization overview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.CheckedDate">
+            <summary>
+            UTC instant of the check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.CatalogVersion">
+            <summary>
+            Rules catalog version the check used.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.VersionString">
+            <summary>
+            Version the check looked at.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.Ok">
+            <summary>
+            Checks that passed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.Missing">
+            <summary>
+            Checks that block the submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.Warning">
+            <summary>
+            Non blocking remarks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.Assisted">
+            <summary>
+            Assisted steps still open.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.Unknown">
+            <summary>
+            Checks storeasy could not decide.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReadinessSummary.MissingKeys">
+            <summary>
+            Keys of the blocking checks.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.RejectionChecklistItem">
@@ -2831,6 +5081,808 @@
             Navigation property of Permission relation.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Rules.MediaSlot">
+            <summary>
+            The verdict on one media class (slot) of a store: whether it is required, how it is filled and how many items it has.
+            </summary>
+            <param name="RuleId">Catalog rule of the class.</param>
+            <param name="Required">Whether the class is required on the evaluated day.</param>
+            <param name="Fill">How the class is filled.</param>
+            <param name="FallbackFromRuleId">Class the store derives this one from, when <see cref="F:Storeasy.Domain.Enums.MediaSlotFill.Fallback"/>.</param>
+            <param name="Count">Own items.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.MediaSlot.#ctor(System.String,System.Boolean,Storeasy.Domain.Enums.MediaSlotFill,System.String,System.Int32)">
+            <summary>
+            The verdict on one media class (slot) of a store: whether it is required, how it is filled and how many items it has.
+            </summary>
+            <param name="RuleId">Catalog rule of the class.</param>
+            <param name="Required">Whether the class is required on the evaluated day.</param>
+            <param name="Fill">How the class is filled.</param>
+            <param name="FallbackFromRuleId">Class the store derives this one from, when <see cref="F:Storeasy.Domain.Enums.MediaSlotFill.Fallback"/>.</param>
+            <param name="Count">Own items.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.MediaSlot.RuleId">
+            <summary>Catalog rule of the class.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.MediaSlot.Required">
+            <summary>Whether the class is required on the evaluated day.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.MediaSlot.Fill">
+            <summary>How the class is filled.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.MediaSlot.FallbackFromRuleId">
+            <summary>Class the store derives this one from, when <see cref="F:Storeasy.Domain.Enums.MediaSlotFill.Fallback"/>.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.MediaSlot.Count">
+            <summary>Own items.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.MediaSlotEvaluator">
+            <summary>
+            Catalog driven media slot evaluation (docs/urun-plani.md 12.2): a class with enough own items is <see cref="F:Storeasy.Domain.Enums.MediaSlotFill.Own"/>;
+            otherwise a class named in <c>satisfiedBy</c> or reachable through the <c>fallbackTo</c> chain (followed recursively)
+            with own items fills it (<see cref="F:Storeasy.Domain.Enums.MediaSlotFill.Fallback"/>); otherwise it is empty. Pure: the caller passes the
+            applicable rules and the own item counts per rule.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.MediaSlotEvaluator.Evaluate(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.Rules.CatalogRule},System.Collections.Generic.IReadOnlyDictionary{System.String,System.Int32},System.DateOnly)">
+            <summary>
+            Evaluates every rule of <paramref name="rules"/> (the applicable media class rules of one store and locale).
+            </summary>
+            <param name="rules"></param>
+            <param name="counts">Own item count per rule id.</param>
+            <param name="today"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleCatalog">
+            <summary>
+            The loaded store rules catalog (<c>rules/</c> in the repository, docs/urun-plani.md section 12): the manifest version and
+            every rule of every store file. Immutable after loading; readers share one instance.
+            </summary>
+            <param name="version">Catalog version of the manifest (every store file carries the same one).</param>
+            <param name="generatedAt">UTC instant the catalog data was generated.</param>
+            <param name="rules">Rules of every store file, in file order.</param>
+            <param name="source">Where the catalog was loaded from (folder path or "embedded").</param>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleCatalog.#ctor(System.String,System.DateTime,System.Collections.Generic.IReadOnlyList{Storeasy.Domain.Rules.CatalogRule},System.String)">
+            <summary>
+            The loaded store rules catalog (<c>rules/</c> in the repository, docs/urun-plani.md section 12): the manifest version and
+            every rule of every store file. Immutable after loading; readers share one instance.
+            </summary>
+            <param name="version">Catalog version of the manifest (every store file carries the same one).</param>
+            <param name="generatedAt">UTC instant the catalog data was generated.</param>
+            <param name="rules">Rules of every store file, in file order.</param>
+            <param name="source">Where the catalog was loaded from (folder path or "embedded").</param>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCatalog.Version">
+            <summary>
+            Catalog version (semver like).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCatalog.GeneratedAt">
+            <summary>
+            UTC instant the catalog data was generated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCatalog.Rules">
+            <summary>
+            All rules.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCatalog.Source">
+            <summary>
+            Where the catalog was loaded from.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleCatalog.Find(System.String)">
+            <summary>
+            The rule with <paramref name="id"/>, or null.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleCatalog.ForStore(Storeasy.Domain.Enums.StoreKind,System.Boolean)">
+            <summary>
+            Rules of one store (deprecated rules excluded unless asked for).
+            </summary>
+            <param name="store"></param>
+            <param name="includeDeprecated"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.CatalogManifest">
+            <summary>
+            <c>catalog.json</c>: the manifest of a catalog.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogManifest.Kind">
+            <summary>
+            Always "manifest".
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogManifest.CatalogVersion">
+            <summary>
+            Catalog version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogManifest.GeneratedAt">
+            <summary>
+            UTC instant the data was generated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogManifest.License">
+            <summary>
+            License of the data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogManifest.Files">
+            <summary>
+            Store files of the catalog.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.CatalogFileReference">
+            <summary>
+            One store file listed in the manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogFileReference.Store">
+            <summary>
+            Store key (apple, google, microsoft).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogFileReference.Path">
+            <summary>
+            File name relative to the catalog folder.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.StoreRulesFile">
+            <summary>
+            One store's rules file (<c>apple.json</c>, <c>google.json</c>, <c>microsoft.json</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.StoreRulesFile.Kind">
+            <summary>
+            Always "store-rules".
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.StoreRulesFile.CatalogVersion">
+            <summary>
+            Catalog version; must equal the version in the manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.StoreRulesFile.Store">
+            <summary>
+            Store key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.StoreRulesFile.GeneratedAt">
+            <summary>
+            UTC instant the data was generated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.StoreRulesFile.Rules">
+            <summary>
+            Rules of the store.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.CatalogRule">
+            <summary>
+            One store rule: what it applies to, what it requires, until when, and where it comes from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Id">
+            <summary>
+            Stable id: <c>store.category.slug</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Store">
+            <summary>
+            Store key (apple, google, microsoft).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Category">
+            <summary>
+            Category (screenshots, app-previews, graphics, listing-limits, age-rating, compliance, privacy, sdk, target-api...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Title">
+            <summary>
+            Title in English and Turkish.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Description">
+            <summary>
+            Description in English (and optionally Turkish).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.AppliesWhen">
+            <summary>
+            Conditions on the app; null means the rule applies to every app of the store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Requirement">
+            <summary>
+            What the rule requires.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.EffectiveDate">
+            <summary>
+            Day the rule started or starts to apply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Deadline">
+            <summary>
+            Day by which affected apps must comply.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.DateNote">
+            <summary>
+            Source wording when the date is approximate.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Params">
+            <summary>
+            Machine checkable values.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Check">
+            <summary>
+            How the rule is checked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Sources">
+            <summary>
+            Official sources.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Verified">
+            <summary>
+            Whether every fact was confirmed against the sources.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Notes">
+            <summary>
+            Notes (what could not be confirmed, store behaviour).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Conflicts">
+            <summary>
+            Documented disagreements between official sources.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.Deprecated">
+            <summary>
+            Set when the rule is retired.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.CatalogRule.StoreKind">
+            <summary>
+            <see cref="P:Storeasy.Domain.Rules.CatalogRule.Store"/> as a store kind; null for an unknown key.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleText">
+            <summary>
+            A text in English and Turkish.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleText.En">
+            <summary>
+            English text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleText.Tr">
+            <summary>
+            Turkish text (optional for descriptions).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleText.In(System.String)">
+            <summary>
+            The text in <paramref name="language"/> ("tr" picks Turkish when present); English otherwise.
+            </summary>
+            <param name="language"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleConditions">
+            <summary>
+            Conditions on the app. Keys are combined with AND, values of one list with OR; a missing key does not restrict.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Platforms">
+            <summary>
+            Platforms (ios, ipados, android, wear-os...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.DeviceFamilies">
+            <summary>
+            Device families the app supports (iphone, ipad, phone, tablet-7...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Regions">
+            <summary>
+            Distribution regions (ISO 3166-1 alpha-2).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.DeveloperRegions">
+            <summary>
+            Developer account regions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.AppTypes">
+            <summary>
+            App types (app, game).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.PackageTypes">
+            <summary>
+            Package types (ipa, aab, apk, msix...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Distribution">
+            <summary>
+            Submission situations (new-app, update, existing-app).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Features">
+            <summary>
+            App features (storeasy feature flags kept per app).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Build">
+            <summary>
+            Constraints read from the build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConditions.Expression">
+            <summary>
+            Human readable summary.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleBuildCondition">
+            <summary>
+            Build constraint of a rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleBuildCondition.SdkName">
+            <summary>
+            SDK name (iOS, macOS...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleBuildCondition.SdkVersionAtLeast">
+            <summary>
+            Smallest SDK version the rule applies to.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleRequirement">
+            <summary>
+            Requirement level of a rule.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleRequirement.Required">
+            <summary>
+            Requirement level of a required rule.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleRequirement.RequiredFrom">
+            <summary>
+            Requirement level of a rule that becomes required on <see cref="P:Storeasy.Domain.Rules.RuleRequirement.From"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleRequirement.Recommended">
+            <summary>
+            Requirement level of a recommended rule.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleRequirement.Optional">
+            <summary>
+            Requirement level of an optional rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleRequirement.Level">
+            <summary>
+            required, required-from, recommended or optional.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleRequirement.From">
+            <summary>
+            Day a required-from rule becomes required.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleRequirement.FallbackTo">
+            <summary>
+            Rules the store derives a missing asset from, in order.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleRequirement.SatisfiedBy">
+            <summary>
+            Rules that also meet the requirement.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleRequirement.Condition">
+            <summary>
+            Wording of the condition.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleParams">
+            <summary>
+            Machine checkable values of a rule. Known keys are typed; other keys stay in <see cref="P:Storeasy.Domain.Rules.RuleParams.Extra"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.Sizes">
+            <summary>
+            Accepted pixel sizes (exact match).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.Formats">
+            <summary>
+            Accepted file formats.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.AlphaAllowed">
+            <summary>
+            Whether an alpha channel is accepted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinCount">
+            <summary>
+            Fewest items.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxCount">
+            <summary>
+            Most items.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinChars">
+            <summary>
+            Fewest characters.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxChars">
+            <summary>
+            Most characters.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxBytes">
+            <summary>
+            Most UTF-8 bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinDimension">
+            <summary>
+            Smallest side in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxDimension">
+            <summary>
+            Largest side in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxAspectRatio">
+            <summary>
+            Largest long side / short side ratio.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxFileSizeBytes">
+            <summary>
+            Largest file in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinTargetSdk">
+            <summary>
+            Smallest target SDK (Android API level).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinXcodeVersion">
+            <summary>
+            Smallest Xcode version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinSdkVersion">
+            <summary>
+            Smallest SDK version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MinDeploymentTarget">
+            <summary>
+            Smallest deployment target.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.MaxDays">
+            <summary>
+            Most days (e.g. TestFlight build lifetime).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.WarnDaysBefore">
+            <summary>
+            Days before a date to warn.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleParams.Extra">
+            <summary>
+            Other, store specific values.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleSize">
+            <summary>
+            A pixel size.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSize.Width">
+            <summary>
+            Width in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSize.Height">
+            <summary>
+            Height in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSize.Note">
+            <summary>
+            Note on the size.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleCheck">
+            <summary>
+            How a rule is checked.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleCheck.Automatic">
+            <summary>
+            Kind of an automatic check.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleCheck.Assisted">
+            <summary>
+            Kind of an assisted (checklist) check.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleCheck.Info">
+            <summary>
+            Kind of a timeline only rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCheck.Kind">
+            <summary>
+            automatic, assisted or info.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleCheck.Inputs">
+            <summary>
+            Data keys the check needs.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleSource">
+            <summary>
+            An official source of a rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSource.Url">
+            <summary>
+            Address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSource.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSource.CheckedAt">
+            <summary>
+            Day the source was checked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSource.Quote">
+            <summary>
+            Short supporting excerpt.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleConflict">
+            <summary>
+            A disagreement between official sources and the reading the catalog uses.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConflict.Description">
+            <summary>
+            What disagrees.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConflict.Sources">
+            <summary>
+            Disagreeing sources.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleConflict.CatalogChoice">
+            <summary>
+            Reading the catalog encodes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleDeprecation">
+            <summary>
+            Retirement of a rule.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleDeprecation.Since">
+            <summary>
+            Catalog version the rule was retired in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleDeprecation.ReplacedBy">
+            <summary>
+            Rule that replaces it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleDeprecation.Reason">
+            <summary>
+            Why.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleStores">
+            <summary>
+            Store keys of the catalog.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Apple">
+            <summary>
+            Catalog key of App Store Connect.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Google">
+            <summary>
+            Catalog key of Google Play.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Microsoft">
+            <summary>
+            Catalog key of Microsoft Store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleStores.Parse(System.String)">
+            <summary>
+            Store kind of a catalog key; null for an unknown key.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleStores.Key(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Catalog key of a store kind.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleSubject">
+            <summary>
+            What the catalog needs to know about one app in one store to decide which rules apply. A null list means "not known"
+            (the condition on it evaluates to <see cref="F:Storeasy.Domain.Enums.RuleApplicability.Unknown"/>); an empty list means "known to be none".
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.Store">
+            <summary>
+            Store the app is evaluated for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.Platforms">
+            <summary>
+            Platforms (ios, ipados, android...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.DeviceFamilies">
+            <summary>
+            Device families the app supports (iphone, ipad, phone, tablet-7...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.Regions">
+            <summary>
+            Distribution regions (ISO 3166-1 alpha-2).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.DeveloperRegion">
+            <summary>
+            Developer account region.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.AppType">
+            <summary>
+            app or game.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.PackageType">
+            <summary>
+            Package type (ipa, aab...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.Distribution">
+            <summary>
+            new-app, update or existing-app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.Features">
+            <summary>
+            App features (storeasy feature flags kept per app).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.BuildSdkName">
+            <summary>
+            SDK name of the newest build (iOS...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleSubject.BuildSdkVersion">
+            <summary>
+            SDK version of the newest build.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleMatch">
+            <summary>
+            Result of matching a rule's conditions against a <see cref="T:Storeasy.Domain.Rules.RuleSubject"/>.
+            </summary>
+            <param name="Applicability">Verdict.</param>
+            <param name="Reasons">Matched conditions as <c>key:value</c> (e.g. <c>deviceFamilies:ipad</c>).</param>
+            <param name="UnknownKeys">Conditions that could not be decided because the app data is missing.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleMatch.#ctor(Storeasy.Domain.Enums.RuleApplicability,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Result of matching a rule's conditions against a <see cref="T:Storeasy.Domain.Rules.RuleSubject"/>.
+            </summary>
+            <param name="Applicability">Verdict.</param>
+            <param name="Reasons">Matched conditions as <c>key:value</c> (e.g. <c>deviceFamilies:ipad</c>).</param>
+            <param name="UnknownKeys">Conditions that could not be decided because the app data is missing.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleMatch.Applicability">
+            <summary>Verdict.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleMatch.Reasons">
+            <summary>Matched conditions as <c>key:value</c> (e.g. <c>deviceFamilies:ipad</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Rules.RuleMatch.UnknownKeys">
+            <summary>Conditions that could not be decided because the app data is missing.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Rules.RuleEvaluator">
+            <summary>
+            Pure evaluation of catalog rules: applicability to an app and timing relative to a day. No I/O; the caller passes
+            the day (from <see cref="T:System.TimeProvider"/>) so tests control the clock.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleEvaluator.Evaluate(Storeasy.Domain.Rules.CatalogRule,Storeasy.Domain.Rules.RuleSubject)">
+            <summary>
+            Matches <paramref name="rule"/> against <paramref name="subject"/>. A rule of another store never applies.
+            </summary>
+            <param name="rule"></param>
+            <param name="subject"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleEvaluator.DueDate(Storeasy.Domain.Rules.CatalogRule)">
+            <summary>
+            The day that matters for the timeline: the deadline, else the day a required-from rule becomes required, else a
+            future effective date. Null when the rule has no date ahead or behind worth showing.
+            </summary>
+            <param name="rule"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleEvaluator.IsRequiredOn(Storeasy.Domain.Rules.CatalogRule,System.DateOnly)">
+            <summary>
+            Whether the rule is required on <paramref name="today"/>: required rules from their effective date, required-from
+            rules from their date. Recommended and optional rules are never required.
+            </summary>
+            <param name="rule"></param>
+            <param name="today"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleEvaluator.StatusOn(Storeasy.Domain.Rules.CatalogRule,System.DateOnly)">
+            <summary>
+            State of the rule on <paramref name="today"/>.
+            </summary>
+            <param name="rule"></param>
+            <param name="today"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Rules.RuleEvaluator.VersionAtLeast(System.String,System.String)">
+            <summary>
+            Compares dotted versions numerically ("27.1" &gt;= "27.0.2"). Missing parts count as 0; a non numeric part makes
+            the comparison false.
+            </summary>
+            <param name="version"></param>
+            <param name="minimum"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Rules.RuleProposal">
             <summary>
             A proposed change of the rules catalog for a platform admin to decide (nothing is published automatically). The watcher
@@ -2947,68 +5999,68 @@
             UTC instant it was opened.
             </summary>
         </member>
-        <member name="T:Storeasy.Domain.Rules.RuleSource">
+        <member name="T:Storeasy.Domain.Rules.RuleWatchSource">
             <summary>
             An official page the rule watcher reads (docs/urun-plani.md 12.3). The normalized text of the last read is kept to diff
             the next one; a change opens a <see cref="T:Storeasy.Domain.Rules.RuleProposal"/>. Platform wide (no organization).
             </summary>
         </member>
-        <member name="F:Storeasy.Domain.Rules.RuleSource.ContentMaxLength">
+        <member name="F:Storeasy.Domain.Rules.RuleWatchSource.ContentMaxLength">
             <summary>
             Longest normalized text kept.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.Name">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Name">
             <summary>
             Display name.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.Store">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Store">
             <summary>
             Store the source is about.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.Url">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Url">
             <summary>
             Address (an allow-listed official domain).
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.IsActive">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.IsActive">
             <summary>
             Whether the watcher reads it.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.Status">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Status">
             <summary>
             State of the last read.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.LastFetchDate">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastFetchDate">
             <summary>
             UTC instant of the last read attempt.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.LastChangeDate">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastChangeDate">
             <summary>
             UTC instant the content last changed.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.ContentHash">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.ContentHash">
             <summary>
             SHA-256 of the current normalized text.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.PreviousContentHash">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.PreviousContentHash">
             <summary>
             SHA-256 of the text before the last change.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.Content">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.Content">
             <summary>
             Normalized text of the last read.
             </summary>
         </member>
-        <member name="P:Storeasy.Domain.Rules.RuleSource.LastError">
+        <member name="P:Storeasy.Domain.Rules.RuleWatchSource.LastError">
             <summary>
             Redacted reason of the last failed read.
             </summary>
@@ -3368,6 +6420,935 @@
             <summary>
             Navigation property of the job.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.CaptionLineBreaker">
+            <summary>
+            Greedy line breaking of captions, independent of the font engine: the caller measures. Break opportunities are spaces,
+            a hyphen inside a word, and any boundary next to a Chinese or Japanese character, except before closing punctuation
+            and small kana and after opening brackets (basic kinsoku). Korean breaks at spaces like Latin text. A piece that does
+            not fit on a line on its own (a long word, Thai text without spaces) is split between grapheme clusters, so combining
+            marks never leave their base letter. A new line in the text is a manual break.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.Break(System.String,System.Single,System.Func{System.String,System.Single})">
+            <summary>
+            Breaks <paramref name="text"/> into lines no wider than <paramref name="maxWidth"/> as measured by
+            <paramref name="measure"/>. Lines are trimmed; an empty text gives no lines.
+            </summary>
+            <param name="text"></param>
+            <param name="maxWidth"></param>
+            <param name="measure">Width of a string in the caller's units.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.Segment(System.String)">
+            <summary>
+            Pieces of <paramref name="paragraph"/> that end at a break opportunity (each keeps its trailing spaces).
+            </summary>
+            <param name="paragraph"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.CaptionLineBreaker.IsIdeographic(System.String)">
+            <summary>
+            Whether <paramref name="element"/> starts with a Chinese or Japanese character (Han ideographs, kana, CJK symbols,
+            full width forms), the characters that may break anywhere.
+            </summary>
+            <param name="element"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupCaption">
+            <summary>
+            Title and subtitle of one slot of a <see cref="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplate"/> in one locale. An empty caption is drawn with the
+            template's primary locale.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupCaption.TitleMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupCaption.Title"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupCaption.SubtitleMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupCaption.Subtitle"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplateId">
+            <summary>
+            Owning template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Locale">
+            <summary>
+            Locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.SlotOrder">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Title">
+            <summary>
+            Title (a new line is a manual line break).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupCaption.MockupTemplate">
+            <summary>
+            Navigation property of the template.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupExportRules">
+            <summary>
+            Pure rules of the studio export: requirement of a class for an app, images per locale, accepted sizes, the frame a
+            class is drawn with, which raw screenshot and caption a slot uses, and the names of the produced files.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupExportRules.MaxUpscale">
+            <summary>
+            Largest upscale of a raw screenshot that is still drawn; above it the image fails with
+            <see cref="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetTooSmall"/> (the result would be blurry).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupExportRules.WarnUpscale">
+            <summary>
+            Upscale above which a warning is written.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.Requirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <summary>
+            Requirement of <paramref name="screenshotClass"/> on <paramref name="today"/>, given the classes the export provides
+            (<paramref name="providedKeys"/>): a required class that another provided class satisfies is optional; a class
+            required from a later date is recommended until then.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="today"></param>
+            <param name="providedKeys"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.DefaultProvided(System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Studio.ScreenshotClass})">
+            <summary>
+            Classes an export provides by default from <paramref name="classes"/>: every class the catalog does not call
+            optional, plus the optional classes that stand in for a required one (the 6.9" iPhone class satisfies the Face ID
+            large class, so storeasy renders the newer class instead).
+            </summary>
+            <param name="classes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PlanRequirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String},System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <summary>
+            <see cref="M:Storeasy.Domain.Studio.MockupExportRules.Requirement(Storeasy.Domain.Studio.ScreenshotClass,System.DateOnly,System.Collections.Generic.IReadOnlyCollection{System.String})"/> for a plan: an optional class the default selection provides in place of a required one
+            is recommended.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="today"></param>
+            <param name="providedKeys"></param>
+            <param name="defaultProvided"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ImagesPerLocale(Storeasy.Domain.Studio.ScreenshotClass,System.Int32)">
+            <summary>
+            Images one locale gets in <paramref name="screenshotClass"/> from a template with <paramref name="slotCount"/> slots.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="slotCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.Accepts(Storeasy.Domain.Studio.ScreenshotClass,Storeasy.Domain.Studio.PixelSize)">
+            <summary>
+            Whether the store accepts <paramref name="size"/> for <paramref name="screenshotClass"/>: one of its listed sizes, or
+            inside its range.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ResolveFrame(Storeasy.Domain.Studio.ScreenshotClass,System.String)">
+            <summary>
+            Frame a class is drawn with under the template's <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Kind"/>. A class without a device (the
+            feature graphic) never gets one.
+            </summary>
+            <param name="screenshotClass"></param>
+            <param name="frameKind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PickSlotAsset(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupSlot},System.Int32,Storeasy.Domain.Enums.MockupDeviceFamily,System.String)">
+            <summary>
+            The raw screenshot of slot <paramref name="order"/> for <paramref name="family"/> and <paramref name="locale"/>:
+            the locale's own image of the family, the family's shared image, then the same two for the phone. Returns null when
+            the slot has no image; <c>FellBack</c> tells that a phone image stands in for another family.
+            </summary>
+            <param name="slots"></param>
+            <param name="order"></param>
+            <param name="family"></param>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.PickCaption(System.Collections.Generic.IEnumerable{Storeasy.Domain.Studio.MockupCaption},System.String,System.String,System.Int32)">
+            <summary>
+            Title and subtitle of slot <paramref name="slotOrder"/> in <paramref name="locale"/>; when the locale has no title
+            for the slot, the primary locale's caption is used and <c>FellBack</c> is true.
+            </summary>
+            <param name="captions"></param>
+            <param name="locale"></param>
+            <param name="primaryLocale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ZipEntryPath(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Int32)">
+            <summary>
+            Path of an image inside the export zip: <c>{store}/{class}/{locale}/{slot:00}.png</c>.
+            </summary>
+            <param name="store"></param>
+            <param name="classKey"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.OutputFileName(System.String,System.String,System.Int32)">
+            <summary>
+            File name of a produced image: <c>{class}-{locale}-{slot:00}.png</c>.
+            </summary>
+            <param name="classKey"></param>
+            <param name="locale"></param>
+            <param name="slotOrder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupExportRules.ShortClassName(System.String)">
+            <summary>
+            The class key without its store and category (<c>apple.screenshots.ipad-13</c> is <c>ipad-13</c>).
+            </summary>
+            <param name="classKey"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupWarningCodes">
+            <summary>
+            Codes of render warnings and failures (documented in storeasy-api/docs/studio.md).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.CaptionOverflow">
+            <summary>A caption needs more lines than its style allows, even at the smallest auto fit size.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.CaptionFallback">
+            <summary>The locale has no caption for the slot; the primary locale's caption was drawn.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.FontMissing">
+            <summary>The requested font weight is not embedded; the nearest weight was drawn.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AlphaFlattened">
+            <summary>The raw screenshot had transparent pixels; they were flattened onto the screen color.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetUpscaled">
+            <summary>The raw screenshot was enlarged up to <see cref="F:Storeasy.Domain.Studio.MockupExportRules.MaxUpscale"/>.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetTooSmall">
+            <summary>The raw screenshot is too small for the class (failure).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.ScreenshotMissing">
+            <summary>The slot has no raw screenshot; the screen is drawn empty.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.FamilyFallback">
+            <summary>A phone screenshot stands in for the class's own family.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AspectMismatch">
+            <summary>The raw screenshot's aspect differs from the screen's; it is fitted inside instead of cropped.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.BackgroundMissing">
+            <summary>The background image is missing or unreadable; the first background color was used.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupWarningCodes.AssetUnreadable">
+            <summary>The raw screenshot could not be decoded (failure).</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupFrameDefaults">
+            <summary>
+            Default proportions of storeasy's device frames, as fractions of the body width. A template's
+            <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.CornerRadius"/> and <see cref="P:Storeasy.Domain.JsonModels.MockupFrameSpec.Bezel"/> are given for
+            the phone and scale every other kind by the same ratio.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupFrameDefaults.PhoneRadius">
+            <summary>
+            Corner radius of the phone frame.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupFrameDefaults.PhoneBezel">
+            <summary>
+            Bezel of the phone frame.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupFrameDefaults.Of(Storeasy.Domain.Enums.MockupFrameKind)">
+            <summary>
+            Default corner radius and bezel of <paramref name="kind"/>.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSlot">
+            <summary>
+            The raw screenshot of one slot of a <see cref="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplate"/> for one device family, optionally for one locale (a
+            locale's own screenshot wins over the shared one). Rows are replaced as a set when the template is saved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplateId">
+            <summary>
+            Owning template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Order">
+            <summary>
+            Slot position, from 1.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Family">
+            <summary>
+            Device family of the screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.Locale">
+            <summary>
+            Locale the screenshot is for; null for every locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.AssetId">
+            <summary>
+            The uploaded screenshot (an asset of the template's organization).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupSlot.MockupTemplate">
+            <summary>
+            Navigation property of the template.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules">
+            <summary>
+            Pure rules of the mockup template schema (<see cref="T:Storeasy.Domain.JsonModels.MockupSpec"/>): the allowed values, the defaults, validation and
+            upgrades between schema versions. Validation returns readable problems with their JSON path; the API answers them as
+            one 400.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.CurrentSchemaVersion">
+            <summary>
+            Schema version this build writes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.MaxLayers">
+            <summary>
+            Most layers (badges and shapes) in one template.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.MaxBadgeTextLength">
+            <summary>
+            Longest badge text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds">
+            <summary>
+            Background kinds.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Solid">
+            <summary>One color.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Gradient">
+            <summary>Linear gradient.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.Image">
+            <summary>Image asset covering the canvas.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.BackgroundKinds.All">
+            <summary>All kinds.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds">
+            <summary>
+            Frame kinds a template may ask for.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Auto">
+            <summary>The class decides (phone, tablet, foldable, desktop window).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.None">
+            <summary>No device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Phone">
+            <summary>Always a phone.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Tablet">
+            <summary>Always a tablet.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Foldable">
+            <summary>Always a foldable (outer or inner display by the class's aspect).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.Desktop">
+            <summary>Always a desktop window.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.FrameKinds.All">
+            <summary>All kinds.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Cutouts">
+            <summary>
+            Phone cutouts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Island">
+            <summary>A floating pill at the top of the screen.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Notch">
+            <summary>A notch attached to the top edge.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.Hole">
+            <summary>A single camera hole.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.None">
+            <summary>No cutout.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Cutouts.All">
+            <summary>All cutouts.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Fonts">
+            <summary>
+            Embedded font families (SIL OFL 1.1).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.Inter">
+            <summary>Inter.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.NotoSans">
+            <summary>Noto Sans.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Fonts.All">
+            <summary>All families a template may choose.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Positions">
+            <summary>
+            Caption positions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.Top">
+            <summary>Above the device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.Bottom">
+            <summary>Below the device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Positions.All">
+            <summary>All positions.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Alignments">
+            <summary>
+            Caption alignments.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.Center">
+            <summary>Centered.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.Start">
+            <summary>Start edge (left, or right for right to left text).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.End">
+            <summary>End edge.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Alignments.All">
+            <summary>All alignments.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupSpecRules.Layers">
+            <summary>
+            Layer types and shapes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Badge">
+            <summary>A pill with a localized text.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Shape">
+            <summary>A plain shape.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Rect">
+            <summary>Rectangle.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.RoundRect">
+            <summary>Rounded rectangle.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Ellipse">
+            <summary>Ellipse.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Types">
+            <summary>Layer types.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.Shapes">
+            <summary>Shapes.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupSpecRules.Layers.AnyLocale">
+            <summary>Key of the badge text used for locales without their own.</summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.CreateDefault">
+            <summary>
+            The default design: storeasy's ultramarine gradient, a phone with an island, Inter captions on top.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Upgrade(Storeasy.Domain.JsonModels.MockupSpec)">
+            <summary>
+            Upgrades <paramref name="spec"/> to <see cref="F:Storeasy.Domain.Studio.MockupSpecRules.CurrentSchemaVersion"/> and fills missing parts with the defaults, so
+            renderers never see a null section. A newer version than this build knows is returned as is (validation refuses it).
+            </summary>
+            <param name="spec"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Validate(Storeasy.Domain.JsonModels.MockupSpec)">
+            <summary>
+            Problems of <paramref name="spec"/> (empty when valid), each as <c>path: problem</c>.
+            </summary>
+            <param name="spec"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.IsColor(System.String)">
+            <summary>
+            Whether <paramref name="color"/> is <c>#RRGGBB</c> or <c>#RRGGBBAA</c>.
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.IsLocale(System.String)">
+            <summary>
+            Whether <paramref name="locale"/> is a language tag as the stores use them (<c>tr</c>, <c>en-US</c>, <c>zh-Hans</c>).
+            </summary>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.Culture(System.String)">
+            <summary>
+            The locale's casing culture for <see cref="P:Storeasy.Domain.JsonModels.MockupTextSpec.Uppercase"/>; invariant when the tag is not a culture.
+            </summary>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.ColorPattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match '#'.<br/>
+            ○ Match a hexadecimal digit exactly 6 times.<br/>
+            ○ Optional (greedy).<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match a hexadecimal digit exactly 2 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.MockupSpecRules.LocalePattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [a-z] greedily at least 2 and at most 3 times.<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match '-'.<br/>
+                    ○ Match an ASCII letter or digit atomically at least 2 and at most 8 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.MockupTemplate">
+            <summary>
+            A mockup template of one app (docs/urun-plani.md 2.4): the design (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Spec"/>, the single source of preview and
+            export), its slots' raw screenshots (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Slots"/>) and its captions per locale (<see cref="P:Storeasy.Domain.Studio.MockupTemplate.Captions"/>).
+            <see cref="P:Storeasy.Domain.Studio.MockupTemplate.Version"/> guards concurrent edits: an update names the version it started from and loses with 409 when
+            someone saved in between.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Studio.MockupTemplate.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.LocaleMaxLength">
+            <summary>
+            Column length of a locale tag.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.MaxSlotCount">
+            <summary>
+            Most slots (screenshots per locale) of a template; the stores accept at most 10 per class.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.MockupTemplate.MaxLocaleCount">
+            <summary>
+            Most locales of a template.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.AppId">
+            <summary>
+            App the template belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Name">
+            <summary>
+            Name, unique within the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.PrimaryLocale">
+            <summary>
+            Locale whose captions stand in for an empty caption of another locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Locales">
+            <summary>
+            Locales the template is exported in (BCP 47 tags as the stores use them, e.g. <c>tr</c>, <c>en-US</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.SlotCount">
+            <summary>
+            Number of slots (screenshots per locale and class).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.StarterKey">
+            <summary>
+            Built in starter the template was created from, if any.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Version">
+            <summary>
+            Concurrency version, increased by every update.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportJobId">
+            <summary>
+            Last export job that produced images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportDate">
+            <summary>
+            UTC instant the last export finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.LastExportImageCount">
+            <summary>
+            Images the last export produced.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Slots">
+            <summary>
+            Raw screenshots of the slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Captions">
+            <summary>
+            Captions per locale and slot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.MockupTemplate.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.ScreenshotSizeCatalog">
+            <summary>
+            The screenshot classes the studio exports to, read from the store rules catalog (rules/*.json): sizes, counts and how
+            much each store wants them. Built once by the size source; immutable.
+            </summary>
+            <param name="catalogVersion">Version of the rules catalog the classes were read from.</param>
+            <param name="classes">Classes in export order (required first within a store).</param>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.ScreenshotSizeCatalog.#ctor(System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Domain.Studio.ScreenshotClass})">
+            <summary>
+            The screenshot classes the studio exports to, read from the store rules catalog (rules/*.json): sizes, counts and how
+            much each store wants them. Built once by the size source; immutable.
+            </summary>
+            <param name="catalogVersion">Version of the rules catalog the classes were read from.</param>
+            <param name="classes">Classes in export order (required first within a store).</param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotSizeCatalog.CatalogVersion">
+            <summary>
+            Version of the rules catalog.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotSizeCatalog.Classes">
+            <summary>
+            Classes in export order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.ScreenshotSizeCatalog.Find(System.String)">
+            <summary>
+            The class with <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.ScreenshotClass">
+            <summary>
+            One screenshot class of a store (a display type in App Store Connect, a device type in Play, a device family in the
+            Microsoft Store), as the studio uses it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Key">
+            <summary>
+            Class key: the id of its rule in the catalog (e.g. <c>apple.screenshots.ipad-13</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Store">
+            <summary>
+            Store of the class.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.LabelEn">
+            <summary>
+            English label (catalog title).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.LabelTr">
+            <summary>
+            Turkish label (catalog title).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Frame">
+            <summary>
+            Frame its images are drawn with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Family">
+            <summary>
+            Raw screenshot family it prefers; others fall back to the phone screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.ExportSize">
+            <summary>
+            Pixel size the export renders (portrait for devices, landscape for desktop and the feature graphic).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.AcceptedSizes">
+            <summary>
+            Every size the store accepts for the class (both orientations). Empty when the store gives ranges instead.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MinDimension">
+            <summary>
+            Smallest accepted side for range based classes (Play, Microsoft); 0 when the store lists exact sizes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MaxDimension">
+            <summary>
+            Largest accepted side for range based classes; 0 when the store lists exact sizes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Level">
+            <summary>
+            Catalog requirement level: <c>required</c>, <c>required-from</c>, <c>recommended</c> or <c>optional</c>. For a class
+            that is the store's main class it is the level of the store's general screenshot rule when that is stricter.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.RequiredFrom">
+            <summary>
+            Date the class becomes required (for <c>required-from</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.SatisfiedBy">
+            <summary>
+            Classes that meet this class's requirement when they are provided.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MinCount">
+            <summary>
+            Fewest images per locale the store expects.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.MaxCount">
+            <summary>
+            Most images per locale the store accepts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.SingleImage">
+            <summary>
+            The class takes one image per locale (a feature graphic), drawn from the first slot's caption without a device.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.ScreenshotClass.Note">
+            <summary>
+            Short note of the catalog (condition of the requirement).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.PixelSize">
+            <summary>
+            A pixel size.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.PixelSize.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Creates a size.
+            </summary>
+            <param name="width"></param>
+            <param name="height"></param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Width">
+            <summary>
+            Width in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Height">
+            <summary>
+            Height in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.Aspect">
+            <summary>
+            Width divided by height.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.PixelSize.IsLandscape">
+            <summary>
+            Whether the size is landscape.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.PixelSize.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StarterTemplate">
+            <summary>
+            A built in starting point for a new mockup template: an original storeasy design with sample captions. Starters are
+            data that ships with the application (seeded from embedded JSON), not rows; a template copies one when it is created.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Key">
+            <summary>
+            Stable key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.NameEn">
+            <summary>
+            English name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.NameTr">
+            <summary>
+            Turkish name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.DescriptionEn">
+            <summary>
+            English description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.DescriptionTr">
+            <summary>
+            Turkish description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.SlotCount">
+            <summary>
+            Number of slots.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Spec">
+            <summary>
+            The design.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterTemplate.Captions">
+            <summary>
+            Sample captions by language (<c>en</c>, <c>tr</c>), in slot order. A template locale gets the samples of its
+            language (<c>en-US</c> takes <c>en</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StarterCaption">
+            <summary>
+            A sample caption of a starter.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterCaption.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StarterCaption.Subtitle">
+            <summary>
+            Subtitle.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StudioClassMap">
+            <summary>
+            Which rules of the store rules catalog the studio exports to, and how it draws them. Sizes, counts and requirement
+            levels are never kept here: they are read from the catalog. Only rules that give a range instead of sizes (Play phone
+            and tablets, Microsoft desktop) carry a preset, and the preset is checked against the catalog's range when the catalog
+            loads. Order is the export order: required classes first, then by store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Studio.StudioClassMap.DefaultClassKey">
+            <summary>
+            The class the editor opens with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassMap.Definitions">
+            <summary>
+            Studio classes in export order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.StudioClassMap.IsKnown(System.String)">
+            <summary>
+            Whether <paramref name="classKey"/> is a studio class.
+            </summary>
+            <param name="classKey"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Studio.StudioClassDefinition">
+            <summary>
+            How the studio uses one catalog rule.
+            </summary>
+            <param name="RuleId">Rule id in the catalog; also the class key.</param>
+            <param name="Frame">Frame the images are drawn with.</param>
+            <param name="Family">Raw screenshot family the class prefers.</param>
+            <param name="PresetSize">Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</param>
+            <param name="GeneralRuleId">The store's general screenshot rule whose level applies to this main class.</param>
+            <param name="SingleImage">One image per locale (feature graphic).</param>
+        </member>
+        <member name="M:Storeasy.Domain.Studio.StudioClassDefinition.#ctor(System.String,Storeasy.Domain.Enums.MockupFrameKind,Storeasy.Domain.Enums.MockupDeviceFamily,System.Nullable{Storeasy.Domain.Studio.PixelSize},System.String,System.Boolean)">
+            <summary>
+            How the studio uses one catalog rule.
+            </summary>
+            <param name="RuleId">Rule id in the catalog; also the class key.</param>
+            <param name="Frame">Frame the images are drawn with.</param>
+            <param name="Family">Raw screenshot family the class prefers.</param>
+            <param name="PresetSize">Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</param>
+            <param name="GeneralRuleId">The store's general screenshot rule whose level applies to this main class.</param>
+            <param name="SingleImage">One image per locale (feature graphic).</param>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.RuleId">
+            <summary>Rule id in the catalog; also the class key.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.Frame">
+            <summary>Frame the images are drawn with.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.Family">
+            <summary>Raw screenshot family the class prefers.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.PresetSize">
+            <summary>Export size for a rule that gives a range instead of sizes; null to use the first catalog size.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.GeneralRuleId">
+            <summary>The store's general screenshot rule whose level applies to this main class.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.SingleImage">
+            <summary>One image per locale (feature graphic).</summary>
         </member>
         <member name="T:Storeasy.Domain.TestFlight.BetaAppLocalization">
             <summary>
@@ -3835,6 +7816,82 @@
             <summary>
             Id of migration
             </summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ColorPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ColorPattern_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LocalePattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.LocalePattern_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
+            <summary>Pushes 2 values onto the backtracking stack.</summary>
         </member>
     </members>
 </doc>
