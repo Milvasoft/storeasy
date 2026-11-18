@@ -53,6 +53,20 @@ public sealed class CacheKeys(CacheKeyOptions options)
     public string OrganizationRole(int organizationId, int userId) => Build($"org-role:{organizationId}:{userId}");
 
     /// <summary>
+    /// Key of a started Google sign in (its PKCE verifier and nonce), by its state.
+    /// </summary>
+    /// <param name="state"></param>
+    /// <returns></returns>
+    public string GoogleSignInState(string state) => Build($"google-state:{state}");
+
+    /// <summary>
+    /// Key of a revoked access token, by its hash.
+    /// </summary>
+    /// <param name="tokenHash"></param>
+    /// <returns></returns>
+    public string RevokedToken(string tokenHash) => Build($"revoked-token:{tokenHash}");
+
+    /// <summary>
     /// Prefixes <paramref name="key"/> with the application's prefix.
     /// </summary>
     /// <param name="key"></param>

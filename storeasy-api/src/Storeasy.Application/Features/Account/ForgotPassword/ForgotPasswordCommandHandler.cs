@@ -6,27 +6,20 @@ using Milvasoft.Interception.Interceptors.Logging;
 namespace Storeasy.Application.Features.Account.ForgotPassword;
 
 /// <summary>
-/// Handles <see cref="ForgotPasswordCommand"/>. Always succeeds; an unknown address is silently ignored.
+/// Handles <see cref="ForgotPasswordCommand"/>. Always succeeds and does the same work for every address: it only queues
+/// the request; the background e-mail sender looks the account up and mails the link when one exists. The answer time
+/// therefore does not reveal who has an account.
 /// </summary>
-/// <param name="UserRepository"></param>
 /// <param name="AccountMailer"></param>
 [Log]
-public record ForgotPasswordCommandHandler(IStoreasyRepositoryBase<User> UserRepository, IAccountMailer AccountMailer) : IInterceptable, ICommandHandler<ForgotPasswordCommand>
+public record ForgotPasswordCommandHandler(IAccountMailer AccountMailer) : IInterceptable, ICommandHandler<ForgotPasswordCommand>
 {
-    private readonly IStoreasyRepositoryBase<User> _userRepository = UserRepository;
     private readonly IAccountMailer _accountMailer = AccountMailer;
 
     /// <inheritdoc/>
     public async Task<Response> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
-        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
-
-        var user = await _userRepository.GetFirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail,
-                                                                projection: u => new { u.Id, u.Email, u.Name },
-                                                                cancellationToken: cancellationToken);
-
-        if (user != null)
-            await _accountMailer.SendPasswordResetAsync(user.Id, user.Email, user.Name, cancellationToken);
+        await _accountMailer.RequestPasswordResetAsync(request.Email, cancellationToken);
 
         return Response.Success();
     }

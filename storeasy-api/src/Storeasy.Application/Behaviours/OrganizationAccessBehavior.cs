@@ -9,8 +9,8 @@ namespace Storeasy.Application.Behaviours;
 /// <summary>
 /// Checks <see cref="OrgAuthAttribute"/> before the handler runs. A caller who is not a member gets
 /// <see cref="MessageKey.OrganizationNotFound"/> (404, so organization ids cannot be probed); a member whose role lacks
-/// the permission gets <see cref="MessageKey.Forbidden"/> (403). The resolved role is kept on
-/// <see cref="IOrganizationAccess.CurrentRole"/> for handlers that need it (member management).
+/// the permission gets <see cref="MessageKey.Forbidden"/> (403). Custom roles count with their own permission set. The
+/// resolved access is kept on <see cref="IOrganizationAccess.Current"/> for handlers that need it (member management).
 /// A request made with a storeasy token acts in the token's organization: the token's organization replaces the one in the
 /// request. A read only personal access token acts as a viewer (min of token and role). CI and upload tokens pass only
 /// requests marked <see cref="AllowMachineTokenAttribute"/> (the handler limits them to their apps).
@@ -55,17 +55,14 @@ public sealed class OrganizationAccessBehavior<TRequest, TResponse>(ICurrentUser
 
         var userId = _currentUser.GetRequiredId();
 
-        var role = await _organizationAccess.GetRoleAsync(organizationRequest.OrganizationId, userId, cancellationToken);
+        var access = await _organizationAccess.GetAccessAsync(organizationRequest.OrganizationId, userId, cancellationToken) ?? throw new MilvaUserFriendlyException(MessageKey.OrganizationNotFound);
 
-        if (role == null)
-            throw new MilvaUserFriendlyException(MessageKey.OrganizationNotFound);
+        var effective = _currentToken.ReadOnly ? access.AsReadOnly() : access;
 
-        var effectiveRole = _currentToken.ReadOnly ? OrgRole.Viewer : role.Value;
-
-        if (!OrgRoleRules.Allows(effectiveRole, attribute.Permission))
+        if (!effective.Allows(attribute.Permission))
             throw new MilvaUserFriendlyException(MessageKey.OrganizationForbidden);
 
-        _organizationAccess.SetCurrentRole(effectiveRole);
+        _organizationAccess.SetCurrent(effective);
 
         return await next(cancellationToken);
     }

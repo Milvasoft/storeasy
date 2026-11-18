@@ -15,4 +15,9 @@ public static class SecretScopes
     /// Scope of an outgoing webhook's secret.
     /// </summary>
     public static string OrganizationWebhook(int organizationId) => $"OrganizationWebhook:{organizationId}";
+
+    /// <summary>
+    /// Associated data of a sealed e-mail outbox payload.
+    /// </summary>
+    public const string EmailOutbox = "EmailOutbox";
 }

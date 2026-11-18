@@ -15,7 +15,7 @@ public sealed class RefreshLoginCommandValidator : AbstractValidator<RefreshLogi
         RuleFor(query => query.UserName)
             .NotEmpty()
             .NotNull()
-            .WithMessage(localizer[MessageKey.IdentityInvalidUsername]);
+            .WithMessage(localizer[MessageKey.IdentityInvalidUserName]);
 
         RuleFor(query => query.DeviceId)
             .NotEmpty()

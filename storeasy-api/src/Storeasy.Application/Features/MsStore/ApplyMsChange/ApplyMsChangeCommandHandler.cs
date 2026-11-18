@@ -121,7 +121,7 @@ public record ApplyMsChangeCommandHandler(IStoreasyRepositoryBase<MsProduct> Pro
 
         plan.DryRun = request.DryRun;
 
-        if (!request.DryRun && !OrgRoleRules.Allows(_organizationAccess.CurrentRole.GetValueOrDefault(OrgRole.Viewer), plan.RequiredPermission))
+        if (!request.DryRun && _organizationAccess.Current?.Allows(plan.RequiredPermission) != true)
             return Response<MsChangePlanDto>.Error(plan, MessageKey.OrganizationForbidden);
 
         if (plan.Blocked)

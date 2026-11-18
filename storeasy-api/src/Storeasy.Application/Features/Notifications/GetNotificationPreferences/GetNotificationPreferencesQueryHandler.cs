@@ -36,7 +36,7 @@ public record GetNotificationPreferencesQueryHandler(IStoreasyRepositoryBase<Not
                 Kind = kind,
                 InApp = effective.InApp,
                 Email = effective.Email,
-                WebPush = row?.WebPush ?? false,
+                WebPush = row?.WebPush ?? NotificationKinds.DefaultWebPush(kind),
                 Locked = NotificationKinds.IsLocked(kind),
             };
         }).ToList();

@@ -30,7 +30,7 @@ public record CreatePersonalAccessTokenCommandHandler(IStoreasyRepositoryBase<Pe
     /// <inheritdoc/>
     public async Task<Response<PersonalAccessTokenCreatedDto>> Handle(CreatePersonalAccessTokenCommand request, CancellationToken cancellationToken)
     {
-        if (!request.ReadOnly && _organizationAccess.CurrentRole is null or OrgRole.Viewer)
+        if (!request.ReadOnly && _organizationAccess.Current?.CanWrite != true)
             return Response<PersonalAccessTokenCreatedDto>.Error(null, MessageKey.OrganizationForbidden);
 
         var userId = _currentUser.GetRequiredId();

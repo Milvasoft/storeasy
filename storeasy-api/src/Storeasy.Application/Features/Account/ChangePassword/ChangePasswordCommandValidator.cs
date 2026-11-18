@@ -16,7 +16,7 @@ public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePas
         RuleFor(query => query.UserName)
             .NotEmpty()
             .NotNull()
-            .WithMessage(localizer[MessageKey.IdentityInvalidUsername]);
+            .WithMessage(localizer[MessageKey.IdentityInvalidUserName]);
 
         RuleFor(query => query.OldPassword)
             .NotEmpty()

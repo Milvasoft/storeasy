@@ -29,6 +29,15 @@ public interface ISecurityStampStore
     Task<string> RotateAsync(int userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Rotates the stamps of several users with one update (their access tokens stop working; a refresh issues new ones),
+    /// for example when a global role they hold changed. Call it after the caller's transaction has committed.
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task RotateManyAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Validates a stamp presented by a token against the user's current stamp (Redis, with a
     /// database fallback). Returns true when they match.
     /// </summary>

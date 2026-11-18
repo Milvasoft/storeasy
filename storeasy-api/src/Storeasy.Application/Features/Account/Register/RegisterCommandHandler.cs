@@ -24,7 +24,7 @@ namespace Storeasy.Application.Features.Account.Register;
 /// <param name="AuditTrail"></param>
 /// <param name="AccountMailer"></param>
 /// <param name="TransactionRunner"></param>
-/// <param name="RegistrationOptions"></param>
+/// <param name="RegistrationModes"></param>
 /// <param name="TimeProvider"></param>
 [Log]
 public record RegisterCommandHandler(IStoreasyRepositoryBase<User> UserRepository,
@@ -35,7 +35,7 @@ public record RegisterCommandHandler(IStoreasyRepositoryBase<User> UserRepositor
                                      IAuditTrail AuditTrail,
                                      IAccountMailer AccountMailer,
                                      ITransactionRunner TransactionRunner,
-                                     RegistrationOptions RegistrationOptions,
+                                     IRegistrationModes RegistrationModes,
                                      TimeProvider TimeProvider) : IInterceptable, ICommandHandler<RegisterCommand, int>
 {
     private readonly IStoreasyRepositoryBase<User> _userRepository = UserRepository;
@@ -46,33 +46,25 @@ public record RegisterCommandHandler(IStoreasyRepositoryBase<User> UserRepositor
     private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly IAccountMailer _accountMailer = AccountMailer;
     private readonly ITransactionRunner _transactionRunner = TransactionRunner;
-    private readonly RegistrationOptions _registrationOptions = RegistrationOptions;
+    private readonly IRegistrationModes _registrationModes = RegistrationModes;
     private readonly TimeProvider _timeProvider = TimeProvider;
 
     /// <inheritdoc/>
     public async Task<Response<int>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        if (_registrationOptions.Mode == RegistrationMode.Closed)
+        var (mode, _) = await _registrationModes.GetAsync(cancellationToken);
+
+        if (mode == RegistrationMode.Closed)
             return Response<int>.Error(0, MessageKey.RegistrationClosed);
 
         var email = request.Email.Trim();
         var normalizedEmail = email.ToUpperInvariant();
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-        if (_registrationOptions.Mode == RegistrationMode.InviteOnly && string.IsNullOrWhiteSpace(request.InvitationToken))
+        if (mode == RegistrationMode.InviteOnly && string.IsNullOrWhiteSpace(request.InvitationToken))
             return Response<int>.Error(0, MessageKey.RegistrationInvitationRequired);
 
-        var invitationTokenHash = SecureTokens.Hash(request.InvitationToken);
-
-        var invitation = string.IsNullOrWhiteSpace(request.InvitationToken)
-            ? null
-            : await _invitationRepository.GetFirstOrDefaultAsync(i => i.TokenHash == invitationTokenHash
-                                                                      && i.AcceptDate == null
-                                                                      && i.RevokeDate == null
-                                                                      && i.ExpiryDate > now
-                                                                      && !i.Organization.IsDeleted,
-                                                                 projection: i => new { i.Id, i.OrganizationId, i.NormalizedEmail, i.Role },
-                                                                 cancellationToken: cancellationToken);
+        var invitation = string.IsNullOrWhiteSpace(request.InvitationToken) ? null : await _invitationRepository.FindOpenInvitationAsync(request.InvitationToken, now, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(request.InvitationToken) && (invitation == null || invitation.NormalizedEmail != normalizedEmail))
             return Response<int>.Error(0, MessageKey.InvitationInvalid);
@@ -117,7 +109,7 @@ public record RegisterCommandHandler(IStoreasyRepositoryBase<User> UserRepositor
 
                 if (invitation != null)
                 {
-                    memberId = await _invitationRepository.JoinOrganizationAsync(_memberRepository, invitation.Id, invitation.OrganizationId, user.Id, invitation.Role, now, cancellationToken);
+                    memberId = await _invitationRepository.JoinOrganizationAsync(_memberRepository, invitation.Id, invitation.OrganizationId, user.Id, invitation.Role, invitation.CustomRoleId, now, cancellationToken);
 
                     // Consumed by a concurrent request: roll the account back too, the caller retries without a stale link.
                     if (memberId == null)

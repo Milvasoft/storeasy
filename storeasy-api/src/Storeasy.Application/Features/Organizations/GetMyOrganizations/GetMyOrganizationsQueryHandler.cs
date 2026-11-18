@@ -26,7 +26,7 @@ public class GetMyOrganizationsQueryHandler(IStoreasyRepositoryBase<Organization
                                                                 cancellationToken: cancellationToken);
 
         foreach (var organization in organizations)
-            organization.Permissions = OrgRoleRules.PermissionsOf(organization.Role);
+            organization.Permissions = [.. OrgAccess.Of(organization.Role, organization.CustomRoleId, organization.CustomPermissions).Permissions.Order()];
 
         return Response<List<MyOrganizationDto>>.Success([.. organizations.OrderBy(o => o.Name)]);
     }

@@ -27,7 +27,7 @@ public class GetStoreConnectionListQueryHandler(IStoreasyRepositoryBase<StoreCon
                                                                   projection: StoreConnectionDto.Projection,
                                                                   cancellationToken: cancellationToken);
 
-        if (!OrgRoleRules.Allows(_organizationAccess.CurrentRole.GetValueOrDefault(OrgRole.Viewer), OrgPermission.ManageConnections))
+        if (_organizationAccess.Current?.Allows(OrgPermission.ManageConnections) != true)
         {
             foreach (var connection in connections)
             {

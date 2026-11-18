@@ -27,6 +27,12 @@ public class AppOptions
     public const string InvitationPath = "invitation";
 
     /// <summary>
+    /// Path of the web app page Google redirects back to after sign in (the redirect address registered at Google is
+    /// <see cref="BaseUrl"/> followed by this path).
+    /// </summary>
+    public const string GoogleCallbackPath = "auth/google/callback";
+
+    /// <summary>
     /// Public address of the web app, e.g. <c>https://storeasy.example.com</c>.
     /// </summary>
     public string BaseUrl { get; set; } = "http://localhost:5173";

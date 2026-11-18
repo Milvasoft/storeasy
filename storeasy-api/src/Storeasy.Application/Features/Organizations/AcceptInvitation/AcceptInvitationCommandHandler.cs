@@ -44,7 +44,7 @@ public record AcceptInvitationCommandHandler(IStoreasyRepositoryBase<Organizatio
         var tokenHash = SecureTokens.Hash(request.Token);
 
         var invitation = await _invitationRepository.GetFirstOrDefaultAsync(i => i.TokenHash == tokenHash && i.AcceptDate == null && i.RevokeDate == null && i.ExpiryDate > now && !i.Organization.IsDeleted,
-                                                                            projection: i => new { i.Id, i.OrganizationId, i.NormalizedEmail, i.Role },
+                                                                            projection: i => new { i.Id, i.OrganizationId, i.NormalizedEmail, i.Role, i.CustomRoleId },
                                                                             cancellationToken: cancellationToken);
 
         if (invitation == null)
@@ -62,7 +62,7 @@ public record AcceptInvitationCommandHandler(IStoreasyRepositoryBase<Organizatio
         if (alreadyMember.HasValue)
             return Response<int>.Error(0, MessageKey.OrganizationAlreadyMember);
 
-        var memberId = await _invitationRepository.JoinOrganizationAsync(_memberRepository, invitation.Id, invitation.OrganizationId, userId, invitation.Role, now, cancellationToken);
+        var memberId = await _invitationRepository.JoinOrganizationAsync(_memberRepository, invitation.Id, invitation.OrganizationId, userId, invitation.Role, invitation.CustomRoleId, now, cancellationToken);
 
         if (memberId == null)
             return Response<int>.Error(0, MessageKey.InvitationInvalid);

@@ -33,6 +33,16 @@ public static class NotificationKinds
     public static bool IsLocked(NotificationType kind) => kind == NotificationType.ConnectionAlert;
 
     /// <summary>
+    /// Days a seen in-app notification is kept (<c>notification_cleanup.sql</c>).
+    /// </summary>
+    public const int SeenRetentionDays = 30;
+
+    /// <summary>
+    /// Days an unseen in-app notification is kept (<c>notification_cleanup.sql</c>).
+    /// </summary>
+    public const int UnseenRetentionDays = 60;
+
+    /// <summary>
     /// Channels of <paramref name="kind"/> when the user has no preference row.
     /// </summary>
     public static (bool InApp, bool Email) Default(NotificationType kind) => kind switch
@@ -40,6 +50,14 @@ public static class NotificationKinds
         NotificationType.JobSucceeded or NotificationType.NewReview or NotificationType.VersionState => (true, false),
         _ => (true, true),
     };
+
+    /// <summary>
+    /// Whether a browser push goes out by default (only to users who subscribed a browser): the kinds that also e-mail by
+    /// default.
+    /// </summary>
+    /// <param name="kind"></param>
+    /// <returns></returns>
+    public static bool DefaultWebPush(NotificationType kind) => Default(kind).Email;
 
     /// <summary>
     /// Applies the lock to a requested or stored preference.

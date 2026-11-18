@@ -26,6 +26,21 @@ public class OrganizationInvitationDto
     public OrgRole Role { get; set; }
 
     /// <summary>
+    /// The custom role when <see cref="Role"/> is <see cref="OrgRole.Custom"/>.
+    /// </summary>
+    public int? CustomRoleId { get; set; }
+
+    /// <summary>
+    /// Name of the custom role.
+    /// </summary>
+    public string CustomRoleName { get; set; }
+
+    /// <summary>
+    /// Name of the member who sent the invitation.
+    /// </summary>
+    public string InviterName { get; set; }
+
+    /// <summary>
     /// UTC expiry.
     /// </summary>
     public DateTime ExpiryDate { get; set; }
@@ -45,6 +60,9 @@ public class OrganizationInvitationDto
         Id = i.Id,
         Email = i.Email,
         Role = i.Role,
+        CustomRoleId = i.CustomRoleId,
+        CustomRoleName = i.CustomRole != null ? i.CustomRole.Name : null,
+        InviterName = i.Inviter.Surname == null ? i.Inviter.Name : i.Inviter.Name + " " + i.Inviter.Surname,
         ExpiryDate = i.ExpiryDate,
         CreationDate = i.CreationDate,
     };

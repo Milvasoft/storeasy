@@ -20,6 +20,8 @@ namespace Storeasy.Application.Features.Users.UpdateUser;
 /// <param name="TransactionRunner"></param>
 /// <param name="MilvaIdentityOptions"></param>
 /// <param name="MilvaPasswordHasher"></param>
+/// <param name="RolePermissionRelationRepository"></param>
+/// <param name="CurrentUser"></param>
 [UserActivityTrack(UserActivity.UpdateUser)]
 public record UpdateUserCommandHandler(IStoreasyRepositoryBase<User> UserRepository,
                                        IStoreasyRepositoryBase<UserRoleRelation> UserRoleRelationRepository,
@@ -28,7 +30,9 @@ public record UpdateUserCommandHandler(IStoreasyRepositoryBase<User> UserReposit
                                        ISecurityStampStore SecurityStampStore,
                                        ITransactionRunner TransactionRunner,
                                        Lazy<MilvaIdentityOptions> MilvaIdentityOptions,
-                                       Lazy<IMilvaPasswordHasher> MilvaPasswordHasher) : IInterceptable, ICommandHandler<UpdateUserCommand, int>
+                                       Lazy<IMilvaPasswordHasher> MilvaPasswordHasher,
+                                       IStoreasyRepositoryBase<RolePermissionRelation> RolePermissionRelationRepository,
+                                       ICurrentUser CurrentUser) : IInterceptable, ICommandHandler<UpdateUserCommand, int>
 {
     private readonly IStoreasyRepositoryBase<User> _userRepository = UserRepository;
     private readonly IStoreasyRepositoryBase<UserRoleRelation> _userRoleRelationRepository = UserRoleRelationRepository;
@@ -38,10 +42,20 @@ public record UpdateUserCommandHandler(IStoreasyRepositoryBase<User> UserReposit
     private readonly ITransactionRunner _tx = TransactionRunner;
     private readonly Lazy<MilvaIdentityOptions> _milvaIdentityOptions = MilvaIdentityOptions;
     private readonly Lazy<IMilvaPasswordHasher> _milvaPasswordHasher = MilvaPasswordHasher;
+    private readonly IStoreasyRepositoryBase<RolePermissionRelation> _rolePermissionRelationRepository = RolePermissionRelationRepository;
+    private readonly ICurrentUser _currentUser = CurrentUser;
 
     /// <inheritdoc/>
     public async Task<Response<int>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
+        // Only a holder of full privilege changes a user who can do more than the actor, or gives roles beyond the actor's own.
+        var actor = await _userRepository.GetPlatformPermissionsAsync(_currentUser.GetRequiredId(), cancellationToken);
+        var target = await _userRepository.GetPlatformPermissionsAsync(request.Id, cancellationToken);
+        var granted = request.RoleIdList.IsUpdated ? await _rolePermissionRelationRepository.GetRolePermissionNamesAsync(request.RoleIdList.Value?.Distinct().ToList(), cancellationToken) : [];
+
+        if (!PlatformPermissions.CanGrant(actor, target.Concat(granted)))
+            return Response<int>.Error(0, MessageKey.PermissionEscalation);
+
         var setPropertyBuilder = _userRepository.GetUpdatablePropertiesBuilder(request);
 
         if (request.Lockout.IsUpdated)
