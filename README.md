@@ -11,7 +11,7 @@ happen live. An MCP endpoint lets Claude (or any MCP client) do everything the w
 | Folder | What |
 |---|---|
 | `storeasy-api/` | .NET API: auth, organizations and roles, encrypted store connections, store engine, jobs, SignalR, webhooks, MCP |
-| `storeasy-app/` | React web app (not started yet) |
+| `storeasy-app/` | React web app (see `storeasy-app/README.md`) |
 | `docs/` | Product plan and decisions (Turkish) |
 
 ## Local development
