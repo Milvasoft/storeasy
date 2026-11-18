@@ -1,7 +1,6 @@
 ﻿using Milvasoft.Components.CQRS.Command;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
-using Milvasoft.DataAccess.EfCore.Utils;
 using Milvasoft.Interception.Interceptors.Logging;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Organizations;
@@ -10,7 +9,8 @@ namespace Storeasy.Application.Features.Organizations.AcceptInvitation;
 
 /// <summary>
 /// Handles <see cref="AcceptInvitationCommand"/>. The invitation is consumed with a conditional update first, so two
-/// concurrent accepts of the same token cannot both add a membership.
+/// concurrent accepts of the same token cannot both add a membership
+/// (<see cref="RepositoryExtensions.JoinOrganizationAsync"/>).
 /// </summary>
 /// <param name="InvitationRepository"></param>
 /// <param name="MemberRepository"></param>
@@ -62,20 +62,14 @@ public record AcceptInvitationCommandHandler(IStoreasyRepositoryBase<Organizatio
         if (alreadyMember.HasValue)
             return Response<int>.Error(0, MessageKey.OrganizationAlreadyMember);
 
-        var consumed = await _invitationRepository.ExecuteUpdateAsync(i => i.Id == invitation.Id && i.AcceptDate == null,
-                                                                      new SetPropertyBuilder<OrganizationInvitation>().SetPropertyValue(i => i.AcceptDate, now),
-                                                                      cancellationToken);
+        var memberId = await _invitationRepository.JoinOrganizationAsync(_memberRepository, invitation.Id, invitation.OrganizationId, userId, invitation.Role, now, cancellationToken);
 
-        if (consumed == 0)
+        if (memberId == null)
             return Response<int>.Error(0, MessageKey.InvitationInvalid);
-
-        var member = new OrganizationMember { OrganizationId = invitation.OrganizationId, UserId = userId, Role = invitation.Role };
-
-        await _memberRepository.AddAsync(member, cancellationToken);
 
         await _organizationAccess.InvalidateAsync(invitation.OrganizationId, userId);
 
-        await _auditTrail.WriteAsync(invitation.OrganizationId, AuditAction.MemberJoined, member.Id.ToString(), $"{_currentUser.UserName} joined as {invitation.Role}.", cancellationToken: cancellationToken);
+        await _auditTrail.WriteAsync(invitation.OrganizationId, AuditAction.MemberJoined, memberId.ToString(), $"{_currentUser.UserName} joined as {invitation.Role}.", cancellationToken: cancellationToken);
 
         return Response<int>.Success(invitation.OrganizationId);
     }

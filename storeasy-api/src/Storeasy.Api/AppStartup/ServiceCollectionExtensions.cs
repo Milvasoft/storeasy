@@ -11,10 +11,14 @@ using Milvasoft.Identity.Builder;
 using Milvasoft.Localization.Builder;
 using Milvasoft.Localization.Resx;
 using Storeasy.Api.Controllers;
+using Storeasy.Api.Hubs;
 using Storeasy.Api.Utils;
+using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Extensions;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Logging;
 using Storeasy.Infrastructure.Utils.OpenApi;
 using OpenTelemetry.Exporter;
@@ -24,6 +28,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Sinks.OpenTelemetry;
+using StackExchange.Redis;
 using System.IO.Compression;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -42,6 +47,16 @@ public static partial class StartupExtensions
     /// Shortest signing key HMAC-SHA256 accepts, in UTF-8 bytes (256 bits).
     /// </summary>
     public const int MinTokenSigningKeyLength = 32;
+
+    /// <summary>
+    /// Configuration key of the Redis endpoint (shared with the cache and the SignalR backplane).
+    /// </summary>
+    public const string RedisConnectionStringConfigurationKey = "Milvasoft:Caching:Redis:ConnectionString";
+
+    /// <summary>
+    /// Query key the activity hub's websocket clients send the access token in.
+    /// </summary>
+    public const string AccessTokenQueryKey = "access_token";
 
     /// <summary>
     /// Makes sure the access token signing key (<see cref="TokenSigningKeyConfigurationKey"/>) is configured before the
@@ -74,6 +89,39 @@ public static partial class StartupExtensions
         // Serilog is not built yet at this point of the startup, so the warning goes to the console.
         Console.WriteLine($"[Warning] '{TokenSigningKeyConfigurationKey}' is not set: a random signing key is used for this run, issued tokens stop working on restart. "
                           + $"Set a stable one with: dotnet user-secrets set \"{TokenSigningKeyConfigurationKey}\" \"<random value of at least {MinTokenSigningKeyLength} characters>\" (see README).");
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Makes sure the e-mail provider (<c>Storeasy:Email</c>) and the link base address (<c>Storeasy:App:BaseUrl</c>) can
+    /// work before anything is registered. The log provider
+    /// only writes the mail (and in Development its link) and is refused outside Development, so a deployment can never
+    /// silently drop verification and reset e-mails. Outside Development a provider whose required setting is missing
+    /// stops the startup with a message naming the setting; in Development it is only reported.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static WebApplicationBuilder EnsureEmailProvider(this WebApplicationBuilder builder)
+    {
+        var options = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+
+        if (options.Provider == EmailProvider.Log && !builder.Environment.IsDevelopment())
+            throw new InvalidOperationException($"The e-mail provider '{EmailProvider.Log}' only logs e-mails and is allowed in Development only. Set '{EmailOptions.SectionName}:Provider' to '{EmailProvider.Smtp}' or '{EmailProvider.Notifike}'.");
+
+        var missing = options.FindMissingSetting();
+
+        if (missing == null && string.IsNullOrWhiteSpace(builder.Configuration[$"{AppOptions.SectionName}:{nameof(AppOptions.BaseUrl)}"]))
+            missing = $"{AppOptions.SectionName}:{nameof(AppOptions.BaseUrl)}";
+
+        if (missing == null)
+            return builder;
+
+        if (!builder.Environment.IsDevelopment())
+            throw new InvalidOperationException($"The e-mail provider '{options.Provider}' needs '{missing}'. Set the environment variable '{missing.Replace(":", "__")}'.");
+
+        // Serilog is not built yet at this point of the startup, so the warning goes to the console.
+        Console.WriteLine($"[Warning] The e-mail provider '{options.Provider}' needs '{missing}': e-mails will fail until it is set (or use the '{EmailProvider.Log}' provider in Development).");
 
         return builder;
     }
@@ -122,6 +170,17 @@ public static partial class StartupExtensions
 
             options.Events = new JwtBearerEvents
             {
+                // Browsers cannot set headers on a websocket: the activity hub takes the token from the query string
+                // (only there; the value is redacted in the logs by SecretRedactingEnricher).
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query[AccessTokenQueryKey];
+
+                    if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments(ActivityHub.Path))
+                        context.Token = accessToken;
+
+                    return Task.CompletedTask;
+                },
                 // This event is fired when the token is not provided or after OnForbidden and OnAuthenticationFailed events.
                 OnChallenge = context =>
                 {
@@ -160,6 +219,38 @@ public static partial class StartupExtensions
                 }
             };
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds SignalR for the activity hub (<see cref="ActivityHub"/>) and its event publisher. With a Redis endpoint the
+    /// Redis backplane carries the events between instances, on channels under the application's key prefix; a Redis
+    /// outage only costs live events (the publisher swallows failures).
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddRealtime(this IServiceCollection services, IConfigurationManager configuration)
+    {
+        var signalR = services.AddSignalR();
+
+        var redisConnectionString = configuration[RedisConnectionStringConfigurationKey];
+
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            var prefix = (configuration.GetSection(CacheKeyOptions.SectionName).Get<CacheKeyOptions>() ?? new CacheKeyOptions()).Prefix;
+
+            signalR.AddStackExchangeRedis(options =>
+            {
+                options.Configuration = ConfigurationOptions.Parse(redisConnectionString);
+                options.Configuration.AbortOnConnectFail = false;
+                options.Configuration.ChannelPrefix = RedisChannel.Literal($"{prefix}:signalr");
+            });
+        }
+
+        // Registered before the infrastructure services, which fall back to a publisher that drops events.
+        services.AddSingleton<IActivityPublisher, SignalRActivityPublisher>();
 
         return services;
     }
@@ -377,7 +468,8 @@ public static partial class StartupExtensions
         // OpenTelemetry resource.
         loggerConfig.Enrich.WithProperty("AppName", serviceName)
                     .Enrich.WithProperty("Environment", environment)
-                    .Enrich.With(new RemoveTypeTagEnricher());
+                    .Enrich.With(new RemoveTypeTagEnricher())
+                    .Enrich.With(new SecretRedactingEnricher());
 
         return loggerConfig;
     }

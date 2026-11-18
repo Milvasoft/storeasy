@@ -3,6 +3,7 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
 using Milvasoft.DataAccess.EfCore.Utils;
 using Milvasoft.Interception.Interceptors.Logging;
+using Storeasy.Application.Dtos.ActivityDtos;
 using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Stores;
@@ -17,12 +18,14 @@ namespace Storeasy.Application.Features.StoreConnections.VerifyStoreConnection;
 /// <param name="StoreGateway"></param>
 /// <param name="SecretProtector"></param>
 /// <param name="AuditTrail"></param>
+/// <param name="ActivityPublisher"></param>
 /// <param name="TimeProvider"></param>
 [Log]
 public record VerifyStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreConnection> ConnectionRepository,
                                                   IStoreGateway StoreGateway,
                                                   ISecretProtector SecretProtector,
                                                   IAuditTrail AuditTrail,
+                                                  IActivityPublisher ActivityPublisher,
                                                   TimeProvider TimeProvider) : IInterceptable, ICommandHandler<VerifyStoreConnectionCommand, StoreConnectionDto>
 {
     private const int _errorMaxLength = 500;
@@ -31,6 +34,7 @@ public record VerifyStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreC
     private readonly IStoreGateway _storeGateway = StoreGateway;
     private readonly ISecretProtector _secretProtector = SecretProtector;
     private readonly IAuditTrail _auditTrail = AuditTrail;
+    private readonly IActivityPublisher _activityPublisher = ActivityPublisher;
     private readonly TimeProvider _timeProvider = TimeProvider;
 
     /// <inheritdoc/>
@@ -65,6 +69,16 @@ public record VerifyStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreC
                                      $"{connection.Store} connection '{connection.Name}' verified: {result.Status}.",
                                      connection.Store,
                                      cancellationToken: cancellationToken);
+
+        await _activityPublisher.PublishAsync(new ActivityEventDto
+        {
+            Type = ActivityEventTypes.ConnectionVerified,
+            OrganizationId = request.OrganizationId,
+            ConnectionId = connection.Id,
+            Store = connection.Store,
+            ConnectionStatus = result.Status,
+            Date = now,
+        }, cancellationToken);
 
         var dto = await _connectionRepository.GetFirstOrDefaultAsync(c => c.Id == connection.Id, projection: StoreConnectionDto.Projection, cancellationToken: cancellationToken);
 

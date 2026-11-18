@@ -98,9 +98,10 @@ public static class TestApi
     /// <param name="userName"></param>
     /// <param name="email"></param>
     /// <param name="userType"></param>
+    /// <param name="emailConfirmed">Whether the e-mail counts as verified (true by default: a user an admin created).</param>
     /// <param name="roleIds"></param>
     /// <returns></returns>
-    public static async Task<User> CreateUserAsync(this StoreasyApiFactory factory, string userName = null, string email = null, UserType userType = UserType.AppUser, params int[] roleIds)
+    public static async Task<User> CreateUserAsync(this StoreasyApiFactory factory, string userName = null, string email = null, UserType userType = UserType.AppUser, bool emailConfirmed = true, params int[] roleIds)
     {
         userName ??= $"user{Unique()}";
 
@@ -114,6 +115,7 @@ public static class TestApi
             NormalizedUserName = userName.MilvaNormalize(),
             Email = email,
             NormalizedEmail = email?.MilvaNormalize(),
+            EmailConfirmed = emailConfirmed,
             Name = "Test",
             Surname = "User",
             UserType = userType,

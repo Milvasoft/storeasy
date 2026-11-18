@@ -47,6 +47,16 @@
             Shortest signing key HMAC-SHA256 accepts, in UTF-8 bytes (256 bits).
             </summary>
         </member>
+        <member name="F:Storeasy.Api.AppStartup.StartupExtensions.RedisConnectionStringConfigurationKey">
+            <summary>
+            Configuration key of the Redis endpoint (shared with the cache and the SignalR backplane).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Api.AppStartup.StartupExtensions.AccessTokenQueryKey">
+            <summary>
+            Query key the activity hub's websocket clients send the access token in.
+            </summary>
+        </member>
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.EnsureTokenSigningKey(Microsoft.AspNetCore.Builder.WebApplicationBuilder)">
             <summary>
             Makes sure the access token signing key (<see cref="F:Storeasy.Api.AppStartup.StartupExtensions.TokenSigningKeyConfigurationKey"/>) is configured before the
@@ -60,9 +70,30 @@
             <param name="builder"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.EnsureEmailProvider(Microsoft.AspNetCore.Builder.WebApplicationBuilder)">
+            <summary>
+            Makes sure the e-mail provider (<c>Storeasy:Email</c>) and the link base address (<c>Storeasy:App:BaseUrl</c>) can
+            work before anything is registered. The log provider
+            only writes the mail (and in Development its link) and is refused outside Development, so a deployment can never
+            silently drop verification and reset e-mails. Outside Development a provider whose required setting is missing
+            stops the startup with a message naming the setting; in Development it is only reported.
+            </summary>
+            <param name="builder"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddAuthorization(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds authorization services.
+            </summary>
+            <param name="services"></param>
+            <param name="configuration"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.AppStartup.StartupExtensions.AddRealtime(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds SignalR for the activity hub (<see cref="T:Storeasy.Api.Hubs.ActivityHub"/>) and its event publisher. With a Redis endpoint the
+            Redis backplane carries the events between instances, on channels under the application's key prefix; a Redis
+            outage only costs live events (the publisher swallows failures).
             </summary>
             <param name="services"></param>
             <param name="configuration"></param>
@@ -290,7 +321,7 @@
         </member>
         <member name="P:Storeasy.Api.Controllers.AccountController.LoginEndpointPaths">
             <summary>
-            Not validate token endpoint paths.
+            Anonymous endpoint paths where a stale or invalid bearer token is ignored instead of answered with 401/419.
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.AccountController.LoginAsync(Storeasy.Application.Features.Account.Login.LoginCommand,System.Threading.CancellationToken)">
@@ -304,6 +335,51 @@
         <member name="M:Storeasy.Api.Controllers.AccountController.RefreshLoginAsync(Storeasy.Application.Features.Account.RefreshLogin.RefreshLoginCommand,System.Threading.CancellationToken)">
             <summary>
             User refresh login operation.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.RegisterAsync(Storeasy.Application.Features.Account.Register.RegisterCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates an account that signs in with its e-mail (anonymous). Allowed by <c>Storeasy:Registration:Mode</c>: Open,
+            InviteOnly (an invitation token for the same e-mail is required and accepted) or Closed. A verification e-mail is
+            sent; until it is verified the account can sign in but cannot create organizations or store connections.
+            Returns the new user id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.VerifyEmailAsync(Storeasy.Application.Features.Account.VerifyEmail.VerifyEmailCommand,System.Threading.CancellationToken)">
+            <summary>
+            Verifies the e-mail address with the token from the verification e-mail (anonymous, single use, valid 48 hours).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ResendEmailVerificationAsync(Storeasy.Application.Features.Account.ResendEmailVerification.ResendEmailVerificationCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a new verification e-mail to the signed in user; earlier links stop working.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ForgotPasswordAsync(Storeasy.Application.Features.Account.ForgotPassword.ForgotPasswordCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a password reset link when an account uses the e-mail (anonymous). Always answers success, so it does not
+            reveal who has an account.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.ResetPasswordAsync(Storeasy.Application.Features.Account.ResetPassword.ResetPasswordCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sets a new password with the token from the reset e-mail (anonymous, single use, valid 1 hour). Every session and
+            access token of the account stops working.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -370,6 +446,105 @@
         <member name="M:Storeasy.Api.Controllers.ActivityLogsController.GetActivityLogsAsync(Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQuery,System.Threading.CancellationToken)">
             <summary>
             Gets user activities.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.AppsController">
+            <summary>
+            App endpoints: storeasy apps and their records in each store (App Store Connect, Google Play, later Microsoft Store),
+            with their builds. Store data arrives through sync jobs; nothing here calls a store in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.#ctor(MediatR.IMediator)">
+            <summary>
+            App endpoints: storeasy apps and their records in each store (App Store Connect, Google Play, later Microsoft Store),
+            with their builds. Store data arrives through sync jobs; nothing here calls a store in the request.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetAppsAsync(Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's apps with their store records (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.GetAppAsync(Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one app with its store records and newest builds (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.AddGoogleAppAsync(Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds a Google Play app by package name (editors and above). A sync job confirms it and reads its builds; follow the
+            returned job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.LinkStoreAppAsync(Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Moves a store record to another app (editors and above); at most one record per store in an app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.UnlinkStoreAppAsync(Storeasy.Application.Features.Apps.UnlinkStoreApp.UnlinkStoreAppCommand,System.Threading.CancellationToken)">
+            <summary>
+            Splits a store record off into its own app (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AppsController.SyncAppsAsync(Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of apps and builds for one connection or all (editors and above). Returns the job ids.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.AssetsController">
+            <summary>
+            File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
+            bytes never pass through the API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.#ctor(MediatR.IMediator)">
+            <summary>
+            File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
+            bytes never pass through the API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.CreateUploadAsync(Storeasy.Application.Features.Assets.CreateAssetUpload.CreateAssetUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Declares a file and returns presigned upload URLs: a single PUT, or one PUT per part for files over 64 MB
+            (editors and above). 503 when no bucket is configured.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.CompleteUploadAsync(Storeasy.Application.Features.Assets.CompleteAssetUpload.CompleteAssetUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Confirms an upload (completes a multipart upload with the parts' ETags) after checking the stored size (editors
+            and above). Retry safe: a confirmed asset is returned as is.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AssetsController.GetDownloadUrlAsync(Storeasy.Application.Features.Assets.GetAssetDownloadUrl.GetAssetDownloadUrlQuery,System.Threading.CancellationToken)">
+            <summary>
+            Returns a short lived presigned download URL of a confirmed file (any member).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -565,7 +740,7 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.UpdateOrganizationAsync(Storeasy.Application.Features.Organizations.UpdateOrganization.UpdateOrganizationCommand,System.Threading.CancellationToken)">
             <summary>
-            Renames an organization (owner only).
+            Renames an organization and optionally changes its slug (owner only; a slug in use is 409).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -715,7 +890,8 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.GetConnectionsAsync(Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery,System.Threading.CancellationToken)">
             <summary>
-            Lists the organization's store connections (fingerprints only).
+            Lists the organization's store connections (any member). Never the secret; the fingerprint and the last
+            verification error only for owners and admins.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -740,6 +916,43 @@
         <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.DeleteConnectionAsync(Storeasy.Application.Features.StoreConnections.DeleteStoreConnection.DeleteStoreConnectionCommand,System.Threading.CancellationToken)">
             <summary>
             Removes a connection and wipes its secret.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.StoreJobsController">
+            <summary>
+            Store job endpoints: the organization's queue of store work, its live state and its replayable steps. Members follow
+            the same jobs live on the activity hub (<c>/hubs/activity</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Store job endpoints: the organization's queue of store work, its live state and its replayable steps. Members follow
+            the same jobs live on the activity hub (<c>/hubs/activity</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.GetJobsAsync(Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Pages through the organization's store jobs, newest first (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.GetJobAsync(Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads one store job with its steps (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreJobsController.CancelJobAsync(Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommand,System.Threading.CancellationToken)">
+            <summary>
+            Cancels a queued job at once, or asks a running job to stop at its next step (editors and above). Returns the state
+            after the request.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -794,6 +1007,72 @@
             <param name="request"></param>
             <param name="cancellation"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.ActivityHub">
+            <summary>
+            Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
+            access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
+            websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
+            membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            </summary>
+            <param name="organizationAccess"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.#ctor(Storeasy.Application.Interfaces.IOrganizationAccess)">
+            <summary>
+            Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
+            access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
+            websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
+            membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            </summary>
+            <param name="organizationAccess"></param>
+        </member>
+        <member name="F:Storeasy.Api.Hubs.ActivityHub.Path">
+            <summary>
+            Route of the hub.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.GroupName(System.Int32)">
+            <summary>
+            Group of the connections that follow <paramref name="organizationId"/>.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.JoinOrganizationAsync(System.Int32)">
+            <summary>
+            Starts sending the organization's events to this connection. Returns false (and joins nothing) when the caller is
+            not a member, so organization ids cannot be probed.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.LeaveOrganizationAsync(System.Int32)">
+            <summary>
+            Stops sending the organization's events to this connection.
+            </summary>
+            <param name="organizationId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.SignalRActivityPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: sends each event to its organization's group (through
+            the Redis backplane when several instances run). A failure (Redis down, no hub) is logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.#ctor(Microsoft.AspNetCore.SignalR.IHubContext{Storeasy.Api.Hubs.ActivityHub},Microsoft.Extensions.Logging.ILogger{Storeasy.Api.Hubs.SignalRActivityPublisher})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>: sends each event to its organization's group (through
+            the Redis backplane when several instances run). A failure (Redis down, no hub) is logged and swallowed.
+            </summary>
+            <param name="hubContext"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Api.SharedResource">
             <summary>
@@ -885,6 +1164,54 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118082902_InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118115551_AddAccountTokens">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118115551_AddAccountTokens.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118120950_AddStoreJobs">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118120950_AddStoreJobs.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118122158_AddAssets">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118122158_AddAssets.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118123714_AddAppsAndBuilds.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

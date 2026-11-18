@@ -24,7 +24,8 @@ public class StoreConnectionsController(IMediator mediator) : ControllerBase
     private readonly IMediator _mediator = mediator;
 
     /// <summary>
-    /// Lists the organization's store connections (fingerprints only).
+    /// Lists the organization's store connections (any member). Never the secret; the fingerprint and the last
+    /// verification error only for owners and admins.
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellation"></param>

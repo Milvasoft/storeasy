@@ -25,6 +25,9 @@ public static class ResponseStatusCodes
         [MessageKey.LockedIndefinite] = StatusCodes.Status403Forbidden,
         [MessageKey.InvitationEmailMismatch] = StatusCodes.Status403Forbidden,
         [MessageKey.OrganizationForbidden] = StatusCodes.Status403Forbidden,
+        [MessageKey.RegistrationClosed] = StatusCodes.Status403Forbidden,
+        [MessageKey.RegistrationInvitationRequired] = StatusCodes.Status403Forbidden,
+        [MessageKey.EmailNotVerified] = StatusCodes.Status403Forbidden,
 
         // 404 - the target does not exist (or is invisible to the caller, which is reported the same way).
         [MessageKey.UserNotFound] = StatusCodes.Status404NotFound,
@@ -35,6 +38,10 @@ public static class ResponseStatusCodes
         [MessageKey.InvitationInvalid] = StatusCodes.Status404NotFound,
         [MessageKey.OrganizationMemberNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.OrganizationNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.StoreJobNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.AssetNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.UserExists] = StatusCodes.Status409Conflict,
@@ -46,6 +53,11 @@ public static class ResponseStatusCodes
         [MessageKey.OrganizationLastOwner] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationAlreadyMember] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationSlugTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.EmailAlreadyVerified] = StatusCodes.Status409Conflict,
+        [MessageKey.StoreJobAlreadyFinished] = StatusCodes.Status409Conflict,
+        [MessageKey.AssetNotUploaded] = StatusCodes.Status409Conflict,
+        [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
+        [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,
@@ -56,6 +68,7 @@ public static class ResponseStatusCodes
 
         // 503 - the feature is switched off by an admin (see FeatureFlagAttribute).
         [MessageKey.FeatureDisabled] = StatusCodes.Status503ServiceUnavailable,
+        [MessageKey.StorageNotConfigured] = StatusCodes.Status503ServiceUnavailable,
     }.ToFrozenDictionary();
 
     /// <summary>

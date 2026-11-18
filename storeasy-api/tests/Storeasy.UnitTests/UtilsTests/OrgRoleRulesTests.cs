@@ -44,6 +44,9 @@ public class OrgRoleRulesTests
     [InlineData(OrgRole.Admin, OrgRole.Viewer, OrgRole.Editor, true)]
     [InlineData(OrgRole.Admin, OrgRole.Owner, OrgRole.Admin, false)]
     [InlineData(OrgRole.Admin, OrgRole.Editor, OrgRole.Owner, false)]
+    [InlineData(OrgRole.Admin, OrgRole.Admin, OrgRole.Owner, false)]
+    [InlineData(OrgRole.Editor, OrgRole.Viewer, OrgRole.Admin, false)]
+    [InlineData(OrgRole.Viewer, OrgRole.Viewer, OrgRole.Owner, false)]
     [InlineData(OrgRole.Editor, OrgRole.Viewer, OrgRole.Editor, false)]
     [InlineData(OrgRole.Viewer, OrgRole.Viewer, OrgRole.Viewer, false)]
     public void CanAssign_ShouldProtectOwners(OrgRole actor, OrgRole current, OrgRole next, bool expected)

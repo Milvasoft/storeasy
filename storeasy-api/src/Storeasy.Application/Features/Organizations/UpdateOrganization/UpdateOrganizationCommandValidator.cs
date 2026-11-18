@@ -17,5 +17,10 @@ public sealed class UpdateOrganizationCommandValidator : AbstractValidator<Updat
             .NotNullOrEmpty(localizer, MessageKey.GlobalName)
             .MaximumLength(Organization.NameMaxLength)
             .WithMessage(localizer[MessageKey.MaxLengthReached, localizer[MessageKey.GlobalName], Organization.NameMaxLength]);
+
+        RuleFor(command => command.Slug)
+            .Must(slug => OrgRoleRules.ToSlug(slug).Length >= 3)
+            .WithMessage(localizer[MessageKey.OrganizationSlugInvalid])
+            .When(command => !string.IsNullOrWhiteSpace(command.Slug));
     }
 }

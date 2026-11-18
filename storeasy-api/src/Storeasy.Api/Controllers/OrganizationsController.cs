@@ -50,7 +50,7 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     public Task<Response<int>> CreateOrganizationAsync(CreateOrganizationCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
-    /// Renames an organization (owner only).
+    /// Renames an organization and optionally changes its slug (owner only; a slug in use is 409).
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellation"></param>

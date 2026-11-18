@@ -22,6 +22,12 @@ public class AccountDetailDto : StoreasyBaseDto<int>
     public string Email { get; set; }
 
     /// <summary>
+    /// Whether the e-mail address was verified. Unverified users can sign in but cannot create organizations or store
+    /// connections.
+    /// </summary>
+    public bool EmailConfirmed { get; set; }
+
+    /// <summary>
     /// Name of the user.
     /// </summary>
     public string Name { get; set; }
@@ -46,6 +52,7 @@ public class AccountDetailDto : StoreasyBaseDto<int>
         Id = u.Id,
         UserName = u.UserName,
         Email = u.Email,
+        EmailConfirmed = u.EmailConfirmed,
         Name = u.Name,
         Surname = u.Surname,
         Roles = u.RoleRelations.Select(rr => new NameIntNavigationDto { Id = rr.Role.Id, Name = rr.Role.Name }).ToList()

@@ -4,7 +4,7 @@ using Storeasy.Application.Dtos.StoreDtos;
 namespace Storeasy.Application.Features.StoreConnections.GetStoreConnectionList;
 
 /// <summary>
-/// Lists an organization's store connections.
+/// Lists an organization's store connections (any member; fingerprints only for the roles that manage connections).
 /// </summary>
 [OrgAuth(OrgPermission.View)]
 public record GetStoreConnectionListQuery : IQuery<List<StoreConnectionDto>>, IOrganizationRequest

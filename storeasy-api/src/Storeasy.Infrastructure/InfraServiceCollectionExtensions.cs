@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Milvasoft.Caching.Builder;
 using Milvasoft.Caching.Redis;
 using Milvasoft.Caching.Redis.Accessor;
@@ -18,6 +19,8 @@ using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Domain.Enums;
+using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -25,6 +28,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.Infrastructure.Persistence.Repository;
 using Storeasy.Infrastructure.Security;
 using Storeasy.Infrastructure.Services;
+using Storeasy.Infrastructure.Storage;
+using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
 using Npgsql;
 
@@ -66,6 +71,16 @@ public static class InfraServiceCollectionExtensions
 
         // One client for App Store Connect and Google Play calls; tests replace its handler.
         services.AddHttpClient(StoreGateway.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
+
+        services.AddAccountServices(configurationManager);
+
+        services.AddStoreJobServices(configurationManager);
+
+        // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
+        var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();
+
+        services.AddSingleton(storageOptions);
+        services.AddSingleton<IFileStorage>(new S3FileStorage(S3FileStorage.CreateClient(storageOptions), storageOptions));
 
         // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
@@ -112,6 +127,65 @@ public static class InfraServiceCollectionExtensions
                 {
                     opt.DbContextType = typeof(StoreasyDbContext);
                 });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds registration, e-mail and account mail services. The sender is chosen by <c>Storeasy:Email:Provider</c>; the
+    /// startup (Api) refuses the log provider outside Development and a provider with missing settings.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddAccountServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        services.AddSingleton(configurationManager.GetSection(RegistrationOptions.SectionName).Get<RegistrationOptions>() ?? new RegistrationOptions());
+        services.AddSingleton(configurationManager.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
+
+        var emailOptions = configurationManager.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+
+        services.AddSingleton(emailOptions);
+
+        switch (emailOptions.Provider)
+        {
+            case EmailProvider.Notifike:
+                services.AddScoped<IEmailSender, NotifikeEmailSender>();
+                break;
+            case EmailProvider.Log:
+                services.AddScoped<IEmailSender, LogEmailSender>();
+                break;
+            default:
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+                break;
+        }
+
+        services.AddHttpClient(NotifikeEmailSender.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+
+        services.AddScoped<IAccountMailer, AccountMailer>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the store job queue and its in-process runner. Handlers register as <see cref="IStoreJobHandler"/>; the live
+    /// event publisher defaults to one that drops events (the API registers its SignalR publisher first).
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddStoreJobServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        services.AddSingleton(configurationManager.GetSection(StoreJobOptions.SectionName).Get<StoreJobOptions>() ?? new StoreJobOptions());
+
+        services.TryAddSingleton<IActivityPublisher, NullActivityPublisher>();
+
+        services.AddScoped<IStoreJobQueue, StoreJobQueue>();
+        services.AddScoped<StoreJobExecutor>();
+        services.AddScoped<IStoreJobHandler, SyncAppsJobHandler>();
+
+        // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
+        services.AddHostedService<StoreJobRunner>();
 
         return services;
     }

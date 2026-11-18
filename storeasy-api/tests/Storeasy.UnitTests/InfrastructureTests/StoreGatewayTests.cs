@@ -3,6 +3,7 @@ using Milvasoft.Core.Abstractions;
 using Moq;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Stores;
+using Storeasy.UnitTests.TestSupport;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -74,6 +75,20 @@ public class StoreGatewayTests
         result.Fingerprint.KeyId.Should().Be(_keyId);
         result.Fingerprint.IssuerIdSuffix.Should().Be("072a");
         JsonSerializer.Serialize(result.Fingerprint).Should().NotContain("PRIVATE");
+    }
+
+    [Fact]
+    public async Task Microsoft_ShouldBeRejectedAsNotSupportedWithoutANetworkCall()
+    {
+        var (gateway, requests) = CreateGateway(_ => throw new InvalidOperationException("no network"));
+
+        var inspection = gateway.Inspect(StoreKind.Microsoft, "{}");
+        var verification = await gateway.VerifyAsync(StoreKind.Microsoft, "{}", null, TestContext.Current.CancellationToken);
+
+        inspection.IsValid.Should().BeFalse();
+        inspection.ErrorKey.Should().Be(Storeasy.Application.Utils.Constants.MessageKey.StoreNotSupported);
+        verification.Status.Should().Be(ConnectionStatus.Rejected);
+        requests.Should().BeEmpty();
     }
 
     [Theory]
@@ -215,16 +230,5 @@ public class StoreGatewayTests
         var padded = value.Replace('-', '+').Replace('_', '/');
 
         return padded.PadRight(padded.Length + ((4 - (padded.Length % 4)) % 4), '=');
-    }
-
-    private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
-    {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            if (request.Content != null)
-                await request.Content.LoadIntoBufferAsync(cancellationToken);
-
-            return respond(request);
-        }
     }
 }

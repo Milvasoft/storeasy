@@ -3,8 +3,9 @@
 namespace Storeasy.Application.Features.Organizations.CreateOrganization;
 
 /// <summary>
-/// Creates an organization; the caller becomes its owner.
+/// Creates an organization; the caller becomes its owner. Requires a verified e-mail address.
 /// </summary>
+[VerifiedEmailRequired]
 public record CreateOrganizationCommand : ICommand<int>
 {
     /// <summary>

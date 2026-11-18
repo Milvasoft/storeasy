@@ -4,6 +4,110 @@
         <name>Storeasy.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Infrastructure.Email.EmailTemplates">
+            <summary>
+            The account e-mails as simple, inline styled HTML. Every text comes from the resx files in the culture of the current
+            request (<see cref="T:Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer"/>); every value put into the HTML is encoded.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.EmailVerification(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String)">
+            <summary>
+            The e-mail verification message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="name"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.PasswordReset(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String)">
+            <summary>
+            The password reset message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="name"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailTemplates.Invitation(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.String,System.String,System.String,System.String)">
+            <summary>
+            The organization invitation message.
+            </summary>
+            <param name="localizer"></param>
+            <param name="organizationName"></param>
+            <param name="inviterName"></param>
+            <param name="roleName"></param>
+            <param name="link"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.LogEmailSender">
+            <summary>
+            Sends nothing: writes that an e-mail would have been sent, and in Development the link it carries, so a developer can
+            register and reset passwords without a mail server. The startup refuses this provider outside Development; the link
+            is still only written in Development as a second guard.
+            </summary>
+            <param name="logger"></param>
+            <param name="environment"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.LogEmailSender.#ctor(Milvasoft.Core.Abstractions.IMilvaLogger,Microsoft.Extensions.Hosting.IHostEnvironment)">
+            <summary>
+            Sends nothing: writes that an e-mail would have been sent, and in Development the link it carries, so a developer can
+            register and reset passwords without a mail server. The startup refuses this provider outside Development; the link
+            is still only written in Development as a second guard.
+            </summary>
+            <param name="logger"></param>
+            <param name="environment"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.LogEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.NotifikeEmailSender">
+            <summary>
+            Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
+            provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.EmailOptions)">
+            <summary>
+            Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
+            provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName">
+            <summary>
+            Name of the HTTP client used for Notifike calls.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.EmailChannel">
+            <summary>
+            Notifike channel number of e-mail.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.SmtpEmailSender">
+            <summary>
+            Sends e-mails through an SMTP server (<c>Storeasy:Email:Smtp</c>), the self-host provider. Throws when the server
+            refuses or cannot be reached.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.SmtpEmailSender.#ctor(Storeasy.Application.Utils.Models.EmailOptions)">
+            <summary>
+            Sends e-mails through an SMTP server (<c>Storeasy:Email:Smtp</c>), the self-host provider. Throws when the server
+            refuses or cannot be reached.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.SmtpEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.InfraServiceCollectionExtensions">
             <summary>
             Infrastructure service collection extensions.
@@ -12,6 +116,24 @@
         <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddInfrastructureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
             Adds infrastructure services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddAccountServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds registration, e-mail and account mail services. The sender is chosen by <c>Storeasy:Email:Provider</c>; the
+            startup (Api) refuses the log provider outside Development and a provider with missing settings.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddStoreJobServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the store job queue and its in-process runner. Handlers register as <see cref="T:Storeasy.Application.Interfaces.IStoreJobHandler"/>; the live
+            event publisher defaults to one that drops events (the API registers its SignalR publisher first).
             </summary>
             <param name="services"></param>
             <param name="configurationManager"></param>
@@ -165,6 +287,16 @@
             </summary>
             <param name="value"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Logging.SecretRedactingEnricher">
+            <summary>
+            Redacts credentials (<see cref="T:Storeasy.Application.Utils.Helpers.SecretRedactor"/>) in the string properties of every log event that look like they
+            carry one: the request logs of the hosting layer write the query string, and the activity hub's websocket requests
+            carry the access token there (<c>?access_token=</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.SecretRedactingEnricher.Enrich(Serilog.Events.LogEvent,Serilog.Core.ILogEventPropertyFactory)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Logging.StoreasyDbLogger">
             <summary>
@@ -491,6 +623,39 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.Unprotect(Storeasy.Application.Interfaces.ProtectedSecret,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.AccountMailer">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IEmailSender,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            </summary>
+            <param name="tokenRepository"></param>
+            <param name="emailSender"></param>
+            <param name="localizer"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendEmailVerificationAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendPasswordResetAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendInvitationAsync(System.String,System.String,System.String,Storeasy.Domain.Enums.OrgRole,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.AccountManager">
@@ -987,6 +1152,277 @@
         <member name="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Storage.S3FileStorage">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            </summary>
+            <param name="client">The S3 client; null when the storage is not configured.</param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.#ctor(Amazon.S3.IAmazonS3,Storeasy.Application.Utils.Models.StorageOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            </summary>
+            <param name="client">The S3 client; null when the storage is not configured.</param>
+            <param name="options"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Storage.S3FileStorage.IsConfigured">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateClient(Storeasy.Application.Utils.Models.StorageOptions,Amazon.Runtime.HttpClientFactory)">
+            <summary>
+            Builds the S3 client of <paramref name="options"/>, or null when no bucket is configured. Without an access key the
+            SDK's default credential chain (instance role, environment) is used.
+            </summary>
+            <param name="options"></param>
+            <param name="httpClientFactory">Optional HTTP client factory of the SDK (tests bypass the process proxy with it).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateUploadUrl(System.String,System.String,System.TimeSpan)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreateDownloadUrl(System.String,System.TimeSpan,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.StartMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CreatePartUploadUrl(System.String,System.String,System.Int32,System.TimeSpan)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.CompleteMultipartUploadAsync(System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.UploadedPart},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.AbortMultipartUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.GetObjectInfoAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IActivityPublisher"/> of a host without live clients: drops every event. The API replaces it with its
+            SignalR publisher.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext">
+            <summary>
+            The <see cref="T:Storeasy.Application.Interfaces.IStoreJobContext"/> of one attempt, created by <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/>. Steps are rows of
+            <see cref="T:Storeasy.Domain.Stores.StoreJobStep"/>; every step call renews the lease and publishes a live event, and at most once per
+            <see cref="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval"/> reads whether a member asked to stop the job.
+            </summary>
+            <param name="job">The claimed job (id, organization, app, store, kind, payload, attempt).</param>
+            <param name="firstStepOrder">Position of the first step of this attempt.</param>
+            <param name="services">Repositories and services of the executor's scope.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.#ctor(Storeasy.Domain.Stores.StoreJob,System.Int32,Storeasy.Infrastructure.StoreJobs.StoreJobContextServices)">
+            <summary>
+            The <see cref="T:Storeasy.Application.Interfaces.IStoreJobContext"/> of one attempt, created by <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/>. Steps are rows of
+            <see cref="T:Storeasy.Domain.Stores.StoreJobStep"/>; every step call renews the lease and publishes a live event, and at most once per
+            <see cref="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval"/> reads whether a member asked to stop the job.
+            </summary>
+            <param name="job">The claimed job (id, organization, app, store, kind, payload, attempt).</param>
+            <param name="firstStepOrder">Position of the first step of this attempt.</param>
+            <param name="services">Repositories and services of the executor's scope.</param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelCheckInterval">
+            <summary>
+            Shortest pause between two reads of the stop request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.JobId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.AppId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.Attempt">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContext.CancelObserved">
+            <summary>
+            Whether this attempt stopped because a member cancelled the job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.GetPayload``1">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.BeginStepAsync(System.String,Storeasy.Domain.Enums.StepDirection,System.String,System.Nullable{System.Int64},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.ReportProgressAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.EndStepAsync(System.Int32,Storeasy.Domain.Enums.StoreJobStepStatus,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContext.OpenConnectionAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices">
+            <summary>
+            What a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext"/> uses from the executor's scope.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="StepRepository"></param>
+            <param name="ConnectionRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+            <param name="Lease"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJobStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.TimeSpan)">
+            <summary>
+            What a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext"/> uses from the executor's scope.
+            </summary>
+            <param name="JobRepository"></param>
+            <param name="StepRepository"></param>
+            <param name="ConnectionRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="ActivityPublisher"></param>
+            <param name="TimeProvider"></param>
+            <param name="Lease"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.StepRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.ActivityPublisher">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreJobs.StoreJobContextServices.Lease">
+            <summary></summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor">
+            <summary>
+            Claims and runs one store job (scoped; the runner creates a scope per job). The claim is a single
+            <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent workers and
+            instances never get the same job. A queued job whose next attempt is due, or a running job whose lease expired
+            (its instance died), is claimed. The attempt ends in Succeeded, Failed, Cancelled, or Queued again: a transient
+            failure with attempts left (backoff, <see cref="M:Storeasy.Domain.Stores.StoreJobRules.RetryDelay(System.Int32,System.TimeSpan,System.TimeSpan)"/>) or a host shutdown (the attempt is
+            given back).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="jobRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="handlers"></param>
+            <param name="secretProtector"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJobStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreJobHandler},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Claims and runs one store job (scoped; the runner creates a scope per job). The claim is a single
+            <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent workers and
+            instances never get the same job. A queued job whose next attempt is due, or a running job whose lease expired
+            (its instance died), is claimed. The attempt ends in Succeeded, Failed, Cancelled, or Queued again: a transient
+            failure with attempts left (backoff, <see cref="M:Storeasy.Domain.Stores.StoreJobRules.RetryDelay(System.Int32,System.TimeSpan,System.TimeSpan)"/>) or a host shutdown (the attempt is
+            given back).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="jobRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="handlers"></param>
+            <param name="secretProtector"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.RunNextAsync(System.Threading.CancellationToken)">
+            <summary>
+            Claims the next due job and runs one attempt of it.
+            </summary>
+            <param name="stoppingToken">Signalled when the host stops.</param>
+            <returns>Whether a job was claimed.</returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor.IsTransient(System.Exception)">
+            <summary>
+            Whether a failed attempt may succeed later: a <see cref="T:Storeasy.Application.Interfaces.StoreJobException"/> says so itself; network failures and
+            timeouts are transient; anything else (a bug, bad data) is not.
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobQueue">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreJobQueue"/>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobQueue.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreJobQueue"/>.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobQueue.EnqueueAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreJobRequest},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobRunner">
+            <summary>
+            The API's in-process store job runner (docs/urun-plani.md K4): <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.Workers"/> loops, each
+            claiming and running one job at a time through a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/> in a fresh scope, and sleeping
+            <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.PollIntervalMilliseconds"/> when the queue is empty. A worker survives any error of one
+            round (an unreachable database during startup included) and tries again after the pause.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.StoreJobOptions,System.TimeProvider)">
+            <summary>
+            The API's in-process store job runner (docs/urun-plani.md K4): <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.Workers"/> loops, each
+            claiming and running one job at a time through a <see cref="T:Storeasy.Infrastructure.StoreJobs.StoreJobExecutor"/> in a fresh scope, and sleeping
+            <see cref="P:Storeasy.Application.Utils.Models.StoreJobOptions.PollIntervalMilliseconds"/> when the queue is empty. A worker survives any error of one
+            round (an unreachable database during startup included) and tries again after the pause.
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">
             <summary>
             App Store Connect API key.
@@ -1115,6 +1551,11 @@
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
+            <summary>
+            App and build reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+            Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
+            deleted afterwards). Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
@@ -1151,10 +1592,45 @@
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.VerifyAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.NotSupportedMessage(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Error text for a store the engine does not talk to yet (Microsoft Store until phase 5).
+            </summary>
+        </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.DescribeError(System.String)">
             <summary>
             Extracts the human readable part of an Apple (<c>errors[].detail</c>) or Google (<c>error.message</c>,
             <c>error_description</c>) error body; falls back to the raw text.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.MaxPages">
+            <summary>
+            Most pages read from one paginated App Store Connect list.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListAppsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.GetAppAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListBuildsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseAppleBuilds(System.Text.Json.JsonElement)">
+            <summary>
+            Maps one page of <c>/v1/builds</c> (with the included pre-release versions) to build records.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseGoogleBuilds(System.Text.Json.JsonElement,System.Text.Json.JsonElement)">
+            <summary>
+            Maps the bundles of a Play edit to build records; the version name and the tracks come from the track releases
+            that carry the version code.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.SendRequestAsync(System.Net.Http.HttpRequestMessage,System.Threading.CancellationToken)">
+            <summary>
+            Sends <paramref name="request"/> (and disposes it) and parses the JSON answer; an empty answer parses as <c>{}</c>.
             </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.StoreJwt">
@@ -1186,6 +1662,62 @@
         <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.DecodeHeader(System.String)">
             <summary>
             Decodes the header of a compact JWT without verifying it (tests and diagnostics only).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.SyncAppsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
+            <list type="bullet">
+            <item>App Store Connect: every app the key sees (<c>/v1/apps</c>); a new one is linked to the storeasy app whose other
+            store record has the same bundle id, otherwise it gets its own storeasy app.</item>
+            <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
+            service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
+            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            </list>
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
+            <list type="bullet">
+            <item>App Store Connect: every app the key sees (<c>/v1/apps</c>); a new one is linked to the storeasy app whose other
+            store record has the same bundle id, otherwise it gets its own storeasy app.</item>
+            <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
+            service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
+            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            </list>
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="appRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ReadGoogleAppsAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.Collections.Generic.List{Storeasy.Domain.Apps.StoreApp},System.Threading.CancellationToken)">
+            <summary>
+            Reads the Play records one by one. A permanent refusal (no access, unknown package) is collected; a transient
+            failure fails the attempt so the job is retried.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.CreateRecordsAsync(System.Int32,Storeasy.Application.Interfaces.OpenedStoreConnection,System.Collections.Generic.List{Storeasy.Application.Interfaces.StoreAppRecord},System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Adds the new records: each joins the storeasy app whose record in another store has the same platform identifier
+            (and no record in this store yet), otherwise a new storeasy app named after it.
             </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer">

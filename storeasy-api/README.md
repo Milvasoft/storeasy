@@ -47,6 +47,17 @@ docker compose up -d
 | `OpenTelemetry:CollectorUrl` | `OpenTelemetry__CollectorUrl` | OTLP gRPC endpoint of the collector (e.g. `http://otel-collector:4317`). Empty disables OpenTelemetry. |
 | `Milvasoft:Identity:Token:SymmetricPublicKey` | `Milvasoft__Identity__Token__SymmetricPublicKey` | Secret. HMAC-SHA256 signing key of the access tokens (at least 32 characters), see [Secrets](#secrets). |
 | `Milvasoft:FileOperations:Json:EncryptionKey` | `Milvasoft__FileOperations__Json__EncryptionKey` | Secret. AES key of Milvasoft's encrypted JSON file operations (exactly 16, 24 or 32 characters); only read once a project adds `Milvasoft.FileOperations`. |
+| `Storeasy:Registration:Mode` | `Storeasy__Registration__Mode` | Who may register: `Open` (default), `InviteOnly` (a valid organization invitation for the same e-mail is required and accepted) or `Closed`. |
+| `Storeasy:App:BaseUrl` | `Storeasy__App__BaseUrl` | Public address of the web app; e-mail links point at `{BaseUrl}/verify-email`, `/reset-password` and `/invitation` with a `token` query value. Required outside Development. |
+| `Storeasy:Email:Provider` | `Storeasy__Email__Provider` | `Smtp` (self-host), `Notifike` (Milvasoft hosting) or `Log` (Development only: writes the e-mail and its link to the log). |
+| `Storeasy:Email:FromName` | `Storeasy__Email__FromName` | Sender display name. |
+| `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | `Storeasy__Email__Smtp__Host` ... | SMTP server; `Host` and `From` are required with the `Smtp` provider outside Development. |
+| `Storeasy:Email:Smtp:Password` | `Storeasy__Email__Smtp__Password` | Secret. SMTP password. |
+| `Storeasy:Email:Notifike:BaseUrl` | `Storeasy__Email__Notifike__BaseUrl` | Notifike API base address (`POST {BaseUrl}/notifications/send`). |
+| `Storeasy:Email:Notifike:ApiKey` | `Storeasy__Email__Notifike__ApiKey` | Secret. Notifike API key (`X-Api-Key` header). |
+| `Storeasy:Jobs:Enabled`, `Workers`, `PollIntervalMilliseconds`, `LeaseSeconds`, `DefaultMaxAttempts`, `RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | `Storeasy__Jobs__...` | Store job runner: whether this instance runs jobs, parallel jobs per instance, idle poll pause, lease of a running attempt (renewed on every step), attempts and the exponential retry backoff. |
+| `Storage:S3:Bucket`, `Region`, `ServiceUrl`, `ForcePathStyle`, `PresignedUrlLifetimeMinutes` | `Storage__S3__...` | Private S3 compatible bucket for files (presigned URLs only). Empty bucket disables uploads (503). `ServiceUrl` + `ForcePathStyle` for MinIO; empty `ServiceUrl` for AWS S3. |
+| `Storage:S3:AccessKey`, `Storage:S3:SecretKey` | `Storage__S3__AccessKey`, `Storage__S3__SecretKey` | Secret. Bucket credentials; without an access key the AWS default credential chain is used. `appsettings.Development.json` carries only the local MinIO defaults of `docker-compose.yml`. |
 | - | `MILVA_ENV` | `dev`, `test` or `prod`, see [Environment](#environment-milva_env). |
 
 #### Secrets
@@ -176,6 +187,30 @@ The Visual Studio container profile builds `Dockerfile-dev`.
 `tests/Storeasy.UnitTests/ArchitectureTests` enforces the code standards in every unit test run: layer and library dependencies (`LayerDependencyTests`), the CQRS feature layout (`FeatureConventionTests`), controllers (`ControllerConventionTests`), primary constructor fields and configuration access (`DependencyConventionTests`), no database call in a loop and projection on reads (`DataAccessConventionTests`), no duplicated method bodies (`DuplicationTests`), no hard coded user facing text (`LocalizationConventionTests`), complete resx files (`ResxTests`), UTC clock and no console (`RuntimeConventionTests`) and formatting, naming and XML documentation (`CodeStyleTests`). A failing rule lists every offending `Project/File.cs(line)`. The few deliberate exceptions live in the test class, each with its reason; adding one is a rule change.
 
 ## Usage
+
+### Accounts and e-mail
+
+- `POST account/register` (anonymous) creates an account that signs in with its e-mail; the user name is the lower case e-mail and `account/login` accepts it in any case. `Storeasy:Registration:Mode` decides who may register; an `invitationToken` in the body accepts that invitation in the same step (required in `InviteOnly`).
+- A new account is unverified. It can sign in, read and accept invitations, but creating an organization or a store connection answers 403 (`EmailNotVerified`) until the e-mail is verified (`[VerifiedEmailRequired]` + `VerifiedEmailBehavior`; instance admins are exempt). `account/detail` returns `emailConfirmed`.
+- `POST account/email/verify` (anonymous, token valid 48 hours), `POST account/email/verify/resend` (signed in; earlier links stop working), `POST account/password/forgot` (anonymous, always 200 so it reveals no account) and `POST account/password/reset` (anonymous, token valid 1 hour; rotates the session stamp, so every access and refresh token of the account dies, clears a lockout and marks the e-mail verified).
+- Tokens are random (`SecureTokens`), single use and stored only as SHA-256 hashes (`AccountTokens`). Every anonymous account endpoint is rate limited per client address.
+- E-mails (verification, reset, invitation) are localized (tr-TR, en-US, the request culture) HTML built from resx texts (`EmailTemplates`). A delivery failure is logged and never fails the request; the user can ask again.
+
+### Store jobs
+
+Store work runs as jobs (`StoreJobs`, steps in `StoreJobSteps`), never inside a request. `IStoreJobQueue` queues them; `StoreJobRunner` (a hosted service in the API, `Storeasy:Jobs`) claims one at a time per worker with `UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1)`, so instances never share a job, and reclaims a running job whose lease expired. The handler of the job kind (`IStoreJobHandler`) reports steps through `IStoreJobContext`, which renews the lease, publishes live events and stops the job when a member cancelled it. A `StoreJobException` marked transient (or a network failure) is retried with exponential backoff while attempts remain; anything else fails the job. The payload never carries a secret: a handler opens a store connection's secret inside the execution only (`OpenConnectionAsync`). Endpoints: `PATCH storejobs` (list), `GET storejobs/job` (detail with steps), `POST storejobs/job/cancel` (Editor and above; a queued job is cancelled at once, a running one at its next step).
+
+### Live activity (SignalR)
+
+`/hubs/activity` (`ActivityHub`) pushes the organization's events: `job.queued`, `job.progress`, `job.step`, `job.succeeded`, `job.failed`, `job.cancelled`, `connection.verified` and `app.synced`, all on the client method `activity` as an `ActivityEventDto`. Clients authenticate with the REST access token (`Authorization` header, or `?access_token=` for websockets; the value is redacted in the logs by `SecretRedactingEnricher`) and call `JoinOrganization(organizationId)`; the server checks the membership (false for a non member) and adds the connection to the organization's group. With Redis configured the backplane carries events between instances on channels prefixed with `CacheKeys:Prefix`. A connection that joined keeps receiving until it reconnects, even if the membership is removed meanwhile.
+
+### Files (S3)
+
+Files live in a private bucket and move only through presigned URLs (`IFileStorage`, AWSSDK.S3; MinIO locally, `docker compose up -d minio minio-init` creates the `storeasy-local` bucket). `POST assets/upload` declares a file (purpose, name, type, exact size, optional SHA-256) and returns one presigned PUT, or for files over 64 MB a multipart upload with one presigned PUT per 16 MB part. `POST assets/asset/complete` completes the multipart upload with the parts' ETags and confirms the file only when the stored size equals the declared one (otherwise the object is deleted and the asset rejected). `GET assets/asset/download-url` hands out a short lived GET URL. Rows are in `Assets` (organization, purpose, key, type, size, SHA-256, status); keys are `org/{id}/{purpose}/{nonce}/{safe name}`.
+
+### Apps and builds
+
+A storeasy app (`Apps`) groups the product's records in each store (`StoreApps`, at most one per store: App Store Connect app id, Play package name, later the Microsoft Store product id, with the platform identifier that links them). Builds (`Builds`) are the store's builds by store build id (version, build number or version code, processing state, Play tracks, TestFlight expiry). Store data arrives only through the `SyncApps` job (`POST apps/sync`, one job per connection): App Store Connect apps are listed (`/v1/apps`) and new ones join the app whose other store record has the same bundle id; Play has no list API, so a Play app is added by package name (`POST apps/google`) and the job proves access with an edit probe, reads bundles and tracks, and removes a record Play refuses. Microsoft Store answers "not supported yet". `POST apps/app/link` and `apps/app/unlink` move records between apps (an emptied app is removed). Every member can read (`PATCH apps`, `GET apps/app`); editors and above add, link and sync.
 
 ### Health checks
 

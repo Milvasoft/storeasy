@@ -32,4 +32,16 @@ public static class UserUniqueConstraintHelper
 
         return !string.IsNullOrEmpty(postgres.ConstraintName) && _messageKeyByIndex.TryGetValue(postgres.ConstraintName, out var messageKey) ? messageKey : null;
     }
+
+    /// <summary>
+    /// Whether <paramref name="exception"/> (or its inner exception, as EF wraps it) is a unique violation (23505) of the
+    /// index <paramref name="indexName"/>. For set based updates (<c>ExecuteUpdateAsync</c>) that race on a unique column
+    /// outside the user table, e.g. an organization slug; this class is the one place the application layer reads Npgsql.
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <param name="indexName"></param>
+    /// <returns></returns>
+    public static bool IsUniqueViolation(Exception exception, string indexName)
+        => (exception as PostgresException ?? exception?.InnerException as PostgresException) is { SqlState: MessageConstant.DuplicateDataViolationPgCode } postgres
+           && postgres.ConstraintName == indexName;
 }
