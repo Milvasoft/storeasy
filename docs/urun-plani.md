@@ -1,4 +1,4 @@
-# storeasy ürün planı
+﻿# storeasy ürün planı
 
 Son güncelleme: 18 Kasım 2026. Durum: taslak, Faz 1 başladı.
 
@@ -192,10 +192,15 @@ mağaza işi storeasy'de ve MCP'de olmalı. API'si olmayan iş de storeasy'nin i
 | 5. Stüdyo | Mockup şablonları, kendi çizdiğimiz çerçeveler (iPhone Duo dış ve iç ekran dahil), başlık lokalizasyonu, kataloğa göre tüm zorunlu ve önerilen boyutlara tek seferde dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
 | 6. Para | Abonelik grupları, abonelikler, bölge fiyatları, tanıtım ve promosyon teklifleri, retention mesajları, IAP; Play abonelikleri, base plan'lar, teklifler, tek seferlik ürünler | Bir uygulamanın abonelikleri storeasy'den kurulur |
 | 7. Yayın | Asistanlı adımların tamamı (11.4), özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
+| 8. Microsoft Store | Üçüncü mağaza (bölüm 11.6): Entra bağlantısı, uygulama ve gönderim senkronu, listeler ve görseller, MSIX paketleri ve paket uçuşları, aşamalı yayın, add-on'lar; MSI/EXE uygulamalar için ayrı API; sertifikasyon durumu; kataloğa Microsoft kuralları | Bir Windows uygulamasının liste ve paket güncellemesi storeasy'den gönderilir |
 
 **MVP:** Faz 1 + 2 + 3. Bu üçüyle Buğra'nın uygulamalarında "gönderime hazır mı, eksik ne" sorusu, metin, görsel,
 build ve gönderim storeasy ve MCP üzerinden yapılır; store-ops emekli olur. Faz 4 hemen arkasından gelir, çünkü red
 ve TestFlight takibi günlük iş. Stüdyo Faz 5'te; ondan önce görseller dışarıda üretilip storeasy'ye verilir.
+
+Microsoft Store (Faz 8) şimdilik en sonda, çünkü Buğra'nın bugün Windows mağazasında uygulaması yok. Bir uygulama
+gelirse Faz 4'ün arkasına alınabilir. Hazırlık: `StoreKind` enum'u, `IStoreGateway` ve kural kataloğu baştan üç
+mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda gömülmez.
 
 ## 8. Güvenlik
 
@@ -217,6 +222,8 @@ ve TestFlight takibi günlük iş. Stüdyo Faz 5'te; ondan önce görseller dı�
 | Public GitHub reposu ve organizasyonu | Buğra | Repo yerel |
 | Hosting, DB, Redis, S3, mail, Seq, CI | DevOpsçu | Cevaplandı, 10. bölüm |
 | Barındırılan sürüm ücretli mi | Buğra | Kapsam dışı |
+| Logo ve vurgu rengi | Buğra | Karar verildi (18 Kasım 2026): logo K3 "Dört kanat e" (rüzgârgülünün bir kanadı eksik hâli, boşluk "e"nin ağzı; `docs/storeasy uygulaması tasarımı/03-Logo-Onerileri-4.html`), vurgu Ultramarin #4636FF / #857AFF. Yazı logoda ortadaki "e" vurgu renginde |
+| Microsoft Store | Buğra | Eklendi (18 Kasım 2026): Faz 8, bölüm 11.6 |
 
 ## 10. Altyapı varsayılanları (DevOpsçu, 18 Kasım 2026)
 
@@ -328,7 +335,39 @@ API'si olmayan iş storeasy'de bir **asistanlı adım** kaydıdır:
 | Android geliştirici doğrulaması (paket adı kaydı) | Asistanlı | 4 | Play Console'da uygulama kaydı; kayıtsız uygulama Play'den kaldırılabilir. Gerekli hesap izni hazırlık kontrolünde |
 | Hedef API seviyesi | Build verisi + katalog | 2 | Yeni uygulamalar ve güncellemeler 31 Ağustos 2026'dan beri API 36; mevcut uygulamalar yeni kullanıcılara görünmek için API 35; uzatma 1 Kasım 2026'ya kadardı |
 
-### 11.6 MCP
+### 11.6 Microsoft Store
+
+Kaynak: Microsoft Learn, 18 Kasım 2026'da kontrol edildi. İki ayrı API var:
+
+- **MSIX ve UWP uygulamaları:** `manage.devcenter.microsoft.com` (Microsoft Store submission API). Uygulama gönderimleri,
+  add-on'lar ve paket uçuşları (flight).
+- **MSI ve EXE uygulamaları:** `api.store.microsoft.com/submission/v1`. Liste, fiyat ve pazar, görseller, paketler (yükleyici
+  URL'si; storeasy dosyayı barındırmaz, yükleyici geliştiricinin sunucusunda durur), hazır olma kontrolü, gönderim ve
+  yayın durumu.
+
+Bağlantı: Microsoft Entra uygulaması (Partner Center'da Manager rolü). Gizli değerler tenant ID, client ID, client secret ve
+satıcı kimliği (`X-Seller-Account-Id`); diğer mağazalar gibi zarf şifrelemeyle saklanır. Client secret en çok 24 ay
+geçerli, Microsoft 12 ayı öneriyor: bitiş tarihi bağlantıda tutulur, kural izleyici 30 gün önce uyarır.
+
+| İş | Tür | Faz | Not |
+|---|---|---|---|
+| Bağlantı ekleme ve doğrulama (token alma, uygulama listesi) | API | 8 | |
+| Uygulama oluşturma (isim ayırma) | Asistanlı | 8 | API uygulama oluşturamaz |
+| İlk gönderim ve yaş derecelendirmesi anketi (IARC) | Asistanlı | 8 | API ancak Partner Center'daki ilk gönderimden sonra çalışır |
+| Uygulama ve gönderim senkronu, durum | API | 8 | MSI/EXE'de `publishingStatus`: INPROGRESS, PUBLISHED, FAILED |
+| Liste metinleri (açıklama, kısa açıklama, yenilikler, özellikler, arama terimleri) ve diller | API | 8 | Sınırlar: açıklama 10.000, kısa 1.000, yenilikler 1.500 karakter; en çok 20 özellik, 7 arama terimi |
+| Ekran görüntüleri ve logolar | API | 8 | Dil başına en çok 10 ekran görüntüsü; stüdyo boyutları kataloğa eklenir |
+| Fiyat, pazarlar, keşfedilebilirlik | API | 8 | "Pricing Version 2"deki uygulamalarda fiyat API'den okunamıyor; o modül asistanlı |
+| MSIX paket yükleme, paket uçuşları, aşamalı yayın | API | 8 | |
+| MSI/EXE paket güncelleme (URL, mimari, sessiz kurulum parametreleri) | API | 8 | Yükleyici Authenticode ile imzalı olmalı; hazırlık kontrolü bakar |
+| Add-on'lar (uygulama içi ürünler) | API | 8 | Store-managed consumable ve zorunlu güncelleme kullanan ürünlerde API 409 döner; o durumda asistanlı |
+| Sertifikasyon sonucu ve red | API + asistanlı | 8 | Durum API'den; ayrıntılı rapor Partner Center'da |
+| Yorumlar ve yanıt | Asistanlı | 8 | Yanıt API'si Microsoft'un kendi sayfasında "çalışmıyor" olarak işaretli; yorumları okumak için analytics API denenecek |
+
+Kural: API ile oluşturulan bir gönderim Partner Center'da elle değiştirilirse API onu bir daha değiştiremez. storeasy
+bunu gönderim ekranında uyarı olarak gösterir. Aynı anda tek bir aktif gönderim olabilir.
+
+### 11.7 MCP
 
 - Matristeki her API ve asistanlı satır bir araçtır; yazmalar dry run ve onay kapılı.
 - Tek çağrıda tüm uygulamaların özeti (iki mağaza, durum, eksikler).
