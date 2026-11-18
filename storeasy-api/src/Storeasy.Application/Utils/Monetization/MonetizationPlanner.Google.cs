@@ -223,6 +223,13 @@ public sealed partial class MonetizationPlanner
         op.Territories = change.Territories?.Count > 0 ? change.Territories : [.. (plan?.Prices ?? []).Select(p => p.Territory)];
 
         if (op.Territories.Count == 0)
+        {
+            op.Territories = [.. _changes.Operations.Where(o => o.Kind == MonetizationChangeKind.BasePlan && o.ProductId == change.ProductId && o.BasePlanId == change.BasePlanId)
+                                                    .SelectMany(o => o.Prices ?? [])
+                                                    .Select(p => p.Territory)];
+        }
+
+        if (op.Territories.Count == 0)
             op.Territories = [.. change.Phases.Where(p => p.Prices != null).SelectMany(p => p.Prices).Select(p => p.Territory).Distinct()];
 
         if (op.Territories.Count == 0)

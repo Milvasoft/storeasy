@@ -78,6 +78,7 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IReadinessService, ReadinessService>();
         services.AddScoped<IMonetizationGateway, AppleMonetizationGateway>();
         services.AddScoped<IMonetizationGateway, GoogleMonetizationGateway>();
+        services.AddScoped<MonetizationStoreAccess>();
         services.AddScoped<IMonetizationService, MonetizationService>();
         services.AddScoped<IChangePlanExtension, MonetizationPlanExtension>();
         services.AddScoped<IReadinessContributor, MonetizationReadiness>();

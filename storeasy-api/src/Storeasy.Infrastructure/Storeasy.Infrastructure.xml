@@ -1026,11 +1026,11 @@
             and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
             read becomes one unknown item and never fails the check.
             </summary>
-            <param name="monetizationService"></param>
+            <param name="storeAccess"></param>
             <param name="stepRepository"></param>
             <param name="localizer"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.#ctor(Storeasy.Application.Interfaces.IMonetizationService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationReadiness.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <summary>
             Readiness items of the products an app sells (docs/urun-plani.md 11.1 and 11.2): on the App Store every subscription
             and In-App Purchase needs a review screenshot and a localization, and the app's first ones cannot be submitted on
@@ -1038,7 +1038,7 @@
             and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
             read becomes one unknown item and never fails the check.
             </summary>
-            <param name="monetizationService"></param>
+            <param name="storeAccess"></param>
             <param name="stepRepository"></param>
             <param name="localizer"></param>
         </member>
@@ -1053,20 +1053,17 @@
             points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
             apply job are the same as for content plans.
             </summary>
-            <param name="gateways"></param>
-            <param name="connectionRepository"></param>
+            <param name="storeAccess"></param>
             <param name="groupRepository"></param>
             <param name="productRepository"></param>
             <param name="planRepository"></param>
             <param name="contentService"></param>
             <param name="changePlanService"></param>
             <param name="storeJobQueue"></param>
-            <param name="secretProtector"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
-            <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.ProductGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.StoreProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.ISecretProtector,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.#ctor(Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.ProductGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.StoreProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IStoreJobQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IMonetizationService"/>. The connection secret is opened for one call and dropped; store failures
             are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
@@ -1074,18 +1071,15 @@
             points (App Store) and saves the plan through <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>, so approval, typed confirmation and the
             apply job are the same as for content plans.
             </summary>
-            <param name="gateways"></param>
-            <param name="connectionRepository"></param>
+            <param name="storeAccess"></param>
             <param name="groupRepository"></param>
             <param name="productRepository"></param>
             <param name="planRepository"></param>
             <param name="contentService"></param>
             <param name="changePlanService"></param>
             <param name="storeJobQueue"></param>
-            <param name="secretProtector"></param>
             <param name="localizer"></param>
             <param name="timeProvider"></param>
-            <param name="logger"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.MonetizationService.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -1117,16 +1111,59 @@
             territory prices, for the diff. Store calls only, no database.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.MonetizationService.OpenAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
-            <summary>
-            The store's gateway and a target with the connection secret opened (the decrypted bytes are cleared at once).
-            </summary>
-        </member>
         <member name="M:Storeasy.Infrastructure.Services.MonetizationService.Upsert``1(System.Collections.Generic.List{``0},System.Collections.Generic.List{``0},System.Func{``0,System.String},System.Action{``0,``0})">
             <summary>
             Matches stored rows to a read by the store's id: existing rows to update, new rows to add, ids no longer in the
             store to delete.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.MonetizationStoreAccess">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Opens a store record's connection for one monetization call and reads its products. Kept apart from
+            <see cref="T:Storeasy.Infrastructure.Services.MonetizationService"/> so the change plan extension and the readiness contributor can read without
+            depending on the planning service (which itself depends on the change plan service).
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.MonetizationParts,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Reads the record's products live; failures come back as a message key.
+            </summary>
+            <param name="app"></param>
+            <param name="parts"></param>
+            <param name="productIds"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.OpenAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <summary>
+            The store's gateway and a target with the connection secret opened (the decrypted bytes are cleared at once).
+            </summary>
+            <param name="app"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.MonetizationStoreAccess.Failure(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreCallException)">
+            <summary>
+            Logs a failed store call (redacted) and maps it to a message key and a redacted detail.
+            </summary>
+            <param name="app"></param>
+            <param name="exception"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.NotificationService">
             <summary>
@@ -2567,10 +2604,10 @@
             <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
             </summary>
             <param name="gateways"></param>
-            <param name="monetizationService"></param>
-            <param name="contentService"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Application.Interfaces.IMonetizationService,Storeasy.Application.Interfaces.IStoreContentService)">
+        <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IMonetizationGateway},Storeasy.Infrastructure.Services.MonetizationStoreAccess,Storeasy.Application.Interfaces.IStoreJobQueue)">
             <summary>
             Change plans of subscriptions, In-App Purchases and purchase settings (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization"/>,
             <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications"/>, <see cref="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters"/>): on approval the touched
@@ -2578,8 +2615,8 @@
             <see cref="T:Storeasy.Application.Interfaces.IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
             </summary>
             <param name="gateways"></param>
-            <param name="monetizationService"></param>
-            <param name="contentService"></param>
+            <param name="storeAccess"></param>
+            <param name="storeJobQueue"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Monetization.MonetizationPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
             <inheritdoc/>

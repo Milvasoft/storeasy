@@ -34,7 +34,7 @@ public class GetIapListQueryHandler(IStoreasyRepositoryBase<StoreProduct> produc
 
         foreach (var row in response.Data ?? [])
         {
-            row.BasePrice = MonetizationViews.BasePrice(row.BaseTerritory, row.Prices ?? row.Plans?.FirstOrDefault()?.Prices);
+            row.BasePrice = MonetizationViews.BasePrice(row.BaseTerritory, row.Prices?.Count > 0 ? row.Prices : row.Plans?.FirstOrDefault()?.Prices);
             row.PurchaseOptions = row.Plans?.Count > 0 ? [.. row.Plans.Select(p => MonetizationViews.Plan(p, null))] : null;
         }
 

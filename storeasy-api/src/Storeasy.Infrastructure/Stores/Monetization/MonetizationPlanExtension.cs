@@ -1,8 +1,10 @@
-﻿using Storeasy.Application.Interfaces;
+﻿using Storeasy.Application.Dtos.StoreJobDtos;
+using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Monetization;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.Monetization;
+using Storeasy.Infrastructure.Services;
 using System.Text.Json;
 
 namespace Storeasy.Infrastructure.Stores.Monetization;
@@ -14,17 +16,17 @@ namespace Storeasy.Infrastructure.Stores.Monetization;
 /// <see cref="IMonetizationGateway"/> and queues a sync, so the money screens show the store's new state.
 /// </summary>
 /// <param name="gateways"></param>
-/// <param name="monetizationService"></param>
-/// <param name="contentService"></param>
+/// <param name="storeAccess"></param>
+/// <param name="storeJobQueue"></param>
 public sealed class MonetizationPlanExtension(IEnumerable<IMonetizationGateway> gateways,
-                                             IMonetizationService monetizationService,
-                                             IStoreContentService contentService) : IChangePlanExtension
+                                             MonetizationStoreAccess storeAccess,
+                                             IStoreJobQueue storeJobQueue) : IChangePlanExtension
 {
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
     private readonly IEnumerable<IMonetizationGateway> _gateways = gateways;
-    private readonly IMonetizationService _monetizationService = monetizationService;
-    private readonly IStoreContentService _contentService = contentService;
+    private readonly MonetizationStoreAccess _storeAccess = storeAccess;
+    private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
 
     /// <inheritdoc/>
     public bool Handles(ChangePlanKind kind) => kind is ChangePlanKind.Monetization or ChangePlanKind.ServerNotifications or ChangePlanKind.SandboxTesters;
@@ -33,7 +35,7 @@ public sealed class MonetizationPlanExtension(IEnumerable<IMonetizationGateway> 
     public async Task<StoreContentRead> ReadBaseAsync(StoreAppContext app, IReadOnlyCollection<string> baseKeys, CancellationToken cancellationToken)
     {
         var (parts, productIds) = MonetizationContent.ScopeOf(baseKeys);
-        var read = await _monetizationService.ReadAsync(app, parts, productIds, cancellationToken);
+        var read = await _storeAccess.ReadAsync(app, parts, productIds, cancellationToken);
 
         return read.IsSuccess ? new StoreContentRead(MonetizationContent.AsContent(read.Snapshot)) : new StoreContentRead(null, read.ErrorKey, read.ErrorDetail);
     }
@@ -46,12 +48,7 @@ public sealed class MonetizationPlanExtension(IEnumerable<IMonetizationGateway> 
         var outcome = await gateway.ApplyAsync(request.Target, changes, context, cancellationToken);
 
         if (request.Kind == ChangePlanKind.Monetization)
-        {
-            var app = await _contentService.GetStoreAppAsync(request.OrganizationId, request.StoreAppId, cancellationToken);
-
-            if (app != null)
-                await _monetizationService.QueueSyncAsync(app, cancellationToken);
-        }
+            await _storeJobQueue.EnqueueAsync([new StoreJobRequest(request.OrganizationId, StoreJobKind.SyncMonetization, new SyncMonetizationPayload(request.StoreAppId), request.Store, request.AppId)], cancellationToken);
 
         return outcome;
     }

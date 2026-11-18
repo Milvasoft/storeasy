@@ -1563,6 +1563,21 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.AssistedStepCompleted">
             <summary>An assisted step was recorded as done or skipped.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.SubscriptionChanged">
+            <summary>A subscription group or subscription was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PriceScheduled">
+            <summary>A price or a price schedule was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OfferChanged">
+            <summary>A subscription offer was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.IapChanged">
+            <summary>An In-App Purchase or a Play one-time product was written to a store.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PurchaseSettingsChanged">
+            <summary>A purchase setting (server notifications, sandbox tester) was written to a store.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MockupTemplateCreated">
             <summary>A mockup template was created.</summary>
         </member>
@@ -1716,6 +1731,21 @@
         <member name="F:Storeasy.Domain.Enums.ChangePlanKind.SubmitForReview">
             <summary>
             Submitting a version for App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization">
+            <summary>
+            Subscriptions, offers, In-App Purchases and Play products (phase 7).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.ServerNotifications">
+            <summary>
+            App Store Server Notifications addresses.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters">
+            <summary>
+            Sandbox tester settings.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ChangePlanStatus">
@@ -2006,6 +2036,177 @@
             The store accepts the class; another class already covers it (not selected by default).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.MonetizationChangeKind">
+            <summary>
+            Kind of one requested change of a monetization plan (subscriptions, offers, In-App Purchases, Play products and the
+            store's purchase settings).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.CreateGroup">
+            <summary>
+            Create an App Store subscription group (with its first localizations).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.UpdateGroup">
+            <summary>
+            Rename a subscription group.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.GroupLocalization">
+            <summary>
+            Add or change a subscription group localization.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.CreateSubscription">
+            <summary>
+            Create an App Store subscription.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.UpdateProduct">
+            <summary>
+            Change the fields of a subscription or In-App Purchase (name, family sharing, review note, multiseat).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.ProductLocalization">
+            <summary>
+            Add or change a localization of a subscription or In-App Purchase.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.Level">
+            <summary>
+            Move a subscription to another level of its group.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.BasePrice">
+            <summary>
+            Base territory price; the other territories follow the store's equalization unless set by hand.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.TerritoryPrice">
+            <summary>
+            Price of one territory chosen by hand.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.Availability">
+            <summary>
+            Territories where the product is sold.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.IntroductoryOffer">
+            <summary>
+            App Store introductory offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.PromotionalOffer">
+            <summary>
+            App Store promotional offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.OfferCode">
+            <summary>
+            App Store offer code (with custom and one-time codes).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.WinBackOffer">
+            <summary>
+            App Store win-back offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.ReviewScreenshot">
+            <summary>
+            Review screenshot from an uploaded asset.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.CreateIap">
+            <summary>
+            Create an App Store In-App Purchase.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.PlaySubscription">
+            <summary>
+            Create a Play subscription or change its listings.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.BasePlan">
+            <summary>
+            Add a Play base plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.BasePlanState">
+            <summary>
+            Activate or deactivate a Play base plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.BasePlanPrices">
+            <summary>
+            Regional prices of a Play base plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.PlayOffer">
+            <summary>
+            Create a Play subscription offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.PlayOfferState">
+            <summary>
+            Activate or deactivate a Play subscription offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.OneTimeProduct">
+            <summary>
+            Create or change a Play one-time product (listings, purchase option, prices, state).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.ServerNotifications">
+            <summary>
+            App Store Server Notifications addresses.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationChangeKind.SandboxTester">
+            <summary>
+            Sandbox tester settings or purchase history.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MonetizationParts">
+            <summary>
+            Parts of an app's store products a monetization read covers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Products">
+            <summary>
+            Groups and products only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Localizations">
+            <summary>
+            Localizations of groups and products.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Prices">
+            <summary>
+            Prices per territory.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Offers">
+            <summary>
+            Offers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Availability">
+            <summary>
+            Territory availability.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.Review">
+            <summary>
+            Review screenshot and the other review details.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MonetizationParts.All">
+            <summary>
+            Everything.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.NotificationEntity">
             <summary>
             Notication related entity types.
@@ -2014,6 +2215,56 @@
         <member name="T:Storeasy.Domain.Enums.NotificationType">
             <summary>
             Notication types.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.OfferKind">
+            <summary>
+            Kind of a subscription offer.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferKind.Introductory">
+            <summary>
+            App Store introductory offer (new subscribers, one per territory).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferKind.Promotional">
+            <summary>
+            App Store promotional offer (signed by the app's own server).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferKind.OfferCode">
+            <summary>
+            App Store offer redeemed with offer codes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferKind.WinBack">
+            <summary>
+            App Store win-back offer (lapsed subscribers).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferKind.PlayOffer">
+            <summary>
+            Play subscription offer of a base plan.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.OfferMode">
+            <summary>
+            How a subscription offer is paid.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferMode.FreeTrial">
+            <summary>
+            Free for a duration.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferMode.PayAsYouGo">
+            <summary>
+            A discounted price per period for a number of periods.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OfferMode.PayUpFront">
+            <summary>
+            One payment for the whole duration.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.OrgPermission">
@@ -2097,6 +2348,87 @@
         <member name="F:Storeasy.Domain.Enums.OrgRole.Viewer">
             <summary>
             Read only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PriceSource">
+            <summary>
+            Where a price shown by storeasy comes from. storeasy never makes a price up: it is the store's own equalization, a
+            member's choice from the store's price points, or the result of Play's price conversion.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PriceSource.Store">
+            <summary>
+            Equalized by the store from the base territory.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PriceSource.Manual">
+            <summary>
+            Chosen or entered by a member.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PriceSource.Converted">
+            <summary>
+            Calculated by the Play price conversion.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ProductState">
+            <summary>
+            Store neutral state of a store product (the store's own state text is kept beside it).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Draft">
+            <summary>
+            Created but never activated (Play draft).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.MissingMetadata">
+            <summary>
+            Metadata (localization, price, review screenshot) is missing.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.ReadyToSubmit">
+            <summary>
+            Complete and ready to be submitted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.WaitingForReview">
+            <summary>
+            Submitted, waiting for App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.InReview">
+            <summary>
+            In App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.ActionNeeded">
+            <summary>
+            The store asks the developer to act (developer action needed, pending binary approval).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Approved">
+            <summary>
+            Approved and on sale (App Store).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Active">
+            <summary>
+            Active and on sale (Play).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Inactive">
+            <summary>
+            Deactivated; existing buyers keep it (Play).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Rejected">
+            <summary>
+            Rejected by App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ProductState.Removed">
+            <summary>
+            Removed from sale.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ReadinessStatus">
@@ -2329,6 +2661,11 @@
             Applies an approved change plan to a store.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncMonetization">
+            <summary>
+            Reads the subscriptions and In-App Purchases of a store record into storeasy.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport">
             <summary>
             Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
@@ -2410,6 +2747,37 @@
             <summary>
             Microsoft Store (Partner Center submission APIs, Microsoft Entra app). Connections and sync arrive in phase 5;
             until then the store engine answers "not supported yet".
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StoreProductKind">
+            <summary>
+            What a store product sold inside an app is, store neutral (App Store subscriptions and In-App Purchases, Play
+            subscriptions and one-time products).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreProductKind.Subscription">
+            <summary>
+            Auto-renewable subscription (App Store subscription in a group, Play subscription with base plans).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreProductKind.Consumable">
+            <summary>
+            Consumable In-App Purchase (used up and bought again).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreProductKind.NonConsumable">
+            <summary>
+            Non-consumable In-App Purchase (bought once, restored).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreProductKind.NonRenewingSubscription">
+            <summary>
+            Non-renewing subscription (time limited access that does not renew).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreProductKind.OneTimeProduct">
+            <summary>
+            Play one-time product; whether it is consumed is decided by the app, Play has no type for it.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.UserActivity">
@@ -3266,6 +3634,294 @@
             Locale the remark is about, if one.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductAvailability">
+            <summary>
+            Territories where a store product is sold.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductAvailability.Id">
+            <summary>
+            Store's id of the availability (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductAvailability.Territories">
+            <summary>
+            Available territories.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductAvailability.AvailableInNewTerritories">
+            <summary>
+            Whether territories the store adds later are included.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductLocalization">
+            <summary>
+            A localization of a store product or subscription group as the store has it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.Id">
+            <summary>
+            Store's id of the localization (App Store); null on Play.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.Locale">
+            <summary>
+            Locale (en-US, tr).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.Name">
+            <summary>
+            Display name (App Store), title (Play).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.Description">
+            <summary>
+            Description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.CustomAppName">
+            <summary>
+            Custom app name of a subscription group localization (null: the app's own name is used).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.Benefits">
+            <summary>
+            Benefits of a Play subscription listing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductLocalization.State">
+            <summary>
+            Store state of the localization (the state of the App Store version it belongs to).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductOffer">
+            <summary>
+            A subscription offer as the store has it: App Store introductory, promotional, offer code and win-back offers, Play
+            base plan offers. One-time codes are never stored, only their counts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Kind">
+            <summary>
+            Kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Id">
+            <summary>
+            Store's id (App Store resource id; Play offer id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Name">
+            <summary>
+            Reference name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Code">
+            <summary>
+            Offer identifier the app uses (promotional offer code, win-back offer id) or the custom code of an offer code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Mode">
+            <summary>
+            Payment mode.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Duration">
+            <summary>
+            Duration of one period (App Store duration text, Play ISO 8601).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Periods">
+            <summary>
+            Number of periods.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Territories">
+            <summary>
+            Territories the offer is set for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.PriceCount">
+            <summary>
+            Number of price records.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.StartDate">
+            <summary>
+            First day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.EndDate">
+            <summary>
+            Last day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.State">
+            <summary>
+            Store state (ACTIVE, DRAFT...) or whether an offer code is active.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Eligibility">
+            <summary>
+            Who can redeem it (NEW, EXISTING, EXPIRED; Play: NewCustomers, Upgrade, DeveloperDetermined).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.BasePlanId">
+            <summary>
+            Play base plan the offer extends.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.CustomCodeCount">
+            <summary>
+            Number of custom codes of an offer code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.OneTimeCodeCount">
+            <summary>
+            Number of one-time use codes created for an offer code (the codes themselves are never stored).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductOffer.Phases">
+            <summary>
+            Phases of a Play offer as "kind duration x recurrence".
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductPlan">
+            <summary>
+            A Play base plan of a subscription, or a purchase option of a one-time product: what is actually sold, with its
+            regional prices.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.Id">
+            <summary>
+            Base plan id or purchase option id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.Type">
+            <summary>
+            AutoRenewing, Prepaid, Installments (base plans); Buy, Rent (purchase options).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.BillingPeriod">
+            <summary>
+            Billing period (ISO 8601, e.g. P1M).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.Prices">
+            <summary>
+            Regional prices.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.OtherRegionsUsd">
+            <summary>
+            Price for new regions in USD.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPlan.OtherRegionsEur">
+            <summary>
+            Price for new regions in EUR.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductPrice">
+            <summary>
+            The price of a store product in one territory (region on Play), with the next scheduled change when there is one.
+            Amounts are the store's text (e.g. "49.99"), never computed by storeasy.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.Territory">
+            <summary>
+            Territory: App Store alpha-3 (TUR), Play alpha-2 (TR).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.Currency">
+            <summary>
+            Currency (ISO 4217).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.CustomerPrice">
+            <summary>
+            Price the customer pays.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.Proceeds">
+            <summary>
+            What the developer receives (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.PricePointId">
+            <summary>
+            Store's price point id (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.PriceId">
+            <summary>
+            Store's id of the price record (App Store subscription price).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.Source">
+            <summary>
+            Where the price comes from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.StartDate">
+            <summary>
+            First day of the price; null: since ever.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.PendingCustomerPrice">
+            <summary>
+            Customer price of the next scheduled change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.PendingPricePointId">
+            <summary>
+            Price point of the next scheduled change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductPrice.PendingStartDate">
+            <summary>
+            First day of the next scheduled change.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ProductScreenshot">
+            <summary>
+            The App Review screenshot of a subscription or In-App Purchase as the store has it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.Id">
+            <summary>
+            Store's id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.FileName">
+            <summary>
+            File name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.Width">
+            <summary>
+            Width in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.Height">
+            <summary>
+            Height in pixels.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.Checksum">
+            <summary>
+            Lower case hex MD5 the store keeps (sourceFileChecksum).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ProductScreenshot.State">
+            <summary>
+            Delivery state (COMPLETE, FAILED...).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.ReadinessSummary">
             <summary>
             The last readiness check of a store record, kept for the organization overview.
@@ -3372,6 +4028,513 @@
             <summary>
             Shape of a method log entry produced by the <c>[Log]</c> interceptor. It is not a table: <c>StoreasyDbLogger</c>
             deserializes the entry into it and writes it to the log pipeline (Serilog), never to the application database.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Monetization.MonetizationKeys">
+            <summary>
+            Content keys of store products (<see cref="T:Storeasy.Domain.Content.ContentKey"/> format), used for the diff of a monetization plan and for
+            its fingerprint. The field part is "{owner}/{field}" where the owner is what the member recognizes: the product id,
+            the group reference name, "{productId}:{basePlanId}" on Play.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Group">
+            <summary>
+            Subscription group values.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Product">
+            <summary>
+            Subscription and In-App Purchase values (fields, localizations, review details).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Iap">
+            <summary>
+            Items of In-App Purchases and one-time products in a plan (their keys use <see cref="F:Storeasy.Domain.Monetization.MonetizationKeys.Product"/>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Price">
+            <summary>
+            Prices per territory.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Availability">
+            <summary>
+            Territory availability.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Offer">
+            <summary>
+            Offers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Plan">
+            <summary>
+            Play base plans and purchase options.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationKeys.Settings">
+            <summary>
+            Store settings of the app (server notifications, sandbox testers).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationKeys.Of(System.String,System.String,System.String,System.String)">
+            <summary>
+            A content key.
+            </summary>
+            <param name="group"></param>
+            <param name="owner"></param>
+            <param name="locale"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationKeys.OwnerOf(System.String)">
+            <summary>
+            The owner part of a key's field ("com.x.monthly/name" gives "com.x.monthly").
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Monetization.MonetizationRules">
+            <summary>
+            Pure rules of store products: state mapping, which plans need a stronger permission and a typed confirmation (a price
+            change of a product on sale reaches paying subscribers, so it counts as a production release), product id formats and
+            the offer combinations App Store Connect accepts. No database, no store calls.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationRules.ProductIdMaxLength">
+            <summary>
+            Longest product id.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationRules.DisplayNameMaxLength">
+            <summary>
+            App Store limit of a subscription or In-App Purchase display name.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationRules.DescriptionMaxLength">
+            <summary>
+            App Store limit of a subscription or In-App Purchase description.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationRules.PlayTitleMaxLength">
+            <summary>
+            Play limit of a subscription or one-time product title.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.MonetizationRules.PlayDescriptionMaxLength">
+            <summary>
+            Play limit of a description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.MonetizationRules.SubscriptionPeriods">
+            <summary>
+            Subscription periods of the App Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.MonetizationRules.OfferDurations">
+            <summary>
+            Offer durations of the App Store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.AppleState(System.String)">
+            <summary>
+            Store neutral state of an App Store subscription or In-App Purchase state text.
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.GoogleState(System.String)">
+            <summary>
+            Store neutral state of a Play base plan, offer or purchase option state text.
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.GoogleProductState(System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.ProductState})">
+            <summary>
+            State of a Play product from the states of its base plans or purchase options: active when one is active,
+            inactive when one was ever published, otherwise draft.
+            </summary>
+            <param name="planStates"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IsOnSale(Storeasy.Domain.Enums.ProductState)">
+            <summary>
+            Whether a product in <paramref name="state"/> is on sale (its buyers pay the prices it has).
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.WasEverOnSale(Storeasy.Domain.Enums.ProductState)">
+            <summary>
+            Whether a product in <paramref name="state"/> was ever approved or published (then it is not the app's first).
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.PricePermission(System.Boolean)">
+            <summary>
+            Permission to approve a price change: <see cref="F:Storeasy.Domain.Enums.OrgPermission.ReleaseProduction"/> for a product on sale,
+            otherwise <see cref="F:Storeasy.Domain.Enums.OrgPermission.EditContent"/>.
+            </summary>
+            <param name="onSale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.Highest(Storeasy.Domain.Enums.OrgPermission,Storeasy.Domain.Enums.OrgPermission)">
+            <summary>
+            The stronger of two permissions (a plan needs the highest permission of its items).
+            </summary>
+            <param name="left"></param>
+            <param name="right"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.PriceChangeConfirmText(System.String,System.String)">
+            <summary>
+            Text the approver types for a price change that reaches existing subscribers, e.g. "Kumbara com.x.monthly".
+            </summary>
+            <param name="appName"></param>
+            <param name="productId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IsValidProductId(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            Whether <paramref name="productId"/> is a valid product id for <paramref name="store"/>: App Store letters, digits,
+            periods and underscores; Play lower case letters, digits, periods and underscores, starting with a letter or digit.
+            </summary>
+            <param name="store"></param>
+            <param name="productId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IsValidOffer(System.String,Storeasy.Domain.Enums.OfferMode,System.String,System.Int32)">
+            <summary>
+            Whether App Store Connect accepts an introductory offer of <paramref name="mode"/> lasting
+            <paramref name="periods"/> x <paramref name="duration"/> on a subscription of <paramref name="subscriptionPeriod"/>:
+            a free trial or pay up front runs once for one of the offer durations; pay as you go repeats the subscription
+            period, at most a year in total.
+            </summary>
+            <param name="subscriptionPeriod"></param>
+            <param name="mode"></param>
+            <param name="duration"></param>
+            <param name="periods"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.AppleOfferMode(Storeasy.Domain.Enums.OfferMode)">
+            <summary>
+            App Store offer mode text of <paramref name="mode"/>.
+            </summary>
+            <param name="mode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.OfferModeOf(System.String)">
+            <summary>
+            Offer mode of an App Store offer mode text.
+            </summary>
+            <param name="mode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IapKind(System.String)">
+            <summary>
+            Product kind of an App Store In-App Purchase type text.
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IapType(Storeasy.Domain.Enums.StoreProductKind)">
+            <summary>
+            App Store In-App Purchase type text of a product kind.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IsValidAmount(System.String,System.String)">
+            <summary>
+            Whether <paramref name="amount"/> is a positive price with the decimals <paramref name="currency"/> allows (no
+            decimals for JPY, KRW and the like, at most two otherwise).
+            </summary>
+            <param name="currency"></param>
+            <param name="amount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.TryParseAmount(System.String,System.Decimal@)">
+            <summary>
+            Parses an amount written with a period as decimal separator.
+            </summary>
+            <param name="amount"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.IsIncrease(System.String,System.String)">
+            <summary>
+            Whether <paramref name="after"/> is a higher amount than <paramref name="before"/> (false when either is not a
+            number).
+            </summary>
+            <param name="before"></param>
+            <param name="after"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.AuditActionOf(System.String)">
+            <summary>
+            Audit action of a monetization plan item of content group <paramref name="group"/>.
+            </summary>
+            <param name="group"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.AppleProductId">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9._]+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Domain.Monetization.MonetizationRules.PlayProductId">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z0-9][a-z0-9._]*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9a-z].<br/>
+            ○ Match a character in the set [.0-9_a-z] atomically any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Domain.Monetization.ProductGroup">
+            <summary>
+            An App Store subscription group of a store record, as last synced from the store. A customer can hold one
+            subscription of a group at a time; level 1 is the highest service level. Play has no groups.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.ProductGroup.ReferenceNameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Monetization.ProductGroup.ReferenceName"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.ExternalId">
+            <summary>
+            The store's id of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.ReferenceName">
+            <summary>
+            Reference name (only visible in App Store Connect).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.Localizations">
+            <summary>
+            Localizations (display name, custom app name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.ProductGroup.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Monetization.StoreProduct">
+            <summary>
+            A product sold inside an app, store neutral, as last synced from the store: App Store subscriptions and In-App
+            Purchases, Play subscriptions (with base plans in <see cref="P:Storeasy.Domain.Monetization.StoreProduct.Plans"/>) and one-time products (purchase options in
+            <see cref="P:Storeasy.Domain.Monetization.StoreProduct.Plans"/>). Writes never start from this row: a plan reads the store live and fingerprints what it changes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.StoreProduct.ProductIdMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Monetization.StoreProduct.ProductId"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.StoreProduct.ReferenceNameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Monetization.StoreProduct.ReferenceName"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.StoreProduct.ReviewNoteMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Monetization.StoreProduct.ReviewNote"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Monetization.StoreProduct.TextMaxLength">
+            <summary>
+            Column length of short store texts (state, duration, multiseat status).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Kind">
+            <summary>
+            What the product is.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.ExternalId">
+            <summary>
+            The store's id (App Store resource id, Play product id).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.ProductId">
+            <summary>
+            Product id the app uses (never changes after creation).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.ReferenceName">
+            <summary>
+            Reference name (App Store) or the default listing title (Play).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.GroupId">
+            <summary>
+            Subscription group (App Store subscriptions).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.GroupExternalId">
+            <summary>
+            The store's id of the subscription group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Level">
+            <summary>
+            Level in the group (1 is the highest service level).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Duration">
+            <summary>
+            Subscription period (ONE_MONTH...) of an App Store subscription.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.StoreState">
+            <summary>
+            The store's own state text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.FamilySharable">
+            <summary>
+            Whether Family Sharing is on (it cannot be turned off again).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.ReviewNote">
+            <summary>
+            Note for App Review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.ReviewScreenshot">
+            <summary>
+            App Review screenshot.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Localizations">
+            <summary>
+            Localizations.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Availability">
+            <summary>
+            Territories where the product is sold.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.BaseTerritory">
+            <summary>
+            Base territory of the price (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Prices">
+            <summary>
+            Prices per territory (App Store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Offers">
+            <summary>
+            Offers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Plans">
+            <summary>
+            Play base plans or purchase options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.RetentionMessage">
+            <summary>
+            Reference name of the retention message shown to subscribers about to cancel, if one is assigned.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.MultiSeatStatus">
+            <summary>
+            Multiseat purchase status for organizations (ENABLED, DISABLED).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Group">
+            <summary>
+            Navigation property of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Monetization.StoreProduct.Projections">
+            <summary>
+            Column sets read in more than one place.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Monetization.StoreProduct.Projections.Detail">
+            <summary>
+            Every column the read models use (no navigation).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Organizations.Organization">
@@ -5940,66 +7103,130 @@
             Id of migration
             </summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ColorPattern method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.AppleProductId_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AppleProductId method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.ColorPattern_0.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AppleProductId_0.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleProductId_0.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleProductId_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LocalePattern method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.PlayProductId_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlayProductId method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.LocalePattern_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PlayProductId_1.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PlayProductId_1.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlayProductId_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ColorPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ColorPattern_2.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_2.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ColorPattern_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_3">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LocalePattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.LocalePattern_3.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_3.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LocalePattern_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -6015,6 +7242,12 @@
         </member>
         <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
             <summary>Pushes 2 values onto the backtracking stack.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDotUnderscore">
+            <summary>Supports searching for characters in or not in ".0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_40FF0300000080FEFFFF07">
+            <summary>Supports searching for characters in or not in ".0123456789_abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
     </members>
 </doc>

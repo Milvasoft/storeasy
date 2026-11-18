@@ -1,19 +1,14 @@
 ﻿using Milvasoft.Components.Rest.MilvaResponse;
-using Milvasoft.Core.Abstractions;
 using Milvasoft.Core.Abstractions.Localization;
 using Storeasy.Application.Dtos.ContentDtos;
 using Storeasy.Application.Dtos.MonetizationDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
-using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Monetization;
 using Storeasy.Domain.Content;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Monetization;
-using Storeasy.Domain.Stores;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Storeasy.Infrastructure.Services;
 
@@ -24,63 +19,38 @@ namespace Storeasy.Infrastructure.Services;
 /// points (App Store) and saves the plan through <see cref="IChangePlanService"/>, so approval, typed confirmation and the
 /// apply job are the same as for content plans.
 /// </summary>
-/// <param name="gateways"></param>
-/// <param name="connectionRepository"></param>
+/// <param name="storeAccess"></param>
 /// <param name="groupRepository"></param>
 /// <param name="productRepository"></param>
 /// <param name="planRepository"></param>
 /// <param name="contentService"></param>
 /// <param name="changePlanService"></param>
 /// <param name="storeJobQueue"></param>
-/// <param name="secretProtector"></param>
 /// <param name="localizer"></param>
 /// <param name="timeProvider"></param>
-/// <param name="logger"></param>
-public sealed class MonetizationService(IEnumerable<IMonetizationGateway> gateways,
-                                        IStoreasyRepositoryBase<StoreConnection> connectionRepository,
+public sealed class MonetizationService(MonetizationStoreAccess storeAccess,
                                         IStoreasyRepositoryBase<ProductGroup> groupRepository,
                                         IStoreasyRepositoryBase<StoreProduct> productRepository,
                                         IStoreasyRepositoryBase<ChangePlan> planRepository,
                                         IStoreContentService contentService,
                                         IChangePlanService changePlanService,
                                         IStoreJobQueue storeJobQueue,
-                                        ISecretProtector secretProtector,
                                         IMilvaLocalizer localizer,
-                                        TimeProvider timeProvider,
-                                        IMilvaLogger logger) : IMonetizationService
+                                        TimeProvider timeProvider) : IMonetizationService
 {
-    private readonly IEnumerable<IMonetizationGateway> _gateways = gateways;
-    private readonly IStoreasyRepositoryBase<StoreConnection> _connectionRepository = connectionRepository;
+    private readonly MonetizationStoreAccess _storeAccess = storeAccess;
     private readonly IStoreasyRepositoryBase<ProductGroup> _groupRepository = groupRepository;
     private readonly IStoreasyRepositoryBase<StoreProduct> _productRepository = productRepository;
     private readonly IStoreasyRepositoryBase<ChangePlan> _planRepository = planRepository;
     private readonly IStoreContentService _contentService = contentService;
     private readonly IChangePlanService _changePlanService = changePlanService;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
-    private readonly ISecretProtector _secretProtector = secretProtector;
     private readonly IMilvaLocalizer _localizer = localizer;
     private readonly TimeProvider _timeProvider = timeProvider;
-    private readonly IMilvaLogger _logger = logger;
 
     /// <inheritdoc/>
-    public async Task<MonetizationRead> ReadAsync(StoreAppContext app, MonetizationParts parts, IReadOnlyCollection<string> productIds, CancellationToken cancellationToken)
-    {
-        var (gateway, target, errorKey) = await OpenAsync(app, cancellationToken);
-
-        if (errorKey != null)
-            return new MonetizationRead(null, errorKey);
-
-        try
-        {
-            return new MonetizationRead(await gateway.ReadAsync(target, parts, productIds, cancellationToken));
-        }
-        catch (StoreCallException ex)
-        {
-            var (key, detail) = Failure(app, ex);
-
-            return new MonetizationRead(null, key, detail);
-        }
-    }
+    public Task<MonetizationRead> ReadAsync(StoreAppContext app, MonetizationParts parts, IReadOnlyCollection<string> productIds, CancellationToken cancellationToken)
+        => _storeAccess.ReadAsync(app, parts, productIds, cancellationToken);
 
     /// <inheritdoc/>
     public Task<Response<List<PricePointDto>>> ListPricePointsAsync(StoreAppContext app, StoreProductKind kind, string productExternalId, string territory, CancellationToken cancellationToken)
@@ -102,7 +72,7 @@ public sealed class MonetizationService(IEnumerable<IMonetizationGateway> gatewa
         if (unsupported != null)
             return Response<ChangePlanDto>.Error(null, Message(MessageKey.MonetizationChangeUnsupported, unsupported.Kind.ToString()));
 
-        var (gateway, target, errorKey) = await OpenAsync(app, cancellationToken);
+        var (gateway, target, errorKey) = await _storeAccess.OpenAsync(app, cancellationToken);
 
         if (errorKey != null)
             return Response<ChangePlanDto>.Error(null, errorKey);
@@ -122,7 +92,7 @@ public sealed class MonetizationService(IEnumerable<IMonetizationGateway> gatewa
         }
         catch (StoreCallException ex)
         {
-            var (key, detail) = Failure(app, ex);
+            var (key, detail) = _storeAccess.Failure(app, ex);
 
             return Response<ChangePlanDto>.Error(null, new ResponseMessage(key, detail ?? key));
         }
@@ -314,7 +284,7 @@ public sealed class MonetizationService(IEnumerable<IMonetizationGateway> gatewa
         if (app.Store != store)
             return Response<T>.Error(default, MessageKey.StoreOperationUnsupported);
 
-        var (gateway, target, errorKey) = await OpenAsync(app, cancellationToken);
+        var (gateway, target, errorKey) = await _storeAccess.OpenAsync(app, cancellationToken);
 
         if (errorKey != null)
             return Response<T>.Error(default, errorKey);
@@ -325,56 +295,10 @@ public sealed class MonetizationService(IEnumerable<IMonetizationGateway> gatewa
         }
         catch (StoreCallException ex)
         {
-            var (key, detail) = Failure(app, ex);
+            var (key, detail) = _storeAccess.Failure(app, ex);
 
             return Response<T>.Error(default, new ResponseMessage(key, detail ?? key));
         }
-    }
-
-    /// <summary>
-    /// The store's gateway and a target with the connection secret opened (the decrypted bytes are cleared at once).
-    /// </summary>
-    private async Task<(IMonetizationGateway Gateway, StoreContentTarget Target, string ErrorKey)> OpenAsync(StoreAppContext app, CancellationToken cancellationToken)
-    {
-        var gateway = _gateways.LastOrDefault(g => g.Store == app.Store);
-
-        if (gateway == null)
-            return (null, null, MessageKey.StoreNotSupported);
-
-        if (app.ConnectionId == null)
-            return (null, null, MessageKey.StoreAppNotConnected);
-
-        var sealedSecret = await _connectionRepository.GetFirstOrDefaultAsync(c => c.Id == app.ConnectionId && c.OrganizationId == app.OrganizationId,
-                                                                              projection: c => new StoreConnection { Store = c.Store, EncryptedSecret = c.EncryptedSecret, EncryptedDataKey = c.EncryptedDataKey, KeyVersion = c.KeyVersion },
-                                                                              cancellationToken: cancellationToken);
-
-        if (sealedSecret?.EncryptedSecret is not { Length: > 0 })
-            return (null, null, MessageKey.StoreAppNotConnected);
-
-        byte[] plain = null;
-
-        try
-        {
-            plain = _secretProtector.Unprotect(new ProtectedSecret(sealedSecret.EncryptedSecret, sealedSecret.EncryptedDataKey, sealedSecret.KeyVersion), StoreSecretContext.Connection(app.OrganizationId, sealedSecret.Store));
-
-            return (gateway, new StoreContentTarget(Encoding.UTF8.GetString(plain), app.ExternalId), null);
-        }
-        catch (CryptographicException)
-        {
-            return (null, null, MessageKey.StoreAppNotConnected);
-        }
-        finally
-        {
-            if (plain != null)
-                CryptographicOperations.ZeroMemory(plain);
-        }
-    }
-
-    private (string Key, string Detail) Failure(StoreAppContext app, StoreCallException exception)
-    {
-        _logger?.Warning("Monetization call of {Store} record {StoreAppId} failed: {Error}", app.Store, app.StoreAppId, SecretRedactor.Redact(exception.Message));
-
-        return (exception.Transient ? MessageKey.StoreUnreachable : MessageKey.StoreRejected, SecretRedactor.RedactAndTrim(exception.Message, 300));
     }
 
     private ResponseMessage Message(string key, string detail)

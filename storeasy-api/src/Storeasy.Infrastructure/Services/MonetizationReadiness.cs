@@ -16,17 +16,17 @@ namespace Storeasy.Infrastructure.Services;
 /// and Real-time developer notifications are an assisted step. Apps that sell nothing get no item. Read live; a failed
 /// read becomes one unknown item and never fails the check.
 /// </summary>
-/// <param name="monetizationService"></param>
+/// <param name="storeAccess"></param>
 /// <param name="stepRepository"></param>
 /// <param name="localizer"></param>
-public sealed class MonetizationReadiness(IMonetizationService monetizationService,
+public sealed class MonetizationReadiness(MonetizationStoreAccess storeAccess,
                                          IStoreasyRepositoryBase<AssistedStep> stepRepository,
                                          IMilvaLocalizer localizer) : IReadinessContributor
 {
     private const string _group = "Monetization";
     private const string _fixRoute = "money/subscriptions";
 
-    private readonly IMonetizationService _monetizationService = monetizationService;
+    private readonly MonetizationStoreAccess _storeAccess = storeAccess;
     private readonly IStoreasyRepositoryBase<AssistedStep> _stepRepository = stepRepository;
     private readonly IMilvaLocalizer _localizer = localizer;
 
@@ -36,7 +36,7 @@ public sealed class MonetizationReadiness(IMonetizationService monetizationServi
         if (app.Store is not (StoreKind.Apple or StoreKind.Google))
             return [];
 
-        var read = await _monetizationService.ReadAsync(app, MonetizationParts.Products | MonetizationParts.Localizations | MonetizationParts.Review, null, cancellationToken);
+        var read = await _storeAccess.ReadAsync(app, MonetizationParts.Products | MonetizationParts.Localizations | MonetizationParts.Review, null, cancellationToken);
 
         if (!read.IsSuccess)
             return [Item("monetization", ReadinessStatus.Unknown, MessageKey.ReadinessMonetization, _localizer[MessageKey.ReadinessMonetizationUnknown])];
