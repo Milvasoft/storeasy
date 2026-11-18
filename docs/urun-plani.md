@@ -84,7 +84,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
   `store-ops` stdio sunucusu aynen çalışır.
 
 ### 2.7 Açık kaynak
-- Herkese açık repo, lisans, `CONTRIBUTING.md`, `SECURITY.md`, self-host dokümanı (tek `docker compose up`).
+- Lisans AGPL-3.0-only; web arayüzünde kaynak kod bağlantısı (13. madde). Herkese açık repo, `CONTRIBUTING.md`, `SECURITY.md`, self-host dokümanı (tek `docker compose up`).
 - Repoda hiçbir gizli değer ve Milvasoft'a özel veri (uygulama kimlikleri, iç hostlar, değişken grubu adları) olmaz;
   CI'da gizli değer taraması (gitleaks) zorunlu.
 - Milvasoft'un kendi deploy dosyaları (Azure DevOps, Dokploy) ayrı, özel bir ops reposunda tutulur.
@@ -206,7 +206,7 @@ kullanılır. Stüdyo (Faz 3) MVP'den hemen sonra, çünkü ürünü dışarıya
 
 | Soru | Kime | Varsayılan (cevap gelene kadar) |
 |---|---|---|
-| Lisans (MIT, Apache-2.0, AGPL-3.0) | Buğra | Karar verilmeden `LICENSE` eklenmez. Öneri: AGPL-3.0 (barındırılan kopyaların değişiklikleri açık kalır); daha geniş benimseme istenirse Apache-2.0 |
+| Lisans | Buğra | Karar verildi (18 Kasım 2026): AGPL-3.0-only. Web arayüzünün altbilgisinde kaynak kod bağlantısı olacak (lisansın 13. maddesi) |
 | Domain | Buğra | Karar verildi: storeasy.milvasoft.com |
 | Public GitHub reposu ve organizasyonu | Buğra | Repo yerel |
 | Hosting, DB, Redis, S3, mail, Seq, CI | DevOpsçu | Cevaplandı, 10. bölüm |

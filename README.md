@@ -37,4 +37,5 @@ API docs: `http://localhost:5000/api/documentation`.
 
 ## License
 
-Not chosen yet.
+GNU Affero General Public License v3.0 (AGPL-3.0-only), see [LICENSE](LICENSE). If you run a modified storeasy as a
+network service, you must offer its source to the users of that service.
