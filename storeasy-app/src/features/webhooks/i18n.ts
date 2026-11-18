@@ -78,7 +78,8 @@ export const webhooksEn = {
     processing: 'Processing',
     openRelated: 'Open the record',
     invalidTitle: 'The signature does not match',
-    invalidBody: 'The event was not processed. Possible causes: the secret was rotated, the endpoint of another environment, or the body was changed.',
+    invalidBody:
+      'The event was not processed. Possible causes: the secret was rotated, the endpoint of another environment, or the body was changed.',
     payload: 'Raw body',
     copyBody: 'Copy body',
     reprocess: 'Process again',

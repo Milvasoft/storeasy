@@ -93,7 +93,12 @@ describe('NotificationsPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('type=42')
     expect(screen.getByTestId('location')).toHaveTextContent('unread=1')
     expect(lastRequestTo('/Account/notifications')?.body).toMatchObject({
-      Filtering: { Criterias: [{ FilterBy: 'IsSeen', Value: false }, { FilterBy: 'Type', Value: NotificationType.JobSucceeded }] },
+      Filtering: {
+        Criterias: [
+          { FilterBy: 'IsSeen', Value: false },
+          { FilterBy: 'Type', Value: NotificationType.JobSucceeded },
+        ],
+      },
     })
   })
 
@@ -107,7 +112,9 @@ describe('NotificationsPage', () => {
     expect(await screen.findByText('2 bildirim okundu sayıldı.')).toBeInTheDocument()
     await user.click(screen.getByRole('checkbox', { name: '"Defter 1.4 reddedildi: Guideline 2.1." seç' }))
     await user.click(within(screen.getByRole('region', { name: 'Seçim' })).getByRole('button', { name: 'Sil' }))
-    await user.click(within(await screen.findByRole('alertdialog', { name: '1 bildirim silinsin mi?' })).getByRole('button', { name: 'Sil' }))
+    await user.click(
+      within(await screen.findByRole('alertdialog', { name: '1 bildirim silinsin mi?' })).getByRole('button', { name: 'Sil' }),
+    )
 
     expect(await screen.findByText('1 bildirim silindi.')).toBeInTheDocument()
     const deletes = requestsTo('/Account/notifications').filter((request) => request.method === 'DELETE')
@@ -118,7 +125,9 @@ describe('NotificationsPage', () => {
     const { user } = renderWithProviders(<NotificationsPage />, { route: '/notifications', path: '/notifications' })
 
     await user.click(await screen.findByRole('button', { name: 'Hepsini sil' }))
-    await user.click(within(await screen.findByRole('alertdialog', { name: 'Bütün 2 bildirim silinsin mi?' })).getByRole('button', { name: 'Sil' }))
+    await user.click(
+      within(await screen.findByRole('alertdialog', { name: 'Bütün 2 bildirim silinsin mi?' })).getByRole('button', { name: 'Sil' }),
+    )
 
     await expect
       .poll(() => requestsTo('/Account/notifications').find((request) => request.method === 'DELETE')?.body)
@@ -144,7 +153,12 @@ describe('NotificationPreferencesPage', () => {
     await user.click(await screen.findByRole('switch', { name: 'E-posta: Yeni yorum' }))
 
     await expect.poll(() => screen.getAllByText('Kaydedildi').length).toBe(2)
-    expect(lastRequestTo('/account/preferences')?.body).toEqual({ Kind: NotificationType.NewReview, InApp: true, Email: true, WebPush: false })
+    expect(lastRequestTo('/account/preferences')?.body).toEqual({
+      Kind: NotificationType.NewReview,
+      InApp: true,
+      Email: true,
+      WebPush: false,
+    })
     expect(screen.getByRole('switch', { name: 'E-posta: Yeni yorum' })).toHaveAttribute('aria-checked', 'true')
   })
 

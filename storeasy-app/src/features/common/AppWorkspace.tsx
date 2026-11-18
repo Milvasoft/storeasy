@@ -23,16 +23,7 @@ import { storeFromSlug, storeSlug } from './store'
 // chip row). The overview, builds and jobs tabs belong to AppDetailPage; this frame links to them and they link here.
 
 export type WorkspaceSection =
-  | 'readiness'
-  | 'listing'
-  | 'media'
-  | 'release'
-  | 'reviews'
-  | 'rejections'
-  | 'answers'
-  | 'assisted'
-  | 'compliance'
-  | 'profile'
+  'readiness' | 'listing' | 'media' | 'release' | 'reviews' | 'rejections' | 'answers' | 'assisted' | 'compliance' | 'profile'
 
 export type WorkspaceSub =
   | 'texts'

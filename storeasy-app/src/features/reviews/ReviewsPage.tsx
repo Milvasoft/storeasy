@@ -10,7 +10,7 @@ import { ScreenState } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
 import { Button, CardSkeleton, Chip, EmptyState, Field, PageHeader, Textarea } from '@/components/ui/primitives'
 import { APP_NAMES_REQUEST, useActivity } from '@/lib/activity/ActivityContext'
-import { ActivityEventType } from '@/lib/activity/events'
+import { RecordEventType } from '@/lib/activity/events'
 import { appsApi } from '@/lib/api/endpoints'
 import { apiErrorMessage } from '@/lib/api/http'
 import { SortType, type ListRequest } from '@/lib/api/list'
@@ -33,7 +33,7 @@ import { ReviewReplyState, type ReviewFilter, type ReviewListDto, type SavedRepl
 // the list is on the left and the selected review (?id=) on the right with its reply area. A reply is a store job.
 
 const ALL = 'all'
-const LIVE_TYPES = [ActivityEventType.ReviewReceived]
+const LIVE_TYPES = [RecordEventType.ReviewReceived]
 const DEFAULT_PAGE_SIZE = 20
 const RATINGS = ['1-2', '3', '4-5', '1', '5'] as const
 
@@ -559,9 +559,7 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
           {selected ? (
             <ReviewDetail key={selected.Id} review={selected} />
           ) : (
-            <div className="card grid place-items-center p-8 text-center text-[13px] text-fg3">
-              {t.pick}
-            </div>
+            <div className="card grid place-items-center p-8 text-center text-[13px] text-fg3">{t.pick}</div>
           )}
         </div>
       )}

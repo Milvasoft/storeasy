@@ -20,7 +20,12 @@ export const testFlightApi = {
     apiGet<BetaGroupDto[]>('/TestFlight/groups', { OrganizationId: organizationId, StoreAppId: storeAppId }),
 
   testers: (organizationId: number, storeAppId: number, groupId: number | null, request: ListRequest) =>
-    apiPatchList<BetaTesterDto>('/TestFlight/testers', { OrganizationId: organizationId, StoreAppId: storeAppId, GroupId: groupId, ...request }),
+    apiPatchList<BetaTesterDto>('/TestFlight/testers', {
+      OrganizationId: organizationId,
+      StoreAppId: storeAppId,
+      GroupId: groupId,
+      ...request,
+    }),
 
   localizations: (organizationId: number, storeAppId: number) =>
     apiGet<BetaLocalizationDto[]>('/TestFlight/localizations', { OrganizationId: organizationId, StoreAppId: storeAppId }),
@@ -34,7 +39,12 @@ export const testFlightApi = {
   updateGroup: (
     organizationId: number,
     groupId: number,
-    input: { Name: string | null; PublicLinkEnabled: boolean | null; PublicLinkLimit: number | null; PublicLinkLimitEnabled: boolean | null },
+    input: {
+      Name: string | null
+      PublicLinkEnabled: boolean | null
+      PublicLinkLimit: number | null
+      PublicLinkLimitEnabled: boolean | null
+    },
   ) => apiPut<number>('/TestFlight/group', { OrganizationId: organizationId, GroupId: groupId, ...input }),
 
   updateGroupTesters: (organizationId: number, groupId: number, add: BetaTesterInvite[], remove: number[]) =>
@@ -49,7 +59,12 @@ export const testFlightApi = {
     }),
 
   updateWhatToTest: (organizationId: number, buildId: number, locale: string, whatsNew: string) =>
-    apiPut<number>('/TestFlight/build/what-to-test', { OrganizationId: organizationId, BuildId: buildId, Locale: locale, WhatsNew: whatsNew }),
+    apiPut<number>('/TestFlight/build/what-to-test', {
+      OrganizationId: organizationId,
+      BuildId: buildId,
+      Locale: locale,
+      WhatsNew: whatsNew,
+    }),
 
   updateLocalization: (organizationId: number, storeAppId: number, input: BetaLocalizationInput) =>
     apiPut<number>('/TestFlight/localizations', { OrganizationId: organizationId, StoreAppId: storeAppId, ...input }),

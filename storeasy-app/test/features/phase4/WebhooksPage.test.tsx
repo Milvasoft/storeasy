@@ -36,7 +36,12 @@ describe('WebhooksPage: incoming', () => {
 
     const secret = await screen.findByRole('dialog', { name: 'Uç hazır' })
     expect(within(secret).getByText('whsec_asc_Vb7Kq2Xm9Lp4Rt8N')).toBeInTheDocument()
-    expect(lastRequestTo('/Webhooks/endpoint')?.body).toMatchObject({ Source: WebhookSource.Signed, Name: 'CI', RegisterAtStore: false, StoreConnectionId: null })
+    expect(lastRequestTo('/Webhooks/endpoint')?.body).toMatchObject({
+      Source: WebhookSource.Signed,
+      Name: 'CI',
+      RegisterAtStore: false,
+      StoreConnectionId: null,
+    })
   })
 
   it('creates an Apple endpoint for a connection', async () => {
@@ -138,7 +143,11 @@ describe('WebhooksPage: outgoing', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Kaydet' }))
 
     expect(await screen.findByText('whsec_sub_456')).toBeInTheDocument()
-    expect(lastRequestTo('/Webhooks/subscription')?.body).toMatchObject({ Name: 'CI', Url: 'https://ci.example.test/hook', Events: ['review.received'] })
+    expect(lastRequestTo('/Webhooks/subscription')?.body).toMatchObject({
+      Name: 'CI',
+      Url: 'https://ci.example.test/hook',
+      Events: ['review.received'],
+    })
   })
 
   it('pauses, tests, edits and deletes a subscription', async () => {

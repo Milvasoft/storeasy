@@ -8,7 +8,18 @@ import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { Callout } from '@/components/ui/Feedback'
 import { Modal } from '@/components/ui/Modal'
 import { ScreenState, StateView } from '@/components/ui/ScreenState'
-import { Button, CardSkeleton, Checkbox, Chip, EmptyState, Field, Input, PageHeader, RadioGroup, Textarea } from '@/components/ui/primitives'
+import {
+  Button,
+  CardSkeleton,
+  Checkbox,
+  Chip,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  RadioGroup,
+  Textarea,
+} from '@/components/ui/primitives'
 import { FilterType, SortType, type ListRequest } from '@/lib/api/list'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
@@ -124,7 +135,9 @@ function Overview() {
       PageNumber: page,
       RowCount: size,
       Sorting: { SortBy: 'CreationDate', Type: SortType.Desc },
-      ...(pendingOnly ? { Filtering: { Criterias: [{ FilterBy: 'Status', Value: RuleProposalStatus.Pending, Type: FilterType.EqualTo }] } } : {}),
+      ...(pendingOnly
+        ? { Filtering: { Criterias: [{ FilterBy: 'Status', Value: RuleProposalStatus.Pending, Type: FilterType.EqualTo }] } }
+        : {}),
     }),
     [page, size, pendingOnly],
   )
@@ -138,7 +151,12 @@ function Overview() {
     mutationFn: () => ruleWatcherApi.fetch(),
     onSuccess: (result) => {
       showToast(
-        interpolate(t.fetched, { checked: result.Checked, changed: result.Changed, unreachable: result.Unreachable, opened: result.ProposalsOpened }),
+        interpolate(t.fetched, {
+          checked: result.Checked,
+          changed: result.Changed,
+          unreachable: result.Unreachable,
+          opened: result.ProposalsOpened,
+        }),
         result.Unreachable > 0 ? 'warning' : 'success',
       )
       void queryClient.invalidateQueries({ queryKey: ruleWatcherKeys.all })
@@ -168,7 +186,9 @@ function Overview() {
     {
       key: 'version',
       header: t.proposals.version,
-      cell: (proposal) => <span className="mono text-xs">{`${proposal.CatalogVersionFrom ?? '-'} → ${proposal.CatalogVersionTo ?? '-'}`}</span>,
+      cell: (proposal) => (
+        <span className="mono text-xs">{`${proposal.CatalogVersionFrom ?? '-'} → ${proposal.CatalogVersionTo ?? '-'}`}</span>
+      ),
     },
     {
       key: 'status',
@@ -276,7 +296,11 @@ function Overview() {
       ) : proposals.isError ? (
         <ScreenState error={proposals.error} onRetry={() => void proposals.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyState icon={<Radar aria-hidden />} title={pendingOnly ? t.proposals.emptyPending : t.proposals.empty} description={t.proposals.emptyBody} />
+        <EmptyState
+          icon={<Radar aria-hidden />}
+          title={pendingOnly ? t.proposals.emptyPending : t.proposals.empty}
+          description={t.proposals.emptyBody}
+        />
       ) : (
         <>
           <DataTable
@@ -587,7 +611,9 @@ function ProposalDetail() {
               ) : null}
             </div>
             <span className="text-xs text-fg3">
-              {[proposal.SourceName, `${shortHash(proposal.PreviousContentHash)} → ${shortHash(proposal.ContentHash)}`].filter(Boolean).join(' · ')}
+              {[proposal.SourceName, `${shortHash(proposal.PreviousContentHash)} → ${shortHash(proposal.ContentHash)}`]
+                .filter(Boolean)
+                .join(' · ')}
             </span>
             {proposal.SourceExcerptBefore || proposal.SourceExcerptAfter ? (
               <DiffView title={t.detail.changedParagraph} lines={excerptDiff(proposal.SourceExcerptBefore, proposal.SourceExcerptAfter)} />

@@ -191,7 +191,7 @@ export const testFlightTr: TestFlightDictionary = {
     publicLink: 'Herkese açık bağlantı',
     limitToggle: 'Test kullanıcısı sayısını sınırla',
     limit: 'Katılım sınırı',
-    limitInvalid: "1 ile 10.000 arasında bir sayı gir.",
+    limitInvalid: '1 ile 10.000 arasında bir sayı gir.',
     limitValue: 'Sınır: {limit} test kullanıcısı',
     linkCloseNote: 'Kapatırsan mevcut test kullanıcıları kalır, yeni katılım durur.',
     open: 'Aç',
@@ -200,7 +200,7 @@ export const testFlightTr: TestFlightDictionary = {
     addBuild: 'Build ekle',
     removeBuild: "{build} build'ini gruptan çıkar",
     emptyTitle: 'Henüz grup yok',
-    emptyBody: "Test kullanıcılarına build vermek için bir grup oluştur.",
+    emptyBody: 'Test kullanıcılarına build vermek için bir grup oluştur.',
   },
   testers: {
     title: 'Test kullanıcıları',

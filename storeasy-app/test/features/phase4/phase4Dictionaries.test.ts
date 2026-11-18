@@ -22,7 +22,10 @@ function leaves(tree: object, prefix = ''): Map<string, string> {
 }
 
 function placeholders(text: string): string {
-  return [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort().join()
+  return [...text.matchAll(/\{(\w+)\}/g)]
+    .map((match) => match[1])
+    .sort()
+    .join()
 }
 
 const PAIRS: Array<[string, object, object]> = [
@@ -40,7 +43,9 @@ describe('phase 4 dictionaries', () => {
     const turkish = leaves(tr)
 
     expect([...turkish.keys()].sort()).toEqual([...english.keys()].sort())
-    expect([...turkish].filter(([path, text]) => placeholders(text) !== placeholders(english.get(path) ?? '')).map(([path]) => path)).toEqual([])
+    expect(
+      [...turkish].filter(([path, text]) => placeholders(text) !== placeholders(english.get(path) ?? '')).map(([path]) => path),
+    ).toEqual([])
     expect([...english, ...turkish].filter(([, text]) => text.trim() === '').map(([path]) => path)).toEqual([])
   })
 })

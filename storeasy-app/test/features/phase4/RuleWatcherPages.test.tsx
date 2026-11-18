@@ -95,7 +95,9 @@ describe('RuleProposalPage', () => {
   })
 
   it('shows the conflict when another administrator decided first', async () => {
-    server.use(endpoint('put', '/rules/proposal/approve', () => errorResponse('RuleProposalDecided', 'Bu öneri zaten karara bağlandı.', 409)))
+    server.use(
+      endpoint('put', '/rules/proposal/approve', () => errorResponse('RuleProposalDecided', 'Bu öneri zaten karara bağlandı.', 409)),
+    )
     const { user } = renderProposal()
 
     await user.click(await screen.findByRole('button', { name: 'Onayla' }))
@@ -117,7 +119,11 @@ describe('RuleProposalPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Reddet' }))
 
     expect(await screen.findByText('Öneri reddedildi.')).toBeInTheDocument()
-    expect(lastRequestTo('/rules/proposal/reject')?.body).toEqual({ ProposalId: 14, Reason: RuleProposalRejectReason.SourceUnstable, Note: null })
+    expect(lastRequestTo('/rules/proposal/reject')?.body).toEqual({
+      ProposalId: 14,
+      Reason: RuleProposalRejectReason.SourceUnstable,
+      Note: null,
+    })
   })
 
   it('prepares the rule ids and the patch', async () => {

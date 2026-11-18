@@ -10,7 +10,7 @@ import { Timeline } from '@/components/ui/Progress'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
 import { Button, CardSkeleton, Chip, EmptyState, Field, Input, PageHeader, Textarea } from '@/components/ui/primitives'
-import { ActivityEventType } from '@/lib/activity/events'
+import { RecordEventType } from '@/lib/activity/events'
 import { SortType, type ListRequest } from '@/lib/api/list'
 import { OrgPermission, StoreKind } from '@/lib/api/types'
 import { recordsOf } from '@/lib/apps/apps'
@@ -41,7 +41,7 @@ import {
 // guideline numbers become a checklist, the reply is drafted against the 4,000 character limit and sent by hand (or by
 // the assisted step), then marked sent. A successful resubmission closes the case.
 
-const LIVE_TYPES = [ActivityEventType.RejectionOpened]
+const LIVE_TYPES = [RecordEventType.RejectionOpened]
 const LIST_REQUEST: ListRequest = { PageNumber: 1, RowCount: 50, Sorting: { SortBy: 'OpenedDate', Type: SortType.Desc } }
 
 /** Resolution Center counts a line break as one character (RejectionCases.ReplyLength). */
@@ -100,7 +100,12 @@ function versionLabel(item: { VersionString?: string; BuildNumber?: string }): s
 }
 
 function guidelineList(item: { Guidelines?: Array<{ Code?: string }> }): string {
-  return (item.Guidelines ?? []).map((guideline) => guideline.Code).filter(Boolean).join(' · ') || '-'
+  return (
+    (item.Guidelines ?? [])
+      .map((guideline) => guideline.Code)
+      .filter(Boolean)
+      .join(' · ') || '-'
+  )
 }
 
 async function copyText(value: string): Promise<boolean> {
@@ -304,7 +309,13 @@ function CaseList({ context }: { context: WorkspaceContext }) {
       ) : rows.length === 0 ? (
         <EmptyState icon={<FileWarning aria-hidden />} title={t.list.emptyTitle} description={t.list.emptyBody} />
       ) : (
-        <DataTable caption={t.title} columns={columns} rows={rows} rowKey={(item) => item.Id} onRowClick={(item) => navigate(caseLink(item))} />
+        <DataTable
+          caption={t.title}
+          columns={columns}
+          rows={rows}
+          rowKey={(item) => item.Id}
+          onRowClick={(item) => navigate(caseLink(item))}
+        />
       )}
       <History context={context} />
       {opening ? <OpenCaseDialog context={context} onClose={() => setOpening(false)} /> : null}
@@ -748,11 +759,13 @@ function CaseDetail({ context }: { context: WorkspaceContext }) {
         <div className="grid gap-3">
           <TextStep key={`text-${item.RawText ?? ''}`} item={item} editable={editable} />
           <ChecklistStep item={item} editable={editable} />
-          <ReplyStep key={`reply-${item.ReplyDraft?.UpdatedDate ?? ''}-${item.ReplyDraft?.SentDate ?? ''}`} item={item} editable={editable} />
+          <ReplyStep
+            key={`reply-${item.ReplyDraft?.UpdatedDate ?? ''}-${item.ReplyDraft?.SentDate ?? ''}`}
+            item={item}
+            editable={editable}
+          />
           <Step number={4} title={t.resubmit.title}>
-            <p className="text-[13px] text-fg2">
-              {item.Kind === RejectionKind.MetadataRejected ? t.resubmit.metadata : t.resubmit.body}
-            </p>
+            <p className="text-[13px] text-fg2">{item.Kind === RejectionKind.MetadataRejected ? t.resubmit.metadata : t.resubmit.body}</p>
             <div>
               <Link className="btn" to={`/apps/${item.AppId}/readiness?store=${storeSlug(item.Store)}`}>
                 {t.resubmit.readiness}

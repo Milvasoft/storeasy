@@ -4,7 +4,8 @@ import type { Lang } from '@/lib/i18n/lang'
 // The rule watcher's dictionary (features namespace); Turkish is typed with the English shape.
 export const ruleWatcherEn = {
   title: 'Catalog proposals',
-  subtitle: 'When a source changes the watcher opens a proposal; Claude (MCP) may turn it into a catalog patch. No rule changes until you approve.',
+  subtitle:
+    'When a source changes the watcher opens a proposal; Claude (MCP) may turn it into a catalog patch. No rule changes until you approve.',
   fetch: 'Scan now',
   fetched: '{checked} sources read · {changed} changed · {unreachable} unreachable · {opened} proposals opened.',
   note: 'Note',
@@ -176,7 +177,7 @@ export const ruleWatcherTr: RuleWatcherDictionary = {
   prepare: {
     action: 'Hazırla',
     title: 'Katalog yamasını hazırla',
-    body: "Onayın yayınlayacağı kural kimlikleri ve yama.",
+    body: 'Onayın yayınlayacağı kural kimlikleri ve yama.',
     ruleIds: 'Kural kimlikleri',
     ruleIdsHint: 'Virgülle ayır, ör. apple.screenshots.duo',
     patch: 'Katalog yaması (JSON)',

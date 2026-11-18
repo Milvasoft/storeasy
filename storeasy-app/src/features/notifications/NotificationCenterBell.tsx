@@ -4,7 +4,7 @@ import { Bell } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Menu, type MenuEntry } from '@/components/ui/Menu'
 import { IconButton } from '@/components/ui/primitives'
-import { ActivityEventType } from '@/lib/activity/events'
+import { RecordEventType } from '@/lib/activity/events'
 import { useFormat } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { useOrganization } from '@/lib/org/OrganizationContext'
@@ -14,7 +14,7 @@ import { actionPath, notificationTypeLabel } from './labels'
 import { useLiveRefresh } from './live'
 import type { AccountNotificationDto } from './types'
 
-const LIVE_TYPES = [ActivityEventType.NotificationCreated]
+const LIVE_TYPES = [RecordEventType.NotificationCreated]
 
 /**
  * The bell of the top bar (design 14.19): the unread counter (refreshed by notification.created and every minute), the

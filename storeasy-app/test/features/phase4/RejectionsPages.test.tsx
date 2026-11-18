@@ -47,7 +47,12 @@ describe('RejectionsPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Kaydı aç' }))
 
     await expect.poll(() => screen.getByTestId('location').textContent).toBe('/apps/101/rejections/602')
-    expect(lastRequestTo('/Rejections/case')?.body).toMatchObject({ AppId: 101, VersionString: '1.5', BuildNumber: '60', Kind: RejectionKind.Rejected })
+    expect(lastRequestTo('/Rejections/case')?.body).toMatchObject({
+      AppId: 101,
+      VersionString: '1.5',
+      BuildNumber: '60',
+      Kind: RejectionKind.Rejected,
+    })
   })
 
   it('says when the app has no rejection', async () => {

@@ -1,7 +1,12 @@
 import { HttpResponse, type HttpHandler } from 'msw'
 import { beforeEach } from 'vitest'
 import { ActionChannel, BuildProcessingState, StoreKind } from '@/lib/api/types'
-import { type NotificationPreferenceDto, NotificationEntity, NotificationType, type AccountNotificationDto } from '@/features/notifications/types'
+import {
+  type NotificationPreferenceDto,
+  NotificationEntity,
+  NotificationType,
+  type AccountNotificationDto,
+} from '@/features/notifications/types'
 import {
   ChecklistItemStatus,
   RejectionKind,
@@ -113,8 +118,20 @@ export function rejectionCase(overrides: Partial<RejectionCaseDto> = {}): Reject
       Guidelines: [{ Code: '2.1', Title: 'App Completeness' }],
       RepeatedGuidelines: [],
       Checklist: [
-        { Id: 'c1', GuidelineCode: '2.1', Text: 'Demo hesap şifresini yenile', Status: ChecklistItemStatus.Done, DoneDate: '2026-11-17T11:20:00Z' },
-        { Id: 'c2', GuidelineCode: '2.1', Text: 'İnceleme notunu güncelle', Status: ChecklistItemStatus.Todo, FixRoute: 'release/review-info' },
+        {
+          Id: 'c1',
+          GuidelineCode: '2.1',
+          Text: 'Demo hesap şifresini yenile',
+          Status: ChecklistItemStatus.Done,
+          DoneDate: '2026-11-17T11:20:00Z',
+        },
+        {
+          Id: 'c2',
+          GuidelineCode: '2.1',
+          Text: 'İnceleme notunu güncelle',
+          Status: ChecklistItemStatus.Todo,
+          FixRoute: 'release/review-info',
+        },
       ],
       ReplyStepId: 5590,
       ReplyDraft: {
@@ -362,7 +379,13 @@ export function ruleProposal(overrides: Partial<RuleProposalDetailDto> = {}): Ru
       PreparerNote: 'Koşulu değiştirmedim.',
       NotifiedOrganizationCount: 0,
       Impact: [
-        { OrganizationId: 7, AppId: 101, AppName: 'Pusula', RuleId: 'apple.screenshots.duo', Message: 'Pusula Duo ekran görüntüsü isteyecek.' },
+        {
+          OrganizationId: 7,
+          AppId: 101,
+          AppName: 'Pusula',
+          RuleId: 'apple.screenshots.duo',
+          Message: 'Pusula Duo ekran görüntüsü isteyecek.',
+        },
         { OrganizationId: 9, AppId: 140, AppName: 'Ada', RuleId: 'apple.screenshots.duo', Message: 'Ada Duo ekran görüntüsü isteyecek.' },
       ],
     },
@@ -422,7 +445,13 @@ function initialPhase4(): Phase4State {
       RepeatedGuidelines: [],
       Submissions: [
         { StoreAppId: 201, VersionString: '1.3', BuildNumber: '50', State: 'Kabul', SubmittedDate: '2026-10-01T10:00:00Z', Rejections: [] },
-        { StoreAppId: 201, VersionString: '1.4', BuildNumber: '52', SubmittedDate: '2026-11-14T18:22:00Z', Rejections: [rejectionListItem()] },
+        {
+          StoreAppId: 201,
+          VersionString: '1.4',
+          BuildNumber: '52',
+          SubmittedDate: '2026-11-14T18:22:00Z',
+          Rejections: [rejectionListItem()],
+        },
       ],
     },
     builds: [
@@ -439,10 +468,30 @@ function initialPhase4(): Phase4State {
         WhatToTest: [],
       }),
     ],
-    groups: [betaGroup(), betaGroup({ Id: 70, Name: 'Kuzey içi', IsInternal: true, TesterCount: 4, PublicLinkEnabled: false, PublicLink: undefined, BuildIds: [] })],
-    testers: [betaTester(), betaTester({ Id: 8802, FirstName: 'Derya', LastName: 'Aksoy', Email: 'derya.a@ornek.net', State: BetaTesterState.Invited })],
+    groups: [
+      betaGroup(),
+      betaGroup({
+        Id: 70,
+        Name: 'Kuzey içi',
+        IsInternal: true,
+        TesterCount: 4,
+        PublicLinkEnabled: false,
+        PublicLink: undefined,
+        BuildIds: [],
+      }),
+    ],
+    testers: [
+      betaTester(),
+      betaTester({ Id: 8802, FirstName: 'Derya', LastName: 'Aksoy', Email: 'derya.a@ornek.net', State: BetaTesterState.Invited }),
+    ],
     localizations: [
-      { Id: 1, Locale: 'tr', Description: 'Halka, yakın çevrenle küçük gruplar kurmanı sağlar.', FeedbackEmail: 'beta@kuzeylab.dev', SyncedDate: '2026-11-18T06:00:00Z' },
+      {
+        Id: 1,
+        Locale: 'tr',
+        Description: 'Halka, yakın çevrenle küçük gruplar kurmanı sağlar.',
+        FeedbackEmail: 'beta@kuzeylab.dev',
+        SyncedDate: '2026-11-18T06:00:00Z',
+      },
     ],
     endpoints: [webhookEndpoint()],
     events: [
@@ -459,7 +508,17 @@ function initialPhase4(): Phase4State {
       }),
     ],
     subscriptions: [subscription()],
-    deliveries: [delivery(), delivery({ Id: 9902, Status: WebhookDeliveryStatus.Failed, ResponseStatusCode: 500, Attempt: 2, IsTest: true, EventType: 'webhook.test' })],
+    deliveries: [
+      delivery(),
+      delivery({
+        Id: 9902,
+        Status: WebhookDeliveryStatus.Failed,
+        ResponseStatusCode: 500,
+        Attempt: 2,
+        IsTest: true,
+        EventType: 'webhook.test',
+      }),
+    ],
     notifications: [
       notification(),
       notification({
@@ -479,7 +538,13 @@ function initialPhase4(): Phase4State {
     ],
     sources: [
       ruleSource(),
-      ruleSource({ Id: 4, Name: 'Play hedef API sayfası', Store: StoreKind.Google, Status: RuleSourceStatus.Unreachable, LastError: 'HTTP 503' }),
+      ruleSource({
+        Id: 4,
+        Name: 'Play hedef API sayfası',
+        Store: StoreKind.Google,
+        Status: RuleSourceStatus.Unreachable,
+        LastError: 'HTTP 503',
+      }),
     ],
     proposal: ruleProposal(),
   }
@@ -512,7 +577,9 @@ export const phase4Handlers: HttpHandler[] = [
   }),
   endpoint('put', '/Rejections/case/checklist', () => json(envelope(phase4State.rejection))),
   endpoint('put', '/Rejections/case/reply-draft', () => json(envelope(phase4State.rejection.ReplyDraft))),
-  endpoint('put', '/Rejections/case/reply-sent', () => json(envelope({ ...phase4State.rejection.ReplyDraft, SentDate: '2026-11-18T12:00:00Z' }))),
+  endpoint('put', '/Rejections/case/reply-sent', () =>
+    json(envelope({ ...phase4State.rejection.ReplyDraft, SentDate: '2026-11-18T12:00:00Z' })),
+  ),
   endpoint('put', '/Rejections/case/close', () => json(envelope(601))),
   endpoint('get', '/Rejections/history', () => json(envelope(phase4State.history))),
 
@@ -539,10 +606,18 @@ export const phase4Handlers: HttpHandler[] = [
   ),
   endpoint('post', '/Webhooks/event/reprocess', () => json(envelope(48800))),
   endpoint('get', '/Webhooks/subscriptions', () => json(envelope(phase4State.subscriptions))),
-  endpoint('post', '/Webhooks/subscription', () => json(envelope(secretAnswer({ Id: 52, Url: undefined, Secret: 'whsec_sub_456', Registration: undefined, PreviousSecretValidUntil: undefined })))),
+  endpoint('post', '/Webhooks/subscription', () =>
+    json(
+      envelope(
+        secretAnswer({ Id: 52, Url: undefined, Secret: 'whsec_sub_456', Registration: undefined, PreviousSecretValidUntil: undefined }),
+      ),
+    ),
+  ),
   endpoint('put', '/Webhooks/subscription', () => json(envelope(51))),
   endpoint('delete', '/Webhooks/subscription', () => json(envelope(51))),
-  endpoint('post', '/Webhooks/subscription/rotate-secret', () => json(envelope(secretAnswer({ Id: 51, Url: undefined, Secret: 'whsec_sub_rotated' })))),
+  endpoint('post', '/Webhooks/subscription/rotate-secret', () =>
+    json(envelope(secretAnswer({ Id: 51, Url: undefined, Secret: 'whsec_sub_rotated' }))),
+  ),
   endpoint('post', '/Webhooks/subscription/test', () => json(envelope(delivery({ Id: 9903, IsTest: true, EventType: 'webhook.test' })))),
   endpoint('patch', '/Webhooks/deliveries', () => json(listEnvelope(phase4State.deliveries))),
 
@@ -564,7 +639,9 @@ export const phase4Handlers: HttpHandler[] = [
   endpoint('patch', '/rules/proposals', () => json(listEnvelope([phase4State.proposal]))),
   endpoint('get', '/rules/proposals/proposal', () => json(envelope(phase4State.proposal))),
   endpoint('put', '/rules/proposal/prepare', () => json(envelope(14))),
-  endpoint('put', '/rules/proposal/approve', () => json(envelope({ CatalogVersion: '1.4', NotifiedOrganizationCount: 2, NotifiedUserCount: 5 }))),
+  endpoint('put', '/rules/proposal/approve', () =>
+    json(envelope({ CatalogVersion: '1.4', NotifiedOrganizationCount: 2, NotifiedUserCount: 5 })),
+  ),
   endpoint('put', '/rules/proposal/reject', () => json(envelope(14))),
 ]
 

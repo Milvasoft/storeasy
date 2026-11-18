@@ -7,7 +7,18 @@ import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { DataTable, type Column } from '@/components/ui/DataTable'
 import { Modal } from '@/components/ui/Modal'
 import { ScreenState } from '@/components/ui/ScreenState'
-import { Button, CardSkeleton, Checkbox, Chip, EmptyState, Field, Input, PageHeader, RadioGroup, Textarea } from '@/components/ui/primitives'
+import {
+  Button,
+  CardSkeleton,
+  Checkbox,
+  Chip,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  RadioGroup,
+  Textarea,
+} from '@/components/ui/primitives'
 import { APP_NAMES_REQUEST } from '@/lib/activity/ActivityContext'
 import { appsApi } from '@/lib/api/endpoints'
 import { OrgPermission } from '@/lib/api/types'
@@ -58,7 +69,8 @@ function SavedReplyDialog({ reply, onClose }: { reply: SavedReplyDto | null; onC
   const unknown = unknownVariables(text)
   const preview = fillVariables(text, { author: t.saved.sampleAuthor, app: t.saved.sampleApp, version: '3.1.2' })
   const nameError = touched && !name.trim() ? t.saved.nameRequired : null
-  const textError = unknown.length > 0 ? interpolate(t.saved.unknownVariable, { names: unknown.map((item) => `{${item}}`).join(', ') }) : null
+  const textError =
+    unknown.length > 0 ? interpolate(t.saved.unknownVariable, { names: unknown.map((item) => `{${item}}`).join(', ') }) : null
   const filled = variants.filter((variant) => (variant.Text ?? '').trim() && (variant.Locale ?? '').trim())
   const invalid =
     !name.trim() ||
@@ -66,7 +78,8 @@ function SavedReplyDialog({ reply, onClose }: { reply: SavedReplyDto | null; onC
     variants.some((variant) => unknownVariables(variant.Text ?? '').length > 0) ||
     (scope === 'some' && appIds.length === 0)
 
-  const setText = (value: string) => setVariants((list) => list.map((variant, index) => (index === active ? { ...variant, Text: value } : variant)))
+  const setText = (value: string) =>
+    setVariants((list) => list.map((variant, index) => (index === active ? { ...variant, Text: value } : variant)))
 
   const done = (message: string) => {
     showToast(message, 'success')
@@ -110,7 +123,13 @@ function SavedReplyDialog({ reply, onClose }: { reply: SavedReplyDto | null; onC
               className="mr-auto"
               loading={remove.isPending}
               onClick={async () => {
-                if (await confirm({ title: interpolate(t.saved.deleteTitle, { name: reply.Name ?? '' }), danger: true, confirmLabel: t.saved.delete })) {
+                if (
+                  await confirm({
+                    title: interpolate(t.saved.deleteTitle, { name: reply.Name ?? '' }),
+                    danger: true,
+                    confirmLabel: t.saved.delete,
+                  })
+                ) {
                   remove.mutate()
                 }
               }}
@@ -275,7 +294,8 @@ export function SavedRepliesPage() {
       key: 'updated',
       header: t.saved.updated,
       role: 'hidePhone',
-      cell: (reply) => [reply.UpdatedByUserName, reply.UpdatedDate ? format.date(reply.UpdatedDate) : null].filter(Boolean).join(' · ') || '-',
+      cell: (reply) =>
+        [reply.UpdatedByUserName, reply.UpdatedDate ? format.date(reply.UpdatedDate) : null].filter(Boolean).join(' · ') || '-',
     },
   ]
 

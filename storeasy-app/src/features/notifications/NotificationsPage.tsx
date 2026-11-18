@@ -165,7 +165,10 @@ export function NotificationsPage() {
             {rows.map((notification) => {
               const target = actionPath(notification.ActionLink)
               return (
-                <li key={notification.Id} className={cn('flex items-start gap-3 border-b border-border px-3 py-2.5', !notification.IsSeen && 'bg-bg2')}>
+                <li
+                  key={notification.Id}
+                  className={cn('flex items-start gap-3 border-b border-border px-3 py-2.5', !notification.IsSeen && 'bg-bg2')}
+                >
                   <Checkbox
                     checked={selected.includes(notification.Id)}
                     onChange={(checked) =>

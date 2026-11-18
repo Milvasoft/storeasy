@@ -11,7 +11,18 @@ import { Modal } from '@/components/ui/Modal'
 import { ScreenState, StateView } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
 import { Tabs } from '@/components/ui/Tabs'
-import { Button, CardSkeleton, Checkbox, EmptyState, Field, IconButton, Input, PageHeader, RadioGroup, Switch } from '@/components/ui/primitives'
+import {
+  Button,
+  CardSkeleton,
+  Checkbox,
+  EmptyState,
+  Field,
+  IconButton,
+  Input,
+  PageHeader,
+  RadioGroup,
+  Switch,
+} from '@/components/ui/primitives'
 import { connectionsApi } from '@/lib/api/endpoints'
 import { SortType, type ListRequest } from '@/lib/api/list'
 import { OrgPermission, StoreKind } from '@/lib/api/types'
@@ -127,7 +138,17 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 }
 
 /** The secret of a new or rotated endpoint or subscription: shown in this dialog only. */
-function SecretDialog({ secret, title, manual, onClose }: { secret: WebhookSecretDto; title: string; manual?: boolean; onClose: () => void }) {
+function SecretDialog({
+  secret,
+  title,
+  manual,
+  onClose,
+}: {
+  secret: WebhookSecretDto
+  title: string
+  manual?: boolean
+  onClose: () => void
+}) {
   const t = useWebhooksText()
   const base = useT()
   const format = useFormat()
@@ -272,7 +293,11 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
   return (
     <li className="card grid gap-2 p-4">
       <span className="flex flex-wrap items-center gap-2">
-        {endpoint.Source === WebhookSource.AppStoreConnect ? <StoreTag store={StoreKind.Apple} small codeOnly /> : <Badge small>{t.source.signed}</Badge>}
+        {endpoint.Source === WebhookSource.AppStoreConnect ? (
+          <StoreTag store={StoreKind.Apple} small codeOnly />
+        ) : (
+          <Badge small>{t.source.signed}</Badge>
+        )}
         <b className="text-[14px]">{title}</b>
         <Badge tone={view.tone} dot small>
           {view.label}
@@ -315,7 +340,13 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
           size="sm"
           loading={rotate.isPending}
           onClick={async () => {
-            if (await confirm({ title: interpolate(t.endpoints.rotateTitle, { name: title }), message: t.endpoints.rotateBody, confirmLabel: t.endpoints.rotate })) {
+            if (
+              await confirm({
+                title: interpolate(t.endpoints.rotateTitle, { name: title }),
+                message: t.endpoints.rotateBody,
+                confirmLabel: t.endpoints.rotate,
+              })
+            ) {
               rotate.mutate()
             }
           }}
@@ -439,7 +470,8 @@ function EventDrawer({ eventId, onClose }: { eventId: number; onClose: () => voi
             <div>
               <dt className="text-xs text-fg3">{t.events.processing}</dt>
               <dd>
-                {[event.ProcessedDate ? format.dateTime(event.ProcessedDate) : null, event.ProcessMessage].filter(Boolean).join(' · ') || '-'}
+                {[event.ProcessedDate ? format.dateTime(event.ProcessedDate) : null, event.ProcessMessage].filter(Boolean).join(' · ') ||
+                  '-'}
                 {link ? (
                   <>
                     {' · '}
@@ -451,7 +483,11 @@ function EventDrawer({ eventId, onClose }: { eventId: number; onClose: () => voi
               </dd>
             </div>
           </dl>
-          {!event.SignatureValid ? <Callout tone="danger" title={t.events.invalidTitle}>{t.events.invalidBody}</Callout> : null}
+          {!event.SignatureValid ? (
+            <Callout tone="danger" title={t.events.invalidTitle}>
+              {t.events.invalidBody}
+            </Callout>
+          ) : null}
           {event.Payload ? (
             <div className="grid gap-1">
               <b>{t.events.payload}</b>
@@ -482,12 +518,17 @@ function Inbound({ params, update }: { params: URLSearchParams; update: (changes
   })
   const eventId = Number(params.get('event'))
   const columns: Column<WebhookEventDto>[] = [
-    { key: 'received', header: t.events.received, cell: (event) => <span className="whitespace-nowrap tabular-nums">{format.dateTime(event.ReceivedDate)}</span> },
+    {
+      key: 'received',
+      header: t.events.received,
+      cell: (event) => <span className="whitespace-nowrap tabular-nums">{format.dateTime(event.ReceivedDate)}</span>,
+    },
     {
       key: 'change',
       header: t.events.change,
       role: 'main',
-      cell: (event) => (event.OldValue || event.NewValue ? `${event.OldValue ?? '-'} → ${event.NewValue ?? '-'}` : (event.EventType ?? '-')),
+      cell: (event) =>
+        event.OldValue || event.NewValue ? `${event.OldValue ?? '-'} → ${event.NewValue ?? '-'}` : (event.EventType ?? '-'),
     },
     {
       key: 'signature',
@@ -507,7 +548,12 @@ function Inbound({ params, update }: { params: URLSearchParams; update: (changes
         </Badge>
       ),
     },
-    { key: 'message', header: t.events.message, role: 'hidePhone', cell: (event) => <span className="text-fg2">{event.ProcessMessage ?? '-'}</span> },
+    {
+      key: 'message',
+      header: t.events.message,
+      role: 'hidePhone',
+      cell: (event) => <span className="text-fg2">{event.ProcessMessage ?? '-'}</span>,
+    },
   ]
   const rows = events.data?.Data ?? []
   const endpointList = endpoints.data ?? []
@@ -532,11 +578,7 @@ function Inbound({ params, update }: { params: URLSearchParams; update: (changes
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
           {endpointList.map((endpoint) => (
-            <EndpointCard
-              key={endpoint.Id}
-              endpoint={endpoint}
-              onSecret={(value) => setSecret({ value, title: t.secret.rotatedTitle })}
-            />
+            <EndpointCard key={endpoint.Id} endpoint={endpoint} onSecret={(value) => setSecret({ value, title: t.secret.rotatedTitle })} />
           ))}
         </ul>
       )}
@@ -633,7 +675,12 @@ function SubscriptionDialog({
           <Button variant="ghost" onClick={onClose}>
             {base.common.cancel}
           </Button>
-          <Button variant="primary" loading={save.isPending} disabled={!name.trim() || !url.trim() || !!urlError} onClick={() => save.mutate()}>
+          <Button
+            variant="primary"
+            loading={save.isPending}
+            disabled={!name.trim() || !url.trim() || !!urlError}
+            onClick={() => save.mutate()}
+          >
             {base.common.save}
           </Button>
         </>
@@ -731,7 +778,11 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
         </span>
       ),
     },
-    { key: 'events', header: t.subscriptions.events, cell: (item) => <span className="mono text-xs">{(item.Events ?? []).join(', ') || t.endpoints.allEvents}</span> },
+    {
+      key: 'events',
+      header: t.subscriptions.events,
+      cell: (item) => <span className="mono text-xs">{(item.Events ?? []).join(', ') || t.endpoints.allEvents}</span>,
+    },
     {
       key: 'last',
       header: t.subscriptions.last,
@@ -750,7 +801,13 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
     {
       key: 'active',
       header: t.subscriptions.active,
-      cell: (item) => <Switch checked={item.IsActive} label={interpolate(t.subscriptions.activeOf, { name: item.Name ?? '' })} onChange={() => toggle.mutate(item)} />,
+      cell: (item) => (
+        <Switch
+          checked={item.IsActive}
+          label={interpolate(t.subscriptions.activeOf, { name: item.Name ?? '' })}
+          onChange={() => toggle.mutate(item)}
+        />
+      ),
     },
     {
       key: 'actions',
@@ -758,10 +815,20 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
       role: 'action',
       cell: (item) => (
         <span className="flex gap-1">
-          <IconButton label={interpolate(t.subscriptions.testOf, { name: item.Name ?? '' })} size="sm" ghost onClick={() => test.mutate(item)}>
+          <IconButton
+            label={interpolate(t.subscriptions.testOf, { name: item.Name ?? '' })}
+            size="sm"
+            ghost
+            onClick={() => test.mutate(item)}
+          >
             <Send aria-hidden />
           </IconButton>
-          <IconButton label={interpolate(t.subscriptions.editOf, { name: item.Name ?? '' })} size="sm" ghost onClick={() => setDialog(item)}>
+          <IconButton
+            label={interpolate(t.subscriptions.editOf, { name: item.Name ?? '' })}
+            size="sm"
+            ghost
+            onClick={() => setDialog(item)}
+          >
             <Pencil aria-hidden />
           </IconButton>
           <IconButton
@@ -807,7 +874,11 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
   ]
 
   const deliveryColumns: Column<WebhookDeliveryDto>[] = [
-    { key: 'date', header: t.delivery.date, cell: (item) => <span className="whitespace-nowrap tabular-nums">{format.dateTime(item.CreationDate)}</span> },
+    {
+      key: 'date',
+      header: t.delivery.date,
+      cell: (item) => <span className="whitespace-nowrap tabular-nums">{format.dateTime(item.CreationDate)}</span>,
+    },
     { key: 'subscription', header: t.delivery.subscription, role: 'main', cell: (item) => nameOf(item.OrganizationWebhookId) },
     {
       key: 'event',
@@ -828,13 +899,21 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
         </Badge>
       ),
     },
-    { key: 'attempt', header: t.delivery.attempt, cell: (item) => <span className="tabular-nums">{`${item.Attempt} / ${item.MaxAttempts}`}</span> },
+    {
+      key: 'attempt',
+      header: t.delivery.attempt,
+      cell: (item) => <span className="tabular-nums">{`${item.Attempt} / ${item.MaxAttempts}`}</span>,
+    },
     {
       key: 'response',
       header: t.delivery.response,
       role: 'hidePhone',
       cell: (item) =>
-        [item.ResponseStatusCode ? `HTTP ${item.ResponseStatusCode}` : null, item.DurationMilliseconds !== undefined ? `${item.DurationMilliseconds} ms` : null, item.Error]
+        [
+          item.ResponseStatusCode ? `HTTP ${item.ResponseStatusCode}` : null,
+          item.DurationMilliseconds !== undefined ? `${item.DurationMilliseconds} ms` : null,
+          item.Error,
+        ]
           .filter(Boolean)
           .join(' · ') || '-',
     },
@@ -865,7 +944,10 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
           <Select
             aria-label={t.delivery.subscription}
             value={webhookId === null ? 'all' : String(webhookId)}
-            options={[{ value: 'all', label: t.delivery.allSubscriptions }, ...list.map((item) => ({ value: String(item.Id), label: item.Name ?? `#${item.Id}` }))]}
+            options={[
+              { value: 'all', label: t.delivery.allSubscriptions },
+              ...list.map((item) => ({ value: String(item.Id), label: item.Name ?? `#${item.Id}` })),
+            ]}
             onChange={(value) => update({ sub: value === 'all' ? null : value, dpage: null })}
           />
         </span>
@@ -878,7 +960,13 @@ function Outgoing({ params, update }: { params: URLSearchParams; update: (change
         <p className="text-[13px] text-fg3">{t.delivery.empty}</p>
       ) : (
         <>
-          <DataTable caption={t.delivery.title} columns={deliveryColumns} rows={rows} rowKey={(item) => item.Id} busy={deliveries.isFetching} />
+          <DataTable
+            caption={t.delivery.title}
+            columns={deliveryColumns}
+            rows={rows}
+            rowKey={(item) => item.Id}
+            busy={deliveries.isFetching}
+          />
           <Pagination
             page={request.PageNumber}
             pageCount={deliveries.data?.TotalPageCount ?? 1}
@@ -951,7 +1039,9 @@ export function WebhooksPage() {
         ]}
         onChange={(value) => setParams(value === 'outgoing' ? { tab: 'outgoing' } : {}, { replace: true })}
       />
-      <div className="mt-3">{tab === 'inbound' ? <Inbound params={params} update={update} /> : <Outgoing params={params} update={update} />}</div>
+      <div className="mt-3">
+        {tab === 'inbound' ? <Inbound params={params} update={update} /> : <Outgoing params={params} update={update} />}
+      </div>
     </>
   )
 }

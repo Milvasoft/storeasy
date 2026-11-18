@@ -12,9 +12,9 @@ import { pascalizeKeys } from '@/lib/api/pascalize'
 import { tokenStore } from '@/lib/api/tokenStore'
 import {
   ACTIVITY_CLIENT_METHOD,
-  ActivityEventType,
   createEmitter,
   JOIN_ORGANIZATION_METHOD,
+  RecordEventType,
   type ActivityEvent,
   type ActivitySource,
   type ConnectionInfo,
@@ -92,7 +92,7 @@ export function createSignalRSource(organizationId: number, options: SignalRSour
       const event = readActivityEvent(payload)
       // The group is the organization's, but a stray event of another organization never reaches its state. A
       // notification comes from the user's own group and belongs to the user, whatever organization it is about.
-      if (event && (event.OrganizationId === organizationId || event.Type === ActivityEventType.NotificationCreated)) {
+      if (event && (event.OrganizationId === organizationId || event.Type === RecordEventType.NotificationCreated)) {
         events.emit(event)
       }
     })

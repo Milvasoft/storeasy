@@ -142,11 +142,6 @@ export const defaultHandlers: HttpHandler[] = [
   ),
   endpoint('post', '/StoreJobs/job/cancel', () => json(envelope(5))),
 
-  // ---- notifications (the bell of the shell calls these on every page) ------
-  endpoint('patch', '/Account/notifications', () => json(listEnvelope([]))),
-  endpoint('put', '/Account/notifications/seen', () => json(envelope(null))),
-  endpoint('delete', '/Account/notifications', () => json(envelope(null))),
-
   // ---- assets -------------------------------------------------------------
   endpoint('post', '/Assets/upload', () =>
     json(envelope({ AssetId: 501, UploadUrl: `${STORAGE_URL}/single`, PartSize: null, Parts: [], ExpiryDate: '2026-11-18T11:00:00Z' })),
@@ -155,4 +150,14 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('get', '/Assets/asset/download-url', () =>
     json(envelope({ Url: `${STORAGE_URL}/download`, ExpiryDate: '2026-11-18T11:00:00Z' })),
   ),
+]
+
+/**
+ * Endpoints of the feature screens the shell itself calls on every page (the notification bell), answered empty by
+ * default; test/support/phase4.ts answers them with data. Kept apart from defaultHandlers, which mirror endpoints.ts.
+ */
+export const shellHandlers: HttpHandler[] = [
+  endpoint('patch', '/Account/notifications', () => json(listEnvelope([]))),
+  endpoint('put', '/Account/notifications/seen', () => json(envelope(null))),
+  endpoint('delete', '/Account/notifications', () => json(envelope(null))),
 ]

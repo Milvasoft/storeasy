@@ -11,7 +11,14 @@ import { jobKindLabel } from '@/lib/jobs/labels'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
-import { ActivityEventType, createEmitter, JOB_FINISHED_TYPES, type ActivityEvent, type ActivitySource, type ConnectionInfo } from './events'
+import {
+  ActivityEventType,
+  createEmitter,
+  JOB_FINISHED_TYPES,
+  type ActivityEvent,
+  type ActivitySource,
+  type ConnectionInfo,
+} from './events'
 import { hatReducer, initialHatState, type HatAction, type HatState } from './hatState'
 import { createMockActivitySource } from './mockSource'
 import { createSignalRSource } from './signalrSource'

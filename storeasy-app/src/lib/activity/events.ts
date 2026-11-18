@@ -27,13 +27,17 @@ export const ActivityEventType = {
   JobCancelled: 'job.cancelled',
   ConnectionVerified: 'connection.verified',
   AppSynced: 'app.synced',
-  // Phase 4: records the screens refresh on (rejection cases, reviews) and the user's own notifications.
-  RejectionOpened: 'rejection.opened',
-  ReviewReceived: 'review.received',
-  // Sent to the receiving user's own group, whatever organization is open (OrganizationId 0 for none).
-  NotificationCreated: 'notification.created',
 } as const
 export type ActivityEventType = (typeof ActivityEventType)[keyof typeof ActivityEventType]
+
+// Phase 4 events that are not job activity: records the screens refresh on (rejection cases, reviews) and the user's own
+// notifications. notification.created comes from the user's own group, whatever organization is open (OrganizationId 0
+// for none).
+export const RecordEventType = {
+  RejectionOpened: 'rejection.opened',
+  ReviewReceived: 'review.received',
+  NotificationCreated: 'notification.created',
+} as const
 
 export const JOB_FINISHED_TYPES: readonly string[] = [
   ActivityEventType.JobSucceeded,

@@ -80,7 +80,12 @@ function PreferenceRow({ preference }: { preference: NotificationPreferenceDto }
         />
       </td>
       <td data-l={t.prefs.webPush}>
-        <Switch checked={preference.WebPush} disabled label={interpolate(t.prefs.switchOf, { channel: t.prefs.webPush, kind })} onChange={() => undefined} />
+        <Switch
+          checked={preference.WebPush}
+          disabled
+          label={interpolate(t.prefs.switchOf, { channel: t.prefs.webPush, kind })}
+          onChange={() => undefined}
+        />
       </td>
       <td className="ta text-xs text-success" aria-live="polite">
         {saved ? t.prefs.saved : null}

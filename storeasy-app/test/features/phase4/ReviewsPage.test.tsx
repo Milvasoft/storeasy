@@ -28,12 +28,19 @@ describe('review helpers', () => {
       IsRead: false,
       Search: 'pil',
     })
-    expect(reviewFilter(new URLSearchParams('rating=5&replied=yes'), 9)).toMatchObject({ AppId: 9, MinRating: 5, MaxRating: 5, HasReply: true })
+    expect(reviewFilter(new URLSearchParams('rating=5&replied=yes'), 9)).toMatchObject({
+      AppId: 9,
+      MinRating: 5,
+      MaxRating: 5,
+      HasReply: true,
+    })
   })
 
   it('counts graphemes, fills variables and finds unknown ones', () => {
     expect(graphemeCount('ağ👍🏽')).toBe(3)
-    expect(fillVariables('Merhaba {ad}, {app} {sürüm} {x}', { author: 'Ayşe', app: 'Mola', version: '3.1' })).toBe('Merhaba Ayşe, Mola 3.1 {x}')
+    expect(fillVariables('Merhaba {ad}, {app} {sürüm} {x}', { author: 'Ayşe', app: 'Mola', version: '3.1' })).toBe(
+      'Merhaba Ayşe, Mola 3.1 {x}',
+    )
     expect(unknownVariables('{ad} {isim} {isim}')).toEqual(['isim'])
   })
 
@@ -113,7 +120,9 @@ describe('ReviewsPage', () => {
   })
 
   it('shows the store error of a failed reply with the text kept', async () => {
-    phase4State.reviews = [review({ ReplyState: ReviewReplyState.Failed, ReplyBody: 'Merhaba', ReplyError: '403 PERMISSION_DENIED', ReplyJobId: 48207 })]
+    phase4State.reviews = [
+      review({ ReplyState: ReviewReplyState.Failed, ReplyBody: 'Merhaba', ReplyError: '403 PERMISSION_DENIED', ReplyJobId: 48207 }),
+    ]
 
     renderInbox('/reviews?id=3001')
 
@@ -201,7 +210,11 @@ describe('SavedRepliesPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Kaydet' }))
 
     expect(await screen.findByText('Kayıtlı yanıt saklandı.')).toBeInTheDocument()
-    expect(lastRequestTo('/Reviews/saved-reply')?.body).toMatchObject({ Name: 'Destek', Variants: [{ Locale: 'tr', Text: 'Merhaba {ad}' }], AppIds: [] })
+    expect(lastRequestTo('/Reviews/saved-reply')?.body).toMatchObject({
+      Name: 'Destek',
+      Variants: [{ Locale: 'tr', Text: 'Merhaba {ad}' }],
+      AppIds: [],
+    })
   })
 
   it('edits a reply for chosen apps and adds a language', async () => {

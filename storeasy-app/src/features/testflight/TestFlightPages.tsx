@@ -9,7 +9,19 @@ import { Callout } from '@/components/ui/Feedback'
 import { Modal } from '@/components/ui/Modal'
 import { ScreenState, StateView } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
-import { Button, CardSkeleton, Checkbox, Chip, EmptyState, Field, IconButton, Input, PageHeader, Switch, Textarea } from '@/components/ui/primitives'
+import {
+  Button,
+  CardSkeleton,
+  Checkbox,
+  Chip,
+  EmptyState,
+  Field,
+  IconButton,
+  Input,
+  PageHeader,
+  Switch,
+  Textarea,
+} from '@/components/ui/primitives'
 import { useActivity } from '@/lib/activity/ActivityContext'
 import { SortType, type ListRequest } from '@/lib/api/list'
 import { BuildProcessingState, OrgPermission } from '@/lib/api/types'
@@ -97,7 +109,12 @@ function ExpiryText({ build }: { build: BetaBuildDto }) {
     return <span className="text-fg3">{t.builds.noExpiry}</span>
   }
   const days = build.DaysLeft ?? null
-  const tone = days !== null && days < EXPIRY_URGENT_DAYS ? 'text-danger font-semibold' : days !== null && days < EXPIRY_WARN_DAYS ? 'text-warningText' : ''
+  const tone =
+    days !== null && days < EXPIRY_URGENT_DAYS
+      ? 'text-danger font-semibold'
+      : days !== null && days < EXPIRY_WARN_DAYS
+        ? 'text-warningText'
+        : ''
   return (
     <span className={cn('tabular-nums', tone)}>
       {format.date(build.ExpirationDate)}
@@ -134,7 +151,14 @@ function useStoreWrite() {
 
 function NotFound({ back }: { back: ReactNode }) {
   const base = useT()
-  return <StateView icon={<SearchX aria-hidden />} title={base.states.recordNotFoundTitle} description={base.states.recordNotFoundBody} action={back} />
+  return (
+    <StateView
+      icon={<SearchX aria-hidden />}
+      title={base.states.recordNotFoundTitle}
+      description={base.states.recordNotFoundBody}
+      action={back}
+    />
+  )
 }
 
 // ---- Overview ---------------------------------------------------------------------------------------------------------
@@ -341,7 +365,10 @@ function Overview({ context }: { context: WorkspaceContext }) {
   })
   const groupList = groups.data ?? []
   const groupNames = (ids: number[] | undefined) =>
-    (ids ?? []).map((id) => groupList.find((group) => group.Id === id)?.Name).filter(Boolean).join(', ') || '-'
+    (ids ?? [])
+      .map((id) => groupList.find((group) => group.Id === id)?.Name)
+      .filter(Boolean)
+      .join(', ') || '-'
 
   const columns: Column<BetaBuildDto>[] = [
     {
@@ -424,7 +451,12 @@ function Overview({ context }: { context: WorkspaceContext }) {
                   {t.groups.open}
                 </Link>
                 {canWrite ? (
-                  <IconButton label={interpolate(t.groups.editOf, { name: group.Name ?? '' })} size="sm" ghost onClick={() => setGroupDialog(group)}>
+                  <IconButton
+                    label={interpolate(t.groups.editOf, { name: group.Name ?? '' })}
+                    size="sm"
+                    ghost
+                    onClick={() => setGroupDialog(group)}
+                  >
                     <Pencil aria-hidden />
                   </IconButton>
                 ) : null}
@@ -467,7 +499,9 @@ function Overview({ context }: { context: WorkspaceContext }) {
           ))}
         </ul>
       )}
-      {groupDialog ? <GroupDialog context={context} group={groupDialog === 'new' ? null : groupDialog} onClose={() => setGroupDialog(null)} /> : null}
+      {groupDialog ? (
+        <GroupDialog context={context} group={groupDialog === 'new' ? null : groupDialog} onClose={() => setGroupDialog(null)} />
+      ) : null}
       {localizationDialog ? (
         <LocalizationDialog
           context={context}
@@ -500,7 +534,12 @@ function AddTesterDialog({ context, group, onClose }: { context: WorkspaceContex
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
   const add = useMutation({
     mutationFn: () =>
-      testFlightApi.updateGroupTesters(context.organizationId, group.Id, [{ Email: email.trim(), FirstName: first.trim() || null, LastName: last.trim() || null }], []),
+      testFlightApi.updateGroupTesters(
+        context.organizationId,
+        group.Id,
+        [{ Email: email.trim(), FirstName: first.trim() || null, LastName: last.trim() || null }],
+        [],
+      ),
     onSuccess: (jobId) => {
       written(jobId, t.testers.added)
       onClose()
@@ -544,10 +583,12 @@ function GroupBuilds({ context, group, builds }: { context: WorkspaceContext; gr
   const canWrite = context.can(OrgPermission.ReleaseTest)
   const inGroup = builds.filter((build) => group.BuildIds?.includes(build.BuildId) || build.GroupIds?.includes(group.Id))
   const addable = builds.filter(
-    (build) => !build.Expired && build.ProcessingState === BuildProcessingState.Valid && !inGroup.some((item) => item.BuildId === build.BuildId),
+    (build) =>
+      !build.Expired && build.ProcessingState === BuildProcessingState.Valid && !inGroup.some((item) => item.BuildId === build.BuildId),
   )
   const change = useMutation({
-    mutationFn: ({ add, remove }: { add: number[]; remove: number[] }) => testFlightApi.updateGroupBuilds(context.organizationId, group.Id, add, remove),
+    mutationFn: ({ add, remove }: { add: number[]; remove: number[] }) =>
+      testFlightApi.updateGroupBuilds(context.organizationId, group.Id, add, remove),
     onSuccess: (jobId) => written(jobId),
   })
   return (
