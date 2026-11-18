@@ -14,6 +14,7 @@ export function FileDrop({
   onFile,
   onReject,
   label,
+  error,
 }: {
   // Extensions with the dot (".p8", ".json"); the check is by name because .p8 has no registered media type.
   accept: string[]
@@ -22,6 +23,8 @@ export function FileDrop({
   onFile: (file: File) => void
   onReject: (file: File, reason: 'type' | 'size') => void
   label: string
+  // A refused file: the zone turns red and says why (design 19 file drop, .drop.rej).
+  error?: string | null
 }) {
   const t = useT()
   const inputId = useId()
@@ -52,10 +55,7 @@ export function FileDrop({
 
   return (
     <div
-      className={cn(
-        'flex flex-col items-center gap-2 rounded-md border-[1.5px] border-dashed border-borderControl px-4 py-6 text-center text-[13px] text-fg2 transition-colors duration-1',
-        dragging && 'border-fg bg-bg2',
-      )}
+      className={cn('drop transition-colors duration-1', dragging && 'over', error && !dragging && 'rej')}
       onDragOver={(event) => {
         event.preventDefault()
         setDragging(true)
@@ -64,13 +64,22 @@ export function FileDrop({
       onDrop={onDrop}
     >
       <Upload className="h-5 w-5 text-fg3" aria-hidden />
-      <span>
-        {t.fileDrop.dropOr}{' '}
-        <label htmlFor={inputId} className="lnk">
-          {t.fileDrop.choose}
-        </label>
-      </span>
+      {dragging ? (
+        <b>{t.upload.over}</b>
+      ) : (
+        <span>
+          {t.fileDrop.dropOr}{' '}
+          <label htmlFor={inputId} className="lnk">
+            {t.fileDrop.choose}
+          </label>
+        </span>
+      )}
       <span className="text-xs text-fg3">{hint}</span>
+      {error && !dragging ? (
+        <span className="err-t" role="alert">
+          {error}
+        </span>
+      ) : null}
       <input
         ref={inputRef}
         id={inputId}
