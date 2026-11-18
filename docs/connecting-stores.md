@@ -1,19 +1,21 @@
 # Connecting stores
 
 storeasy talks to the stores only through their official APIs, with credentials your organization adds under
-**Organization > Connections**. Adding, verifying and deleting a connection needs the Owner or Admin role and a verified
-e-mail address. An organization can have several connections per store (for example two Apple developer accounts).
+**Organization > Connections**. Adding, verifying and deleting a connection needs the **Manage store connections**
+permission (Owner and Admin, or a custom role that has it) and a verified e-mail address. An organization can have
+several connections per store (for example two Apple developer accounts).
 
 ## What storeasy keeps
 
 | Kept | Never |
 |---|---|
 | The credential, sealed with AES-256-GCM envelope encryption (a data key per connection, wrapped by the instance master key) | Returned by any endpoint, MCP tool, export or log |
-| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id | Your Apple ID, Google account or Partner Center password |
+| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date | Your Apple ID, Google account or Partner Center password |
 | Last verification time and result | Copies of the credential in jobs, plans or audit entries |
 
 Only the store job runner and the verify command open a credential, in memory, for the duration of the call. To replace
-a credential, delete the connection and add it again. See [self-host.md](self-host.md#7-master-key-backup-and-rotation)
+an Apple or Google credential, delete the connection and add it again; a Microsoft client secret is replaced in place
+(see below). See [self-host.md](self-host.md#7-master-key-backup-and-rotation)
 for the master key.
 
 ## App Store Connect
@@ -64,19 +66,39 @@ Create the app in Play Console first. Google can require the first bundle of a n
 
 ## Microsoft Store
 
-> Planned (plan phase 5). Adding a Microsoft connection answers "not supported yet" today.
-
-You will need a Microsoft Entra application associated with Partner Center:
+You need a Microsoft Entra application associated with your Partner Center account. One connection covers both
+Microsoft APIs storeasy uses: the submission API for MSIX apps (listings, images, packages, package flights, add-ons,
+pricing, gradual rollout) and the API for MSI/EXE apps (installer URLs, listings).
 
 1. In Partner Center, open **Account settings > User management > Microsoft Entra applications** and add (or create)
-   an application with the **Manager** role.
-2. Create a client secret for it. Secrets live at most 24 months and Microsoft recommends 12; storeasy will keep the
-   expiry date and warn 30 days ahead.
-3. Note the **tenant ID**, **client ID**, **client secret** and your **seller ID** (Partner Center account settings).
-4. In storeasy, add a Microsoft connection with these four values.
+   an application with the **Manager** role. A lesser role cannot create or commit submissions.
+2. Create a client secret for it (in Partner Center on the application's page, or in the Microsoft Entra admin center
+   under **App registrations > Certificates and secrets**). A secret lives **at most 24 months**; Microsoft recommends
+   12. Note the secret's **value** (not its id) and its expiry date.
+3. Note the **tenant ID** and the application's **client ID** (both GUIDs) and your **seller ID** (a number, under
+   Partner Center account settings).
+4. In storeasy, add a Microsoft connection: paste
+   `{"tenantId": "...", "clientId": "...", "clientSecret": "...", "sellerId": "..."}` (the web app has a form for it)
+   and enter the secret's expiry date. storeasy refuses an expiry in the past or more than 24 months away.
+5. Verify it. storeasy takes a token for both APIs and reads one application; a wrong id, a wrong secret or a missing
+   Partner Center association answers as rejected.
+6. Run **Sync**: MSIX apps of the account come in on their own. MSI/EXE apps have no list call: add each one by its
+   Store id (`ms/product`).
 
-Microsoft's APIs can only change an app after its first submission in Partner Center, and a submission edited by hand
-in Partner Center can no longer be changed through the API. storeasy shows both as warnings.
+**Secret expiry.** storeasy keeps the expiry date and reminds the organization's owners and admins 30, 7 and 1 days
+before it (in-app, e-mail, web push and the outgoing webhook event `connection.secret_expiring`). Replace the secret in
+place before it expires: create a new secret for the same application and enter it with its expiry date under the
+connection (`PUT ms/connection/secret`). storeasy verifies the new secret against Microsoft first and keeps the old one
+if that fails; the tenant, client and seller must stay the same.
+
+**What only Partner Center can do.** Microsoft's APIs can only change an app after its first submission was made in
+Partner Center, and a submission created through the API but then edited in Partner Center can no longer be changed or
+committed through the API. Store-managed consumable add-ons and products with mandatory updates answer 409, and the
+price of a product on Pricing Version 2 cannot be read or written through the API. storeasy shows each of these as an
+assisted step with a Partner Center link instead of failing silently.
+
+Writes go through change plans like the other stores (`ms/change`), and sending a submission to certification needs the
+**Submit for review** permission and the product's Store id typed as confirmation.
 
 ## Troubleshooting
 
@@ -85,4 +107,6 @@ in Partner Center can no longer be changed through the API. storeasy shows both 
 | Verify fails with 401 for Apple | Key revoked, wrong issuer id, or the `.p8` content was changed (keep the `BEGIN` and `END` lines). |
 | Verify fails with 403 for Google | The service account was not invited in Play Console, or the API is not enabled in its Cloud project. |
 | A Play app disappears after sync | Play refused the service account for that package: grant it access to the app. |
+| Verify fails for Microsoft | The application is not associated with Partner Center or lacks the Manager role, the secret value (not its id) is wrong or expired, or the tenant id belongs to another directory. |
+| `MsSecretExpiryInvalid` when adding a Microsoft connection | The expiry date is in the past or more than 24 months away. |
 | `EmailNotVerified` when adding a connection | Verify your e-mail address first. |

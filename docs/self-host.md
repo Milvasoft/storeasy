@@ -15,9 +15,10 @@ This guide runs storeasy on one Linux server with Docker: the API, the web app, 
 7. [Master key: backup and rotation](#7-master-key-backup-and-rotation)
 8. [Upgrades and migrations](#8-upgrades-and-migrations)
 9. [Backups](#9-backups)
-10. [Health and logs](#10-health-and-logs)
-11. [License and network use (AGPL)](#11-license-and-network-use-agpl)
-12. [Known limits](#12-known-limits)
+10. [Health, status and logs](#10-health-status-and-logs)
+11. [Retention and scheduled work](#11-retention-and-scheduled-work)
+12. [License and network use (AGPL)](#12-license-and-network-use-agpl)
+13. [Known limits](#13-known-limits)
 
 ## 1. What runs where
 
@@ -36,19 +37,24 @@ browser / CI / MCP client
 ```
 
 - **One origin.** The web container serves the app and proxies `/api`, `/hubs` and `/mcp` to the API, so there is no
-  CORS setup and one certificate for the app.
+  CORS setup and one certificate for the app. Inbound webhooks (App Store Connect, EAS, signed webhooks) live under
+  `/api/webhooks/...` and pass the same way.
 - **Files never pass through the API.** Uploads and downloads use presigned URLs on the S3 endpoint, so the S3 API needs
   its own public host name (for example `files.storeasy.example.com`).
-- **Store jobs run inside the API** (`StoreJobRunner`, a hosted service). No separate worker container.
-- **Redis** holds the cache, token revocation stamps, feature flags, rate limit counters and the SignalR backplane.
-  Losing it loses nothing permanent.
+- **Background work runs inside the API**: the store job runner, the e-mail outbox sender, the web push sender, the
+  outgoing webhook sender and the scheduled syncs and cleanups (hosted services). No separate worker container.
+- **Redis** holds the cache, token revocation stamps, feature flags, rate limit counters, the Google sign in state and
+  the SignalR backplane. Losing it loses nothing permanent.
 
 ## 2. Requirements
 
 - Linux server with Docker Engine 24+ and the Compose plugin. 2 vCPU and 4 GB RAM are enough for a team.
 - Two DNS names pointing at the server: the app (`storeasy.example.com`) and the S3 endpoint
   (`files.storeasy.example.com`).
-- An SMTP account for verification, password reset and invitation e-mails.
+- An SMTP account for verification, password reset, invitation and notification e-mails.
+- Outbound HTTPS to the store APIs (`api.appstoreconnect.apple.com`, `androidpublisher.googleapis.com`,
+  `www.googleapis.com`, `oauth2.googleapis.com`, `login.microsoftonline.com`, `manage.devcenter.microsoft.com`,
+  `api.store.microsoft.com`) and, if you use them, to Google sign in and the browser push services.
 - `openssl` (or PowerShell) to generate secrets.
 - A clone of this repository (the compose file builds the images from it).
 
@@ -74,6 +80,10 @@ Fill in `.env`. The required values and how to create them:
 | `S3_PUBLIC_URL` | Public address of the S3 endpoint, for example `https://files.storeasy.example.com` |
 | `SMTP_HOST`, `SMTP_FROM` (+ `SMTP_USERNAME`, `SMTP_PASSWORD`) | Your mail provider |
 
+Optional: `STOREASY_GOOGLE_CLIENT_ID` and `STOREASY_GOOGLE_CLIENT_SECRET` ([Sign in with Google](#sign-in-with-google)),
+`STOREASY_WEBPUSH_*` ([browser notifications](#browser-notifications-web-push)), `STOREASY_APPLE_UPLOAD_MODE`
+([package intake](#package-intake)) and `STOREASY_COMMIT` (shown on the system status page).
+
 PowerShell equivalents: `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` and
 `[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))`.
 
@@ -83,9 +93,11 @@ Store `STOREASY_MASTER_KEY` in a password manager now, outside the server (see
 Then:
 
 ```bash
-docker compose up -d --build
+STOREASY_COMMIT=$(git rev-parse --short HEAD) docker compose up -d --build
 docker compose ps
 ```
+
+(`STOREASY_COMMIT` can also be set in `.env`; it is optional.)
 
 Startup order: PostgreSQL and Redis become healthy, `seaweedfs-config` writes the S3 identity from `.env` into a
 volume, SeaweedFS starts, `seaweedfs-init` creates the bucket and exits, then the API starts and applies the database
@@ -93,10 +105,16 @@ migrations, then the web container.
 
 ### Images and the rules catalog
 
-The API image ships the store rules catalog (`rules/` at the repository root): the build context of the API image is the
-repository root, and the catalog is copied next to the application and embedded in it. The API validates the catalog at
-startup and stops if it is invalid. To use another catalog without rebuilding, mount a folder and point
-`Storeasy__Stores__RulesPath` at it (the commented lines in the compose file):
+Both images are built from this checkout:
+
+- **API** (`storeasy-api/Dockerfile`): the build context is the **repository root**, so the store rules catalog
+  (`rules/`) is copied next to the application and embedded in it; the build fails if `rules/catalog.json` is missing.
+  The runtime image is chiseled (no shell) and sets `MILVA_ENV=prod`. To build it by hand, from the repository root:
+  `docker build -f storeasy-api/Dockerfile -t storeasy-api .`
+- **Web** (`storeasy-app/Dockerfile`): the build context is `storeasy-app/`; nginx serves the app and proxies the API.
+
+The API validates the catalog at startup and stops if it is invalid. To use another catalog without rebuilding, mount a
+folder and point `Storeasy__Stores__RulesPath` at it (the commented lines in the compose file):
 
 ```yaml
     environment:
@@ -131,7 +149,8 @@ Rules for any proxy:
 - **App host:** pass WebSocket upgrades (`/hubs/activity`) and do not buffer `/mcp` responses (both are long lived; the
   inner nginx already allows one hour). Set `X-Forwarded-For` to the client address. The API trusts the last two
   `X-Forwarded-For` hops (your proxy and the inner nginx), so run exactly one proxy in front of the web container and
-  never expose the web or API container directly.
+  never expose the web or API container directly. The app host must be reachable from the internet if you use App
+  Store Connect webhooks, EAS or signed webhooks (they call `/api/webhooks/...`).
 - **S3 host:** keep the original `Host` header (presigned URLs are signed for it), allow request bodies of at least
   64 MiB (the largest upload part) and long timeouts. The API container must also reach `S3_PUBLIC_URL`: it signs URLs
   for that address and checks completed uploads there.
@@ -175,91 +194,86 @@ docker compose run --rm -e MILVA_ENV=dev -p 127.0.0.1:5080:8080 storeasy-api
 
 Then create your own account:
 
-1. With `STOREASY_REGISTRATION_MODE=Open`, register in the web app and verify your e-mail (SMTP must work).
+1. With registration `Open` (the default), register in the web app (or sign in with Google) and verify your e-mail
+   (SMTP must work; creating an organization or a store connection needs a verified address).
 2. Create your organization; you are its Owner.
-3. Close registration: set `STOREASY_REGISTRATION_MODE=InviteOnly` (people join through invitations you send) or
-   `Closed`, then `docker compose up -d storeasy-api`.
+3. Close registration. Sign in as `rootuser`, open the admin area's **System** page and set the registration mode to
+   `InviteOnly` (people join through invitations you send) or `Closed`. The choice is saved in the database
+   (`SystemSettings`) and wins over `STOREASY_REGISTRATION_MODE` until it is cleared, so no restart is needed. The same
+   call over the API: `PUT /api/v1.0/system/settings/registration-mode` with `{"mode": "InviteOnly"}`; `null` returns
+   to the configured mode.
 
-The root user is for instance administration (user locking, feature flags, system state), not for daily store work.
+The root user is for instance administration (users and their locks, platform roles, feature flags, languages, the
+rule watcher, system status and settings), not for daily store work.
 
 ## 6. Configuration reference
 
 The API reads `appsettings.json` and then environment variables; a variable name is the key with `:` replaced by `__`
 (`Storeasy:Encryption:MasterKey` becomes `Storeasy__Encryption__MasterKey`). Values marked **secret** must only come
-from the environment (or user secrets on a developer machine), never from a file in the repository.
+from the environment (or user secrets on a developer machine), never from a file in the repository. The `.env` column
+names the variable of [`deploy/.env.example`](../deploy/.env.example) that the compose file maps to the key; keys
+without one keep their default unless you add them to the API's `environment` (or an override file).
 
 ### Core
 
-| Key | Default | Description |
-|---|---|---|
-| `ConnectionStrings:DefaultConnectionString` | empty | **Secret.** PostgreSQL 17 connection string. |
-| `Milvasoft:Caching:Redis:ConnectionString` | `redis` | Redis 7 as `host:port`. The API starts while Redis is down (readiness answers 503, rate limits fail open). |
-| `CacheKeys:Prefix` | `storeasy` | Prefix of every Redis key and SignalR channel. Use a different one per instance when several share one Redis. |
-| `Milvasoft:Identity:Token:SymmetricPublicKey` | empty | **Secret.** HMAC-SHA256 key for access tokens, at least 32 characters. Missing or short: the API stops at startup outside Development. |
-| `Milvasoft:Identity:Token:ExpirationMinute` | `30` | Access token lifetime. |
-| `Milvasoft:Identity:Token:TokenValidationParameters:ValidIssuer`, `ValidAudience` | `Storeasy` | Issuer and audience written into and required on tokens. Change both together. |
-| `Milvasoft:Identity:Password:*` | 6 characters, upper, lower, digit, symbol | Password policy. |
-| `Milvasoft:Identity:Lockout:MaxFailedAccessAttempts`, `DefaultLockoutTimeSpan` | `5`, `5` | Sign-in lockout (minutes). |
-| `Milvasoft:Interception:Log:LogDefaultParameters` | `false` | Logs every argument and result of `[Log]` methods. Keep `false` in production: they can contain personal data. |
-| `Milvasoft:FileOperations:Json:EncryptionKey` | empty | **Secret.** Not used by storeasy today. |
-| `MILVA_ENV` | `prod` in the image | `dev`, `test` or `prod`. `prod` closes the developer endpoints and the API documentation and selects the log sinks. |
-| `ASPNETCORE_ENVIRONMENT`, `ASPNETCORE_URLS` | `Production`, `http://+:8080` in the image | Leave as is. |
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `ConnectionStrings:DefaultConnectionString` | `POSTGRES_*` | empty | **Secret.** PostgreSQL 17 connection string. |
+| `Milvasoft:Caching:Redis:ConnectionString` | | `redis` | Redis 7 as `host:port`. The API starts while Redis is down (readiness answers 503, rate limits fail open, Google sign in is unavailable). |
+| `CacheKeys:Prefix` | `STOREASY_CACHE_PREFIX` | `storeasy` | Prefix of every Redis key and SignalR channel. Use a different one per instance when several share one Redis. |
+| `Milvasoft:Identity:Token:SymmetricPublicKey` | `STOREASY_TOKEN_KEY` | empty | **Secret.** HMAC-SHA256 key for access tokens, at least 32 characters. Missing or short: the API stops at startup outside Development. |
+| `Milvasoft:Identity:Token:ExpirationMinute` | | `30` | Access token lifetime. The refresh token lives 48 times as long (24 hours by default). |
+| `Milvasoft:Identity:Token:TokenValidationParameters:ValidIssuer`, `ValidAudience` | | `Storeasy` | Issuer and audience written into and required on tokens. Change both together. |
+| `Milvasoft:Identity:Password:*` | | 6 characters, upper, lower, digit, symbol | Password policy. |
+| `Milvasoft:Identity:Lockout:MaxFailedAccessAttempts`, `DefaultLockoutTimeSpan` | | `5`, `5` | Sign in lockout (minutes). |
+| `Milvasoft:Interception:Log:LogDefaultParameters` | | `false` | Logs every argument and result of `[Log]` methods. Keep `false` in production: they can contain personal data. |
+| `Milvasoft:FileOperations:Json:EncryptionKey` | | empty | **Secret.** Not used by storeasy today. |
+| `MILVA_ENV` | | `prod` in the image | `dev`, `test` or `prod`. `prod` closes the developer endpoints and the API documentation and selects the log sinks. |
+| `ASPNETCORE_ENVIRONMENT`, `ASPNETCORE_URLS` | | `Production`, `http://+:8080` in the image | Leave as is. |
 
-The remaining `Milvasoft:*` keys in `appsettings.json` are library settings that need no change.
+The remaining `Milvasoft:*`, `ApiHost` and `HealthChecksUI` keys in `appsettings.json` are library settings that need
+no change.
 
-### storeasy
+**Sessions.** Every sign in is a session the user sees under **Account** (browser, address, last use) and can end, one
+by one or all others at once. A password change or reset, a lock by the instance admin and a role change end the
+affected sessions at once (revocation stamp in Redis, checked on every request).
 
-| Key | Default | Description |
-|---|---|---|
-| `Storeasy:App:BaseUrl` | empty | Public address of the web app. E-mail links point at `{BaseUrl}/verify-email`, `/reset-password` and `/invitation`. Required outside Development. |
-| `Storeasy:Registration:Mode` | `Open` | `Open`, `InviteOnly` (a valid invitation for the same e-mail is required) or `Closed`. |
-| `Storeasy:Encryption:MasterKey` | empty | **Secret.** Base64 of 32 random bytes. Seals store credentials and saved demo passwords (AES-256-GCM envelope encryption). |
-| `Storeasy:Encryption:KeyVersion` | `1` | Version of the current master key. Raise it when rotating. |
-| `Storeasy:Encryption:RetiredKeys:<version>` | none | **Secret.** Older master keys by version, so records sealed before a rotation still open. |
-| `Storeasy:Email:Provider` | `Smtp` | `Smtp` (self-host) or `Notifike` (Milvasoft hosting). `Log` writes e-mails to the log and is refused outside Development. |
-| `Storeasy:Email:FromName` | `storeasy` | Sender display name. |
-| `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | empty, `587`, empty, empty, `true` | SMTP server. `Host` and `From` are required with `Smtp`; otherwise the API stops at startup and names the missing key. |
-| `Storeasy:Email:Smtp:Password` | empty | **Secret.** SMTP password. |
-| `Storeasy:Email:Notifike:BaseUrl`, `ApiKey` | empty | Notifike API (`ApiKey` is **secret**). Both required with `Notifike`. |
-| `Storeasy:Email:Outbox:Enabled` | `true` | Whether this instance runs the background e-mail sender. E-mails are never sent on the request path: they are queued in the `EmailOutbox` table (body sealed with the master key) and sent from there, so a slow provider or a missing account does not change answer times. |
-| `Storeasy:Email:Outbox:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `LeaseSeconds` | `1000`, `6`, `30`, `120` | Sender pause, attempts of one e-mail (then it is dropped and logged), doubling retry delay (at most an hour), claim lease. |
-| `Storeasy:Auth:Google:ClientId`, `ClientSecret` | empty | Sign in with Google (`ClientSecret` is **secret**). Off while either is empty. See [Sign in with Google](#sign-in-with-google). |
-| `Storeasy:Auth:Google:Authority`, `StateLifetimeMinutes` | `https://accounts.google.com`, `10` | OpenID Connect issuer (https only; change it only for testing) and how long a started sign in may take. |
-| `Storeasy:WebPush:PublicKey`, `PrivateKey` | empty | VAPID key pair of browser notifications (`PrivateKey` is **secret**). Off while either is empty. See [Browser notifications](#browser-notifications-web-push). |
-| `Storeasy:WebPush:Subject`, `TimeToLiveSeconds` | `mailto:admin@localhost`, `86400` | Contact the push services may use (`mailto:` or https) and how long they keep an undelivered push. |
-| `Storeasy:Jobs:Enabled` | `true` | Whether this instance runs store jobs. Every instance can queue them. |
-| `Storeasy:Jobs:Workers` | `2` | Jobs one instance runs at the same time. |
-| `Storeasy:Jobs:PollIntervalMilliseconds` | `2000` | Pause of an idle worker. |
-| `Storeasy:Jobs:LeaseSeconds` | `300` | Lease of a running attempt, renewed on every step; an expired lease lets another worker reclaim the job. |
-| `Storeasy:Jobs:DefaultMaxAttempts` | `3` | Attempts of a job. |
-| `Storeasy:Jobs:RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | `30`, `900` | Exponential backoff between attempts. |
-| `Storeasy:Stores:MaxRetries` | `3` | Retries of a store call answered with 429 or 5xx. |
-| `Storeasy:Stores:RetryBaseDelayMilliseconds`, `RetryMaxDelaySeconds` | `800`, `60` | Backoff of those retries; a `Retry-After` header wins. |
-| `Storeasy:Stores:AssetPollIntervalMilliseconds`, `AssetPollTimeoutSeconds` | `2000`, `120` | Wait for Apple to process an uploaded screenshot. |
-| `Storeasy:Stores:UploadChunkBytes` | `8388608` | Chunk size of resumable Play bundle uploads (a multiple of 256 KiB). |
-| `Storeasy:Stores:PlanLifetimeMinutes` | `2880` | How long a pending change plan can be approved (48 hours). |
-| `Storeasy:Stores:RulesPath` | empty | Folder with `catalog.json` and the store files. Empty: the copy next to the application, then the embedded copy. |
-| `Storeasy:Intake:AppleUploadMode` | `Api` | `Api`: storeasy uploads IPAs with the App Store Connect build upload API. `External`: the CI uploads to Apple itself and storeasy waits for the build, then applies the delivery rule. |
-| `Storeasy:Intake:UrlLifetimeMinutes` | `120` | Lifetime of the presigned part URLs of package uploads (at least 60). |
-| `Storeasy:Intake:ProcessMaxAttempts` | `40` | Attempts of a package processing job (an iOS delivery waits for Apple's processing by retrying). |
-| `Storeasy:Intake:AbandonedUploadHours` / `PendingAssetHours` | `48` | When unfinished package uploads and unconfirmed asset uploads are cleaned up. |
+### Accounts, registration and e-mail
 
-### Sign in with Google
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `Storeasy:App:BaseUrl` | `STOREASY_BASE_URL` | empty | Public address of the web app. E-mail links point at `{BaseUrl}/verify-email`, `/reset-password` and `/invitation`; Google redirects to `{BaseUrl}/auth/google/callback`. Required outside Development. |
+| `Storeasy:Registration:Mode` | `STOREASY_REGISTRATION_MODE` | `Open` | `Open`, `InviteOnly` (a valid invitation for the same e-mail is required) or `Closed`. A mode saved on the admin **System** page wins over this value (see [section 5](#5-first-admin-and-first-account)). |
+| `Storeasy:Email:Provider` | `STOREASY_EMAIL_PROVIDER` | `Smtp` | `Smtp` (self-host) or `Notifike` (Milvasoft hosting). `Log` writes e-mails to the log and is refused outside Development. |
+| `Storeasy:Email:FromName` | `STOREASY_EMAIL_FROM_NAME` | `storeasy` | Sender display name. |
+| `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_FROM`, `SMTP_ENABLE_SSL` | empty, `587`, empty, empty, `true` | SMTP server (`EnableSsl` upgrades with STARTTLS). `Host` and `From` are required with `Smtp`; otherwise the API stops at startup and names the missing key. |
+| `Storeasy:Email:Smtp:Password` | `SMTP_PASSWORD` | empty | **Secret.** SMTP password. |
+| `Storeasy:Email:Notifike:BaseUrl`, `ApiKey` | `NOTIFIKE_BASE_URL`, `NOTIFIKE_API_KEY` | empty | Notifike API (`ApiKey` is **secret**). Both required with `Notifike`. |
+| `Storeasy:Email:Outbox:Enabled` | `STOREASY_EMAIL_OUTBOX_ENABLED` | `true` | Whether this instance runs the background e-mail sender. E-mails are never sent on the request path: they are queued in the `EmailOutbox` table (body sealed with the master key) and sent from there, so a slow provider or a missing account does not change answer times. Every instance can queue. |
+| `Storeasy:Email:Outbox:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `LeaseSeconds` | | `1000`, `6`, `30`, `120` | Sender pause, attempts of one e-mail (then it is dropped and logged), doubling retry delay (at most an hour), claim lease. |
+| `Storeasy:Auth:Google:ClientId`, `ClientSecret` | `STOREASY_GOOGLE_CLIENT_ID`, `STOREASY_GOOGLE_CLIENT_SECRET` | empty | Sign in with Google (`ClientSecret` is **secret**). Off while either is empty. See [Sign in with Google](#sign-in-with-google). |
+| `Storeasy:Auth:Google:Authority`, `StateLifetimeMinutes` | | `https://accounts.google.com`, `10` | OpenID Connect issuer (https only; change it only for testing) and how long a started sign in may take. |
+| `Storeasy:WebPush:PublicKey`, `PrivateKey` | `STOREASY_WEBPUSH_PUBLIC_KEY`, `STOREASY_WEBPUSH_PRIVATE_KEY` | empty | VAPID key pair of browser notifications (`PrivateKey` is **secret**). Off while either is empty. See [Browser notifications](#browser-notifications-web-push). |
+| `Storeasy:WebPush:Subject`, `TimeToLiveSeconds` | `STOREASY_WEBPUSH_SUBJECT` | `mailto:admin@localhost`, `86400` | Contact the push services may use (`mailto:` or https) and how long they keep an undelivered push. |
+
+#### Sign in with Google
 
 1. In Google Cloud Console create an OAuth client of type **Web application** (APIs and Services, Credentials). The
    consent screen needs only the `openid`, `email` and `profile` scopes.
 2. Add the authorized redirect URI `<STOREASY_BASE_URL>/auth/google/callback` (the web app's callback page; it sends
    the code and state to `POST /api/v1.0/account/login/google`).
-3. Set `Storeasy__Auth__Google__ClientId` and `Storeasy__Auth__Google__ClientSecret` in `.env` and restart the API.
+3. Set `STOREASY_GOOGLE_CLIENT_ID` and `STOREASY_GOOGLE_CLIENT_SECRET` in `.env` and run
+   `docker compose up -d storeasy-api`. The sign in page shows the Google button once
+   `GET /api/v1.0/system/public-settings` reports it on.
 
 The flow is the authorization code flow with PKCE; the code verifier and nonce never leave the API (Redis, ten minutes,
 single use), so Redis is required for it. An account is linked only by an address Google reports as verified; an
 existing account that never verified its address is taken over by that proof (its password is replaced with a random
-one and its sessions end). New accounts follow `Storeasy:Registration:Mode`: `InviteOnly` needs an invitation for the
-same address, `Closed` creates none (existing accounts can still sign in). No Google call is made while the client id
-or secret is empty.
+one and its sessions end). New accounts follow the registration mode: `InviteOnly` needs an invitation for the same
+address, `Closed` creates none (existing accounts can still sign in). No Google call is made while the client id or
+secret is empty.
 
-### Browser notifications (web push)
+#### Browser notifications (web push)
 
 Pushes go straight from the API to the browsers' push services with VAPID (RFC 8292) and the payload encrypted to the
 browser (RFC 8291); no third party account or library is involved. Generate one P-256 key pair per instance:
@@ -272,35 +286,103 @@ openssl ec -in vapid.pem -pubout -outform DER 2>/dev/null | tail -c 65 | base64 
 openssl ec -in vapid.pem -outform DER 2>/dev/null | tail -c +8 | head -c 32 | base64 | tr '/+' '_-' | tr -d '=\n'; echo
 ```
 
-Put them into `Storeasy__WebPush__PublicKey` and `Storeasy__WebPush__PrivateKey`, set `Storeasy__WebPush__Subject` to a
-contact address and delete `vapid.pem`. The web app reads the public key from `GET /api/v1.0/system/public-settings`.
-Changing the key pair invalidates every browser subscription (users subscribe again). The API sends pushes only to
-public addresses (the same guard as outgoing webhooks), so the server needs outbound HTTPS to the push services
-(`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com`, `web.push.apple.com`).
+Put them into `STOREASY_WEBPUSH_PUBLIC_KEY` and `STOREASY_WEBPUSH_PRIVATE_KEY`, set `STOREASY_WEBPUSH_SUBJECT` to a
+contact address, run `docker compose up -d storeasy-api` and delete `vapid.pem`. The web app reads the public key from
+`GET /api/v1.0/system/public-settings`; users turn notifications on per browser under **Account** and choose the kinds
+per channel in their notification preferences. Changing the key pair invalidates every browser subscription (users
+subscribe again). The API sends pushes only to public addresses (the same guard as outgoing webhooks), so the server
+needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.services.mozilla.com`,
+`*.notify.windows.com`, `web.push.apple.com`).
+
+### Store connections, jobs and the store engine
+
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `Storeasy:Encryption:MasterKey` | `STOREASY_MASTER_KEY` | empty | **Secret.** Base64 of 32 random bytes. Seals store credentials, saved demo passwords, webhook and pull source secrets and queued e-mails (AES-256-GCM envelope encryption). |
+| `Storeasy:Encryption:KeyVersion` | `STOREASY_MASTER_KEY_VERSION` | `1` | Version of the current master key. Raise it when rotating. |
+| `Storeasy:Encryption:RetiredKeys:<version>` | | none | **Secret.** Older master keys by version, so records sealed before a rotation still open. |
+| `Storeasy:Jobs:Enabled` | `STOREASY_JOBS_ENABLED` | `true` | Whether this instance runs store jobs. Every instance can queue them. |
+| `Storeasy:Jobs:Workers` | `STOREASY_JOBS_WORKERS` | `2` | Jobs one instance runs at the same time. |
+| `Storeasy:Jobs:PollIntervalMilliseconds` | | `2000` | Pause of an idle worker. |
+| `Storeasy:Jobs:LeaseSeconds` | | `300` | Lease of a running attempt, renewed on every step; an expired lease lets another worker reclaim the job. |
+| `Storeasy:Jobs:DefaultMaxAttempts` | | `3` | Attempts of a job. |
+| `Storeasy:Jobs:RetryBaseDelaySeconds`, `RetryMaxDelaySeconds` | | `30`, `900` | Exponential backoff between attempts. |
+| `Storeasy:Stores:MaxRetries` | | `3` | Retries of an App Store Connect or Google Play call answered with 429 or 5xx. |
+| `Storeasy:Stores:RetryBaseDelayMilliseconds`, `RetryMaxDelaySeconds` | | `800`, `60` | Backoff of those retries; a `Retry-After` header wins. |
+| `Storeasy:Stores:AssetPollIntervalMilliseconds`, `AssetPollTimeoutSeconds` | | `2000`, `120` | Wait for Apple to process an uploaded screenshot. |
+| `Storeasy:Stores:UploadChunkBytes` | | `8388608` | Chunk size of resumable Play bundle uploads (a multiple of 256 KiB). |
+| `Storeasy:Stores:PlanLifetimeMinutes` | | `2880` | How long a pending change plan can be approved (48 hours). |
+| `Storeasy:Stores:RulesPath` | | empty | Folder with `catalog.json` and the store files. Empty: the copy next to the application, then the embedded copy. |
+| `Storeasy:MicrosoftStore:LoginBaseUrl` | | `https://login.microsoftonline.com` | Microsoft Entra authority (token endpoint `{LoginBaseUrl}/{tenantId}/oauth2/v2.0/token`). |
+| `Storeasy:MicrosoftStore:DevCenterBaseUrl`, `DevCenterScope` | | `https://manage.devcenter.microsoft.com/v1.0/my`, `https://manage.devcenter.microsoft.com/.default` | MSIX submission API and its scope. |
+| `Storeasy:MicrosoftStore:StoreApiBaseUrl`, `StoreApiScope` | | `https://api.store.microsoft.com`, `https://api.store.microsoft.com/.default` | MSI/EXE submission API and its scope. |
+| `Storeasy:MicrosoftStore:PartnerCenterProductUrl` | | `https://partner.microsoft.com/dashboard/products/{productId}/overview` | Partner Center link of assisted steps. |
+| `Storeasy:MicrosoftStore:MaxAttempts`, `RetryBaseDelayMilliseconds`, `MaxRetryDelaySeconds` | | `4`, `1000`, `60` | Attempts of one Microsoft call on 429, 5xx or a network error, and their backoff. |
+| `Storeasy:MicrosoftStore:StatusPollIntervalMilliseconds`, `StatusPollAttempts` | | `5000`, `24` | Status reads after a commit before the job leaves the rest to the sync. |
+| `Storeasy:MicrosoftStore:InstallerCheckMaxBytes`, `BlockPrivateDownloadAddresses` | | 4 GiB, `true` | Largest MSI/EXE installer the Authenticode check downloads, and the guard that refuses installer hosts on private addresses. |
+| `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
+
+#### Package intake
+
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `Storeasy:Intake:AppleUploadMode` | `STOREASY_APPLE_UPLOAD_MODE` | `Api` | `Api`: storeasy uploads IPAs with the App Store Connect build upload API. `External`: the CI uploads to Apple itself (EAS Submit, Xcode Cloud, Transporter); storeasy uploads nothing, waits for the build to appear in App Store Connect, then applies the delivery rule. See [ci-intake.md](ci-intake.md#apple-upload-modes). |
+| `Storeasy:Intake:UrlLifetimeMinutes` | | `120` | Lifetime of the presigned part URLs of package uploads (at least 60). |
+| `Storeasy:Intake:ProcessMaxAttempts` | | `40` | Attempts of a package processing job (an iOS delivery waits for Apple's processing by retrying). |
+| `Storeasy:Intake:AbandonedUploadHours`, `PendingAssetHours` | | `48`, `48` | When unfinished package uploads and unconfirmed asset uploads are cleaned up. |
+| `Storeasy:Intake:MaxRedirects` | | `5` | Redirects followed when downloading a package announced by EAS or a signed webhook. |
+
+How long packages are kept (1 to 365 days, default 30) and the largest package (at most 4 GiB) are organization
+settings in the web app (intake settings), not configuration.
+
+### Events, webhooks and schedules
+
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `Storeasy:Events:SchedulesEnabled` | `STOREASY_SCHEDULES_ENABLED` | `true` | Whether this instance runs the scheduled syncs and reminders ([section 11](#11-retention-and-scheduled-work)). With several API instances keep it on in one. |
+| `Storeasy:Webhooks:PublicBaseUrl` | | `Storeasy:App:BaseUrl` | Public address of the inbound webhook receivers (`{base}/api/webhooks/apple/{id}`, `/api/webhooks/signed/{id}`), as App Store Connect and other senders reach it. |
+| `Storeasy:Webhooks:SecretGraceHours`, `MaxEventAgeHours`, `SignedToleranceSeconds` | | `24`, `168`, `300` | How long the previous secret works after a rotation, the oldest App Store Connect event still processed, and the clock difference accepted for signed webhooks. |
+| `Storeasy:OrgWebhooks:Enabled` | | `true` | Whether this instance runs the outgoing webhook sender. |
+| `Storeasy:OrgWebhooks:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `TimeoutSeconds` | | `2000`, `6`, `30`, `10` | Outgoing webhook delivery: pause, attempts, doubling retry delay (at most an hour), timeout of one attempt. |
+| `Storeasy:OrgWebhooks:AllowHttp`, `MaxSubscriptions` | | `false`, `20` | Plain HTTP targets (never in production; private addresses are refused regardless) and subscriptions per organization. |
+| `Storeasy:RuleWatcher:Enabled`, `MaxBytes` | | `true`, 2 MiB | Whether the daily rule watcher runs and the largest page it reads. |
+| `Storeasy:RuleWatcher:AllowedHosts`, `Sources` | | Apple, Google and Microsoft developer domains; seven Apple and Google pages | Official hosts the watcher may fetch and the pages it watches (added to the database when missing). |
 
 ### Object storage
 
-| Key | Default | Description |
-|---|---|---|
-| `Storage:S3:Bucket` | empty | Private bucket. Empty disables uploads (the endpoints answer 503). |
-| `Storage:S3:Region` | `eu-central-1` | Bucket region; for SeaweedFS any value works as the signing region. |
-| `Storage:S3:AccessKey`, `SecretKey` | empty | **Secret.** Bucket credentials. Without an access key the AWS default credential chain is used. |
-| `Storage:S3:ServiceUrl` | empty | S3 compatible endpoint (SeaweedFS). Empty for AWS S3. Must be reachable by browsers, CI runners and the API. |
-| `Storage:S3:ForcePathStyle` | `true` | Path style addressing (`host/bucket/key`), needed by SeaweedFS. Ignored without `ServiceUrl`. |
-| `Storage:S3:PresignedUrlLifetimeMinutes` | `30` | Lifetime of presigned URLs. |
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `Storage:S3:Bucket` | `S3_BUCKET` | empty | Private bucket. Empty disables uploads (the endpoints answer 503). |
+| `Storage:S3:Region` | `S3_REGION` | `eu-central-1` | Bucket region; for SeaweedFS any value works as the signing region. |
+| `Storage:S3:AccessKey`, `SecretKey` | `S3_ACCESS_KEY`, `S3_SECRET_KEY` | empty | **Secret.** Bucket credentials. Without an access key the AWS default credential chain is used. |
+| `Storage:S3:ServiceUrl` | `S3_PUBLIC_URL` | empty | S3 compatible endpoint (SeaweedFS). Empty for AWS S3. Must be reachable by browsers, CI runners and the API. |
+| `Storage:S3:ForcePathStyle` | | `true` | Path style addressing (`host/bucket/key`), needed by SeaweedFS. Ignored without `ServiceUrl`. |
+| `Storage:S3:PresignedUrlLifetimeMinutes` | | `30` | Lifetime of presigned URLs. |
 
 AWS S3 works too: leave `ServiceUrl` empty, set the region, block public access on the bucket and add the CORS rule from
 [section 4](#4-reverse-proxy-and-tls). SeaweedFS can then be removed from the compose file.
 
-### Observability
+### Observability and build
 
-| Key | Default | Description |
-|---|---|---|
-| `SeqUri` | empty | Seq server (`MILVA_ENV` `test` or `prod`). Empty disables Seq. |
-| `OpenTelemetry:CollectorUrl` | empty | OTLP gRPC endpoint for logs, metrics and traces (`prod`). Empty disables OpenTelemetry. |
-| `OpenTelemetry:ServiceName` | `storeasy-api` | Service name in logs, metrics and traces. |
+| Key | `.env` | Default | Description |
+|---|---|---|---|
+| `SeqUri` | `SEQ_URI` | empty | Seq server (`MILVA_ENV` `test` or `prod`). Empty disables Seq. |
+| `OpenTelemetry:CollectorUrl` | `OTEL_COLLECTOR_URL` | empty | OTLP gRPC endpoint for logs, metrics and traces (`prod`). Empty disables OpenTelemetry. |
+| `OpenTelemetry:ServiceName` | | `storeasy-api` | Service name in logs, metrics and traces. |
+| `Storeasy:Build:Commit` | `STOREASY_COMMIT` | empty | Source commit shown on the system status page. Empty: the commit stamped into the assembly version, if any (the Docker build stamps none). |
 
-With both empty in `prod`, logs go to the console (`docker compose logs storeasy-api`).
+With both `SeqUri` and `OpenTelemetry:CollectorUrl` empty in `prod`, logs go to the console
+(`docker compose logs storeasy-api`).
+
+### Feature flags
+
+Two runtime kill switches exist, managed by the instance admin (admin area, **Feature flags**). A switched off feature
+answers 503 from the next request on; a missing flag reads as on.
+
+| Flag | Covers |
+|---|---|
+| `Export` | Excel exports. |
+| `Studio.AiCaptions` | Caption translation suggestions in the mockup studio. No translation provider ships with storeasy, so the suggestions answer 503 on a self-hosted instance either way. |
 
 ### Web app
 
@@ -315,12 +397,14 @@ With both empty in `prod`, logs go to the console (`docker compose logs storeasy
 
 ## 7. Master key: backup and rotation
 
-The master key seals every store credential (App Store Connect keys, Play service accounts, later Microsoft Entra
-secrets) and saved demo passwords. Each record gets its own data key; the master key wraps the data keys. A database
-dump alone does not reveal any credential, and the key alone is useless without the database.
+The master key seals every store credential (App Store Connect keys, Play service accounts, Microsoft Entra secrets),
+saved demo passwords, the secrets of inbound webhook endpoints, outgoing webhook subscriptions and pull sources, and
+queued e-mails. Each record gets its own data key; the master key wraps the data keys. A database dump alone does not
+reveal any of them, and the key alone is useless without the database.
 
 **Backup.** Keep `STOREASY_MASTER_KEY` and its version in a password manager or vault, separate from database backups.
-If the key is lost, every store connection must be added again and saved demo passwords entered again.
+If the key is lost, every store connection must be added again, saved demo passwords entered again and webhook and pull
+source secrets replaced.
 
 **Rotation:**
 
@@ -339,13 +423,19 @@ If the key is lost, every store connection must be added again and saved demo pa
    ```
 
 3. `docker compose up -d storeasy-api`. New secrets are sealed with version 2; records sealed with version 1 still open.
-4. Re-seal old records: there is no bulk re-seal command yet. Add each store connection again (delete and add) and save
-   the demo passwords again. Check what is left:
+4. Re-seal old records: there is no bulk re-seal command yet. Add each Apple and Google connection again (delete and
+   add; a Microsoft connection can instead get its client secret replaced), save the demo passwords again, and rotate
+   the secrets of webhook endpoints, webhook subscriptions and pull sources (then give the new secrets to the senders).
+   Queued e-mails are sent and removed on their own. Check what is left:
 
    ```bash
    docker compose exec postgres psql -U storeasy -d storeasy \
      -c 'SELECT "KeyVersion", count(*) FROM "StoreConnections" GROUP BY 1;' \
-     -c 'SELECT "KeyVersion", count(*) FROM "SavedAnswers" WHERE "KeyVersion" IS NOT NULL GROUP BY 1;'
+     -c 'SELECT "KeyVersion", count(*) FROM "SavedAnswers" WHERE "KeyVersion" IS NOT NULL GROUP BY 1;' \
+     -c 'SELECT "KeyVersion", count(*) FROM "WebhookEndpoints" GROUP BY 1;' \
+     -c 'SELECT "KeyVersion", count(*) FROM "OrganizationWebhooks" GROUP BY 1;' \
+     -c 'SELECT "KeyVersion", count(*) FROM "ArtifactPullSources" GROUP BY 1;' \
+     -c 'SELECT "KeyVersion", count(*) FROM "EmailOutbox" GROUP BY 1;'
    ```
 
 5. When no record uses the old version, remove the retired key.
@@ -358,6 +448,7 @@ If the key is lost, every store connection must be added again and saved demo pa
 
    ```bash
    git pull
+   export STOREASY_COMMIT=$(git rev-parse --short HEAD)
    docker compose build
    docker compose up -d
    ```
@@ -370,15 +461,18 @@ If the key is lost, every store connection must be added again and saved demo pa
    curl -fsS http://127.0.0.1:8080/api/v1.0/healthcheck/ready
    ```
 
-Run one API instance while a release with schema changes starts; scale out afterwards.
+   The admin **System** page then shows the new version and commit.
+
+Run one API instance while a release with schema changes starts; scale out afterwards. New configuration keys come with
+a default that keeps the previous behaviour; compare your `.env` with the new `.env.example` to see the optional ones.
 
 ## 9. Backups
 
 | What | How | Why |
 |---|---|---|
-| PostgreSQL | Daily `pg_dump`, plus one before every upgrade | All product data, sealed credentials, audit log |
-| SeaweedFS volume | Daily copy of the `seaweedfs-data` volume, or a sync of the bucket to other S3 storage | Uploaded screenshots, mockups, packages (packages are temporary) |
-| `.env` and the master key | Password manager or vault, separate from the dumps | Without the master key the sealed credentials cannot be opened |
+| PostgreSQL | Daily `pg_dump`, plus one before every upgrade | All product data, sealed secrets, audit log, job history |
+| SeaweedFS volume | Daily copy of the `seaweedfs-data` volume, or a sync of the bucket to other S3 storage | Uploaded screenshots, previews, mockup exports, packages (packages are temporary) |
+| `.env` and the master key | Password manager or vault, separate from the dumps | Without the master key the sealed secrets cannot be opened |
 | Redis | Not needed | Cache and short lived state only |
 
 ```bash
@@ -399,17 +493,37 @@ docker compose start seaweedfs
 Copy the files off the server, keep daily backups for 14 days and a monthly one for 6 months, and restore one into an
 empty stack now and then to prove it works.
 
-## 10. Health and logs
+## 10. Health, status and logs
 
-| Endpoint (through the web container) | Meaning |
+| Endpoint | Meaning |
 |---|---|
 | `GET /api/v1.0/healthcheck` | Liveness: the process answers. Use this for restarts. |
-| `GET /api/v1.0/healthcheck/ready` | Readiness: 200 when PostgreSQL and Redis answer, 503 otherwise. Do not restart on 503 (a Redis outage is not fixed by restarting the API). |
+| `GET /api/v1.0/healthcheck/ready` | Readiness: 200 when PostgreSQL and Redis answer, 503 otherwise, with the state of each check. Do not restart on 503 (a Redis outage is not fixed by restarting the API). |
+| `GET /health/live`, `GET /health/ready` | The same two probes at the API's root, for orchestrators that reach the API container directly (port 8080). The web container does not proxy them (it answers with the app page), so through the web container use the `/api/v1.0/healthcheck` forms. |
+| `GET /api/v1.0/system/status` | For the instance admin (admin area, **System**): version, commit, environment, PostgreSQL, Redis, object storage and mail provider (configured, healthy, latency), the SignalR backplane, whether the master key, Google sign in and web push are configured (yes or no only), job queues across organizations and e-mails waiting in the outbox. |
 
 The API image is chiseled (no shell), so it has no Docker `HEALTHCHECK`; watch it from your proxy or monitoring.
 Bearer tokens, `access_token` query values, signed URL queries and store keys are redacted from the logs.
 
-## 11. License and network use (AGPL)
+## 11. Retention and scheduled work
+
+Every API instance runs these, in UTC. The syncs and reminders follow `Storeasy:Events:SchedulesEnabled`; the rule
+watcher also needs `Storeasy:RuleWatcher:Enabled`.
+
+| Work | When | What |
+|---|---|---|
+| Version state sync | Every 15 minutes | App Store version states; a rejection opens a rejection case. |
+| Review sync | Every 30 minutes | New App Store and Google Play reviews. |
+| TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
+| Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |
+| Rule watcher | Daily 06:00 | Reads the official store pages and files catalog proposals for the instance admin. |
+| Audit log cleanup | Daily 03:30 | Deletes entries older than the organization's retention (90, 180, 365 or 730 days; default 365). |
+| Package cleanup | Hourly | Packages past the organization's retention (default 30 days), abandoned uploads, unconfirmed asset uploads, expired upload tokens. |
+| Notification cleanup | Every 5 days | In-app notifications seen more than 30 days ago, unseen ones older than 60 days. |
+| Activity log cleanup | Every 30 days | Platform activity logs older than 60 days. |
+| Idempotency keys | Hourly | Retry keys of create requests past their window. |
+
+## 12. License and network use (AGPL)
 
 storeasy is licensed under AGPL-3.0-only (see [`LICENSE`](../LICENSE) and [`NOTICE`](../NOTICE)).
 
@@ -418,13 +532,18 @@ storeasy is licensed under AGPL-3.0-only (see [`LICENSE`](../LICENSE) and [`NOTI
   offer them the corresponding source code of your version. The simplest way: publish your fork and set
   `STOREASY_SOURCE_URL` (build argument `VITE_SOURCE_URL`) so the "Source code" link in the web app points at it.
 
-## 12. Known limits
+## 13. Known limits
 
+- Real store calls have not been exercised end to end yet: the store engines are tested against fake App Store
+  Connect, Google Play and Microsoft Store servers. Only the Apple and Google connection roles in
+  [connecting-stores.md](connecting-stores.md) were checked live.
+- The App Store Connect build upload path (`STOREASY_APPLE_UPLOAD_MODE=Api`) still needs one real build to confirm it;
+  `External` is the fallback.
 - The web `Dockerfile` builds for `linux/arm64` (the upstream hosting runs on ARM). On an x86_64 server, either enable
   arm64 emulation (`docker run --privileged --rm tonistiigi/binfmt --install arm64`) or build the web image without the
   platform pin.
 - The API trusts exactly two forwarding hops. A CDN in front of your proxy adds a third hop; then client addresses in
   logs and per-address rate limits show the CDN.
-- Remote MCP, personal access tokens, CI intake (OIDC, CI tokens, EAS and generic webhooks), App Store Connect
-  webhooks, the studio and Microsoft Store are being built (plan phases 3 to 6). Their settings will be added here
-  when they land.
+- The scheduled work of [section 11](#11-retention-and-scheduled-work) runs on every instance that has it enabled;
+  with several instances turn `STOREASY_SCHEDULES_ENABLED` off on all but one.
+- Re-sealing records after a master key rotation is manual ([section 7](#7-master-key-backup-and-rotation)).

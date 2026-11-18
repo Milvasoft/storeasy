@@ -34,7 +34,11 @@ and the steps to add or change a rule are in [rules/README.md](../rules/README.m
 3. Bump `catalogVersion` in `catalog.json` and every store file.
 4. Run `node rules/validate.mjs`. CI runs it on every push.
 
-## Rule watcher (planned)
+## Rule watcher
 
-A periodic job will read the stores' news and requirement pages, detect changes and file them as catalog proposals for
-the instance admin; nothing is published automatically. Approved changes notify the owners of the affected apps.
+A daily job (06:00 UTC) reads the configured official store pages (Apple developer news and requirements, App Store
+Connect release notes and screenshot specifications, Google Play policy pages), detects changes and files them as
+catalog proposals for the instance admin (admin area, **Rules**). Only allow-listed official hosts are fetched. Nothing
+is published automatically: the admin prepares the catalog side of a proposal, then approves or rejects it; an approved
+change goes into the next catalog version of the repository and notifies the owners and admins of the affected apps.
+Settings: `Storeasy:RuleWatcher` in [self-host.md](self-host.md#events-webhooks-and-schedules).
