@@ -147,6 +147,14 @@ public sealed class S3FileStorage(IAmazonS3 client, StorageOptions options) : IF
     public Task DeleteAsync(string key, CancellationToken cancellationToken)
         => _client.DeleteObjectAsync(new DeleteObjectRequest { BucketName = _options.Bucket, Key = key }, cancellationToken);
 
+    /// <inheritdoc/>
+    public async Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken)
+    {
+        var response = await _client.GetObjectAsync(new GetObjectRequest { BucketName = _options.Bucket, Key = key }, cancellationToken);
+
+        return response.ResponseStream;
+    }
+
     private static DateTime Expiry(TimeSpan lifetime) => DateTime.UtcNow.Add(lifetime);
 
     private Amazon.S3.Protocol Protocol()

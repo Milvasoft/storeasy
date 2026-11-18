@@ -84,6 +84,14 @@ public interface IFileStorage
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task DeleteAsync(string key, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Opens an object for reading (the store engine streams assets to the stores). Throws when there is no such object.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken);
 }
 
 /// <summary>

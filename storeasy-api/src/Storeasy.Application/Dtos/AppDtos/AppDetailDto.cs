@@ -58,6 +58,7 @@ public class AppDetailDto : AppListDto
                                 MinOsVersion = b.MinOsVersion,
                                 UploadedDate = b.UploadedDate,
                                 ExpiryDate = b.ExpiryDate,
+                                UsesNonExemptEncryption = b.UsesNonExemptEncryption,
                             }).ToList(),
     };
 }

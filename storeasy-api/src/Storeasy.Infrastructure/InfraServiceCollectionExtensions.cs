@@ -31,6 +31,7 @@ using Storeasy.Infrastructure.Services;
 using Storeasy.Infrastructure.Storage;
 using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.Stores;
+using Storeasy.Infrastructure.Stores.Content;
 using Npgsql;
 
 namespace Storeasy.Infrastructure;
@@ -60,6 +61,19 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IOrganizationAccess, OrganizationAccess>();
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IStoreGateway, StoreGateway>();
+
+        // Store content engine: live reads, change plans and the gateways of each store. The rules catalog is loaded and
+        // validated here, so a broken catalog stops the startup instead of producing wrong readiness answers.
+        var storeApiOptions = configurationManager.GetSection(StoreApiOptions.SectionName).Get<StoreApiOptions>() ?? new StoreApiOptions();
+
+        services.AddSingleton(storeApiOptions);
+        services.AddSingleton<IRulesCatalog>(RulesCatalog.Load(storeApiOptions.RulesPath));
+        services.AddScoped<StoreHttp>();
+        services.AddScoped<IStoreContentGateway, AppleContentGateway>();
+        services.AddScoped<IStoreContentGateway, GoogleContentGateway>();
+        services.AddScoped<IStoreContentService, StoreContentService>();
+        services.AddScoped<IChangePlanService, ChangePlanService>();
+        services.AddScoped<IReadinessService, ReadinessService>();
         services.AddSingleton(TimeProvider.System);
 
         // Store secrets are sealed with the master key from Storeasy__Encryption__MasterKey (user secrets locally). The
@@ -183,6 +197,7 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IStoreJobQueue, StoreJobQueue>();
         services.AddScoped<StoreJobExecutor>();
         services.AddScoped<IStoreJobHandler, SyncAppsJobHandler>();
+        services.AddScoped<IStoreJobHandler, ApplyChangePlanJobHandler>();
 
         // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
         services.AddHostedService<StoreJobRunner>();
