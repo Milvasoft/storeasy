@@ -1,0 +1,1096 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Storeasy.Domain</name>
+    </assembly>
+    <members>
+        <member name="T:Storeasy.Domain.ActivityLog">
+            <summary>
+            Entity of the ActivityLogs table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.ActivityLog.UserName">
+            <summary>
+            Username of the user performing the activity.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.ActivityLog.Activity">
+            <summary>
+            Description of the activity performed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.ActivityLog.ActivityDate">
+            <summary>
+            Date and time when the activity occurred.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.ActivityLog.RelatedId">
+            <summary>
+            Id of the record the activity acted on (e.g. the user or role id), for deep-linking from the log. Null when not applicable.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.ActivityLog.RelatedData">
+            <summary>
+            Optional related detail in JSON format (extra routing/display context for the related record).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ActionChannel">
+            <summary>
+            Where a write came from.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ActionChannel.Web">
+            <summary>
+            The web app.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ActionChannel.Mcp">
+            <summary>
+            The MCP server (a Claude session).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ActionChannel.Api">
+            <summary>
+            The REST API with a personal access token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ActionChannel.System">
+            <summary>
+            storeasy itself (webhook, scheduled sync).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AuditAction">
+            <summary>
+            Kinds of organization audit entries. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationCreated">
+            <summary>Organization created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationUpdated">
+            <summary>Organization renamed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MemberInvited">
+            <summary>Invitation sent.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.InvitationRevoked">
+            <summary>Invitation revoked.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MemberJoined">
+            <summary>Invitation accepted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MemberRoleChanged">
+            <summary>Member role changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.MemberRemoved">
+            <summary>Member removed or left.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionAdded">
+            <summary>Store connection added.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionUpdated">
+            <summary>Store connection secret replaced or renamed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionRemoved">
+            <summary>Store connection removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionVerified">
+            <summary>Store connection verified against the store.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ConnectionStatus">
+            <summary>
+            Result of the last check of a store connection.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ConnectionStatus.NotVerified">
+            <summary>
+            Saved but never checked.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ConnectionStatus.Verified">
+            <summary>
+            The store accepted the credentials.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ConnectionStatus.Rejected">
+            <summary>
+            The store rejected the credentials (401, 403, invalid key).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ConnectionStatus.Unreachable">
+            <summary>
+            The check could not reach a verdict (network error, store 5xx).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.NotificationEntity">
+            <summary>
+            Notication related entity types.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.NotificationType">
+            <summary>
+            Notication types.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.OrgPermission">
+            <summary>
+            An action inside an organization. Requests declare the permission they need and the organization access behaviour
+            checks it against the caller's <see cref="T:Storeasy.Domain.Enums.OrgRole"/> (see <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>). The same check
+            runs for the web app, the REST API and MCP tools.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.View">
+            <summary>
+            See the organization, its apps, listings, jobs and audit log.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.EditContent">
+            <summary>
+            Change listings, screenshots, mockups, builds on versions, age rating and categories.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ReleaseTest">
+            <summary>
+            Upload bundles and release to test tracks.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ReleaseProduction">
+            <summary>
+            Release to the Play production track.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.SubmitForReview">
+            <summary>
+            Submit an App Store version for review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ReplyReviews">
+            <summary>
+            Reply to store reviews.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ManageConnections">
+            <summary>
+            Add, verify and remove store connections (API keys, service accounts).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ManageWebhooks">
+            <summary>
+            Create and remove webhooks.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ManageMembers">
+            <summary>
+            Invite members, change roles below owner, remove members.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgPermission.ManageOrganization">
+            <summary>
+            Assign owners, rename and delete the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.OrgRole">
+            <summary>
+            Role of a user inside one organization. Lower value = more rights. What each role may do is decided in one place:
+            <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgRole.Owner">
+            <summary>
+            Full control, including owners, deletion of the organization and everything an admin can do.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgRole.Admin">
+            <summary>
+            Manages members (except owners), store connections, webhooks, review submission and production releases.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgRole.Editor">
+            <summary>
+            Edits listings, screenshots, mockups and test releases; replies to reviews.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgRole.Viewer">
+            <summary>
+            Read only.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.StoreKind">
+            <summary>
+            A store storeasy talks to.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Apple">
+            <summary>
+            App Store Connect (API key: .p8 private key, key id, issuer id).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Google">
+            <summary>
+            Google Play Developer API (service account JSON key).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.UserActivity">
+            <summary>
+            User activity types. The numeric value is stored in <c>ActivityLogs</c>, so values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.CreateUser">
+            <summary>
+            User added.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.UpdateUser">
+            <summary>
+            User updated.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.DeleteUser">
+            <summary>
+            User deleted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.CreateRole">
+            <summary>
+            Role added.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.UpdateRole">
+            <summary>
+            Role updated.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.DeleteRole">
+            <summary>
+            Role deleted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.UpdateLanguages">
+            <summary>
+            Languages updated.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserActivity.UpdateFeatureFlag">
+            <summary>
+            Feature flag updated.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.UserType">
+            <summary>
+            Determines which screen users will see after logging in to the frontend.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserType.Manager">
+            <summary>
+            Can see management screens.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.UserType.AppUser">
+            <summary>
+            Can see user profile and view screens.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.FeatureFlag">
+            <summary>
+            A runtime kill switch an admin flips from the management endpoints. When <see cref="P:Storeasy.Domain.FeatureFlag.IsEnabled"/> is false the
+            feature behind <see cref="P:Storeasy.Domain.FeatureFlag.Key"/> is disabled for everyone: the endpoints marked with that key answer HTTP 503
+            before their action runs (e.g. an expensive or paid integration is switched off while a quota is hit).
+            Every key in <see cref="F:Storeasy.Domain.FeatureFlagKeys.All"/> gets a row on startup, and a missing row reads as enabled (fail-open).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.FeatureFlag.Key">
+            <summary>Stable key, one of <see cref="T:Storeasy.Domain.FeatureFlagKeys"/>. Unique.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.FeatureFlag.IsEnabled">
+            <summary>Whether the feature is currently on. false = kill switch engaged (feature off for everyone).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.FeatureFlag.Reason">
+            <summary>Optional short reason for the switch (e.g. "Quota"). Null when enabled or unset.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.FeatureFlagKeys">
+            <summary>
+            The canonical set of feature flag keys: the single source of truth for what can be switched off. A new key is
+            added here and to <see cref="F:Storeasy.Domain.FeatureFlagKeys.All"/>; its row is created on the next startup.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.Export">
+            <summary>Excel exports (one export reads up to the export row limit in a single request).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
+            <summary>All known keys, in display order.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.IdempotencyKey">
+            <summary>
+            One client-supplied idempotency key: "this user already sent this create request". A retry of the same
+            action (double tap, a request the network lost, the client's single retry after a token refresh) carries
+            the same <c>Idempotency-Key</c> header, hits the same row and gets the first attempt's response back
+            instead of creating a second record. Rows are short lived: <c>IdempotencyKeyCleanerJob</c> prunes them,
+            so the table stays small and hot.
+            </summary>
+            <remarks>
+            The primary key is <c>(UserId, Key)</c>: a key is only ever valid for the caller that minted it, so one
+            user can never consume another's. <see cref="P:Storeasy.Domain.IdempotencyKey.RequestHash"/> pins the key to the request it was first used
+            with; the same key with a different body is rejected instead of silently replaying the wrong response.
+            </remarks>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.UserId">
+            <summary>Caller the key belongs to (part of the primary key).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.Key">
+            <summary>The key the client sent (part of the primary key).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.Endpoint">
+            <summary>Route the key was first used on, for diagnostics.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.RequestHash">
+            <summary>SHA-256 of the route and the bound request, so the same key cannot be reused for another request.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.ResponseData">
+            <summary>The first attempt's response envelope (JSON), replayed verbatim to retries. Null while the request is still running.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.CompletedAt">
+            <summary>When the first attempt finished successfully. Null means "in progress" (or abandoned).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.IdempotencyKey.CreationDate">
+            <summary>When the key was claimed. Drives both the abandoned-claim takeover and the cleanup job.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.InternalNotification">
+            <summary>
+            Internal generic notification entity. Unseen notifications are deleted in 60 days, seen notifications in 30 days.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.RecipientUserName">
+            <summary>
+            The user who will receive this notification.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.RecipientUserId">
+            <summary>
+            Recipient user identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.Type">
+            <summary>
+            Notification type.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.SeenDate">
+            <summary>
+            Date when the user marked this notification as seen.
+            Null if unseen.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.Text">
+            <summary>
+            Text content of the notification. Can be null. 
+            If it is null, Data property should be used in frontend(text generated with translations in frontend) for dynamic content.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.Data">
+            <summary>
+            JSON data payload for dynamic content or localization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.RelatedEntityType">
+            <summary>
+            Notification related entity.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.RelatedEntityId">
+            <summary>
+            Related entity identifier. Can be null.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.InternalNotification.ActionLink">
+            <summary>
+            Client-side URL/route to navigate when the notification is clicked.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ConnectionFingerprint">
+            <summary>
+            Non secret identifiers of a store connection, shown in place of the secret.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.KeyId">
+            <summary>
+            App Store Connect key id (10 characters). Null for Google.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.IssuerIdSuffix">
+            <summary>
+            Last 4 characters of the App Store Connect issuer id. Null for Google.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.ServiceAccountEmail">
+            <summary>
+            Google service account e-mail. Null for Apple.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.ProjectId">
+            <summary>
+            Google Cloud project id of the service account. Null for Apple.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.RequestInfo">
+            <summary>
+            Contains api request information.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.Method">
+            <summary>
+            Http method of request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.AbsoluteUri">
+            <summary>
+            Absolute uri of request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.QueryString">
+            <summary>
+            Query string of request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.Headers">
+            <summary>
+            Request headers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.ContentLength">
+            <summary>
+            Request length.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.RequestInfo.Body">
+            <summary>
+            Request body.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Language">
+            <summary>
+            Language entity.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Language.GetUniqueIdentifier">
+            <summary>
+            Gets the unique identifier of the entity.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Language.ToString">
+            <summary>
+            Returns this instance of "<see cref="T:System.Type"/>.Name <see cref="T:Milvasoft.Core.EntityBases.Concrete.BaseEntity`1"/>.Id" as string.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.MethodLog">
+            <summary>
+            Shape of a method log entry produced by the <c>[Log]</c> interceptor. It is not a table: <c>StoreasyDbLogger</c>
+            deserializes the entry into it and writes it to the log pipeline (Serilog), never to the application database.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.Organization">
+            <summary>
+            A team that owns store connections and apps. Every store record, job and audit row belongs to exactly one
+            organization, and a user reaches them only through an <see cref="T:Storeasy.Domain.Organizations.OrganizationMember"/> row.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.Organization.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.Organization.Name"/>; the validators use the same limit.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.Organization.SlugMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.Organization.Slug"/>; the validators use the same limit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.Slug">
+            <summary>
+            URL friendly unique key (lower case letters, digits and hyphens).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.Members">
+            <summary>
+            Members of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.OrganizationInvitation">
+            <summary>
+            An e-mail invitation to join an organization with a role. Only the SHA-256 hash of the token is stored; the token
+            itself is shown once in the invitation link. An invitation is single use and expires after <see cref="F:Storeasy.Domain.Organizations.OrganizationInvitation.Lifetime"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationInvitation.Lifetime">
+            <summary>
+            How long an invitation stays valid.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.OrganizationId">
+            <summary>
+            Organization identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.Email">
+            <summary>
+            Invited e-mail address as typed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.NormalizedEmail">
+            <summary>
+            Upper case form of <see cref="P:Storeasy.Domain.Organizations.OrganizationInvitation.Email"/> for lookups.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.Role">
+            <summary>
+            Role the invitee gets on acceptance. Never <see cref="F:Storeasy.Domain.Enums.OrgRole.Owner"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.TokenHash">
+            <summary>
+            Hex SHA-256 hash of the invitation token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.ExpiryDate">
+            <summary>
+            UTC instant after which the invitation can no longer be accepted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.AcceptDate">
+            <summary>
+            UTC instant of acceptance. Null while pending.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.RevokeDate">
+            <summary>
+            UTC instant of revocation. Null unless an admin revoked it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.InviterUserId">
+            <summary>
+            Id of the user who sent the invitation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.OrganizationMember">
+            <summary>
+            Membership of a user in an organization with one <see cref="T:Storeasy.Domain.Enums.OrgRole"/>. A user has at most one row per organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.OrganizationId">
+            <summary>
+            Organization identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.UserId">
+            <summary>
+            Member user identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.Role">
+            <summary>
+            Role of the user in this organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.User">
+            <summary>
+            Navigation property of the user.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.OrgRoleRules">
+            <summary>
+            The organization role matrix (docs/urun-plani.md section 6) and the pure rules around role changes. No database.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.Allows(Storeasy.Domain.Enums.OrgRole,Storeasy.Domain.Enums.OrgPermission)">
+            <summary>
+            Whether <paramref name="role"/> grants <paramref name="permission"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.PermissionsOf(Storeasy.Domain.Enums.OrgRole)">
+            <summary>
+            The permissions of <paramref name="role"/>, in enum order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanAssign(Storeasy.Domain.Enums.OrgRole,System.Nullable{Storeasy.Domain.Enums.OrgRole},Storeasy.Domain.Enums.OrgRole)">
+            <summary>
+            Whether an actor with <paramref name="actorRole"/> may give <paramref name="newRole"/> to a member who has
+            <paramref name="currentRole"/> (null for a new member or an invitation). Owners may do anything; admins may not
+            touch owners or create them; nobody else manages members.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanRemove(Storeasy.Domain.Enums.OrgRole,Storeasy.Domain.Enums.OrgRole)">
+            <summary>
+            Whether an actor with <paramref name="actorRole"/> may remove a member who has <paramref name="memberRole"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.RemovesLastOwner(System.Int32,Storeasy.Domain.Enums.OrgRole,System.Nullable{Storeasy.Domain.Enums.OrgRole})">
+            <summary>
+            Whether the change leaves the organization without an owner. <paramref name="ownerCount"/> is the number of
+            owners before the change.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.ToSlug(System.String)">
+            <summary>
+            Normalizes a slug candidate: lower case ASCII letters, digits and single hyphens, trimmed to
+            <see cref="F:Storeasy.Domain.Organizations.Organization.SlugMaxLength"/>. Turkish letters are mapped to ASCII.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Permission">
+            <summary>
+            Entity of the Permissions table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.Name">
+            <summary>
+            Name of the permission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.Description">
+            <summary>
+            Name of the permission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.NormalizedName">
+            <summary>
+            Normalized name of the permission for consistent comparison.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.PermissionGroup">
+            <summary>
+            Group name or category the permission belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.PermissionGroupDescription">
+            <summary>
+            Group name or category the permission belongs to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Permission.RolePermissionRelations">
+            <summary>
+            Navigation property of role relation.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Permission.FormatPermissionAndGroup">
+            <summary>
+            Formats the permission and group name with a dot.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Role">
+            <summary>
+            Entity of the Roles table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Role.Name">
+            <summary>
+            Name of the role.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Role.UserRoleRelations">
+            <summary>
+            Navigation property of users relation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Role.RolePermissionRelations">
+            <summary>
+            Navigation property of permission relation.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.RolePermissionRelation">
+            <summary>
+            Entity of the RolePermissionRelations table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.RolePermissionRelation.RoleId">
+            <summary>
+            ID of the role.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.RolePermissionRelation.PermissionId">
+            <summary>
+            ID of the permission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.RolePermissionRelation.Role">
+            <summary>
+            Navigation property of Role relation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.RolePermissionRelation.Permission">
+            <summary>
+            Navigation property of Permission relation.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreAuditLog">
+            <summary>
+            One write in an organization: to a store (listing, screenshot, release...) or to the organization itself (member,
+            connection). Rows are never updated; the organization's members with <see cref="F:Storeasy.Domain.Enums.OrgPermission.View"/> read them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.OrganizationId">
+            <summary>
+            Organization the write happened in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.UserId">
+            <summary>
+            Acting user. Null for system actions (webhook, scheduled sync).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.UserName">
+            <summary>
+            User name of the actor at the time of the action ("system" for system actions).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Channel">
+            <summary>
+            Where the action came from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Action">
+            <summary>
+            What happened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Store">
+            <summary>
+            Store the action touched. Null for organization actions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.TargetId">
+            <summary>
+            Id of the affected record (connection id, member id, store app id...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Summary">
+            <summary>
+            One line, human readable summary without secrets.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Details">
+            <summary>
+            Optional structured details (field level changes), JSON.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreAuditLog.Date">
+            <summary>
+            UTC instant of the action.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreConnection">
+            <summary>
+            An organization's credentials for one store account. The secret (the .p8 key with its ids, or the service account
+            JSON) is envelope encrypted: <see cref="P:Storeasy.Domain.Stores.StoreConnection.EncryptedSecret"/> is sealed with a per row data key, and
+            <see cref="P:Storeasy.Domain.Stores.StoreConnection.EncryptedDataKey"/> is that data key sealed with the master key version <see cref="P:Storeasy.Domain.Stores.StoreConnection.KeyVersion"/>.
+            The secret never leaves the API process: no DTO carries it, only <see cref="P:Storeasy.Domain.Stores.StoreConnection.Fingerprint"/> is shown.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnection.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreConnection.Name"/>; the validators use the same limit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Store">
+            <summary>
+            Which store the credentials are for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Name">
+            <summary>
+            Display name chosen by the user (e.g. "Company team key").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Fingerprint">
+            <summary>
+            Non secret identifiers safe to show (key id, masked issuer id, service account e-mail).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.EncryptedSecret">
+            <summary>
+            The secret sealed with the data key (nonce + ciphertext + tag).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.EncryptedDataKey">
+            <summary>
+            The data key sealed with the master key (nonce + ciphertext + tag).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.KeyVersion">
+            <summary>
+            Version of the master key that sealed <see cref="P:Storeasy.Domain.Stores.StoreConnection.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Status">
+            <summary>
+            Result of the last verification.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.LastVerifiedDate">
+            <summary>
+            UTC instant of the last verification. Null if never verified.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.LastVerifyError">
+            <summary>
+            Short, already redacted reason of the last failed verification. Null on success.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.User">
+            <summary>
+            Entity of the Users table.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.User.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.User.Name"/> and <see cref="P:Storeasy.Domain.User.Surname"/>; the create and update validators use the same limit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.Name">
+            <summary>
+            First name of the user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.Surname">
+            <summary>
+            Last name of the user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.UserType">
+            <summary>
+            Type of the user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.AllowedNotifications">
+            <summary>
+            Allowed notification types for this user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.SessionStamp">
+            <summary>
+            Revocation stamp. Baked into the access token at login; every request compares the token's
+            stamp against the current value (cached in Redis, the database is the source of truth). Rotating it
+            (password change, role change, lock, deletion) instantly invalidates every existing access
+            token of this user. Null until the user's first token is minted (assigned lazily by the security stamp store).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.LastModificationDate">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.CreationDate">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.CreatorUserName">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.LastModifierUserName">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.DeleterUserName">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.DeletionDate">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.IsDeleted">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Domain.User.RoleRelations">
+            <summary>
+            Navigation property of roles relation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.Sessions">
+            <summary>
+            Navigation property of user sessions relation.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.User.GetCurrentUser(System.IServiceProvider)">
+            <summary>
+            Get current user delegate. Gets the current user from the http context.
+            </summary>
+            <param name="serviceProvider"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.UserRoleRelation">
+            <summary>
+            Entity of the UserRoleRelations table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserRoleRelation.UserId">
+            <summary>
+            ID of the user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserRoleRelation.RoleId">
+            <summary>
+            ID of the role.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserRoleRelation.Role">
+            <summary>
+            Navigation property of Role relation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserRoleRelation.User">
+            <summary>
+            Navigation property of User relation.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.UserSession">
+            <summary>
+            Entity of the Users table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.UserName">
+            <summary>
+            Gets or sets the user name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.AccessToken">
+            <summary>
+            Gets or sets the access token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.RefreshToken">
+            <summary>
+            Gets or sets the refresh token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.ExpiryDate">
+            <summary>
+            Gets or sets the expiry date.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.DeviceId">
+            <summary>
+            Gets or sets the device ID.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.IpAddress">
+            <summary>
+            Gets or sets the Ip address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.UserId">
+            <summary>
+            Related user id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.User">
+            <summary>
+            Navigation property of user relation.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.UserSessionHistory">
+            <summary>
+            Entity of the Users table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.UserName">
+            <summary>
+            Gets or sets the user name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.AccessToken">
+            <summary>
+            Gets or sets the access token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.RefreshToken">
+            <summary>
+            Gets or sets the refresh token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.ExpiryDate">
+            <summary>
+            Gets or sets the expiry date.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.DeviceId">
+            <summary>
+            Gets or sets the device ID.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.UserId">
+            <summary>
+            Related user id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSessionHistory.IpAddress">
+            <summary>
+            Gets or sets the Ip address.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.UserSessionHistory.#ctor">
+            <summary>
+            Initializes new instance of <see cref="T:Storeasy.Domain.UserSessionHistory"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.UserSessionHistory.#ctor(Storeasy.Domain.UserSession)">
+            <summary>
+            Initializes new instance of <see cref="T:Storeasy.Domain.UserSessionHistory"/> with given <paramref name="session"/>.
+            </summary>
+            <param name="session"></param>
+        </member>
+        <member name="T:Storeasy.Domain.DomainAssembly">
+            <summary>
+            Static class for ease of assembly access.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.DomainAssembly.Assembly">
+            <summary>
+            Assembly instance.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.MigrationHistory">
+            <summary>
+            Entity of the MigrationHistory table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.MigrationHistory.MigrationId">
+            <summary>
+            Id of migration
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.MigrationHistory.MigrationCompleted">
+            <summary>
+            Migration fully completed or not.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.EfMigrationHistory">
+            <summary>
+            Entity of the MigrationHistory table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EfMigrationHistory.MigrationId">
+            <summary>
+            Id of migration
+            </summary>
+        </member>
+    </members>
+</doc>

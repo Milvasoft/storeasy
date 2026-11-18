@@ -1,0 +1,185 @@
+﻿using Cronos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Milvasoft.Caching.Builder;
+using Milvasoft.Caching.Redis;
+using Milvasoft.Caching.Redis.Accessor;
+using Milvasoft.Core.Abstractions;
+using Milvasoft.DataAccess.EfCore;
+using Milvasoft.Interception.Decorator;
+using Milvasoft.Interception.Ef;
+using Milvasoft.JobScheduling;
+using Storeasy.Application;
+using Storeasy.Application.Interfaces;
+using Storeasy.Application.Utils.Aspects.UserActivityLogAspect;
+using Storeasy.Application.Utils.Extensions;
+using Storeasy.Application.Utils.Helpers;
+using Storeasy.Application.Utils.Models;
+using Storeasy.Domain;
+using Storeasy.Infrastructure.Jobs;
+using Storeasy.Infrastructure.LazyImpl;
+using Storeasy.Infrastructure.Logging;
+using Storeasy.Infrastructure.Persistence.Context;
+using Storeasy.Infrastructure.Persistence.Repository;
+using Storeasy.Infrastructure.Security;
+using Storeasy.Infrastructure.Services;
+using Storeasy.Infrastructure.Stores;
+using Npgsql;
+
+namespace Storeasy.Infrastructure;
+
+/// <summary>
+/// Infrastructure service collection extensions.
+/// </summary>
+public static class InfraServiceCollectionExtensions
+{
+    /// <summary>
+    /// Adds infrastructure services.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        services.AddScoped<IMilvaLogger, StoreasyDbLogger>();
+        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<ISecurityStampStore, SecurityStampStore>();
+        services.AddScoped<IPermissionManager, PermissionManager>();
+        services.AddScoped<IAccountManager, AccountManager>();
+        services.AddScoped<IDeveloperService, DeveloperService>();
+        services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IFeatureFlagService, FeatureFlagService>();
+        services.AddScoped<IOrganizationAccess, OrganizationAccess>();
+        services.AddScoped<IAuditTrail, AuditTrail>();
+        services.AddScoped<IStoreGateway, StoreGateway>();
+        services.AddSingleton(TimeProvider.System);
+
+        // Store secrets are sealed with the master key from Storeasy__Encryption__MasterKey (user secrets locally). The
+        // protector is created on first use and stops with a message naming the variable when the key is missing.
+        var encryptionOptions = configurationManager.GetSection(EncryptionOptions.SectionName).Get<EncryptionOptions>() ?? new EncryptionOptions();
+
+        services.AddSingleton(encryptionOptions);
+        services.AddSingleton<ISecretProtector, EnvelopeSecretProtector>();
+
+        // One client for App Store Connect and Google Play calls; tests replace its handler.
+        services.AddHttpClient(StoreGateway.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
+
+        // Retry safety for the create endpoints marked [Idempotent]; see IdempotencyStore. Expired keys are deleted by IdempotencyKeyCleanerJob.
+        services.AddScoped<IIdempotencyStore, IdempotencyStore>();
+
+        // Must be registered before AddMilvaInterception: interception decorates only the IInterceptable
+        // implementations registered up to that call, and the transaction comes from that decoration.
+        services.AddScoped<ITransactionRunner, TransactionRunner>();
+
+        services.AddTransient(typeof(Lazy<>), typeof(StoreasyLazy<>));
+
+        services.AddInternalJobs();
+
+        services.AddDataAccessServices(configurationManager);
+
+        // Redis is the shared state of every instance: the [Cache] interceptor, the token revocation stamps and the
+        // rate limit counters. The connection is lazy and retries in the background, so the application starts
+        // (and every Redis consumer falls back or fails open) while Redis is unreachable.
+        services.AddMilvaCaching(configurationManager)
+                .WithRedisAccessor();
+
+        // Every Redis key of this application starts with its own prefix (CacheKeys), so applications sharing one Redis
+        // never read each other's entries. Milvasoft's Redis options have no key prefix of their own.
+        var cacheKeyOptions = configurationManager.GetSection(CacheKeyOptions.SectionName).Get<CacheKeyOptions>() ?? new CacheKeyOptions();
+
+        services.AddSingleton(cacheKeyOptions);
+        services.AddSingleton<CacheKeys>();
+
+        services.AddMilvaInterception(ApplicationAssembly.Assembly, configurationManager)
+                .WithLogInterceptor()
+                .WithResponseInterceptor()
+                .WithCacheInterceptor()
+                .WithTransactionInterceptor()
+                .WithActivityInterceptor()
+                .WithInterceptor<UserActivityLogInterceptor>()
+                .PostConfigureInterceptionOptions(opt =>
+                {
+                    opt.Response.GenerateMetadataFunc = StoreasyExtensions.GenerateMetadata;
+                    opt.Cache.CacheAccessorType = typeof(IRedisAccessor);
+
+                    // The [Cache] keys are hashes of the method and its arguments: the prefix goes into the hash.
+                    opt.Cache.CacheKeyConfigurator = _ => cacheKeyOptions.Prefix;
+                })
+                .PostConfigureTransactionInterceptionOptions(opt =>
+                {
+                    opt.DbContextType = typeof(StoreasyDbContext);
+                });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds data access services.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configurationManager"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddDataAccessServices(this IServiceCollection services, IConfigurationManager configurationManager)
+    {
+        var connectionString = configurationManager.GetConnectionString("DefaultConnectionString");
+
+        services.ConfigureMilvaDataAccess(configurationManager)
+                .PostConfigureMilvaDataAccess(opt =>
+                {
+                    opt.GetCurrentUserNameMethod = User.GetCurrentUser;
+                })
+                .AddInjectedDbContext<StoreasyDbContext>();
+
+        var dataSource = new NpgsqlDataSourceBuilder(connectionString).EnableDynamicJson().Build();
+
+        services.AddPooledDbContextFactory<StoreasyDbContext>((provider, options) =>
+        {
+            options.ConfigureWarnings(warnings => { warnings.Log(RelationalEventId.PendingModelChangesWarning); });
+
+            options.UseNpgsql(dataSource, b => b.MigrationsHistoryTable(TableNames.EfMigrationHistory).MigrationsAssembly("Storeasy.Api").EnableRetryOnFailure())
+                   .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+        });
+
+        services.AddScoped<StoreasyDbContextScopedFactory>();
+        services.AddScoped(sp => sp.GetRequiredService<StoreasyDbContextScopedFactory>().CreateDbContext());
+
+        services.AddScoped(typeof(IStoreasyRepositoryBase<>), typeof(StoreasyRepositoryBase<>));
+        services.AddScoped<IStoreasyDbContextAccessor, StoreasyDbContextAccessor>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds internal cron jobs.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddInternalJobs(this IServiceCollection services)
+    {
+        services.AddMilvaCronJob<ActivityLogCleanerJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = @"0 2 */30 * *"; // At 02:00 AM, every 30 days
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        services.AddMilvaCronJob<NotificationCleanerJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = @"0 3 */5 * *"; // At 03:00 AM, every 5 days
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        services.AddMilvaCronJob<IdempotencyKeyCleanerJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = @"0 * * * *"; // At minute 0 of every hour
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        return services;
+    }
+}

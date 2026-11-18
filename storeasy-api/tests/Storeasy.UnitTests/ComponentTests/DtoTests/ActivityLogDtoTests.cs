@@ -1,0 +1,63 @@
+﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore.Query;
+using Storeasy.Application.Dtos.ActivityLogDtos;
+using Storeasy.Domain;
+using Storeasy.Domain.Enums;
+using System.Linq.Expressions;
+
+namespace Storeasy.UnitTests.ComponentTests.DtoTests;
+
+[Trait("DTO Unit Tests", "DTO models property and method unit tests.")]
+public class ActivityLogDtoTests
+{
+    [Fact]
+    public void ActivityLogListDto_PropertyGetterSetter_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var id = 1;
+        var userName = "TestUser";
+        var activity = UserActivity.CreateUser;
+        var activityDescription = "User added";
+        var activityDate = DateTimeOffset.UtcNow;
+
+        // Act
+        var activityLogListDto = new ActivityLogListDto
+        {
+            Id = id,
+            UserName = userName,
+            Activity = activity,
+            ActivityDescription = activityDescription,
+            ActivityDate = activityDate,
+        };
+
+        // Assert
+        activityLogListDto.Id.Should().Be(id);
+        activityLogListDto.UserName.Should().Be(userName);
+        activityLogListDto.Activity.Should().Be(activity);
+        activityLogListDto.ActivityDescription.Should().Be(activityDescription);
+        activityLogListDto.ActivityDate.Should().Be(activityDate);
+    }
+
+    [Fact]
+    public void ActivityLogListDto_Projection_ShouldReturnCorrectly()
+    {
+        // Arrange
+        Expression<Func<ActivityLog, ActivityLogListDto>> expectedExpression = a => new ActivityLogListDto
+        {
+            Id = a.Id,
+            UserName = a.UserName,
+            Activity = a.Activity,
+            ActivityDate = a.ActivityDate,
+            RelatedId = a.RelatedId,
+            RelatedData = a.RelatedData,
+        };
+
+        // Act
+        var result = ActivityLogListDto.Projection;
+
+        // Assert
+        var equality = ExpressionEqualityComparer.Instance.Equals(expectedExpression, result);
+
+        equality.Should().BeTrue();
+    }
+}

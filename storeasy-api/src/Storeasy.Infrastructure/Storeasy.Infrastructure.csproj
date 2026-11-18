@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<DocumentationFile>..\Storeasy.Infrastructure\Storeasy.Infrastructure.xml</DocumentationFile>
+		<Configurations>Debug;Release;TemplateTest</Configurations>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="AsyncFixer" Version="2.1.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Bogus" Version="35.6.5" />
+		<PackageReference Include="ClosedXML" Version="0.105.1" />
+		<PackageReference Include="Milvasoft.Caching.Redis" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.JobScheduling" Version="11.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="11.0.0-rc.3" />
+		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageReference Include="Serilog.Expressions" Version="5.1.0-dev-02309" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Storeasy.Application\Storeasy.Application.csproj" />
+	</ItemGroup>
+
+
+</Project>

@@ -1,0 +1,1368 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Storeasy.Infrastructure</name>
+    </assembly>
+    <members>
+        <member name="T:Storeasy.Infrastructure.InfraServiceCollectionExtensions">
+            <summary>
+            Infrastructure service collection extensions.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddInfrastructureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds infrastructure services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddDataAccessServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds data access services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.InfraServiceCollectionExtensions.AddInternalJobs(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds internal cron jobs.
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.InfrastructureAssembly">
+            <summary>
+            Static class for ease of assembly access.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.InfrastructureAssembly.Assembly">
+            <summary>
+            Assembly instance.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob">
+            <summary>
+            Deletes the activity logs older than 60 days (<c>activityLog_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Deletes the activity logs older than 60 days (<c>activityLog_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob">
+            <summary>
+            Deletes the idempotency keys whose retry window has passed (<c>idempotencyKey_cleanup.sql</c>). A key only exists to
+            turn a retried create request into a replay of the first answer; a client never retries a day later, so older rows are
+            disposable and the table stays small. Runs hourly, so one run only ever deletes about an hour of keys.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Deletes the idempotency keys whose retry window has passed (<c>idempotencyKey_cleanup.sql</c>). A key only exists to
+            turn a retried create request into a replay of the first answer; a client never retries a day later, so older rows are
+            disposable and the table stays small. Runs hourly, so one run only ever deletes about an hour of keys.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.NotificationCleanerJob">
+            <summary>
+            Deletes the internal notifications seen more than 30 days ago and the unseen ones created more than 60 days ago
+            (<c>notification_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Deletes the internal notifications seen more than 30 days ago and the unseen ones created more than 60 days ago
+            (<c>notification_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.SqlCleanupJob">
+            <summary>
+            Base of the cleanup jobs: on every run executes one SQL file of <see cref="P:Storeasy.Application.Utils.Constants.GlobalConstant.SqlFilesPath"/> against the
+            application database and logs the affected row count. A failure is logged and swallowed, so a cleanup problem never
+            stops the host; the next run retries. Because the job hides its own errors, every derived job has an integration test
+            that runs it against a real database and asserts that the expected rows are gone.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.SqlCleanupJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Base of the cleanup jobs: on every run executes one SQL file of <see cref="P:Storeasy.Application.Utils.Constants.GlobalConstant.SqlFilesPath"/> against the
+            application database and logs the affected row count. A failure is logged and swallowed, so a cleanup problem never
+            stops the host; the next run retries. Because the job hides its own errors, every derived job has an integration test
+            that runs it against a real database and asserts that the expected rows are gone.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.SqlCleanupJob.SqlFileName">
+            <summary>
+            Name of the SQL file (under <see cref="P:Storeasy.Application.Utils.Constants.GlobalConstant.SqlFilesPath"/>) the job executes.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.SqlCleanupJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1">
+            <summary>
+            Custom <see cref="T:System.Lazy`1"/> class.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <remarks>
+            Constructor of <see cref="T:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1"/>.
+            </remarks>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1.#ctor(System.IServiceProvider)">
+            <summary>
+            Custom <see cref="T:System.Lazy`1"/> class.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <remarks>
+            Constructor of <see cref="T:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1"/>.
+            </remarks>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Logging.RemoveTypeTagEnricher">
+            <summary>
+            Removes _typeTag from Serilog's output.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.RemoveTypeTagEnricher.Enrich(Serilog.Events.LogEvent,Serilog.Core.ILogEventPropertyFactory)">
+            <summary>
+            Removes _typeTag from Serilog's output.
+            </summary>
+            <param name="logEvent"></param>
+            <param name="propertyFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.RemoveTypeTagEnricher.RemoveTypeTags(Serilog.Events.LogEventPropertyValue)">
+            <summary>
+            Removes _typeTag from Serilog's output.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Logging.StoreasyDbLogger">
+            <summary>
+            Example <see cref="T:Milvasoft.Core.Abstractions.IMilvaLogger"/> implementation.
+            </summary>
+            <param name="loggerFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.#ctor(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Example <see cref="T:Milvasoft.Core.Abstractions.IMilvaLogger"/> implementation.
+            </summary>
+            <param name="loggerFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Log(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.LogAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Debug(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Debug(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Debug(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Debug(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Error(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Error(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Error(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Error(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Fatal(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Fatal(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Fatal(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Fatal(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Information(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Information(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Information(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Information(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Verbose(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Verbose(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Verbose(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Verbose(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Warning(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Warning(System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Warning(System.Exception,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.Warning(System.Exception,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Logging.StoreasyDbLogger.WriteMethodLog(System.String)">
+            <summary>
+            Writes a <c>[Log]</c> method log entry. With <c>LogDefaultParameters</c> off (the template default) the interceptor
+            sends an entry without the method name, arguments and result; such an entry carries nothing worth a log line.
+            </summary>
+            <param name="logEntry"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext">
+            <summary>
+            Handles all database operations. Inherits <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext"/>
+            </summary>
+            
+            <remarks>
+            <para> You must register <see cref="T:Milvasoft.DataAccess.EfCore.Configuration.IDataAccessConfiguration"/> in your application startup. </para>
+            <para> If <see cref="T:Milvasoft.DataAccess.EfCore.Configuration.IDataAccessConfiguration"/>'s AuditDeleter, AuditModifier or AuditCreator is true
+                   and HttpMethod is POST,PUT or DELETE it will gets performer user in constructor from database.
+                   This can affect performance little bit. But you want audit every record easily you must use this :( </para>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions)">
+            <summary>
+            Handles all database operations. Inherits <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext"/>
+            </summary>
+            
+            <remarks>
+            <para> You must register <see cref="T:Milvasoft.DataAccess.EfCore.Configuration.IDataAccessConfiguration"/> in your application startup. </para>
+            <para> If <see cref="T:Milvasoft.DataAccess.EfCore.Configuration.IDataAccessConfiguration"/>'s AuditDeleter, AuditModifier or AuditCreator is true
+                   and HttpMethod is POST,PUT or DELETE it will gets performer user in constructor from database.
+                   This can affect performance little bit. But you want audit every record easily you must use this :( </para>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <summary>
+            Configures what attributes cannot express, in addition to the base Milvasoft model configuration.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextAccessor">
+            <summary>
+            Storeasy scoped factory.
+            </summary>
+            <remarks>
+            Initializes new instance of <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory"/>.
+            </remarks>
+            <param name="context"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextAccessor.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            Storeasy scoped factory.
+            </summary>
+            <remarks>
+            Initializes new instance of <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory"/>.
+            </remarks>
+            <param name="context"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextAccessor.GetDbContext">
+            <summary>
+            Db context creation implementation.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory">
+            <summary>
+            Storeasy scoped factory.
+            </summary>
+            <remarks>
+            Initializes new instance of <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory"/>.
+            </remarks>
+            <param name="pooledFactory"></param>
+            <param name="dataAccessConfiguration"></param>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory.#ctor(Microsoft.EntityFrameworkCore.IDbContextFactory{Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext},Milvasoft.DataAccess.EfCore.Configuration.IDataAccessConfiguration,System.IServiceProvider)">
+            <summary>
+            Storeasy scoped factory.
+            </summary>
+            <remarks>
+            Initializes new instance of <see cref="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory"/>.
+            </remarks>
+            <param name="pooledFactory"></param>
+            <param name="dataAccessConfiguration"></param>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContextScopedFactory.CreateDbContext">
+            <summary>
+            Db context creation implementation.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.DatabaseMigrator">
+            <summary>
+            Data seed methods.
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.#ctor(System.IServiceProvider)">
+            <summary>
+            Data seed methods.
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.ResetDatabaseAsync(System.Threading.CancellationToken)">
+            <summary>
+            Remove, recreates and seed database for development purposes.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.CreateTriggersAsync(System.Threading.CancellationToken)">
+            <summary>
+            Creates default triggers.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.SeedDefaultDataAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Seeds default production data.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.SeedFakeDataAsync(System.Boolean,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Seeds fake data.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.MigratePermissionsAsync(Storeasy.Application.Interfaces.IPermissionManager,System.Threading.CancellationToken)">
+            <summary>
+            Migrate default permissions.
+            </summary>
+            <param name="permissionManager"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.DatabaseMigrator.InitDatabaseAsync(Storeasy.Application.Interfaces.IPermissionManager,System.Threading.CancellationToken)">
+            <summary>
+            Initial data seed and migration operation for production.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.UserFaker">
+            <summary>
+            Data faker.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.UserFaker.#ctor(System.Boolean,System.String,System.Collections.Generic.List{Storeasy.Domain.Role})">
+            <summary>
+            Constructor for faker.
+            </summary>
+            <param name="sameData"></param>
+            <param name="locale"></param>
+            <param name="roles"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.RoleFaker">
+            <summary>
+            Data faker.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.RoleFaker.#ctor(System.Boolean,System.String)">
+            <summary>
+            Constructor for faker.
+            </summary>
+            <param name="sameData"></param>
+            <param name="locale"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.FeatureFlagSeeder">
+            <summary>
+            Creates the <see cref="T:Storeasy.Domain.FeatureFlag"/> row of every key in <see cref="F:Storeasy.Domain.FeatureFlagKeys.All"/>, so each switch shows up
+            on the management endpoints (enabled) as soon as its key exists in code.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.FeatureFlagSeeder.SeedAsync(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,System.Threading.CancellationToken)">
+            <summary>
+            Inserts the keys that have no row yet (enabled). Idempotent and never touches an existing row, so it is safe on
+            every startup.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.LanguageSeeder">
+            <summary>
+            The single place that writes the <see cref="T:Milvasoft.Core.MultiLanguage.Manager.LanguagesSeed"/> languages and loads the language list the
+            multi-language layer (<see cref="T:Milvasoft.Core.MultiLanguage.Manager.MultiLanguageManager"/>) reads translations with. Every seeder and the startup
+            migration go through here instead of repeating the insert and the list refresh.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.LanguageSeeder.SeedAsync(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,System.Threading.CancellationToken)">
+            <summary>
+            Inserts the seed languages that are not in the database yet (matched by code), then refreshes the language
+            list. Idempotent, so it is safe on an initialized database. On a fresh database it must run after
+            <c>create_triggers.sql</c>, which starts the language ids at 21.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.LanguageSeeder.LoadAsync(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,System.Threading.CancellationToken)">
+            <summary>
+            Loads the languages from the database into <see cref="T:Milvasoft.Core.MultiLanguage.Manager.MultiLanguageManager"/>.
+            </summary>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Persistence.Repository.StoreasyRepositoryBase`1">
+            <summary>
+            Base repository of the application entities.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Persistence.Repository.StoreasyRepositoryBase`1.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            Base repository of the application entities.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Security.EnvelopeSecretProtector">
+            <summary>
+            AES-256-GCM envelope encryption. Layout of each sealed blob: 12 byte nonce, ciphertext, 16 byte tag.
+            The secret blob uses the associated data given by the caller; the data key blob additionally binds the key version.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.#ctor(Storeasy.Application.Utils.Models.EncryptionOptions)">
+            <summary>
+            Creates the protector. Throws <see cref="T:System.InvalidOperationException"/> naming the environment variable when the
+            master key is missing or not a base64 encoded 32 byte value.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.CurrentKeyVersion">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.Protect(System.ReadOnlySpan{System.Byte},System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Security.EnvelopeSecretProtector.Unprotect(Storeasy.Application.Interfaces.ProtectedSecret,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.AccountManager">
+            <summary>
+            User login operation.
+            It updates sessions in database.
+            Generates access and refresh tokens.
+            </summary>
+            <param name="userSessionRepository"></param>
+            <param name="userSessionHistoriesRepository"></param>
+            <param name="milvaTokenManager"></param>
+            <param name="identityOptions"></param>
+            <param name="securityStampStore"></param>
+            <param name="httpContextAccessor"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountManager.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.UserSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.UserSessionHistory},Milvasoft.Identity.Abstract.IMilvaTokenManager,Milvasoft.Identity.Concrete.Options.MilvaIdentityOptions,Storeasy.Application.Interfaces.ISecurityStampStore,Microsoft.AspNetCore.Http.IHttpContextAccessor)">
+            <summary>
+            User login operation.
+            It updates sessions in database.
+            Generates access and refresh tokens.
+            </summary>
+            <param name="userSessionRepository"></param>
+            <param name="userSessionHistoriesRepository"></param>
+            <param name="milvaTokenManager"></param>
+            <param name="identityOptions"></param>
+            <param name="securityStampStore"></param>
+            <param name="httpContextAccessor"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountManager.LoginAsync(Storeasy.Domain.User,System.String,System.Threading.CancellationToken)">
+            <summary>
+            User login operation.
+            It updates sessions in database.
+            Generates access and refresh tokens.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountManager.GenerateTokenAsync(Storeasy.Domain.User,System.Nullable{System.DateTime},System.Threading.CancellationToken)">
+            <summary>
+            Generates token for ci user.
+            Generates access token carrying the user's current revocation stamp.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountManager.FindSessionsToRemove(System.Collections.Generic.List{Storeasy.Domain.UserSession},System.String)">
+            <summary>
+            Finds the sessions to remove. Find criteria is the device id and the expiry date.
+            </summary>
+            <param name="userSessions"></param>
+            <param name="deviceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountManager.BuildClaimsAsync(Storeasy.Domain.User,System.Threading.CancellationToken)">
+            <summary>
+            Builds the claims of an access token: user name, user id, permissions (as role claims), user type and the
+            revocation stamp. The stamp is assigned on first use and checked on every request (SecurityStampValidationMiddleware).
+            </summary>
+            <param name="user"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.AuditTrail">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAuditTrail"/>.
+            </summary>
+            <param name="auditRepository"></param>
+            <param name="currentUser"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AuditTrail.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreAuditLog},Storeasy.Application.Interfaces.ICurrentUser,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAuditTrail"/>.
+            </summary>
+            <param name="auditRepository"></param>
+            <param name="currentUser"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.AuditTrail.Channel">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AuditTrail.WriteAsync(System.Int32,Storeasy.Domain.Enums.AuditAction,System.String,System.String,System.Nullable{Storeasy.Domain.Enums.StoreKind},System.Object,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.CurrentUser">
+            <summary>
+            Reads the authenticated caller from the request's already-validated claims principal. No database
+            access and no token re-parsing: the JWT middleware has already validated the token and populated
+            <see cref="P:Microsoft.AspNetCore.Http.HttpContext.User"/>, so the id, user name and type are read straight from its claims.
+            </summary>
+            <param name="httpContextAccessor"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.CurrentUser.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
+            <summary>
+            Reads the authenticated caller from the request's already-validated claims principal. No database
+            access and no token re-parsing: the JWT middleware has already validated the token and populated
+            <see cref="P:Microsoft.AspNetCore.Http.HttpContext.User"/>, so the id, user name and type are read straight from its claims.
+            </summary>
+            <param name="httpContextAccessor"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentUser.IsAuthenticated">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentUser.Id">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentUser.UserName">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.CurrentUser.UserType">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.CurrentUser.GetRequiredId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.DeveloperService">
+            <summary>
+            Developer service.
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.#ctor(System.IServiceProvider)">
+            <summary>
+            Developer service.
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.DeveloperService.DevelopmentPassword">
+            <summary>
+            Password of every user <see cref="M:Storeasy.Infrastructure.Services.DeveloperService.SeedDevelopmentDataAsync"/> creates (the root user included). It satisfies the
+            default password policy (<c>Milvasoft:Identity:Password</c>); with a stricter policy the seed fails with the
+            validation message instead of reporting success over users that were never created.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.ResetDatabaseAsync">
+            <summary>
+            Remove, recreates and seed database for development purposes.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.SeedDevelopmentDataAsync">
+            <summary>
+            Seeds data for development purposes.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.SeedFakeDataAsync(System.Boolean,System.String)">
+            <summary>
+            Seeds fake data.
+            </summary>
+            <param name="sameData"></param>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.InitDatabaseAsync">
+            <summary>
+            Initial migration operation.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.ExportExistingDataAsync">
+            <summary>
+            Exports existing data to a JSON file.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.DeveloperService.ImportExistingDataAsync">
+            <summary>
+            Imports existing data.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.ExportService">
+            <summary>
+            Used to export data. 
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ExportService.#ctor(System.IServiceProvider)">
+            <summary>
+            Used to export data. 
+            </summary>
+            <param name="serviceProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ExportService.DynamicExportToExcelAsync(Storeasy.Application.Dtos.ExportDtos.ExportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Dynamically creates an excel file according to the export type.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ExportService.ExportToExcel``1(Milvasoft.Components.Rest.MilvaResponse.ListResponse{``0},System.String)">
+            <summary>
+            Exports the data to excel.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="response"></param>
+            <param name="pageName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ExportService.ExportToExcel(Milvasoft.Components.Rest.MilvaResponse.IHasMetadata,System.String)">
+            <summary>
+            Exports the data to excel.
+            </summary>
+            <param name="hasMetadataResponse"></param>
+            <param name="pageName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ExportService.DisplayFormatRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\{(.*?)\}</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '{'.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match a character other than '\n' lazily any number of times.<br/>
+            ○ Match '}'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.FeatureFlagService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IFeatureFlagService"/>. The keys an admin switched off are read from the <c>FeatureFlags</c> table
+            and cached in Redis for <see cref="F:Storeasy.Infrastructure.Services.FeatureFlagService.CacheExpiry"/>, so a guarded request costs one cache read; a toggle drops the
+            entry (<see cref="M:Storeasy.Infrastructure.Services.FeatureFlagService.InvalidateAsync"/>) and applies on the next request.
+            </summary>
+            <remarks>
+            While Redis is disconnected the cache is skipped and every read goes to the database; any read failure counts as
+            enabled (fail-open), so a flag problem never takes a feature down on its own.
+            </remarks>
+            <param name="cache"></param>
+            <param name="featureFlagRepository"></param>
+            <param name="logger"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FeatureFlagService.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.FeatureFlag},Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Utils.Helpers.CacheKeys)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IFeatureFlagService"/>. The keys an admin switched off are read from the <c>FeatureFlags</c> table
+            and cached in Redis for <see cref="F:Storeasy.Infrastructure.Services.FeatureFlagService.CacheExpiry"/>, so a guarded request costs one cache read; a toggle drops the
+            entry (<see cref="M:Storeasy.Infrastructure.Services.FeatureFlagService.InvalidateAsync"/>) and applies on the next request.
+            </summary>
+            <remarks>
+            While Redis is disconnected the cache is skipped and every read goes to the database; any read failure counts as
+            enabled (fail-open), so a flag problem never takes a feature down on its own.
+            </remarks>
+            <param name="cache"></param>
+            <param name="featureFlagRepository"></param>
+            <param name="logger"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.FeatureFlagService.CacheExpiry">
+            <summary>How long the switched off keys are served from the cache.</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FeatureFlagService.IsEnabledAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FeatureFlagService.InvalidateAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.FeatureFlagService.GetDisabledKeysAsync(System.Threading.CancellationToken)">
+            <summary>
+            Returns the switched off keys from the cache, falling back to the database (and repopulating the cache) on a miss.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.IdempotencyStore">
+            <summary>
+            Table-backed idempotency keys (see <see cref="T:Storeasy.Application.Interfaces.IIdempotencyStore"/>). The claim is a single
+            <c>INSERT ... ON CONFLICT DO NOTHING</c>, so the happy path of a create endpoint costs one extra
+            statement; only a retry pays for the read that follows.
+            </summary>
+            <remarks>
+            A claim whose request never finished (the process died between the claim and the response) is taken over
+            after <see cref="F:Storeasy.Infrastructure.Services.IdempotencyStore.PendingTimeout"/>, otherwise that key would stay blocked until the cleanup job runs. The
+            window is far longer than any of the guarded endpoints takes, so a still-running request is never taken over.
+            </remarks>
+            <param name="dbContextAccessor"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.#ctor(Storeasy.Application.Interfaces.IStoreasyDbContextAccessor,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Services.IdempotencyStore})">
+            <summary>
+            Table-backed idempotency keys (see <see cref="T:Storeasy.Application.Interfaces.IIdempotencyStore"/>). The claim is a single
+            <c>INSERT ... ON CONFLICT DO NOTHING</c>, so the happy path of a create endpoint costs one extra
+            statement; only a retry pays for the read that follows.
+            </summary>
+            <remarks>
+            A claim whose request never finished (the process died between the claim and the response) is taken over
+            after <see cref="F:Storeasy.Infrastructure.Services.IdempotencyStore.PendingTimeout"/>, otherwise that key would stay blocked until the cleanup job runs. The
+            window is far longer than any of the guarded endpoints takes, so a still-running request is never taken over.
+            </remarks>
+            <param name="dbContextAccessor"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.IdempotencyStore.PendingTimeout">
+            <summary>A claim older than this with no response is considered abandoned and can be taken over.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.IdempotencyStore.MaxResponseBytes">
+            <summary>Responses larger than this are not stored; a retry of such a request is answered with "in progress".</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.ClaimAsync(System.Int32,System.String,System.String,System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.CompleteAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.IdempotencyStore.ReleaseAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.NotificationService">
+            <summary>
+            Provides functionality for managing and delivering notifications to users.
+            </summary>
+            <remarks>The <see cref="T:Storeasy.Infrastructure.Services.NotificationService"/> class allows for publishing notifications to users based on
+            specific criteria, marking notifications as seen, and deleting notifications. It supports both targeted
+            notifications to specific users and notifications based on user-defined predicates. This service is designed to work
+            with a repository pattern for data access and assumes the use of dependency injection for its
+            dependencies.</remarks>
+            <param name="notificationRepository"></param>
+            <param name="userRepository"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},System.Lazy{Milvasoft.Core.Abstractions.IMilvaLogger})">
+            <summary>
+            Provides functionality for managing and delivering notifications to users.
+            </summary>
+            <remarks>The <see cref="T:Storeasy.Infrastructure.Services.NotificationService"/> class allows for publishing notifications to users based on
+            specific criteria, marking notifications as seen, and deleting notifications. It supports both targeted
+            notifications to specific users and notifications based on user-defined predicates. This service is designed to work
+            with a repository pattern for data access and assumes the use of dependency injection for its
+            dependencies.</remarks>
+            <param name="notificationRepository"></param>
+            <param name="userRepository"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.PublishAsync(Storeasy.Application.Dtos.NotificationDtos.InternalNotificationRequest,System.Linq.Expressions.Expression{System.Func{Storeasy.Domain.User,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Publishes a notification based on a user predicate.
+            This is the core publishing method.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.MarkAsSeenAsync(System.Collections.Generic.List{System.Int64},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Marks a single notification as seen.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.MarkAllAsSeenAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Marks all of a user's notifications as seen.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.DeleteAsync(System.Collections.Generic.IEnumerable{System.Int64},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a list of notifications belonging to the current user.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.NotificationService.DeleteAllAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes all of notifications belonging to the current user.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.OrganizationAccess">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role is read from <c>OrganizationMembers</c> and cached in Redis for
+            <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership changes call <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/>, so a removed member loses access
+            on the next request. While Redis is unavailable every check reads the database (never fails open).
+            </summary>
+            <param name="cache"></param>
+            <param name="memberRepository"></param>
+            <param name="logger"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Utils.Helpers.CacheKeys)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role is read from <c>OrganizationMembers</c> and cached in Redis for
+            <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership changes call <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/>, so a removed member loses access
+            on the next request. While Redis is unavailable every check reads the database (never fails open).
+            </summary>
+            <param name="cache"></param>
+            <param name="memberRepository"></param>
+            <param name="logger"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry">
+            <summary>How long a role is served from the cache.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.OrganizationAccess.CurrentRole">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.SetCurrentRole(Storeasy.Domain.Enums.OrgRole)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.GetRoleAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.PermissionManager">
+            <summary>
+            Permission manager for managing system permissions.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.PermissionManager.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Permission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.RolePermissionRelation})">
+            <summary>
+            Permission manager for managing system permissions.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.PermissionManager.GetAllPermissionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Get all permissions as entity.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.PermissionManager.MigratePermissionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Migrate permissions to the database.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.SecurityStampStore">
+            <summary>
+            Redis-backed revocation stamp store with the database (<c>User.SessionStamp</c>) as the durable
+            source of truth. Reads are served from Redis for a cheap per-request check; on a cache miss (or
+            any Redis failure) it falls back to the database and repopulates the cache, so a Redis outage
+            degrades to one extra database round trip rather than breaking authentication.
+            <para>
+            A rotation writes the new stamp through to Redis and must run after the caller's transaction has
+            committed. The read-through repopulation only adds a missing entry (SET NX), so a reader that loaded
+            the old stamp from the database just before a rotation can never put it back over the new one.
+            </para>
+            <para>
+            While Redis is disconnected the cache is skipped altogether: a command sent to a reconnecting multiplexer waits
+            in its backlog until the timeout, which would hold every authenticated request for seconds.
+            </para>
+            </summary>
+            <param name="cache"></param>
+            <param name="userRepository"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Utils.Helpers.CacheKeys)">
+            <summary>
+            Redis-backed revocation stamp store with the database (<c>User.SessionStamp</c>) as the durable
+            source of truth. Reads are served from Redis for a cheap per-request check; on a cache miss (or
+            any Redis failure) it falls back to the database and repopulates the cache, so a Redis outage
+            degrades to one extra database round trip rather than breaking authentication.
+            <para>
+            A rotation writes the new stamp through to Redis and must run after the caller's transaction has
+            committed. The read-through repopulation only adds a missing entry (SET NX), so a reader that loaded
+            the old stamp from the database just before a rotation can never put it back over the new one.
+            </para>
+            <para>
+            While Redis is disconnected the cache is skipped altogether: a command sent to a reconnecting multiplexer waits
+            in its backlog until the timeout, which would hold every authenticated request for seconds.
+            </para>
+            </summary>
+            <param name="cache"></param>
+            <param name="userRepository"></param>
+            <param name="cacheKeys"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.GetOrCreateAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.RotateAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.IsValidAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.GetCurrentAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns the user's current stamp from Redis, falling back to the database (and repopulating the
+            cache) on a miss or any Redis error. Never creates a stamp.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.PersistAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Generates a new stamp and persists it to the user row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.TransactionRunner">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.ITransactionRunner"/>. The <see cref="T:Milvasoft.Interception.Ef.Transaction.TransactionAttribute"/> on <see cref="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})"/>
+            makes the transaction interceptor open a transaction on the scoped <c>StoreasyDbContext</c> before the delegate
+            runs and commit it afterwards (rolling back on exception). It is the same scoped context the repositories
+            resolve, so the writes inside the delegate enlist in that transaction.
+            <para>
+            Being resolved and called through the <see cref="T:Storeasy.Application.Interfaces.ITransactionRunner"/> interface is what lets the proxy
+            intercept the call. A handler cannot get the same effect from a local <c>[Transaction]</c> method: a
+            same-instance call bypasses the proxy (self-invocation), so the interceptor would never run.
+            </para>
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">
+            <summary>
+            App Store Connect API key.
+            </summary>
+            <param name="IssuerId">Issuer id (UUID) shown above the keys table.</param>
+            <param name="KeyId">10 character key id.</param>
+            <param name="PrivateKeyPem">Content of the AuthKey_*.p8 file.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.AppleCredentials.#ctor(System.String,System.String,System.String)">
+            <summary>
+            App Store Connect API key.
+            </summary>
+            <param name="IssuerId">Issuer id (UUID) shown above the keys table.</param>
+            <param name="KeyId">10 character key id.</param>
+            <param name="PrivateKeyPem">Content of the AuthKey_*.p8 file.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.AppleCredentials.IssuerId">
+            <summary>Issuer id (UUID) shown above the keys table.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.AppleCredentials.KeyId">
+            <summary>10 character key id.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.AppleCredentials.PrivateKeyPem">
+            <summary>Content of the AuthKey_*.p8 file.</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.GoogleCredentials">
+            <summary>
+            Google service account key, the fields storeasy uses.
+            </summary>
+            <param name="ClientEmail">Service account e-mail.</param>
+            <param name="PrivateKeyPem">RSA private key.</param>
+            <param name="PrivateKeyId">Key id, sent as the JWT kid.</param>
+            <param name="TokenUri">OAuth token endpoint.</param>
+            <param name="ProjectId">Google Cloud project id.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.GoogleCredentials.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Google service account key, the fields storeasy uses.
+            </summary>
+            <param name="ClientEmail">Service account e-mail.</param>
+            <param name="PrivateKeyPem">RSA private key.</param>
+            <param name="PrivateKeyId">Key id, sent as the JWT kid.</param>
+            <param name="TokenUri">OAuth token endpoint.</param>
+            <param name="ProjectId">Google Cloud project id.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.GoogleCredentials.ClientEmail">
+            <summary>Service account e-mail.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.GoogleCredentials.PrivateKeyPem">
+            <summary>RSA private key.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.GoogleCredentials.PrivateKeyId">
+            <summary>Key id, sent as the JWT kid.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.GoogleCredentials.TokenUri">
+            <summary>OAuth token endpoint.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.GoogleCredentials.ProjectId">
+            <summary>Google Cloud project id.</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.StoreCredentialParser">
+            <summary>
+            Parses the pasted secrets. Each method returns null and an error key instead of throwing, so the caller can answer
+            with a validation message.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreCredentialParser.AppleSecretInvalid">
+            <summary>Message key: the Apple secret is not valid JSON with the three fields.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreCredentialParser.AppleKeyInvalid">
+            <summary>Message key: the Apple private key is not an EC P-256 key.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreCredentialParser.GoogleSecretInvalid">
+            <summary>Message key: the Google secret is not a service account key file.</summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreCredentialParser.GoogleKeyInvalid">
+            <summary>Message key: the Google private key is not an RSA key.</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreCredentialParser.IssuerIdRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a hexadecimal digit exactly 8 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            ○ Match a hexadecimal digit exactly 12 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreCredentialParser.KeyIdRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Z0-9]{10}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9A-Z] exactly 10 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreCredentialParser.ParseApple(System.String,System.String@)">
+            <summary>
+            Parses an Apple secret.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreCredentialParser.ParseGoogle(System.String,System.String@)">
+            <summary>
+            Parses a Google service account key file.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.StoreGateway">
+            <summary>
+            Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/>; tests replace its handler.
+            </summary>
+            <param name="HttpClientFactory"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/>; tests replace its handler.
+            </summary>
+            <param name="HttpClientFactory"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName">
+            <summary>
+            Name of the HTTP client used for store calls.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.AppleBaseUrl">
+            <summary>
+            App Store Connect API base address.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.GoogleBaseUrl">
+            <summary>
+            Google Play Developer API base address.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.GoogleScope">
+            <summary>
+            OAuth scope of the Google Play Developer API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.Inspect(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.VerifyAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.DescribeError(System.String)">
+            <summary>
+            Extracts the human readable part of an Apple (<c>errors[].detail</c>) or Google (<c>error.message</c>,
+            <c>error_description</c>) error body; falls back to the raw text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.StoreJwt">
+            <summary>
+            Minimal compact JWS signing for the two store grants: ES256 (App Store Connect, signature in IEEE P1363 form) and
+            RS256 (Google service account). Ported from store-ops <c>signJwt</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreJwt.AppleTokenLifetime">
+            <summary>
+            App Store Connect token lifetime. Apple accepts at most 20 minutes.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.CreateAppleToken(Storeasy.Infrastructure.Stores.AppleCredentials,System.DateTimeOffset)">
+            <summary>
+            Creates an App Store Connect API token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.CreateGoogleAssertion(Storeasy.Infrastructure.Stores.GoogleCredentials,System.String,System.DateTimeOffset)">
+            <summary>
+            Creates the JWT bearer assertion (RFC 7523) a Google service account exchanges for an access token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.DecodePayload(System.String)">
+            <summary>
+            Decodes the payload of a compact JWT without verifying it (tests and diagnostics only).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreJwt.DecodeHeader(System.String)">
+            <summary>
+            Decodes the header of a compact JWT without verifying it (tests and diagnostics only).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer">
+            <summary>
+            Api info transformer to set metadata for the OpenAPI document.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Utils.OpenApi.ApiInfoTransformer.TransformAsync(Microsoft.OpenApi.OpenApiDocument,Microsoft.AspNetCore.OpenApi.OpenApiDocumentTransformerContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Utils.OpenApi.ExampleSchemaTransformer">
+            <summary>
+            Example schema transformer to add examples to OpenAPI schemas.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Utils.OpenApi.ExampleSchemaTransformer.TransformAsync(Microsoft.OpenApi.OpenApiSchema,Microsoft.AspNetCore.OpenApi.OpenApiSchemaTransformerContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Utils.OpenApi.NullableEnumSchemaTransformer">
+            <summary>
+            Gives an enum schema its "Value -> Name" list when the Milvasoft enum transformer left it out. That transformer only
+            recognizes a plain enum type; when the enum's shared component schema is first built from a nullable property
+            (<c>UserType?</c>, <c>NotificationType?</c>...), it stays a bare integer and the clients' generated types lose the
+            values. The list is written in the same format, so every enum reads alike.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Utils.OpenApi.NullableEnumSchemaTransformer.TransformAsync(Microsoft.OpenApi.OpenApiSchema,Microsoft.AspNetCore.OpenApi.OpenApiSchemaTransformerContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DisplayFormatRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IssuerIdRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_2.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiHexDigits">
+            <summary>Supports searching for characters in or not in "0123456789ABCDEFabcdef".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersUpperAndDigits">
+            <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type)">
+            <summary>
+            Generates a documentation comment ID for a type.
+            Example: T:Namespace.Outer+Inner`1 becomes T:Namespace.Outer.Inner`1
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.PropertyInfo)">
+            <summary>
+            Generates a documentation comment ID for a property.
+            Example: P:Namespace.ContainingType.PropertyName or for an indexer P:Namespace.ContainingType.Item(System.Int32)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.MethodInfo)">
+            <summary>
+            Generates a documentation comment ID for a method (or constructor).
+            For example:
+              M:Namespace.ContainingType.MethodName(ParamType1,ParamType2)~ReturnType
+              M:Namespace.ContainingType.#ctor(ParamType)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.GetTypeDocId(System.Type,System.Boolean,System.Boolean)">
+            <summary>
+            Generates a documentation ID string for a type.
+            This method handles nested types (replacing '+' with '.'),
+            generic types, arrays, pointers, by-ref types, and generic parameters.
+            The <paramref name="includeGenericArguments"/> flag controls whether
+            constructed generic type arguments are emitted, while <paramref name="omitGenericArity"/>
+            controls whether the generic arity marker (e.g. "`1") is appended.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.NormalizeDocId(System.String)">
+            <summary>
+            Normalizes a documentation comment ID to match the compiler-style format.
+            Strips the return type suffix for ordinary methods but retains it for conversion operators.
+            </summary>
+            <param name="docId">The documentation comment ID to normalize.</param>
+            <returns>The normalized documentation comment ID.</returns>
+        </member>
+    </members>
+</doc>

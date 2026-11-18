@@ -1,0 +1,36 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="TemplateTest" />
+  </Configurations>
+  <Folder Name="/build/">
+    <File Path="build/build.bat" />
+    <File Path="build/build.sh" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/sampledoc.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Storeasy.Application/Storeasy.Application.csproj" />
+    <Project Path="src/Storeasy.Domain/Storeasy.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Storeasy.Infrastructure/Storeasy.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Storeasy.Api/Storeasy.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/IntegrationTests/">
+    <Project Path="tests/Storeasy.IntegrationTests/Storeasy.IntegrationTests.csproj">
+      <BuildType Solution="TemplateTest|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/UnitTests/">
+    <Project Path="tests/Storeasy.UnitTests/Storeasy.UnitTests.csproj">
+      <BuildType Solution="TemplateTest|*" Project="Release" />
+    </Project>
+  </Folder>
+</Solution>

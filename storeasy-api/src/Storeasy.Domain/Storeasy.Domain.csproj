@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<DocumentationFile>..\Storeasy.Domain\Storeasy.Domain.xml</DocumentationFile>
+		<Configurations>Debug;Release;TemplateTest</Configurations>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	
+	<ItemGroup>
+		<PackageReference Include="AsyncFixer" Version="2.1.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Milvasoft.Core.MultiLanguage" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.DataAccess.EfCore.Bulk" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Identity" Version="11.0.1" />
+	</ItemGroup>
+
+</Project>

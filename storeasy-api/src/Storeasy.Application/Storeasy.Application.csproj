@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<DocumentationFile>..\Storeasy.Application\Storeasy.Application.xml</DocumentationFile>
+		<Configurations>Debug;Release;TemplateTest</Configurations>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="AsyncFixer" Version="2.1.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+		<PackageReference Include="Mapster" Version="10.0.12" />
+		<PackageReference Include="MediatR" Version="[12.5.0]" />
+		<PackageReference Include="Milvasoft.Caching.Redis" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Components.CQRS" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Interception.Ef" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Localization.Resx" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Components.Rest" Version="11.0.1" />
+		<PackageReference Include="Milvasoft.Interception" Version="11.0.1" />
+		<PackageReference Include="Npgsql" Version="10.0.3" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Storeasy.Domain\Storeasy.Domain.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+﻿using Milvasoft.Components.CQRS.Query;
+using Milvasoft.Components.Rest.MilvaResponse;
+using Milvasoft.Core.Abstractions;
+using Storeasy.Application.Dtos.RoleDtos;
+
+namespace Storeasy.Application.Features.Roles.GetRoleList;
+
+/// <summary>
+/// Handles the role list operation.
+/// </summary>
+/// <param name="roleRepository"></param>
+public class GetRoleListQueryHandler(IStoreasyRepositoryBase<Role> roleRepository) : IInterceptable, IListQueryHandler<GetRoleListQuery, RoleListDto>
+{
+    private readonly IStoreasyRepositoryBase<Role> _roleRepository = roleRepository;
+
+    /// <inheritdoc/>
+    public async Task<ListResponse<RoleListDto>> Handle(GetRoleListQuery request, CancellationToken cancellationToken)
+    {
+        request.PageNumber ??= 1;
+        request.RowCount = request.RowCount.ClampRowCount(20);
+
+        var response = await _roleRepository.GetAllAsync(request, projection: RoleListDto.Projection, cancellationToken: cancellationToken);
+
+        return response;
+    }
+}
