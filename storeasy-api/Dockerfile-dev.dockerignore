@@ -1,0 +1,16 @@
+# Used by BuildKit for storeasy-api/Dockerfile-dev (build context = repository root). Only rules/ and storeasy-api/ are
+# needed; build outputs, local settings and the other parts of the repository stay out of the image and the context.
+*
+!rules/
+!storeasy-api/
+storeasy-api/**/bin
+storeasy-api/**/obj
+storeasy-api/**/.vs
+storeasy-api/**/*.user
+storeasy-api/**/.env
+storeasy-api/**/secrets.dev.yaml
+storeasy-api/**/node_modules
+storeasy-api/artifacts
+storeasy-api/build/last_run_log.txt
+storeasy-api/tests
+rules/**/node_modules

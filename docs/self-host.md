@@ -225,6 +225,10 @@ The remaining `Milvasoft:*` keys in `appsettings.json` are library settings that
 | `Storeasy:Stores:UploadChunkBytes` | `8388608` | Chunk size of resumable Play bundle uploads (a multiple of 256 KiB). |
 | `Storeasy:Stores:PlanLifetimeMinutes` | `2880` | How long a pending change plan can be approved (48 hours). |
 | `Storeasy:Stores:RulesPath` | empty | Folder with `catalog.json` and the store files. Empty: the copy next to the application, then the embedded copy. |
+| `Storeasy:Intake:AppleUploadMode` | `Api` | `Api`: storeasy uploads IPAs with the App Store Connect build upload API. `External`: the CI uploads to Apple itself and storeasy waits for the build, then applies the delivery rule. |
+| `Storeasy:Intake:UrlLifetimeMinutes` | `120` | Lifetime of the presigned part URLs of package uploads (at least 60). |
+| `Storeasy:Intake:ProcessMaxAttempts` | `40` | Attempts of a package processing job (an iOS delivery waits for Apple's processing by retrying). |
+| `Storeasy:Intake:AbandonedUploadHours` / `PendingAssetHours` | `48` | When unfinished package uploads and unconfirmed asset uploads are cleaned up. |
 
 ### Object storage
 

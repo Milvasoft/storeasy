@@ -1,10 +1,14 @@
-# Development / test image (with a shell, for debugging). Build context = the solution root (the .dockerignore applies
-# and the src/* projects are copied). Set MILVA_ENV (dev or test) and the settings listed in the production Dockerfile
-# at run time.
+# Development / test image (with a shell, for debugging). Build context = the REPOSITORY ROOT, like the production
+# Dockerfile, so the rules catalog is inside the image:
+#   docker build -f storeasy-api/Dockerfile-dev -t storeasy-api:dev .
+# The files sent to the builder are limited by storeasy-api/Dockerfile-dev.dockerignore. Set MILVA_ENV (dev or test) and
+# the settings listed in the production Dockerfile at run time.
 FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY . .
+WORKDIR /repo
+COPY rules/ rules/
+COPY storeasy-api/ storeasy-api/
+WORKDIR /repo/storeasy-api
 RUN dotnet restore "src/Storeasy.Api/Storeasy.Api.csproj"
 RUN dotnet publish "src/Storeasy.Api/Storeasy.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
 
