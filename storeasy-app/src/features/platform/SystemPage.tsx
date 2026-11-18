@@ -36,7 +36,10 @@ export function healthView(status: string | undefined, t: PlatformDictionary): {
   }
 }
 
-/** A dependency of system/status as a badge: not configured, healthy or not. */
+/**
+ * A dependency of system/status as a badge: not configured, healthy or not. Healthy null means the API did not probe it
+ * (the Notifike mail provider): it is shown as configured, not as a failure.
+ */
 export function dependencyView(dependency: DependencyStatusDto | undefined, t: PlatformDictionary): { label: string; tone?: BadgeTone } {
   if (!dependency?.Configured) {
     return { label: t.system.notConfigured }
@@ -44,7 +47,7 @@ export function dependencyView(dependency: DependencyStatusDto | undefined, t: P
   if (dependency.Healthy === false) {
     return { label: t.system.unhealthy, tone: 'danger' }
   }
-  return dependency.Healthy ? { label: t.system.healthy, tone: 'success' } : { label: t.system.unreachable, tone: 'warning' }
+  return dependency.Healthy ? { label: t.system.healthy, tone: 'success' } : { label: t.system.configured }
 }
 
 export function modeLabel(mode: RegistrationMode, t: PlatformDictionary): string {

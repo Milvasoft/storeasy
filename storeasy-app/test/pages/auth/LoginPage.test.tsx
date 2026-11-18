@@ -69,10 +69,30 @@ describe('LoginPage', () => {
   it('checks the e-mail before sending anything', async () => {
     const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
 
-    await user.type(screen.getByLabelText('E-posta'), 'deniz')
+    await user.type(screen.getByLabelText('E-posta'), 'deniz@kuzeylab')
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
 
     expect(screen.getByText('Geçerli bir e-posta adresi yaz.')).toBeInTheDocument()
+    expect(requestsTo('/Account/login')).toHaveLength(0)
+  })
+
+  it('signs the root user in by user name (the instance admin has no e-mail address)', async () => {
+    const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
+
+    await user.type(screen.getByLabelText('E-posta'), 'rootuser')
+    await user.type(screen.getByLabelText('Şifre'), 'Root!2026')
+    await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
+
+    await waitFor(() => expect(lastRequestTo('/Account/login')?.body).toMatchObject({ UserName: 'rootuser', Password: 'Root!2026' }))
+  })
+
+  it('still asks for the e-mail when the field is empty', async () => {
+    const { user } = renderWithProviders(<LoginPage />, { authed: false, route: '/login' })
+
+    await user.type(screen.getByLabelText('Şifre'), 'Root!2026')
+    await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
+
+    expect(screen.getByText('E-posta adresini yaz.')).toBeInTheDocument()
     expect(requestsTo('/Account/login')).toHaveLength(0)
   })
 

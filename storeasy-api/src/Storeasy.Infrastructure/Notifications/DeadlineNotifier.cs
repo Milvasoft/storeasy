@@ -133,7 +133,7 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
             Data = new { connectionId = c.ConnectionId, expiryDate = c.CredentialExpiryDate, daysLeft = DaysLeft(c.CredentialExpiryDate, now) },
             RelatedEntity = NotificationEntity.StoreConnection,
             RelatedEntityId = c.ConnectionId.ToString(CultureInfo.InvariantCulture),
-            ActionLink = $"/connections/{c.ConnectionId}",
+            ActionLink = "/connections",
             WebhookEventType = OrgWebhookEventTypes.ConnectionSecretExpiring,
         })).ToList();
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { CircleCheck, Clock, MailCheck } from 'lucide-react'
 import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
 import { LogoMark } from '@/components/layout/Logo'
@@ -84,12 +84,20 @@ function DoneCard() {
   )
 }
 
-/** "Check your e-mail" after sign-up (design 5.14): the link is valid for 24 hours, resend counts down 60 s. */
+/**
+ * "Check your e-mail" after sign-up (design 5.14): the link is valid for 24 hours, resend counts down 60 s. The e-mail's
+ * link is /verify-email?token=... (AppOptions.VerifyEmailPath), so a token in the query verifies instead.
+ */
 export function VerifyEmailPage() {
   const t = useT()
   const location = useLocation()
+  const [params] = useSearchParams()
   const { status, user, refreshUser } = useAuth()
   const email = (location.state as { email?: string } | null)?.email ?? user?.email ?? null
+
+  if (params.get('token')) {
+    return <VerifyEmailTokenPage />
+  }
 
   if (status === 'authed' && user?.emailConfirmed === true) {
     return (
@@ -135,7 +143,9 @@ type TokenState = { kind: 'pending' } | { kind: 'done' } | { kind: 'invalid' }
  */
 export function VerifyEmailTokenPage() {
   const t = useT()
-  const { token = '' } = useParams()
+  const { token: pathToken } = useParams()
+  const [params] = useSearchParams()
+  const token = pathToken ?? params.get('token') ?? ''
   const { status, refreshUser } = useAuth()
   const [state, setState] = useState<TokenState>({ kind: 'pending' })
   const started = useRef(false)

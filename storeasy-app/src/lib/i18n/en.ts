@@ -601,7 +601,7 @@ export const en = {
     throttled: 'The hourly invitation limit was reached.',
     linkOnce: 'The links are shown only now',
     linkOnceBody:
-      'Invitation e-mails are not sent yet: copy each link and pass it on. A new invitation to the same address replaces the old one.',
+      'Each address also got its link by e-mail. Copy a link if you want to pass it on yourself. A new invitation to the same address replaces the old one.',
     validUntil: 'valid until {date}',
     ownerViaTransfer: 'Only through an ownership transfer',
     reinviteNote: 'Inviting an address that already has a pending invitation cancels the old one and creates a new link.',

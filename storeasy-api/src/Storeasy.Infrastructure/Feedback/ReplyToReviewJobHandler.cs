@@ -96,7 +96,7 @@ public sealed class ReplyToReviewJobHandler(IStoreasyRepositoryBase<StoreReview>
                     AppId = review.AppId,
                     RelatedEntity = NotificationEntity.Review,
                     RelatedEntityId = review.Id.ToString(CultureInfo.InvariantCulture),
-                    ActionLink = $"/reviews/{review.Id}",
+                    ActionLink = $"/apps/{review.AppId}/reviews",
                 }, cancellationToken);
             }
 

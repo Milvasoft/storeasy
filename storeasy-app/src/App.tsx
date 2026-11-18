@@ -5,6 +5,8 @@ import { RouteErrorBoundary } from '@/components/common/ErrorBoundary'
 import { GuestOnly, ProtectedRoute } from '@/components/common/ProtectedRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenState } from '@/components/ui/ScreenState'
+import { UserType } from '@/lib/api/types'
+import { useAuth } from '@/lib/auth/AuthContext'
 import { PageSkeleton } from '@/components/ui/primitives'
 import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
@@ -43,8 +45,14 @@ function Lazy({ children }: { children: JSX.Element }) {
 }
 
 // The shell needs an organization: none yet goes to the first setup, a lost membership to "no access" (design 5.32).
+// The admin area (/admin/...) is the instance's, not an organization's: a platform administrator (Manager, e.g. the
+// root user of docs/self-host.md section 5) reaches it without being a member of any organization.
+const PLATFORM_HOME_PATH = '/admin/system'
+
 function OrganizationGate({ children }: { children: JSX.Element }) {
   const { organizations, isLoading, error, refetch } = useOrganization()
+  const { user } = useAuth()
+  const { pathname } = useLocation()
   if (isLoading) {
     return <BootScreen />
   }
@@ -54,6 +62,9 @@ function OrganizationGate({ children }: { children: JSX.Element }) {
         <ScreenState error={error} onRetry={() => void refetch()} />
       </div>
     )
+  }
+  if (organizations.length === 0 && user?.userType === UserType.Manager) {
+    return pathname.startsWith('/admin/') ? children : <Navigate to={PLATFORM_HOME_PATH} replace />
   }
   if (organizations.length === 0) {
     return <Navigate to={readStorage(StorageKey.CurrentOrganization) ? '/no-access' : '/setup'} replace />
@@ -154,6 +165,15 @@ export function App() {
       />
       <Route
         path="/invite/:token"
+        element={
+          <Lazy>
+            <InvitePage />
+          </Lazy>
+        }
+      />
+      {/* The invitation e-mail's link (AppOptions.InvitationPath): /invitation?token=... */}
+      <Route
+        path="/invitation"
         element={
           <Lazy>
             <InvitePage />

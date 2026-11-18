@@ -119,7 +119,7 @@ public sealed class SyncReviewsJobHandler(IStoreasyRepositoryBase<StoreApp> stor
                 AppId = storeApp.AppId,
                 RelatedEntity = NotificationEntity.App,
                 RelatedEntityId = storeApp.AppId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                ActionLink = $"/reviews?appId={storeApp.AppId}",
+                ActionLink = $"/reviews?app={storeApp.AppId}",
                 WebhookEventType = OrgWebhookEventTypes.ReviewReceived,
                 ActivityType = ActivityEventTypes.ReviewReceived,
             }, cancellationToken);

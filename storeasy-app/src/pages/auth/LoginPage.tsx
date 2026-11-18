@@ -11,7 +11,7 @@ import { formatCountdown, useCountdown } from '@/lib/hooks/useCountdown'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { HOME_PATH } from '@/lib/nav/nav'
-import { emailError } from '@/lib/validation'
+import { emailError, requiredError } from '@/lib/validation'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
 import { GoogleSignInButton } from '@/features/access/GoogleSignIn'
 
@@ -44,7 +44,9 @@ export function LoginPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    const invalid = emailError(email, t)
+    // A value without "@" is a user name: the instance's root user (rootuser, docs/self-host.md section 5) has no
+    // e-mail address. Everything else is checked as an e-mail.
+    const invalid = email.includes('@') ? emailError(email, t) : requiredError(email, t.validation.emailRequired)
     setEmailProblem(invalid)
     if (invalid || !password) {
       if (!invalid) {
