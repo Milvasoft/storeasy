@@ -1,6 +1,6 @@
-# Self-hosting storeasy
+﻿# Self-hosting storeasy
 
-> Draft. The full Docker guide arrives with phase 6 (see `urun-plani.md`). This page keeps the rules that already apply.
+> Draft. The full Docker guide arrives with phase 8 (see `urun-plani.md`). This page keeps the rules that already apply.
 
 ## License and network use
 

@@ -18,9 +18,9 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 ## 2. Kapsam
 
 ### 2.1 Hesap ve erişim
-- E-posta ile kayıt, giriş, e-posta doğrulama, şifre sıfırlama. Google ile giriş Faz 6'da.
+- E-posta ile kayıt, giriş, e-posta doğrulama, şifre sıfırlama. Google ile giriş Faz 8'de.
 - Organizasyon: kullanıcı birden çok organizasyona üye olabilir; kenar çubuğunda organizasyon değiştirici.
-- Organizasyon rolleri: `Owner`, `Admin`, `Editor`, `Viewer` (seed, kilitli) ve Faz 6'da özel roller. Matris 6. bölümde.
+- Organizasyon rolleri: `Owner`, `Admin`, `Editor`, `Viewer` (seed, kilitli) ve Faz 8'de özel roller. Matris 6. bölümde.
 - Davet: e-posta ile, rol seçerek, 7 gün geçerli, tek kullanımlık token.
 - Platform yöneticisi (instance admin): şablondaki `Manager` kullanıcı tipi ve global `PermissionCatalog` ile; yalnız
   self-host kurulumunu yöneten kişi için (kullanıcı kilitleme, feature flag, sistem durumu).
@@ -55,7 +55,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
   çerçevesi, konum ve ölçek.
 - Cihaz çerçeveleri storeasy'nin kendi çizimidir (vektör, parametrik: köşe yarıçapı, çerçeve kalınlığı, Dynamic Island,
   kamera deliği). Apple ve Google cihaz görselleri kullanılmaz.
-- Şablon uygulama başınadır; başlıklar dil başına çevrilir (elle veya Faz 6'da yapay zeka önerisiyle, kill switch'li).
+- Şablon uygulama başınadır; başlıklar dil başına çevrilir (elle veya Faz 6'da (stüdyo) yapay zeka önerisiyle, kill switch'li).
 - Dışa aktarım her gerekli boyuta tek tıkla: Apple ekran tipleri (iPhone 6.9", 6.5", 6.1"/6.3" slotu yalnız 1206x2622
   ve 1179x2556 kabul eder, 1320x2868 reddedilir; iPad 13" 2064x2752), Play telefon, 7" ve 10" tablet, öne çıkan görsel
   1024x500. Alfa kanalı otomatik düzleştirilir.
@@ -65,7 +65,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 ### 2.5 Webhook ve bildirimler
 - Her zaman açık alıcı: App Store Connect `APP_STORE_VERSION_APP_VERSION_STATE_UPDATED` (tekil yazım, eski çoğul yazım
   da kabul), `x-apple-signature: hmacsha256=<hex>` kontrolü, bağlantı başına ayrı gizli anahtar.
-- Bildirim kanalları: uygulama içi (bildirim merkezi), e-posta, web push (Faz 6). Kullanıcı başına tercih.
+- Bildirim kanalları: uygulama içi (bildirim merkezi), e-posta, web push (Faz 8). Kullanıcı başına tercih.
 - Red takibi: API Resolution Center metnini okuyamaz. Sürüm `REJECTED` veya `METADATA_REJECTED` olunca:
   1. bir "Red kaydı" açılır ve sahiplerine bildirim gider,
   2. kayıt ekranında App Store Connect'teki ilgili sayfaya doğrudan bağlantı ve "Red metnini buraya yapıştır" alanı olur,
@@ -189,17 +189,17 @@ mağaza işi storeasy'de ve MCP'de olmalı. API'si olmayan iş de storeasy'nin i
 | 2. Hazırlık ve içerik | Hazırlık kontrolü (11.1) ve uygulama başına kayıtlı cevaplar; metinler ve kategoriler, yaş derecelendirmesi (yeni sorular dahil), fiyat ve bölgeler, ekran görüntüsü ve önizleme setleri (kataloğa göre zorunlu, yedekle karşılanan, eksik), build izleme ve bağlama, ihracat uyumu, inceleme bilgileri, yayın türü ve aşamalı yayın, incelemeye gönderme (onaylı); Play: uygulama ayrıntıları, listeler, görseller, track ve sürüm, aşamalı yayın, ülkeler, test kullanıcıları, AAB, Data safety; canlı aktivite görünümü | Sousial ve Crewhall için "eksik ne var" tek çağrıda doğru cevap; Sousial iPad seti storeasy'den yüklenir |
 | 3. MCP | PAT, `/mcp`, matristeki her API satırı için araç (yazmalar dry run + onay), tüm uygulamaların özeti tek çağrı, `storeasy-mcp` yerel köprüsü (yerel dosya yolları ve klasörler) | Bir Claude oturumu store-ops yerine storeasy ile Sousial işini baştan sona yapar |
 | 4. Olaylar ve takip | Webhook alıcısı, bildirimler, red akışı (11.3), yorum kutuları (Apple ve Play, yanıt), TestFlight (gruplar, test kullanıcıları, beta metinleri, beta inceleme, build bitiş tarihleri), kural izleyici ve uygulama başına uyum zaman çizelgesi (bölüm 12) | Gerçek bir red bildirime ve red kaydına düşer; Expenny ve Perry'nin TestFlight bitiş tarihleri görünür |
-| 5. Stüdyo | Mockup şablonları, kendi çizdiğimiz çerçeveler (iPhone Duo dış ve iç ekran dahil), başlık lokalizasyonu, kataloğa göre tüm zorunlu ve önerilen boyutlara tek seferde dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
-| 6. Para | Abonelik grupları, abonelikler, bölge fiyatları, tanıtım ve promosyon teklifleri, retention mesajları, IAP; Play abonelikleri, base plan'lar, teklifler, tek seferlik ürünler | Bir uygulamanın abonelikleri storeasy'den kurulur |
-| 7. Yayın | Asistanlı adımların tamamı (11.4), özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
-| 8. Microsoft Store | Üçüncü mağaza (bölüm 11.6): Entra bağlantısı, uygulama ve gönderim senkronu, listeler ve görseller, MSIX paketleri ve paket uçuşları, aşamalı yayın, add-on'lar; MSI/EXE uygulamalar için ayrı API; sertifikasyon durumu; kataloğa Microsoft kuralları | Bir Windows uygulamasının liste ve paket güncellemesi storeasy'den gönderilir |
+| 5. Microsoft Store | Üçüncü mağaza (bölüm 11.6): Entra bağlantısı, uygulama ve gönderim senkronu, listeler ve görseller, MSIX paketleri ve paket uçuşları, aşamalı yayın, add-on'lar; MSI/EXE uygulamalar için ayrı API; sertifikasyon durumu; kataloğa Microsoft kuralları | Bir Windows uygulamasının liste ve paket güncellemesi storeasy'den gönderilir |
+| 6. Stüdyo | Mockup şablonları, kendi çizdiğimiz çerçeveler (iPhone Duo dış ve iç ekran dahil), başlık lokalizasyonu, kataloğa göre tüm zorunlu ve önerilen boyutlara tek seferde dışa aktarım, yükleme akışına bağlama | Bir uygulamanın tr ve en setleri stüdyodan üretilip yüklenir |
+| 7. Para | Abonelik grupları, abonelikler, bölge fiyatları, tanıtım ve promosyon teklifleri, retention mesajları, IAP; Play abonelikleri, base plan'lar, teklifler, tek seferlik ürünler | Bir uygulamanın abonelikleri storeasy'den kurulur |
+| 8. Yayın | Asistanlı adımların tamamı (11.4), özel roller, web push, Google ile giriş, açık kaynak dosyaları, GitHub, CI, self-host dokümanı, barındırılan sürümün deploy'u | Buğra onayıyla public repo ve prod |
 
 **MVP:** Faz 1 + 2 + 3. Bu üçüyle Buğra'nın uygulamalarında "gönderime hazır mı, eksik ne" sorusu, metin, görsel,
 build ve gönderim storeasy ve MCP üzerinden yapılır; store-ops emekli olur. Faz 4 hemen arkasından gelir, çünkü red
-ve TestFlight takibi günlük iş. Stüdyo Faz 5'te; ondan önce görseller dışarıda üretilip storeasy'ye verilir.
+ve TestFlight takibi günlük iş. Microsoft Store Faz 5'te, MVP ve takip oturunca üçüncü mağaza olarak gelir. Stüdyo
+Faz 6'da; ondan önce görseller dışarıda üretilip storeasy'ye verilir.
 
-Microsoft Store (Faz 8) şimdilik en sonda, çünkü Buğra'nın bugün Windows mağazasında uygulaması yok. Bir uygulama
-gelirse Faz 4'ün arkasına alınabilir. Hazırlık: `StoreKind` enum'u, `IStoreGateway` ve kural kataloğu baştan üç
+Microsoft Store Buğra'nın kararıyla (18 Kasım 2026) öne alındı: Faz 4'ün hemen arkasında. Hazırlık: `StoreKind` enum'u, `IStoreGateway` ve kural kataloğu baştan üç
 mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda gömülmez.
 
 ## 8. Güvenlik
@@ -223,7 +223,7 @@ mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda 
 | Hosting, DB, Redis, S3, mail, Seq, CI | DevOpsçu | Cevaplandı, 10. bölüm |
 | Barındırılan sürüm ücretli mi | Buğra | Kapsam dışı |
 | Logo ve vurgu rengi | Buğra | Karar verildi (18 Kasım 2026): logo K3 "Dört kanat e" (rüzgârgülünün bir kanadı eksik hâli, boşluk "e"nin ağzı; `docs/storeasy uygulaması tasarımı/03-Logo-Onerileri-4.html`), vurgu Ultramarin #4636FF / #857AFF. Yazı logoda ortadaki "e" vurgu renginde |
-| Microsoft Store | Buğra | Eklendi (18 Kasım 2026): Faz 8, bölüm 11.6 |
+| Microsoft Store | Buğra | Eklendi ve öne alındı (18 Kasım 2026): Faz 5, bölüm 11.6 |
 
 ## 10. Altyapı varsayılanları (DevOpsçu, 18 Kasım 2026)
 
@@ -265,7 +265,7 @@ bağlantı verir). Faz sütunu bölüm 7'deki fazdır. Kontrol tarihi: 18 Kasım
 
 | İş | Tür | Faz | Not |
 |---|---|---|---|
-| Uygulama oluşturma | Asistanlı | 7 | API uygulama oluşturmaya izin vermiyor |
+| Uygulama oluşturma | Asistanlı | 8 | API uygulama oluşturmaya izin vermiyor |
 | App info lokalizasyonları (ad, alt başlık, gizlilik URL'leri) | API | 2 | |
 | Sürüm lokalizasyonları (açıklama, EULA ve otomatik yenileme metni dahil, anahtar kelimeler, tanıtım metni, destek ve pazarlama URL'si, yenilikler) | API | 2 | en-US app info oluşunca sürüm lokalizasyonu da oluşur: POST yerine PATCH (store-ops'ta çözüldü) |
 | Kategoriler, telif, içerik hakları beyanı | API | 2 | |
@@ -284,13 +284,13 @@ bağlantı verir). Faz sütunu bölüm 7'deki fazdır. Kontrol tarihi: 18 Kasım
 | İncelemeye gönderme (ilk abonelikler sürümle birlikte) | API | 2 | Onay adımı + `SubmitForReview` izni |
 | TestFlight: gruplar, test kullanıcıları, beta lokalizasyonları, "neyi test et", beta inceleme | API | 4 | |
 | TestFlight build bitiş tarihi (90 gün) | API | 4 | Expenny ve Perry yalnız TestFlight'ta; bitişten önce uyarı |
-| Abonelik grupları ve lokalizasyonları, abonelik oluşturma | API | 6 | |
-| Bölge fiyatları, tanıtım ve promosyon teklifleri, uygunluk, inceleme görüntüsü | API | 6 | İnceleme görüntüsü Faz 2'de (hazırlık kontrolü ister) |
-| Retention mesajları, çok koltuklu satın alma | API (doğrulanacak) | 6 | Abonelik ekranlarında yeni alanlar |
-| IAP | API | 6 | |
+| Abonelik grupları ve lokalizasyonları, abonelik oluşturma | API | 7 | |
+| Bölge fiyatları, tanıtım ve promosyon teklifleri, uygunluk, inceleme görüntüsü | API | 7 | İnceleme görüntüsü Faz 2'de (hazırlık kontrolü ister) |
+| Retention mesajları, çok koltuklu satın alma | API (doğrulanacak) | 7 | Abonelik ekranlarında yeni alanlar |
+| IAP | API | 7 | |
 | Müşteri yorumları ve yanıt | API | 4 | |
 | Sözleşme durumu (Paid Apps Agreement) | Asistanlı | 4 | API'de yok; hazırlık kontrolünde "son kontrol tarihi" ile |
-| App Store Server Notifications URL, sandbox test kullanıcıları | Asistanlı / API | 6 | Sandbox test kullanıcıları API'de listelenir ve güncellenir |
+| App Store Server Notifications URL, sandbox test kullanıcıları | Asistanlı / API | 7 | Sandbox test kullanıcıları API'de listelenir ve güncellenir |
 | Hızlandırılmış inceleme talebi | Asistanlı | 4 | Yalnız web formu |
 
 ### 11.3 Red akışı
@@ -318,7 +318,7 @@ API'si olmayan iş storeasy'de bir **asistanlı adım** kaydıdır:
 
 | İş | Tür | Faz | Not |
 |---|---|---|---|
-| Uygulama oluşturma | Asistanlı | 7 | API yok |
+| Uygulama oluşturma | Asistanlı | 8 | API yok |
 | Uygulama ayrıntıları (iletişim e-postası, web sitesi, kategori) | API | 2 | `edits.details` |
 | Dil başına mağaza listesi | API | 2 | |
 | Grafikler: ikon, öne çıkan görsel, telefon ve 7"/10" tablet ekranları | API | 2 | |
@@ -326,11 +326,11 @@ API'si olmayan iş storeasy'de bir **asistanlı adım** kaydıdır:
 | Test kullanıcı listeleri | API | 2 | `edits.testers` (Google grupları) |
 | EAS çıktısından AAB yükleme | API | 2 | |
 | Data safety | API | 2 | `applications.dataSafety` CSV alır; kayıtlı cevaplardan CSV üretilir |
-| Abonelikler, base plan'lar, teklifler, tek seferlik ürünler | API | 6 | |
+| Abonelikler, base plan'lar, teklifler, tek seferlik ürünler | API | 7 | |
 | Yorumlar ve yanıt | API | 4 | API yalnız yakın tarihli, metinli yorumları döndürür; storeasy saklar |
-| Vitals (Reporting API) | API | 7 | İsteğe bağlı |
-| İçerik derecelendirme anketi, hedef kitle, reklam, devlet, finans ve sağlık beyanları | Asistanlı | 7 | Kayıtlı cevaplar |
-| Foreground service ve full-screen intent beyanları (demo videolu) | Asistanlı | 7 | |
+| Vitals (Reporting API) | API | 8 | İsteğe bağlı |
+| İçerik derecelendirme anketi, hedef kitle, reklam, devlet, finans ve sağlık beyanları | Asistanlı | 8 | Kayıtlı cevaplar |
+| Foreground service ve full-screen intent beyanları (demo videolu) | Asistanlı | 8 | |
 | Politika durumu | Asistanlı | 4 | |
 | Android geliştirici doğrulaması (paket adı kaydı) | Asistanlı | 4 | Play Console'da uygulama kaydı; kayıtsız uygulama Play'den kaldırılabilir. Gerekli hesap izni hazırlık kontrolünde |
 | Hedef API seviyesi | Build verisi + katalog | 2 | Yeni uygulamalar ve güncellemeler 31 Ağustos 2026'dan beri API 36; mevcut uygulamalar yeni kullanıcılara görünmek için API 35; uzatma 1 Kasım 2026'ya kadardı |
@@ -351,18 +351,18 @@ geçerli, Microsoft 12 ayı öneriyor: bitiş tarihi bağlantıda tutulur, kural
 
 | İş | Tür | Faz | Not |
 |---|---|---|---|
-| Bağlantı ekleme ve doğrulama (token alma, uygulama listesi) | API | 8 | |
-| Uygulama oluşturma (isim ayırma) | Asistanlı | 8 | API uygulama oluşturamaz |
-| İlk gönderim ve yaş derecelendirmesi anketi (IARC) | Asistanlı | 8 | API ancak Partner Center'daki ilk gönderimden sonra çalışır |
-| Uygulama ve gönderim senkronu, durum | API | 8 | MSI/EXE'de `publishingStatus`: INPROGRESS, PUBLISHED, FAILED |
-| Liste metinleri (açıklama, kısa açıklama, yenilikler, özellikler, arama terimleri) ve diller | API | 8 | Sınırlar: açıklama 10.000, kısa 1.000, yenilikler 1.500 karakter; en çok 20 özellik, 7 arama terimi |
-| Ekran görüntüleri ve logolar | API | 8 | Dil başına en çok 10 ekran görüntüsü; stüdyo boyutları kataloğa eklenir |
-| Fiyat, pazarlar, keşfedilebilirlik | API | 8 | "Pricing Version 2"deki uygulamalarda fiyat API'den okunamıyor; o modül asistanlı |
-| MSIX paket yükleme, paket uçuşları, aşamalı yayın | API | 8 | |
-| MSI/EXE paket güncelleme (URL, mimari, sessiz kurulum parametreleri) | API | 8 | Yükleyici Authenticode ile imzalı olmalı; hazırlık kontrolü bakar |
-| Add-on'lar (uygulama içi ürünler) | API | 8 | Store-managed consumable ve zorunlu güncelleme kullanan ürünlerde API 409 döner; o durumda asistanlı |
-| Sertifikasyon sonucu ve red | API + asistanlı | 8 | Durum API'den; ayrıntılı rapor Partner Center'da |
-| Yorumlar ve yanıt | Asistanlı | 8 | Yanıt API'si Microsoft'un kendi sayfasında "çalışmıyor" olarak işaretli; yorumları okumak için analytics API denenecek |
+| Bağlantı ekleme ve doğrulama (token alma, uygulama listesi) | API | 5 | |
+| Uygulama oluşturma (isim ayırma) | Asistanlı | 5 | API uygulama oluşturamaz |
+| İlk gönderim ve yaş derecelendirmesi anketi (IARC) | Asistanlı | 5 | API ancak Partner Center'daki ilk gönderimden sonra çalışır |
+| Uygulama ve gönderim senkronu, durum | API | 5 | MSI/EXE'de `publishingStatus`: INPROGRESS, PUBLISHED, FAILED |
+| Liste metinleri (açıklama, kısa açıklama, yenilikler, özellikler, arama terimleri) ve diller | API | 5 | Sınırlar: açıklama 10.000, kısa 1.000, yenilikler 1.500 karakter; en çok 20 özellik, 7 arama terimi |
+| Ekran görüntüleri ve logolar | API | 5 | Dil başına en çok 10 ekran görüntüsü; stüdyo boyutları kataloğa eklenir |
+| Fiyat, pazarlar, keşfedilebilirlik | API | 5 | "Pricing Version 2"deki uygulamalarda fiyat API'den okunamıyor; o modül asistanlı |
+| MSIX paket yükleme, paket uçuşları, aşamalı yayın | API | 5 | |
+| MSI/EXE paket güncelleme (URL, mimari, sessiz kurulum parametreleri) | API | 5 | Yükleyici Authenticode ile imzalı olmalı; hazırlık kontrolü bakar |
+| Add-on'lar (uygulama içi ürünler) | API | 5 | Store-managed consumable ve zorunlu güncelleme kullanan ürünlerde API 409 döner; o durumda asistanlı |
+| Sertifikasyon sonucu ve red | API + asistanlı | 5 | Durum API'den; ayrıntılı rapor Partner Center'da |
+| Yorumlar ve yanıt | Asistanlı | 5 | Yanıt API'si Microsoft'un kendi sayfasında "çalışmıyor" olarak işaretli; yorumları okumak için analytics API denenecek |
 
 Kural: API ile oluşturulan bir gönderim Partner Center'da elle değiştirilirse API onu bir daha değiştiremez. storeasy
 bunu gönderim ekranında uyarı olarak gösterir. Aynı anda tek bir aktif gönderim olabilir.
