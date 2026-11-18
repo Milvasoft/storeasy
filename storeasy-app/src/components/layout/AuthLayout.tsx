@@ -13,7 +13,8 @@ function HatArt() {
   const reduced = usePrefersReducedMotion()
   return (
     <div className="auth-art" aria-hidden>
-      <svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid slice">
+      {/* meet, not slice: on wide or short panels slice scaled the drawing past the panel and cut the headline off. */}
+      <svg viewBox="0 0 720 820" preserveAspectRatio="xMidYMid meet">
         <g fill="none" stroke="rgb(var(--border-strong))" strokeWidth="2" strokeDasharray="2 8" strokeLinecap="round">
           <path d="M-40 518 H250" />
           <path d="M346 518 C 410 518, 400 346, 470 346" />
