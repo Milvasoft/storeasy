@@ -4,7 +4,8 @@ using System.Collections.Frozen;
 namespace Storeasy.Domain.Organizations;
 
 /// <summary>
-/// The organization role matrix (docs/urun-plani.md section 6) and the pure rules around role changes. No database.
+/// The organization role matrix (docs/urun-plani.md section 6), the custom role rules (phase 8) and the pure rules
+/// around role changes. No database.
 /// </summary>
 public static class OrgRoleRules
 {
@@ -34,6 +35,12 @@ public static class OrgRoleRules
         {
             OrgPermission.View,
         }.ToFrozenSet(),
+
+        // The floor of a custom role; its own set comes from OrgAccess.Custom.
+        [OrgRole.Custom] = new[]
+        {
+            OrgPermission.View,
+        }.ToFrozenSet(),
     }.ToFrozenDictionary();
 
     /// <summary>
@@ -55,37 +62,92 @@ public static class OrgRoleRules
     }
 
     /// <summary>
-    /// Whether an actor with <paramref name="actorRole"/> may give <paramref name="newRole"/> to a member who has
-    /// <paramref name="currentRole"/> (null for a new member or an invitation). Owners may do anything; admins may not
-    /// touch owners or create them; nobody else manages members.
+    /// Permissions a custom role may hold: every permission except the owner only
+    /// <see cref="OrgPermission.ManageOrganization"/>.
     /// </summary>
-    public static bool CanAssign(OrgRole actorRole, OrgRole? currentRole, OrgRole newRole)
+    public static IReadOnlyList<OrgPermission> CustomAssignable { get; } = [.. Enum.GetValues<OrgPermission>().Where(p => p != OrgPermission.ManageOrganization)];
+
+    /// <summary>
+    /// The stored form of a custom role's permissions: defined values only, no owner only permission, always
+    /// <see cref="OrgPermission.View"/>, distinct, in enum order.
+    /// </summary>
+    /// <param name="permissions"></param>
+    /// <returns></returns>
+    public static List<OrgPermission> NormalizeCustom(IEnumerable<OrgPermission> permissions)
+        => [.. (permissions ?? []).Append(OrgPermission.View).Where(CustomAssignable.Contains).Distinct().Order()];
+
+    /// <summary>
+    /// The seeded role whose notifications a custom role receives: the most privileged of admin, editor and viewer whose
+    /// whole permission set the custom role holds.
+    /// </summary>
+    /// <param name="permissions"></param>
+    /// <returns></returns>
+    public static OrgRole AudienceRoleOf(IReadOnlyCollection<OrgPermission> permissions)
     {
-        if (actorRole == OrgRole.Owner)
+        foreach (var role in (OrgRole[])[OrgRole.Admin, OrgRole.Editor])
         {
-            return true;
+            if (_matrix[role].All(permissions.Contains))
+                return role;
         }
 
-        if (actorRole != OrgRole.Admin)
-        {
-            return false;
-        }
-
-        return currentRole != OrgRole.Owner && newRole != OrgRole.Owner;
+        return OrgRole.Viewer;
     }
 
     /// <summary>
-    /// Whether an actor with <paramref name="actorRole"/> may remove a member who has <paramref name="memberRole"/>.
+    /// Whether <paramref name="actor"/> may give <paramref name="target"/> to a member who has <paramref name="current"/>
+    /// (null for a new member or an invitation). Owners may do anything. Anyone else needs
+    /// <see cref="OrgPermission.ManageMembers"/>, may not touch or create owners, and may neither change a member who can do
+    /// more than they can nor give more than they hold.
     /// </summary>
-    public static bool CanRemove(OrgRole actorRole, OrgRole memberRole)
+    /// <param name="actor"></param>
+    /// <param name="current"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public static bool CanAssign(OrgAccess actor, OrgAccess current, OrgAccess target)
     {
-        if (actorRole == OrgRole.Owner)
-        {
+        if (actor.Role == OrgRole.Owner)
             return true;
-        }
 
-        return actorRole == OrgRole.Admin && memberRole != OrgRole.Owner;
+        if (!actor.Allows(OrgPermission.ManageMembers) || current?.Role == OrgRole.Owner || target.Role == OrgRole.Owner)
+            return false;
+
+        return (current == null || current.IsWithin(actor)) && target.IsWithin(actor);
     }
+
+    /// <summary>
+    /// Whether <paramref name="actor"/> may remove a member who has <paramref name="member"/>: owners may remove anyone;
+    /// anyone else needs <see cref="OrgPermission.ManageMembers"/> and may not remove an owner or a member who can do more.
+    /// </summary>
+    /// <param name="actor"></param>
+    /// <param name="member"></param>
+    /// <returns></returns>
+    public static bool CanRemove(OrgAccess actor, OrgAccess member)
+    {
+        if (actor.Role == OrgRole.Owner)
+            return true;
+
+        return actor.Allows(OrgPermission.ManageMembers) && member.Role != OrgRole.Owner && member.IsWithin(actor);
+    }
+
+    /// <summary>
+    /// Whether <paramref name="actor"/> may define or change a custom role that grants <paramref name="permissions"/> (and,
+    /// for a change, currently grants <paramref name="currentPermissions"/>): it needs
+    /// <see cref="OrgPermission.ManageMembers"/> and must hold every permission involved.
+    /// </summary>
+    /// <param name="actor"></param>
+    /// <param name="permissions"></param>
+    /// <param name="currentPermissions"></param>
+    /// <returns></returns>
+    public static bool CanDefine(OrgAccess actor, IEnumerable<OrgPermission> permissions, IEnumerable<OrgPermission> currentPermissions = null)
+        => actor.Allows(OrgPermission.ManageMembers) && NormalizeCustom(permissions).Concat(currentPermissions ?? []).All(actor.Allows);
+
+    /// <summary>
+    /// A role as the audit log names it: the seeded role, or "Custom #{id}".
+    /// </summary>
+    /// <param name="role"></param>
+    /// <param name="customRoleId"></param>
+    /// <returns></returns>
+    public static string Describe(OrgRole role, int? customRoleId) => role == OrgRole.Custom ? $"Custom #{customRoleId}" : role.ToString();
 
     /// <summary>
     /// Whether the change leaves the organization without an owner. <paramref name="ownerCount"/> is the number of

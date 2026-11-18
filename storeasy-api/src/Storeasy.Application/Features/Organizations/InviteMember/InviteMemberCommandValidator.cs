@@ -20,5 +20,11 @@ public sealed class InviteMemberCommandValidator : AbstractValidator<InviteMembe
             .IsInEnum()
             .NotEqual(OrgRole.Owner)
             .WithMessage(localizer[MessageKey.OrganizationRoleInvalid]);
+
+        RuleFor(command => command.CustomRoleId)
+            .NotNull()
+            .GreaterThan(0)
+            .WithMessage(localizer[MessageKey.OrganizationRoleInvalid])
+            .When(command => command.Role == OrgRole.Custom);
     }
 }

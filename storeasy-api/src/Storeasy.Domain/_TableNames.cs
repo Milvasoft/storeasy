@@ -68,5 +68,10 @@ public static class TableNames
     public const string ArtifactPullSources = nameof(ArtifactPullSources);
     public const string IntakeSettings = nameof(IntakeSettings);
     public const string ArtifactSessions = nameof(ArtifactSessions);
+    public const string OrganizationRoles = nameof(OrganizationRoles);
+    public const string UserExternalLogins = nameof(UserExternalLogins);
+    public const string WebPushSubscriptions = nameof(WebPushSubscriptions);
+    public const string EmailOutbox = nameof(EmailOutbox);
+    public const string SystemSettings = nameof(SystemSettings);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

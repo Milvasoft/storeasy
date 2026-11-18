@@ -363,6 +363,26 @@
             <param name="cancellation"></param>
             <returns>Token information</returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.StartGoogleSignInAsync(Storeasy.Application.Features.Account.StartGoogleSignIn.StartGoogleSignInCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts a Google sign in (anonymous; OpenID Connect authorization code with PKCE). Returns Google's authorization
+            address and the state; the browser goes there and Google sends it back to the web app's <c>/auth/google/callback</c>
+            page. 404 <c>GoogleSignInDisabled</c> when <c>Storeasy:Auth:Google</c> is not configured.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.GoogleSignInAsync(Storeasy.Application.Features.Account.GoogleSignIn.GoogleSignInCommand,System.Threading.CancellationToken)">
+            <summary>
+            Completes a Google sign in with the code and state of the callback (anonymous). Signs in the linked account, links
+            the account of the address Google verified, or creates one when the registration mode allows it. Returns the same
+            token pair as the password login.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.AccountController.RefreshLoginAsync(Storeasy.Application.Features.Account.RefreshLogin.RefreshLoginCommand,System.Threading.CancellationToken)">
             <summary>
             User refresh login operation.
@@ -435,6 +455,68 @@
         <member name="M:Storeasy.Api.Controllers.AccountController.AccountDetailsAsync(Storeasy.Application.Features.Account.AccountDetail.AccountDetailQuery,System.Threading.CancellationToken)">
             <summary>
             User can access his/her account information through this endpoint. The account is always the caller's own (taken from the token).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.UpdateProfileAsync(Storeasy.Application.Features.Account.UpdateProfile.UpdateProfileCommand,System.Threading.CancellationToken)">
+            <summary>
+            Updates the caller's own name, surname and interface language.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.GetSessionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists the caller's active sessions (signed in devices) with the last seen time.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.RevokeSessionAsync(Storeasy.Application.Features.Account.RevokeSession.RevokeSessionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Signs out one session: its refresh and access tokens stop working and its live connection closes.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.RevokeOtherSessionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Signs out every other session of the caller.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.GetWebPushSubscriptionsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists the caller's browser push subscriptions.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.SaveWebPushSubscriptionAsync(Storeasy.Application.Features.Account.SaveWebPushSubscription.SaveWebPushSubscriptionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the caller's browser push subscription (the browser's <c>PushSubscription.toJSON()</c> fields). 404
+            <c>WebPushDisabled</c> when <c>Storeasy:WebPush</c> has no key pair.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.DeleteWebPushSubscriptionAsync(Storeasy.Application.Features.Account.DeleteWebPushSubscription.DeleteWebPushSubscriptionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes one of the caller's browser push subscriptions (by id or address).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AccountController.SendTestWebPushAsync(Storeasy.Application.Features.Account.SendTestWebPush.SendTestWebPushCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a test push to the caller's browsers.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -713,6 +795,14 @@
         <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetSummaryAsync(Storeasy.Application.Features.Artifacts.GetArtifactSummary.GetArtifactSummaryQuery,System.Threading.CancellationToken)">
             <summary>
             The last package of every app with its delivery rules.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ArtifactsController.GetCountsAsync(Storeasy.Application.Features.Artifacts.GetArtifactCounts.GetArtifactCountsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Package counters of a period (default the last 30 days): total, per status and per source.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -1199,7 +1289,8 @@
         </member>
         <member name="T:Storeasy.Api.Controllers.HealthCheckController">
             <summary>
-            Health check endpoints: a liveness probe and a readiness probe that checks the database and Redis.
+            Health check endpoints: a liveness probe and a readiness probe that checks the database and Redis, also at
+            <c>/health/live</c> and <c>/health/ready</c> (docs/urun-plani.md).
             </summary>
         </member>
         <member name="M:Storeasy.Api.Controllers.HealthCheckController.HealthCheck">
@@ -1710,6 +1801,15 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetInvitationPreviewAsync(Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            Previews an invitation by the token from its link (anonymous): state, organization, inviter, role and its
+            permissions, masked address and expiry, as much as the state allows. An unknown token is a 404.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.AcceptInvitationAsync(Storeasy.Application.Features.Organizations.AcceptInvitation.AcceptInvitationCommand,System.Threading.CancellationToken)">
             <summary>
             Accepts an invitation with the token from the link. Returns the organization id.
@@ -1729,6 +1829,55 @@
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.RemoveMemberAsync(Storeasy.Application.Features.Organizations.RemoveMember.RemoveMemberCommand,System.Threading.CancellationToken)">
             <summary>
             Removes a member, or leaves the organization when the id is the caller's own membership.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetSettingsAsync(Storeasy.Application.Features.Organizations.GetOrganizationSettings.GetOrganizationSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the retention and language settings (member managers; viewers get 403).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.UpdateSettingsAsync(Storeasy.Application.Features.Organizations.UpdateOrganizationSettings.UpdateOrganizationSettingsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Changes the audit log retention and the default language (owners). Only the fields sent change.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetRolesAsync(Storeasy.Application.Features.Organizations.GetOrganizationRoleList.GetOrganizationRoleListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending
+            invitation counts.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.CreateRoleAsync(Storeasy.Application.Features.Organizations.CreateOrganizationRole.CreateOrganizationRoleCommand,System.Threading.CancellationToken)">
+            <summary>
+            Defines a custom role (permissions the caller holds only). Returns the role id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.UpdateRoleAsync(Storeasy.Application.Features.Organizations.UpdateOrganizationRole.UpdateOrganizationRoleCommand,System.Threading.CancellationToken)">
+            <summary>
+            Renames a custom role and replaces its permissions; its members get them on their next request.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.DeleteRoleAsync(Storeasy.Application.Features.Organizations.DeleteOrganizationRole.DeleteOrganizationRoleCommand,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a custom role nobody holds.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -2206,6 +2355,14 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.RulesController.GetPlatformCatalogAsync(Storeasy.Application.Features.Rules.GetPlatformRuleCatalog.GetPlatformRuleCatalogQuery,System.Threading.CancellationToken)">
+            <summary>
+            The loaded catalog and its active rules without an organization (platform managers).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.RulesController.GetRulesAsync(Storeasy.Application.Features.Rules.GetRuleList.GetRuleListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists the catalog rules with the number of the organization's apps each applies to.
@@ -2484,6 +2641,56 @@
         <member name="M:Storeasy.Api.Controllers.SubscriptionsController.SyncAsync(Storeasy.Application.Features.Subscriptions.SyncStoreProducts.SyncStoreProductsCommand,System.Threading.CancellationToken)">
             <summary>
             Queues a sync of the subscriptions and In-App Purchases of a store record; returns the job id. Editor and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.SystemController">
+            <summary>
+            Instance settings and status: the anonymous public settings, the feature flag states every user reads, and the status
+            and settings of platform managers (<see cref="T:Storeasy.Application.Utils.PermissionManager.PermissionCatalog.SystemManagement"/>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.#ctor(MediatR.IMediator)">
+            <summary>
+            Instance settings and status: the anonymous public settings, the feature flag states every user reads, and the status
+            and settings of platform managers (<see cref="T:Storeasy.Application.Utils.PermissionManager.PermissionCatalog.SystemManagement"/>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.GetPublicSettingsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Registration mode, whether Google sign in is on and the web push public key (anonymous).
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.GetFeatureFlagStatesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Whether each feature is on (read only, every signed in user; managing the flags is <c>featureFlags</c>).
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.GetStatusAsync(System.Threading.CancellationToken)">
+            <summary>
+            Instance status for platform managers: build, database, Redis, object storage, mail provider, live event
+            backplane, whether the encryption key and the optional features are configured (yes or no only) and the job queues
+            across organizations.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.GetSettingsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Instance settings a platform manager may change: the registration mode in force and where it comes from.
+            </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.UpdateRegistrationModeAsync(Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the registration mode (overrides <c>Storeasy:Registration:Mode</c>); null returns to the configured one.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -2848,19 +3055,25 @@
             access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
             websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
             membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
-            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>. Each connection is recorded with its session stamp and the
+            organizations it joined (<see cref="T:Storeasy.Api.Hubs.HubConnectionRegistry"/>), so a removed member leaves the organization's group and
+            a rotated stamp closes the connection right away (<see cref="T:Storeasy.Api.Hubs.SignalRRealtimeConnections"/>).
             </summary>
             <param name="organizationAccess"></param>
+            <param name="registry"></param>
         </member>
-        <member name="M:Storeasy.Api.Hubs.ActivityHub.#ctor(Storeasy.Application.Interfaces.IOrganizationAccess)">
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.#ctor(Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Api.Hubs.HubConnectionRegistry)">
             <summary>
             Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
             access token as the REST API (the <c>Authorization</c> header, or the <c>access_token</c> query value for
             websockets), then join the organizations they want to follow. A join is checked on the server against the caller's
             membership, the same way as every organization request; events (<see cref="T:Storeasy.Application.Utils.Constants.ActivityEventTypes"/>) arrive on the
-            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>.
+            client method <see cref="F:Storeasy.Application.Utils.Constants.ActivityEventTypes.ClientMethod"/>. Each connection is recorded with its session stamp and the
+            organizations it joined (<see cref="T:Storeasy.Api.Hubs.HubConnectionRegistry"/>), so a removed member leaves the organization's group and
+            a rotated stamp closes the connection right away (<see cref="T:Storeasy.Api.Hubs.SignalRRealtimeConnections"/>).
             </summary>
             <param name="organizationAccess"></param>
+            <param name="registry"></param>
         </member>
         <member name="F:Storeasy.Api.Hubs.ActivityHub.Path">
             <summary>
@@ -2888,6 +3101,18 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.AccessTokenHash">
+            <summary>
+            SHA-256 of the access token the connection was opened with (header or, for websockets, the query string).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.ActivityHub.OnDisconnectedAsync(System.Exception)">
+            <summary>
+            Forgets the connection.
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Hubs.ActivityHub.JoinOrganizationAsync(System.Int32)">
             <summary>
             Starts sending the organization's events to this connection. Returns false (and joins nothing) when the caller is
@@ -2902,6 +3127,83 @@
             </summary>
             <param name="organizationId"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.HubConnectionRegistry">
+            <summary>
+            The activity hub connections of this instance: the user, the session stamp the connection was opened with and the
+            organizations it joined. <see cref="T:Storeasy.Api.Hubs.SignalRRealtimeConnections"/> acts on them. Singleton.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionRegistry.Add(Microsoft.AspNetCore.SignalR.HubCallerContext,System.Int32,System.String,System.String)">
+            <summary>
+            Records a new connection.
+            </summary>
+            <param name="context"></param>
+            <param name="userId"></param>
+            <param name="stamp"></param>
+            <param name="tokenHash"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionRegistry.Remove(System.String)">
+            <summary>
+            Forgets a closed connection.
+            </summary>
+            <param name="connectionId"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionRegistry.Join(System.String,System.Int32)">
+            <summary>
+            Records that the connection follows an organization.
+            </summary>
+            <param name="connectionId"></param>
+            <param name="organizationId"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionRegistry.Leave(System.String,System.Int32)">
+            <summary>
+            Records that the connection no longer follows an organization.
+            </summary>
+            <param name="connectionId"></param>
+            <param name="organizationId"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionRegistry.OfUser(System.Int32)">
+            <summary>
+            The connections of a user on this instance.
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.HubConnectionEntry">
+            <summary>
+            One live connection.
+            </summary>
+            <param name="Context">The connection (to abort it).</param>
+            <param name="UserId">Its user.</param>
+            <param name="Stamp">Session stamp of the token it was opened with.</param>
+            <param name="TokenHash">SHA-256 of the access token it was opened with.</param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.HubConnectionEntry.#ctor(Microsoft.AspNetCore.SignalR.HubCallerContext,System.Int32,System.String,System.String)">
+            <summary>
+            One live connection.
+            </summary>
+            <param name="Context">The connection (to abort it).</param>
+            <param name="UserId">Its user.</param>
+            <param name="Stamp">Session stamp of the token it was opened with.</param>
+            <param name="TokenHash">SHA-256 of the access token it was opened with.</param>
+        </member>
+        <member name="P:Storeasy.Api.Hubs.HubConnectionEntry.Context">
+            <summary>The connection (to abort it).</summary>
+        </member>
+        <member name="P:Storeasy.Api.Hubs.HubConnectionEntry.UserId">
+            <summary>Its user.</summary>
+        </member>
+        <member name="P:Storeasy.Api.Hubs.HubConnectionEntry.Stamp">
+            <summary>Session stamp of the token it was opened with.</summary>
+        </member>
+        <member name="P:Storeasy.Api.Hubs.HubConnectionEntry.TokenHash">
+            <summary>SHA-256 of the access token it was opened with.</summary>
+        </member>
+        <member name="P:Storeasy.Api.Hubs.HubConnectionEntry.Organizations">
+            <summary>
+            Organizations the connection joined.
+            </summary>
         </member>
         <member name="T:Storeasy.Api.Hubs.SignalRActivityPublisher">
             <summary>
@@ -2920,6 +3222,47 @@
             <param name="logger"></param>
         </member>
         <member name="M:Storeasy.Api.Hubs.SignalRActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Api.Hubs.SignalRRealtimeConnections">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRealtimeConnections"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>. A command is applied to this instance's connections
+            (<see cref="T:Storeasy.Api.Hubs.HubConnectionRegistry"/>) at once and published on a Redis channel under the application's key prefix,
+            where the other instances apply it to theirs (each ignores its own messages). Without Redis there is one instance and
+            the local step is enough. Registered as a singleton and as a hosted service (the subscription).
+            </summary>
+            <param name="hubContext"></param>
+            <param name="registry"></param>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.#ctor(Microsoft.AspNetCore.SignalR.IHubContext{Storeasy.Api.Hubs.ActivityHub},Storeasy.Api.Hubs.HubConnectionRegistry,Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Utils.Helpers.CacheKeys,Microsoft.Extensions.Logging.ILogger{Storeasy.Api.Hubs.SignalRRealtimeConnections})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRealtimeConnections"/> over <see cref="T:Storeasy.Api.Hubs.ActivityHub"/>. A command is applied to this instance's connections
+            (<see cref="T:Storeasy.Api.Hubs.HubConnectionRegistry"/>) at once and published on a Redis channel under the application's key prefix,
+            where the other instances apply it to theirs (each ignores its own messages). Without Redis there is one instance and
+            the local step is enough. Registered as a singleton and as a hosted service (the subscription).
+            </summary>
+            <param name="hubContext"></param>
+            <param name="registry"></param>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.RemoveFromOrganizationAsync(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.DisconnectAsync(System.Int32,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.DisconnectTokensAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.StartAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Api.Hubs.SignalRRealtimeConnections.StopAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Api.Hubs.SignalRUserNotificationPublisher">
@@ -3207,6 +3550,7 @@
             token was revoked (password change, role change, lock, deletion) and the request is rejected with 401. A token
             without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived, documentation)
             carries one, so a missing claim means a foreign token that could never be revoked.
+            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too.
             Endpoints marked with <see cref="T:Storeasy.Api.Utils.SkipSessionStampValidationAttribute"/> are not checked.
             </summary>
             <param name="next"></param>
@@ -3218,6 +3562,7 @@
             token was revoked (password change, role change, lock, deletion) and the request is rejected with 401. A token
             without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived, documentation)
             carries one, so a missing claim means a foreign token that could never be revoked.
+            A token of a session signed out on its own (<see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>) is rejected too.
             Endpoints marked with <see cref="T:Storeasy.Api.Utils.SkipSessionStampValidationAttribute"/> are not checked.
             </summary>
             <param name="next"></param>
@@ -3391,6 +3736,18 @@
         <member name="M:Storeasy.Api.Migrations._20261118154640_Phase3McpIntake.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:Storeasy.Api.Migrations._20261118182350_Phase8Final">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118182350_Phase8Final.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118182350_Phase8Final.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118182350_Phase8Final.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">
             <summary>
             Applies migrations when the application starts, creates the missing feature flag rows, then loads the language and
@@ -3428,6 +3785,19 @@
             <summary>
             Assembly instance.
             </summary>
+        </member>
+        <member name="T:Storeasy.Api.Utils.BearerTokens">
+            <summary>
+            Reads the access token a request carries.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Utils.BearerTokens.Read(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            The bearer token of the <c>Authorization</c> header, or the <c>access_token</c> query value (websockets of the
+            activity hub); null when there is none.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Api.Utils.DisableFormValueModelBindingAttribute">
             <summary>

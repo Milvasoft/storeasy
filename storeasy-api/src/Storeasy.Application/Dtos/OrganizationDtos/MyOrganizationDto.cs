@@ -31,6 +31,23 @@ public class MyOrganizationDto
     public OrgRole Role { get; set; }
 
     /// <summary>
+    /// The custom role when <see cref="Role"/> is <see cref="OrgRole.Custom"/>.
+    /// </summary>
+    public int? CustomRoleId { get; set; }
+
+    /// <summary>
+    /// Name of the custom role.
+    /// </summary>
+    public string CustomRoleName { get; set; }
+
+    /// <summary>
+    /// Stored permissions of the custom role (the handler turns them into <see cref="Permissions"/>).
+    /// </summary>
+    [JsonIgnore]
+    [ExcludeFromMetadata]
+    public List<OrgPermission> CustomPermissions { get; set; }
+
+    /// <summary>
     /// Permissions of <see cref="Role"/>, so the client can hide actions without a matrix of its own.
     /// </summary>
     public IReadOnlyList<OrgPermission> Permissions { get; set; }
@@ -46,5 +63,8 @@ public class MyOrganizationDto
         Name = m.Organization.Name,
         Slug = m.Organization.Slug,
         Role = m.Role,
+        CustomRoleId = m.CustomRoleId,
+        CustomRoleName = m.CustomRole != null ? m.CustomRole.Name : null,
+        CustomPermissions = m.CustomRole != null ? m.CustomRole.Permissions : null,
     };
 }

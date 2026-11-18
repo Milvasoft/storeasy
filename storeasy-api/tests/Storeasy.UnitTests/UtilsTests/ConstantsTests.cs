@@ -102,7 +102,7 @@ public class ConstantsTests
         MessageKey.WrongPassword.Should().Be("WrongPassword");
         MessageKey.DefaultValueCannotModify.Should().Be(nameof(MessageKey.DefaultValueCannotModify));
         MessageKey.PleaseSendCorrect.Should().Be(nameof(MessageKey.PleaseSendCorrect));
-        MessageKey.IdentityInvalidUsername.Should().Be(nameof(MessageKey.IdentityInvalidUsername));
+        MessageKey.IdentityInvalidUserName.Should().Be(nameof(MessageKey.IdentityInvalidUserName));
         MessageKey.CannotBeEmpty.Should().Be(nameof(MessageKey.CannotBeEmpty));
         MessageKey.PossibleUIError.Should().Be("PossibleUIError");
         MessageKey.User.Should().Be("Global.User");

@@ -25,6 +25,8 @@ using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
+using Storeasy.Infrastructure.Notifications;
+using Storeasy.Infrastructure.Notifications.WebPush;
 using Storeasy.Infrastructure.Persistence.Context;
 using Storeasy.Infrastructure.Persistence.Repository;
 using Storeasy.Infrastructure.Security;
@@ -56,6 +58,7 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IMilvaLogger, StoreasyDbLogger>();
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<ISecurityStampStore, SecurityStampStore>();
+        services.AddSingleton<ITokenRevocationList, TokenRevocationList>();
         services.AddScoped<IPermissionManager, PermissionManager>();
         services.AddScoped<IAccountManager, AccountManager>();
         services.AddScoped<IDeveloperService, DeveloperService>();
@@ -176,6 +179,9 @@ public static class InfraServiceCollectionExtensions
     {
         services.AddSingleton(configurationManager.GetSection(RegistrationOptions.SectionName).Get<RegistrationOptions>() ?? new RegistrationOptions());
         services.AddSingleton(configurationManager.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
+        services.AddSingleton(configurationManager.GetSection(BuildOptions.SectionName).Get<BuildOptions>() ?? new BuildOptions());
+        services.AddScoped<IRegistrationModes, RegistrationModes>();
+        services.AddScoped<ISystemStatusProbe, SystemStatusProbe>();
 
         var emailOptions = configurationManager.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
 
@@ -198,6 +204,25 @@ public static class InfraServiceCollectionExtensions
 
         services.AddScoped<IAccountMailer, AccountMailer>();
 
+        // E-mails are queued on the request path and sent by the background sender (Storeasy:Email:Outbox).
+        services.AddScoped<IEmailOutbox, EmailOutbox>();
+        services.AddScoped<EmailOutboxSender>();
+        services.AddHostedService<EmailOutboxRunner>();
+
+        // Sign in with Google (Storeasy:Auth:Google); off until a client id and secret are set.
+        services.AddSingleton(configurationManager.GetSection(GoogleAuthOptions.SectionName).Get<GoogleAuthOptions>() ?? new GoogleAuthOptions());
+        services.AddSingleton<IGoogleSignIn, GoogleSignInService>();
+        services.AddHttpClient(GoogleSignInService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+
+        // Web push with VAPID (Storeasy:WebPush); off until a key pair is set. Pushes go only to public addresses.
+        services.AddSingleton(configurationManager.GetSection(WebPushOptions.SectionName).Get<WebPushOptions>() ?? new WebPushOptions());
+        services.AddSingleton<WebPushQueue>();
+        services.AddSingleton<IWebPushQueue>(provider => provider.GetRequiredService<WebPushQueue>());
+        services.AddScoped<WebPushSender>();
+        services.AddHttpClient(WebPushSender.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(15))
+                .ConfigurePrimaryHttpMessageHandler(provider => GuardedConnection.CreateHandler(provider.GetRequiredService<IWebhookUrlGuard>(), provider.GetRequiredService<IHostResolver>()));
+        services.AddHostedService<WebPushRunner>();
+
         return services;
     }
 
@@ -213,6 +238,7 @@ public static class InfraServiceCollectionExtensions
         services.AddSingleton(configurationManager.GetSection(StoreJobOptions.SectionName).Get<StoreJobOptions>() ?? new StoreJobOptions());
 
         services.TryAddSingleton<IActivityPublisher, NullActivityPublisher>();
+        services.TryAddSingleton<IRealtimeConnections, NullRealtimeConnections>();
 
         services.AddScoped<IStoreJobQueue, StoreJobQueue>();
         services.AddScoped<StoreJobExecutor>();
@@ -280,6 +306,13 @@ public static class InfraServiceCollectionExtensions
         {
             c.TimeZoneInfo = TimeZoneInfo.Utc;
             c.CronExpression = @"0 3 */5 * *"; // At 03:00 AM, every 5 days
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        services.AddMilvaCronJob<AuditLogCleanerJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = @"30 3 * * *"; // At 03:30 AM, every day
             c.CronFormat = CronFormat.Standard;
         });
 

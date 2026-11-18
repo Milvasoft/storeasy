@@ -1348,6 +1348,68 @@
             <param name="kind"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Domain.EmailOutboxItem">
+            <summary>
+            One e-mail waiting for the background sender. The payload (recipient, subject, body with any one time link) is sealed
+            with envelope encryption, so the database never holds a usable link in plain text. A row is deleted once it is sent or
+            its attempts are used up.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.EmailOutboxItem.ErrorMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.EmailOutboxItem.LastError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.Kind">
+            <summary>
+            What the row holds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.Language">
+            <summary>
+            Culture the mail is written in (e.g. tr-TR).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.EncryptedPayload">
+            <summary>
+            Sealed JSON payload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.EncryptedDataKey">
+            <summary>
+            Data key of <see cref="P:Storeasy.Domain.EmailOutboxItem.EncryptedPayload"/>, sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.KeyVersion">
+            <summary>
+            Master key version that sealed <see cref="P:Storeasy.Domain.EmailOutboxItem.EncryptedDataKey"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.Attempt">
+            <summary>
+            Attempts made so far.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.NextAttemptDate">
+            <summary>
+            UTC instant the next attempt is due.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.LockedUntil">
+            <summary>
+            UTC instant until which a sender holds the row; null while waiting.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.CreationDate">
+            <summary>
+            UTC instant the row was queued.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.EmailOutboxItem.LastError">
+            <summary>
+            Error of the last failed attempt (redacted).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AccountTokenPurpose">
             <summary>
             What a one time account token proves. Values are explicit and never reused.
@@ -1693,6 +1755,15 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MemberRemoved">
             <summary>Member removed or left.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationRoleCreated">
+            <summary>Custom role created.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationRoleUpdated">
+            <summary>Custom role renamed or its permissions changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationRoleDeleted">
+            <summary>Custom role deleted.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.ConnectionAdded">
             <summary>Store connection added.</summary>
@@ -2328,6 +2399,22 @@
             Hold the session for a member.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.EmailOutboxKind">
+            <summary>
+            What an e-mail outbox row holds. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EmailOutboxKind.Message">
+            <summary>
+            A rendered e-mail, sent as it is.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EmailOutboxKind.PasswordReset">
+            <summary>
+            A password reset request for an address: the sender looks the account up, issues the token and renders the mail,
+            or drops the row when no account uses the address.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.EmailProvider">
             <summary>
             How e-mails leave the application (<c>Storeasy:Email:Provider</c>).
@@ -2348,6 +2435,16 @@
             Nothing is sent, the e-mail is only logged. Development only.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ExternalLoginProvider">
+            <summary>
+            An identity provider a user can sign in with besides the password. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ExternalLoginProvider.Google">
+            <summary>
+            Google (OpenID Connect, authorization code with PKCE).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.IdentityKind">
             <summary>
             How a package upload was authenticated. Values are explicit and never reused.
@@ -2366,6 +2463,31 @@
         <member name="F:Storeasy.Domain.Enums.IdentityKind.User">
             <summary>
             A member (web, personal access token).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.InvitationStatus">
+            <summary>
+            State of an organization invitation as its preview reports it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.InvitationStatus.Pending">
+            <summary>
+            Can be accepted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.InvitationStatus.Expired">
+            <summary>
+            Its seven days passed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.InvitationStatus.Revoked">
+            <summary>
+            A member manager revoked it (or a newer invitation to the same address replaced it).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.InvitationStatus.Accepted">
+            <summary>
+            Already used.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.MediaKind">
@@ -3209,8 +3331,9 @@
         </member>
         <member name="T:Storeasy.Domain.Enums.OrgRole">
             <summary>
-            Role of a user inside one organization. Lower value = more rights. What each role may do is decided in one place:
-            <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>.
+            Role of a user inside one organization. The four seeded roles are locked (lower value = more rights); a member may
+            instead hold a <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/> role, an <see cref="T:Storeasy.Domain.Organizations.OrganizationRole"/> the organization defined. What
+            each role may do is decided in one place: <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.OrgRole.Owner">
@@ -3231,6 +3354,12 @@
         <member name="F:Storeasy.Domain.Enums.OrgRole.Viewer">
             <summary>
             Read only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.OrgRole.Custom">
+            <summary>
+            A role the organization defined (<see cref="T:Storeasy.Domain.Organizations.OrganizationRole"/>): its own permission set, never more
+            than the member who assigns it holds and never the owner only permissions.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.PackageKind">
@@ -4360,6 +4489,13 @@
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
             <summary>All known keys, in display order.</summary>
         </member>
+        <member name="M:Storeasy.Domain.FeatureFlagKeys.DescriptionKey(System.String)">
+            <summary>
+            Localization key of the description of <paramref name="key"/>.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Feedback.RejectionCase">
             <summary>
             A store rejection being worked on (docs/urun-plani.md 11.3): opened when a version goes to REJECTED or METADATA_REJECTED,
@@ -4837,6 +4973,12 @@
         <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.Notes">
             <summary>
             Release notes or "What to Test" text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactDeliveryOverride.HoldForConfirmation">
+            <summary>
+            Read and check the package, then hold it until a member confirms the delivery (<c>artifacts/session/deliver</c>);
+            the web app's manual upload sets it so the checks are shown before anything reaches a store.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Intake.ArtifactStep">
@@ -8485,6 +8627,78 @@
             Id of the claim that holds the lease (set and read back in one round, cleared after the attempt).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Organizations.OrgAccess">
+            <summary>
+            What a member may do in one organization: the role and the permission set it grants. A seeded role brings the matrix
+            of <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>; a custom role (<see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>) brings its own normalized set. Every
+            organization check (requests, live events, tokens, change plans) asks this, never the role alone.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrgAccess.Role">
+            <summary>
+            The member's role.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrgAccess.CustomRoleId">
+            <summary>
+            The custom role, when <see cref="P:Storeasy.Domain.Organizations.OrgAccess.Role"/> is <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrgAccess.Permissions">
+            <summary>
+            Granted permissions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrgAccess.CanWrite">
+            <summary>
+            Whether anything beyond <see cref="F:Storeasy.Domain.Enums.OrgPermission.View"/> is granted (a writing token may be created).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.Allows(Storeasy.Domain.Enums.OrgPermission)">
+            <summary>
+            Whether <paramref name="permission"/> is granted.
+            </summary>
+            <param name="permission"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.IsWithin(Storeasy.Domain.Organizations.OrgAccess)">
+            <summary>
+            Whether every permission of this access is also granted by <paramref name="other"/>.
+            </summary>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.Seeded(Storeasy.Domain.Enums.OrgRole)">
+            <summary>
+            The access of a seeded role.
+            </summary>
+            <param name="role"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.Custom(System.Int32,System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})">
+            <summary>
+            The access of a custom role; the permissions are normalized (<see cref="M:Storeasy.Domain.Organizations.OrgRoleRules.NormalizeCustom(System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})"/>), so a stored
+            set can never grant an owner only permission.
+            </summary>
+            <param name="customRoleId"></param>
+            <param name="permissions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.Of(Storeasy.Domain.Enums.OrgRole,System.Nullable{System.Int32},System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})">
+            <summary>
+            The access of a membership row: the custom role's set when the member holds one, the seeded matrix otherwise.
+            </summary>
+            <param name="role"></param>
+            <param name="customRoleId"></param>
+            <param name="customPermissions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgAccess.AsReadOnly">
+            <summary>
+            What a read only token of this member may do: view only.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Organizations.Organization">
             <summary>
             A team that owns store connections and apps. Every store record, job and audit row belongs to exactly one
@@ -8501,6 +8715,16 @@
             Column length of <see cref="P:Storeasy.Domain.Organizations.Organization.Slug"/>; the validators use the same limit.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Organizations.Organization.DefaultAuditRetentionDays">
+            <summary>
+            Default of <see cref="P:Storeasy.Domain.Organizations.Organization.AuditRetentionDays"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.Organization.AuditRetentionChoices">
+            <summary>
+            The audit log retention choices (design 15.20).
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Organizations.Organization.Name">
             <summary>
             Display name.
@@ -8509,6 +8733,16 @@
         <member name="P:Storeasy.Domain.Organizations.Organization.Slug">
             <summary>
             URL friendly unique key (lower case letters, digits and hyphens).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.AuditRetentionDays">
+            <summary>
+            How many days audit log entries are kept; older ones are deleted every night.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.DefaultLocale">
+            <summary>
+            Default language of the organization's store texts (e.g. tr-TR); null when not chosen.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Organizations.Organization.Members">
@@ -8547,6 +8781,11 @@
             Role the invitee gets on acceptance. Never <see cref="F:Storeasy.Domain.Enums.OrgRole.Owner"/>.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.CustomRoleId">
+            <summary>
+            The organization's own role when <see cref="P:Storeasy.Domain.Organizations.OrganizationInvitation.Role"/> is <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>; null otherwise.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.TokenHash">
             <summary>
             Hex SHA-256 hash of the invitation token.
@@ -8577,9 +8816,20 @@
             Navigation property of the organization.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.CustomRole">
+            <summary>
+            Navigation property of the custom role.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationInvitation.Inviter">
+            <summary>
+            Navigation property of the user who sent the invitation.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Organizations.OrganizationMember">
             <summary>
-            Membership of a user in an organization with one <see cref="T:Storeasy.Domain.Enums.OrgRole"/>. A user has at most one row per organization.
+            Membership of a user in an organization with one <see cref="T:Storeasy.Domain.Enums.OrgRole"/> (a seeded role, or <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>
+            with <see cref="P:Storeasy.Domain.Organizations.OrganizationMember.CustomRoleId"/>). A user has at most one row per organization.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Organizations.OrganizationMember.OrganizationId">
@@ -8597,6 +8847,16 @@
             Role of the user in this organization.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.CustomRoleId">
+            <summary>
+            The organization's own role when <see cref="P:Storeasy.Domain.Organizations.OrganizationMember.Role"/> is <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>; null otherwise.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationMember.CustomRole">
+            <summary>
+            Navigation property of the custom role.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Organizations.OrganizationMember.Organization">
             <summary>
             Navigation property of the organization.
@@ -8607,9 +8867,65 @@
             Navigation property of the user.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Organizations.OrganizationRole">
+            <summary>
+            A role an organization defined for itself (docs/urun-plani.md 2.1, phase 8): a name and a set of
+            <see cref="T:Storeasy.Domain.Enums.OrgPermission"/>s. Members and invitations hold it with <see cref="F:Storeasy.Domain.Enums.OrgRole.Custom"/>. The seeded roles
+            (owner, admin, editor, viewer) are not rows: they stay locked in <see cref="T:Storeasy.Domain.Organizations.OrgRoleRules"/>. A custom role never holds
+            the owner only permission (<see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageOrganization"/>) and always holds
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.View"/>. A role in use by a member or a pending invitation cannot be deleted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationRole.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.OrganizationRole.Name"/>; the validators use the same limit.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationRole.DescriptionMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.OrganizationRole.Description"/>; the validators use the same limit.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationRole.MaxPerOrganization">
+            <summary>
+            How many custom roles one organization may define.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.OrganizationId">
+            <summary>
+            Organization identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.Name">
+            <summary>
+            Display name, unique in the organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.Description">
+            <summary>
+            Optional description of what the role is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.Permissions">
+            <summary>
+            Permissions of the role (normalized by <see cref="M:Storeasy.Domain.Organizations.OrgRoleRules.NormalizeCustom(System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.AudienceRole">
+            <summary>
+            The seeded role whose notifications this role receives (<see cref="M:Storeasy.Domain.Organizations.OrgRoleRules.AudienceRoleOf(System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.OrgPermission})"/>), kept with the
+            permissions so the notification recipients are found in one query.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationRole.Organization">
+            <summary>
+            Navigation property of the organization.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Organizations.OrgRoleRules">
             <summary>
-            The organization role matrix (docs/urun-plani.md section 6) and the pure rules around role changes. No database.
+            The organization role matrix (docs/urun-plani.md section 6), the custom role rules (phase 8) and the pure rules
+            around role changes. No database.
             </summary>
         </member>
         <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.Allows(Storeasy.Domain.Enums.OrgRole,Storeasy.Domain.Enums.OrgPermission)">
@@ -8622,17 +8938,67 @@
             The permissions of <paramref name="role"/>, in enum order.
             </summary>
         </member>
-        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanAssign(Storeasy.Domain.Enums.OrgRole,System.Nullable{Storeasy.Domain.Enums.OrgRole},Storeasy.Domain.Enums.OrgRole)">
+        <member name="P:Storeasy.Domain.Organizations.OrgRoleRules.CustomAssignable">
             <summary>
-            Whether an actor with <paramref name="actorRole"/> may give <paramref name="newRole"/> to a member who has
-            <paramref name="currentRole"/> (null for a new member or an invitation). Owners may do anything; admins may not
-            touch owners or create them; nobody else manages members.
+            Permissions a custom role may hold: every permission except the owner only
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageOrganization"/>.
             </summary>
         </member>
-        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanRemove(Storeasy.Domain.Enums.OrgRole,Storeasy.Domain.Enums.OrgRole)">
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.NormalizeCustom(System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})">
             <summary>
-            Whether an actor with <paramref name="actorRole"/> may remove a member who has <paramref name="memberRole"/>.
+            The stored form of a custom role's permissions: defined values only, no owner only permission, always
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.View"/>, distinct, in enum order.
             </summary>
+            <param name="permissions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.AudienceRoleOf(System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Enums.OrgPermission})">
+            <summary>
+            The seeded role whose notifications a custom role receives: the most privileged of admin, editor and viewer whose
+            whole permission set the custom role holds.
+            </summary>
+            <param name="permissions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanAssign(Storeasy.Domain.Organizations.OrgAccess,Storeasy.Domain.Organizations.OrgAccess,Storeasy.Domain.Organizations.OrgAccess)">
+            <summary>
+            Whether <paramref name="actor"/> may give <paramref name="target"/> to a member who has <paramref name="current"/>
+            (null for a new member or an invitation). Owners may do anything. Anyone else needs
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageMembers"/>, may not touch or create owners, and may neither change a member who can do
+            more than they can nor give more than they hold.
+            </summary>
+            <param name="actor"></param>
+            <param name="current"></param>
+            <param name="target"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanRemove(Storeasy.Domain.Organizations.OrgAccess,Storeasy.Domain.Organizations.OrgAccess)">
+            <summary>
+            Whether <paramref name="actor"/> may remove a member who has <paramref name="member"/>: owners may remove anyone;
+            anyone else needs <see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageMembers"/> and may not remove an owner or a member who can do more.
+            </summary>
+            <param name="actor"></param>
+            <param name="member"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.CanDefine(Storeasy.Domain.Organizations.OrgAccess,System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission},System.Collections.Generic.IEnumerable{Storeasy.Domain.Enums.OrgPermission})">
+            <summary>
+            Whether <paramref name="actor"/> may define or change a custom role that grants <paramref name="permissions"/> (and,
+            for a change, currently grants <paramref name="currentPermissions"/>): it needs
+            <see cref="F:Storeasy.Domain.Enums.OrgPermission.ManageMembers"/> and must hold every permission involved.
+            </summary>
+            <param name="actor"></param>
+            <param name="permissions"></param>
+            <param name="currentPermissions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.Describe(Storeasy.Domain.Enums.OrgRole,System.Nullable{System.Int32})">
+            <summary>
+            A role as the audit log names it: the seeded role, or "Custom #{id}".
+            </summary>
+            <param name="role"></param>
+            <param name="customRoleId"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Domain.Organizations.OrgRoleRules.RemovesLastOwner(System.Int32,Storeasy.Domain.Enums.OrgRole,System.Nullable{Storeasy.Domain.Enums.OrgRole})">
             <summary>
@@ -11027,6 +11393,32 @@
         <member name="P:Storeasy.Domain.Studio.StudioClassDefinition.SingleImage">
             <summary>One image per locale (feature graphic).</summary>
         </member>
+        <member name="T:Storeasy.Domain.SystemSetting">
+            <summary>
+            An instance setting a platform manager changed at runtime; it wins over the same setting in the configuration
+            (<see cref="T:Storeasy.Domain.SystemSettingKeys"/>). A missing row means the configuration applies.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.SystemSetting.Key">
+            <summary>
+            Setting key, one of <see cref="T:Storeasy.Domain.SystemSettingKeys"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.SystemSetting.Value">
+            <summary>
+            Value as text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.SystemSettingKeys">
+            <summary>
+            Keys of <see cref="T:Storeasy.Domain.SystemSetting"/> rows.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.SystemSettingKeys.RegistrationMode">
+            <summary>
+            Who may register (a <see cref="T:Storeasy.Domain.Enums.RegistrationMode"/> name); overrides <c>Storeasy:Registration:Mode</c>.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.TestFlight.BetaAppLocalization">
             <summary>
             Beta app description, feedback e-mail and links of one language (App Store Connect beta app localizations).
@@ -11409,6 +11801,11 @@
             token of this user. Null until the user's first token is minted (assigned lazily by the security stamp store).
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.User.PreferredLanguage">
+            <summary>
+            Interface language the user chose (tr-TR, en-US); null for the browser's.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.User.LastModificationDate">
             <inheritdoc/>
         </member>
@@ -11446,6 +11843,48 @@
             </summary>
             <param name="serviceProvider"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.UserExternalLogin">
+            <summary>
+            A link between a user and an external identity (the provider's stable subject id). Created on the first external
+            sign in, either with a new account or with the existing account of the same verified e-mail; later sign ins find the
+            user by <see cref="P:Storeasy.Domain.UserExternalLogin.Subject"/> alone, so a changed e-mail at the provider keeps working.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.UserExternalLogin.SubjectMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.UserExternalLogin.Subject"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.UserId">
+            <summary>
+            The linked user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.Provider">
+            <summary>
+            Identity provider.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.Subject">
+            <summary>
+            The provider's subject id (<c>sub</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.Email">
+            <summary>
+            E-mail the provider reported at the last sign in.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.LastLoginDate">
+            <summary>
+            UTC instant of the last sign in through the provider.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserExternalLogin.User">
+            <summary>
+            Navigation property of the user.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.UserRoleRelation">
             <summary>
@@ -11505,6 +11944,16 @@
         <member name="P:Storeasy.Domain.UserSession.IpAddress">
             <summary>
             Gets or sets the Ip address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.UserSession.UserAgent">
+            <summary>
+            Browser or client of the session (the <c>User-Agent</c> of the sign in), for the device list.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.UserSession.UserAgentMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.UserSession.UserAgent"/>.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.UserSession.UserId">
@@ -11567,6 +12016,58 @@
             Initializes new instance of <see cref="T:Storeasy.Domain.UserSessionHistory"/> with given <paramref name="session"/>.
             </summary>
             <param name="session"></param>
+        </member>
+        <member name="T:Storeasy.Domain.WebPushSubscription">
+            <summary>
+            A browser's web push subscription (Push API) of a user: the push service address and the browser's keys the payload is
+            encrypted to (RFC 8291). One row per address; a browser that subscribes again for another user moves to that user. A
+            subscription the push service reports gone (404, 410) is deleted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.WebPushSubscription.EndpointMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.WebPushSubscription.Endpoint"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.WebPushSubscription.MaxPerUser">
+            <summary>
+            How many subscriptions (browsers) one user may have; the oldest is dropped beyond it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.UserId">
+            <summary>
+            The subscribed user.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.Endpoint">
+            <summary>
+            Push service address (https).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.P256dh">
+            <summary>
+            Browser's P-256 public key, base64url (<c>keys.p256dh</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.Auth">
+            <summary>
+            Browser's authentication secret, base64url (<c>keys.auth</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.UserAgent">
+            <summary>
+            Browser description for the settings list.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.LastSuccessDate">
+            <summary>
+            UTC instant of the last delivered push.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.WebPushSubscription.User">
+            <summary>
+            Navigation property of the user.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.DomainAssembly">
             <summary>

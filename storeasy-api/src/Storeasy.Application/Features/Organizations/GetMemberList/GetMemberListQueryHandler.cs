@@ -32,7 +32,7 @@ public class GetMemberListQueryHandler(IStoreasyRepositoryBase<OrganizationMembe
 
         List<OrganizationInvitationDto> invitations = [];
 
-        if (_organizationAccess.CurrentRole.HasValue && OrgRoleRules.Allows(_organizationAccess.CurrentRole.Value, OrgPermission.ManageMembers))
+        if (_organizationAccess.Current?.Allows(OrgPermission.ManageMembers) == true)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 

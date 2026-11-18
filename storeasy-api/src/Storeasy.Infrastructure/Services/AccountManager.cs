@@ -78,7 +78,8 @@ public class AccountManager(IStoreasyRepositoryBase<UserSession> userSessionRepo
             RefreshToken = milvaToken.RefreshToken,
             ExpiryDate = DateTime.UtcNow.AddSeconds(milvaToken.RefreshTokenExpiresIn),
             DeviceId = deviceId,
-            IpAddress = _httpContextAccessor.HttpContext.GetIpAddress()
+            IpAddress = _httpContextAccessor.HttpContext.GetIpAddress(),
+            UserAgent = TrimUserAgent(_httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString())
         };
 
         await _userSessionRepository.AddAsync(newSession, cancellationToken: cancellationToken);
@@ -135,10 +136,13 @@ public class AccountManager(IStoreasyRepositoryBase<UserSession> userSessionRepo
     {
         var permissions = user.RoleRelations.SelectMany(i => i.Role.RolePermissionRelations.Select(i => i.Permission));
 
+        // jti makes every token unique, so two sign ins in the same second never share a token (a single signed out
+        // session revokes exactly its own token).
         List<Claim> claims =
         [
             new(ClaimTypes.Name, user.UserName),
-            new(GlobalConstant.UserIdClaimName, user.Id.ToString())
+            new(GlobalConstant.UserIdClaimName, user.Id.ToString()),
+            new("jti", Guid.NewGuid().ToString("N"))
         ];
 
         claims.AddRange(BuildRoleClaims(permissions));
@@ -154,4 +158,6 @@ public class AccountManager(IStoreasyRepositoryBase<UserSession> userSessionRepo
     private static IEnumerable<Claim> BuildRoleClaims(IEnumerable<Permission> permissions) => permissions?.Select(p => new Claim(ClaimTypes.Role, p.FormatPermissionAndGroup())) ?? [];
 
     private static Claim BuildUserTypeClaim(User user) => new(GlobalConstant.UserTypeClaimName, user.UserType.ToString());
+
+    private static string TrimUserAgent(string userAgent) => string.IsNullOrWhiteSpace(userAgent) ? null : userAgent.Length > UserSession.UserAgentMaxLength ? userAgent[..UserSession.UserAgentMaxLength] : userAgent;
 }

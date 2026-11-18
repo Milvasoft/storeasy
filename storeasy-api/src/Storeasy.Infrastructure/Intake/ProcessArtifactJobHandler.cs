@@ -327,6 +327,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
         var holdReason = applied == null ? $"No delivery rule for {session.Platform}: deliver it by hand."
                          : package.Kind == PackageKind.Apk ? "Google Play takes App Bundles: APK packages are not delivered automatically."
                          : warnings > 0 && applied.OnWarning == DeliveryWarningAction.Hold && !force ? "The checks passed with warnings: a member must approve the delivery."
+                         : session.Delivery?.HoldForConfirmation == true && !force ? "Waiting for confirmation: the uploader asked to see the checks before the delivery."
                          : null;
 
         if (holdReason != null)

@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
@@ -8,12 +9,19 @@ using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Features.Organizations.AcceptInvitation;
 using Storeasy.Application.Features.Organizations.ChangeMemberRole;
 using Storeasy.Application.Features.Organizations.CreateOrganization;
+using Storeasy.Application.Features.Organizations.CreateOrganizationRole;
+using Storeasy.Application.Features.Organizations.DeleteOrganizationRole;
+using Storeasy.Application.Features.Organizations.GetInvitationPreview;
 using Storeasy.Application.Features.Organizations.GetMemberList;
 using Storeasy.Application.Features.Organizations.GetMyOrganizations;
+using Storeasy.Application.Features.Organizations.GetOrganizationRoleList;
+using Storeasy.Application.Features.Organizations.GetOrganizationSettings;
+using Storeasy.Application.Features.Organizations.UpdateOrganizationSettings;
 using Storeasy.Application.Features.Organizations.InviteMember;
 using Storeasy.Application.Features.Organizations.RemoveMember;
 using Storeasy.Application.Features.Organizations.RevokeInvitation;
 using Storeasy.Application.Features.Organizations.UpdateOrganization;
+using Storeasy.Application.Features.Organizations.UpdateOrganizationRole;
 using Storeasy.Application.Features.StoreAuditLogs.GetStoreAuditLogList;
 using Storeasy.Application.Utils.Constants;
 
@@ -88,6 +96,18 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     public Task<Response<int>> RevokeInvitationAsync(RevokeInvitationCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
+    /// Previews an invitation by the token from its link (anonymous): state, organization, inviter, role and its
+    /// permissions, masked address and expiry, as much as the state allows. An unknown token is a 404.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("invitation/preview")]
+    [AllowAnonymous]
+    [RateLimit(30, 3600, "org-invite-preview")]
+    public Task<Response<InvitationPreviewDto>> GetInvitationPreviewAsync([FromQuery] GetInvitationPreviewQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
     /// Accepts an invitation with the token from the link. Returns the organization id.
     /// </summary>
     /// <param name="request"></param>
@@ -114,6 +134,61 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpDelete("member")]
     public Task<Response<int>> RemoveMemberAsync(RemoveMemberCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Reads the retention and language settings (member managers; viewers get 403).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("settings")]
+    public Task<Response<OrganizationSettingsDto>> GetSettingsAsync([FromQuery] GetOrganizationSettingsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Changes the audit log retention and the default language (owners). Only the fields sent change.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("settings")]
+    public Task<Response<int>> UpdateSettingsAsync(UpdateOrganizationSettingsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending
+    /// invitation counts.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("roles")]
+    public Task<Response<List<OrgRoleDto>>> GetRolesAsync([FromQuery] GetOrganizationRoleListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Defines a custom role (permissions the caller holds only). Returns the role id.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("role")]
+    public Task<Response<int>> CreateRoleAsync(CreateOrganizationRoleCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Renames a custom role and replaces its permissions; its members get them on their next request.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("role")]
+    public Task<Response<int>> UpdateRoleAsync(UpdateOrganizationRoleCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Deletes a custom role nobody holds.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("role")]
+    public Task<Response<int>> DeleteRoleAsync(DeleteOrganizationRoleCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Pages through the organization's audit log, newest first.

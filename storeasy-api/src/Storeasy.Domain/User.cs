@@ -62,6 +62,12 @@ public class User : MilvaUser<int>, IFullAuditable<int>
     [MaxLength(64)]
     public string SessionStamp { get; set; }
 
+    /// <summary>
+    /// Interface language the user chose (tr-TR, en-US); null for the browser's.
+    /// </summary>
+    [MaxLength(10)]
+    public string PreferredLanguage { get; set; }
+
     #region Auditing
 
     /// <inheritdoc/>

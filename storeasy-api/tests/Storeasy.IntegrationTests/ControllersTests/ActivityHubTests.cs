@@ -10,6 +10,8 @@ using Storeasy.IntegrationTests.TestBase;
 using Storeasy.IntegrationTests.TestBase.Fakes;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -180,5 +182,62 @@ public class ActivityHubTests(StoreasyApiFactory factory) : IntegrationTestBase(
 
         verified.ConnectionId.Should().Be(added.Data);
         verified.ConnectionStatus.Should().Be(ConnectionStatus.Verified);
+    }
+
+    [Fact]
+    public async Task RemovedMember_ShouldStopReceivingTheOrganizationsEventsWithoutReconnecting()
+    {
+        // Arrange
+        var (owner, organizationId) = await NewOrganizationAsync();
+        var member = await _factory.AddMemberAsync(organizationId, OrgRole.Viewer);
+        await using var ownerConnection = Connect(owner.Token.AccessToken);
+        await using var memberConnection = Connect(member.Token.AccessToken);
+        var ownerEvents = Collect(ownerConnection);
+        var memberEvents = Collect(memberConnection);
+
+        await ownerConnection.StartAsync(TestContext.Current.CancellationToken);
+        await memberConnection.StartAsync(TestContext.Current.CancellationToken);
+        await ownerConnection.InvokeAsync<bool>("JoinOrganization", organizationId, TestContext.Current.CancellationToken);
+        await memberConnection.InvokeAsync<bool>("JoinOrganization", organizationId, TestContext.Current.CancellationToken);
+
+        var memberId = await _factory.DbAsync(db => db.OrganizationMembers.Where(m => m.OrganizationId == organizationId && m.UserId == member.Id).Select(m => m.Id).SingleAsync());
+
+        // Act
+        using var remove = new HttpRequestMessage(HttpMethod.Delete, $"{TestApi.Base}/organizations/member") { Content = JsonContent.Create(new { organizationId, memberId }, options: TestApi.Json) };
+        (await owner.Client.SendAsync(remove, TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var jobId = await _factory.WithServiceAsync<IStoreJobQueue, long>(async queue => (await queue.EnqueueAsync([new StoreJobRequest(organizationId, FakeStoreJobHandler.TestKind, new FakeStoreJobHandler.Script(FakeStoreJobHandler.Succeed))], CancellationToken.None))[0]);
+
+        await WaitUntilAsync(() => ownerEvents.Any(e => e.JobId == jobId && e.Type == ActivityEventTypes.JobSucceeded));
+
+        // Assert
+        memberConnection.State.Should().Be(HubConnectionState.Connected, "only the organization's group is left");
+        memberEvents.Should().NotContain(e => e.JobId == jobId);
+    }
+
+    [Fact]
+    public async Task PasswordChange_ShouldCloseTheOpenConnections()
+    {
+        // Arrange
+        var user = await _factory.CreateAndLoginUserAsync();
+        await using var connection = Connect(user.Token.AccessToken, HttpTransportType.WebSockets);
+        var closed = new TaskCompletionSource();
+
+        connection.Closed += _ =>
+        {
+            closed.TrySetResult();
+
+            return Task.CompletedTask;
+        };
+
+        await connection.StartAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var (http, _) = await user.Client.PutAsync("account/password/change", new { userName = user.UserName, oldPassword = TestApi.DefaultPassword, newPassword = "Ch4nged!pass" });
+        var finished = await Task.WhenAny(closed.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+
+        // Assert
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        finished.Should().Be(closed.Task, "the rotated session stamp closes the connection at once");
     }
 }

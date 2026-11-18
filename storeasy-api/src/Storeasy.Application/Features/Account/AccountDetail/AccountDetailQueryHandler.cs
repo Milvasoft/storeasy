@@ -10,11 +10,14 @@ namespace Storeasy.Application.Features.Account.AccountDetail;
 /// caller's own: the id comes from the token, never from the request.
 /// </summary>
 /// <param name="userRepository"></param>
+/// <param name="externalLoginRepository"></param>
 /// <param name="currentUser"></param>
 public class AccountDetailQueryHandler(IStoreasyRepositoryBase<User> userRepository,
+                                       IStoreasyRepositoryBase<UserExternalLogin> externalLoginRepository,
                                        ICurrentUser currentUser) : IInterceptable, IQueryHandler<AccountDetailQuery, AccountDetailDto>
 {
     private readonly IStoreasyRepositoryBase<User> _userRepository = userRepository;
+    private readonly IStoreasyRepositoryBase<UserExternalLogin> _externalLoginRepository = externalLoginRepository;
     private readonly ICurrentUser _currentUser = currentUser;
 
     /// <inheritdoc/>
@@ -26,6 +29,12 @@ public class AccountDetailQueryHandler(IStoreasyRepositoryBase<User> userReposit
 
         if (user == null)
             return Response<AccountDetailDto>.Error(null, MessageKey.UserNotFound);
+
+        user.Permissions = PlatformPermissions.Expand(user.Permissions);
+
+        user.ExternalLogins = [.. (await _externalLoginRepository.GetAllAsync(l => l.UserId == currentUserId,
+                                                                              projection: l => new UserExternalLogin { Provider = l.Provider },
+                                                                              cancellationToken: cancellationToken)).Select(l => l.Provider).Distinct().Order()];
 
         return Response<AccountDetailDto>.Success(user);
     }

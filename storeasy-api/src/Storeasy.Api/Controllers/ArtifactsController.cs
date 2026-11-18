@@ -9,6 +9,7 @@ using Storeasy.Application.Features.Artifacts.DeleteArtifactSession;
 using Storeasy.Application.Features.Artifacts.DeliverArtifactSession;
 using Storeasy.Application.Features.Artifacts.GetArtifactSessionDetail;
 using Storeasy.Application.Features.Artifacts.GetArtifactSessionList;
+using Storeasy.Application.Features.Artifacts.GetArtifactCounts;
 using Storeasy.Application.Features.Artifacts.GetArtifactSummary;
 using Storeasy.Application.Features.Artifacts.OpenArtifactSession;
 using Storeasy.Application.Features.ArtifactSources.DeleteArtifactSource;
@@ -106,6 +107,15 @@ public class ArtifactsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpGet("summary")]
     public Task<Response<List<ArtifactAppSummaryDto>>> GetSummaryAsync([FromQuery] GetArtifactSummaryQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Package counters of a period (default the last 30 days): total, per status and per source.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("counts")]
+    public Task<Response<ArtifactCountsDto>> GetCountsAsync([FromQuery] GetArtifactCountsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Delivers a held session (ReleaseTest).

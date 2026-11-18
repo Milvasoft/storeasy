@@ -23,6 +23,21 @@ public record UpdateLanguageCommandHandler(IStoreasyRepositoryBase<Language> Lan
     /// <inheritdoc/>
     public async Task<Response<int>> Handle(UpdateLanguageCommand request, CancellationToken cancellationToken)
     {
+        var current = await _languageRepository.GetFirstOrDefaultAsync(l => l.Id == request.Id, projection: l => new Language { Id = l.Id, IsDefault = l.IsDefault, Supported = l.Supported }, cancellationToken: cancellationToken);
+
+        if (current == null)
+            return Response<int>.Error(0, MessageKey.PleaseSendCorrect);
+
+        var willBeDefault = request.IsDefault.IsUpdated && request.IsDefault.Value ? true : current.IsDefault;
+        var willBeSupported = request.Supported.IsUpdated ? request.Supported.Value : current.Supported;
+
+        // The default language is always supported: it cannot be turned off, and an unsupported language cannot become it.
+        if (current.IsDefault && !willBeSupported)
+            return Response<int>.Error(0, MessageKey.DefaultLanguageRequired);
+
+        if (willBeDefault && !willBeSupported)
+            return Response<int>.Error(0, MessageKey.UnsupportedLanguageCannotBeDefault);
+
         if (request.IsDefault.IsUpdated)
         {
             if (request.IsDefault.Value)

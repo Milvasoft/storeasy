@@ -106,6 +106,38 @@ public class CleanupJobsTests(StoreasyApiFactory factory) : IntegrationTestBase(
         remainingNotifications.Should().Equal("seen-recent", "unseen-recent");
     }
 
+    [Fact]
+    public async Task AuditLogCleanerJob_ShouldDeleteTheEntriesPastTheirOrganizationsRetention()
+    {
+        // Arrange: a 90 day organization and a default (365 day) one, each with an entry 100 days old and a recent one.
+        var owner = await _factory.CreateAndLoginUserAsync();
+        var (_, shortRetention) = await owner.Client.PostAsync<int>("organizations/organization", new { name = $"Org {TestApi.Unique()}" });
+        var (_, longRetention) = await owner.Client.PostAsync<int>("organizations/organization", new { name = $"Org {TestApi.Unique()}" });
+        await owner.Client.PutAsync<int>("organizations/settings", new { organizationId = shortRetention.Data, auditRetentionDays = 90 });
+
+        await _factory.DbAsync(async db =>
+        {
+            foreach (var organizationId in (int[])[shortRetention.Data, longRetention.Data])
+            {
+                db.StoreAuditLogs.AddRange(new Domain.Stores.StoreAuditLog { OrganizationId = organizationId, UserName = "cleanup", Action = AuditAction.ConnectionAdded, Summary = "old", Date = DateTime.UtcNow.AddDays(-100) },
+                                           new Domain.Stores.StoreAuditLog { OrganizationId = organizationId, UserName = "cleanup", Action = AuditAction.ConnectionAdded, Summary = "recent", Date = DateTime.UtcNow.AddDays(-1) });
+            }
+
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        });
+
+        // Act
+        await RunJobAsync<AuditLogCleanerJob>();
+
+        // Assert
+        var remaining = await _factory.DbAsync(db => db.StoreAuditLogs.Where(a => a.UserName == "cleanup" && (a.OrganizationId == shortRetention.Data || a.OrganizationId == longRetention.Data))
+                                                                      .Select(a => new { a.OrganizationId, a.Summary })
+                                                                      .ToListAsync(TestContext.Current.CancellationToken));
+
+        remaining.Where(a => a.OrganizationId == shortRetention.Data).Select(a => a.Summary).Should().Equal("recent");
+        remaining.Where(a => a.OrganizationId == longRetention.Data).Select(a => a.Summary).Should().BeEquivalentTo(["old", "recent"]);
+    }
+
     /// <summary>
     /// Runs a cleanup job now instead of waiting for its schedule (AddInternalJobs registers it as a hosted service).
     /// </summary>

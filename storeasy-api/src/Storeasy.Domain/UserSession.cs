@@ -45,6 +45,17 @@ public class UserSession : AuditableEntity<long>
     public string IpAddress { get; set; }
 
     /// <summary>
+    /// Browser or client of the session (the <c>User-Agent</c> of the sign in), for the device list.
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.MaxLength(UserAgentMaxLength)]
+    public string UserAgent { get; set; }
+
+    /// <summary>
+    /// Column length of <see cref="UserAgent"/>.
+    /// </summary>
+    public const int UserAgentMaxLength = 300;
+
+    /// <summary>
     /// Related user id.
     /// </summary>
     [ForeignKey(nameof(User))]

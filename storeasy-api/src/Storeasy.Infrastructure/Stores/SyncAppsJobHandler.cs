@@ -1,9 +1,11 @@
 ﻿using Storeasy.Application.Dtos.ActivityDtos;
+using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Events;
 
 namespace Storeasy.Infrastructure.Stores;
 
@@ -16,26 +18,34 @@ namespace Storeasy.Infrastructure.Stores;
 /// service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
 /// <item>Microsoft Store: not supported yet (permanent failure).</item>
 /// </list>
-/// Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+/// Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+/// records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
+/// through the API is registered again (a <see cref="StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
 /// </summary>
 /// <param name="storeAppRepository"></param>
 /// <param name="appRepository"></param>
 /// <param name="buildRepository"></param>
+/// <param name="endpointRepository"></param>
 /// <param name="storeGateway"></param>
 /// <param name="activityPublisher"></param>
+/// <param name="storeJobQueue"></param>
 /// <param name="timeProvider"></param>
 public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                        IStoreasyRepositoryBase<App> appRepository,
                                        IStoreasyRepositoryBase<Build> buildRepository,
+                                       IStoreasyRepositoryBase<WebhookEndpoint> endpointRepository,
                                        IStoreGateway storeGateway,
                                        IActivityPublisher activityPublisher,
+                                       IStoreJobQueue storeJobQueue,
                                        TimeProvider timeProvider) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
+    private readonly IStoreasyRepositoryBase<WebhookEndpoint> _endpointRepository = endpointRepository;
     private readonly IStoreGateway _storeGateway = storeGateway;
     private readonly IActivityPublisher _activityPublisher = activityPublisher;
+    private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
     private readonly TimeProvider _timeProvider = timeProvider;
 
     /// <inheritdoc/>
@@ -70,9 +80,14 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
         // 2. Save them: update the known records, link or create the new ones, drop never confirmed records the store refused.
         var saveStep = await context.BeginStepAsync("apps.save", StepDirection.Internal, cancellationToken: cancellationToken);
 
+        var onThisConnection = known.Where(s => s.StoreConnectionId == connection.Id).Select(s => s.ExternalId).ToHashSet();
+
         var synced = await SaveAppsAsync(context.OrganizationId, connection, records, known, refused, cancellationToken);
 
         await context.EndStepAsync(saveStep, StoreJobStepStatus.Succeeded, $"{synced.Count} records saved.", cancellationToken);
+
+        if (connection.Store == StoreKind.Apple && synced.Any(s => !onThisConnection.Contains(s.ExternalId)))
+            await RegisterWebhooksAsync(context.OrganizationId, connection.Id, cancellationToken);
 
         // 3. Read the builds of every record.
         var buildStep = await context.BeginStepAsync("builds.list", StepDirection.Outbound, total: synced.Count, cancellationToken: cancellationToken);
@@ -110,6 +125,26 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
 
         return new StoreJobOutcome($"{synced.Count} apps and {builds.Count} builds synced from {connection.Store} ({added} new builds).",
                                    new { Apps = synced.Count, Builds = builds.Count, NewBuilds = added, Refused = refused.Select(r => r.ExternalId).ToList() });
+    }
+
+    /// <summary>
+    /// Queues a webhook registration for every App Store Connect endpoint of the connection that was registered through the
+    /// API, so the apps that just arrived get the webhook too. Endpoints set up by hand (or whose registration failed) are
+    /// left alone.
+    /// </summary>
+    private async Task RegisterWebhooksAsync(int organizationId, int connectionId, CancellationToken cancellationToken)
+    {
+        var endpoints = await _endpointRepository.GetAllAsync(e => e.OrganizationId == organizationId
+                                                                   && e.StoreConnectionId == connectionId
+                                                                   && e.Source == WebhookSource.AppStoreConnect
+                                                                   && e.Registration == WebhookRegistrationState.Api,
+                                                              projection: e => new WebhookEndpoint { Id = e.Id },
+                                                              cancellationToken: cancellationToken);
+
+        if (endpoints.Count == 0)
+            return;
+
+        await _storeJobQueue.EnqueueAsync([.. endpoints.Select(e => new StoreJobRequest(organizationId, StoreJobKind.RegisterWebhooks, new RegisterWebhooksPayload(e.Id, connectionId), StoreKind.Apple))], cancellationToken);
     }
 
     /// <summary>

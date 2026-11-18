@@ -11,6 +11,7 @@ namespace Storeasy.Api.Middlewares;
 /// token was revoked (password change, role change, lock, deletion) and the request is rejected with 401. A token
 /// without a stamp claim is rejected as well: every token this API mints (login, refresh, long-lived, documentation)
 /// carries one, so a missing claim means a foreign token that could never be revoked.
+/// A token of a session signed out on its own (<see cref="ITokenRevocationList"/>) is rejected too.
 /// Endpoints marked with <see cref="SkipSessionStampValidationAttribute"/> are not checked.
 /// </summary>
 /// <param name="next"></param>
@@ -43,6 +44,10 @@ public class SecurityStampValidationMiddleware(RequestDelegate next)
             var valid = await stampStore.IsValidAsync(userId, stampClaim, context.RequestAborted);
 
             if (!valid)
+                context.Response.ThrowWithUnauthorized(MessageKey.Unauthorized);
+
+            // A single signed out session (account/session) revokes its own access token.
+            if (await context.RequestServices.GetRequiredService<ITokenRevocationList>().IsRevokedAsync(BearerTokens.Read(context.Request)))
                 context.Response.ThrowWithUnauthorized(MessageKey.Unauthorized);
         }
 

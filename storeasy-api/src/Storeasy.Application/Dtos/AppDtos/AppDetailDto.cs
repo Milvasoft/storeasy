@@ -21,6 +21,12 @@ public class AppDetailDto : AppListDto
     public List<BuildDto> Builds { get; set; }
 
     /// <summary>
+    /// What the rules catalog knows about the app beyond the stores (saved with <c>PUT apps/profile</c>); null until
+    /// it is saved.
+    /// </summary>
+    public AppProfile Profile { get; set; }
+
+    /// <summary>
     /// Projection from an app row.
     /// </summary>
     [JsonIgnore]
@@ -31,6 +37,7 @@ public class AppDetailDto : AppListDto
         Name = a.Name,
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
+        Profile = a.Profile,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto
         {
             StoreAppId = s.Id,

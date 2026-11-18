@@ -99,6 +99,16 @@ public static partial class PermissionCatalog
         public const string Approve = "RuleCatalogManagement.Approve";
     }
 
+    [Description("System Management")]
+    public static class SystemManagement
+    {
+        [Description("System status (dependencies, job queue) read permission.")]
+        public const string Status = "SystemManagement.Status";
+
+        [Description("Instance settings (registration mode) read and change permission.")]
+        public const string Settings = "SystemManagement.Settings";
+    }
+
     /// <summary>
     /// Gets all permissions in the system as grouped by permission group.
     /// </summary>

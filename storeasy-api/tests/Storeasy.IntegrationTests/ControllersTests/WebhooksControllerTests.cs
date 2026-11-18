@@ -87,7 +87,7 @@ public class WebhooksControllerTests(StoreasyApiFactory factory) : IntegrationTe
         await EventTestKit.EventuallyAsync(() => _factory.DbAsync(db => db.WebhookEvents.AnyAsync(e => e.Id == webhookEvent.Id && e.ProcessResult == WebhookProcessResult.Processed)), "the event was not marked processed");
         notifications.Select(n => n.RecipientUserId).Should().BeEquivalentTo([org.Owner.Id, admin.Id]);
         notifications.Should().OnlyContain(n => n.RelatedEntityType == NotificationEntity.RejectionCase && n.ActionLink.Contains($"/rejections/{rejectionCase.Id}"));
-        _factory.EmailSender.To(adminEmail).Should().ContainSingle(m => m.Subject.Contains("Defter"));
+        (await _factory.EmailSender.WaitForAsync(adminEmail)).Should().ContainSingle(m => m.Subject.Contains("Defter"));
         delivery.Body.Should().Contain("rejection.opened");
         var timestamp = long.Parse(delivery.Headers[WebhookSignatures.TimestampHeader], CultureInfo.InvariantCulture);
         WebhookSignatures.VerifyStoreasy(timestamp, delivery.Body, delivery.Headers[WebhookSignatures.SignatureHeader], subscription.Data.Secret).Should().BeTrue();

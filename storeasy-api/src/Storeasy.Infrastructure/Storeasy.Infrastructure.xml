@@ -4,6 +4,118 @@
         <name>Storeasy.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Infrastructure.Email.EmailOutbox">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>: one insert per call, the payload sealed with the secret protector
+            (<see cref="F:Storeasy.Application.Utils.Helpers.SecretScopes.EmailOutbox"/>). <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxSender"/> delivers the rows.
+            </summary>
+            <param name="outboxRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutbox.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.EmailOutboxItem},Storeasy.Application.Interfaces.ISecretProtector,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>: one insert per call, the payload sealed with the secret protector
+            (<see cref="F:Storeasy.Application.Utils.Helpers.SecretScopes.EmailOutbox"/>). <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxSender"/> delivers the rows.
+            </summary>
+            <param name="outboxRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutbox.EnqueueAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.EmailMessage},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutbox.EnqueuePasswordResetAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutbox.Open``1(Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Domain.EmailOutboxItem)">
+            <summary>
+            Opens the payload of a row.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="secretProtector"></param>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.PasswordResetPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.EmailOutboxKind.PasswordReset"/> row.
+            </summary>
+            <param name="Email">The address someone asked a reset link for.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.PasswordResetPayload.#ctor(System.String)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.EmailOutboxKind.PasswordReset"/> row.
+            </summary>
+            <param name="Email">The address someone asked a reset link for.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Email.PasswordResetPayload.Email">
+            <summary>The address someone asked a reset link for.</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.EmailOutboxRunner">
+            <summary>
+            The background e-mail sender: one loop that sends outbox e-mails one by one through a fresh scoped
+            <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxSender"/> and sleeps <see cref="P:Storeasy.Application.Utils.Models.EmailOutboxOptions.PollIntervalMilliseconds"/> when the outbox is
+            empty. Survives any error of one round (an unreachable database during startup included).
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="emailOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutboxRunner.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EmailOptions,System.TimeProvider)">
+            <summary>
+            The background e-mail sender: one loop that sends outbox e-mails one by one through a fresh scoped
+            <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxSender"/> and sleeps <see cref="P:Storeasy.Application.Utils.Models.EmailOutboxOptions.PollIntervalMilliseconds"/> when the outbox is
+            empty. Survives any error of one round (an unreachable database during startup included).
+            </summary>
+            <param name="scopeFactory"></param>
+            <param name="emailOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutboxRunner.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Email.EmailOutboxSender">
+            <summary>
+            Claims and sends one outbox e-mail (scoped; <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxRunner"/> creates a scope per e-mail). The claim is
+            a single <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent senders and
+            instances never get the same row. A sent row (or a password reset request for an address no account uses) is deleted;
+            a failure is retried with a doubling delay until <see cref="P:Storeasy.Application.Utils.Models.EmailOutboxOptions.MaxAttempts"/>, then the row is deleted
+            and the failure logged. The mail is rendered in the culture it was queued in.
+            </summary>
+            <param name="dbContext"></param>
+            <param name="outboxRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="emailSender"></param>
+            <param name="accountMailer"></param>
+            <param name="emailOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutboxSender.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.EmailOutboxItem},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IEmailSender,Storeasy.Application.Interfaces.IAccountMailer,Storeasy.Application.Utils.Models.EmailOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Claims and sends one outbox e-mail (scoped; <see cref="T:Storeasy.Infrastructure.Email.EmailOutboxRunner"/> creates a scope per e-mail). The claim is
+            a single <c>UPDATE ... WHERE Id = (SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING</c>, so concurrent senders and
+            instances never get the same row. A sent row (or a password reset request for an address no account uses) is deleted;
+            a failure is retried with a doubling delay until <see cref="P:Storeasy.Application.Utils.Models.EmailOutboxOptions.MaxAttempts"/>, then the row is deleted
+            and the failure logged. The mail is rendered in the culture it was queued in.
+            </summary>
+            <param name="dbContext"></param>
+            <param name="outboxRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="emailSender"></param>
+            <param name="accountMailer"></param>
+            <param name="emailOptions"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.EmailOutboxSender.SendNextAsync(System.Threading.CancellationToken)">
+            <summary>
+            Claims the next due e-mail and makes one attempt.
+            </summary>
+            <param name="stoppingToken"></param>
+            <returns>Whether an e-mail was claimed.</returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Email.EmailTemplates">
             <summary>
             The account e-mails as simple, inline styled HTML. Every text comes from the resx files in the culture of the current
@@ -1242,6 +1354,25 @@
         <member name="P:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.AuditLogCleanerJob">
+            <summary>
+            Deletes the audit log entries older than their organization's retention (<c>Organizations.AuditRetentionDays</c>,
+            <c>auditLog_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.AuditLogCleanerJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Deletes the audit log entries older than their organization's retention (<c>Organizations.AuditRetentionDays</c>,
+            <c>auditLog_cleanup.sql</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.AuditLogCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.DeadlineReminderJob">
             <summary>
             Daily: TestFlight build expiry reminders (14, 7, 1 days), compliance deadline reminders (30, 7, 1 days) and Microsoft
@@ -1681,14 +1812,16 @@
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.INotificationDispatcher"/>: resolves the recipients (organization roles, named users, platform
             admins), applies each user's preference for the kind, writes the in-app notifications in one insert, pushes
-            <c>notification.created</c> to each recipient, sends the e-mails, and queues the outgoing webhook and the live event
-            when the notification names them.
+            <c>notification.created</c> to each recipient, queues the e-mails (outbox) and the web pushes, and queues the outgoing
+            webhook and the live event when the notification names them. Custom role members receive what the seeded role their
+            permissions match (<see cref="P:Storeasy.Domain.Organizations.OrganizationRole.AudienceRole"/>) receives.
             </summary>
             <param name="memberRepository"></param>
             <param name="userRepository"></param>
             <param name="preferenceRepository"></param>
             <param name="notificationRepository"></param>
-            <param name="emailSender"></param>
+            <param name="emailOutbox"></param>
+            <param name="webPushQueue"></param>
             <param name="localizer"></param>
             <param name="userNotificationPublisher"></param>
             <param name="activityPublisher"></param>
@@ -1697,18 +1830,20 @@
             <param name="timeProvider"></param>
             <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.NotificationPreference},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IEmailSender,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IUserNotificationPublisher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.NotificationPreference},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IEmailOutbox,Storeasy.Application.Interfaces.IWebPushQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IUserNotificationPublisher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.INotificationDispatcher"/>: resolves the recipients (organization roles, named users, platform
             admins), applies each user's preference for the kind, writes the in-app notifications in one insert, pushes
-            <c>notification.created</c> to each recipient, sends the e-mails, and queues the outgoing webhook and the live event
-            when the notification names them.
+            <c>notification.created</c> to each recipient, queues the e-mails (outbox) and the web pushes, and queues the outgoing
+            webhook and the live event when the notification names them. Custom role members receive what the seeded role their
+            permissions match (<see cref="P:Storeasy.Domain.Organizations.OrganizationRole.AudienceRole"/>) receives.
             </summary>
             <param name="memberRepository"></param>
             <param name="userRepository"></param>
             <param name="preferenceRepository"></param>
             <param name="notificationRepository"></param>
-            <param name="emailSender"></param>
+            <param name="emailOutbox"></param>
+            <param name="webPushQueue"></param>
             <param name="localizer"></param>
             <param name="userNotificationPublisher"></param>
             <param name="activityPublisher"></param>
@@ -1851,6 +1986,142 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Notifications.WebhookUrlGuard.IsBlocked(System.Net.IPAddress)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto">
+            <summary>
+            The two cryptographic parts of web push, written against the RFCs with the .NET primitives only (no library):
+            <list type="bullet">
+            <item>Message encryption (RFC 8291 with the <c>aes128gcm</c> content coding of RFC 8188): an ephemeral P-256 key
+            agreement with the browser's key, HKDF-SHA256 with the browser's authentication secret, AES-128-GCM, one record.</item>
+            <item>VAPID (RFC 8292): an ES256 JWT for the push service's origin, sent as <c>Authorization: vapid t=..., k=...</c>.</item>
+            </list>
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.RecordSize">
+            <summary>
+            Record size written in the header; one record always fits a push (at most 4 KB).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.MaxPlaintextLength">
+            <summary>
+            Largest plaintext a push service is guaranteed to accept in one push.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.Encrypt(System.ReadOnlySpan{System.Byte},System.Byte[],System.Byte[],System.Byte[],System.Security.Cryptography.ECDiffieHellman)">
+            <summary>
+            Encrypts <paramref name="plaintext"/> to a browser subscription. <paramref name="salt"/> and
+            <paramref name="ephemeralKey"/> are random when not given (tests pass them for a fixed vector).
+            </summary>
+            <param name="plaintext"></param>
+            <param name="userAgentPublicKey">The subscription's <c>p256dh</c> (65 bytes).</param>
+            <param name="authSecret">The subscription's <c>auth</c> (16 bytes).</param>
+            <param name="salt"></param>
+            <param name="ephemeralKey"></param>
+            <returns>The request body.</returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.CreateVapidAuthorization(System.Uri,System.String,System.String,System.String,System.DateTimeOffset)">
+            <summary>
+            The <c>Authorization</c> header value for a push to <paramref name="endpoint"/>: an ES256 JWT signed with the VAPID
+            private key whose audience is the push service's origin, valid for 12 hours, and the VAPID public key.
+            </summary>
+            <param name="endpoint"></param>
+            <param name="subject"></param>
+            <param name="publicKey">Base64url uncompressed point.</param>
+            <param name="privateKey">Base64url private scalar.</param>
+            <param name="now"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.ExportPublicKey(System.Security.Cryptography.ECDiffieHellman)">
+            <summary>
+            The uncompressed point of a P-256 key.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebPushQueue"/>: a bounded in-memory channel read by <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushRunner"/>. When it is full the
+            oldest push is dropped. Registered as a singleton.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue.#ctor(Storeasy.Application.Utils.Models.WebPushOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IWebPushQueue"/>: a bounded in-memory channel read by <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushRunner"/>. When it is full the
+            oldest push is dropped. Registered as a singleton.
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue.Capacity">
+            <summary>
+            Pushes waiting at most.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue.Reader">
+            <summary>
+            The reading side (the runner).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue.TryEnqueue(Storeasy.Application.Interfaces.WebPushMessage)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushRunner">
+            <summary>
+            Reads <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue"/> and sends each push through a fresh scoped <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender"/>. A failure of
+            one push is logged and never stops the loop.
+            </summary>
+            <param name="queue"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushRunner.#ctor(Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Reads <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushQueue"/> and sends each push through a fresh scoped <see cref="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender"/>. A failure of
+            one push is logged and never stops the loop.
+            </summary>
+            <param name="queue"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushRunner.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender">
+            <summary>
+            Sends one <see cref="T:Storeasy.Application.Interfaces.WebPushMessage"/> to every subscribed browser of its users (scoped). Each push is encrypted to its
+            subscription (<see cref="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.Encrypt(System.ReadOnlySpan{System.Byte},System.Byte[],System.Byte[],System.Byte[],System.Security.Cryptography.ECDiffieHellman)"/>) and carries a VAPID authorization for the push service's origin. The
+            HTTP client connects only to public addresses (the outgoing webhook guard). A subscription the push service reports
+            gone (404, 410) is deleted; other failures are logged and the push is not retried.
+            </summary>
+            <param name="subscriptionRepository"></param>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.WebPushSubscription},System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.WebPushOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Sends one <see cref="T:Storeasy.Application.Interfaces.WebPushMessage"/> to every subscribed browser of its users (scoped). Each push is encrypted to its
+            subscription (<see cref="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushCrypto.Encrypt(System.ReadOnlySpan{System.Byte},System.Byte[],System.Byte[],System.Byte[],System.Security.Cryptography.ECDiffieHellman)"/>) and carries a VAPID authorization for the push service's origin. The
+            HTTP client connects only to public addresses (the outgoing webhook guard). A subscription the push service reports
+            gone (404, 410) is deleted; other failures are logged and the push is not retried.
+            </summary>
+            <param name="subscriptionRepository"></param>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.HttpClientName">
+            <summary>
+            Name of the HTTP client that talks to the push services (tests replace its handler).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.SendAsync(Storeasy.Application.Interfaces.WebPushMessage,System.Threading.CancellationToken)">
+            <summary>
+            Sends <paramref name="message"/>; returns how many browsers accepted it.
+            </summary>
+            <param name="message"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext">
             <summary>
@@ -2340,22 +2611,26 @@
         <member name="T:Storeasy.Infrastructure.Services.AccountMailer">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
-            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). The e-mails go into the outbox
+            (<see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>); a failure to queue is logged without the link.
             </summary>
             <param name="tokenRepository"></param>
-            <param name="emailSender"></param>
+            <param name="userRepository"></param>
+            <param name="emailOutbox"></param>
             <param name="localizer"></param>
             <param name="appOptions"></param>
             <param name="timeProvider"></param>
             <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IEmailSender,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.AccountToken},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IEmailOutbox,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IAccountMailer"/>. Tokens are random (<see cref="T:Storeasy.Application.Utils.Helpers.SecureTokens"/>), stored as SHA-256 hashes only and
-            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). Delivery failures are logged without the link.
+            put into links to the web app (<see cref="P:Storeasy.Application.Utils.Models.AppOptions.BaseUrl"/>). The e-mails go into the outbox
+            (<see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>); a failure to queue is logged without the link.
             </summary>
             <param name="tokenRepository"></param>
-            <param name="emailSender"></param>
+            <param name="userRepository"></param>
+            <param name="emailOutbox"></param>
             <param name="localizer"></param>
             <param name="appOptions"></param>
             <param name="timeProvider"></param>
@@ -2364,10 +2639,13 @@
         <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendEmailVerificationAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendPasswordResetAsync(System.Int32,System.String,System.String,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.RequestPasswordResetAsync(System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendInvitationAsync(System.String,System.String,System.String,Storeasy.Domain.Enums.OrgRole,System.String,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.CreatePasswordResetAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AccountMailer.SendInvitationAsync(Storeasy.Application.Interfaces.InvitationMail,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.AccountManager">
@@ -2538,6 +2816,12 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.DecideAsync(System.Int32,System.Int64,Storeasy.Domain.Enums.ChangePlanStatus,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.AllowsAsync(System.Int32,Storeasy.Domain.Enums.OrgPermission,System.Threading.CancellationToken)">
+            <summary>
+            Whether the caller's access in the organization (the one resolved for the request, or read now for a call outside
+            an organization request) grants <paramref name="permission"/>.
+            </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.CurrentToken">
             <summary>
@@ -2759,6 +3043,55 @@
             <summary>
             Returns the switched off keys from the cache, falling back to the database (and repopulating the cache) on a miss.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.GoogleSignInService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IGoogleSignIn"/>. The discovery document and the signing keys are read from
+            <see cref="P:Storeasy.Application.Utils.Models.GoogleAuthOptions.Authority"/> (https only) and cached for <see cref="F:Storeasy.Infrastructure.Services.GoogleSignInService.MetadataLifetime"/>; an unknown key id
+            refreshes them at most once a minute. The state, the code verifier and the nonce are random 32 byte values; the state
+            is the Redis key of the other two, deleted when read (GETDEL), so a state works once. The redirect address is always
+            <c>{Storeasy:App:BaseUrl}/</c><see cref="F:Storeasy.Application.Utils.Models.AppOptions.GoogleCallbackPath"/>. Registered as a singleton.
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.GoogleSignInService.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Utils.Helpers.CacheKeys,System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.GoogleAuthOptions,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IGoogleSignIn"/>. The discovery document and the signing keys are read from
+            <see cref="P:Storeasy.Application.Utils.Models.GoogleAuthOptions.Authority"/> (https only) and cached for <see cref="F:Storeasy.Infrastructure.Services.GoogleSignInService.MetadataLifetime"/>; an unknown key id
+            refreshes them at most once a minute. The state, the code verifier and the nonce are random 32 byte values; the state
+            is the Redis key of the other two, deleted when read (GETDEL), so a state works once. The redirect address is always
+            <c>{Storeasy:App:BaseUrl}/</c><see cref="F:Storeasy.Application.Utils.Models.AppOptions.GoogleCallbackPath"/>. Registered as a singleton.
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="appOptions"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.GoogleSignInService.HttpClientName">
+            <summary>
+            Name of the HTTP client that talks to Google (tests replace its handler).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.GoogleSignInService.MetadataLifetime">
+            <summary>
+            How long the discovery document and the keys are used.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.GoogleSignInService.IsEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.GoogleSignInService.StartAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.GoogleSignInService.CompleteAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.IdempotencyStore">
             <summary>
@@ -3004,9 +3337,10 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Services.OrganizationAccess">
             <summary>
-            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role is read from <c>OrganizationMembers</c> and cached in Redis for
-            <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership changes call <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/>, so a removed member loses access
-            on the next request. While Redis is unavailable every check reads the database (never fails open).
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role (and, for a custom role, its permissions) is read from
+            <c>OrganizationMembers</c> and cached in Redis for <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership and custom role changes call
+            <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/> or <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateManyAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.Int32})"/>, so a removed member loses access on the next request.
+            While Redis is unavailable every check reads the database (never fails open).
             </summary>
             <param name="cache"></param>
             <param name="memberRepository"></param>
@@ -3015,9 +3349,10 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Utils.Helpers.CacheKeys)">
             <summary>
-            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role is read from <c>OrganizationMembers</c> and cached in Redis for
-            <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership changes call <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/>, so a removed member loses access
-            on the next request. While Redis is unavailable every check reads the database (never fails open).
+            Default <see cref="T:Storeasy.Application.Interfaces.IOrganizationAccess"/>. The role (and, for a custom role, its permissions) is read from
+            <c>OrganizationMembers</c> and cached in Redis for <see cref="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry"/>; membership and custom role changes call
+            <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)"/> or <see cref="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateManyAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.Int32})"/>, so a removed member loses access on the next request.
+            While Redis is unavailable every check reads the database (never fails open).
             </summary>
             <param name="cache"></param>
             <param name="memberRepository"></param>
@@ -3025,19 +3360,28 @@
             <param name="cacheKeys"></param>
         </member>
         <member name="F:Storeasy.Infrastructure.Services.OrganizationAccess.CacheExpiry">
-            <summary>How long a role is served from the cache.</summary>
+            <summary>How long an access is served from the cache.</summary>
         </member>
-        <member name="P:Storeasy.Infrastructure.Services.OrganizationAccess.CurrentRole">
+        <member name="P:Storeasy.Infrastructure.Services.OrganizationAccess.Current">
             <inheritdoc/>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.SetCurrentRole(Storeasy.Domain.Enums.OrgRole)">
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.SetCurrent(Storeasy.Domain.Organizations.OrgAccess)">
             <inheritdoc/>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.GetRoleAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.GetAccessAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateAsync(System.Int32,System.Int32)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.InvalidateManyAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.Int32})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.OrganizationAccess.Format(Storeasy.Domain.Organizations.OrgAccess)">
+            <summary>
+            The cached form: "0" for no membership, the role number for a seeded role, "5:{customRoleId}:{permissions}" for a
+            custom role.
+            </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.PermissionManager">
             <summary>
@@ -3091,6 +3435,28 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.ReadinessService.GetStepsAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.RegistrationModes">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRegistrationModes"/>: one <see cref="T:Storeasy.Domain.SystemSetting"/> row read per call (registration and the
+            public settings are rare and rate limited), the configuration when there is none or it does not parse.
+            </summary>
+            <param name="settingRepository"></param>
+            <param name="registrationOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.SystemSetting},Storeasy.Application.Utils.Models.RegistrationOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IRegistrationModes"/>: one <see cref="T:Storeasy.Domain.SystemSetting"/> row read per call (registration and the
+            public settings are rare and rate limited), the configuration when there is none or it does not parse.
+            </summary>
+            <param name="settingRepository"></param>
+            <param name="registrationOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.GetAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RegistrationModes.SetAsync(System.Nullable{Storeasy.Domain.Enums.RegistrationMode},System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.RulesCatalog">
@@ -3205,11 +3571,15 @@
             in its backlog until the timeout, which would hold every authenticated request for seconds.
             </para>
             </summary>
+            <para>
+            A rotation also closes the user's live connections opened with the old stamp (<see cref="T:Storeasy.Application.Interfaces.IRealtimeConnections"/>).
+            </para>
             <param name="cache"></param>
             <param name="userRepository"></param>
             <param name="cacheKeys"></param>
+            <param name="realtimeConnections"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Utils.Helpers.CacheKeys)">
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Utils.Helpers.CacheKeys,Storeasy.Application.Interfaces.IRealtimeConnections)">
             <summary>
             Redis-backed revocation stamp store with the database (<c>User.SessionStamp</c>) as the durable
             source of truth. Reads are served from Redis for a cheap per-request check; on a cache miss (or
@@ -3225,14 +3595,21 @@
             in its backlog until the timeout, which would hold every authenticated request for seconds.
             </para>
             </summary>
+            <para>
+            A rotation also closes the user's live connections opened with the old stamp (<see cref="T:Storeasy.Application.Interfaces.IRealtimeConnections"/>).
+            </para>
             <param name="cache"></param>
             <param name="userRepository"></param>
             <param name="cacheKeys"></param>
+            <param name="realtimeConnections"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.GetOrCreateAsync(System.Int32,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.RotateAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.RotateManyAsync(System.Collections.Generic.IReadOnlyCollection{System.Int32},System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Services.SecurityStampStore.IsValidAsync(System.Int32,System.String,System.Threading.CancellationToken)">
@@ -3310,6 +3687,72 @@
             Device families when the profile does not say: iPhone (phone on Play) always, iPad and tablets only when the store
             already holds media for them. iPad requirements therefore appear only for apps that support iPad.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.SystemStatusProbe">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.ISystemStatusProbe"/>. Each dependency check is timed and limited to <see cref="F:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckTimeout"/>; a
+            failure is reported (redacted) instead of thrown. The queue numbers are counts over all organizations (raw counts on the
+            database context, the only cross organization read of the API).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="cache"></param>
+            <param name="fileStorage"></param>
+            <param name="emailOptions"></param>
+            <param name="encryptionOptions"></param>
+            <param name="googleAuthOptions"></param>
+            <param name="webPushOptions"></param>
+            <param name="buildOptions"></param>
+            <param name="hostEnvironment"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SystemStatusProbe.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.EmailOptions,Storeasy.Application.Utils.Models.EncryptionOptions,Storeasy.Application.Utils.Models.GoogleAuthOptions,Storeasy.Application.Utils.Models.WebPushOptions,Storeasy.Application.Utils.Models.BuildOptions,Microsoft.Extensions.Hosting.IHostEnvironment,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.ISystemStatusProbe"/>. Each dependency check is timed and limited to <see cref="F:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckTimeout"/>; a
+            failure is reported (redacted) instead of thrown. The queue numbers are counts over all organizations (raw counts on the
+            database context, the only cross organization read of the API).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="cache"></param>
+            <param name="fileStorage"></param>
+            <param name="emailOptions"></param>
+            <param name="encryptionOptions"></param>
+            <param name="googleAuthOptions"></param>
+            <param name="webPushOptions"></param>
+            <param name="buildOptions"></param>
+            <param name="hostEnvironment"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckTimeout">
+            <summary>
+            Longest wait for one dependency.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SystemStatusProbe.CheckAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.TokenRevocationList">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>: one Redis key per revoked token (its SHA-256 hash), expiring with the
+            access token lifetime. Redis failures are swallowed (see the interface).
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="identityOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.TokenRevocationList.#ctor(Milvasoft.Caching.Redis.Accessor.IRedisAccessor,Storeasy.Application.Utils.Helpers.CacheKeys,Milvasoft.Identity.Concrete.Options.MilvaIdentityOptions)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.ITokenRevocationList"/>: one Redis key per revoked token (its SHA-256 hash), expiring with the
+            access token lifetime. Redis failures are swallowed (see the interface).
+            </summary>
+            <param name="cache"></param>
+            <param name="cacheKeys"></param>
+            <param name="identityOptions"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.TokenRevocationList.RevokeAsync(System.Collections.Generic.IReadOnlyCollection{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.TokenRevocationList.IsRevokedAsync(System.String)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Services.TransactionRunner">
             <summary>
@@ -3580,6 +4023,20 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher.PublishAsync(Storeasy.Application.Dtos.ActivityDtos.ActivityEventDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreJobs.NullRealtimeConnections">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRealtimeConnections"/> for a host without the live hub: nothing is connected, so nothing to do.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.NullRealtimeConnections.RemoveFromOrganizationAsync(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.NullRealtimeConnections.DisconnectAsync(System.Int32,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreJobs.NullRealtimeConnections.DisconnectTokensAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.String})">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.StoreJobs.StoreJobContext">
@@ -3892,7 +4349,8 @@
             <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
             from the app's sealed saved answer here, in memory, and never stored with the plan. On success the plan becomes
             Applied and one audit entry per changed field is written in the name of the member who approved it. A failure is
-            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work.
+            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work. An
+            applied submission for review closes the store record's open rejection cases (<see cref="M:Storeasy.Application.Interfaces.IVersionStateTracker.CloseForSubmissionAsync(System.Int32,System.Int32,System.Threading.CancellationToken)"/>).
             </summary>
             <param name="planRepository"></param>
             <param name="storeAppRepository"></param>
@@ -3903,14 +4361,16 @@
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
             <param name="extensions"></param>
+            <param name="versionStateTracker"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension})">
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IChangePlanExtension},Storeasy.Application.Interfaces.IVersionStateTracker)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: writes an approved plan to its store through the store's
             <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
             from the app's sealed saved answer here, in memory, and never stored with the plan. On success the plan becomes
             Applied and one audit entry per changed field is written in the name of the member who approved it. A failure is
-            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work.
+            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work. An
+            applied submission for review closes the store record's open rejection cases (<see cref="M:Storeasy.Application.Interfaces.IVersionStateTracker.CloseForSubmissionAsync(System.Int32,System.Int32,System.Threading.CancellationToken)"/>).
             </summary>
             <param name="planRepository"></param>
             <param name="storeAppRepository"></param>
@@ -3921,6 +4381,7 @@
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
             <param name="extensions"></param>
+            <param name="versionStateTracker"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.Kind">
             <inheritdoc/>
@@ -5736,16 +6197,20 @@
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
             <item>Microsoft Store: not supported yet (permanent failure).</item>
             </list>
-            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+            records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
+            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
             <param name="buildRepository"></param>
+            <param name="endpointRepository"></param>
             <param name="storeGateway"></param>
             <param name="activityPublisher"></param>
+            <param name="storeJobQueue"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
             <list type="bullet">
@@ -5755,13 +6220,17 @@
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
             <item>Microsoft Store: not supported yet (permanent failure).</item>
             </list>
-            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store.
+            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+            records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
+            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
             <param name="buildRepository"></param>
+            <param name="endpointRepository"></param>
             <param name="storeGateway"></param>
             <param name="activityPublisher"></param>
+            <param name="storeJobQueue"></param>
             <param name="timeProvider"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.Kind">
@@ -5769,6 +6238,13 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.RegisterWebhooksAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Queues a webhook registration for every App Store Connect endpoint of the connection that was registered through the
+            API, so the apps that just arrived get the webhook too. Endpoints set up by hand (or whose registration failed) are
+            left alone.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ReadGoogleAppsAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.Collections.Generic.List{Storeasy.Domain.Apps.StoreApp},System.Threading.CancellationToken)">
             <summary>

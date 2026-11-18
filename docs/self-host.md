@@ -1,4 +1,4 @@
-﻿# Self-hosting storeasy
+# Self-hosting storeasy
 
 This guide runs storeasy on one Linux server with Docker: the API, the web app, PostgreSQL 17, Redis 7 and SeaweedFS
 (S3 compatible object storage). Everything is in [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and
@@ -135,8 +135,13 @@ Rules for any proxy:
 - **S3 host:** keep the original `Host` header (presigned URLs are signed for it), allow request bodies of at least
   64 MiB (the largest upload part) and long timeouts. The API container must also reach `S3_PUBLIC_URL`: it signs URLs
   for that address and checks completed uploads there.
-- **S3 CORS:** the web app uploads from the browser, so the bucket must allow `PUT` and `GET` from `STOREASY_BASE_URL`
-  and expose the `ETag` header. With the AWS CLI:
+- **S3 CORS:** the web app uploads from the browser, so the S3 host must allow `PUT` and `GET` from `STOREASY_BASE_URL`
+  and expose the `ETag` header (the browser reads it after every part of a multipart upload). The bundled SeaweedFS
+  does this itself: the compose file starts it with `-s3.allowedOrigins=${STOREASY_BASE_URL}`, and SeaweedFS (4.51
+  checked) answers the preflight and sends `Access-Control-Expose-Headers: ETag, ...` on every response. Do not add CORS
+  headers at the proxy as well (duplicate `Access-Control-Allow-Origin` headers make the browser refuse the response);
+  only make sure the proxy passes the `Origin` request header and the `Access-Control-*` response headers through.
+  For AWS S3 or another S3 service, set the bucket rule instead. With the AWS CLI:
 
   ```bash
   cat > cors.json <<'EOF'
@@ -147,7 +152,10 @@ Rules for any proxy:
     aws s3api put-bucket-cors --endpoint-url "$S3_PUBLIC_URL" --bucket storeasy --cors-configuration file://cors.json
   ```
 
-  If your SeaweedFS version does not accept bucket CORS, add the same headers at the proxy for the S3 host.
+  If you replace SeaweedFS with a service that has no CORS support at all, answer the preflight at the proxy for the S3
+  host instead (nginx: on `OPTIONS` return 204 with `Access-Control-Allow-Origin: <STOREASY_BASE_URL>`,
+  `Access-Control-Allow-Methods: GET, PUT, HEAD`, `Access-Control-Allow-Headers: *`, and add
+  `Access-Control-Allow-Origin` and `Access-Control-Expose-Headers: ETag` to every other response with `always`).
 
 ## 5. First admin and first account
 
@@ -213,6 +221,12 @@ The remaining `Milvasoft:*` keys in `appsettings.json` are library settings that
 | `Storeasy:Email:Smtp:Host`, `Port`, `UserName`, `From`, `EnableSsl` | empty, `587`, empty, empty, `true` | SMTP server. `Host` and `From` are required with `Smtp`; otherwise the API stops at startup and names the missing key. |
 | `Storeasy:Email:Smtp:Password` | empty | **Secret.** SMTP password. |
 | `Storeasy:Email:Notifike:BaseUrl`, `ApiKey` | empty | Notifike API (`ApiKey` is **secret**). Both required with `Notifike`. |
+| `Storeasy:Email:Outbox:Enabled` | `true` | Whether this instance runs the background e-mail sender. E-mails are never sent on the request path: they are queued in the `EmailOutbox` table (body sealed with the master key) and sent from there, so a slow provider or a missing account does not change answer times. |
+| `Storeasy:Email:Outbox:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `LeaseSeconds` | `1000`, `6`, `30`, `120` | Sender pause, attempts of one e-mail (then it is dropped and logged), doubling retry delay (at most an hour), claim lease. |
+| `Storeasy:Auth:Google:ClientId`, `ClientSecret` | empty | Sign in with Google (`ClientSecret` is **secret**). Off while either is empty. See [Sign in with Google](#sign-in-with-google). |
+| `Storeasy:Auth:Google:Authority`, `StateLifetimeMinutes` | `https://accounts.google.com`, `10` | OpenID Connect issuer (https only; change it only for testing) and how long a started sign in may take. |
+| `Storeasy:WebPush:PublicKey`, `PrivateKey` | empty | VAPID key pair of browser notifications (`PrivateKey` is **secret**). Off while either is empty. See [Browser notifications](#browser-notifications-web-push). |
+| `Storeasy:WebPush:Subject`, `TimeToLiveSeconds` | `mailto:admin@localhost`, `86400` | Contact the push services may use (`mailto:` or https) and how long they keep an undelivered push. |
 | `Storeasy:Jobs:Enabled` | `true` | Whether this instance runs store jobs. Every instance can queue them. |
 | `Storeasy:Jobs:Workers` | `2` | Jobs one instance runs at the same time. |
 | `Storeasy:Jobs:PollIntervalMilliseconds` | `2000` | Pause of an idle worker. |
@@ -229,6 +243,40 @@ The remaining `Milvasoft:*` keys in `appsettings.json` are library settings that
 | `Storeasy:Intake:UrlLifetimeMinutes` | `120` | Lifetime of the presigned part URLs of package uploads (at least 60). |
 | `Storeasy:Intake:ProcessMaxAttempts` | `40` | Attempts of a package processing job (an iOS delivery waits for Apple's processing by retrying). |
 | `Storeasy:Intake:AbandonedUploadHours` / `PendingAssetHours` | `48` | When unfinished package uploads and unconfirmed asset uploads are cleaned up. |
+
+### Sign in with Google
+
+1. In Google Cloud Console create an OAuth client of type **Web application** (APIs and Services, Credentials). The
+   consent screen needs only the `openid`, `email` and `profile` scopes.
+2. Add the authorized redirect URI `<STOREASY_BASE_URL>/auth/google/callback` (the web app's callback page; it sends
+   the code and state to `POST /api/v1.0/account/login/google`).
+3. Set `Storeasy__Auth__Google__ClientId` and `Storeasy__Auth__Google__ClientSecret` in `.env` and restart the API.
+
+The flow is the authorization code flow with PKCE; the code verifier and nonce never leave the API (Redis, ten minutes,
+single use), so Redis is required for it. An account is linked only by an address Google reports as verified; an
+existing account that never verified its address is taken over by that proof (its password is replaced with a random
+one and its sessions end). New accounts follow `Storeasy:Registration:Mode`: `InviteOnly` needs an invitation for the
+same address, `Closed` creates none (existing accounts can still sign in). No Google call is made while the client id
+or secret is empty.
+
+### Browser notifications (web push)
+
+Pushes go straight from the API to the browsers' push services with VAPID (RFC 8292) and the payload encrypted to the
+browser (RFC 8291); no third party account or library is involved. Generate one P-256 key pair per instance:
+
+```bash
+openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
+# Public key: the 65 byte uncompressed point, base64url
+openssl ec -in vapid.pem -pubout -outform DER 2>/dev/null | tail -c 65 | base64 | tr '/+' '_-' | tr -d '=\n'; echo
+# Private key: the 32 byte scalar, base64url
+openssl ec -in vapid.pem -outform DER 2>/dev/null | tail -c +8 | head -c 32 | base64 | tr '/+' '_-' | tr -d '=\n'; echo
+```
+
+Put them into `Storeasy__WebPush__PublicKey` and `Storeasy__WebPush__PrivateKey`, set `Storeasy__WebPush__Subject` to a
+contact address and delete `vapid.pem`. The web app reads the public key from `GET /api/v1.0/system/public-settings`.
+Changing the key pair invalidates every browser subscription (users subscribe again). The API sends pushes only to
+public addresses (the same guard as outgoing webhooks), so the server needs outbound HTTPS to the push services
+(`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com`, `web.push.apple.com`).
 
 ### Object storage
 

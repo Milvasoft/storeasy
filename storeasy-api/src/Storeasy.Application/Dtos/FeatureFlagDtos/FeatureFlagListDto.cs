@@ -37,6 +37,22 @@ public class FeatureFlagListDto : StoreasyBaseDto<int>
     public string Reason { get; set; }
 
     /// <summary>
+    /// What the feature is (localized).
+    /// </summary>
+    [Filterable(false)]
+    public string Description { get; set; }
+
+    /// <summary>
+    /// Who changed the flag last.
+    /// </summary>
+    public string LastModifierUserName { get; set; }
+
+    /// <summary>
+    /// UTC instant of the last change.
+    /// </summary>
+    public DateTime? LastModificationDate { get; set; }
+
+    /// <summary>
     /// Projection expression for mapping FeatureFlag entity to FeatureFlagListDto.
     /// </summary>
     [JsonIgnore]
@@ -47,5 +63,7 @@ public class FeatureFlagListDto : StoreasyBaseDto<int>
         Key = f.Key,
         IsEnabled = f.IsEnabled,
         Reason = f.Reason,
+        LastModifierUserName = f.LastModifierUserName,
+        LastModificationDate = f.LastModificationDate,
     };
 }

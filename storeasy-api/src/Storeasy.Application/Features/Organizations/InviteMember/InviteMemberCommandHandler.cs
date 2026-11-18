@@ -15,6 +15,7 @@ namespace Storeasy.Application.Features.Organizations.InviteMember;
 /// <param name="InvitationRepository"></param>
 /// <param name="MemberRepository"></param>
 /// <param name="OrganizationRepository"></param>
+/// <param name="RoleRepository"></param>
 /// <param name="AccountMailer"></param>
 /// <param name="OrganizationAccess"></param>
 /// <param name="CurrentUser"></param>
@@ -24,6 +25,7 @@ namespace Storeasy.Application.Features.Organizations.InviteMember;
 public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInvitation> InvitationRepository,
                                          IStoreasyRepositoryBase<OrganizationMember> MemberRepository,
                                          IStoreasyRepositoryBase<Organization> OrganizationRepository,
+                                         IStoreasyRepositoryBase<OrganizationRole> RoleRepository,
                                          IAccountMailer AccountMailer,
                                          IOrganizationAccess OrganizationAccess,
                                          ICurrentUser CurrentUser,
@@ -35,6 +37,7 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
     private readonly IStoreasyRepositoryBase<OrganizationInvitation> _invitationRepository = InvitationRepository;
     private readonly IStoreasyRepositoryBase<OrganizationMember> _memberRepository = MemberRepository;
     private readonly IStoreasyRepositoryBase<Organization> _organizationRepository = OrganizationRepository;
+    private readonly IStoreasyRepositoryBase<OrganizationRole> _roleRepository = RoleRepository;
     private readonly IAccountMailer _accountMailer = AccountMailer;
     private readonly IOrganizationAccess _organizationAccess = OrganizationAccess;
     private readonly ICurrentUser _currentUser = CurrentUser;
@@ -44,7 +47,15 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
     /// <inheritdoc/>
     public async Task<Response<InvitationCreatedDto>> Handle(InviteMemberCommand request, CancellationToken cancellationToken)
     {
-        if (!OrgRoleRules.CanAssign(_organizationAccess.CurrentRole.GetValueOrDefault(OrgRole.Viewer), null, request.Role) || request.Role == OrgRole.Owner)
+        if (request.Role == OrgRole.Owner)
+            return Response<InvitationCreatedDto>.Error(null, MessageKey.OrganizationForbidden);
+
+        var target = await _roleRepository.ResolveRoleAsync(request.OrganizationId, request.Role, request.CustomRoleId, cancellationToken);
+
+        if (target == null)
+            return Response<InvitationCreatedDto>.Error(null, MessageKey.OrganizationRoleNotFound);
+
+        if (_organizationAccess.Current == null || !OrgRoleRules.CanAssign(_organizationAccess.Current, null, target))
             return Response<InvitationCreatedDto>.Error(null, MessageKey.OrganizationForbidden);
 
         var email = request.Email.Trim();
@@ -70,7 +81,8 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
             OrganizationId = request.OrganizationId,
             Email = email,
             NormalizedEmail = normalizedEmail,
-            Role = request.Role,
+            Role = target.Role,
+            CustomRoleId = target.CustomRoleId,
             TokenHash = SecureTokens.Hash(token),
             ExpiryDate = now.Add(OrganizationInvitation.Lifetime),
             InviterUserId = _currentUser.GetRequiredId(),
@@ -78,11 +90,15 @@ public record InviteMemberCommandHandler(IStoreasyRepositoryBase<OrganizationInv
 
         await _invitationRepository.AddAsync(invitation, cancellationToken);
 
-        await _auditTrail.WriteAsync(request.OrganizationId, AuditAction.MemberInvited, invitation.Id.ToString(), $"{email} invited as {request.Role}.", cancellationToken: cancellationToken);
+        await _auditTrail.WriteAsync(request.OrganizationId, AuditAction.MemberInvited, invitation.Id.ToString(), $"{email} invited as {OrgRoleRules.Describe(target.Role, target.CustomRoleId)}.", cancellationToken: cancellationToken);
 
         var organizationName = await _organizationRepository.GetFirstOrDefaultAsync(o => o.Id == request.OrganizationId, projection: o => o.Name, cancellationToken: cancellationToken);
 
-        await _accountMailer.SendInvitationAsync(email, organizationName, _currentUser.UserName, request.Role, token, cancellationToken);
+        var customRoleName = target.CustomRoleId == null
+            ? null
+            : await _roleRepository.GetFirstOrDefaultAsync(r => r.Id == target.CustomRoleId.Value, projection: r => r.Name, cancellationToken: cancellationToken);
+
+        await _accountMailer.SendInvitationAsync(new InvitationMail(email, organizationName, _currentUser.UserName, target.Role, customRoleName, token), cancellationToken);
 
         return Response<InvitationCreatedDto>.Success(new InvitationCreatedDto { Id = invitation.Id, Token = token, ExpiryDate = invitation.ExpiryDate });
     }

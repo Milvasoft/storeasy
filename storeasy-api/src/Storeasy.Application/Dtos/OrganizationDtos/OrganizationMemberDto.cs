@@ -41,6 +41,16 @@ public class OrganizationMemberDto
     public OrgRole Role { get; set; }
 
     /// <summary>
+    /// The custom role when <see cref="Role"/> is <see cref="OrgRole.Custom"/>.
+    /// </summary>
+    public int? CustomRoleId { get; set; }
+
+    /// <summary>
+    /// Name of the custom role.
+    /// </summary>
+    public string CustomRoleName { get; set; }
+
+    /// <summary>
     /// UTC instant the user joined.
     /// </summary>
     public DateTime? JoinDate { get; set; }
@@ -58,6 +68,8 @@ public class OrganizationMemberDto
         Name = m.User.Name,
         Surname = m.User.Surname,
         Role = m.Role,
+        CustomRoleId = m.CustomRoleId,
+        CustomRoleName = m.CustomRole != null ? m.CustomRole.Name : null,
         JoinDate = m.CreationDate,
     };
 }

@@ -93,6 +93,7 @@ public static class RepositoryExtensions
     /// <param name="organizationId"></param>
     /// <param name="userId"></param>
     /// <param name="role"></param>
+    /// <param name="customRoleId"></param>
     /// <param name="now"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>The new membership id, or null when the invitation was consumed meanwhile.</returns>
@@ -102,6 +103,7 @@ public static class RepositoryExtensions
                                                          int organizationId,
                                                          int userId,
                                                          OrgRole role,
+                                                         int? customRoleId,
                                                          DateTime now,
                                                          CancellationToken cancellationToken)
     {
@@ -112,11 +114,176 @@ public static class RepositoryExtensions
         if (consumed == 0)
             return null;
 
-        var member = new OrganizationMember { OrganizationId = organizationId, UserId = userId, Role = role };
+        var member = new OrganizationMember { OrganizationId = organizationId, UserId = userId, Role = role, CustomRoleId = role == OrgRole.Custom ? customRoleId : null };
 
         await memberRepository.AddAsync(member, cancellationToken);
 
         return member.Id;
+    }
+
+    /// <summary>
+    /// The platform permissions (<c>{Group}.{Name}</c>) a user holds through its global roles, read from the database (not
+    /// from the token, which may be older).
+    /// </summary>
+    /// <param name="userRepository"></param>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<List<string>> GetPlatformPermissionsAsync(this IStoreasyRepositoryBase<User> userRepository, int userId, CancellationToken cancellationToken)
+        => await userRepository.GetFirstOrDefaultAsync(u => u.Id == userId,
+                                                       projection: u => u.RoleRelations.SelectMany(rr => rr.Role.RolePermissionRelations.Select(rp => rp.Permission.PermissionGroup + "." + rp.Permission.Name)).ToList(),
+                                                       cancellationToken: cancellationToken) ?? [];
+
+    /// <summary>
+    /// The platform permissions (<c>{Group}.{Name}</c>) of the given permission rows.
+    /// </summary>
+    /// <param name="permissionRepository"></param>
+    /// <param name="permissionIds"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<List<string>> GetPermissionNamesAsync(this IStoreasyRepositoryBase<Permission> permissionRepository, IReadOnlyCollection<int> permissionIds, CancellationToken cancellationToken)
+    {
+        if (permissionIds == null || permissionIds.Count == 0)
+            return [];
+
+        var permissions = await permissionRepository.GetAllAsync(p => permissionIds.Contains(p.Id),
+                                                                 projection: p => new Permission { Name = p.Name, PermissionGroup = p.PermissionGroup },
+                                                                 cancellationToken: cancellationToken);
+
+        return [.. permissions.Select(p => p.FormatPermissionAndGroup())];
+    }
+
+    /// <summary>
+    /// The platform permissions (<c>{Group}.{Name}</c>) the given global roles grant together.
+    /// </summary>
+    /// <param name="rolePermissionRepository"></param>
+    /// <param name="roleIds"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<List<string>> GetRolePermissionNamesAsync(this IStoreasyRepositoryBase<RolePermissionRelation> rolePermissionRepository, IReadOnlyCollection<int> roleIds, CancellationToken cancellationToken)
+    {
+        if (roleIds == null || roleIds.Count == 0)
+            return [];
+
+        var relations = await rolePermissionRepository.GetAllAsync(rp => roleIds.Contains(rp.RoleId),
+                                                                   projection: rp => new RolePermissionRelation { Permission = new Permission { Name = rp.Permission.Name, PermissionGroup = rp.Permission.PermissionGroup } },
+                                                                   cancellationToken: cancellationToken);
+
+        return [.. relations.Select(rp => rp.Permission.FormatPermissionAndGroup()).Distinct()];
+    }
+
+    /// <summary>
+    /// The ids of the users holding any of the given global roles.
+    /// </summary>
+    /// <param name="userRoleRepository"></param>
+    /// <param name="roleIds"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<List<int>> GetRoleHolderIdsAsync(this IStoreasyRepositoryBase<UserRoleRelation> userRoleRepository, IReadOnlyCollection<int> roleIds, CancellationToken cancellationToken)
+    {
+        var relations = await userRoleRepository.GetAllAsync(ur => roleIds.Contains(ur.RoleId),
+                                                             projection: ur => new UserRoleRelation { UserId = ur.UserId },
+                                                             cancellationToken: cancellationToken);
+
+        return [.. relations.Select(ur => ur.UserId).Distinct()];
+    }
+
+    /// <summary>
+    /// Signs out the given sessions of a user on their own: the rows move to the session history (their refresh tokens
+    /// stop working), their access tokens go on the revocation list and the live connections opened with them close.
+    /// The user's other sessions keep working. <paramref name="sessions"/> carry their access token.
+    /// </summary>
+    /// <param name="sessionRepository"></param>
+    /// <param name="historyRepository"></param>
+    /// <param name="revocationList"></param>
+    /// <param name="realtimeConnections"></param>
+    /// <param name="userId"></param>
+    /// <param name="sessions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task SignOutSessionsAsync(this IStoreasyRepositoryBase<UserSession> sessionRepository,
+                                                  IStoreasyRepositoryBase<UserSessionHistory> historyRepository,
+                                                  ITokenRevocationList revocationList,
+                                                  IRealtimeConnections realtimeConnections,
+                                                  int userId,
+                                                  List<UserSession> sessions,
+                                                  CancellationToken cancellationToken)
+    {
+        if (sessions.Count == 0)
+            return;
+
+        var ids = sessions.Select(s => s.Id).ToList();
+
+        await sessionRepository.ExecuteDeleteAsync(s => s.UserId == userId && ids.Contains(s.Id), cancellationToken: cancellationToken);
+
+        await historyRepository.BulkAddAsync([.. sessions.Select(s => new UserSessionHistory(s))], cancellationToken: cancellationToken);
+
+        var tokens = sessions.Select(s => s.AccessToken).Where(t => !string.IsNullOrEmpty(t)).ToList();
+
+        await revocationList.RevokeAsync(tokens);
+
+        await realtimeConnections.DisconnectTokensAsync(userId, [.. tokens.Select(SecureTokens.Hash)]);
+    }
+
+    /// <summary>
+    /// The pending invitation the token of an invitation link names (not accepted, not revoked, not expired, organization
+    /// not deleted), with what joining needs; null when there is none.
+    /// </summary>
+    /// <param name="invitationRepository"></param>
+    /// <param name="token"></param>
+    /// <param name="now"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static Task<OrganizationInvitation> FindOpenInvitationAsync(this IStoreasyRepositoryBase<OrganizationInvitation> invitationRepository, string token, DateTime now, CancellationToken cancellationToken)
+    {
+        var tokenHash = SecureTokens.Hash(token);
+
+        return invitationRepository.GetFirstOrDefaultAsync(i => i.TokenHash == tokenHash && i.AcceptDate == null && i.RevokeDate == null && i.ExpiryDate > now && !i.Organization.IsDeleted,
+                                                           projection: i => new OrganizationInvitation { Id = i.Id, OrganizationId = i.OrganizationId, NormalizedEmail = i.NormalizedEmail, Role = i.Role, CustomRoleId = i.CustomRoleId },
+                                                           cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// The custom roles of an organization with their id, name and permissions (an organization has at most
+    /// <see cref="OrganizationRole.MaxPerOrganization"/>), for the name uniqueness and limit checks.
+    /// </summary>
+    /// <param name="roleRepository"></param>
+    /// <param name="organizationId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static Task<List<OrganizationRole>> GetOrganizationRoleNamesAsync(this IStoreasyRepositoryBase<OrganizationRole> roleRepository, int organizationId, CancellationToken cancellationToken)
+        => roleRepository.GetAllAsync(r => r.OrganizationId == organizationId,
+                                      projection: r => new OrganizationRole { Id = r.Id, Name = r.Name, Permissions = r.Permissions },
+                                      cancellationToken: cancellationToken);
+
+    /// <summary>
+    /// The access a role grants in an organization: the seeded matrix, or for <see cref="OrgRole.Custom"/> the permissions
+    /// of the organization's custom role <paramref name="customRoleId"/>. Null when that custom role is not the
+    /// organization's (or none was named).
+    /// </summary>
+    /// <param name="roleRepository"></param>
+    /// <param name="organizationId"></param>
+    /// <param name="role"></param>
+    /// <param name="customRoleId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<OrgAccess> ResolveRoleAsync(this IStoreasyRepositoryBase<OrganizationRole> roleRepository,
+                                                         int organizationId,
+                                                         OrgRole role,
+                                                         int? customRoleId,
+                                                         CancellationToken cancellationToken)
+    {
+        if (role != OrgRole.Custom)
+            return OrgAccess.Seeded(role);
+
+        if (customRoleId == null)
+            return null;
+
+        var permissions = await roleRepository.GetFirstOrDefaultAsync(r => r.Id == customRoleId.Value && r.OrganizationId == organizationId,
+                                                                      projection: r => r.Permissions,
+                                                                      cancellationToken: cancellationToken);
+
+        return permissions == null ? null : OrgAccess.Custom(customRoleId.Value, permissions);
     }
 
     /// <summary>

@@ -33,6 +33,11 @@ public class EmailOptions
     public NotifikeEmailOptions Notifike { get; set; } = new();
 
     /// <summary>
+    /// The outbox and its background sender.
+    /// </summary>
+    public EmailOutboxOptions Outbox { get; set; } = new();
+
+    /// <summary>
     /// Name of the first missing required setting of the selected provider, or null when it can send.
     /// </summary>
     /// <returns></returns>
@@ -80,6 +85,38 @@ public class SmtpEmailOptions
     /// Whether the connection is upgraded with STARTTLS.
     /// </summary>
     public bool EnableSsl { get; set; } = true;
+}
+
+/// <summary>
+/// Settings of the e-mail outbox (<c>Storeasy:Email:Outbox</c>): e-mails are queued on the request path and a background
+/// sender delivers them.
+/// </summary>
+public class EmailOutboxOptions
+{
+    /// <summary>
+    /// Whether this instance runs the background sender (every instance can queue).
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Pause of the sender when the outbox is empty.
+    /// </summary>
+    public int PollIntervalMilliseconds { get; set; } = 1000;
+
+    /// <summary>
+    /// Attempts of one e-mail before it is dropped (and logged).
+    /// </summary>
+    public int MaxAttempts { get; set; } = 6;
+
+    /// <summary>
+    /// First retry delay; doubles with every attempt, at most an hour.
+    /// </summary>
+    public int RetryBaseDelaySeconds { get; set; } = 30;
+
+    /// <summary>
+    /// How long a claimed e-mail is held by one sender before another may take it over.
+    /// </summary>
+    public int LeaseSeconds { get; set; } = 120;
 }
 
 /// <summary>
