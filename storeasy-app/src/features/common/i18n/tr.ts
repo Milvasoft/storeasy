@@ -7,6 +7,7 @@ export const p2tr: P2Dictionary = {
     listing: 'Mağaza kaydı',
     media: 'Görseller',
     release: 'Yayın',
+    money: 'Para',
     answers: 'Kayıtlı cevaplar',
     assisted: 'Asistanlı adımlar',
     compliance: 'Uyum',
@@ -29,6 +30,9 @@ export const p2tr: P2Dictionary = {
     versions: "Sürümler ve track'ler",
     testers: 'Test kullanıcıları',
     reviewInfo: 'İnceleme bilgileri',
+    subscriptions: 'Abonelikler',
+    iap: 'Uygulama içi ürünler',
+    purchaseSettings: 'Satın alma ayarları',
   },
   plan: {
     title: 'Değişiklik planı',
@@ -578,6 +582,9 @@ export const p2tr: P2Dictionary = {
       dataSafety: 'Data safety',
       submitForReview: 'İncelemeye gönderme',
       msChange: 'Microsoft Store değişikliği',
+      monetization: 'Abonelikler ve ürünler',
+      serverNotifications: 'Sunucu bildirimleri',
+      sandboxTesters: 'Sandbox test kullanıcıları',
     },
     assistedStatus: {
       todo: 'Yapılacak',

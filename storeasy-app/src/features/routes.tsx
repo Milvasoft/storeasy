@@ -25,6 +25,13 @@ const AssistedStepPage = lazyPage(() => import('@/features/assisted/AssistedPage
 const PlansPage = lazyPage(() => import('@/features/plans/PlansPages'), 'PlansPage')
 const PlanDetailPage = lazyPage(() => import('@/features/plans/PlansPages'), 'PlanDetailPage')
 const RulesPage = lazyPage(() => import('@/features/rules/RulesPage'), 'RulesPage')
+// Phase 7: subscriptions, In-App Purchases and purchase settings.
+const SubscriptionsPage = lazyPage(() => import('@/features/monetization/SubscriptionsPage'), 'SubscriptionsPage')
+const SubscriptionDetailPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'SubscriptionDetailPage')
+const BasePlanPricesPage = lazyPage(() => import('@/features/monetization/PlayPanels'), 'BasePlanPricesPage')
+const IapListPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'IapListPage')
+const IapDetailPage = lazyPage(() => import('@/features/monetization/ProductPages'), 'IapDetailPage')
+const PurchaseSettingsPage = lazyPage(() => import('@/features/monetization/PurchaseSettingsPage'), 'PurchaseSettingsPage')
 
 export function contentRoutes() {
   return (
@@ -52,6 +59,15 @@ export function contentRoutes() {
       <Route path="/compliance" element={<OrgCompliancePage />} />
       <Route path="/rules" element={<RulesPage />} />
       <Route path="/rules/:ruleId" element={<RulesPage />} />
+      <Route path="/apps/:appId/money/subscriptions" element={<SubscriptionsPage />} />
+      <Route path="/apps/:appId/money/subscriptions/:subscriptionId" element={<SubscriptionDetailPage tab="general" />} />
+      <Route path="/apps/:appId/money/subscriptions/:subscriptionId/prices" element={<SubscriptionDetailPage tab="prices" />} />
+      <Route path="/apps/:appId/money/subscriptions/:subscriptionId/offers" element={<SubscriptionDetailPage tab="offers" />} />
+      <Route path="/apps/:appId/money/subscriptions/:subscriptionId/base-plans/:basePlanId" element={<BasePlanPricesPage />} />
+      <Route path="/apps/:appId/money/iap" element={<IapListPage />} />
+      <Route path="/apps/:appId/money/iap/:iapId" element={<IapDetailPage tab="general" />} />
+      <Route path="/apps/:appId/money/iap/:iapId/prices" element={<IapDetailPage tab="prices" />} />
+      <Route path="/apps/:appId/money/settings" element={<PurchaseSettingsPage />} />
     </>
   )
 }

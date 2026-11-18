@@ -23,10 +23,31 @@ import { storeFromSlug, storeSlug } from './store'
 // chip row). The overview, builds and jobs tabs belong to AppDetailPage; this frame links to them and they link here.
 
 export type WorkspaceSection =
-  'readiness' | 'listing' | 'media' | 'release' | 'answers' | 'assisted' | 'compliance' | 'profile' | 'microsoft'
+  | 'readiness'
+  | 'listing'
+  | 'media'
+  | 'release'
+  | 'money'
+  | 'answers'
+  | 'assisted'
+  | 'compliance'
+  | 'profile'
+  | 'microsoft'
 
 export type WorkspaceSub =
-  'texts' | 'details' | 'category' | 'ageRating' | 'pricing' | 'screenshots' | 'previews' | 'versions' | 'testers' | 'reviewInfo'
+  | 'texts'
+  | 'details'
+  | 'category'
+  | 'ageRating'
+  | 'pricing'
+  | 'screenshots'
+  | 'previews'
+  | 'versions'
+  | 'testers'
+  | 'reviewInfo'
+  | 'subscriptions'
+  | 'iap'
+  | 'purchaseSettings'
 
 interface SubItem {
   key: WorkspaceSub
@@ -56,6 +77,11 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
     { key: 'testers', path: 'release/testers', stores: GOOGLE },
     { key: 'reviewInfo', path: 'release/review-info', stores: APPLE },
   ],
+  money: [
+    { key: 'subscriptions', path: 'money/subscriptions', stores: BOTH },
+    { key: 'iap', path: 'money/iap', stores: BOTH },
+    { key: 'purchaseSettings', path: 'money/settings', stores: BOTH },
+  ],
 }
 
 const SECTION_PATHS: Record<WorkspaceSection, string> = {
@@ -63,6 +89,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   listing: 'listing/texts',
   media: 'listing/screenshots',
   release: 'release/versions',
+  money: 'money/subscriptions',
   answers: 'answers',
   assisted: 'assisted',
   compliance: 'compliance',
@@ -71,7 +98,10 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
 }
 
 // Sections that exist only for some stores: their tab shows when the app has a record there.
-const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = { microsoft: [StoreKind.Microsoft] }
+const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = {
+  microsoft: [StoreKind.Microsoft],
+  money: [StoreKind.Apple, StoreKind.Google],
+}
 
 function sectionShown(section: WorkspaceSection, stores: StoreKind[]): boolean {
   const only = SECTION_STORES[section]
@@ -83,6 +113,7 @@ const SECTIONS: WorkspaceSection[] = [
   'listing',
   'media',
   'release',
+  'money',
   'answers',
   'assisted',
   'compliance',

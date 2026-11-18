@@ -114,6 +114,9 @@ const PLAN_KIND_KEYS: Record<ChangePlanKind, keyof P2Dictionary['enums']['planKi
   [ChangePlanKind.DataSafety]: 'dataSafety',
   [ChangePlanKind.SubmitForReview]: 'submitForReview',
   [ChangePlanKind.MsChange]: 'msChange',
+  [ChangePlanKind.Monetization]: 'monetization',
+  [ChangePlanKind.ServerNotifications]: 'serverNotifications',
+  [ChangePlanKind.SandboxTesters]: 'sandboxTesters',
 }
 
 export function planKindLabel(kind: ChangePlanKind, t: P2Dictionary): string {
