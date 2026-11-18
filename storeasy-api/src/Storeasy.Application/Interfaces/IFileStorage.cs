@@ -1,7 +1,7 @@
 ﻿namespace Storeasy.Application.Interfaces;
 
 /// <summary>
-/// The private S3 compatible bucket (S3, or MinIO for self-host). Clients never get bucket credentials: they upload and
+/// The private S3 compatible bucket (S3, or SeaweedFS for self-host). Clients never get bucket credentials: they upload and
 /// download with short lived presigned URLs, large files (CI artifacts) with presigned multipart uploads. URL creation
 /// makes no network call; the other methods call the storage and throw when it fails.
 /// </summary>

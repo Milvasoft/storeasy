@@ -18,7 +18,7 @@ public class StorageOptions
     public string Bucket { get; set; }
 
     /// <summary>
-    /// AWS region of the bucket (also the signing region for MinIO).
+    /// AWS region of the bucket (also the signing region for an S3 compatible server).
     /// </summary>
     public string Region { get; set; } = "eu-central-1";
 
@@ -33,12 +33,12 @@ public class StorageOptions
     public string SecretKey { get; set; }
 
     /// <summary>
-    /// Endpoint of an S3 compatible server (MinIO, e.g. <c>http://localhost:9000</c>). Empty for AWS S3.
+    /// Endpoint of an S3 compatible server (SeaweedFS, e.g. <c>http://localhost:8333</c>). Empty for AWS S3.
     /// </summary>
     public string ServiceUrl { get; set; }
 
     /// <summary>
-    /// Path style addressing (<c>host/bucket/key</c>), needed by MinIO. Ignored without <see cref="ServiceUrl"/>.
+    /// Path style addressing (<c>host/bucket/key</c>), needed by SeaweedFS and most S3 compatible servers. Ignored without <see cref="ServiceUrl"/>.
     /// </summary>
     public bool ForcePathStyle { get; set; } = true;
 

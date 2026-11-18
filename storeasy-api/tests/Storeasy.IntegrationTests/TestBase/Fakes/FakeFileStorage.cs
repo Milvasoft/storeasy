@@ -5,7 +5,7 @@ namespace Storeasy.IntegrationTests.TestBase.Fakes;
 
 /// <summary>
 /// Replaces the bucket: URLs point at a fake host, and a test "uploads" by putting an object's size with
-/// <see cref="Put"/>. The real S3 implementation is tested against MinIO in <c>S3FileStorageTests</c>.
+/// <see cref="Put"/>. The real S3 implementation is tested against SeaweedFS in <c>S3FileStorageTests</c>.
 /// </summary>
 public sealed class FakeFileStorage : IFileStorage
 {
