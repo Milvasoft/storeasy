@@ -1,128 +1,163 @@
 import { describe, expect, it } from 'vitest'
-import { ActivityEventName, JobStatus, StepDirection, StepStatus, type ActivityEvent } from '@/lib/activity/events'
-import { activeJobCount, hatReducer, initialHatState, lanesOf, MAX_FEED, WEBHOOK_PULSE_MS, type HatState } from '@/lib/activity/hatState'
-import { StoreKind } from '@/lib/api/types'
+import { ActivityEventType, type ActivityEvent } from '@/lib/activity/events'
+import {
+  activeJobCount,
+  hatReducer,
+  initialHatState,
+  jobsOf,
+  lanesOf,
+  MAX_FEED,
+  type HatAction,
+  type HatState,
+} from '@/lib/activity/hatState'
+import { ConnectionStatus, StepDirection, StoreJobKind, StoreJobStatus, StoreJobStepStatus, StoreKind } from '@/lib/api/types'
+import { activityEvent, job } from '../../support/factories'
 
-const DATE = '2026-11-18T14:02:41Z'
+const sync = { JobId: 48213, JobKind: StoreJobKind.SyncApps, Store: StoreKind.Apple, Attempt: 1 }
 
-const created: ActivityEvent = {
-  type: ActivityEventName.JobCreated,
-  data: {
-    JobId: 1,
-    Kind: 'screenshots.apply',
-    Title: 'iPad 13" · tr',
-    AppName: 'Pusula',
-    Store: StoreKind.Apple,
-    StepCount: 7,
-    Date: DATE,
-  },
+function run(...actions: HatAction[]): HatState {
+  return actions.reduce(hatReducer, initialHatState)
 }
 
-function step(
-  status: StepStatus,
-  direction: StepDirection = StepDirection.Outbound,
-  extra: Partial<Extract<ActivityEvent, { type: 'job.step' }>['data']> = {},
-): ActivityEvent {
-  return {
-    type: ActivityEventName.JobStep,
-    data: {
-      JobId: 1,
-      Order: 4,
-      Kind: 'asset.upload',
-      Direction: direction,
-      Status: status,
-      Message: '04-takvim.png · parça 2/3',
-      Date: DATE,
-      ...extra,
-    },
-  }
+function step(overrides: Partial<ActivityEvent> = {}): ActivityEvent {
+  return activityEvent({
+    ...sync,
+    Type: ActivityEventType.JobStep,
+    JobStatus: StoreJobStatus.Running,
+    StepOrder: 1,
+    StepName: 'apps.list',
+    Direction: StepDirection.Outbound,
+    StepStatus: StoreJobStepStatus.Running,
+    ...overrides,
+  })
 }
 
-function play(...events: ActivityEvent[]): HatState {
-  return events.reduce((state, event) => hatReducer(state, event, 1_000), initialHatState)
-}
+const queued = activityEvent({ ...sync, Type: ActivityEventType.JobQueued, JobStatus: StoreJobStatus.Queued })
 
-describe('hat state', () => {
-  it('puts a created job on its store lane, queued and not moving', () => {
-    const lanes = lanesOf(play(created), 1_000)
+describe('hatReducer', () => {
+  it('opens a job on job.queued and lists it in the feed', () => {
+    const state = run(queued)
 
-    const apple = lanes.find((lane) => lane.store === StoreKind.Apple)!
-    expect(apple.jobs).toHaveLength(1)
-    expect(apple.moving).toBe(false)
-    expect(lanes.find((lane) => lane.store === StoreKind.Google)!.jobs).toHaveLength(0)
+    expect(state.jobs[48213]).toMatchObject({ status: StoreJobStatus.Queued, store: StoreKind.Apple, kind: StoreJobKind.SyncApps })
+    expect(state.feed[0]).toMatchObject({ kind: 'event', name: 'job.queued', jobKind: StoreJobKind.SyncApps })
+    expect(activeJobCount(state)).toBe(1)
   })
 
-  it('moves the lane only while an outbound step is running', () => {
-    const state = play(created, step(StepStatus.Running))
+  it('moves a lane while an outbound step runs, with its progress', () => {
+    const state = run(queued, step({ StepName: 'builds.list', StepOrder: 3, Progress: 2, Total: 5 }))
+    const apple = lanesOf(state).find((lane) => lane.store === StoreKind.Apple)
 
-    const apple = lanesOf(state, 1_000).find((lane) => lane.store === StoreKind.Apple)!
-    expect(apple.moving).toBe(true)
-    expect(apple.jobs[0].message).toBe('04-takvim.png · parça 2/3')
-    expect(state.feed[0]).toMatchObject({ kind: 'out', name: 'asset.upload', subject: 'Pusula · iPad 13" · tr' })
+    expect(apple).toMatchObject({ moving: true, failed: false })
+    expect(apple?.jobs[0]).toMatchObject({ stepName: 'builds.list', progress: 2, total: 5, status: StoreJobStatus.Running })
+    expect(state.feed[0]).toMatchObject({ kind: 'out', name: 'builds.list' })
   })
 
-  it('turns the lane red and stops it while a step waits for its retry', () => {
-    const state = play(created, step(StepStatus.Retrying, StepDirection.Outbound, { Attempt: 2, MaxAttempt: 3 }))
+  it('adds a step to the feed when it starts and when it ends, not on every progress tick', () => {
+    const state = run(
+      step({ StepOrder: 3, Progress: 1, Total: 5 }),
+      step({ StepOrder: 3, Progress: 2, Total: 5 }),
+      step({ StepOrder: 3, Progress: 5, Total: 5, StepStatus: StoreJobStepStatus.Succeeded }),
+    )
 
-    const apple = lanesOf(state, 1_000).find((lane) => lane.store === StoreKind.Apple)!
-    expect(apple.failed).toBe(true)
-    expect(apple.moving).toBe(false)
+    expect(state.feed).toHaveLength(2)
+    expect(state.jobs[48213].progress).toBe(5)
+  })
+
+  it('marks an internal step as an event and a failed one as an error', () => {
+    const internal = run(step({ StepName: 'apps.save', Direction: StepDirection.Internal, StepStatus: StoreJobStepStatus.Succeeded }))
+    const failed = run(step({ StepStatus: StoreJobStepStatus.Failed, Message: '503' }))
+
+    expect(internal.feed[0].kind).toBe('event')
+    expect(failed.feed[0]).toMatchObject({ kind: 'error', detail: '503' })
+  })
+
+  it('reads job.progress back to Queued with a reason as a retry the lane shows in red', () => {
+    const state = run(
+      queued,
+      step(),
+      activityEvent({ ...sync, Type: ActivityEventType.JobProgress, JobStatus: StoreJobStatus.Queued, Message: '503 Service Unavailable' }),
+    )
+    const apple = lanesOf(state).find((lane) => lane.store === StoreKind.Apple)
+
+    expect(state.jobs[48213]).toMatchObject({ retrying: true, message: '503 Service Unavailable', status: StoreJobStatus.Queued })
+    expect(apple).toMatchObject({ failed: true, moving: false })
     expect(state.feed[0].kind).toBe('error')
   })
 
-  it('takes a finished job off the active lane and keeps it as the last one', () => {
-    const state = play(created, step(StepStatus.Running), {
-      type: ActivityEventName.JobFinished,
-      data: { JobId: 1, Status: JobStatus.Succeeded, Title: 'iPad 13" · tr', AppName: 'Pusula', Store: StoreKind.Apple, Date: DATE },
-    })
+  it('clears the retry when the next attempt starts', () => {
+    const state = run(
+      activityEvent({ ...sync, Type: ActivityEventType.JobProgress, JobStatus: StoreJobStatus.Queued, Message: '503' }),
+      activityEvent({ ...sync, Attempt: 2, Type: ActivityEventType.JobProgress, JobStatus: StoreJobStatus.Running }),
+    )
 
-    const apple = lanesOf(state, 1_000).find((lane) => lane.store === StoreKind.Apple)!
-    expect(apple.jobs).toHaveLength(0)
-    expect(apple.last?.status).toBe(JobStatus.Succeeded)
+    expect(state.jobs[48213]).toMatchObject({ retrying: false, attempt: 2, status: StoreJobStatus.Running, message: null })
+  })
+
+  it.each([
+    [ActivityEventType.JobSucceeded, StoreJobStatus.Succeeded, 'event'],
+    [ActivityEventType.JobFailed, StoreJobStatus.Failed, 'error'],
+    [ActivityEventType.JobCancelled, StoreJobStatus.Cancelled, 'event'],
+  ])('ends the job on %s', (type, status, kind) => {
+    const state = run(queued, step(), activityEvent({ ...sync, Type: type, JobStatus: status, Message: 'done' }))
+    const apple = lanesOf(state).find((lane) => lane.store === StoreKind.Apple)
+
+    expect(state.jobs[48213].status).toBe(status)
+    expect(state.feed[0]).toMatchObject({ kind, name: type, detail: 'done' })
+    expect(apple?.jobs).toHaveLength(0)
+    expect(apple?.last?.id).toBe(48213)
     expect(activeJobCount(state)).toBe(0)
   })
 
-  it('pulses a webhook on its store for a few seconds only', () => {
-    const state = play({
-      type: ActivityEventName.WebhookReceived,
-      data: {
-        Store: StoreKind.Apple,
-        EventType: 'X',
-        AppName: 'Pusula 2.3',
-        OldValue: 'WAITING_FOR_REVIEW',
-        NewValue: 'IN_REVIEW',
-        SignatureValid: true,
-        Date: DATE,
-      },
+  it('takes the final state from the type when the event has no status', () => {
+    const state = run(activityEvent({ ...sync, Type: ActivityEventType.JobCancelled }))
+
+    expect(state.jobs[48213].status).toBe(StoreJobStatus.Cancelled)
+  })
+
+  it('lists connection checks and app syncs as incoming events', () => {
+    const state = run(
+      activityEvent({
+        Type: ActivityEventType.ConnectionVerified,
+        ConnectionId: 12,
+        Store: StoreKind.Google,
+        ConnectionStatus: ConnectionStatus.Rejected,
+      }),
+      activityEvent({ Type: ActivityEventType.AppSynced, AppId: 101, Store: StoreKind.Apple }),
+    )
+
+    expect(state.feed.map((item) => [item.name, item.kind])).toEqual([
+      ['app.synced', 'in'],
+      ['connection.verified', 'in'],
+    ])
+    expect(state.feed[1].connectionStatus).toBe(ConnectionStatus.Rejected)
+  })
+
+  it('ignores a type it does not know and job events without a job id', () => {
+    const before = run(queued)
+
+    expect(hatReducer(before, activityEvent({ Type: 'review.received' }))).toBe(before)
+    expect(hatReducer(before, activityEvent({ Type: ActivityEventType.JobStep }))).toBe(before)
+  })
+
+  it('keeps the feed to the last 50 events', () => {
+    const events = Array.from({ length: MAX_FEED + 5 }, (_, index) =>
+      activityEvent({ ...sync, JobId: index + 1, Type: ActivityEventType.JobQueued }),
+    )
+
+    expect(run(...events).feed).toHaveLength(MAX_FEED)
+  })
+
+  it('seeds lanes from the job list, and an event that came first wins over the snapshot', () => {
+    const state = run(step({ JobId: 2 }), {
+      Type: 'seed',
+      Jobs: [
+        job({ Id: 1, Status: StoreJobStatus.Running, Store: StoreKind.Google, RequestedByUserName: 'ece@kuzeylab.dev' }),
+        job({ Id: 2, Status: StoreJobStatus.Queued, MaxAttempts: 5 }),
+      ],
     })
 
-    expect(lanesOf(state, 1_000)[0].webhookAt).toBe(1_000)
-    expect(lanesOf(state, 1_000 + WEBHOOK_PULSE_MS + 1)[0].webhookAt).toBeNull()
-    expect(state.feed[0].detail).toBe('WAITING_FOR_REVIEW → IN_REVIEW')
-  })
-
-  it('counts a CI upload until its last byte arrives', () => {
-    const progress = (bytes: number): ActivityEvent => ({
-      type: ActivityEventName.ArtifactProgress,
-      data: { SessionId: 's', AppName: 'Halka', Source: 'GitHub Actions', FileName: 'halka.ipa', Bytes: bytes, Total: 10, Date: DATE },
-    })
-
-    expect(activeJobCount(play(progress(3)))).toBe(1)
-    expect(activeJobCount(play(progress(3), progress(10)))).toBe(0)
-  })
-
-  it('keeps the newest events first and at most 50 of them', () => {
-    const events = Array.from({ length: MAX_FEED + 5 }, (_, index) => step(StepStatus.Running, StepDirection.Outbound, { Order: index }))
-
-    const state = play(created, ...events)
-
-    expect(state.feed).toHaveLength(MAX_FEED)
-  })
-
-  it('shows a step of a job it never saw created in the feed, without a lane', () => {
-    const state = play(step(StepStatus.Running))
-
-    expect(state.feed).toHaveLength(1)
-    expect(lanesOf(state, 1_000).every((lane) => lane.jobs.length === 0)).toBe(true)
+    expect(state.jobs[1]).toMatchObject({ status: StoreJobStatus.Running, store: StoreKind.Google, requestedBy: 'ece@kuzeylab.dev' })
+    expect(state.jobs[2]).toMatchObject({ status: StoreJobStatus.Running, maxAttempts: 5, stepName: 'apps.list' })
+    expect(jobsOf(state).map((item) => item.id)).toContain(1)
   })
 })
