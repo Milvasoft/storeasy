@@ -5,7 +5,7 @@ namespace Storeasy.IntegrationTests.TestBase.Fakes;
 
 /// <summary>
 /// Replaces the bucket: URLs point at a fake host, and a test "uploads" by putting an object's size with
-/// <see cref="Put"/>. The real S3 implementation is tested against MinIO in <c>S3FileStorageTests</c>.
+/// <see cref="Put"/>. The real S3 implementation is tested against SeaweedFS in <c>S3FileStorageTests</c>.
 /// </summary>
 public sealed class FakeFileStorage : IFileStorage
 {
@@ -32,7 +32,33 @@ public sealed class FakeFileStorage : IFileStorage
     /// <summary>
     /// Simulates an uploaded object.
     /// </summary>
+    private readonly ConcurrentDictionary<string, byte[]> _contents = new();
+
     public void Put(string key, long size, string contentType = "application/octet-stream") => _objects[key] = new StoredObjectInfo(size, contentType);
+
+    public void Put(string key, byte[] content, string contentType)
+    {
+        _objects[key] = new StoredObjectInfo(content.Length, contentType);
+        _contents[key] = content;
+    }
+
+    public Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken)
+        => _contents.TryGetValue(key, out var content) ? Task.FromResult<Stream>(new MemoryStream(content, writable: false)) : throw new FileNotFoundException(key);
+
+    /// <summary>
+    /// Content of an object written with content, or null.
+    /// </summary>
+    public byte[] Content(string key) => _contents.TryGetValue(key, out var content) ? content : null;
+
+    /// <inheritdoc/>
+    public async Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken)
+    {
+        using var buffer = new MemoryStream();
+
+        await content.CopyToAsync(buffer, cancellationToken);
+
+        Put(key, buffer.ToArray(), contentType);
+    }
 
     /// <inheritdoc/>
     public string CreateUploadUrl(string key, string contentType, TimeSpan lifetime) => $"{BaseUrl}/{key}?op=put&type={Uri.EscapeDataString(contentType)}";

@@ -22,7 +22,10 @@ const ResetPasswordPage = lazyPage(() => import('@/pages/auth/PasswordRecoveryPa
 const InvitePage = lazyPage(() => import('@/pages/auth/InvitePage'), 'InvitePage')
 const SetupPage = lazyPage(() => import('@/pages/SetupPage'), 'SetupPage')
 const ActivityPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPage')
-const ActivityJobsPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityJobsPage')
+const JobsPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobsPage')
+const JobDetailPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobDetailPage')
+const AppsPage = lazyPage(() => import('@/pages/apps/AppsPage'), 'AppsPage')
+const AppDetailPage = lazyPage(() => import('@/pages/apps/AppDetailPage'), 'AppDetailPage')
 const ActivityPlansPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPlansPage')
 const ConnectionsPage = lazyPage(() => import('@/pages/org/ConnectionsPage'), 'ConnectionsPage')
 const MembersPage = lazyPage(() => import('@/pages/org/MembersPage'), 'MembersPage')
@@ -119,12 +122,13 @@ export function App() {
           </Guest>
         }
       />
+      {/* Reached right after sign-up, signed in (the account can sign in at once) or from the e-mail on another device. */}
       <Route
         path="/verify-email"
         element={
-          <Guest>
+          <Lazy>
             <VerifyEmailPage />
-          </Guest>
+          </Lazy>
         }
       />
       {/* The e-mail link works signed in or out: verifying does not sign in (design 5.15). */}
@@ -172,9 +176,13 @@ export function App() {
       />
       <Route element={<ProtectedLayout />}>
         <Route index element={<Navigate to={HOME_PATH} replace />} />
-        <Route path="/apps" element={<SectionPage section="apps" />} />
+        <Route path="/apps" element={<AppsPage />} />
+        <Route path="/apps/:appId" element={<AppDetailPage tab="overview" />} />
+        <Route path="/apps/:appId/builds" element={<AppDetailPage tab="builds" />} />
+        <Route path="/apps/:appId/jobs" element={<AppDetailPage tab="jobs" />} />
         <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/activity/jobs" element={<ActivityJobsPage />} />
+        <Route path="/activity/jobs" element={<JobsPage />} />
+        <Route path="/activity/jobs/:jobId" element={<JobDetailPage />} />
         <Route path="/activity/plans" element={<ActivityPlansPage />} />
         <Route path="/reviews" element={<SectionPage section="reviews" />} />
         <Route path="/compliance" element={<SectionPage section="compliance" />} />

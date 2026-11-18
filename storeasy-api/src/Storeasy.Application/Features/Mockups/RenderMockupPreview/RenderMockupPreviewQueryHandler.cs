@@ -19,14 +19,14 @@ namespace Storeasy.Application.Features.Mockups.RenderMockupPreview;
 /// <param name="screenshotSizeSource"></param>
 /// <param name="mockupRenderer"></param>
 /// <param name="studioAssetReader"></param>
-/// <param name="objectContentStorage"></param>
+/// <param name="fileStorage"></param>
 /// <param name="studioOptions"></param>
 public class RenderMockupPreviewQueryHandler(IStoreasyRepositoryBase<MockupTemplate> templateRepository,
                                              IStoreasyRepositoryBase<Asset> assetRepository,
                                              IScreenshotSizeSource screenshotSizeSource,
                                              IMockupRenderer mockupRenderer,
                                              IStudioAssetReader studioAssetReader,
-                                             IObjectContentStorage objectContentStorage,
+                                             IFileStorage fileStorage,
                                              StudioOptions studioOptions) : IInterceptable, IQueryHandler<RenderMockupPreviewQuery, MockupPreviewDto>
 {
     private const int _defaultWidth = 400;
@@ -37,7 +37,7 @@ public class RenderMockupPreviewQueryHandler(IStoreasyRepositoryBase<MockupTempl
     private readonly IScreenshotSizeSource _screenshotSizeSource = screenshotSizeSource;
     private readonly IMockupRenderer _mockupRenderer = mockupRenderer;
     private readonly IStudioAssetReader _studioAssetReader = studioAssetReader;
-    private readonly IObjectContentStorage _objectContentStorage = objectContentStorage;
+    private readonly IFileStorage _fileStorage = fileStorage;
     private readonly StudioOptions _studioOptions = studioOptions;
 
     /// <inheritdoc/>
@@ -111,7 +111,7 @@ public class RenderMockupPreviewQueryHandler(IStoreasyRepositoryBase<MockupTempl
         if (keys.Count == 0)
             return [];
 
-        if (!_objectContentStorage.IsConfigured)
+        if (!_fileStorage.IsConfigured)
             return null;
 
         return await _studioAssetReader.ReadStudioImagesAsync(keys, cancellationToken);

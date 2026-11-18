@@ -57,7 +57,7 @@ public class MockupsControllerTests(StoreasyApiFactory factory) : IntegrationTes
 
         var key = AssetRules.ObjectKey(organizationId, AssetPurpose.Screenshot, "raw.png", Guid.NewGuid());
 
-        _factory.ObjectStorage.Put(key, data.ToArray());
+        _factory.FileStorage.Put(key, data.ToArray(), "image/png");
 
         return await _factory.DbAsync(async db =>
         {
@@ -339,6 +339,8 @@ public class MockupsControllerTests(StoreasyApiFactory factory) : IntegrationTes
         manifest.Data.JobId.Should().Be(job.Data);
         manifest.Data.Sets.Should().HaveCount(4, "two classes in two locales");
         manifest.Data.Sets.Single(s => s.ClassKey == _medium && s.Locale == "tr").Images.Select(i => i.SlotOrder).Should().Equal(1, 2);
+        manifest.Data.Sets.Single(s => s.ClassKey == _medium && s.Locale == "tr").StoreClassKey.Should().Be("APP_IPHONE_61", "the set feeds POST screenshots/plan");
+        manifest.Data.Sets.Single(s => s.ClassKey == _feature && s.Locale == "tr").StoreClassKey.Should().Be("featureGraphic");
         manifest.Data.Sets.Single(s => s.ClassKey == _feature && s.Locale == "en-US").Should().Match<MockupExportSet>(s => s.Width == 1024 && s.Height == 500 && s.Images.Count == 1);
         manifest.Data.Failures.Should().HaveCount(2).And.OnlyContain(f => f.Code == MockupWarningCodes.AssetTooSmall && f.SlotOrder == 3);
         manifest.Data.ImageCount.Should().Be(6);
@@ -349,13 +351,13 @@ public class MockupsControllerTests(StoreasyApiFactory factory) : IntegrationTes
 
         foreach (var image in images)
         {
-            var bytes = _factory.ObjectStorage.Objects[assets.Single(a => a.Id == image.AssetId).ObjectKey];
+            var bytes = _factory.FileStorage.Content(assets.Single(a => a.Id == image.AssetId).ObjectKey);
 
             bytes[25].Should().Be(2, "exported PNGs have no alpha channel");
             Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes)).Should().Be(image.Sha256);
         }
 
-        using (var archive = new ZipArchive(new MemoryStream(_factory.ObjectStorage.Objects[assets.Single(a => a.Id == manifest.Data.ZipAssetId).ObjectKey])))
+        using (var archive = new ZipArchive(new MemoryStream(_factory.FileStorage.Content(assets.Single(a => a.Id == manifest.Data.ZipAssetId).ObjectKey))))
         {
             archive.Entries.Select(e => e.FullName).Should().Contain(["manifest.json", "apple/iphone-dynamic-island-medium/tr/01.png", "google/feature-graphic/en-US/01.png"]);
 

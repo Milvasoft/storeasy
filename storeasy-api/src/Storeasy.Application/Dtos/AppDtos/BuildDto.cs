@@ -1,4 +1,9 @@
-﻿namespace Storeasy.Application.Dtos.AppDtos;
+﻿using Milvasoft.Attributes.Annotations;
+using Storeasy.Domain.Apps;
+using System.Linq.Expressions;
+using System.Text.Json.Serialization;
+
+namespace Storeasy.Application.Dtos.AppDtos;
 
 /// <summary>
 /// A build of one of the app's store records.
@@ -59,4 +64,30 @@ public class BuildDto
     /// UTC expiry instant (TestFlight).
     /// </summary>
     public DateTime? ExpiryDate { get; set; }
+
+    /// <summary>
+    /// Export compliance answer (App Store); null while unanswered.
+    /// </summary>
+    public bool? UsesNonExemptEncryption { get; set; }
+
+    /// <summary>
+    /// Projection from a build row.
+    /// </summary>
+    [JsonIgnore]
+    [ExcludeFromMetadata]
+    public static Expression<Func<Build, BuildDto>> Projection { get; } = b => new BuildDto
+    {
+        Id = b.Id,
+        StoreAppId = b.StoreAppId,
+        Store = b.Store,
+        ExternalId = b.ExternalId,
+        Version = b.Version,
+        BuildNumber = b.BuildNumber,
+        ProcessingState = b.ProcessingState,
+        Tracks = b.Tracks,
+        MinOsVersion = b.MinOsVersion,
+        UploadedDate = b.UploadedDate,
+        ExpiryDate = b.ExpiryDate,
+        UsesNonExemptEncryption = b.UsesNonExemptEncryption,
+    };
 }

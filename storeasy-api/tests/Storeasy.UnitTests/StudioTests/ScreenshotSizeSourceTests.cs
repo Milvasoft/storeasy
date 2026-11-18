@@ -50,38 +50,27 @@ public class ScreenshotSizeSourceTests
     }
 
     [Fact]
-    public void Load_MissingRule_ShouldFailLoudly()
+    public void Build_MissingRule_ShouldFailLoudly()
     {
-        var folder = Directory.CreateTempSubdirectory("rules-").FullName;
+        var empty = new Domain.Rules.RuleCatalog("0.0.1", DateTime.UtcNow, [], "test");
 
-        try
-        {
-            File.WriteAllText(Path.Combine(folder, "catalog.json"), "{\"catalogVersion\":\"0.0.1\",\"files\":[{\"store\":\"apple\",\"path\":\"apple.json\"}]}");
-            File.WriteAllText(Path.Combine(folder, "apple.json"), "{\"rules\":[]}");
+        var build = () => RulesCatalogScreenshotSizeSource.Build(empty);
 
-            var load = () => FileScreenshotSizeSource.Load(folder);
-
-            load.Should().Throw<InvalidOperationException>().WithMessage("*apple.screenshots.iphone-dynamic-island-medium*");
-        }
-        finally
-        {
-            Directory.Delete(folder, true);
-        }
+        build.Should().Throw<InvalidOperationException>().WithMessage("*apple.screenshots.iphone-dynamic-island-medium*");
     }
 
     [Fact]
-    public void ResolveFolder_Configured_ShouldWin()
+    public void Source_ShouldReadTheApiRulesCatalogLazily()
     {
-        FileScreenshotSizeSource.ResolveFolder("/custom/rules").Should().Be("/custom/rules");
-    }
+        var catalog = new Moq.Mock<Application.Interfaces.IRulesCatalog>();
 
-    [Fact]
-    public void Source_ShouldLoadLazily()
-    {
-        var source = new FileScreenshotSizeSource("/does/not/exist");
+        catalog.SetupGet(c => c.Current).Returns(Infrastructure.Services.RulesCatalog.Load(null).Current);
 
-        var read = () => source.Current;
+        var source = new RulesCatalogScreenshotSizeSource(catalog.Object);
 
-        read.Should().Throw<IOException>();
+        catalog.VerifyGet(c => c.Current, Moq.Times.Never());
+        source.Current.Find("apple.screenshots.ipad-13").ExportSize.Should().Be(new PixelSize(2064, 2752));
+        _ = source.Current;
+        catalog.VerifyGet(c => c.Current, Moq.Times.Once());
     }
 }

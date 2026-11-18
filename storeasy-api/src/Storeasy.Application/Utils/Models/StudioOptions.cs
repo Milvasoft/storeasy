@@ -11,12 +11,6 @@ public class StudioOptions
     public const string SectionName = "Storeasy:Studio";
 
     /// <summary>
-    /// Folder of the store rules catalog (with <c>catalog.json</c>). Empty: a <c>rules</c> folder next to the application,
-    /// then the nearest <c>rules</c> folder above it (a source checkout).
-    /// </summary>
-    public string RulesPath { get; set; }
-
-    /// <summary>
     /// Folder of the embedded fonts. Empty: <c>StudioFonts</c> next to the application.
     /// </summary>
     public string FontsPath { get; set; }

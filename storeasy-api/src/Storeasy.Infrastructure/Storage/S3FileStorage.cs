@@ -9,8 +9,8 @@ using System.Net;
 namespace Storeasy.Infrastructure.Storage;
 
 /// <summary>
-/// <see cref="IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="StorageOptions.ServiceUrl"/> and path style
-/// addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+/// <see cref="IFileStorage"/> over AWSSDK.S3 (AWS S3, or an S3 compatible server such as SeaweedFS with <see cref="StorageOptions.ServiceUrl"/> and path style
+/// addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local SeaweedFS).
 /// </summary>
 /// <param name="client">The S3 client; null when the storage is not configured.</param>
 /// <param name="options"></param>
@@ -36,7 +36,7 @@ public sealed class S3FileStorage(IAmazonS3 client, StorageOptions options) : IF
 
         var config = new AmazonS3Config
         {
-            // MinIO and other S3 compatible servers reject the checksums the SDK adds by default since v4.
+            // S3 compatible servers reject the checksums the SDK adds by default since v4.
             RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
             ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
         };
@@ -146,6 +146,25 @@ public sealed class S3FileStorage(IAmazonS3 client, StorageOptions options) : IF
     /// <inheritdoc/>
     public Task DeleteAsync(string key, CancellationToken cancellationToken)
         => _client.DeleteObjectAsync(new DeleteObjectRequest { BucketName = _options.Bucket, Key = key }, cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken)
+    {
+        var response = await _client.GetObjectAsync(new GetObjectRequest { BucketName = _options.Bucket, Key = key }, cancellationToken);
+
+        return response.ResponseStream;
+    }
+
+    /// <inheritdoc/>
+    public Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken)
+        => _client.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = _options.Bucket,
+            Key = key,
+            InputStream = content,
+            ContentType = contentType,
+            AutoCloseStream = false,
+        }, cancellationToken);
 
     private static DateTime Expiry(TimeSpan lifetime) => DateTime.UtcNow.Add(lifetime);
 

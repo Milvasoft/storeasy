@@ -9,13 +9,13 @@ namespace Storeasy.UnitTests.InfrastructureTests;
 [Trait("Infrastructure Unit Tests", "Object storage rules and presigned URLs (no network).")]
 public class StorageTests
 {
-    private static readonly StorageOptions _minio = new()
+    private static readonly StorageOptions _seaweedFs = new()
     {
         Bucket = "storeasy-local",
         Region = "eu-central-1",
         AccessKey = "test-access",
         SecretKey = "test-secret",
-        ServiceUrl = "http://localhost:9000",
+        ServiceUrl = "http://localhost:8333",
         ForcePathStyle = true,
     };
 
@@ -70,11 +70,11 @@ public class StorageTests
     }
 
     [Fact]
-    public void PresignedUrls_ShouldBeSignedForTheMinioEndpoint()
+    public void PresignedUrls_ShouldBeSignedForTheSeaweedFsEndpoint()
     {
         // Arrange
-        using var client = S3FileStorage.CreateClient(_minio);
-        var storage = new S3FileStorage(client, _minio);
+        using var client = S3FileStorage.CreateClient(_seaweedFs);
+        var storage = new S3FileStorage(client, _seaweedFs);
 
         // Act
         var upload = storage.CreateUploadUrl("org/1/screenshot/a/home.png", "image/png", TimeSpan.FromMinutes(5));
@@ -83,7 +83,7 @@ public class StorageTests
 
         // Assert
         storage.IsConfigured.Should().BeTrue();
-        upload.Should().StartWith("http://localhost:9000/storeasy-local/org/1/screenshot/a/home.png?").And.Contain("X-Amz-Signature=");
+        upload.Should().StartWith("http://localhost:8333/storeasy-local/org/1/screenshot/a/home.png?").And.Contain("X-Amz-Signature=");
         part.Should().Contain("uploadId=upload-1").And.Contain("partNumber=3");
         download.Should().Contain("response-content-disposition=");
         upload.Should().NotContain("test-secret");

@@ -13,27 +13,32 @@ using DotNet.Testcontainers.Containers;
 namespace Storeasy.IntegrationTests.ServicesTests;
 
 /// <summary>
-/// The real <see cref="S3FileStorage"/> against a MinIO container: presigned single and multipart uploads, metadata,
-/// presigned downloads and deletes. MinIO stopped publishing images; pgsty/minio is a community build of its releases.
+/// The real <see cref="S3FileStorage"/> against a SeaweedFS container (its S3 gateway, the image docker-compose.yml uses):
+/// presigned single and multipart uploads, metadata, presigned downloads and deletes. The S3 identity is a config file
+/// copied into the container before it starts.
 /// Every HttpClient of the process is proxied to a closed port by the API tests, so the clients here skip the proxy and
 /// the container is awaited by its log line, not by an HTTP probe (which would go through that proxy).
 /// </summary>
-[Trait("Service Integration Tests", "S3 file storage against MinIO.")]
+[Trait("Service Integration Tests", "S3 file storage against SeaweedFS.")]
 public sealed class S3FileStorageTests : IAsyncLifetime
 {
     private const string _bucket = "storeasy-tests";
     private const string _user = "storeasy-tests";
     private const string _password = "storeasy-tests-password";
-    private const ushort _port = 9000;
+    private const ushort _port = 8333;
+    private const string _configPath = "/etc/seaweedfs/s3.json";
 
-    private readonly IContainer _minio = new ContainerBuilder("pgsty/minio:RELEASE.2026-08-04T00-00-00Z")
-                                                               .WithEnvironment("MINIO_ROOT_USER", _user)
-                                                               .WithEnvironment("MINIO_ROOT_PASSWORD", _password)
-                                                               .WithCommand("server", "/data")
-                                                               .WithPortBinding(_port, true)
-                                                               .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("API:"))
-                                                               .WithCleanUp(true)
-                                                               .Build();
+    private static readonly string _s3Config = $$"""
+                                                {"identities":[{"name":"tests","credentials":[{"accessKey":"{{_user}}","secretKey":"{{_password}}"}],"actions":["Admin","Read","Write","List","Tagging"]}]}
+                                                """;
+
+    private readonly IContainer _seaweedFs = new ContainerBuilder("chrislusf/seaweedfs:4.51")
+                                                 .WithResourceMapping(System.Text.Encoding.UTF8.GetBytes(_s3Config), _configPath)
+                                                 .WithCommand("server", "-s3", $"-s3.config={_configPath}", "-dir=/data")
+                                                 .WithPortBinding(_port, true)
+                                                 .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Start Seaweed S3 API Server"))
+                                                 .WithCleanUp(true)
+                                                 .Build();
 
     private readonly HttpClient _http = new(new HttpClientHandler { UseProxy = false });
 
@@ -43,7 +48,7 @@ public sealed class S3FileStorageTests : IAsyncLifetime
     /// <inheritdoc/>
     public async ValueTask InitializeAsync()
     {
-        await _minio.StartAsync();
+        await _seaweedFs.StartAsync();
 
         var options = new StorageOptions
         {
@@ -51,7 +56,7 @@ public sealed class S3FileStorageTests : IAsyncLifetime
             Region = "eu-central-1",
             AccessKey = _user,
             SecretKey = _password,
-            ServiceUrl = $"http://{_minio.Hostname}:{_minio.GetMappedPublicPort(_port)}",
+            ServiceUrl = $"http://{_seaweedFs.Hostname}:{_seaweedFs.GetMappedPublicPort(_port)}",
             ForcePathStyle = true,
         };
 
@@ -67,7 +72,7 @@ public sealed class S3FileStorageTests : IAsyncLifetime
         _client?.Dispose();
         _http.Dispose();
 
-        await _minio.DisposeAsync();
+        await _seaweedFs.DisposeAsync();
     }
 
     [Fact]

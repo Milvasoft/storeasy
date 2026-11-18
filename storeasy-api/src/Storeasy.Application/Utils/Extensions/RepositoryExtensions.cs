@@ -118,4 +118,69 @@ public static class RepositoryExtensions
 
         return member.Id;
     }
+
+    /// <summary>
+    /// Inserts or updates the saved answer document of <paramref name="kind"/> of an app. A non empty
+    /// <paramref name="demoPassword"/> is sealed (envelope encryption bound to the app) and replaces the sealed one;
+    /// <paramref name="clearPassword"/> removes it; otherwise the sealed password stays. Returns the row id.
+    /// </summary>
+    /// <param name="answerRepository"></param>
+    /// <param name="secretProtector"></param>
+    /// <param name="organizationId"></param>
+    /// <param name="appId"></param>
+    /// <param name="kind"></param>
+    /// <param name="answers">Normalized document JSON.</param>
+    /// <param name="demoPassword"></param>
+    /// <param name="clearPassword"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<int> SaveAnswerAsync(this IStoreasyRepositoryBase<Domain.Apps.SavedAnswer> answerRepository,
+                                                  ISecretProtector secretProtector,
+                                                  int organizationId,
+                                                  int appId,
+                                                  SavedAnswerKind kind,
+                                                  string answers,
+                                                  string demoPassword,
+                                                  bool clearPassword,
+                                                  CancellationToken cancellationToken)
+    {
+        var sealedSecret = string.IsNullOrEmpty(demoPassword)
+            ? null
+            : secretProtector.Protect(System.Text.Encoding.UTF8.GetBytes(demoPassword), SavedAnswerSecrets.Context(organizationId, appId));
+
+        var id = await answerRepository.GetFirstOrDefaultAsync(a => a.AppId == appId && a.OrganizationId == organizationId && a.Kind == kind,
+                                                               projection: a => (int?)a.Id,
+                                                               cancellationToken: cancellationToken);
+
+        if (id == null)
+        {
+            var row = new Domain.Apps.SavedAnswer
+            {
+                OrganizationId = organizationId,
+                AppId = appId,
+                Kind = kind,
+                Answers = answers,
+                EncryptedSecret = sealedSecret?.EncryptedSecret,
+                EncryptedDataKey = sealedSecret?.EncryptedDataKey,
+                KeyVersion = sealedSecret?.KeyVersion,
+            };
+
+            await answerRepository.AddAsync(row, cancellationToken);
+
+            return row.Id;
+        }
+
+        var builder = new SetPropertyBuilder<Domain.Apps.SavedAnswer>().SetPropertyValue(a => a.Answers, answers);
+
+        if (sealedSecret != null || clearPassword)
+        {
+            builder = builder.SetPropertyValue(a => a.EncryptedSecret, sealedSecret?.EncryptedSecret)
+                             .SetPropertyValue(a => a.EncryptedDataKey, sealedSecret?.EncryptedDataKey)
+                             .SetPropertyValue(a => a.KeyVersion, sealedSecret?.KeyVersion);
+        }
+
+        await answerRepository.ExecuteUpdateAsync(id.Value, builder, cancellationToken);
+
+        return id.Value;
+    }
 }

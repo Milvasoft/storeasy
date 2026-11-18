@@ -202,21 +202,35 @@ public class MockupExportRulesTests
         reader.CachedBytes.Should().BeLessThanOrEqualTo(400);
     }
 
-    private sealed class CountingStorage : Application.Interfaces.IObjectContentStorage
+    private sealed class CountingStorage : Application.Interfaces.IFileStorage
     {
         public List<string> Reads { get; } = [];
 
         public bool IsConfigured => true;
 
-        public Task<byte[]> ReadAsync(string key, CancellationToken cancellationToken)
+        public Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken)
         {
             Reads.Add(key);
 
-            return Task.FromResult(new byte[100]);
+            return Task.FromResult<Stream>(new MemoryStream(new byte[100]));
         }
 
         public Task WriteAsync(string key, Stream content, string contentType, CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task DeleteAsync(string key, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public string CreateUploadUrl(string key, string contentType, TimeSpan lifetime) => throw new NotSupportedException();
+
+        public string CreateDownloadUrl(string key, TimeSpan lifetime, string downloadFileName = null) => throw new NotSupportedException();
+
+        public Task<string> StartMultipartUploadAsync(string key, string contentType, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public string CreatePartUploadUrl(string key, string uploadId, int partNumber, TimeSpan lifetime) => throw new NotSupportedException();
+
+        public Task CompleteMultipartUploadAsync(string key, string uploadId, IReadOnlyList<Application.Interfaces.UploadedPart> parts, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task AbortMultipartUploadAsync(string key, string uploadId, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<Application.Interfaces.StoredObjectInfo> GetObjectInfoAsync(string key, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 }

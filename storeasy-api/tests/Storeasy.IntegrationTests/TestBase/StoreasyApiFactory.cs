@@ -78,9 +78,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeFileStorage FileStorage { get; } = new();
 
     /// <summary>
-    /// The server side object storage fake of the mockup studio.
+    /// App Store Connect and Google Play as the content engine sees them (the store HTTP client's primary handler).
     /// </summary>
-    public FakeObjectContentStorage ObjectStorage { get; } = new();
+    public FakeStoreServer Stores { get; } = new();
+
 
     private static int _databaseSequence;
 
@@ -151,11 +152,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
 
+            // The content engine talks HTTP to the stores; every call goes to the in-memory fakes.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Stores);
+
             services.RemoveAll<IFileStorage>();
             services.AddSingleton<IFileStorage>(FileStorage);
-
-            services.RemoveAll<IObjectContentStorage>();
-            services.AddSingleton<IObjectContentStorage>(ObjectStorage);
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();
@@ -258,6 +259,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         [StoreJobsEnabledKey] = "true",
         ["Storeasy:Jobs:PollIntervalMilliseconds"] = "100",
         ["Storeasy:Jobs:RetryBaseDelaySeconds"] = "0",
+        ["Storeasy:Stores:RetryBaseDelayMilliseconds"] = "1",
+        ["Storeasy:Stores:AssetPollIntervalMilliseconds"] = "10",
+        ["Storeasy:Stores:UploadChunkBytes"] = "262144",
         ["Serilog:MinimumLevel:Default"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft"] = "Warning",
         ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Warning",

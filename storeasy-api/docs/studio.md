@@ -87,7 +87,7 @@ The job's `Result` (PascalCase in the database, camelCase from `GET export/manif
   "schemaVersion": 1, "jobId": 8812, "templateId": 12, "appId": 3, "templateVersion": 4, "catalogVersion": "1.0.1",
   "createdDate": "2026-11-18T14:21:00Z", "zipAssetId": 991, "imageCount": 159, "totalBytes": 148600000,
   "sets": [
-    { "store": 1, "classKey": "apple.screenshots.iphone-dynamic-island-medium", "locale": "tr", "width": 1206, "height": 2622,
+    { "store": 1, "classKey": "apple.screenshots.iphone-dynamic-island-medium", "storeClassKey": "APP_IPHONE_61", "locale": "tr", "width": 1206, "height": 2622,
       "images": [ { "slotOrder": 1, "assetId": 901, "size": 912345, "sha256": "...", "md5": "...", "zipPath": "apple/iphone-dynamic-island-medium/tr/01.png" } ] }
   ],
   "failures": [ { "classKey": "apple.screenshots.ipad-13", "locale": "tr", "slotOrder": 4, "code": "AssetTooSmall", "message": "..." } ],
@@ -97,17 +97,23 @@ The job's `Result` (PascalCase in the database, camelCase from `GET export/manif
 
 One set is one store screenshot set: an App Store display type in a localization, a Play image type in a language, a
 Microsoft Store device family in a language. `classKey` is the rules catalog id (`store` is `StoreKind`: 1 Apple,
-2 Google, 3 Microsoft), images are in display order, every asset is `Purpose = MockupOutput`, `Status = Uploaded`, PNG
-without alpha. A consumer builds its upload plan per set (diff by `md5`/`sha256` against the store's current set) and
-leaves failed slots to the store's current images. The feature graphic (`google.graphics.feature-graphic`, 1024x500) is
-one image per locale drawn from slot 1's caption without a device.
+2 Google, 3 Microsoft), `storeClassKey` is the store's own key from `MediaClasses` (null where the store API has no key
+yet: iPhone Duo, Microsoft Store). Images are in display order, every asset is `Purpose = MockupOutput`,
+`Status = Uploaded`, PNG without alpha. The feature graphic (`google.graphics.feature-graphic`, 1024x500) is one image
+per locale drawn from slot 1's caption without a device.
+
+Feeding the upload plan: for each set with a `storeClassKey`, the client calls the existing change plan endpoint
+`POST /api/v1.0/screenshots/plan` (`PlanMediaSetCommand`) with `storeAppId` (the app's record in that store), `locale`,
+`classKey = storeClassKey`, `assetIds` = the set's asset ids in order, and `deletes` for the store's current items it
+replaces. That endpoint checks size, alpha, count and MD5 against the store's set and returns the ChangePlan; nothing is
+written to a store before the plan is approved. A server side "plan every set of a manifest" command is not added: one
+plan per set is the unit the approval flow works with, and a handler may not call another handler.
 
 ## Screenshot classes and sizes
 
-`IScreenshotSizeSource` reads the rules catalog (`rules/*.json`); `FileScreenshotSizeSource` is the file based
-implementation (folder: `Storeasy:Studio:RulesPath`, else `rules` next to the application, else the nearest `rules`
-folder above it). Once the readiness check's `IRulesCatalog` is merged, an implementation over it replaces this one; only
-`StudioClassMap` (which rule ids the studio exports and with which frame) stays in code. Export size: the largest listed
+`IScreenshotSizeSource` is implemented by `RulesCatalogScreenshotSizeSource` over the API's one rules catalog
+(`IRulesCatalog`, folder setting `Storeasy:Stores:RulesPath`); only `StudioClassMap` (which rule ids the studio exports
+and with which frame) stays in code. Export size: the largest listed
 size of the rule; rules that give ranges carry a preset that is checked against the range and aspect ratio when the
 catalog loads.
 
@@ -159,10 +165,9 @@ SkiaSharp.HarfBuzz, HarfBuzzSharp (MIT; Skia BSD-3-Clause, HarfBuzz Old MIT), al
   `runtimes/` and the runtime picks the one of the host. The chiseled `aspnet:*-chiseled-extra` image has the glibc and
   libstdc++ they need; no package install and no Dockerfile change is needed.
 - The image grows by about 51 MB (fonts) plus about 10 MB of native libraries per architecture.
-- The rules catalog is outside the API's Docker build context: mount it and set `Storeasy__Studio__RulesPath` (the
-  readiness check's catalog loader copies it next to the application when built from the repository root). Without it
-  the studio's catalog calls answer 500 while the rest of the API runs.
-- Exports use the bucket (`Storage:S3`); without one, export and previews with screenshots answer 503. The zip is built
-  in a temporary file, not in memory.
+- The rules catalog is the API's one catalog (`Storeasy__Stores__RulesPath`, else the copy next to the application, else
+  the embedded copy); the studio has no setting of its own.
+- Exports and previews read and write the bucket through `IFileStorage` (`OpenReadAsync`, `WriteAsync`, `DeleteAsync`);
+  without a bucket, export and previews with screenshots answer 503. The zip is built in a temporary file, not in memory.
 - `Storeasy:Studio:PreviewMaxWidth` (800) and `AssetCacheMegabytes` (128, in-memory LRU of raw screenshots) tune the
   previews.

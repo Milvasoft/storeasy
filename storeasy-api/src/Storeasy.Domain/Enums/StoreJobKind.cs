@@ -14,6 +14,12 @@ public enum StoreJobKind : short
     SyncApps = 1,
 
     /// <summary>
+    /// Applies an approved change plan to a store.
+    /// </summary>
+    [Description("Apply a change plan")]
+    ApplyChangePlan = 2,
+
+    /// <summary>
     /// Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
     /// studio's own band.
     /// </summary>

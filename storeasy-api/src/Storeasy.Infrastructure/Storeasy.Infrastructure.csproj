@@ -45,6 +45,14 @@
 	  <ProjectReference Include="..\Storeasy.Application\Storeasy.Application.csproj" />
 	</ItemGroup>
 
+	<!-- The store rules catalog (repository root rules/) travels with the application: copied next to it and embedded as the
+	     fallback. A build without the repository root (the API's Docker context) has neither; the catalog folder is then
+	     mounted and named with Storeasy__Stores__RulesPath. -->
+	<ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\rules\catalog.json')">
+	  <EmbeddedResource Include="..\..\..\rules\*.json" LogicalName="rules/%(Filename)%(Extension)" />
+	  <None Include="..\..\..\rules\*.json" Link="rules\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 
 	<!-- Mockup studio fonts (SIL OFL 1.1, licenses next to the files): copied next to the application as StudioFonts/ and
 	     loaded by the renderer from there, so the Docker image carries them. -->

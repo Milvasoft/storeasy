@@ -4,6 +4,7 @@ using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Extensions;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Assets;
+using Storeasy.Domain.Content;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.Studio;
@@ -27,14 +28,14 @@ namespace Storeasy.Infrastructure.Studio;
 /// <param name="screenshotSizeSource"></param>
 /// <param name="mockupRenderer"></param>
 /// <param name="studioAssetReader"></param>
-/// <param name="objectContentStorage"></param>
+/// <param name="fileStorage"></param>
 /// <param name="timeProvider"></param>
 public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplate> templateRepository,
                                            IStoreasyRepositoryBase<Asset> assetRepository,
                                            IScreenshotSizeSource screenshotSizeSource,
                                            IMockupRenderer mockupRenderer,
                                            IStudioAssetReader studioAssetReader,
-                                           IObjectContentStorage objectContentStorage,
+                                           IFileStorage fileStorage,
                                            TimeProvider timeProvider) : IStoreJobHandler
 {
     private const string _pngType = "image/png";
@@ -47,7 +48,7 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
     private readonly IScreenshotSizeSource _screenshotSizeSource = screenshotSizeSource;
     private readonly IMockupRenderer _mockupRenderer = mockupRenderer;
     private readonly IStudioAssetReader _studioAssetReader = studioAssetReader;
-    private readonly IObjectContentStorage _objectContentStorage = objectContentStorage;
+    private readonly IFileStorage _fileStorage = fileStorage;
     private readonly TimeProvider _timeProvider = timeProvider;
 
     /// <inheritdoc/>
@@ -58,7 +59,7 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
     {
         var payload = context.GetPayload<MockupExportPayload>() ?? throw new StoreJobException("The job has no template.", transient: false);
 
-        if (!_objectContentStorage.IsConfigured)
+        if (!_fileStorage.IsConfigured)
             throw new StoreJobException("No bucket is configured.", transient: false);
 
         var template = await _templateRepository.GetMockupSnapshotAsync(context.OrganizationId, payload.TemplateId, cancellationToken)
@@ -136,7 +137,7 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
 
                 zipStream.Position = 0;
 
-                await _objectContentStorage.WriteAsync(zipAsset.ObjectKey, zipStream, _zipType, cancellationToken);
+                await _fileStorage.WriteAsync(zipAsset.ObjectKey, zipStream, _zipType, cancellationToken);
                 written.Add(zipAsset.ObjectKey);
 
                 await _assetRepository.AddAsync(zipAsset, cancellationToken);
@@ -191,10 +192,11 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
         var step = await context.BeginStepAsync("render.size", StepDirection.Internal, $"{screenshotClass.Store} {screenshotClass.LabelEn} {size}", total, cancellationToken);
         var done = 0;
         var failures = 0;
+        var storeClassKey = MediaClasses.All.FirstOrDefault(c => c.Kind == MediaKind.Screenshot && c.RuleId == screenshotClass.Key)?.ClassKey;
 
         foreach (var locale in locales)
         {
-            var set = new MockupExportSet { Store = screenshotClass.Store, ClassKey = screenshotClass.Key, Locale = locale, Width = size.Width, Height = size.Height };
+            var set = new MockupExportSet { Store = screenshotClass.Store, ClassKey = screenshotClass.Key, StoreClassKey = storeClassKey, Locale = locale, Width = size.Width, Height = size.Height };
 
             for (var slot = 1; slot <= perLocale; slot++)
             {
@@ -214,7 +216,7 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
                     var asset = NewAsset(context.OrganizationId, MockupExportRules.OutputFileName(screenshotClass.Key, locale, slot), _pngType, result.Png.Length, Convert.ToHexStringLower(SHA256.HashData(result.Png)));
 
                     using (var png = new MemoryStream(result.Png, writable: false))
-                        await _objectContentStorage.WriteAsync(asset.ObjectKey, png, _pngType, cancellationToken);
+                        await _fileStorage.WriteAsync(asset.ObjectKey, png, _pngType, cancellationToken);
 
                     written.Add(asset.ObjectKey);
 
@@ -288,7 +290,7 @@ public sealed class MockupExportJobHandler(IStoreasyRepositoryBase<MockupTemplat
         {
             try
             {
-                await _objectContentStorage.DeleteAsync(key, CancellationToken.None);
+                await _fileStorage.DeleteAsync(key, CancellationToken.None);
             }
             catch (Exception)
             {

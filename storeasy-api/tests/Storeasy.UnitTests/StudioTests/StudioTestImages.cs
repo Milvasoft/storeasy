@@ -31,7 +31,7 @@ public static class StudioTestImages
     /// <summary>
     /// The rules catalog of the repository.
     /// </summary>
-    public static Domain.Studio.ScreenshotSizeCatalog Catalog { get; } = FileScreenshotSizeSource.Load(FileScreenshotSizeSource.ResolveFolder(null));
+    public static Domain.Studio.ScreenshotSizeCatalog Catalog { get; } = RulesCatalogScreenshotSizeSource.Build(Infrastructure.Services.RulesCatalog.Load(null).Current);
 
     /// <summary>
     /// A deterministic fake app screenshot: a status bar, a header, cards and a tab bar.

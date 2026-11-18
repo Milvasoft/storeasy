@@ -16,7 +16,7 @@ namespace Storeasy.Application.Features.Mockups.ExportMockups;
 /// <param name="TemplateRepository"></param>
 /// <param name="AppRepository"></param>
 /// <param name="ScreenshotSizeSource"></param>
-/// <param name="ObjectContentStorage"></param>
+/// <param name="FileStorage"></param>
 /// <param name="StoreJobQueue"></param>
 /// <param name="AuditTrail"></param>
 /// <param name="TimeProvider"></param>
@@ -24,7 +24,7 @@ namespace Storeasy.Application.Features.Mockups.ExportMockups;
 public record ExportMockupsCommandHandler(IStoreasyRepositoryBase<MockupTemplate> TemplateRepository,
                                           IStoreasyRepositoryBase<App> AppRepository,
                                           IScreenshotSizeSource ScreenshotSizeSource,
-                                          IObjectContentStorage ObjectContentStorage,
+                                          IFileStorage FileStorage,
                                           IStoreJobQueue StoreJobQueue,
                                           IAuditTrail AuditTrail,
                                           TimeProvider TimeProvider) : IInterceptable, ICommandHandler<ExportMockupsCommand, long>
@@ -32,7 +32,7 @@ public record ExportMockupsCommandHandler(IStoreasyRepositoryBase<MockupTemplate
     private readonly IStoreasyRepositoryBase<MockupTemplate> _templateRepository = TemplateRepository;
     private readonly IStoreasyRepositoryBase<App> _appRepository = AppRepository;
     private readonly IScreenshotSizeSource _screenshotSizeSource = ScreenshotSizeSource;
-    private readonly IObjectContentStorage _objectContentStorage = ObjectContentStorage;
+    private readonly IFileStorage _fileStorage = FileStorage;
     private readonly IStoreJobQueue _storeJobQueue = StoreJobQueue;
     private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly TimeProvider _timeProvider = TimeProvider;
@@ -40,7 +40,7 @@ public record ExportMockupsCommandHandler(IStoreasyRepositoryBase<MockupTemplate
     /// <inheritdoc/>
     public async Task<Response<long>> Handle(ExportMockupsCommand request, CancellationToken cancellationToken)
     {
-        if (!_objectContentStorage.IsConfigured)
+        if (!_fileStorage.IsConfigured)
             return Response<long>.Error(0, MessageKey.StorageNotConfigured);
 
         var template = await _templateRepository.GetMockupSnapshotAsync(request.OrganizationId, request.TemplateId, cancellationToken);

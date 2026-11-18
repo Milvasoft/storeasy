@@ -66,18 +66,32 @@ in the header) and the request is replayed with the same `Idempotency-Key`; a fa
 Query cache is cleared at every session boundary. The current organization is remembered in this browser; its id goes
 with every organization request, and the API checks the membership each time.
 
-Registration, e-mail verification and password reset screens use the planned contract (`Account/register`,
-`Account/email/verify`, `Account/email/verify/resend`, `Account/password/forgot`, `Account/password/reset`), kept in one
-block of `endpoints.ts` with MSW handlers, so adjusting it to the final API is local.
+Registration signs the new account in right away (the API allows it) and shows "check your e-mail". Until the e-mail
+is verified, creating organizations and store connections is refused with 403 `EmailNotVerified`; the shell (and the
+first setup) then shows a verification banner with "send the link again" (`Account/email/verify/resend`, signed in
+only, 60 s countdown or the API's `Retry-After`). Any request refused with that key brings the banner back.
+Verification (`Account/email/verify`) and reset (`Account/password/forgot`, `Account/password/reset`) links are
+anonymous; an expired, used or replaced link answers `AccountTokenInvalid`.
 
 ## Live activity
 
-`lib/activity/events.ts` is the typed contract of `/hubs/activity` (`job.created`, `job.step`, `job.finished`,
-`webhook.received`, `review.received`, planned `artifact.progress`). The SignalR source connects with the access token
-(`access_token` query, K5) and the organization as a query parameter, retries after 0, 2, 10, 30 s and then every 30 s
-for five minutes. `hatReducer` turns events into lanes; the Hat scene animates only what is on the way; with reduced
-motion a status list replaces it. In development an unreachable hub falls back to a clearly marked demo stream;
-production never shows made-up events.
+`lib/activity/events.ts` is the typed contract of `/hubs/activity` (`Storeasy.Api/Hubs/ActivityHub.cs`). The client
+connects with the access token (`access_token` for websockets), then invokes `JoinOrganization(organizationId)`; the
+server checks the membership and answers false for a stranger (the page says so). Every event arrives on the client
+method `activity` as an `ActivityEventDto` whose `Type` is `job.queued`, `job.progress`, `job.step`, `job.succeeded`,
+`job.failed`, `job.cancelled`, `connection.verified` or `app.synced`; keys are camelCase and enums numeric (SignalR's
+default JSON protocol). The join runs again after every reconnect. Retries after 0, 2, 10, 30 s and then every 30 s for
+five minutes. `hatReducer` turns events into lanes, seeded with the newest jobs from `PATCH StoreJobs`; the Hat scene
+animates only what is on the way; with reduced motion a status list replaces it. Finished jobs refresh the job and app
+queries, and the jobs this user started are announced with a toast. In development an unreachable hub falls back to a
+clearly marked demo stream; production never shows made-up events.
+
+## Uploads
+
+`lib/assets/upload.ts` declares a file (`POST Assets/upload`), PUTs the bytes straight to the presigned URL (in parts
+over 64 MB, keeping each ETag; the bucket's CORS must expose `ETag`), then confirms it (`POST Assets/asset/complete`).
+`components/ui/AssetUpload.tsx` is the reusable drop zone around it: type and size checked first, live progress with
+cancel, failure with retry.
 
 ## Storage keys and events
 

@@ -93,6 +93,13 @@ public class MockupExportSet
     public string ClassKey { get; set; }
 
     /// <summary>
+    /// The store's own key of the class (App Store display type such as <c>APP_IPHONE_61</c>, Play image type such as
+    /// <c>phoneScreenshots</c>), the <c>classKey</c> of <c>POST screenshots/plan</c>; null when the store API has no key
+    /// for the class yet (iPhone Duo, Microsoft Store).
+    /// </summary>
+    public string StoreClassKey { get; set; }
+
+    /// <summary>
     /// Locale tag.
     /// </summary>
     public string Locale { get; set; }

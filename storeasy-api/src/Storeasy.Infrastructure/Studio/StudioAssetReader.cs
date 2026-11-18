@@ -9,9 +9,9 @@ namespace Storeasy.Infrastructure.Studio;
 /// </summary>
 /// <param name="storage"></param>
 /// <param name="capacityBytes"></param>
-public sealed class StudioAssetReader(IObjectContentStorage storage, long capacityBytes) : IStudioAssetReader
+public sealed class StudioAssetReader(IFileStorage storage, long capacityBytes) : IStudioAssetReader
 {
-    private readonly IObjectContentStorage _storage = storage;
+    private readonly IFileStorage _storage = storage;
     private readonly long _capacityBytes = capacityBytes;
     private readonly Lock _lock = new();
     private readonly Dictionary<string, LinkedListNode<(string Key, byte[] Bytes)>> _entries = new(StringComparer.Ordinal);
@@ -45,7 +45,16 @@ public sealed class StudioAssetReader(IObjectContentStorage storage, long capaci
             }
         }
 
-        var bytes = await _storage.ReadAsync(objectKey, cancellationToken);
+        byte[] bytes;
+
+        await using (var stream = await _storage.OpenReadAsync(objectKey, cancellationToken))
+        {
+            using var buffer = new MemoryStream();
+
+            await stream.CopyToAsync(buffer, cancellationToken);
+
+            bytes = buffer.ToArray();
+        }
 
         if (bytes.Length > _capacityBytes / 4)
             return bytes;

@@ -37,6 +37,19 @@ public class ResponseStatusCodesTests
     [InlineData(MessageKey.EmailNotVerified, 403)]
     [InlineData(MessageKey.EmailAlreadyVerified, 409)]
     [InlineData(MessageKey.AccountTokenInvalid, 400)]
+    [InlineData(MessageKey.ChangePlanNotFound, 404)]
+    [InlineData(MessageKey.RuleNotFound, 404)]
+    [InlineData(MessageKey.AssistedStepNotFound, 404)]
+    [InlineData(MessageKey.PlanConflict, 409)]
+    [InlineData(MessageKey.PlanNotPending, 409)]
+    [InlineData(MessageKey.StoreAppNotConnected, 409)]
+    [InlineData(MessageKey.PlanExpired, 410)]
+    [InlineData(MessageKey.StoreRejected, 422)]
+    [InlineData(MessageKey.MediaRejected, 422)]
+    [InlineData(MessageKey.StoreUnreachable, 502)]
+    [InlineData(MessageKey.RulesCatalogUnavailable, 503)]
+    [InlineData(MessageKey.PlanConfirmMismatch, 400)]
+    [InlineData(MessageKey.FieldTooManyBytes, 400)]
     public void FromKey_ShouldMapKnownKeysToTheirStatus(string key, int expected)
     {
         ResponseStatusCodes.FromKey(key).Should().Be(expected);
