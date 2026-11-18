@@ -40,7 +40,7 @@ export default defineConfig({
       ],
       // Set just under what the suite covers, so a regression fails the build but an ordinary refactor does not.
       // Raise them when coverage rises; never lower them to make a build pass.
-      thresholds: { lines: 77, functions: 72, statements: 77, branches: 68 },
+      thresholds: { lines: 85, functions: 78, statements: 84, branches: 75 },
     },
   },
 })
