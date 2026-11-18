@@ -21,6 +21,7 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Email;
+using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -34,6 +35,7 @@ using Storeasy.Infrastructure.Stores;
 using Storeasy.Infrastructure.Stores.Content;
 using Storeasy.Infrastructure.Stores.Monetization;
 using Storeasy.Infrastructure.Studio;
+using Storeasy.Infrastructure.Stores.Microsoft;
 using Npgsql;
 
 namespace Storeasy.Infrastructure;
@@ -97,6 +99,10 @@ public static class InfraServiceCollectionExtensions
         services.AddAccountServices(configurationManager);
 
         services.AddStoreJobServices(configurationManager);
+
+        services.AddEventServices(configurationManager);
+        // Microsoft Store (phase 5): client, token cache and job handlers.
+        services.AddMicrosoftStoreServices(configurationManager);
 
         // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
         var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();

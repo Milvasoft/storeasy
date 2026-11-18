@@ -63,7 +63,8 @@ public sealed class PlanDraft
     public string VersionString { get; set; }
 
     /// <summary>
-    /// Permission the plan needs, when the planner decides it (e.g. a price change of a product on sale); null: by kind.
+    /// Permission the plan needs when the kind alone does not decide it (Microsoft Store changes); null for the kind's
+    /// default.
     /// </summary>
     public OrgPermission? RequiredPermission { get; set; }
 

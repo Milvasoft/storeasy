@@ -165,4 +165,99 @@ public enum AuditAction : short
     /// <summary>A mockup export job was queued.</summary>
     [Description("Mockups exported")]
     MockupExported = 74,
+
+    /// <summary>Inbound webhook endpoint added.</summary>
+    [Description("Webhook endpoint added")]
+    WebhookEndpointAdded = 400,
+
+    /// <summary>Inbound webhook secret rotated.</summary>
+    [Description("Webhook secret rotated")]
+    WebhookSecretRotated = 401,
+
+    /// <summary>Inbound webhook endpoint removed.</summary>
+    [Description("Webhook endpoint removed")]
+    WebhookEndpointRemoved = 402,
+
+    /// <summary>Inbound webhook event processed again.</summary>
+    [Description("Webhook event reprocessed")]
+    WebhookEventReprocessed = 403,
+
+    /// <summary>Outgoing webhook added.</summary>
+    [Description("Outgoing webhook added")]
+    OrgWebhookAdded = 410,
+
+    /// <summary>Outgoing webhook changed (address, events, secret, state).</summary>
+    [Description("Outgoing webhook updated")]
+    OrgWebhookUpdated = 411,
+
+    /// <summary>Outgoing webhook removed.</summary>
+    [Description("Outgoing webhook removed")]
+    OrgWebhookRemoved = 412,
+
+    /// <summary>Rejection case opened.</summary>
+    [Description("Rejection opened")]
+    RejectionOpened = 420,
+
+    /// <summary>Rejection text pasted.</summary>
+    [Description("Rejection text added")]
+    RejectionTextAdded = 421,
+
+    /// <summary>Rejection checklist changed.</summary>
+    [Description("Rejection checklist updated")]
+    RejectionChecklistUpdated = 422,
+
+    /// <summary>Resolution Center reply marked as sent.</summary>
+    [Description("Rejection reply sent")]
+    RejectionReplySent = 423,
+
+    /// <summary>Rejection case closed.</summary>
+    [Description("Rejection closed")]
+    RejectionClosed = 424,
+
+    /// <summary>Review reply sent (or edited).</summary>
+    [Description("Review replied")]
+    ReviewReplied = 430,
+
+    /// <summary>Saved reply added, changed or removed.</summary>
+    [Description("Saved reply changed")]
+    SavedReplyChanged = 431,
+
+    /// <summary>TestFlight group created or changed.</summary>
+    [Description("Beta group changed")]
+    BetaGroupChanged = 440,
+
+    /// <summary>TestFlight testers added or removed.</summary>
+    [Description("Beta testers changed")]
+    BetaTestersChanged = 441,
+
+    /// <summary>TestFlight texts changed (what to test, beta description).</summary>
+    [Description("Beta texts changed")]
+    BetaTextChanged = 442,
+
+    /// <summary>Build submitted to beta app review.</summary>
+    [Description("Submitted for beta review")]
+    BetaReviewSubmitted = 443,
+    /// <summary>A Microsoft Store change was queued (listings, images, packages, pricing, flights, add-ons, rollout).</summary>
+    [Description("Microsoft Store change queued")]
+    MsChangeQueued = 150,
+
+    /// <summary>A Microsoft Store change was written to Partner Center.</summary>
+    [Description("Microsoft Store change applied")]
+    MsChangeApplied = 151,
+
+    /// <summary>A Microsoft Store submission was committed (sent to certification) or an MSI/EXE product submitted.</summary>
+    [Description("Microsoft Store submission sent")]
+    MsSubmitted = 152,
+
+    /// <summary>An MSI/EXE product was added by its product id.</summary>
+    [Description("Microsoft Store product added")]
+    MsProductAdded = 153,
+
+    /// <summary>The client secret of a Microsoft Entra connection was replaced.</summary>
+    [Description("Microsoft connection secret rotated")]
+    MsConnectionSecretRotated = 154,
+
+    /// <summary>A package flight group name was recorded.</summary>
+    [Description("Microsoft flight group saved")]
+    MsFlightGroupSaved = 155,
 }

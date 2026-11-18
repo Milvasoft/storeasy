@@ -110,6 +110,13 @@ public enum ChangePlanKind : byte
     SubmitForReview = 17,
 
     /// <summary>
+    /// A Microsoft Store change (listings, images, packages, pricing, installers, rollout, flights, add-ons, discarding a
+    /// draft); what it writes is in the plan's Microsoft change set.
+    /// </summary>
+    [Description("Microsoft Store change")]
+    MsChange = 50,
+
+    /// <summary>
     /// Subscriptions, offers, In-App Purchases and Play products (phase 7).
     /// </summary>
     [Description("Monetization")]

@@ -368,15 +368,15 @@ public class OrganizationsControllerTests(StoreasyApiFactory factory) : Integrat
     }
 
     [Fact]
-    public async Task AddConnection_ForMicrosoftStore_ShouldBe400NotSupportedYet()
+    public async Task AddConnection_ForMicrosoftStore_WithMalformedSecret_ShouldBe400()
     {
         var owner = await NewMemberAsync();
         var organizationId = await CreateOrganizationAsync(owner.User);
 
-        var (http, body) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Microsoft, name = "Partner Center", secret = "{\"tenantId\":\"x\"}" });
+        var (http, body) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Microsoft, name = "Partner Center", secret = "{\"tenantId\":\"x\"}", credentialExpiryDate = DateTime.UtcNow.AddMonths(6) });
 
         http.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        body.Messages.Should().Contain(m => m.Key == Storeasy.Application.Utils.Constants.MessageKey.StoreNotSupported);
+        body.Messages.Should().Contain(m => m.Key == Storeasy.Application.Utils.Constants.MessageKey.MsSecretInvalid);
     }
 
     [Fact]

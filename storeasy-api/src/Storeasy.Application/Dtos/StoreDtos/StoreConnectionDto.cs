@@ -47,6 +47,11 @@ public class StoreConnectionDto
     public string LastVerifyError { get; set; }
 
     /// <summary>
+    /// UTC instant the secret expires (Microsoft Entra client secrets); null when the store's secrets do not expire.
+    /// </summary>
+    public DateTime? CredentialExpiryDate { get; set; }
+
+    /// <summary>
     /// UTC instant the connection was added.
     /// </summary>
     public DateTime? CreationDate { get; set; }
@@ -66,6 +71,7 @@ public class StoreConnectionDto
         Status = c.Status,
         LastVerifiedDate = c.LastVerifiedDate,
         LastVerifyError = c.LastVerifyError,
+        CredentialExpiryDate = c.SecretExpiryDate,
         CreationDate = c.CreationDate,
     };
 }

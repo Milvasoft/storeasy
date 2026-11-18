@@ -37,5 +37,28 @@ public static class TableNames
     public const string MockupTemplates = nameof(MockupTemplates);
     public const string MockupSlots = nameof(MockupSlots);
     public const string MockupCaptions = nameof(MockupCaptions);
+    public const string WebhookEndpoints = nameof(WebhookEndpoints);
+    public const string WebhookEvents = nameof(WebhookEvents);
+    public const string AppVersionStates = nameof(AppVersionStates);
+    public const string NotificationPreferences = nameof(NotificationPreferences);
+    public const string OrganizationWebhooks = nameof(OrganizationWebhooks);
+    public const string WebhookDeliveries = nameof(WebhookDeliveries);
+    public const string DeadlineReminders = nameof(DeadlineReminders);
+    public const string RejectionCases = nameof(RejectionCases);
+    public const string StoreReviews = nameof(StoreReviews);
+    public const string ReviewReads = nameof(ReviewReads);
+    public const string SavedReplies = nameof(SavedReplies);
+    public const string BetaGroups = nameof(BetaGroups);
+    public const string BetaTesters = nameof(BetaTesters);
+    public const string BetaBuilds = nameof(BetaBuilds);
+    public const string BetaAppLocalizations = nameof(BetaAppLocalizations);
+    public const string RuleSources = nameof(RuleSources);
+    public const string RuleProposals = nameof(RuleProposals);
+    public const string MsProducts = nameof(MsProducts);
+    public const string MsSubmissions = nameof(MsSubmissions);
+    public const string MsFlights = nameof(MsFlights);
+    public const string MsFlightGroups = nameof(MsFlightGroups);
+    public const string MsAddons = nameof(MsAddons);
+    public const string MsInstallerPackages = nameof(MsInstallerPackages);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
