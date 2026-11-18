@@ -740,6 +740,57 @@
         <member name="M:Storeasy.Infrastructure.Services.AuditTrail.WriteAsync(System.Int32,Storeasy.Domain.Enums.AuditAction,System.String,System.String,System.Nullable{Storeasy.Domain.Enums.StoreKind},System.Object,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Services.AuditTrail.WriteManyAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.AuditEntry},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.ChangePlanService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>. Approval is a single conditional UPDATE (pending and not expired), so two
+            members approving at once queue one job; the store is read again before it and a changed fingerprint refuses the
+            approval with <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PlanConflict"/>, writing nothing.
+            </summary>
+            <param name="planRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="contentService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="currentUser"></param>
+            <param name="organizationAccess"></param>
+            <param name="rulesCatalog"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IChangePlanService"/>. Approval is a single conditional UPDATE (pending and not expired), so two
+            members approving at once queue one job; the store is read again before it and a changed fingerprint refuses the
+            approval with <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PlanConflict"/>, writing nothing.
+            </summary>
+            <param name="planRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="contentService"></param>
+            <param name="storeJobQueue"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="currentUser"></param>
+            <param name="organizationAccess"></param>
+            <param name="rulesCatalog"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.SaveAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,Storeasy.Application.Utils.Content.PlanDraft,System.Boolean,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.ApproveAsync(System.Int32,System.Int64,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.GetAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ChangePlanService.DecideAsync(System.Int32,System.Int64,Storeasy.Domain.Enums.ChangePlanStatus,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.CurrentUser">
             <summary>
             Reads the authenticated caller from the request's already-validated claims principal. No database
@@ -1076,6 +1127,132 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.ReadinessService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IReadinessService"/>.
+            </summary>
+            <param name="contentService"></param>
+            <param name="answerRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="rulesCatalog"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IRulesCatalog,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IReadinessService"/>.
+            </summary>
+            <param name="contentService"></param>
+            <param name="answerRepository"></param>
+            <param name="stepRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="rulesCatalog"></param>
+            <param name="localizer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.CheckAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.ReadinessService.GetStepsAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Services.RulesCatalog">
+            <summary>
+            Loads and validates the store rules catalog once, at startup. Sources, first found wins: the configured folder
+            (<see cref="P:Storeasy.Application.Utils.Models.StoreApiOptions.RulesPath"/>, which must exist when set), the <c>rules</c> folder
+            copied next to the application, the copy embedded in this assembly. A catalog that does not validate stops the
+            application: readiness and timelines must never run on half a catalog.
+            </summary>
+            <param name="catalog"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.#ctor(Storeasy.Domain.Rules.RuleCatalog)">
+            <summary>
+            Loads and validates the store rules catalog once, at startup. Sources, first found wins: the configured folder
+            (<see cref="P:Storeasy.Application.Utils.Models.StoreApiOptions.RulesPath"/>, which must exist when set), the <c>rules</c> folder
+            copied next to the application, the copy embedded in this assembly. A catalog that does not validate stops the
+            application: readiness and timelines must never run on half a catalog.
+            </summary>
+            <param name="catalog"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.RulesCatalog.SupportedMajorVersion">
+            <summary>
+            Major catalog version this build reads; another major version is refused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.RulesCatalog.ManifestFileName">
+            <summary>
+            Name of the manifest file.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Services.RulesCatalog.FolderName">
+            <summary>
+            Folder name of the catalog next to the application.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Services.RulesCatalog.Current">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.Load(System.String)">
+            <summary>
+            Loads the catalog from the first available source.
+            </summary>
+            <param name="configuredPath"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.LoadFromFolder(System.String)">
+            <summary>
+            Loads and validates the catalog in <paramref name="folder"/>.
+            </summary>
+            <param name="folder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.LoadEmbedded">
+            <summary>
+            Loads and validates the copy embedded in this assembly.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.Build(System.String,System.Func{System.String,System.String},System.String)">
+            <summary>
+            Parses and validates a manifest and its store files.
+            </summary>
+            <param name="manifestJson"></param>
+            <param name="readFile"></param>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.RulesCatalog.VersionPattern">
+            <remarks>
+            Pattern:<br/>
+            <code>^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match '0'.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-9].<br/>
+                        ○ Match a Unicode digit atomically any number of times.<br/>
+            ○ Match '.'.<br/>
+            ○ 2nd capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match '0'.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-9].<br/>
+                        ○ Match a Unicode digit atomically any number of times.<br/>
+            ○ Match '.'.<br/>
+            ○ 3rd capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match '0'.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-9].<br/>
+                        ○ Match a Unicode digit atomically any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.SecurityStampStore">
             <summary>
             Redis-backed revocation stamp store with the database (<c>User.SessionStamp</c>) as the durable
@@ -1136,6 +1313,68 @@
             Generates a new stamp and persists it to the user row.
             </summary>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.StoreContentService">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreContentService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="gateways"></param>
+            <param name="secretProtector"></param>
+            <param name="fileStorage"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IFileStorage,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IStoreContentService"/>. The connection secret is opened for one call and dropped; store failures
+            are logged (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>.
+            </summary>
+            <param name="storeAppRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="assetRepository"></param>
+            <param name="gateways"></param>
+            <param name="secretProtector"></param>
+            <param name="fileStorage"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.GetStoreAppAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.GetStoreAppOfAppAsync(System.Int32,System.Int32,Storeasy.Domain.Enums.StoreKind,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Domain.Enums.ContentParts,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.ListOptionsAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.GetStoreAppsAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.InspectAssetsAsync(System.Int32,System.Collections.Generic.IReadOnlyCollection{System.Int64},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.Subject(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.ToAlpha2(System.String)">
+            <summary>
+            ISO 3166-1 alpha-2 code of an App Store territory (alpha-3); the code itself when it is already alpha-2 or unknown.
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.StoreContentService.DetectFamilies(Storeasy.Domain.Enums.StoreKind,Storeasy.Application.Interfaces.StoreContentSnapshot)">
+            <summary>
+            Device families when the profile does not say: iPhone (phone on Play) always, iPad and tablets only when the store
+            already holds media for them. iPad requirements therefore appear only for apps that support iPad.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.TransactionRunner">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.ITransactionRunner"/>. The <see cref="T:Milvasoft.Interception.Ef.Transaction.TransactionAttribute"/> on <see cref="M:Storeasy.Infrastructure.Services.TransactionRunner.RunAsync(System.Func{System.Threading.Tasks.Task})"/>
@@ -1154,16 +1393,16 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Storage.S3FileStorage">
             <summary>
-            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
-            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or an S3 compatible server such as SeaweedFS with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local SeaweedFS).
             </summary>
             <param name="client">The S3 client; null when the storage is not configured.</param>
             <param name="options"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.#ctor(Amazon.S3.IAmazonS3,Storeasy.Application.Utils.Models.StorageOptions)">
             <summary>
-            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or MinIO with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
-            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local MinIO).
+            <see cref="T:Storeasy.Application.Interfaces.IFileStorage"/> over AWSSDK.S3 (AWS S3, or an S3 compatible server such as SeaweedFS with <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.ServiceUrl"/> and path style
+            addressing). Presigned URLs use the scheme of the endpoint (HTTP for a local SeaweedFS).
             </summary>
             <param name="client">The S3 client; null when the storage is not configured.</param>
             <param name="options"></param>
@@ -1202,6 +1441,9 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Storage.S3FileStorage.OpenReadAsync(System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.StoreJobs.NullActivityPublisher">
@@ -1422,6 +1664,593 @@
         </member>
         <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.ExecuteAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.AppleContentGateway">
+            <summary>
+            Writes of the App Store Connect content engine. Every write is one job step; what already matches is skipped.
+            </summary>
+            <summary>
+            App Store Connect content engine, ported from store-ops (behaviour, not style):
+            <list type="bullet">
+            <item>Version texts: the app info localization is written first; creating it can create the version localization of
+            the same locale on Apple's side, so the version localizations are listed again and a create that answers 409 becomes
+            a PATCH.</item>
+            <item>Screenshots and previews: a set is made to match the desired list by MD5 (kept, deleted, uploaded through
+            reserve, upload operations and commit with the checksum, reordered). A failed upload deletes its reservation; a set
+            creation that answers 5xx is retried and then looked up again.</item>
+            <item>Builds are attached only when VALID; submission reuses an open review submission.</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+            <summary>
+            Screenshot and app preview sets of the App Store content engine (store-ops <c>syncScreenshots</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.WriteVersionLocalizationAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String,System.String,System.Collections.Generic.List{Storeasy.Application.Interfaces.FieldChange},System.Threading.CancellationToken)">
+            <summary>
+            PATCHes the version localization of <paramref name="locale"/> when it exists (Apple may have created it when the app
+            info localization was created), creates it otherwise and falls back to PATCH when the create answers 409.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.SubmitAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Submits the version: reuses an open review submission of the app or creates one, adds the version and marks the
+            submission submitted.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IFileStorage)">
+            <summary>
+            App Store Connect content engine, ported from store-ops (behaviour, not style):
+            <list type="bullet">
+            <item>Version texts: the app info localization is written first; creating it can create the version localization of
+            the same locale on Apple's side, so the version localizations are listed again and a create that answers 409 becomes
+            a PATCH.</item>
+            <item>Screenshots and previews: a set is made to match the desired list by MD5 (kept, deleted, uploaded through
+            reserve, upload operations and commit with the checksum, reordered). A failed upload deletes its reservation; a set
+            creation that answers 5xx is retried and then looked up again.</item>
+            <item>Builds are attached only when VALID; submission reuses an open review submission.</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.DemoPasswordSecret">
+            <summary>
+            Secret key of the demo account password in <see cref="P:Storeasy.Application.Interfaces.ContentChangeSet.Secrets"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.MaskedSecret">
+            <summary>
+            Value shown instead of a password in the content model.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.SyncMediaSetAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String,Storeasy.Application.Interfaces.MediaSetChange,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <summary>
+            Makes the set of (version, locale, class) hold the desired items in order: items whose MD5 is already in the set are
+            kept, the others are deleted, the missing ones uploaded, then the set is reordered. An empty desired list deletes the
+            set.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.PlanSet(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MediaItemState},System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MediaItemChange})">
+            <summary>
+            Matches desired items to the set's items by checksum (failed items never match): matched items are kept, the
+            others uploaded, the set's unmatched items removed.
+            </summary>
+            <param name="existing"></param>
+            <param name="desired"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.UploadItemAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String,Storeasy.Application.Interfaces.MediaItemChange,Storeasy.Application.Interfaces.MediaSetChange,System.String,System.String,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <summary>
+            Reserves, uploads and commits one item; a failure after the reservation deletes it so no half reserved item stays
+            in the set. Waits for processing up to the configured time and reports the state reached.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: writes an approved plan to its store through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
+            from the app's sealed saved answer here, in memory, and never stored with the plan. On success the plan becomes
+            Applied and one audit entry per changed field is written in the name of the member who approved it. A failure is
+            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work.
+            </summary>
+            <param name="planRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="answerRepository"></param>
+            <param name="gateways"></param>
+            <param name="secretProtector"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Content.ChangePlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: writes an approved plan to its store through the store's
+            <see cref="T:Storeasy.Application.Interfaces.IStoreContentGateway"/>, every call a step on the live activity view. The demo account password is opened
+            from the app's sealed saved answer here, in memory, and never stored with the plan. On success the plan becomes
+            Applied and one audit entry per changed field is written in the name of the member who approved it. A failure is
+            retried by the runner when transient; the gateways write only what still differs, so a retry does not repeat work.
+            </summary>
+            <param name="planRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="answerRepository"></param>
+            <param name="gateways"></param>
+            <param name="secretProtector"></param>
+            <param name="auditTrail"></param>
+            <param name="activityPublisher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi">
+            <summary>
+            A JSON:API client of App Store Connect for one set of credentials: ES256 tokens (renewed before they expire), paging
+            through <c>links.next</c> and the reserve / upload / commit protocol of screenshots, previews and attachments
+            (<c>uploadOperations</c> are presigned, so no token goes with them).
+            </summary>
+            <param name="http"></param>
+            <param name="credentials"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Infrastructure.Stores.AppleCredentials)">
+            <summary>
+            A JSON:API client of App Store Connect for one set of credentials: ES256 tokens (renewed before they expire), paging
+            through <c>links.next</c> and the reserve / upload / commit protocol of screenshots, previews and attachments
+            (<c>uploadOperations</c> are presigned, so no token goes with them).
+            </summary>
+            <param name="http"></param>
+            <param name="credentials"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.MaxPages">
+            <summary>
+            Most pages read from one list.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.GetAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            GET of one document.
+            </summary>
+            <param name="path"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.GetOrNullAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            GET of one document; null when the store answers 404 (no such related resource).
+            </summary>
+            <param name="path"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.GetAllAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            GET of a list, following <c>links.next</c>; returns the data and included resources (cloned).
+            </summary>
+            <param name="path"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.PostAsync(System.String,System.Object,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            POST; not retried unless <paramref name="retry"/> (a create that failed with 5xx may still have happened).
+            </summary>
+            <param name="path"></param>
+            <param name="body"></param>
+            <param name="cancellationToken"></param>
+            <param name="retry"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.PatchAsync(System.String,System.Object,System.Threading.CancellationToken)">
+            <summary>
+            PATCH (idempotent, retried).
+            </summary>
+            <param name="path"></param>
+            <param name="body"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.DeleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            DELETE (retried); a 404 counts as done.
+            </summary>
+            <param name="path"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi.UploadAsync(System.Text.Json.JsonElement,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Sends the byte ranges of <paramref name="data"/> to the addresses Apple reserved
+            (<c>attributes.uploadOperations</c>).
+            </summary>
+            <param name="reservation"></param>
+            <param name="data"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.ContentSteps">
+            <summary>
+            Runs one store call (or a small group of them) as a job step: the step is opened, the work runs, the step ends
+            succeeded with the work's note or failed with the (already redacted) error, which is rethrown.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ContentSteps.RunAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.String,System.String,System.Func{System.Threading.Tasks.Task{System.String}},System.Threading.CancellationToken,Storeasy.Domain.Enums.StepDirection)">
+            <summary>
+            Runs <paramref name="work"/> as step <paramref name="name"/>.
+            </summary>
+            <param name="context"></param>
+            <param name="name"></param>
+            <param name="message"></param>
+            <param name="work">Returns the note the step ends with.</param>
+            <param name="cancellationToken"></param>
+            <param name="direction"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.ContentSteps.ReadObjectAsync(Storeasy.Application.Interfaces.IFileStorage,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads a stored object into memory (screenshots and graphics; bundles are streamed instead).
+            </summary>
+            <param name="fileStorage"></param>
+            <param name="objectKey"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway">
+            <summary>
+            Google Play content engine on androidpublisher v3 edits (store-ops <c>withEdit</c>): reads happen in an edit that is
+            deleted afterwards; writes happen in one edit that is committed at the end, or deleted when anything fails, so no edit
+            is ever left open. Data safety goes through <c>applications.dataSafety</c>, outside edits.
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IFileStorage)">
+            <summary>
+            Google Play content engine on androidpublisher v3 edits (store-ops <c>withEdit</c>): reads happen in an edit that is
+            deleted afterwards; writes happen in one edit that is committed at the end, or deleted when anything fails, so no edit
+            is ever left open. Data safety goes through <c>applications.dataSafety</c>, outside edits.
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.ImageTypes">
+            <summary>
+            Image types storeasy reads and writes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.ReplaceImagesAsync(Storeasy.Infrastructure.Stores.Content.GooglePlayApi,System.String,Storeasy.Application.Interfaces.MediaSetChange,System.Threading.CancellationToken)">
+            <summary>
+            Replaces every image of one type when the ordered SHA-256 list differs (Play has no reorder: delete all, upload in
+            order); an unchanged list is skipped.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.WriteReleaseAsync(Storeasy.Infrastructure.Stores.Content.GooglePlayApi,System.String,Storeasy.Application.Interfaces.TrackReleaseChange,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Writes a release to a track. A staged (inProgress) release keeps the track's completed release next to it, so the
+            users outside the rollout keep the previous version; any other release replaces the track's releases.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GoogleContentGateway.WriteRolloutAsync(Storeasy.Infrastructure.Stores.Content.GooglePlayApi,System.String,Storeasy.Application.Interfaces.RolloutChange,System.Threading.CancellationToken)">
+            <summary>
+            Changes the staged rollout of a track: the fraction only grows, halt stops it, resume continues it, complete releases
+            to everyone and drops the previous completed release.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.GooglePlayApi">
+            <summary>
+            A Google Play Developer API (androidpublisher v3) client for one service account: the JWT bearer token exchange, the
+            edit lifecycle (insert, commit, delete) and media and resumable bundle uploads.
+            </summary>
+            <param name="http"></param>
+            <param name="credentials"></param>
+            <param name="packageName"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Infrastructure.Stores.GoogleCredentials,System.String)">
+            <summary>
+            A Google Play Developer API (androidpublisher v3) client for one service account: the JWT bearer token exchange, the
+            edit lifecycle (insert, commit, delete) and media and resumable bundle uploads.
+            </summary>
+            <param name="http"></param>
+            <param name="credentials"></param>
+            <param name="packageName"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.UploadBaseUrl">
+            <summary>
+            Upload base address of the Play Developer API.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.AppPath">
+            <summary>
+            Path of the app (<c>/applications/{package}</c>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.OpenEditAsync(System.Threading.CancellationToken)">
+            <summary>
+            Opens an edit and returns its id.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.CommitEditAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Commits an edit.
+            </summary>
+            <param name="editId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.DeleteEditAsync(System.String)">
+            <summary>
+            Deletes an edit; failures are swallowed (the edit expires on its own) and reported as false.
+            </summary>
+            <param name="editId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.EditPath(System.String)">
+            <summary>
+            Path of an edit.
+            </summary>
+            <param name="editId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.SendAsync(System.Net.Http.HttpMethod,System.String,System.Object,System.Threading.CancellationToken,System.Nullable{System.Boolean})">
+            <summary>
+            Sends a JSON request to the API (path relative to the API base, or a full address).
+            </summary>
+            <param name="method"></param>
+            <param name="path"></param>
+            <param name="body"></param>
+            <param name="cancellationToken"></param>
+            <param name="retry"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.UploadMediaAsync(System.String,System.Byte[],System.String,System.Threading.CancellationToken)">
+            <summary>
+            Uploads one image (<c>uploadType=media</c>).
+            </summary>
+            <param name="path"></param>
+            <param name="data"></param>
+            <param name="contentType"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.GooglePlayApi.UploadResumableAsync(System.String,System.IO.Stream,System.Int64,System.Func{System.Int64,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Uploads a bundle with the resumable protocol: a session is opened, then chunks of
+            <see cref="P:Storeasy.Application.Utils.Models.StoreApiOptions.UploadChunkBytes"/> are sent with <c>Content-Range</c>; the store
+            answers 308 until the last chunk. Each chunk is retried on its own.
+            </summary>
+            <param name="path"></param>
+            <param name="content"></param>
+            <param name="size"></param>
+            <param name="progress">Called with the bytes sent so far.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.JsonRead">
+            <summary>
+            Tolerant readers over store JSON (JSON:API documents of App Store Connect, Play resources): a missing or differently
+            typed member reads as null instead of throwing.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Str(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            String member, or null.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Get(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Member as an element, or default.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Items(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Array member's items, or none.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Attr(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Attribute of a JSON:API resource (<c>attributes.name</c>) as text.
+            </summary>
+            <param name="resource"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.RawAttr(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Raw JSON of an attribute (null when absent).
+            </summary>
+            <param name="resource"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.RelId(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Id of a to-one relationship (<c>relationships.name.data.id</c>), or null.
+            </summary>
+            <param name="resource"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.RelIds(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Ids of a to-many relationship in order.
+            </summary>
+            <param name="resource"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Int(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Integer member, or null.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Double(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Double member, or null.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Date(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            UTC instant member, or null.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.JsonRead.Day(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Calendar day member, or null.
+            </summary>
+            <param name="element"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.StoreHttp">
+            <summary>
+            HTTP transport of the content engine with the stores' rate limits in mind: a call answered with 429 or 5xx (or one that
+            did not reach the store) is retried with exponential backoff, honouring <c>Retry-After</c>, up to
+            <see cref="P:Storeasy.Application.Utils.Models.StoreApiOptions.MaxRetries"/> times. Calls that create something are retried only when the caller says a
+            retry is safe. Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/> with a redacted message (no tokens, no signed URLs).
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttp.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.StoreApiOptions,System.TimeProvider)">
+            <summary>
+            HTTP transport of the content engine with the stores' rate limits in mind: a call answered with 429 or 5xx (or one that
+            did not reach the store) is retried with exponential backoff, honouring <c>Retry-After</c>, up to
+            <see cref="P:Storeasy.Application.Utils.Models.StoreApiOptions.MaxRetries"/> times. Calls that create something are retried only when the caller says a
+            retry is safe. Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/> with a redacted message (no tokens, no signed URLs).
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttp.Options">
+            <summary>
+            Options of the engine.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttp.Clock">
+            <summary>
+            Clock of the engine.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttp.SendJsonAsync(System.Net.Http.HttpMethod,System.String,System.String,System.Object,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Sends a JSON request (body serialized when not null) and parses the JSON answer; an empty answer parses as <c>{}</c>.
+            </summary>
+            <param name="method"></param>
+            <param name="url"></param>
+            <param name="bearerToken"></param>
+            <param name="body"></param>
+            <param name="retry">Whether a 429/5xx answer is retried (default: every method but POST).</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttp.SendAsync(System.Func{System.Net.Http.HttpRequestMessage},System.Boolean,System.Threading.CancellationToken,System.Nullable{System.Int32})">
+            <summary>
+            Sends the request <paramref name="build"/> creates (once per attempt) and returns the answer; throws
+            <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/> for a non success status.
+            </summary>
+            <param name="build"></param>
+            <param name="retry"></param>
+            <param name="cancellationToken"></param>
+            <param name="acceptStatus">An extra status that counts as success (e.g. 308 of a resumable upload).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttp.RetryDelay(System.Int32,System.Net.Http.Headers.RetryConditionHeaderValue,System.TimeSpan,System.TimeSpan,System.DateTimeOffset)">
+            <summary>
+            Backoff before retry <paramref name="attempt"/>: the store's <c>Retry-After</c> when given, otherwise the base delay
+            doubled per attempt, never longer than the configured maximum.
+            </summary>
+            <param name="attempt"></param>
+            <param name="retryAfter"></param>
+            <param name="baseDelay"></param>
+            <param name="maxDelay"></param>
+            <param name="now"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttp.Parse(Storeasy.Infrastructure.Stores.Content.StoreHttpResponse)">
+            <summary>
+            Parses a JSON answer; an empty answer parses as <c>{}</c>.
+            </summary>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse">
+            <summary>
+            A store answer.
+            </summary>
+            <param name="Status">HTTP status.</param>
+            <param name="Body">Body text.</param>
+            <param name="Location"><c>Location</c> header (resumable upload session).</param>
+            <param name="Range"><c>Range</c> header (resumable upload progress).</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.#ctor(System.Int32,System.String,System.String,System.String)">
+            <summary>
+            A store answer.
+            </summary>
+            <param name="Status">HTTP status.</param>
+            <param name="Body">Body text.</param>
+            <param name="Location"><c>Location</c> header (resumable upload session).</param>
+            <param name="Range"><c>Range</c> header (resumable upload progress).</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Status">
+            <summary>HTTP status.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Body">
+            <summary>Body text.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Location">
+            <summary><c>Location</c> header (resumable upload session).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Range">
+            <summary><c>Range</c> header (resumable upload progress).</summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.AppleCredentials">
             <summary>
@@ -1779,66 +2608,98 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IssuerIdRegex method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the VersionPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.VersionPattern_1.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_1.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IssuerIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_2.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IssuerIdRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_3">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_3.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_3.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>

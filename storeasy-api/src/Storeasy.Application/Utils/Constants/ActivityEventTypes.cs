@@ -50,4 +50,19 @@ public static class ActivityEventTypes
     /// An app's store records and builds were refreshed from the stores.
     /// </summary>
     public const string AppSynced = "app.synced";
+
+    /// <summary>
+    /// A change plan was made and waits for approval.
+    /// </summary>
+    public const string PlanCreated = "plan.created";
+
+    /// <summary>
+    /// A change plan was approved, rejected or discarded.
+    /// </summary>
+    public const string PlanDecided = "plan.decided";
+
+    /// <summary>
+    /// The store accepted every change of a plan.
+    /// </summary>
+    public const string PlanApplied = "plan.applied";
 }

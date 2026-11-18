@@ -330,6 +330,13 @@ public static class TestApi
     }
 
     /// <summary>GETs <paramref name="path"/> and reads the envelope.</summary>
+    public static async Task<(HttpResponseMessage Http, Response<T> Body)> PatchAsync<T>(this HttpClient client, string path, object body)
+    {
+        var http = await client.PatchAsJsonAsync($"{Base}/{path}", body, Json);
+
+        return (http, await ReadAsync<Response<T>>(http));
+    }
+
     public static async Task<(HttpResponseMessage Http, Response<T> Body)> GetAsync<T>(this HttpClient client, string path)
     {
         var http = await client.GetAsync($"{Base}/{path}");

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.EntityBases.Concrete.Auditing;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.Stores;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -64,6 +65,12 @@ public class StoreApp : AuditableEntity<int>
     /// UTC instant of the last successful sync.
     /// </summary>
     public DateTime? SyncedDate { get; set; }
+
+    /// <summary>
+    /// Summary of the last readiness check (for the organization overview).
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public ReadinessSummary LastReadiness { get; set; }
 
     /// <summary>
     /// Navigation property of the app.

@@ -4,9 +4,9 @@
 # PostgreSql is optional: point ConnectionStrings:DefaultConnectionString at it
 # (Host=localhost;Port=5432;Database=<your database>;Username=postgres;Password=postgres) or use your own server.
 # Seq is optional: the log sink of MILVA_ENV=test and prod; set SeqUri to http://localhost:5341 to use it (UI on the same url).
-# MinIO is the local S3 (Storage:S3 in appsettings.Development.json): API on http://localhost:9000, console on
-# http://localhost:9001, user/password minioadmin (local only). minio-init creates the storeasy-local bucket.
-# MinIO no longer publishes images on Docker Hub; pgsty/minio and pgsty/mc are community builds of the same releases.
+# SeaweedFS is the local S3 (Storage:S3 in appsettings.Development.json): S3 API on http://localhost:8333 (path style),
+# master UI on http://localhost:9333. Its S3 credentials come from seaweedfs/s3.json (local only values, never use them
+# elsewhere). seaweedfs-init creates the storeasy-local bucket.
 services:
   redis:
     image: redis:7-alpine
@@ -37,28 +37,28 @@ services:
     volumes:
       - seq-data:/data
 
-  minio:
-    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.51
     restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "8333:8333"
+      - "9333:9333"
     volumes:
-      - minio-data:/data
+      - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+      - seaweedfs-data:/data
 
-  minio-init:
-    image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z
+  seaweedfs-init:
+    image: chrislusf/seaweedfs:4.51
     depends_on:
-      - minio
+      - seaweedfs
     restart: "no"
     entrypoint: >
       /bin/sh -c "
-      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done;
-      mc mb --ignore-existing local/storeasy-local;
+      until echo 's3.bucket.list' | weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888 | grep -q storeasy-local; do
+      echo 's3.bucket.create -name storeasy-local' | weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888;
+      sleep 2;
+      done;
       exit 0;
       "
 
@@ -66,4 +66,4 @@ volumes:
   redis-data:
   postgres-data:
   seq-data:
-  minio-data:
+  seaweedfs-data:

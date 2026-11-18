@@ -51,4 +51,30 @@ public class AuditTrail(IStoreasyRepositoryBase<StoreAuditLog> auditRepository, 
 
         return _auditRepository.AddAsync(entry, cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public Task WriteManyAsync(IReadOnlyList<AuditEntry> entries, CancellationToken cancellationToken = default)
+    {
+        if (entries == null || entries.Count == 0)
+            return Task.CompletedTask;
+
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var isSystem = Channel == ActionChannel.System || !_currentUser.IsAuthenticated;
+
+        var rows = entries.Select(e => new StoreAuditLog
+        {
+            OrganizationId = e.OrganizationId,
+            UserId = e.UserName != null ? e.UserId : isSystem ? null : _currentUser.Id,
+            UserName = e.UserName ?? (isSystem ? _systemUserName : _currentUser.UserName),
+            Channel = e.Channel ?? Channel,
+            Action = e.Action,
+            Store = e.Store,
+            TargetId = e.TargetId,
+            Summary = SecretRedactor.RedactAndTrim(e.Summary, _summaryMaxLength),
+            Details = e.Details == null ? null : SecretRedactor.Redact(JsonSerializer.Serialize(e.Details)),
+            Date = now,
+        }).ToList();
+
+        return _auditRepository.AddRangeAsync(rows, cancellationToken);
+    }
 }
