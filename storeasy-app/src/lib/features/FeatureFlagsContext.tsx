@@ -36,7 +36,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   Plans: true,
   OrganizationRetention: false,
   AccountSessions: false,
-  Platform: false,
+  // The platform administration screens (users, roles, activity log, languages, feature flags, system status).
+  Platform: true,
   // The rule watcher's proposals and sources (platform administrators, phase 4); the other platform screens wait.
   RuleWatcher: true,
 }

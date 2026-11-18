@@ -34,7 +34,6 @@ const AuditPage = lazyPage(() => import('@/pages/org/AuditPage'), 'AuditPage')
 const OrgSettingsPage = lazyPage(() => import('@/pages/org/OrgSettingsPage'), 'OrgSettingsPage')
 const AccountPage = lazyPage(() => import('@/pages/account/AccountPage'), 'AccountPage')
 const SecurityPage = lazyPage(() => import('@/pages/account/AccountPage'), 'SecurityPage')
-const PlatformPage = lazyPage(() => import('@/pages/SectionPages'), 'PlatformPage')
 const StudioRoutes = lazyPage(() => import('@/features/studio/StudioRoutes'), 'StudioRoutes')
 
 function Lazy({ children }: { children: JSX.Element }) {
@@ -191,12 +190,6 @@ export function App() {
         <Route path="/settings" element={<OrgSettingsPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/account/security" element={<SecurityPage />} />
-        <Route path="/admin/users" element={<PlatformPage section="adminUsers" />} />
-        <Route path="/admin/roles" element={<PlatformPage section="adminRoles" />} />
-        <Route path="/admin/activity-logs" element={<PlatformPage section="adminLogs" />} />
-        <Route path="/admin/languages" element={<PlatformPage section="adminLanguages" />} />
-        <Route path="/admin/feature-flags" element={<PlatformPage section="adminFlags" />} />
-        <Route path="/admin/system" element={<PlatformPage section="adminSystem" />} />
         {contentRoutes()}
         {microsoftRoutes()}
         <Route path="*" element={<NotFoundPage />} />

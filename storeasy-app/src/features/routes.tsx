@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import { useFeature, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
 import { lazyPage } from '@/lib/utils/lazyPage'
+import type { SectionKey } from '@/pages/SectionPages'
 
 // The phase 2 screens' routes, as one fragment App.tsx places inside the signed in shell (before the catch-all route).
 // Every page is its own lazy chunk.
@@ -59,6 +60,26 @@ const RuleProposalPage = lazyPage(() => import('@/features/rules-watcher/RuleWat
 const TokensPage = lazyPage(() => import('@/features/tokens/TokensPage'), 'TokensPage')
 const McpSetupPage = lazyPage(() => import('@/features/mcp/McpSetupPage'), 'McpSetupPage')
 const IntakeRoutes = lazyPage(() => import('@/features/intake/IntakeRoutes'), 'IntakeRoutes')
+
+// Platform administration (design 17.9-17.27): Manager user type and the global permission of each screen.
+const UsersPage = lazyPage(() => import('@/features/platform/UsersPages'), 'UsersPage')
+const UserDetailPage = lazyPage(() => import('@/features/platform/UsersPages'), 'UserDetailPage')
+const RolesPage = lazyPage(() => import('@/features/platform/RolesPage'), 'RolesPage')
+const ActivityLogsPage = lazyPage(() => import('@/features/platform/ActivityLogsPage'), 'ActivityLogsPage')
+const LanguagesPage = lazyPage(() => import('@/features/platform/LanguagesPage'), 'LanguagesPage')
+const FeatureFlagsPage = lazyPage(() => import('@/features/platform/FeatureFlagsPage'), 'FeatureFlagsPage')
+const SystemPage = lazyPage(() => import('@/features/platform/SystemPage'), 'SystemPage')
+
+const PLATFORM_ROUTES: Array<{ path: string; section: Extract<SectionKey, `admin${string}`>; page: ReactNode }> = [
+  { path: '/admin/users', section: 'adminUsers', page: <UsersPage /> },
+  { path: '/admin/users/:userId', section: 'adminUsers', page: <UserDetailPage /> },
+  { path: '/admin/roles', section: 'adminRoles', page: <RolesPage /> },
+  { path: '/admin/roles/:roleId', section: 'adminRoles', page: <RolesPage /> },
+  { path: '/admin/activity-logs', section: 'adminLogs', page: <ActivityLogsPage /> },
+  { path: '/admin/languages', section: 'adminLanguages', page: <LanguagesPage /> },
+  { path: '/admin/feature-flags', section: 'adminFlags', page: <FeatureFlagsPage /> },
+  { path: '/admin/system', section: 'adminSystem', page: <SystemPage /> },
+]
 
 // A section behind its feature flag: while the flag is off the route keeps its designed "coming" page (kill switch).
 function Flagged({ flag, off, children }: { flag: FeatureFlagKey; off: ReactNode; children: ReactNode }) {
@@ -157,6 +178,17 @@ export function contentRoutes() {
           </Flagged>
         }
       />
+      {PLATFORM_ROUTES.map((route) => (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
+            <Flagged flag="Platform" off={<PlatformPage section={route.section} />}>
+              {route.page}
+            </Flagged>
+          }
+        />
+      ))}
       <Route
         path="/intake/*"
         element={
