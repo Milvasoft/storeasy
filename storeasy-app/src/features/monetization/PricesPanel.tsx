@@ -141,7 +141,7 @@ export function PricesPanel({ context }: { context: PriceContext }) {
     {
       key: 'start',
       header: t.price.start,
-      cell: (row) => (row.PendingStartDate ?? row.StartDate ? format.date(row.PendingStartDate ?? row.StartDate) : '-'),
+      cell: (row) => ((row.PendingStartDate ?? row.StartDate) ? format.date(row.PendingStartDate ?? row.StartDate) : '-'),
     },
     {
       key: 'action',
@@ -225,9 +225,7 @@ export function PricesPanel({ context }: { context: PriceContext }) {
           />
         </>
       )}
-      {editing ? (
-        <TerritoryPriceModal context={context} row={editing} onClose={() => setEditing(null)} onPlanned={setPlan} />
-      ) : null}
+      {editing ? <TerritoryPriceModal context={context} row={editing} onClose={() => setEditing(null)} onPlanned={setPlan} /> : null}
       {basing ? <BasePriceModal context={context} onClose={() => setBasing(false)} onPlanned={setPlan} /> : null}
       <PlanDialog plan={plan} onClose={() => setPlan(null)} />
     </div>

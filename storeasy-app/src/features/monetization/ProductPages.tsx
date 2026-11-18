@@ -7,7 +7,18 @@ import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { Modal } from '@/components/ui/Modal'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { Tabs } from '@/components/ui/Tabs'
-import { Button, CardSkeleton, Chip, EmptyState, Field, Input, PageHeader, RadioGroup, TableSkeleton, Textarea } from '@/components/ui/primitives'
+import {
+  Button,
+  CardSkeleton,
+  Chip,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  RadioGroup,
+  TableSkeleton,
+  Textarea,
+} from '@/components/ui/primitives'
 import type { ListRequest } from '@/lib/api/list'
 import { StoreKind } from '@/lib/api/types'
 import { useFormat } from '@/lib/i18n/I18nContext'
@@ -130,7 +141,13 @@ function SubscriptionDetail({ context, tab }: { context: WorkspaceContext; tab: 
         ]}
       />
       <div className="mt-4">
-        {tab === 'prices' ? <PricesPanel context={prices} /> : tab === 'offers' ? <OffersPanel context={prices} /> : <ProductGeneral context={prices} />}
+        {tab === 'prices' ? (
+          <PricesPanel context={prices} />
+        ) : tab === 'offers' ? (
+          <OffersPanel context={prices} />
+        ) : (
+          <ProductGeneral context={prices} />
+        )}
       </div>
     </div>
   )
@@ -287,7 +304,15 @@ function IapList({ context }: { context: WorkspaceContext }) {
 }
 
 /** Design 10.10 and 10.19: kind and product id are asked together, since neither changes once created. */
-function CreateIapModal({ context, onClose, onPlanned }: { context: WorkspaceContext; onClose: () => void; onPlanned: (plan: ChangePlanDto) => void }) {
+function CreateIapModal({
+  context,
+  onClose,
+  onPlanned,
+}: {
+  context: WorkspaceContext
+  onClose: () => void
+  onPlanned: (plan: ChangePlanDto) => void
+}) {
   const t = useMoneyT()
   const { app, organizationId, record } = context
   const play = record.Store === StoreKind.Google
@@ -384,13 +409,27 @@ function CreateIapModal({ context, onClose, onPlanned }: { context: WorkspaceCon
             </Field>
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label={t.play.region}>
-                <Input mono maxLength={2} value={price.region} onChange={(event) => setPrice({ ...price, region: event.target.value.toUpperCase() })} />
+                <Input
+                  mono
+                  maxLength={2}
+                  value={price.region}
+                  onChange={(event) => setPrice({ ...price, region: event.target.value.toUpperCase() })}
+                />
               </Field>
               <Field label={t.play.currency}>
-                <Input mono maxLength={3} value={price.currency} onChange={(event) => setPrice({ ...price, currency: event.target.value.toUpperCase() })} />
+                <Input
+                  mono
+                  maxLength={3}
+                  value={price.currency}
+                  onChange={(event) => setPrice({ ...price, currency: event.target.value.toUpperCase() })}
+                />
               </Field>
               <Field label={t.play.amount} hint={t.play.amountHint}>
-                <Input inputMode="decimal" value={price.amount} onChange={(event) => setPrice({ ...price, amount: event.target.value.replace(',', '.') })} />
+                <Input
+                  inputMode="decimal"
+                  value={price.amount}
+                  onChange={(event) => setPrice({ ...price, amount: event.target.value.replace(',', '.') })}
+                />
               </Field>
             </div>
           </>

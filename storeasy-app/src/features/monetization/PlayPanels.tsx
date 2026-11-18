@@ -117,7 +117,10 @@ export function PlayBasePlans({
                   )}
                 </span>
                 <StateBadge state={plan.State} />
-                <Link className="lnk text-[13px]" to={`/apps/${app.Id}/money/subscriptions/${subscription.Id}/base-plans/${id}${storeQuery}`}>
+                <Link
+                  className="lnk text-[13px]"
+                  to={`/apps/${app.Id}/money/subscriptions/${subscription.Id}/base-plans/${id}${storeQuery}`}
+                >
                   {interpolate(t.play.regionPrices, { count: plan.RegionCount })}
                 </Link>
                 {editor ? (
@@ -132,7 +135,10 @@ export function PlayBasePlans({
                 ) : null}
               </div>
               {(plan.Offers ?? []).length > 0 ? (
-                <ul className="m-0 grid list-none gap-1 border-l-2 border-border pl-3" aria-label={interpolate(t.play.offersOf, { name: id })}>
+                <ul
+                  className="m-0 grid list-none gap-1 border-l-2 border-border pl-3"
+                  aria-label={interpolate(t.play.offersOf, { name: id })}
+                >
                   {(plan.Offers ?? []).map((offer) => {
                     const code = offer.Code ?? offer.Id ?? ''
                     const on = offerActive(offer)
@@ -179,7 +185,12 @@ export function PlayBasePlans({
         </div>
       ) : null}
       {addingPlan ? (
-        <BasePlanModal context={context} productId={subscription.ProductId ?? ''} onClose={() => setAddingPlan(false)} onPlanned={onPlanned} />
+        <BasePlanModal
+          context={context}
+          productId={subscription.ProductId ?? ''}
+          onClose={() => setAddingPlan(false)}
+          onPlanned={onPlanned}
+        />
       ) : null}
       {offerFor ? (
         <PlayOfferModal
@@ -212,13 +223,27 @@ function PriceFields({
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <Field label={t.play.region}>
-        <Input mono maxLength={2} value={price.region} onChange={(event) => onChange({ ...price, region: event.target.value.toUpperCase() })} />
+        <Input
+          mono
+          maxLength={2}
+          value={price.region}
+          onChange={(event) => onChange({ ...price, region: event.target.value.toUpperCase() })}
+        />
       </Field>
       <Field label={t.play.currency}>
-        <Input mono maxLength={3} value={price.currency} onChange={(event) => onChange({ ...price, currency: event.target.value.toUpperCase() })} />
+        <Input
+          mono
+          maxLength={3}
+          value={price.currency}
+          onChange={(event) => onChange({ ...price, currency: event.target.value.toUpperCase() })}
+        />
       </Field>
       <Field label={t.play.amount} hint={t.play.amountHint}>
-        <Input inputMode="decimal" value={price.amount} onChange={(event) => onChange({ ...price, amount: event.target.value.replace(',', '.') })} />
+        <Input
+          inputMode="decimal"
+          value={price.amount}
+          onChange={(event) => onChange({ ...price, amount: event.target.value.replace(',', '.') })}
+        />
       </Field>
     </div>
   )
@@ -259,7 +284,12 @@ function BasePlanModal({ context, productId, onClose, onPlanned }: PlayModalProp
           <Button variant="ghost" onClick={onClose}>
             {t.common.cancel}
           </Button>
-          <Button variant="primary" disabled={!id.trim() || !price.amount.trim()} loading={mutation.isPending} onClick={() => mutation.mutate()}>
+          <Button
+            variant="primary"
+            disabled={!id.trim() || !price.amount.trim()}
+            loading={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
             {t.plan.add}
           </Button>
         </>
@@ -362,7 +392,11 @@ function PlayOfferModal({ context, productId, plan, onClose, onPlanned }: PlayMo
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.offers.duration}>
-            <Select value={duration} options={PLAY_OFFER_DURATIONS.map((value) => ({ value, label: durationLabel(value, t) }))} onChange={setDuration} />
+            <Select
+              value={duration}
+              options={PLAY_OFFER_DURATIONS.map((value) => ({ value, label: durationLabel(value, t) }))}
+              onChange={setDuration}
+            />
           </Field>
           <Field label={t.play.recurrence}>
             <Input type="number" min={1} value={recurrence} onChange={(event) => setRecurrence(event.target.value)} />
@@ -450,7 +484,8 @@ function BasePlanPrices({ context }: { context: WorkspaceContext }) {
   const storeAppId = product?.StoreAppId ?? context.record.StoreAppId
 
   const convert = useMutation({
-    mutationFn: (input: { currency: string; amount: string }) => subscriptionsApi.convert(organizationId, storeAppId, input.currency, input.amount),
+    mutationFn: (input: { currency: string; amount: string }) =>
+      subscriptionsApi.convert(organizationId, storeAppId, input.currency, input.amount),
     onSuccess: (answer) => {
       const known = new Map((current.data?.Data ?? []).map((price) => [(price.Territory ?? '').toUpperCase(), price]))
       const baseRegion = (base?.region ?? '').toUpperCase()
@@ -486,10 +521,7 @@ function BasePlanPrices({ context }: { context: WorkspaceContext }) {
   })
 
   const onSale = basePlan ? isOnSale(basePlan.State) : false
-  const changes = useMemo(
-    () => (rows ?? []).filter((row) => row.amount.trim() && row.amount.trim() !== (row.current ?? '').trim()),
-    [rows],
-  )
+  const changes = useMemo(() => (rows ?? []).filter((row) => row.amount.trim() && row.amount.trim() !== (row.current ?? '').trim()), [rows])
   const request = usePlanRequest(
     () =>
       subscriptionsApi.plan(organizationId, storeAppId, [
@@ -534,24 +566,30 @@ function BasePlanPrices({ context }: { context: WorkspaceContext }) {
     currency: basePlan.BasePrice?.Currency ?? 'TRY',
     amount: basePlan.BasePrice?.Amount ?? '',
   }
-  const all = rows ?? (current.data?.Data ?? []).map<Row>((price) => ({
-    region: (price.Territory ?? '').toUpperCase(),
-    currency: price.Currency ?? '',
-    current: price.CustomerPrice ?? null,
-    amount: price.CustomerPrice ?? '',
-    source: price.Source,
-    edited: false,
-  }))
+  const all =
+    rows ??
+    (current.data?.Data ?? []).map<Row>((price) => ({
+      region: (price.Territory ?? '').toUpperCase(),
+      currency: price.Currency ?? '',
+      current: price.CustomerPrice ?? null,
+      amount: price.CustomerPrice ?? '',
+      source: price.Source,
+      edited: false,
+    }))
   const changedSet = new Set(changes.map((row) => row.region))
   const needle = foldSearch(search.trim())
   const listed = all
-    .filter((row) => (view === 'changed' && rows ? changedSet.has(row.region) : view === 'invalid' ? invalid.has(row.region) : true))
+    .filter((row) =>
+      view === 'changed' && rows ? row.edited || changedSet.has(row.region) : view === 'invalid' ? invalid.has(row.region) : true,
+    )
     .filter((row) => !needle || foldSearch(row.region).includes(needle))
   const shown = listed.slice((page - 1) * pageSize, page * pageSize)
 
   const setAmount = (region: string, amount: string) =>
     setRows((list) =>
-      (list ?? all).map((row) => (row.region === region ? { ...row, amount: amount.replace(',', '.'), source: PriceSource.Manual, edited: true } : row)),
+      (list ?? all).map((row) =>
+        row.region === region ? { ...row, amount: amount.replace(',', '.'), source: PriceSource.Manual, edited: true } : row,
+      ),
     )
 
   const submit = () => {
@@ -578,7 +616,11 @@ function BasePlanPrices({ context }: { context: WorkspaceContext }) {
         </span>
       ),
     },
-    { key: 'current', header: t.price.current, cell: (row) => <span className="tabular-nums">{priceText(row.current, row.currency)}</span> },
+    {
+      key: 'current',
+      header: t.price.current,
+      cell: (row) => <span className="tabular-nums">{priceText(row.current, row.currency)}</span>,
+    },
     {
       key: 'new',
       header: t.price.newPrice,
@@ -653,10 +695,20 @@ function BasePlanPrices({ context }: { context: WorkspaceContext }) {
           {rows ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t.play.otherUsd}>
-                <Input inputMode="decimal" value={other.usd} disabled={!editor} onChange={(event) => setOther({ ...other, usd: event.target.value })} />
+                <Input
+                  inputMode="decimal"
+                  value={other.usd}
+                  disabled={!editor}
+                  onChange={(event) => setOther({ ...other, usd: event.target.value })}
+                />
               </Field>
               <Field label={t.play.otherEur}>
-                <Input inputMode="decimal" value={other.eur} disabled={!editor} onChange={(event) => setOther({ ...other, eur: event.target.value })} />
+                <Input
+                  inputMode="decimal"
+                  value={other.eur}
+                  disabled={!editor}
+                  onChange={(event) => setOther({ ...other, eur: event.target.value })}
+                />
               </Field>
             </div>
           ) : null}

@@ -54,7 +54,12 @@ function PurchaseSettings({ context }: { context: WorkspaceContext }) {
       ) : notifications.data.Assisted || record.Store === StoreKind.Google ? (
         <AssistedNotifications context={context} data={notifications.data} />
       ) : (
-        <ServerNotifications key={`${notifications.data.Url}-${notifications.data.SandboxUrl}`} context={context} data={notifications.data} onPlanned={setPlan} />
+        <ServerNotifications
+          key={`${notifications.data.Url}-${notifications.data.SandboxUrl}`}
+          context={context}
+          data={notifications.data}
+          onPlanned={setPlan}
+        />
       )}
       {record.Store === StoreKind.Apple ? <SandboxTesters context={context} onPlanned={setPlan} /> : null}
       <PlanDialog plan={plan} onClose={() => setPlan(null)} />
@@ -151,7 +156,11 @@ function ServerNotifications({
         <Field label={t.settings.productionUrl} error={urlError} hint={t.settings.urlHint}>
           <Input mono type="url" value={url} disabled={!allowed} onChange={(event) => setUrl(event.target.value)} />
         </Field>
-        <Field label={t.settings.sandboxUrl} error={sandboxError} hint={data.SandboxVersion ? interpolate(t.settings.version, { version: data.SandboxVersion }) : undefined}>
+        <Field
+          label={t.settings.sandboxUrl}
+          error={sandboxError}
+          hint={data.SandboxVersion ? interpolate(t.settings.version, { version: data.SandboxVersion }) : undefined}
+        >
           <Input mono type="url" value={sandboxUrl} disabled={!allowed} onChange={(event) => setSandboxUrl(event.target.value)} />
         </Field>
         <Field label={t.settings.versionLabel}>

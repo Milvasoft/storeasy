@@ -116,7 +116,12 @@ export function PlayListings({ context }: { context: PriceContext }) {
             </div>
             {errorBox}
             <div>
-              <Button variant="primary" disabled={changed.length === 0 || tooLong} loading={mutation.isPending} onClick={() => mutation.mutate()}>
+              <Button
+                variant="primary"
+                disabled={changed.length === 0 || tooLong}
+                loading={mutation.isPending}
+                onClick={() => mutation.mutate()}
+              >
                 {interpolate(t.detail.reviewChanges, { count: changed.length })}
               </Button>
             </div>
@@ -211,7 +216,11 @@ function OptionPrices({ organizationId, iapId, optionId }: { organizationId: num
         </span>
       ),
     },
-    { key: 'price', header: t.price.price, cell: (row) => <span className="tabular-nums">{priceText(row.CustomerPrice, row.Currency)}</span> },
+    {
+      key: 'price',
+      header: t.price.price,
+      cell: (row) => <span className="tabular-nums">{priceText(row.CustomerPrice, row.Currency)}</span>,
+    },
     { key: 'source', header: t.price.source, cell: (row) => <SourceTag source={row.Source} /> },
   ]
   if (prices.isLoading) {
@@ -220,7 +229,12 @@ function OptionPrices({ organizationId, iapId, optionId }: { organizationId: num
   return rows.length === 0 ? (
     <p className="m-0 text-[13px] text-fg3">{t.price.noPrice}</p>
   ) : (
-    <DataTable columns={columns} rows={rows} rowKey={(row) => row.Territory ?? ''} caption={interpolate(t.play.pricesOf, { name: optionId })} />
+    <DataTable
+      columns={columns}
+      rows={rows}
+      rowKey={(row) => row.Territory ?? ''}
+      caption={interpolate(t.play.pricesOf, { name: optionId })}
+    />
   )
 }
 

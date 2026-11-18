@@ -98,9 +98,7 @@ export function PricePointSelect({
   const points = useQuery({
     queryKey: moneyKeys.pricePoints(organizationId, owner, id, code),
     queryFn: () =>
-      owner === 'subscription'
-        ? subscriptionsApi.pricePoints(organizationId, id, code)
-        : iapApi.pricePoints(organizationId, id, code),
+      owner === 'subscription' ? subscriptionsApi.pricePoints(organizationId, id, code) : iapApi.pricePoints(organizationId, id, code),
     enabled: ready,
     staleTime: 5 * 60_000,
   })

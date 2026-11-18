@@ -139,7 +139,11 @@ export function ProductGeneral({ context }: { context: PriceContext }) {
             <Field label={t.common.productId} hint={t.detail.productIdLocked}>
               <Input mono value={product.ProductId ?? ''} readOnly />
             </Field>
-            <Field label={t.common.referenceName} hint={t.common.referenceHint} counter={{ value: referenceName.length, max: REFERENCE_MAX }}>
+            <Field
+              label={t.common.referenceName}
+              hint={t.common.referenceHint}
+              counter={{ value: referenceName.length, max: REFERENCE_MAX }}
+            >
               <Input
                 value={referenceName}
                 disabled={!editor}
@@ -223,7 +227,10 @@ export function ProductGeneral({ context }: { context: PriceContext }) {
                   disabled={!newLocale.trim() || locales.includes(newLocale.trim())}
                   onClick={() => {
                     const code = newLocale.trim()
-                    setDraft((current) => ({ ...current, localizations: { ...current.localizations, [code]: { Name: '', Description: '' } } }))
+                    setDraft((current) => ({
+                      ...current,
+                      localizations: { ...current.localizations, [code]: { Name: '', Description: '' } },
+                    }))
                     setLocale(code)
                     setNewLocale('')
                   }}
@@ -261,7 +268,9 @@ export function ProductGeneral({ context }: { context: PriceContext }) {
                   accept={['.png', '.jpg', '.jpeg']}
                   label={product.ReviewScreenshot ? t.detail.replaceScreenshot : t.detail.uploadScreenshot}
                   hint={t.detail.screenshotHint}
-                  onUploaded={(asset) => setDraft((current) => ({ ...current, screenshot: { assetId: asset.Id, fileName: asset.FileName } }))}
+                  onUploaded={(asset) =>
+                    setDraft((current) => ({ ...current, screenshot: { assetId: asset.Id, fileName: asset.FileName } }))
+                  }
                 />
               ) : null}
               <span className="text-xs text-fg3">{t.detail.readinessRule}</span>
@@ -376,7 +385,11 @@ function AvailabilityModal({
           <Button variant="ghost" onClick={onClose}>
             {t.common.cancel}
           </Button>
-          <Button variant="primary" disabled={codes.length === 0 || invalid.length > 0} onClick={() => onSave({ territories: codes, inNew })}>
+          <Button
+            variant="primary"
+            disabled={codes.length === 0 || invalid.length > 0}
+            onClick={() => onSave({ territories: codes, inNew })}
+          >
             {t.common.done}
           </Button>
         </>

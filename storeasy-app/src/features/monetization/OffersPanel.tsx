@@ -47,7 +47,13 @@ export function OffersPanel({ context }: { context: PriceContext }) {
   const stop = usePlanRequest(
     (referenceName: string) =>
       subscriptionsApi.plan(organizationId, product.StoreAppId, [
-        { Kind: MonetizationChangeKind.OfferCode, ProductId: product.ProductId, SubscriptionId: product.Id, ReferenceName: referenceName, Active: false },
+        {
+          Kind: MonetizationChangeKind.OfferCode,
+          ProductId: product.ProductId,
+          SubscriptionId: product.Id,
+          ReferenceName: referenceName,
+          Active: false,
+        },
       ]),
     setPlan,
   )
@@ -66,14 +72,22 @@ export function OffersPanel({ context }: { context: PriceContext }) {
   return (
     <div className="grid gap-4">
       {stop.errorBox}
-      <OfferSection title={t.offers.introductory} note={t.offers.introductoryNote} onAdd={editor ? () => setAdding('introductory') : undefined}>
+      <OfferSection
+        title={t.offers.introductory}
+        note={t.offers.introductoryNote}
+        onAdd={editor ? () => setAdding('introductory') : undefined}
+      >
         {data.Introductory.map((offer, index) => (
           <OfferRow key={offer.Id ?? index} title={terms(offer)} state={offer.State}>
             {interpolate(t.offers.territories, { count: offer.Territories?.length ?? 0 })} · {dates(offer)}
           </OfferRow>
         ))}
       </OfferSection>
-      <OfferSection title={t.offers.promotional} note={t.offers.promotionalNote} onAdd={editor ? () => setAdding('promotional') : undefined}>
+      <OfferSection
+        title={t.offers.promotional}
+        note={t.offers.promotionalNote}
+        onAdd={editor ? () => setAdding('promotional') : undefined}
+      >
         {data.Promotional.map((offer, index) => (
           <OfferRow key={offer.Id ?? index} title={offer.Name ?? offer.Code ?? '-'} state={offer.State}>
             <span className="mono">{offer.Code}</span> · {terms(offer)} · {interpolate(t.offers.prices, { count: offer.PriceCount ?? 0 })}
@@ -135,7 +149,11 @@ function OfferSection({ title, note, onAdd, children }: { title: string; note: s
         ) : null}
       </div>
       <div className="card-b grid gap-2">
-        {children.length === 0 ? <p className="m-0 text-[13px] text-fg3">{t.offers.none}</p> : <ul className="m-0 grid list-none gap-2 p-0">{children}</ul>}
+        {children.length === 0 ? (
+          <p className="m-0 text-[13px] text-fg3">{t.offers.none}</p>
+        ) : (
+          <ul className="m-0 grid list-none gap-2 p-0">{children}</ul>
+        )}
         <p className="m-0 text-xs text-fg3">{note}</p>
       </div>
     </section>
@@ -311,7 +329,12 @@ function OfferModal({
     ((kind === 'promotional' || kind === 'winBack') && !code.trim()) ||
     (kind === 'offerCode' && eligibility.length === 0) ||
     (kind === 'winBack' && !start)
-  const title = { introductory: t.offers.introductory, promotional: t.offers.promotional, offerCode: t.offers.offerCodes, winBack: t.offers.winBack }[kind]
+  const title = {
+    introductory: t.offers.introductory,
+    promotional: t.offers.promotional,
+    offerCode: t.offers.offerCodes,
+    winBack: t.offers.winBack,
+  }[kind]
 
   return (
     <Modal
@@ -362,7 +385,11 @@ function OfferModal({
           </Field>
         ) : (
           <Field label={t.offers.duration}>
-            <Select value={duration} options={OFFER_DURATIONS.map((value) => ({ value, label: durationLabel(value, t) }))} onChange={setDuration} />
+            <Select
+              value={duration}
+              options={OFFER_DURATIONS.map((value) => ({ value, label: durationLabel(value, t) }))}
+              onChange={setDuration}
+            />
           </Field>
         )}
         {needsPrices ? (
@@ -389,10 +416,22 @@ function OfferModal({
                 <Input mono value={customCode} onChange={(event) => setCustomCode(event.target.value.toUpperCase())} />
               </Field>
               <Field label={t.offers.customCount}>
-                <Input type="number" min={1} value={customCount} disabled={!customCode.trim()} onChange={(event) => setCustomCount(event.target.value)} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={customCount}
+                  disabled={!customCode.trim()}
+                  onChange={(event) => setCustomCount(event.target.value)}
+                />
               </Field>
               <Field label={t.offers.expiry}>
-                <Input type="date" min={todayDateOnly()} value={expiry} disabled={!customCode.trim()} onChange={(event) => setExpiry(event.target.value)} />
+                <Input
+                  type="date"
+                  min={todayDateOnly()}
+                  value={expiry}
+                  disabled={!customCode.trim()}
+                  onChange={(event) => setExpiry(event.target.value)}
+                />
               </Field>
             </div>
             <Field label={t.offers.oneTimeCount} hint={t.offers.oneTimeHint} optional>
@@ -428,7 +467,11 @@ function OfferModal({
         ) : null}
         {kind === 'introductory' || kind === 'winBack' ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t.offers.startDate} optional={kind === 'introductory'} hint={kind === 'winBack' ? t.offers.winBackStart : undefined}>
+            <Field
+              label={t.offers.startDate}
+              optional={kind === 'introductory'}
+              hint={kind === 'winBack' ? t.offers.winBackStart : undefined}
+            >
               <Input type="date" min={todayDateOnly()} value={start} onChange={(event) => setStart(event.target.value)} />
             </Field>
             <Field label={t.offers.endDate} optional>

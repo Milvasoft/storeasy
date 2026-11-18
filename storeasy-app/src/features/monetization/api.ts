@@ -55,7 +55,12 @@ export const subscriptionsApi = {
     }),
 
   plan: (organizationId: number, storeAppId: number, changes: MonetizationChangeDto[]) =>
-    apiPost<ChangePlanDto>('/Subscriptions/plan', { OrganizationId: organizationId, StoreAppId: storeAppId, Changes: changes, DryRun: true }),
+    apiPost<ChangePlanDto>('/Subscriptions/plan', {
+      OrganizationId: organizationId,
+      StoreAppId: storeAppId,
+      Changes: changes,
+      DryRun: true,
+    }),
 
   // Queues a sync of the subscriptions and In-App Purchases; answers the job id.
   sync: (organizationId: number, storeAppId: number) =>

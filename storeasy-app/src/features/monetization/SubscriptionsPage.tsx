@@ -147,9 +147,7 @@ function AppleGroups({ context, data, synced, onPlanned }: ListProps) {
           ))}
         </div>
       )}
-      {creatingGroup ? (
-        <CreateGroupModal context={context} onClose={() => setCreatingGroup(false)} onPlanned={onPlanned} />
-      ) : null}
+      {creatingGroup ? <CreateGroupModal context={context} onClose={() => setCreatingGroup(false)} onPlanned={onPlanned} /> : null}
     </>
   )
 }
@@ -527,7 +525,12 @@ function GroupLocalizationModal({
           <Button variant="ghost" onClick={onClose}>
             {t.common.cancel}
           </Button>
-          <Button variant="primary" disabled={!locale.trim() || !name.trim()} loading={mutation.isPending} onClick={() => mutation.mutate()}>
+          <Button
+            variant="primary"
+            disabled={!locale.trim() || !name.trim()}
+            loading={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
             {t.plan.add}
           </Button>
         </>
@@ -573,7 +576,11 @@ function PlaySubscriptions({ context, data, synced, onPlanned }: ListProps) {
         }
       />
       {subscriptions.length === 0 ? (
-        <EmptyState icon={<CircleDollarSign aria-hidden />} title={interpolate(t.play.emptyTitle, { app: app.Name })} description={t.play.emptyBody} />
+        <EmptyState
+          icon={<CircleDollarSign aria-hidden />}
+          title={interpolate(t.play.emptyTitle, { app: app.Name })}
+          description={t.play.emptyBody}
+        />
       ) : (
         <div className="grid gap-4">
           {subscriptions.map((subscription) => (
