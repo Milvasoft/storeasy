@@ -1,0 +1,152 @@
+﻿<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy logo turu 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --ultra:#4636FF;
+}
+html[data-theme="light"]{
+  --bg:250 250 248;--surface:255 255 255;--line:228 227 222;
+  --text:20 20 22;--text-2:92 92 98;--text-3:140 140 146;
+  --accent:70 54 255;--accent-text:255 255 255;
+}
+html[data-theme="dark"]{
+  --bg:10 10 11;--surface:18 18 20;--line:38 38 42;
+  --text:240 240 238;--text-2:168 168 172;--text-3:112 112 118;
+  --accent:133 122 255;--accent-text:10 10 11;
+}
+*{box-sizing:border-box}
+body{margin:0;background:rgb(var(--bg));color:rgb(var(--text));font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 16px 80px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+h1{font:800 40px/1.05 var(--font-display);letter-spacing:-.03em;margin:0 0 8px}
+h1 em{font-style:normal;color:rgb(var(--accent))}
+.lead{color:rgb(var(--text-2));max-width:660px;margin:0}
+.toggle{font:600 12px var(--font-mono);padding:8px 12px;border-radius:10px;border:1px solid rgb(var(--line));background:rgb(var(--surface));color:rgb(var(--text));cursor:pointer}
+.tag{display:inline-block;font:600 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgb(var(--accent)/.14);color:rgb(var(--accent))}
+
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:36px 0 12px}
+.hero{background:rgb(var(--surface));border:1px solid rgb(var(--line));border-radius:24px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.hero svg.big{width:112px;height:112px}
+.hero svg.big{transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}.hero:hover svg.big{transform:rotate(-360deg)}
+@media (prefers-reduced-motion:reduce){.hero:hover svg.big{transform:none}}
+.hero b{font:700 17px var(--font-display)}
+
+.opt{margin-top:28px;background:rgb(var(--surface));border:1px solid rgb(var(--line));border-radius:24px;padding:24px;display:grid;grid-template-columns:260px 1fr;gap:28px}
+.opt h2{font:800 26px var(--font-display);letter-spacing:-.02em;margin:8px 0 6px}
+.opt p{color:rgb(var(--text-2));margin:0 0 10px}
+.opt ul{margin:0;padding-left:18px;color:rgb(var(--text-2))}
+.opt li{margin:3px 0}
+.uses{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:stretch}
+.icon{width:120px;height:120px;border-radius:28px;background:var(--ultra);display:grid;place-items:center;box-shadow:0 10px 30px -12px rgba(70,54,255,.7)}
+.icon svg{width:72px;height:72px}
+.strips{display:grid;gap:10px;min-width:0}
+.strip{border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.strip.l{background:#FAFAF8;border:1px solid #E4E3DE;--a:#4636FF;--at:#fff;--t:#141416;--tabbg:#ECEBE6}
+.strip.d{background:#121214;border:1px solid #26262A;--a:#857AFF;--at:#0A0A0B;--t:#F0F0EE;--tabbg:#1E1E22}
+.lock{display:flex;align-items:center;gap:9px;font:800 24px var(--font-display);letter-spacing:-.035em;color:var(--t)}
+.lock svg{width:30px;height:30px}
+.lock i{font-style:normal;color:var(--a)}
+.sizes{display:flex;align-items:flex-end;gap:12px;margin-left:auto}
+.sizes svg{display:block}
+.sizes span{font:500 10px var(--font-mono);color:#8C8C92;display:block;text-align:center;margin-top:4px}
+.tab{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:9px 9px 0 0;background:var(--tabbg);font:500 12px var(--font-body);color:var(--t)}
+.tab svg{width:16px;height:16px}
+
+/* Mark color slots: --m1 main, --m2 second tone, --m3 detail on top of m1 */
+.ui{--m1:rgb(var(--accent));--m2:rgb(var(--accent)/.5);--m3:rgb(var(--accent-text))}
+.strip{--m1:var(--a);--m2:color-mix(in srgb,var(--a) 50%,transparent);--m3:var(--at)}
+.icon{--m1:#fff;--m2:rgba(255,255,255,.55);--m3:var(--ultra)}
+.icon.flat{--m1:transparent;--m3:#fff}
+
+.pick{margin-top:36px;padding:22px 24px;border-radius:20px;background:rgb(var(--accent)/.1);border:1px solid rgb(var(--accent)/.35)}
+.pick h3{font:800 20px var(--font-display);margin:0 0 6px}
+.pick p{margin:0;color:rgb(var(--text-2))}
+@media (max-width:900px){.row{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+@media (max-width:820px){.opt{grid-template-columns:1fr}.uses{grid-template-columns:1fr}.sizes{margin-left:0}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- K1: Kanat e. Three tapering blades turning around one center, the bar is the fourth -->
+    <symbol id="m-kanat" viewBox="0 0 48 48">
+      <path d="M43.20 20.61L42.88 19.12L42.44 17.65L41.88 16.22L41.22 14.85L40.45 13.52L39.57 12.26L38.60 11.08L37.55 9.97L36.40 8.95L35.18 8.03L33.90 7.20L32.55 6.47L31.15 5.86L29.70 5.35L28.22 4.96L26.71 4.69L25.19 4.54L23.66 4.50L22.13 4.59L20.61 4.80L19.12 5.12L17.65 5.56L16.22 6.12L14.85 6.78L16.49 9.87L17.73 9.58L18.97 9.38L20.20 9.30L21.41 9.31L22.60 9.42L23.75 9.63L24.86 9.92L25.93 10.30L26.94 10.76L27.89 11.29L28.77 11.89L29.59 12.54L30.33 13.25L31.00 14.00L31.59 14.79L32.10 15.61L32.53 16.45L32.88 17.30L33.15 18.17L33.34 19.03L33.46 19.89L33.49 20.73L33.46 21.55L33.36 22.35Z" fill="var(--m1)"/>
+      <path d="M11.99 8.63L10.87 9.58L9.82 10.62L8.85 11.73L7.96 12.91L7.17 14.15L6.47 15.45L5.88 16.80L5.39 18.19L5.00 19.61L4.72 21.06L4.56 22.53L4.50 24.00L4.56 25.47L4.72 26.94L5.00 28.39L5.39 29.81L5.88 31.20L6.47 32.55L7.17 33.85L7.96 35.09L8.85 36.27L9.82 37.38L10.87 38.42L11.99 39.37L14.15 36.61L13.41 35.63L12.76 34.61L12.20 33.56L11.73 32.48L11.36 31.40L11.08 30.30L10.89 29.21L10.79 28.12L10.79 27.05L10.86 26.00L11.02 24.98L11.25 24.00L11.56 23.06L11.93 22.16L12.37 21.31L12.86 20.52L13.41 19.79L14.00 19.12L14.63 18.52L15.30 17.98L15.99 17.51L16.70 17.11L17.42 16.78L18.15 16.51Z" fill="var(--m2)"/>
+      <path d="M14.85 41.22L15.86 41.72L16.91 42.16L17.97 42.55L19.06 42.86L20.17 43.12L21.29 43.31L22.41 43.44L23.55 43.49L24.68 43.49L25.81 43.42L26.94 43.28L28.05 43.07L29.16 42.81L30.24 42.47L31.30 42.08L32.34 41.62L33.35 41.11L34.33 40.54L35.28 39.91L36.18 39.23L37.05 38.49L37.87 37.71L38.64 36.88L39.37 36.01L36.61 33.85L35.81 34.39L34.99 34.87L34.16 35.29L33.32 35.65L32.47 35.95L31.62 36.19L30.77 36.38L29.92 36.50L29.08 36.57L28.25 36.59L27.44 36.56L26.65 36.47L25.88 36.34L25.13 36.16L24.42 35.93L23.73 35.66L23.07 35.36L22.45 35.02L21.87 34.64L21.32 34.24L20.81 33.81L20.35 33.35L19.92 32.88L19.54 32.39Z" fill="var(--m1)"/>
+      <path d="M11.5 21.3H41a2.7 2.7 0 0 1 0 5.4H11.5a2.7 2.7 0 0 1 0-5.4z" fill="var(--m2)"/>
+    </symbol>
+    <!-- K2: Kesik e. Even ring cut with slanted ends, like blades in motion -->
+    <symbol id="m-kesik" viewBox="0 0 48 48">
+      <path d="M43.31 21.29L43.05 19.83L42.68 18.41L42.20 17.01L41.62 15.66L40.94 14.35L40.17 13.10L39.30 11.91L38.34 10.78L37.30 9.74L36.18 8.77L35.00 7.90L33.75 7.11L32.45 6.42L31.09 5.84L29.70 5.35L28.28 4.97L26.83 4.71L25.36 4.55L23.89 4.50L22.41 4.56L20.95 4.74L19.50 5.03L18.08 5.42L16.70 5.92L17.64 13.82L18.43 13.37L19.25 12.98L20.09 12.65L20.96 12.39L21.85 12.19L22.75 12.07L23.65 12.01L24.56 12.01L25.46 12.09L26.36 12.23L27.24 12.45L28.10 12.72L28.94 13.07L29.76 13.47L30.54 13.94L31.28 14.46L31.98 15.04L32.63 15.66L33.24 16.34L33.79 17.06L34.29 17.82L34.72 18.61L35.10 19.44L35.41 20.29Z" fill="var(--m1)"/>
+      <path d="M13.10 7.83L11.93 8.69L10.83 9.62L9.80 10.64L8.85 11.73L7.98 12.89L7.20 14.10L6.51 15.38L5.92 16.70L5.43 18.06L5.04 19.45L4.75 20.87L4.57 22.30L4.50 23.74L4.54 25.19L4.68 26.63L4.93 28.05L5.28 29.46L5.73 30.83L6.29 32.16L6.94 33.45L7.69 34.69L8.53 35.87L9.45 36.98L10.45 38.03L17.29 33.95L16.57 33.42L15.89 32.85L15.26 32.22L14.67 31.55L14.14 30.84L13.66 30.09L13.24 29.31L12.87 28.50L12.57 27.66L12.33 26.80L12.16 25.93L12.05 25.05L12.00 24.16L12.02 23.27L12.11 22.38L12.26 21.51L12.48 20.64L12.76 19.80L13.10 18.98L13.50 18.18L13.96 17.42L14.48 16.69L15.05 16.01L15.66 15.37Z" fill="var(--m2)"/>
+      <path d="M13.67 40.54L14.70 41.14L15.76 41.67L16.85 42.14L17.97 42.55L19.12 42.88L20.28 43.14L21.45 43.33L22.64 43.45L23.83 43.50L25.02 43.47L26.21 43.37L27.39 43.20L28.55 42.96L29.70 42.65L30.83 42.27L31.93 41.81L33.00 41.30L34.04 40.71L35.04 40.07L36.01 39.37L36.92 38.60L37.79 37.79L38.60 36.92L39.37 36.01L34.60 29.63L34.23 30.27L33.83 30.88L33.39 31.47L32.92 32.03L32.41 32.56L31.87 33.06L31.31 33.52L30.71 33.95L30.09 34.34L29.45 34.69L28.78 35.00L28.10 35.28L27.41 35.51L26.70 35.69L25.98 35.84L25.25 35.93L24.52 35.99L23.79 36.00L23.06 35.96L22.33 35.88L21.61 35.76L20.89 35.59L20.19 35.38L19.50 35.13Z" fill="var(--m1)"/>
+      <path d="M11.5 21.3H41a2.7 2.7 0 0 1 0 5.4H11.5a2.7 2.7 0 0 1 0-5.4z" fill="var(--m2)"/>
+    </symbol>
+    <!-- K3: Dort kanat e. The round G pinwheel with one blade removed: the gap is the e opening -->
+    <symbol id="m-dort" viewBox="0 0 48 48">
+      <path d="M24 24H43a9.5 9.5 0 0 0-19 0z" fill="var(--m1)"/>
+      <path d="M24 24V5a9.5 9.5 0 0 0 0 19z" fill="var(--m2)"/>
+      <path d="M24 24H5a9.5 9.5 0 0 0 19 0z" fill="var(--m1)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div>
+      <span class="tag">Logo turu 4 · Ultramarin</span>
+      <h1>Rüzgârgülünden <em>e</em></h1>
+      <p class="lead">Rüzgârgülünün dönen kanatları ile "storeasy" adındaki ortak "e" harfi tek işarette. Üç farklı yorum var: incelen kanatlar, eğik kesilmiş halka ve bir kanadı eksik rüzgârgülü.</p>
+    </div>
+    <button class="toggle" id="t">Açık tema</button>
+  </header>
+
+  <div class="row ui" id="row"></div>
+  <div id="opts"></div>
+
+  <div class="pick">
+    <h3>Önerim: K1 · Kanat e</h3>
+    <p>Hem rüzgârgülünün hareketini hem "e" harfini en dengeli taşıyan yorum bu. Uygulamada kanatlar dönerek yükleme göstergesi olur, iş bitince durup logoya dönüşür. Seçtiğin yorumu ilk dosyadaki giriş ve uygulama ekranlarına yerleştirip tam tasarıma geçeceğim.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var marks=[
+    {id:'m-kanat',k:'K1',n:'Kanat e',tag:'Önerim',lockE:true,p:'Üç kanat merkez etrafında aynı yöne dönüyor ve birlikte bir "e" çiziyor. Kanatlar ucuna doğru inceliyor, bu da dönme hissi veriyor. Ortadaki çubuk dördüncü kanat.',
+     li:['Rüzgârgülünün hareketi ve "e" harfi tek işarette.','Kanatlar dönerek yükleme göstergesi, durunca logo olur.','Yazı logoda ortadaki "e" vurgu renginde.']},
+    {id:'m-kesik',k:'K2',n:'Kesik e',tag:'Alternatif',lockE:true,p:'Eşit kalınlıkta bir "e" halkası, kanat gibi eğik kesilmiş üç parçaya ayrılıyor. Daha sakin, daha harf gibi.',
+     li:['"e" ilk bakışta okunuyor.','Eğik kesikler dönme yönünü gösteriyor.','Zayıf yanı: rüzgârgülü hissi K1 kadar güçlü değil.']},
+    {id:'m-dort',k:'K3',n:'Dört kanat e',tag:'Alternatif',lockE:true,p:'Turu 3’teki rüzgârgülünün kendisi; bir kanadı çıkarılmış. Eksik kanadın boşluğu "e"nin ağzı, üst kanadın düz alt kenarı da çubuğu oluyor.',
+     li:['Önceki beğendiğin şekle en yakın.','En dolu ve en güçlü siluet, 16 pikselde çok net.','Zayıf yanı: "e" ikinci bakışta okunuyor.']}
+  ];
+  function use(id,w){return '<svg'+(w?' width="'+w+'" height="'+w+'"':'')+'><use href="#'+id+'"/></svg>'}
+  function strip(m,c){
+    var word=m.lockE?'stor<i>e</i>asy':'storeasy';
+    return '<div class="strip '+c+'"><div class="lock">'+use(m.id)+'<span>'+word+'</span></div><div class="tab">'+use(m.id)+'storeasy · Uygulamalar</div><div class="sizes">'+
+      [32,20,16].map(function(s){return '<div>'+use(m.id,s)+'<span>'+s+'</span></div>'}).join('')+'</div></div>';
+  }
+  document.getElementById('row').innerHTML=marks.map(function(m){return '<div class="hero"><svg class="big"><use href="#'+m.id+'"/></svg><b>'+m.k+' · '+m.n+'</b></div>'}).join('');
+  document.getElementById('opts').innerHTML=marks.map(function(m){
+    return '<section class="opt"><div><span class="tag">'+m.tag+'</span><h2>'+m.k+' · '+m.n+'</h2><p>'+m.p+'</p><ul>'+m.li.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>'+
+      '<div class="uses"><div class="icon'+(m.flat?' flat':'')+'">'+use(m.id)+'</div><div class="strips">'+strip(m,'l')+strip(m,'d')+'</div></div></section>';
+  }).join('');
+  var h=document.documentElement,b=document.getElementById('t');
+  function set(t){h.setAttribute('data-theme',t);b.textContent=t==='dark'?'Açık tema':'Koyu tema';try{localStorage.setItem('storeasy.logo4',t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem('storeasy.logo4')}catch(e){}
+  set(s==='light'?'light':'dark');
+  b.addEventListener('click',function(){set(h.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>
