@@ -1,0 +1,117 @@
+import { screen, waitFor } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { InvitePage } from '@/pages/auth/InvitePage'
+import { ForgotPasswordPage, ResetPasswordPage } from '@/pages/auth/PasswordRecoveryPages'
+import { VerifyEmailPage, VerifyEmailTokenPage } from '@/pages/auth/VerifyEmailPage'
+import { endpoint, errorResponse } from '../../support/handlers'
+import { renderWithProviders } from '../../support/render'
+import { server } from '../../support/server'
+import { lastRequestTo, requestsTo } from '../../support/state'
+
+describe('ForgotPasswordPage', () => {
+  it('sends the address and says "if there is an account", then counts down the resend', async () => {
+    const { user } = renderWithProviders(<ForgotPasswordPage />, { authed: false })
+
+    await user.type(screen.getByLabelText('E-posta'), 'deniz@kuzeylab.dev')
+    await user.click(screen.getByRole('button', { name: 'Bağlantı gönder' }))
+
+    expect(await screen.findByRole('heading', { name: 'Gelen kutunu kontrol et' })).toBeInTheDocument()
+    expect(screen.getByText(/kayıtlı bir hesap varsa/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Yeniden gönder · 1:00/ })).toBeDisabled()
+    expect(lastRequestTo('/Account/password/forgot')?.body).toEqual({ Email: 'deniz@kuzeylab.dev' })
+  })
+})
+
+describe('ResetPasswordPage', () => {
+  it('saves the new password with the token and returns to sign-in with the "changed" note', async () => {
+    const { user } = renderWithProviders(<ResetPasswordPage />, { authed: false, route: '/reset-password?token=t-1' })
+
+    await user.type(screen.getByLabelText('Yeni şifre'), 'Kuzey!2026')
+    await user.type(screen.getByLabelText('Yeni şifre tekrar'), 'Kuzey!2026')
+    await user.click(screen.getByRole('button', { name: 'Şifreyi kaydet' }))
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/login?reset=ok'))
+    expect(lastRequestTo('/Account/password/reset')?.body).toEqual({ Token: 't-1', NewPassword: 'Kuzey!2026' })
+  })
+
+  it('compares the repeat field before sending', async () => {
+    const { user } = renderWithProviders(<ResetPasswordPage />, { authed: false, route: '/reset-password?token=t-1' })
+
+    await user.type(screen.getByLabelText('Yeni şifre'), 'Kuzey!2026')
+    await user.type(screen.getByLabelText('Yeni şifre tekrar'), 'Kuzey!2027')
+    await user.click(screen.getByRole('button', { name: 'Şifreyi kaydet' }))
+
+    expect(screen.getByText('İki şifre aynı değil.')).toBeInTheDocument()
+    expect(requestsTo('/Account/password/reset')).toHaveLength(0)
+  })
+
+  it('shows the single "link no longer works" state for an invalid token', async () => {
+    server.use(endpoint('post', '/Account/password/reset', () => errorResponse('ResetTokenInvalid', 'Geçersiz.', 400)))
+    const { user } = renderWithProviders(<ResetPasswordPage />, { authed: false, route: '/reset-password?token=old' })
+
+    await user.type(screen.getByLabelText('Yeni şifre'), 'Kuzey!2026')
+    await user.type(screen.getByLabelText('Yeni şifre tekrar'), 'Kuzey!2026')
+    await user.click(screen.getByRole('button', { name: 'Şifreyi kaydet' }))
+
+    expect(await screen.findByRole('heading', { name: 'Bu bağlantı artık geçerli değil' })).toBeInTheDocument()
+  })
+})
+
+describe('VerifyEmail pages', () => {
+  it('verifies the token from the link once and leads to sign-in', async () => {
+    renderWithProviders(<VerifyEmailTokenPage />, { authed: false, route: '/verify-email/abc', path: '/verify-email/:token' })
+
+    expect(await screen.findByRole('heading', { name: 'E-postan doğrulandı' })).toBeInTheDocument()
+    expect(requestsTo('/Account/email/verify')).toHaveLength(1)
+    expect(lastRequestTo('/Account/email/verify')?.body).toEqual({ Token: 'abc' })
+  })
+
+  it('offers a new link when the token expired', async () => {
+    server.use(endpoint('post', '/Account/email/verify', () => errorResponse('VerificationTokenExpired', 'Süresi dolmuş.', 400)))
+    renderWithProviders(<VerifyEmailTokenPage />, { authed: false, route: '/verify-email/old', path: '/verify-email/:token' })
+
+    expect(await screen.findByRole('heading', { name: 'Bağlantının süresi dolmuş' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Yeni bağlantı gönder' })).toBeInTheDocument()
+  })
+
+  it('resends the link to the address it came with', async () => {
+    const { user } = renderWithProviders(<VerifyEmailPage />, { authed: false, route: '/verify-email?email=deniz%40kuzeylab.dev' })
+
+    await user.click(screen.getByRole('button', { name: 'Yeniden gönder' }))
+
+    expect(await screen.findByText('Yeni bağlantıyı gönderdik. Öncekisi artık çalışmaz.')).toBeInTheDocument()
+    expect(lastRequestTo('/Account/email/verify/resend')?.body).toEqual({ Email: 'deniz@kuzeylab.dev' })
+  })
+})
+
+describe('InvitePage', () => {
+  it('sends a guest to sign in or sign up, carrying the token', () => {
+    renderWithProviders(<InvitePage />, { authed: false, route: '/invite/tok-9', path: '/invite/:token' })
+
+    expect(screen.getByRole('link', { name: 'Giriş yap ve katıl' })).toHaveAttribute('href', '/login?returnUrl=%2Finvite%2Ftok-9')
+    expect(screen.getByRole('link', { name: 'Hesap oluştur ve katıl' })).toHaveAttribute('href', '/register?invite=tok-9')
+  })
+
+  it('accepts the invitation for a signed-in user and opens the organization', async () => {
+    const { user } = renderWithProviders(<InvitePage />, { route: '/invite/tok-9', path: '/invite/:token', needsOrganization: false })
+
+    await user.click(await screen.findByRole('button', { name: 'Katıl' }))
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps'))
+    expect(lastRequestTo('/Organizations/invitation/accept')?.body).toEqual({ Token: 'tok-9' })
+    expect(await screen.findByText('Organizasyona katıldın')).toBeInTheDocument()
+  })
+
+  it('says the invitation is for another address and offers to switch account', async () => {
+    server.use(
+      endpoint('post', '/Organizations/invitation/accept', () =>
+        errorResponse('InvitationEmailMismatch', 'Davet başka bir adres için.', 400),
+      ),
+    )
+    const { user } = renderWithProviders(<InvitePage />, { route: '/invite/tok-9', path: '/invite/:token', needsOrganization: false })
+
+    await user.click(await screen.findByRole('button', { name: 'Katıl' }))
+
+    expect(await screen.findByRole('button', { name: 'Hesap değiştir' })).toBeInTheDocument()
+  })
+})
