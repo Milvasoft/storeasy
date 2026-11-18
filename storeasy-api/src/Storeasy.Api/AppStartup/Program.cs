@@ -130,11 +130,15 @@ try
     // the header entirely. Requests pass two proxies: Cloudflare (proxied DNS) and Traefik, which trusts only the
     // Cloudflare ranges and appends Cloudflare's address. ForwardLimit = 2 keeps the two RIGHTMOST
     // X-Forwarded-For entries, so the client address is the one Cloudflare wrote; values a client prepends are
-    // ignored. With a single proxy in front, set it back to 1. Deploy behind a proxy only.
+    // ignored. The number of trusted hops comes from Storeasy:Network:ForwardedHops: 2 for the documented self-host
+    // (one TLS proxy, then the web container nginx), 1 with nothing in front of nginx. A value larger than
+    // the real chain lets a client spoof its address and escape IP rate limits. Deploy behind a proxy only.
+    var forwardedHops = app.Configuration.GetValue("Storeasy:Network:ForwardedHops", 2);
+
     var forwardedHeadersOptions = new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        ForwardLimit = 2
+        ForwardLimit = Math.Clamp(forwardedHops, 1, 5)
     };
 
     forwardedHeadersOptions.KnownIPNetworks.Clear();

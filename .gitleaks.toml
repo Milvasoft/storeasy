@@ -6,3 +6,12 @@ useDefault = true
 [[allowlists]]
 description = "Local development credentials of the SeaweedFS in storeasy-api/docker-compose.yml (local only, never used elsewhere)"
 regexes = ['''storeasy-local-(access-key|secret-key-not-for-production)''']
+
+[[allowlists]]
+description = "Test fixtures: fake JWTs, keys generated or shaped for tests, sample tokens and hashes. Checked by hand on 2026-11-18; real keys never live in the repository."
+paths = [
+  '''storeasy-api/tests/''',
+  '''storeasy-app/test/''',
+  '''storeasy-app/e2e/''',
+  '''tools/[^/]+/test/''',
+]

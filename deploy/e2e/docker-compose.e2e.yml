@@ -42,6 +42,9 @@ services:
       - "manage.devcenter.microsoft.com:127.0.0.1"
       - "api.store.microsoft.com:127.0.0.1"
     environment:
+      # Test only: nothing is in front of nginx here, so 2 hops lets each e2e call pick its own client address and
+      # keeps the per-address rate limits of sign-up and sign-in apart. Never use this setup in production.
+      Storeasy__Network__ForwardedHops: "2"
       Storeasy__Registration__Mode: Open
       Storeasy__Email__Provider: Smtp
       Storeasy__Email__Smtp__Host: mailpit

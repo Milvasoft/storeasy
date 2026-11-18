@@ -154,9 +154,11 @@ files.storeasy.example.com {
 Rules for any proxy:
 
 - **App host:** pass WebSocket upgrades (`/hubs/activity`) and do not buffer `/mcp` responses (both are long lived; the
-  inner nginx already allows one hour). Set `X-Forwarded-For` to the client address. The API trusts the last two
-  `X-Forwarded-For` hops (your proxy and the inner nginx), so run exactly one proxy in front of the web container and
-  never expose the web or API container directly. The app host must be reachable from the internet if you use App
+  inner nginx already allows one hour). Set `X-Forwarded-For` to the client address. The API trusts the last
+  `Storeasy__Network__ForwardedHops` `X-Forwarded-For` hops (default 2: your proxy and the inner nginx). Run exactly
+  one proxy in front of the web container, or set the value to your real chain (1 with nothing in front, 3 with a CDN
+  plus a proxy). A value larger than the real chain lets clients spoof their address and escape rate limits. Never
+  expose the web or API container directly. The app host must be reachable from the internet if you use App
   Store Connect webhooks, EAS or signed webhooks (they call `/api/webhooks/...`).
 - **S3 host:** keep the original `Host` header (presigned URLs are signed for it), allow request bodies of at least
   64 MiB (the largest upload part) and long timeouts. The API container must also reach `S3_PUBLIC_URL`: it signs URLs
