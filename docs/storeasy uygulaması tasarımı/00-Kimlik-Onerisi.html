@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="tr" data-theme="dark" data-accent="ultra">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storeasy kimlik önerisi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root{
+  --font-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Onest",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --r-sm:8px;--r-md:12px;--r-lg:18px;--r-xl:26px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+html[data-theme="light"]{
+  --bg:250 250 248;--surface:255 255 255;--surface-2:244 244 241;--line:228 227 222;--line-strong:206 205 199;
+  --text:20 20 22;--text-2:92 92 98;--text-3:140 140 146;
+  --success:22 150 92;--warning:196 128 10;--danger:214 54 54;--info:52 118 220;
+  --apple:20 20 22;--google:20 20 22;
+}
+html[data-theme="dark"]{
+  --bg:10 10 11;--surface:18 18 20;--surface-2:26 26 29;--line:38 38 42;--line-strong:58 58 64;
+  --text:240 240 238;--text-2:168 168 172;--text-3:112 112 118;
+  --success:62 199 128;--warning:240 176 64;--danger:255 99 99;--info:110 160 255;
+  --apple:240 240 238;--google:240 240 238;
+}
+/* Accent options (one is chosen, the others go away) */
+html[data-accent="ultra"][data-theme="light"]{--accent:70 54 255;--accent-text:255 255 255}
+html[data-accent="ultra"][data-theme="dark"]{--accent:133 122 255;--accent-text:10 10 11}
+html[data-accent="tide"][data-theme="light"]{--accent:0 133 128;--accent-text:255 255 255}
+html[data-accent="tide"][data-theme="dark"]{--accent:44 214 200;--accent-text:10 10 11}
+html[data-accent="ember"][data-theme="light"]{--accent:234 82 32;--accent-text:255 255 255}
+html[data-accent="ember"][data-theme="dark"]{--accent:255 128 74;--accent-text:10 10 11}
+
+*{box-sizing:border-box}
+body{margin:0;background:rgb(var(--bg));color:rgb(var(--text));font-family:var(--font-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.mono{font-family:var(--font-mono);font-feature-settings:"zero" 1}
+.wrap{max-width:1360px;margin:0 auto;padding:0 32px 96px}
+
+/* ---------- Doc chrome ---------- */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;padding:14px 32px;background:rgb(var(--bg)/.86);backdrop-filter:blur(14px);border-bottom:1px solid rgb(var(--line))}
+.topbar h1{font:700 17px/1 var(--font-display);margin:0;letter-spacing:-.01em}
+.topbar .sp{flex:1}
+.seg{display:inline-flex;border:1px solid rgb(var(--line));border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:none;color:rgb(var(--text-2));font:500 13px var(--font-body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:rgb(var(--surface-2));color:rgb(var(--text))}
+.sw{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px}
+.sec-h{margin:72px 0 20px}
+.sec-h .k{font:600 12px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:rgb(var(--text-3))}
+.sec-h h2{font:800 40px/1.05 var(--font-display);letter-spacing:-.025em;margin:8px 0 10px}
+.sec-h p{max-width:760px;color:rgb(var(--text-2));margin:0}
+.note{font-size:13px;color:rgb(var(--text-2));border-left:2px solid rgb(var(--line-strong));padding:2px 0 2px 12px;margin-top:12px;max-width:900px}
+.grid{display:grid;gap:16px}
+.card{background:rgb(var(--surface));border:1px solid rgb(var(--line));border-radius:var(--r-lg);padding:22px}
+
+/* ---------- Hero ---------- */
+.hero{padding:72px 0 8px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero h2{font:800 76px/.95 var(--font-display);letter-spacing:-.04em;margin:0}
+.hero h2 em{font-style:normal;color:rgb(var(--accent))}
+.hero p{font-size:18px;color:rgb(var(--text-2));max-width:560px}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid rgb(var(--line));border-radius:999px;padding:6px 12px;font:500 12px var(--font-mono);color:rgb(var(--text-2))}
+
+/* ---------- Logo ---------- */
+.logos{grid-template-columns:repeat(3,1fr)}
+.logo-card{display:flex;flex-direction:column;gap:18px}
+.logo-stage{height:180px;border-radius:var(--r-md);background:rgb(var(--surface-2));display:grid;place-items:center}
+.wordmark{display:flex;align-items:center;gap:12px;font:800 34px/1 var(--font-display);letter-spacing:-.035em}
+.logo-card h3{margin:0;font:700 18px var(--font-display)}
+.logo-card p{margin:0;font-size:13px;color:rgb(var(--text-2))}
+.tag{display:inline-block;font:600 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgb(var(--accent)/.14);color:rgb(var(--accent))}
+
+/* ---------- Palette ---------- */
+.pal{grid-template-columns:repeat(3,1fr)}
+.pal .opt{cursor:pointer;transition:border-color .2s}
+.pal .opt[aria-pressed="true"]{border-color:rgb(var(--text-2))}
+.chips{display:flex;gap:8px;margin:14px 0}
+.chip{flex:1;height:64px;border-radius:var(--r-sm);display:flex;align-items:flex-end;padding:8px;font:500 11px var(--font-mono)}
+.neutral{grid-template-columns:repeat(8,1fr);margin-top:16px}
+.neutral div{height:56px;border-radius:var(--r-sm);border:1px solid rgb(var(--line));font:500 10px var(--font-mono);display:flex;align-items:flex-end;padding:6px;color:rgb(var(--text-3))}
+.status{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.badge{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--font-body);padding:4px 10px;border-radius:999px;border:1px solid currentColor}
+.b-ok{color:rgb(var(--success))}.b-warn{color:rgb(var(--warning))}.b-bad{color:rgb(var(--danger))}.b-info{color:rgb(var(--info))}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ---------- Type ---------- */
+.type{grid-template-columns:1.3fr 1fr}
+.specimen .d1{font:800 64px/1 var(--font-display);letter-spacing:-.035em}
+.specimen .d2{font:700 28px/1.15 var(--font-display);letter-spacing:-.02em;margin-top:14px}
+.specimen .b{font-size:15px;color:rgb(var(--text-2));margin-top:12px;max-width:520px}
+.specimen .m{font:500 13px var(--font-mono);color:rgb(var(--text-2));margin-top:14px}
+.scale div{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgb(var(--line));padding:10px 0}
+.scale span:last-child{font:500 11px var(--font-mono);color:rgb(var(--text-3))}
+
+/* ---------- Frames ---------- */
+.fr{margin-top:8px}
+.fr-h{display:flex;gap:12px;align-items:baseline;margin-bottom:10px}
+.fr-h b{font:600 12px var(--font-mono);color:rgb(var(--text-3))}
+.fr-h span{font:700 16px var(--font-display)}
+.fr-h code{font:500 12px var(--font-mono);color:rgb(var(--text-3))}
+.scaler{width:100%;overflow:hidden;border-radius:var(--r-lg);border:1px solid rgb(var(--line))}
+.web{width:1280px;height:820px;background:rgb(var(--bg));transform-origin:0 0;position:relative;overflow:hidden;display:flex}
+
+/* App shell */
+.side{width:248px;border-right:1px solid rgb(var(--line));padding:18px 14px;display:flex;flex-direction:column;gap:6px;background:rgb(var(--surface))}
+.side .brand{display:flex;align-items:center;gap:10px;font:800 21px var(--font-display);letter-spacing:-.03em;padding:4px 8px 14px}
+.org{display:flex;align-items:center;gap:10px;border:1px solid rgb(var(--line));border-radius:var(--r-md);padding:9px 10px;margin-bottom:10px}
+.org .av{width:28px;height:28px;border-radius:8px;background:rgb(var(--surface-2));display:grid;place-items:center;font:700 12px var(--font-display)}
+.org small{display:block;color:rgb(var(--text-3));font-size:11px}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgb(var(--text-2));font-weight:500;font-size:14px}
+.nav.on{background:rgb(var(--surface-2));color:rgb(var(--text))}
+.nav.on svg{color:rgb(var(--accent))}
+.nav .count{margin-left:auto;font:600 11px var(--font-mono);color:rgb(var(--text-3))}
+.side .me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid rgb(var(--line))}
+.me .av{width:30px;height:30px;border-radius:50%;background:rgb(var(--surface-2));display:grid;place-items:center;font:600 12px var(--font-body)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.bar{height:60px;border-bottom:1px solid rgb(var(--line));display:flex;align-items:center;gap:14px;padding:0 24px}
+.crumb{color:rgb(var(--text-3));font-size:13px}.crumb b{color:rgb(var(--text));font-weight:600}
+.search{margin-left:auto;width:280px;height:36px;border:1px solid rgb(var(--line));border-radius:10px;display:flex;align-items:center;gap:8px;padding:0 10px;color:rgb(var(--text-3));font-size:13px}
+.kbd{margin-left:auto;font:500 11px var(--font-mono);border:1px solid rgb(var(--line));border-radius:5px;padding:1px 5px}
+.ib{width:36px;height:36px;border:1px solid rgb(var(--line));border-radius:10px;display:grid;place-items:center;color:rgb(var(--text-2));position:relative}
+.ib .pip{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:rgb(var(--danger))}
+.content{padding:24px;overflow:hidden;flex:1}
+.h1{font:800 30px/1.1 var(--font-display);letter-spacing:-.025em;margin:0}
+.sub{color:rgb(var(--text-2));font-size:14px;margin:4px 0 0}
+.btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:10px;font:600 14px var(--font-body);border:1px solid rgb(var(--line));background:rgb(var(--surface));color:rgb(var(--text))}
+.btn.primary{background:rgb(var(--accent));border-color:transparent;color:rgb(var(--accent-text))}
+.btn.ghost{background:none}
+
+/* Apps grid */
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.app{border:1px solid rgb(var(--line));border-radius:var(--r-lg);background:rgb(var(--surface));padding:16px;display:flex;flex-direction:column;gap:14px}
+.app-top{display:flex;gap:12px;align-items:center}
+.icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font:800 18px var(--font-display);color:#fff}
+.app h4{margin:0;font:700 16px var(--font-display)}
+.app .id{font:500 11px var(--font-mono);color:rgb(var(--text-3))}
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lane{border:1px solid rgb(var(--line));border-radius:10px;padding:9px 10px;font-size:12px}
+.lane .s{display:flex;align-items:center;gap:6px;color:rgb(var(--text-3));font:600 10px var(--font-mono);text-transform:uppercase;letter-spacing:.06em}
+.lane .v{font:600 13px var(--font-body);margin-top:4px}
+.lane .v small{color:rgb(var(--text-3));font-weight:500}
+.mini{height:4px;border-radius:2px;background:rgb(var(--surface-2));overflow:hidden;margin-top:8px}
+.mini i{display:block;height:100%;background:rgb(var(--accent))}
+.app .foot{display:flex;justify-content:space-between;font-size:12px;color:rgb(var(--text-3));border-top:1px dashed rgb(var(--line));padding-top:10px}
+
+/* Login */
+.login{display:grid;grid-template-columns:520px 1fr;width:100%}
+.login .form{padding:64px 72px;display:flex;flex-direction:column;justify-content:center;gap:16px;background:rgb(var(--bg));position:relative;z-index:2}
+.field label{display:block;font:600 12px var(--font-body);color:rgb(var(--text-2));margin-bottom:6px}
+.field .in{height:44px;border:1px solid rgb(var(--line-strong));border-radius:10px;display:flex;align-items:center;padding:0 12px;color:rgb(var(--text-3));font-size:14px;background:rgb(var(--surface))}
+.login .art{position:relative;overflow:hidden;background:rgb(var(--surface))}
+.login .art::before{content:"";position:absolute;inset:0 auto 0 0;width:180px;background:linear-gradient(90deg,rgb(var(--bg)),rgb(var(--bg)/0));z-index:1}
+
+/* Activity */
+.act{display:grid;grid-template-columns:1fr 330px;gap:16px;margin-top:18px;height:640px}
+.stage{border:1px solid rgb(var(--line));border-radius:var(--r-lg);background:rgb(var(--surface));position:relative;overflow:hidden}
+.stage .legend{position:absolute;left:16px;top:14px;display:flex;gap:14px;font:500 11px var(--font-mono);color:rgb(var(--text-3))}
+.stage .legend i{display:inline-block;width:14px;height:2px;vertical-align:3px;margin-right:6px}
+.feed{border:1px solid rgb(var(--line));border-radius:var(--r-lg);background:rgb(var(--surface));display:flex;flex-direction:column;overflow:hidden}
+.feed-h{padding:14px 16px;border-bottom:1px solid rgb(var(--line));display:flex;align-items:center;gap:8px;font:700 14px var(--font-display)}
+.live{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--font-mono);color:rgb(var(--success));margin-left:auto}
+.live .dot{animation:pulse 1.6s infinite}
+.ev{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:10px 16px;border-bottom:1px dashed rgb(var(--line));font-size:12.5px}
+.ev time{font:500 11px var(--font-mono);color:rgb(var(--text-3));padding-top:2px}
+.ev b{font-weight:600}
+.ev .m{font:500 11px var(--font-mono);color:rgb(var(--text-3))}
+.dir{font:700 10px var(--font-mono);padding:1px 5px;border-radius:4px;margin-right:6px}
+.dir.out{background:rgb(var(--accent)/.14);color:rgb(var(--accent))}
+.dir.in{background:rgb(var(--text)/.08);color:rgb(var(--text-2))}
+.jobbar{display:flex;align-items:center;gap:16px;border:1px solid rgb(var(--line));border-radius:var(--r-md);padding:12px 16px;margin-top:16px;background:rgb(var(--surface))}
+.steps{display:flex;gap:6px;flex:1}
+.steps span{flex:1;height:6px;border-radius:3px;background:rgb(var(--surface-2))}
+.steps span.done{background:rgb(var(--text-2))}
+.steps span.now{background:rgb(var(--accent));animation:breathe 1.4s ease-in-out infinite}
+
+/* Studio */
+.studio{display:grid;grid-template-columns:300px 1fr 280px;gap:0;width:100%}
+.panel{border-right:1px solid rgb(var(--line));padding:18px;background:rgb(var(--surface));display:flex;flex-direction:column;gap:14px}
+.panel.r{border-right:0;border-left:1px solid rgb(var(--line))}
+.ph{font:600 11px var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:rgb(var(--text-3))}
+.canvas{display:flex;align-items:center;justify-content:center;gap:22px;background:repeating-linear-gradient(45deg,rgb(var(--surface-2)/.5) 0 1px,transparent 1px 14px),rgb(var(--bg))}
+.shot{width:214px;height:465px;border-radius:18px;position:relative;overflow:hidden;padding:26px 16px 0;color:#fff;box-shadow:0 30px 60px -30px rgb(0 0 0/.5)}
+.shot h5{font:800 21px/1.08 var(--font-display);letter-spacing:-.025em;margin:0}
+.shot p{font-size:11px;opacity:.82;margin:6px 0 0}
+.sizes{display:flex;flex-direction:column;gap:6px}
+.size{display:flex;justify-content:space-between;align-items:center;border:1px solid rgb(var(--line));border-radius:9px;padding:8px 10px;font-size:12px}
+.size .mono{font-size:11px;color:rgb(var(--text-3))}
+.ok{color:rgb(var(--success));font:600 11px var(--font-mono)}
+.no{color:rgb(var(--danger));font:600 11px var(--font-mono)}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (24x24, stroke 1.9, lucide equivalents noted) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m8 10 4 4 4-4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16l13-8z"/></symbol>
+    <symbol id="i-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M9 15l3-6 3 6M10 13h4"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></symbol>
+
+    <!-- Logo mark A: "Rota s" -->
+    <symbol id="logo-rota" viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="14" fill="rgb(var(--accent))"/>
+      <path d="M33 15.5c-1.6-2-4.2-3-7.4-3-4.6 0-7.6 2.4-7.6 5.8 0 7.4 15 4.2 15 11.6 0 3.6-3.2 6-8 6-3.4 0-6.2-1.2-8-3.4" fill="none" stroke="rgb(var(--accent-text))" stroke-width="3.6" stroke-linecap="round"/>
+      <circle cx="33" cy="15.5" r="3.3" fill="rgb(var(--accent-text))"/>
+      <circle cx="17" cy="32.5" r="3.3" fill="none" stroke="rgb(var(--accent-text))" stroke-width="2.6"/>
+    </symbol>
+    <!-- Logo mark B: "Kapı" two lanes -->
+    <symbol id="logo-kapi" viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="14" fill="rgb(var(--text))"/>
+      <path d="M12 18h16a6 6 0 0 1 0 12H20" fill="none" stroke="rgb(var(--accent))" stroke-width="4" stroke-linecap="round"/>
+      <path d="M36 30H20" fill="none" stroke="rgb(var(--bg))" stroke-width="4" stroke-linecap="round" opacity=".0"/>
+      <path d="m16 26-4 4 4 4" fill="none" stroke="rgb(var(--bg))" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="m24 14 4 4-4 4" fill="none" stroke="rgb(var(--bg))" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Logo mark C: "Raf" stacked screens -->
+    <symbol id="logo-raf" viewBox="0 0 48 48">
+      <rect x=".75" y=".75" width="46.5" height="46.5" rx="13.5" fill="rgb(var(--surface))" stroke="rgb(var(--line-strong))" stroke-width="1.5"/>
+      <rect x="13" y="10" width="14" height="24" rx="4" fill="none" stroke="rgb(var(--text-2))" stroke-width="2.6"/>
+      <rect x="21" y="14" width="14" height="24" rx="4" fill="rgb(var(--accent))"/>
+      <path d="M25 26h6M25 30h4" stroke="rgb(var(--accent-text))" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <svg width="26" height="26"><use href="#logo-rota"/></svg>
+  <h1>storeasy kimlik önerisi</h1>
+  <span class="pill">Taslak · 18 Kasım 2026</span>
+  <span class="sp"></span>
+  <div class="seg" role="group" aria-label="Vurgu rengi">
+    <button data-accent="ultra" aria-pressed="true"><span class="sw" style="background:#4636FF"></span>Ultramarin</button>
+    <button data-accent="tide" aria-pressed="false"><span class="sw" style="background:#00A39C"></span>Gelgit</button>
+    <button data-accent="ember" aria-pressed="false"><span class="sw" style="background:#EA5220"></span>Kor</button>
+  </div>
+  <div class="seg" role="group" aria-label="Tema">
+    <button data-theme="dark" aria-pressed="true">Koyu</button>
+    <button data-theme="light" aria-pressed="false">Açık</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="hero">
+  <div>
+    <span class="pill"><span class="dot" style="color:rgb(var(--accent))"></span> Fikir: "Hat"</span>
+    <h2 style="margin-top:18px">Mağaza işi,<br><em>hatta</em> akarken<br>görünür.</h2>
+    <p>storeasy'nin kimliği tek bir fikre dayanıyor: uygulamanla iki mağaza arasında bir hat. Logo bir rota, arayüz sakin bir kontrol masası, hareket yalnızca gerçekten bir şey giderken ya da gelirken var. Siyah beyaz bir zemin, tek bir canlı vurgu ve verinin her yerde mono yazıyla, kimlik gibi okunması.</p>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <svg viewBox="0 0 520 300" width="100%" role="img" aria-label="storeasy ile mağazalar arasındaki hat">
+      <defs>
+        <linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="rgb(var(--accent))" stop-opacity="0"/><stop offset=".5" stop-color="rgb(var(--accent))"/><stop offset="1" stop-color="rgb(var(--accent))" stop-opacity="0"/></linearGradient>
+      </defs>
+      <path id="h1p" d="M120 150 C 220 150, 260 80, 400 80" fill="none" stroke="rgb(var(--line-strong))" stroke-width="2" stroke-dasharray="2 6"/>
+      <path id="h2p" d="M120 150 C 220 150, 260 220, 400 220" fill="none" stroke="rgb(var(--line-strong))" stroke-width="2" stroke-dasharray="2 6"/>
+      <circle r="5" fill="rgb(var(--accent))"><animateMotion dur="2.6s" repeatCount="indefinite" path="M120 150 C 220 150, 260 80, 400 80"/></circle>
+      <circle r="5" fill="rgb(var(--accent))"><animateMotion dur="2.6s" begin="1.1s" repeatCount="indefinite" path="M120 150 C 220 150, 260 220, 400 220"/></circle>
+      <circle r="4" fill="none" stroke="rgb(var(--text-2))" stroke-width="2"><animateMotion dur="3.2s" begin=".6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M120 150 C 220 150, 260 80, 400 80"/></circle>
+      <g transform="translate(70 104)"><rect width="92" height="92" rx="26" fill="rgb(var(--accent))"/><use href="#logo-rota" x="22" y="22" width="48" height="48"/></g>
+      <g transform="translate(400 52)"><rect width="76" height="56" rx="16" fill="rgb(var(--surface-2))" stroke="rgb(var(--line))"/><text x="38" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="rgb(var(--text))">Apple</text></g>
+      <g transform="translate(400 192)"><rect width="76" height="56" rx="16" fill="rgb(var(--surface-2))" stroke="rgb(var(--line))"/><text x="38" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="rgb(var(--text))">Google</text></g>
+    </svg>
+  </div>
+</section>
+
+<!-- LOGO -->
+<div class="sec-h"><div class="k">01 · Logo yönü</div><h2>Üç işaret, biri seçilecek</h2><p>Hepsi kendi çizimimiz, Apple ve Google işaretlerine benzemiyor. Yazı markası her zaman küçük harf "storeasy", Bricolage Grotesque 800, sıkı aralık.</p></div>
+<div class="grid logos">
+  <div class="card logo-card">
+    <div class="logo-stage"><div class="wordmark"><svg width="52" height="52"><use href="#logo-rota"/></svg>storeasy</div></div>
+    <div><span class="tag">Önerilen</span></div>
+    <h3>A · Rota</h3>
+    <p>"s" harfi iki durağı olan bir rota: dolu nokta giden (storeasy), boş nokta dönen (mağaza). Canlı aktivite ekranındaki hatla aynı dil; animasyonda nokta rota boyunca kayar.</p>
+  </div>
+  <div class="card logo-card">
+    <div class="logo-stage"><div class="wordmark"><svg width="52" height="52"><use href="#logo-kapi"/></svg>storeasy</div></div>
+    <h3>B · Kapı</h3>
+    <p>Gidiş ve dönüş okları tek bir kıvrımla birleşiyor: senkronun işareti. Daha teknik, daha "araç" hissi; küçük boyutta da net.</p>
+  </div>
+  <div class="card logo-card">
+    <div class="logo-stage"><div class="wordmark"><svg width="52" height="52"><use href="#logo-raf"/></svg>storeasy</div></div>
+    <h3>C · Raf</h3>
+    <p>Arkada ham ekran görüntüsü, önde mağazaya hazır görsel. Stüdyoyu öne çıkarır; ama ürünün yalnız görsel tarafını anlatır.</p>
+  </div>
+</div>
+
+<!-- PALETTE -->
+<div class="sec-h"><div class="k">02 · Renk</div><h2>Nötr zemin, tek canlı vurgu</h2><p>Standart gereği vurgu yalnız ana eylemde, seçili durumda ve ilerlemede. Durum renkleri ayrı ve her zaman metinle. Üst bardaki seçiciyle sayfanın tamamını üç seçenekte görebilirsin.</p></div>
+<div class="grid pal">
+  <div class="card opt" data-accent="ultra" aria-pressed="true">
+    <div class="tag">Önerilen</div>
+    <div class="chips"><div class="chip" style="background:#4636FF;color:#fff">#4636FF açık</div><div class="chip" style="background:#857AFF;color:#0A0A0B">#857AFF koyu</div></div>
+    <b>Ultramarin</b>
+    <p class="note" style="border:0;padding:0">Mağaza dünyasının mavisinden (Apple, Google, Play) ayrışan, mora kayan derin bir mavi. Durum renkleriyle çakışmıyor; koyu temada parlak, açık temada ciddi.</p>
+  </div>
+  <div class="card opt" data-accent="tide" aria-pressed="false">
+    <div class="chips"><div class="chip" style="background:#008580;color:#fff">#008580 açık</div><div class="chip" style="background:#2CD6C8;color:#0A0A0B">#2CD6C8 koyu</div></div>
+    <b>Gelgit</b>
+    <p class="note" style="border:0;padding:0">Sakin, teknik bir camgöbeği. Akışı iyi anlatır; ama başarı yeşiline yakın, durum rozetleriyle karışma riski var.</p>
+  </div>
+  <div class="card opt" data-accent="ember" aria-pressed="false">
+    <div class="chips"><div class="chip" style="background:#EA5220;color:#fff">#EA5220 açık</div><div class="chip" style="background:#FF804A;color:#0A0A0B">#FF804A koyu</div></div>
+    <b>Kor</b>
+    <p class="note" style="border:0;padding:0">Enerjik, hareket hissi en güçlü olan. Ama tehlike kırmızısına yakın; "incelemeye gönder" gibi riskli eylemlerde karışabilir.</p>
+  </div>
+</div>
+<div class="grid neutral">
+  <div style="background:rgb(var(--bg))">bg</div><div style="background:rgb(var(--surface))">surface</div><div style="background:rgb(var(--surface-2))">surface-2</div><div style="background:rgb(var(--line))">line</div><div style="background:rgb(var(--line-strong))">line-strong</div><div style="background:rgb(var(--text-3));color:rgb(var(--bg))">text-3</div><div style="background:rgb(var(--text-2));color:rgb(var(--bg))">text-2</div><div style="background:rgb(var(--text));color:rgb(var(--bg))">text</div>
+</div>
+<div class="status"><span class="badge b-ok"><span class="dot"></span>Hazır</span><span class="badge b-warn"><span class="dot"></span>İncelemede</span><span class="badge b-bad"><span class="dot"></span>Reddedildi</span><span class="badge b-info"><span class="dot"></span>İşleniyor</span></div>
+
+<!-- TYPE -->
+<div class="sec-h"><div class="k">03 · Yazı</div><h2>Karakterli başlık, sakin gövde, kimlik gibi veri</h2><p>Başlıklar Bricolage Grotesque (genişliği değişken, ürüne kendi sesini veriyor). Gövde Onest (standardın önerdiği sade grotesk). Kimlikler, boyutlar, sürümler ve hash'ler JetBrains Mono. Hepsi açık lisanslı; kodda @fontsource ile gömülecek.</p></div>
+<div class="grid type">
+  <div class="card specimen">
+    <div class="d1">Sürüm 1.0 hazır.</div>
+    <div class="d2">7 ekran görüntüsü yüklendi, 2 tanesi işleniyor</div>
+    <div class="b">iPad 13" seti için Apple'dan 2064x2752 boyutunda görseller bekleniyor. 1320x2868 boyutu 6,1" slotunda reddedilir; storeasy bunu yüklemeden önce söyler.</div>
+    <div class="m">app 6835444818 · v1.0 · tr · APP_IPAD_PRO_3GEN_129 · md5 3f9a…c21e</div>
+  </div>
+  <div class="card scale">
+    <div><span style="font:800 40px var(--font-display);letter-spacing:-.03em">Başlık 40</span><span>Bricolage 800</span></div>
+    <div><span style="font:700 24px var(--font-display)">Bölüm 24</span><span>Bricolage 700</span></div>
+    <div><span style="font:600 16px var(--font-body)">Etiket 16</span><span>Onest 600</span></div>
+    <div><span style="font:400 15px var(--font-body)">Gövde metni 15</span><span>Onest 400</span></div>
+    <div><span class="mono" style="font-size:13px">com.milvasoft.sousial</span><span>Mono 500</span></div>
+  </div>
+</div>
+
+<!-- SCREEN: LOGIN -->
+<div class="sec-h"><div class="k">04 · Ekranlar</div><h2>Üç ana ekran</h2><p>Kabuk standarttaki gibi: solda 248 px menü (logo, organizasyon seçici, ana eylem, menü, altta kullanıcı), üstte yol, arama, bildirim. Giriş e-postayla (çok kiracılı ürün).</p></div>
+
+<div class="fr">
+  <div class="fr-h"><b>1.1</b><span>Giriş</span><code>/login</code></div>
+  <div class="scaler"><div class="web">
+    <div class="login">
+      <div class="form">
+        <div class="wordmark" style="font-size:28px"><svg width="40" height="40"><use href="#logo-rota"/></svg>storeasy</div>
+        <div style="margin-top:28px"><div class="h1" style="font-size:34px">Tekrar hoş geldin</div><p class="sub">Mağaza işlerin kaldığın yerde seni bekliyor.</p></div>
+        <div class="field"><label>E-posta</label><div class="in">bugra@milvasoft.com</div></div>
+        <div class="field"><label>Şifre</label><div class="in">••••••••••</div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:rgb(var(--text-2))"><span>Beni hatırla</span><b style="color:rgb(var(--text))">Şifremi unuttum</b></div>
+        <span class="btn primary" style="justify-content:center;height:46px">Giriş yap</span>
+        <div style="font-size:13px;color:rgb(var(--text-2));text-align:center">Hesabın yok mu? <b style="color:rgb(var(--text))">Kayıt ol</b></div>
+        <div style="position:absolute;bottom:28px;left:72px;right:72px;display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:rgb(var(--text-3))"><span>AGPL-3.0 · Kaynak kod</span><span>TR · EN</span></div>
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 760 820" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g fill="none" stroke="rgb(var(--text-3))" stroke-width="1.6" opacity=".6">
+            <path d="M-20 410 C 200 410, 260 160, 520 160 S 780 120, 800 120" stroke-dasharray="2 8" stroke-width="2"/>
+            <path d="M-20 410 C 200 410, 280 650, 540 650 S 780 700, 800 700" stroke-dasharray="2 8"/>
+            <path d="M-20 410 C 240 410, 300 410, 800 410" stroke-dasharray="2 8" opacity=".6"/>
+          </g>
+          <circle r="7" fill="rgb(var(--accent))"><animateMotion dur="4s" repeatCount="indefinite" path="M-20 410 C 200 410, 260 160, 520 160 S 780 120, 800 120"/></circle>
+          <circle r="7" fill="rgb(var(--accent))"><animateMotion dur="4s" begin="1.6s" repeatCount="indefinite" path="M-20 410 C 200 410, 280 650, 540 650 S 780 700, 800 700"/></circle>
+          <g transform="translate(470 110)"><rect width="168" height="100" rx="22" fill="rgb(var(--surface-2))" stroke="rgb(var(--line))"/><text x="22" y="42" font-family="JetBrains Mono" font-size="12" fill="rgb(var(--text-3))">APP STORE CONNECT</text><text x="22" y="72" font-family="Bricolage Grotesque" font-weight="700" font-size="20" fill="rgb(var(--text))">v1.0 incelemede</text></g>
+          <g transform="translate(490 600)"><rect width="168" height="100" rx="22" fill="rgb(var(--surface-2))" stroke="rgb(var(--line))"/><text x="22" y="42" font-family="JetBrains Mono" font-size="12" fill="rgb(var(--text-3))">GOOGLE PLAY</text><text x="22" y="72" font-family="Bricolage Grotesque" font-weight="700" font-size="20" fill="rgb(var(--text))">internal · 42</text></g>
+          <text x="120" y="330" font-family="Bricolage Grotesque" font-weight="800" font-size="54" letter-spacing="-2" fill="rgb(var(--text))">İki mağaza,</text>
+          <text x="120" y="390" font-family="Bricolage Grotesque" font-weight="800" font-size="54" letter-spacing="-2" fill="rgb(var(--accent))">tek hat.</text>
+        </svg>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">Standart giriş sayfasına fotoğraf istiyor. Burada fotoğraf yerine markanın hat çizimini önerdim. Fotoğraf istersen lisansı uygun 2-3 aday getiririm.</p>
+</div>
+
+<!-- SCREEN: APPS -->
+<div class="fr" style="margin-top:36px">
+  <div class="fr-h"><b>2.1</b><span>Uygulamalar</span><code>/apps</code></div>
+  <div class="scaler"><div class="web">
+    <aside class="side">
+      <div class="brand"><svg width="30" height="30"><use href="#logo-rota"/></svg>storeasy</div>
+      <div class="org"><div class="av">M</div><div><b style="font-size:13px">Milvasoft</b><small>Sahip · 5 uygulama</small></div><svg width="16" height="16" style="margin-left:auto;color:rgb(var(--text-3))"><use href="#i-chev"/></svg></div>
+      <span class="btn primary" style="justify-content:center;margin-bottom:10px"><svg width="16" height="16"><use href="#i-plus"/></svg>Uygulama ekle</span>
+      <div class="nav on"><svg width="18" height="18"><use href="#i-grid"/></svg>Uygulamalar<span class="count">5</span></div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-activity"/></svg>Canlı akış<span class="count" style="color:rgb(var(--success))">● 2</span></div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-image"/></svg>Stüdyo</div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-msg"/></svg>Yorumlar<span class="count">12</span></div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-key"/></svg>Bağlantılar</div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-users"/></svg>Üyeler</div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-list"/></svg>Denetim kaydı</div>
+      <div class="me"><div class="av">BK</div><div style="font-size:13px"><b>Buğra Kösen</b><div style="color:rgb(var(--text-3));font-size:11px">bugra@milvasoft.com</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="bar"><span class="crumb">Milvasoft / <b>Uygulamalar</b></span><div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Uygulama, sürüm, paket ara<span class="kbd">⌘K</span></div><div class="ib"><svg width="18" height="18"><use href="#i-bell"/></svg><span class="pip"></span></div></div>
+      <div class="content">
+        <div style="display:flex;align-items:flex-end;gap:12px"><div><h1 class="h1">Uygulamalar</h1><p class="sub">İki mağazadaki her şey, tek kartta. Değişiklikler önce diff olarak görünür.</p></div><span class="sp" style="flex:1"></span><div class="seg"><button aria-pressed="true">Tümü</button><button aria-pressed="false">Dikkat isteyen · 1</button></div></div>
+        <div class="apps">
+          <div class="app">
+            <div class="app-top"><div class="icon" style="background:#E8453C">S</div><div><h4>Sousial</h4><div class="id">6835444818 · com.milvasoft.sousial</div></div></div>
+            <div class="lanes">
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-apple"/></svg>App Store</div><div class="v">1.0 <small>· görseller yükleniyor</small></div><div class="mini"><i style="width:62%"></i></div></div>
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-play"/></svg>Google Play</div><div class="v">1.0.0 <small>· internal</small></div></div>
+            </div>
+            <div class="foot"><span>tr, en · 14 ekran görüntüsü</span><span class="b-info" style="font-weight:600">İşleniyor</span></div>
+          </div>
+          <div class="app">
+            <div class="app-top"><div class="icon" style="background:#1F2937">D</div><div><h4>Dump</h4><div class="id">6741220193 · com.milvasoft.dump</div></div></div>
+            <div class="lanes">
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-apple"/></svg>App Store</div><div class="v">2.4.1 <small>· yayında</small></div></div>
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-play"/></svg>Google Play</div><div class="v">2.4.1 <small>· production</small></div></div>
+            </div>
+            <div class="foot"><span>4,7 puan · 3 yeni yorum</span><span class="b-ok" style="font-weight:600">Hazır</span></div>
+          </div>
+          <div class="app" style="border-color:rgb(var(--danger)/.5)">
+            <div class="app-top"><div class="icon" style="background:#0F766E">F</div><div><h4>Fenpo Link</h4><div class="id">6739001852 · com.milvasoft.fenpo</div></div></div>
+            <div class="lanes">
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-apple"/></svg>App Store</div><div class="v">1.3 <small>· reddedildi</small></div></div>
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-play"/></svg>Google Play</div><div class="v">1.3.0 <small>· closed</small></div></div>
+            </div>
+            <div class="foot"><span>Guideline 2.1 · red kaydı açık</span><span class="b-bad" style="font-weight:600">Dikkat</span></div>
+          </div>
+          <div class="app">
+            <div class="app-top"><div class="icon" style="background:#7C3AED">S</div><div><h4>SaySay</h4><div class="id">6744518830 · com.milvasoft.saysay</div></div></div>
+            <div class="lanes">
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-apple"/></svg>App Store</div><div class="v">1.1 <small>· incelemede</small></div></div>
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-play"/></svg>Google Play</div><div class="v">1.1.0 <small>· production</small></div></div>
+            </div>
+            <div class="foot"><span>Gönderildi 2 sa önce</span><span class="b-warn" style="font-weight:600">İncelemede</span></div>
+          </div>
+          <div class="app">
+            <div class="app-top"><div class="icon" style="background:#B45309">C</div><div><h4>Crewhall</h4><div class="id">6750734412 · com.milvasoft.crewhall</div></div></div>
+            <div class="lanes">
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-apple"/></svg>App Store</div><div class="v">- <small>· hazırlanıyor</small></div></div>
+              <div class="lane"><div class="s"><svg width="12" height="12"><use href="#i-play"/></svg>Google Play</div><div class="v">0.9.2 <small>· internal</small></div></div>
+            </div>
+            <div class="foot"><span>Metinler eksik: en</span><span style="font-weight:600;color:rgb(var(--text-2))">Taslak</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">Her kart bir storeasy uygulaması; altında iki mağaza "şeridi". Vurgu rengi yalnız ana eylemde (Uygulama ekle), seçili menüde ve ilerleme çubuğunda. Kimlik ve sürüm numaraları mono. Uygulama kimlikleri örnek veridir.</p>
+</div>
+
+<!-- SCREEN: LIVE ACTIVITY -->
+<div class="fr" style="margin-top:36px">
+  <div class="fr-h"><b>3.1</b><span>Canlı akış</span><code>/activity</code></div>
+  <div class="scaler"><div class="web">
+    <aside class="side">
+      <div class="brand"><svg width="30" height="30"><use href="#logo-rota"/></svg>storeasy</div>
+      <div class="org"><div class="av">M</div><div><b style="font-size:13px">Milvasoft</b><small>Sahip · 5 uygulama</small></div></div>
+      <span class="btn primary" style="justify-content:center;margin-bottom:10px;opacity:.0">.</span>
+      <div class="nav"><svg width="18" height="18"><use href="#i-grid"/></svg>Uygulamalar</div>
+      <div class="nav on"><svg width="18" height="18"><use href="#i-activity"/></svg>Canlı akış<span class="count" style="color:rgb(var(--success))">● 2</span></div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-image"/></svg>Stüdyo</div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-msg"/></svg>Yorumlar</div>
+      <div class="nav"><svg width="18" height="18"><use href="#i-key"/></svg>Bağlantılar</div>
+      <div class="me"><div class="av">BK</div><div style="font-size:13px"><b>Buğra Kösen</b></div></div>
+    </aside>
+    <div class="main">
+      <div class="bar"><span class="crumb">Milvasoft / <b>Canlı akış</b></span><span class="live" style="margin-left:auto"><span class="dot"></span>CANLI</span></div>
+      <div class="content">
+        <h1 class="h1">Şu an hatta ne var</h1>
+        <div class="act">
+          <div class="stage">
+            <div class="legend"><span><i style="background:rgb(var(--accent))"></i>storeasy → mağaza</span><span><i style="background:rgb(var(--text-2))"></i>mağaza → storeasy</span><span><i style="background:rgb(var(--warning))"></i>bekliyor</span></div>
+            <svg viewBox="0 0 640 600" width="100%" height="100%" aria-label="Canlı aktivite hattı">
+              <defs>
+                <path id="toA" d="M175 300 C 300 300, 330 150, 470 150"/>
+                <path id="toG" d="M175 300 C 300 300, 330 450, 470 450"/>
+              </defs>
+              <!-- rails -->
+              <use href="#toA" fill="none" stroke="rgb(var(--line-strong))" stroke-width="22" stroke-linecap="round" opacity=".35"/>
+              <use href="#toG" fill="none" stroke="rgb(var(--line-strong))" stroke-width="22" stroke-linecap="round" opacity=".35"/>
+              <use href="#toA" fill="none" stroke="rgb(var(--line-strong))" stroke-width="1.5" stroke-dasharray="2 7"/>
+              <use href="#toG" fill="none" stroke="rgb(var(--line-strong))" stroke-width="1.5" stroke-dasharray="2 7"/>
+
+              <!-- outbound packets to Apple: screenshot chunks -->
+              <g><rect x="-17" y="-11" width="34" height="22" rx="6" fill="rgb(var(--accent))"/><text y="4" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="rgb(var(--accent-text))">03.png</text><animateMotion dur="2.4s" repeatCount="indefinite" rotate="0"><mpath href="#toA"/></animateMotion></g>
+              <g><rect x="-17" y="-11" width="34" height="22" rx="6" fill="rgb(var(--accent))" opacity=".75"/><text y="4" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="rgb(var(--accent-text))">04.png</text><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#toA"/></animateMotion></g>
+              <!-- inbound acks from Apple -->
+              <g><circle r="9" fill="rgb(var(--surface))" stroke="rgb(var(--text-2))" stroke-width="2"/><path d="m-4 0 3 3 5-6" fill="none" stroke="rgb(var(--text-2))" stroke-width="2" stroke-linecap="round"/><animateMotion dur="2.8s" begin=".5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#toA"/></animateMotion></g>
+              <!-- Google: bundle upload, single slow packet -->
+              <g><rect x="-22" y="-11" width="44" height="22" rx="6" fill="rgb(var(--accent))"/><text y="4" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="rgb(var(--accent-text))">.aab</text><animateMotion dur="6s" repeatCount="indefinite"><mpath href="#toG"/></animateMotion></g>
+              <!-- webhook pulse arriving from Apple -->
+              <circle cx="538" cy="150" r="56" fill="none" stroke="rgb(var(--warning))" stroke-width="2"><animate attributeName="r" values="56;92" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2.2s" repeatCount="indefinite"/></circle>
+
+              <!-- hub -->
+              <g transform="translate(75 230)">
+                <rect width="140" height="140" rx="36" fill="rgb(var(--accent))"/>
+                <use href="#logo-rota" x="34" y="26" width="72" height="72"/>
+                <text x="70" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="rgb(var(--accent-text))">2 iş · 3 adım</text>
+              </g>
+              <!-- Apple node -->
+              <g transform="translate(450 100)">
+                <rect width="176" height="100" rx="24" fill="rgb(var(--surface-2))" stroke="rgb(var(--line-strong))"/>
+                <text x="18" y="30" font-family="JetBrains Mono" font-size="10" fill="rgb(var(--text-3))">APP STORE CONNECT</text>
+                <text x="18" y="56" font-family="Bricolage Grotesque" font-weight="700" font-size="17" fill="rgb(var(--text))">Sousial · iPad</text>
+                <text x="18" y="80" font-family="JetBrains Mono" font-size="11" fill="rgb(var(--text-2))">4 / 7 commit</text>
+              </g>
+              <!-- Google node -->
+              <g transform="translate(450 400)">
+                <rect width="176" height="100" rx="24" fill="rgb(var(--surface-2))" stroke="rgb(var(--line-strong))"/>
+                <text x="18" y="30" font-family="JetBrains Mono" font-size="10" fill="rgb(var(--text-3))">GOOGLE PLAY</text>
+                <text x="18" y="56" font-family="Bricolage Grotesque" font-weight="700" font-size="17" fill="rgb(var(--text))">Crewhall · AAB</text>
+                <text x="18" y="80" font-family="JetBrains Mono" font-size="11" fill="rgb(var(--text-2))">31,4 / 48,0 MB</text>
+              </g>
+              <!-- step labels on rails -->
+              <text x="300" y="196" font-family="JetBrains Mono" font-size="10" fill="rgb(var(--text-3))">PUT parça 2/3 · 1,1 MB</text>
+              <text x="300" y="418" font-family="JetBrains Mono" font-size="10" fill="rgb(var(--text-3))">edit 0193 · upload</text>
+            </svg>
+          </div>
+          <div class="feed">
+            <div class="feed-h">Olaylar<span class="live"><span class="dot"></span>canlı</span></div>
+            <div class="ev"><time>14:02:41</time><div><span class="dir in">GELEN</span><b>Webhook</b> SaySay 1.1 durum değişti<div class="m">WAITING_FOR_REVIEW → IN_REVIEW · imza doğrulandı</div></div></div>
+            <div class="ev"><time>14:02:39</time><div><span class="dir out">GİDEN</span><b>commit</b> 03-onay.png<div class="m">md5 9be1…04fa · 200</div></div></div>
+            <div class="ev"><time>14:02:37</time><div><span class="dir out">GİDEN</span><b>upload</b> 03-onay.png parça 3/3<div class="m">PUT · 412 KB · 0,8 sn</div></div></div>
+            <div class="ev"><time>14:02:35</time><div><span class="dir in">GELEN</span><b>reserve</b> 04-gelen.png<div class="m">3 uploadOperations</div></div></div>
+            <div class="ev"><time>14:02:31</time><div><span class="dir out">GİDEN</span><b>edit</b> Crewhall AAB yükleme<div class="m">internal · versionCode 42</div></div></div>
+            <div class="ev"><time>14:02:12</time><div><span class="dir in">GELEN</span><b>Yorum</b> Dump, 5 yıldız<div class="m">tr · "Harika, offline da çalışıyor"</div></div></div>
+            <div class="ev"><time>14:01:58</time><div><span class="dir out">GİDEN</span><b>set</b> APP_IPAD_PRO_3GEN_129<div class="m">mevcut set bulundu · 0 silindi</div></div></div>
+          </div>
+        </div>
+        <div class="jobbar"><b style="font-size:13px;white-space:nowrap">Sousial · iPad 13" · tr</b><div class="steps"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div><span class="mono" style="font-size:12px;color:rgb(var(--text-2))">4 / 7 · ~40 sn</span><span class="btn ghost" style="height:32px">Ayrıntı</span></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">Konsept: ortada storeasy düğümü, sağda iki mağaza. Giden her paket (dosya parçası, edit, gönderim) vurgu renginde hat boyunca ilerler; dönen yanıtlar nötr halkalar olarak geri gelir; webhook gelince mağaza düğümü sarı bir dalga yayar. Sağdaki olay listesi aynı akışın metin hâli; hareket azaltma açıkken animasyon durur, yalnız liste kalır. Veri SignalR ile StoreJobStep olaylarından gelir.</p>
+</div>
+
+<!-- SCREEN: STUDIO -->
+<div class="fr" style="margin-top:36px">
+  <div class="fr-h"><b>4.1</b><span>Stüdyo (ilk bakış)</span><code>/studio</code></div>
+  <div class="scaler"><div class="web">
+    <div class="studio">
+      <div class="panel">
+        <div class="ph">Şablon · Sousial</div>
+        <div class="field"><label>Başlık (tr)</label><div class="in">Takvimin tek bakışta</div></div>
+        <div class="field"><label>Alt başlık (tr)</label><div class="in">Bütün kanalların aynı yerde</div></div>
+        <div class="field"><label>Arka plan</label><div style="display:flex;gap:8px"><span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(160deg,#E8453C,#8E1E3F);outline:2px solid rgb(var(--text));outline-offset:2px"></span><span style="width:36px;height:36px;border-radius:10px;background:#111"></span><span style="width:36px;height:36px;border-radius:10px;background:#F4EFE6"></span></div></div>
+        <div class="field"><label>Çerçeve</label><div class="seg"><button aria-pressed="true">Telefon</button><button aria-pressed="false">Tablet</button><button aria-pressed="false">Yok</button></div></div>
+        <div class="ph" style="margin-top:6px">Diller</div>
+        <div class="seg"><button aria-pressed="true">tr</button><button aria-pressed="false">en</button><button aria-pressed="false">+ dil</button></div>
+      </div>
+      <div class="canvas">
+        <div class="shot" style="background:linear-gradient(160deg,#E8453C,#8E1E3F)">
+          <h5>Takvimin tek bakışta</h5><p>Bütün kanalların aynı yerde</p>
+          <svg viewBox="0 0 180 360" width="182" style="position:absolute;left:16px;top:120px" aria-hidden="true">
+            <rect x="2" y="2" width="176" height="356" rx="30" fill="#0B0B0C"/>
+            <rect x="9" y="9" width="162" height="342" rx="24" fill="#F7F5F2"/>
+            <rect x="66" y="16" width="48" height="13" rx="6.5" fill="#0B0B0C"/>
+            <rect x="22" y="46" width="90" height="10" rx="4" fill="#1F1F22"/>
+            <rect x="22" y="64" width="136" height="70" rx="12" fill="#FFE4E1"/>
+            <rect x="22" y="142" width="136" height="44" rx="10" fill="#fff" stroke="#E7E3DD"/>
+            <rect x="22" y="194" width="136" height="44" rx="10" fill="#fff" stroke="#E7E3DD"/>
+            <rect x="22" y="246" width="136" height="44" rx="10" fill="#fff" stroke="#E7E3DD"/>
+          </svg>
+        </div>
+        <div class="shot" style="background:linear-gradient(160deg,#E8453C,#8E1E3F);opacity:.55;transform:scale(.9)"><h5>Onay akışı</h5><p>Ekip onayı tek dokunuş</p></div>
+      </div>
+      <div class="panel r">
+        <div class="ph">Dışa aktarım</div>
+        <div class="sizes">
+          <div class="size"><span>iPhone 6,9"</span><span class="mono">1320x2868</span><span class="ok">uygun</span></div>
+          <div class="size"><span>iPhone 6,1"/6,3"</span><span class="mono">1206x2622</span><span class="ok">uygun</span></div>
+          <div class="size" style="border-color:rgb(var(--danger)/.5)"><span>iPhone 6,1" slotu</span><span class="mono">1320x2868</span><span class="no">ret</span></div>
+          <div class="size"><span>iPad 13"</span><span class="mono">2064x2752</span><span class="ok">uygun</span></div>
+          <div class="size"><span>Play telefon</span><span class="mono">1080x1920</span><span class="ok">uygun</span></div>
+          <div class="size"><span>Play öne çıkan</span><span class="mono">1024x500</span><span class="ok">uygun</span></div>
+        </div>
+        <span class="btn primary" style="justify-content:center;margin-top:auto">7 boyutu üret ve yükle</span>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">Cihaz çerçevesi storeasy'nin kendi parametrik çizimi (köşe, çerçeve kalınlığı, ada); Apple ve Google cihaz görseli yok. Sağ panel her boyutu yüklemeden önce kontrol ediyor; 6,1" slotunun reddettiği boyut kırmızı.</p>
+</div>
+
+<div class="sec-h"><div class="k">05 · Karar</div><h2>Senden istediğim üç seçim</h2>
+<p>1) Logo: A Rota (önerim), B Kapı, C Raf. 2) Vurgu: Ultramarin (önerim), Gelgit, Kor. 3) Giriş görseli: hat çizimi (önerim) ya da fotoğraf. Onaydan sonra 09 standardına göre bütün ekranların tasarımını (durum ekranları, hesap, tasarım sistemi, backend uyumu) çıkarıp koda geçeceğim.</p></div>
+
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement, KEY='storeasy.design';
+  function set(k,v){root.setAttribute('data-'+k,v);document.querySelectorAll('[data-'+k+']').forEach(function(b){if(b!==root&&b.tagName!=='HTML'){b.setAttribute('aria-pressed',String(b.getAttribute('data-'+k)===v));}});try{var s=JSON.parse(localStorage.getItem(KEY)||'{}');s[k]=v;localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  try{var s=JSON.parse(localStorage.getItem(KEY)||'{}');if(s.theme)set('theme',s.theme);if(s.accent)set('accent',s.accent);}catch(e){}
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-theme],[data-accent]');if(!b||b.tagName==='HTML')return;if(b.hasAttribute('data-theme'))set('theme',b.getAttribute('data-theme'));if(b.hasAttribute('data-accent'))set('accent',b.getAttribute('data-accent'));});
+  function fit(){document.querySelectorAll('.scaler').forEach(function(s){var w=s.clientWidth,web=s.querySelector('.web');var k=Math.min(1,w/1280);web.style.transform='scale('+k+')';s.style.height=(820*k)+'px';});}
+  window.addEventListener('resize',fit);fit();
+})();
+</script>
+</body>
+</html>
