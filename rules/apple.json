@@ -1,7 +1,7 @@
 {
   "$schema": "./schema/catalog.schema.json",
   "kind": "store-rules",
-  "catalogVersion": "1.0.1",
+  "catalogVersion": "1.1.0",
   "store": "apple",
   "generatedAt": "2026-11-18T12:00:00Z",
   "rules": [
@@ -3189,6 +3189,70 @@
       ],
       "verified": true,
       "notes": "warnDaysBefore is a storeasy default, not a store rule."
+    },
+    {
+      "id": "apple.review.iap-first-with-version",
+      "store": "apple",
+      "category": "review",
+      "title": {
+        "en": "First In-App Purchase or subscription of each type goes with an app version",
+        "tr": "Her türün ilk uygulama içi satın alması veya aboneliği bir sürümle gönderilir"
+      },
+      "description": {
+        "en": "The first consumable, non-consumable, auto-renewable subscription and non-renewing subscription of each type must be submitted with a new app version. After the first item of a type is approved, more items of that type can be submitted on their own.",
+        "tr": "Her türün ilki yeni bir uygulama sürümüyle birlikte gönderilmeli; ilki onaylandıktan sonra aynı türden ürünler tek başına gönderilebilir."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.inAppPurchases",
+          "asc.subscriptions"
+        ]
+      },
+      "sources": [
+        {
+          "quote": "The first consumable, non-consumable, auto-renewable subscription, and non-renewing subscription In-App Purchase of each type must be submitted with a new app version.",
+          "url": "https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase",
+          "title": "App Store Connect Help: Submit an In-App Purchase",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "apple.review.iap-review-screenshot",
+      "store": "apple",
+      "category": "review",
+      "title": {
+        "en": "In-App Purchase and subscription review screenshot",
+        "tr": "Uygulama içi satın alma ve abonelik inceleme görüntüsü"
+      },
+      "description": {
+        "en": "App Review information for an In-App Purchase or subscription includes a screenshot of the item in the app. storeasy treats it as needed before submission.",
+        "tr": "İnceleme bilgilerinde ürünün uygulamadaki ekran görüntüsü bulunur; storeasy gönderimden önce gerekli sayar."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "asc.inAppPurchases",
+          "asc.subscriptions"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase",
+          "title": "App Store Connect Help: Submit an In-App Purchase",
+          "checkedAt": "2026-11-18"
+        }
+      ],
+      "verified": false,
+      "notes": "The help pages checked on 2026-11-18 do not state the requirement or a size; the App Store Connect API exposes appStoreReviewScreenshot resources for both. Verify against App Store Connect before treating as hard blocking."
     }
   ]
 }

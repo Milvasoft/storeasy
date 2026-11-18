@@ -61,7 +61,7 @@ public sealed class MonetizationReadiness(MonetizationStoreAccess storeAccess,
                        noScreenshot.Count > 0 ? ReadinessStatus.Missing : ReadinessStatus.Ok,
                        MessageKey.ReadinessReviewScreenshot,
                        noScreenshot.Count > 0 ? _localizer[MessageKey.ReadinessReviewScreenshotMissing, string.Join(", ", noScreenshot)] : null,
-                       "apple.iap.review-screenshot"));
+                       "apple.review.iap-review-screenshot"));
 
         items.Add(Item("monetization.localizations",
                        noLocalization.Count > 0 ? ReadinessStatus.Missing : ReadinessStatus.Ok,
@@ -78,7 +78,7 @@ public sealed class MonetizationReadiness(MonetizationStoreAccess storeAccess,
                                ReadinessStatus.Warning,
                                MessageKey.ReadinessFirstProducts,
                                _localizer[MessageKey.ReadinessFirstProductsWithVersion, string.Join(", ", first)],
-                               "apple.iap.first-with-version"));
+                               "apple.review.iap-first-with-version"));
             }
         }
 
