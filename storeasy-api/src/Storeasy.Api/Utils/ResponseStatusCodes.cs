@@ -42,6 +42,9 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsSubmissionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsFlightNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.MsAddonNotFound] = StatusCodes.Status404NotFound,
 
         // 409 - the request conflicts with current state (duplicates, protected seed data).
         [MessageKey.UserExists] = StatusCodes.Status409Conflict,
@@ -58,6 +61,19 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotUploaded] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
         [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionInProgress] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionModifiedOutsideApi] = StatusCodes.Status409Conflict,
+        [MessageKey.MsSubmissionNotOurs] = StatusCodes.Status409Conflict,
+        [MessageKey.MsNoPendingSubmission] = StatusCodes.Status409Conflict,
+        [MessageKey.MsPlanStale] = StatusCodes.Status409Conflict,
+        [MessageKey.MsPricingAssisted] = StatusCodes.Status409Conflict,
+        [MessageKey.MsAddonAssisted] = StatusCodes.Status409Conflict,
+        [MessageKey.MsApiRefused] = StatusCodes.Status409Conflict,
+        [MessageKey.MsFirstSubmissionRequired] = StatusCodes.Status409Conflict,
+        [MessageKey.MsInstallerNotSigned] = StatusCodes.Status409Conflict,
+        [MessageKey.MsInstallerNotReady] = StatusCodes.Status409Conflict,
+        [MessageKey.MsFlightNameTaken] = StatusCodes.Status409Conflict,
+        [MessageKey.MsAddonProductIdTaken] = StatusCodes.Status409Conflict,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,
