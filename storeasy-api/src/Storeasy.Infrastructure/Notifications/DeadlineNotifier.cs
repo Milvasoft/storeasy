@@ -25,13 +25,15 @@ namespace Storeasy.Infrastructure.Notifications;
 /// <param name="readinessService"></param>
 /// <param name="rulesCatalog"></param>
 /// <param name="notificationDispatcher"></param>
+/// <param name="msConnectionExpiryReader"></param>
 public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildRepository,
                                      IStoreasyRepositoryBase<DeadlineReminder> reminderRepository,
                                      IStoreasyRepositoryBase<Organization> organizationRepository,
                                      IStoreContentService contentService,
                                      IReadinessService readinessService,
                                      IRulesCatalog rulesCatalog,
-                                     INotificationDispatcher notificationDispatcher) : IDeadlineNotifier
+                                     INotificationDispatcher notificationDispatcher,
+                                     IMsConnectionExpiryReader msConnectionExpiryReader) : IDeadlineNotifier
 {
     /// <summary>
     /// TestFlight expiry thresholds in days.
@@ -43,6 +45,11 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
     /// </summary>
     public static readonly int[] ComplianceThresholds = [30, 7, 1];
 
+    /// <summary>
+    /// Microsoft Entra client secret expiry thresholds in days (catalog rule microsoft.api-access.client-secret-lifetime).
+    /// </summary>
+    public static readonly int[] MsSecretThresholds = [30, 7, 1];
+
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
     private readonly IStoreasyRepositoryBase<DeadlineReminder> _reminderRepository = reminderRepository;
     private readonly IStoreasyRepositoryBase<Organization> _organizationRepository = organizationRepository;
@@ -50,6 +57,7 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
     private readonly IReadinessService _readinessService = readinessService;
     private readonly IRulesCatalog _rulesCatalog = rulesCatalog;
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
+    private readonly IMsConnectionExpiryReader _msConnectionExpiryReader = msConnectionExpiryReader;
 
     /// <inheritdoc/>
     public async Task<int> NotifyBuildExpiryAsync(DateTime now, CancellationToken cancellationToken)
@@ -108,6 +116,28 @@ public sealed class DeadlineNotifier(IStoreasyRepositoryBase<Build> buildReposit
         }
 
         return await SendAsync(due, ComplianceThresholds, now, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> NotifyMsSecretExpiryAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        var connections = await _msConnectionExpiryReader.GetExpiringAsync(now.AddDays(MsSecretThresholds.Max()), null, cancellationToken);
+
+        var due = connections.Where(c => c.CredentialExpiryDate > now).Select(c => new Reminder(c.OrganizationId, $"ms-secret:{c.ConnectionId}:{c.CredentialExpiryDate:yyyyMMdd}", c.CredentialExpiryDate, new OrgNotification
+        {
+            OrganizationId = c.OrganizationId,
+            Kind = NotificationType.ConnectionAlert,
+            Roles = NotificationAudiences.OwnersAndAdmins,
+            TextKey = MessageKey.NotificationMsSecretExpiring,
+            TextArgs = [c.Name, c.CredentialExpiryDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), DaysLeft(c.CredentialExpiryDate, now)],
+            Data = new { connectionId = c.ConnectionId, expiryDate = c.CredentialExpiryDate, daysLeft = DaysLeft(c.CredentialExpiryDate, now) },
+            RelatedEntity = NotificationEntity.StoreConnection,
+            RelatedEntityId = c.ConnectionId.ToString(CultureInfo.InvariantCulture),
+            ActionLink = $"/connections/{c.ConnectionId}",
+            WebhookEventType = OrgWebhookEventTypes.ConnectionSecretExpiring,
+        })).ToList();
+
+        return await SendAsync(due, MsSecretThresholds, now, cancellationToken);
     }
 
     private static Reminder ComplianceReminder(int organizationId, ComplianceItemDto item, DateTime now)

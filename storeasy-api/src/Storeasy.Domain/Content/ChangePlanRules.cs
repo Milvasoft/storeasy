@@ -96,6 +96,7 @@ public static class ChangePlanRules
         ChangePlanKind.Rollout => AuditAction.RolloutChanged,
         ChangePlanKind.BuildLink or ChangePlanKind.ExportCompliance => AuditAction.BuildLinked,
         ChangePlanKind.SubmitForReview => AuditAction.SubmittedForReview,
+        ChangePlanKind.MsChange => AuditAction.MsChangeApplied,
         _ => AuditAction.ContentApplied,
     };
 

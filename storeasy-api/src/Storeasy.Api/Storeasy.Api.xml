@@ -1190,6 +1190,130 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.MsController">
+            <summary>
+            Microsoft Store endpoints (route prefix <c>ms</c>): MSIX apps and MSI/EXE products, submissions and certification
+            status, package flights, add-ons, installer packages, the plan and apply flow of every write, submitting, and the Entra
+            connection's secret expiry. Reads of storeasy's rows never call Microsoft; <c>ms/content</c> and <c>ms/change</c>
+            read the store in the request; every write runs as a store job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Microsoft Store endpoints (route prefix <c>ms</c>): MSIX apps and MSI/EXE products, submissions and certification
+            status, package flights, add-ons, installer packages, the plan and apply flow of every write, submitting, and the Entra
+            connection's secret expiry. Reads of storeasy's rows never call Microsoft; <c>ms/content</c> and <c>ms/change</c>
+            read the store in the request; every write runs as a store job.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.AddProductAsync(Storeasy.Application.Features.MsStore.AddMsProduct.AddMsProductCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds an MSI/EXE product by its Store id (editors and above). A sync job confirms it; follow the returned job.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetProductAsync(Storeasy.Application.Features.MsStore.GetMsProductDetail.GetMsProductDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads a Microsoft Store product with its active submission, the Partner Center rules and its assisted steps (any
+            member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetSubmissionsAsync(Storeasy.Application.Features.MsStore.GetMsSubmissionList.GetMsSubmissionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the submissions of a product with status history and the "changed in Partner Center" flag (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetFlightsAsync(Storeasy.Application.Features.MsStore.GetMsFlightList.GetMsFlightListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the package flights of an MSIX app with their group names (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetAddonsAsync(Storeasy.Application.Features.MsStore.GetMsAddonList.GetMsAddonListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the add-ons of an MSIX app; Partner Center only ones are marked (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetPackagesAsync(Storeasy.Application.Features.MsStore.GetMsInstallerPackageList.GetMsInstallerPackageListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the installer packages of an MSI/EXE product with their Authenticode check (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetContentAsync(Storeasy.Application.Features.MsStore.GetMsContent.GetMsContentQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the current store content of a product, flight or add-on from Microsoft (any member).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.ApplyChangeAsync(Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a change (DryRun true, the default) or applies it with the plan's BaseHash (editors and above; rollout of an
+            app submission needs ReleaseProduction, flights ReleaseTest). Applying queues a store job; drafts are sent with
+            <c>ms/submission/submit</c>.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.SubmitAsync(Storeasy.Application.Features.MsStore.SubmitMsSubmission.SubmitMsSubmissionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sends a draft to certification (owners and admins: SubmitForReview), with the product id typed as confirmation.
+            Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.VerifyPackagesAsync(Storeasy.Application.Features.MsStore.CheckMsInstaller.CheckMsInstallerCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues the Authenticode check of an MSI/EXE product's installers (editors and above). Returns the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.SaveFlightGroupAsync(Storeasy.Application.Features.MsStore.SaveMsFlightGroup.SaveMsFlightGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Records the name of a Partner Center flight group (ReleaseTest).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.RotateSecretAsync(Storeasy.Application.Features.MsStore.RotateMsConnectionSecret.RotateMsConnectionSecretCommand,System.Threading.CancellationToken)">
+            <summary>
+            Replaces the client secret of a Microsoft connection after verifying the new one (owners and admins).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.MsController.GetExpiringConnectionsAsync(Storeasy.Application.Features.MsStore.GetExpiringMsConnectionList.GetExpiringMsConnectionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            Lists the Microsoft connections whose client secret expires within the given days (owners and admins).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.OrganizationsController">
             <summary>
             Organization, member, invitation and audit log endpoints. Any signed in user may call them; the organization role
@@ -2481,6 +2605,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261118144228_Phase4Events.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261118145123_Phase5MicrosoftStore.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

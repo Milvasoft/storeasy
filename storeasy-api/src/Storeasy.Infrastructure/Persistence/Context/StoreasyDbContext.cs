@@ -13,6 +13,7 @@ using Storeasy.Domain.Feedback;
 using Storeasy.Domain.Notifications;
 using Storeasy.Domain.Rules;
 using Storeasy.Domain.TestFlight;
+using Storeasy.Domain.MsStore;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
 
@@ -78,6 +79,12 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<BetaAppLocalization> BetaAppLocalizations { get; set; }
     public DbSet<RuleWatchSource> RuleSources { get; set; }
     public DbSet<RuleProposal> RuleProposals { get; set; }
+    public DbSet<MsProduct> MsProducts { get; set; }
+    public DbSet<MsSubmission> MsSubmissions { get; set; }
+    public DbSet<MsFlight> MsFlights { get; set; }
+    public DbSet<MsFlightGroup> MsFlightGroups { get; set; }
+    public DbSet<MsAddon> MsAddons { get; set; }
+    public DbSet<MsInstallerPackage> MsInstallerPackages { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

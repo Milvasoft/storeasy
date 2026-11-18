@@ -63,6 +63,12 @@ public sealed class PlanDraft
     public string VersionString { get; set; }
 
     /// <summary>
+    /// Permission the plan needs when the kind alone does not decide it (Microsoft Store changes); null for the kind's
+    /// default.
+    /// </summary>
+    public OrgPermission? RequiredPermission { get; set; }
+
+    /// <summary>
     /// Whether the plan writes nothing.
     /// </summary>
     public bool IsEmpty => Items.Count == 0 && Changes.IsEmpty;

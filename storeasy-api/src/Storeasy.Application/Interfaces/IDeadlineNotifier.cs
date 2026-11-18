@@ -21,4 +21,13 @@ public interface IDeadlineNotifier
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<int> NotifyComplianceDeadlinesAsync(DateTime now, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sends the Microsoft Entra client secret expiry reminders (30, 7 and 1 days before) due at <paramref name="now"/>;
+    /// returns how many were sent.
+    /// </summary>
+    /// <param name="now"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<int> NotifyMsSecretExpiryAsync(DateTime now, CancellationToken cancellationToken);
 }

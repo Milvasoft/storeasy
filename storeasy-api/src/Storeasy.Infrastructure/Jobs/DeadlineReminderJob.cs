@@ -6,7 +6,8 @@ using Storeasy.Application.Utils.Models;
 namespace Storeasy.Infrastructure.Jobs;
 
 /// <summary>
-/// Daily: TestFlight build expiry reminders (14, 7, 1 days) and compliance deadline reminders (30, 7, 1 days).
+/// Daily: TestFlight build expiry reminders (14, 7, 1 days), compliance deadline reminders (30, 7, 1 days) and Microsoft
+/// Entra client secret expiry reminders (30, 7, 1 days).
 /// </summary>
 /// <param name="scheduleConfig"></param>
 /// <param name="scopeFactory"></param>
@@ -19,6 +20,8 @@ public class DeadlineReminderJob(IScheduleConfig scheduleConfig, IServiceScopeFa
         var notifier = services.GetRequiredService<IDeadlineNotifier>();
         var now = services.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
 
-        return await notifier.NotifyBuildExpiryAsync(now, cancellationToken) + await notifier.NotifyComplianceDeadlinesAsync(now, cancellationToken);
+        return await notifier.NotifyBuildExpiryAsync(now, cancellationToken)
+               + await notifier.NotifyComplianceDeadlinesAsync(now, cancellationToken)
+               + await notifier.NotifyMsSecretExpiryAsync(now, cancellationToken);
     }
 }

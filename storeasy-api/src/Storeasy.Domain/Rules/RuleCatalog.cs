@@ -470,6 +470,26 @@ public sealed class RuleParams
     public int? WarnDaysBefore { get; set; }
 
     /// <summary>
+    /// Most items of a list field (e.g. Microsoft product features, search terms).
+    /// </summary>
+    public int? MaxItems { get; set; }
+
+    /// <summary>
+    /// Most characters of each item of a list field.
+    /// </summary>
+    public int? MaxCharsPerItem { get; set; }
+
+    /// <summary>
+    /// Most screenshots of the other device families (Microsoft Store: Xbox, holographic...).
+    /// </summary>
+    public int? MaxCountOtherFamilies { get; set; }
+
+    /// <summary>
+    /// Most characters of an image caption.
+    /// </summary>
+    public int? CaptionMaxChars { get; set; }
+
+    /// <summary>
     /// Other, store specific values.
     /// </summary>
     [JsonExtensionData]
