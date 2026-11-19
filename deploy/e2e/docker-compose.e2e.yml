@@ -45,8 +45,9 @@ services:
       # Test only: nothing is in front of nginx here, so 2 hops lets each e2e call pick its own client address and
       # keeps the per-address rate limits of sign-up and sign-in apart. Never use this setup in production.
       Storeasy__Network__ForwardedHops: "2"
-      # The e2e suite drives the multi tenant flows (sign-up, root user, several organizations).
-      Storeasy__Mode: MultiTenant
+      # stack.mjs up --mode: multi drives the multi tenant flows (sign-up, root user, several organizations); single and
+      # upgrade run SingleTeam (the setup code from the log, one team, invitations only).
+      Storeasy__Mode: ${STOREASY_MODE:-MultiTenant}
       Storeasy__Registration__Mode: Open
       Storeasy__Email__Provider: Smtp
       Storeasy__Email__Smtp__Host: mailpit
