@@ -16,6 +16,7 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { navItemFor, navLabel } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
+import { useDeployment } from '@/features/access/publicSettings'
 import { NotificationBell } from './NotificationBell'
 import { Sidebar } from './Sidebar'
 
@@ -23,7 +24,8 @@ function Breadcrumb() {
   const t = useT()
   const { pathname } = useLocation()
   const { current } = useOrganization()
-  const item = navItemFor(pathname)
+  const { singleTeam } = useDeployment()
+  const item = navItemFor(pathname, singleTeam)
   const last = item ? navLabel(item.key, t) : pathname.startsWith('/account') ? t.account.title : t.states.notFoundShort
   return (
     <nav className="crumb" aria-label={t.nav.breadcrumb}>

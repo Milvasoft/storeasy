@@ -181,10 +181,13 @@ export function navLabel(key: NavKey, t: Dictionary): string {
   return t.nav[key]
 }
 
-// The menu item a path belongs to ("/activity/jobs" -> activity), for the breadcrumb.
-export function navItemFor(pathname: string): NavItem | null {
+// The menu item a path belongs to ("/activity/jobs" -> activity), for the breadcrumb; in the menu of the deployment mode,
+// so a single team instance names /settings "Team" as its sidebar does.
+export function navItemFor(pathname: string, singleTeam = false): NavItem | null {
   return (
-    NAV_ITEMS.filter((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)).sort(
+    navGroups(singleTeam)
+      .flatMap((group) => group.items)
+      .filter((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)).sort(
       (a, b) => b.path.length - a.path.length,
     )[0] ?? null
   )

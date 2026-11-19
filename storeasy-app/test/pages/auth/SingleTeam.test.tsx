@@ -149,6 +149,15 @@ describe('single team shell', () => {
     expect(nav.getByRole('link', { name: 'Kullanıcılar' })).toHaveAttribute('href', '/admin/users')
   })
 
+  it('names the team settings page and its breadcrumb after the team, as the menu does', async () => {
+    testState.publicSettings = publicSettings(SINGLE_TEAM)
+
+    await renderApp({ route: '/settings' })
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Takım ayarları' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Sayfa yolu' })).toHaveTextContent('Takım')
+  })
+
   it('takes an administrator without a team to the create-team step instead of the admin area', async () => {
     testState.publicSettings = publicSettings(SINGLE_TEAM)
     testState.organizations = []
