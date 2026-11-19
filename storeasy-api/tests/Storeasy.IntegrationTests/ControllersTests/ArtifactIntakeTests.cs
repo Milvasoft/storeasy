@@ -143,6 +143,66 @@ public class ArtifactIntakeTests(StoreasyApiFactory factory) : IntakeTestBase(fa
         Play.Apps[package]["bundles"].AsArray().Should().BeEmpty("nothing reaches the store");
     }
 
+    /// <summary>
+    /// A storeasy app with only a Microsoft Store record: <paramref name="storeId"/> is the Store id, <paramref name="bundleId"/>
+    /// the package family name the sync keeps (null before the first sync).
+    /// </summary>
+    private async Task<Record> WindowsAppAsync(Org org, string storeId, string bundleId)
+    {
+        var record = new StoreApp { OrganizationId = org.OrganizationId, Store = StoreKind.Microsoft, ExternalId = storeId, BundleId = bundleId, Name = "Kabuk", SyncedDate = bundleId == null ? null : DateTime.UtcNow };
+        var app = new App { OrganizationId = org.OrganizationId, Name = "Kabuk", StoreApps = [record] };
+
+        await _factory.DbAsync(async db =>
+        {
+            db.Apps.Add(app);
+            await db.SaveChangesAsync();
+        });
+
+        return new Record(app.Id, record.Id, storeId);
+    }
+
+    [Fact]
+    public async Task MsixPackage_ShouldMatchThePackageFamilyName_NeverTheStoreId_AndNotBeRefusedBeforeTheFirstSync()
+    {
+        const string publisher = "CN=934D5176-C6E5-455B-9AAC-3ECA3C954CB4";
+
+        var org = await NewOrgAsync();
+        var family = MsixIdentity.FamilyName("Milvasoft.Kabuk", publisher);
+        var synced = await WindowsAppAsync(org, "9NGK4T6XHF34", family);
+        var notSynced = await WindowsAppAsync(org, "9NZB9KKR92G4", null);
+        var otherApp = await WindowsAppAsync(org, "9MTTKJ8BV1LG", MsixIdentity.FamilyName("Milvasoft.Fenpo", publisher));
+        var otherPublisher = await WindowsAppAsync(org, "9NGK4T6XHF35", MsixIdentity.FamilyName("Milvasoft.Kabuk", "CN=Someone Else"));
+        var client = TokenClient(await PatAsync(org.Owner, org.OrganizationId));
+        var msix = PackageFactory.Msix("Milvasoft.Kabuk", "1.0.15.0", publisher);
+
+        var (syncedId, _, _) = await UploadAsync(client, synced.AppId, "Kabuk_1.0.15.0_x64.msix", msix);
+        var (notSyncedId, _, _) = await UploadAsync(client, notSynced.AppId, "Kabuk_1.0.15.0_x64.msix", msix);
+        var (otherAppId, _, _) = await UploadAsync(client, otherApp.AppId, "Kabuk_1.0.15.0_x64.msix", msix);
+        var (otherPublisherId, _, _) = await UploadAsync(client, otherPublisher.AppId, "Kabuk_1.0.15.0_x64.msix", msix);
+
+        var matched = await WaitForSessionAsync(syncedId);
+        var unverified = await WaitForSessionAsync(notSyncedId);
+        var wrongApp = await WaitForSessionAsync(otherAppId);
+        var wrongPublisher = await WaitForSessionAsync(otherPublisherId);
+
+        static ArtifactStep Parse(ArtifactSession session) => session.Steps.Single(s => s.Kind == ArtifactStepKind.Parse);
+
+        matched.Status.Should().NotBe(ArtifactSessionStatus.Rejected, matched.StatusDescription);
+        matched.StoreAppId.Should().Be(synced.StoreAppId);
+        matched.Package.Identifier.Should().Be("Milvasoft.Kabuk");
+        Parse(matched).Status.Should().Be(ArtifactStepStatus.Done);
+        Parse(matched).Message.Should().NotContain("9NGK4T6XHF34");
+        unverified.Status.Should().NotBe(ArtifactSessionStatus.Rejected, "a record that was never synced has no package identity to compare with: {0}", unverified.StatusDescription);
+        unverified.StoreAppId.Should().Be(notSynced.StoreAppId);
+        Parse(unverified).Status.Should().Be(ArtifactStepStatus.Done);
+        Parse(unverified).Message.Should().Contain("warning").And.Contain("sync");
+        wrongApp.Status.Should().Be(ArtifactSessionStatus.Rejected);
+        wrongApp.StatusDescription.Should().Be($"Rejected: Package Milvasoft.Kabuk does not match the app ({MsixIdentity.FamilyName("Milvasoft.Fenpo", publisher)}).");
+        Parse(wrongApp).Status.Should().Be(ArtifactStepStatus.Failed);
+        wrongPublisher.Status.Should().Be(ArtifactSessionStatus.Rejected);
+        wrongPublisher.StatusDescription.Should().Contain(publisher);
+    }
+
     [Fact]
     public async Task Warning_ShouldHoldTheDeliveryUntilAMemberDeliversIt()
     {

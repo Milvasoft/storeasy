@@ -4,6 +4,7 @@ using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Application.Utils.MsStore;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Intake;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -558,9 +559,25 @@ public sealed partial class MicrosoftStoreClient(IHttpClientFactory HttpClientFa
 
     private static MsApplicationRecord ParseApplication(JsonNode app) => new(MsSubmissionJson.String(app, "id"),
                                                                              MsSubmissionJson.String(app, "primaryName"),
-                                                                             MsSubmissionJson.String(app, "packageFamilyName"),
+                                                                             PackageFamilyName(app),
                                                                              SubmissionId(app, "lastPublishedApplicationSubmission"),
                                                                              SubmissionId(app, "pendingApplicationSubmission"));
+
+    /// <summary>
+    /// The package family name of an application resource: <c>packageFamilyName</c>, otherwise derived from
+    /// <c>packageIdentityName</c> and <c>publisherName</c> (<see cref="MsixIdentity.FamilyName"/>), otherwise the bare
+    /// identity name. Null when the resource reports no package identity.
+    /// </summary>
+    /// <param name="app"></param>
+    /// <returns></returns>
+    public static string PackageFamilyName(JsonNode app)
+    {
+        var familyName = MsSubmissionJson.String(app, "packageFamilyName");
+
+        return string.IsNullOrWhiteSpace(familyName)
+            ? MsixIdentity.FamilyName(MsSubmissionJson.String(app, "packageIdentityName"), MsSubmissionJson.String(app, "publisherName"))
+            : familyName.Trim();
+    }
 
     private static MsFlightRecord ParseFlight(JsonNode flight) => new(MsSubmissionJson.String(flight, "flightId"),
                                                                      MsSubmissionJson.String(flight, "friendlyName"),

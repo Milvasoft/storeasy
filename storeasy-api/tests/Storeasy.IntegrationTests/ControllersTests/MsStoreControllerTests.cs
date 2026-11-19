@@ -8,6 +8,7 @@ using Storeasy.Application.Utils.Constants;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Intake;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 using Storeasy.IntegrationTests.TestBase;
@@ -551,6 +552,41 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         // Assert
         job.Status.Should().Be(StoreJobStatus.Succeeded, job.Error);
         again.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Sync_ShouldStoreThePackageFamilyNameOnTheRecord_AndRefreshItOnEverySync()
+    {
+        // Arrange: an MSIX app added by its Store id (the record starts without a package identity, as an MSI/EXE product),
+        // whose application resource reports the identity name and the publisher but no package family name.
+        const string publisher = "CN=934D5176-C6E5-455B-9AAC-3ECA3C954CB4";
+
+        var setup = await NewSetupAsync();
+        var resource = Microsoft.Apps[setup.AppId].Resource;
+
+        resource.Remove("packageFamilyName");
+        resource["packageIdentityName"] = "Milvasoft.Kabuk";
+        resource["publisherName"] = publisher;
+
+        var (_, added) = await setup.Owner.Client.PostAsync<MsProductAddedDto>("ms/product", new { organizationId = setup.OrganizationId, connectionId = setup.ConnectionId, productId = setup.AppId, name = "Kabuk" });
+
+        // Act
+        var addJob = await WaitForJobAsync(added.Data.JobId);
+        var first = await _factory.DbAsync(db => db.MsProducts.AsNoTracking().Include(p => p.StoreApp).SingleAsync(p => p.StoreAppId == added.Data.StoreAppId));
+
+        resource["packageFamilyName"] = "Milvasoft.Kabuk_renamed000001";
+
+        await SyncAsync(setup);
+
+        var second = await _factory.DbAsync(db => db.StoreApps.AsNoTracking().SingleAsync(s => s.Id == added.Data.StoreAppId));
+
+        // Assert
+        addJob.Status.Should().Be(StoreJobStatus.Succeeded, addJob.Error);
+        first.StoreApp.BundleId.Should().Be(MsixIdentity.FamilyName("Milvasoft.Kabuk", publisher), "the family name is derived from the identity name and the publisher");
+        first.StoreApp.ExternalId.Should().Be(setup.AppId);
+        first.Kind.Should().Be(MsProductKind.Msix, "an app the MSIX API lists is an MSIX app");
+        Microsoft.Calls.Should().NotContain(c => c.Contains("api.store.microsoft.com") && c.Contains(setup.AppId), "an MSIX app is not read through the MSI/EXE API");
+        second.BundleId.Should().Be("Milvasoft.Kabuk_renamed000001", "every sync refreshes the package family name");
     }
 
     [Fact]

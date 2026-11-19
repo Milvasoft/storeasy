@@ -75,14 +75,14 @@ public static class PackageFactory
     }
 
     /// <summary>
-    /// An MSIX of <paramref name="identity"/>.
+    /// An MSIX of <paramref name="identity"/> published by <paramref name="publisher"/>.
     /// </summary>
-    public static byte[] Msix(string identity, string version = "2.4.0.0")
+    public static byte[] Msix(string identity, string version = "2.4.0.0", string publisher = "CN=Kuzey")
     {
         var manifest = $"""
                         <?xml version="1.0" encoding="utf-8"?>
                         <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10">
-                          <Identity Name="{identity}" Publisher="CN=Kuzey" Version="{version}" />
+                          <Identity Name="{identity}" Publisher="{publisher}" Version="{version}" />
                           <Properties><DisplayName>Pusula</DisplayName></Properties>
                           <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.22621.0" /></Dependencies>
                         </Package>

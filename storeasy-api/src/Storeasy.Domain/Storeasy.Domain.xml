@@ -6174,6 +6174,83 @@
             Navigation property of the organization.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Intake.MsixIdentityMatch">
+            <summary>
+            The outcome of <see cref="M:Storeasy.Domain.Intake.MsixIdentity.Match(System.String,System.String,System.String,System.String)"/>.
+            </summary>
+            <param name="Matches">True when the package is the app's, false when it is not, null when the record has no package
+            identity yet (not synced) so nothing could be compared.</param>
+            <param name="Expected">The stored package identity the package was compared with, if any.</param>
+            <param name="Reason">Why it does not match, or why it could not be compared.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.MsixIdentityMatch.#ctor(System.Nullable{System.Boolean},System.String,System.String)">
+            <summary>
+            The outcome of <see cref="M:Storeasy.Domain.Intake.MsixIdentity.Match(System.String,System.String,System.String,System.String)"/>.
+            </summary>
+            <param name="Matches">True when the package is the app's, false when it is not, null when the record has no package
+            identity yet (not synced) so nothing could be compared.</param>
+            <param name="Expected">The stored package identity the package was compared with, if any.</param>
+            <param name="Reason">Why it does not match, or why it could not be compared.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.MsixIdentityMatch.Matches">
+            <summary>True when the package is the app's, false when it is not, null when the record has no package
+            identity yet (not synced) so nothing could be compared.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.MsixIdentityMatch.Expected">
+            <summary>The stored package identity the package was compared with, if any.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.MsixIdentityMatch.Reason">
+            <summary>Why it does not match, or why it could not be compared.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Intake.MsixIdentity">
+            <summary>
+            Package identity rules of MSIX packages. A Microsoft Store record keeps the package family name of its app
+            (<c>Name_PublisherId</c>, from Partner Center) in <c>StoreApp.BundleId</c>; the package's <c>Identity Name</c> must be
+            the name part, and the publisher id part is derived from the package's <c>Identity Publisher</c>. The Store id
+            (<c>StoreApp.ExternalId</c>, e.g. 9NGK4T6XHF34) is never a package identity, so it is never compared. No database, no
+            network.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Intake.MsixIdentity.PublisherIdLength">
+            <summary>
+            Length of a publisher id (the part of a package family name after the underscore).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.MsixIdentity.PublisherId(System.String)">
+            <summary>
+            The publisher id Windows derives from a publisher distinguished name: the first 8 bytes of the SHA-256 of its
+            UTF-16LE bytes, padded with one zero bit to 65 bits and written as 13 Crockford base32 characters (lower case).
+            Returns null for an empty publisher.
+            </summary>
+            <param name="publisher">Publisher, e.g. <c>CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</c>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.MsixIdentity.FamilyName(System.String,System.String)">
+            <summary>
+            The package family name of an identity name and a publisher (<c>Name_PublisherId</c>). Returns null when the name
+            is empty, and the bare name when the publisher is unknown.
+            </summary>
+            <param name="identityName"></param>
+            <param name="publisher"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.MsixIdentity.Match(System.String,System.String,System.String,System.String)">
+            <summary>
+            Whether a package belongs to a Microsoft Store record.
+            <list type="bullet">
+            <item>No stored identity (empty, or only the Store id): null, the record is not synced yet.</item>
+            <item>A package family name (<c>Name_PublisherId</c>): the package name must equal the name part, and when the
+            package has a publisher its publisher id must equal the stored one.</item>
+            <item>A bare identity name: the package name must equal it.</item>
+            </list>
+            Names are compared without case, like Windows does.
+            </summary>
+            <param name="packageName">The package's <c>Identity Name</c>.</param>
+            <param name="packagePublisher">The package's <c>Identity Publisher</c>, if read.</param>
+            <param name="storedIdentity">The record's package family name or identity name (<c>StoreApp.BundleId</c>).</param>
+            <param name="storeId">The record's Store id (<c>StoreApp.ExternalId</c>).</param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Intake.TrustedPublisher">
             <summary>
             A trusted publisher rule of an app (docs/urun-plani.md 11.8, design 13.4-13.7): a CI run whose OIDC token comes from

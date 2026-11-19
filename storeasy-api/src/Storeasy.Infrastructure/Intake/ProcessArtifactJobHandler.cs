@@ -251,10 +251,6 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
                                                                       projection: s => new StoreApp { Id = s.Id, BundleId = s.BundleId, ExternalId = s.ExternalId },
                                                                       cancellationToken: cancellationToken);
 
-        var expected = record == null ? null : store == StoreKind.Google ? record.ExternalId ?? record.BundleId : record.BundleId ?? record.ExternalId;
-
-        if (store == StoreKind.Microsoft && expected != null && package.Identifier != null && expected.StartsWith(package.Identifier + "_", StringComparison.Ordinal))
-            expected = package.Identifier;
         var summary = $"{package.Identifier} {package.VersionName} ({package.VersionCode})";
 
         if (record == null)
@@ -264,11 +260,33 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
             return;
         }
 
-        if (!string.Equals(expected, package.Identifier, StringComparison.Ordinal))
+        if (store == StoreKind.Microsoft)
         {
-            End(step, ArtifactStepStatus.Failed, $"{package.Identifier} != {expected}");
-            await RejectAsync(session, $"Package {package.Identifier} does not match the app ({expected}).", cancellationToken);
-            return;
+            // The record keeps the package family name (MsSync); the Store id is never a package identity. A record that was
+            // never synced has nothing to compare with: the package is accepted with a warning on the step instead of a
+            // false rejection, and Partner Center still checks the identity when the package is submitted.
+            var match = MsixIdentity.Match(package.Identifier, package.Publisher, record.BundleId, record.ExternalId);
+
+            if (match.Matches == false)
+            {
+                End(step, ArtifactStepStatus.Failed, $"{package.Identifier} != {match.Expected}");
+                await RejectAsync(session, match.Reason, cancellationToken);
+                return;
+            }
+
+            if (match.Matches == null)
+                summary = $"{summary}; warning: {match.Reason}";
+        }
+        else
+        {
+            var expected = store == StoreKind.Google ? record.ExternalId ?? record.BundleId : record.BundleId ?? record.ExternalId;
+
+            if (!string.Equals(expected, package.Identifier, StringComparison.Ordinal))
+            {
+                End(step, ArtifactStepStatus.Failed, $"{package.Identifier} != {expected}");
+                await RejectAsync(session, $"Package {package.Identifier} does not match the app ({expected}).", cancellationToken);
+                return;
+            }
         }
 
         session.StoreAppId = record.Id;
