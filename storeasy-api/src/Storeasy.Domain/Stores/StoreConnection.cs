@@ -40,6 +40,13 @@ public class StoreConnection : FullAuditableEntity<int>
     public string Name { get; set; }
 
     /// <summary>
+    /// Icon picked by a member, a key of <see cref="StoreConnectionIcons"/> (e.g. "appstore", "phone"). Null when none
+    /// was picked; the web then shows the store's text code.
+    /// </summary>
+    [MaxLength(StoreConnectionIcons.MaxLength)]
+    public string Icon { get; set; }
+
+    /// <summary>
     /// Non secret identifiers safe to show (key id, masked issuer id, service account e-mail).
     /// </summary>
     [Column(TypeName = "jsonb")]

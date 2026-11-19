@@ -43,6 +43,7 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
             name = "Partner Center",
             secret = Secret(tenant),
             credentialExpiryDate = DateTime.UtcNow.AddMonths(12),
+            icon = "msstore",
         });
 
         http.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -145,6 +146,7 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         connection.Fingerprint.TenantIdSuffix.Should().Be(setup.Tenant[^4..]);
         connection.Fingerprint.ClientIdSuffix.Should().Be("be12");
         connection.Fingerprint.SellerId.Should().Be("40291187");
+        connection.Icon.Should().Be("msstore");
         connection.CredentialExpiryDate.Should().BeCloseTo(DateTime.UtcNow.AddMonths(12), TimeSpan.FromMinutes(5));
         JsonSerializer.Serialize(list.Data).Should().NotContain("client-secret-value");
         expiringSoon.Data.Should().BeEmpty();
@@ -154,6 +156,7 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         tooLong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         rotated.StatusCode.Should().Be(HttpStatusCode.OK);
         rotatedBody.Data.CredentialExpiryDate.Should().BeCloseTo(newExpiry, TimeSpan.FromSeconds(1));
+        rotatedBody.Data.Icon.Should().Be("msstore", "replacing the secret keeps the icon");
         _factory.StoreGateway.VerifiedSecrets.Should().Contain(s => s.Contains("rotated-secret"));
     }
 

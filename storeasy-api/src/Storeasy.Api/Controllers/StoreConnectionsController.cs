@@ -7,6 +7,7 @@ using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Features.StoreConnections.AddStoreConnection;
 using Storeasy.Application.Features.StoreConnections.DeleteStoreConnection;
 using Storeasy.Application.Features.StoreConnections.GetStoreConnectionList;
+using Storeasy.Application.Features.StoreConnections.UpdateStoreConnection;
 using Storeasy.Application.Features.StoreConnections.VerifyStoreConnection;
 using Storeasy.Application.Utils.Constants;
 
@@ -42,6 +43,16 @@ public class StoreConnectionsController(IMediator mediator) : ControllerBase
     [HttpPost("connection")]
     [Idempotent]
     public Task<Response<int>> AddConnectionAsync(AddStoreConnectionCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Renames a connection and sets or clears its icon (a generic icon or the connection's own store logo). The secret
+    /// is not touched. Answers the updated connection.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("connection")]
+    public Task<Response<StoreConnectionDto>> UpdateConnectionAsync(UpdateStoreConnectionCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Checks a connection against its store and stores the verdict.

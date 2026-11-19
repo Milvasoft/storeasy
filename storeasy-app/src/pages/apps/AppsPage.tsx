@@ -120,7 +120,7 @@ function AppCard({
       <div className="lanes">
         {recordsOf(app).map((record) => (
           <div key={record.StoreAppId} className="lane">
-            <StoreTag store={record.Store} small codeOnly />
+            <StoreTag store={record.Store} connectionId={record.StoreConnectionId} small codeOnly />
             <span className="v truncate">
               {record.Name ?? app.Name} <small className="mono">· {record.ExternalId ?? record.BundleId}</small>
             </span>
@@ -233,7 +233,13 @@ export function AppsPage() {
   const listed = editor && !showHidden && view === 'grid' && all.length > 1
   const paged = (apps.data?.TotalDataCount ?? all.length) > all.length
   const canReorder = listed && !searching && !storeFilter && !paged
-  const reorderNote = !listed ? null : searching || storeFilter ? t.apps.reorderOffFiltered : paged ? t.apps.reorderOffPaged : t.apps.reorderHint
+  const reorderNote = !listed
+    ? null
+    : searching || storeFilter
+      ? t.apps.reorderOffFiltered
+      : paged
+        ? t.apps.reorderOffPaged
+        : t.apps.reorderHint
   const [dragging, setDragging] = useState<number | null>(null)
   const [preview, setPreview] = useState<number[] | null>(null)
   const [announcement, setAnnouncement] = useState('')

@@ -83,6 +83,7 @@ const db = {
       Id: 11,
       Store: StoreKind.Apple,
       Name: 'Kuzey Lab ASC',
+      Icon: 'appstore',
       Fingerprint: { KeyId: '7QX2M4K9PL', IssuerIdSuffix: 'a91f' },
       Status: ConnectionStatus.Verified,
       LastVerifiedDate: hoursAgo(5),
@@ -92,6 +93,7 @@ const db = {
       Id: 12,
       Store: StoreKind.Google,
       Name: 'Play servis hesabı',
+      Icon: 'googleplay',
       Fingerprint: { ServiceAccountEmail: 'storeasy@kuzeylab-play.iam.gserviceaccount.com', ProjectId: 'kuzeylab-play' },
       Status: ConnectionStatus.Unreachable,
       LastVerifiedDate: hoursAgo(30),
@@ -283,7 +285,7 @@ export const mockHandlers: HttpHandler[] = [
     return envelope(db.connections)
   }),
   http.post(`${BASE}/StoreConnections/connection`, async ({ request }) => {
-    const { Store, Name, Secret } = await body<{ Store: StoreKind; Name: string; Secret: string }>(request)
+    const { Store, Name, Secret, Icon } = await body<{ Store: StoreKind; Name: string; Secret: string; Icon?: string | null }>(request)
     const id = (db.nextId += 1)
     let fingerprint = {}
     try {
@@ -299,12 +301,27 @@ export const mockHandlers: HttpHandler[] = [
       Id: id,
       Store,
       Name,
+      Icon: Icon || null,
       Fingerprint: fingerprint,
       Status: ConnectionStatus.NotVerified,
       CreationDate: new Date().toISOString(),
     })
     audit(AuditAction.ConnectionAdded, `${Name} added.`, Store)
     return envelope(id)
+  }),
+  http.put(`${BASE}/StoreConnections/connection`, async ({ request }) => {
+    const { ConnectionId, Name, Icon } = await body<{ ConnectionId: number; Name: string; Icon: string | null }>(request)
+    const connection = db.connections.find((item) => item.Id === ConnectionId)
+    if (!connection) {
+      return refuse('StoreConnectionNotFound', 'Bağlantı bulunamadı.', 404)
+    }
+    const logos: Record<string, StoreKind> = { appstore: StoreKind.Apple, googleplay: StoreKind.Google, msstore: StoreKind.Microsoft }
+    if (Icon && Icon in logos && logos[Icon] !== connection.Store) {
+      return refuse('StoreConnectionIconInvalid', 'Bilinmeyen bağlantı simgesi ya da başka bir mağazanın logosu seçildi.', 400)
+    }
+    db.connections = db.connections.map((item) => (item.Id === ConnectionId ? { ...item, Name: Name.trim(), Icon: Icon || null } : item))
+    audit(AuditAction.ConnectionUpdated, `${Name} updated.`, connection.Store)
+    return envelope(db.connections.find((item) => item.Id === ConnectionId))
   }),
   http.post(`${BASE}/StoreConnections/connection/verify`, async ({ request }) => {
     await delay(900)

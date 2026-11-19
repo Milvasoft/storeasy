@@ -28,6 +28,10 @@ public sealed class AddStoreConnectionCommandValidator : AbstractValidator<AddSt
             .MaximumLength(StoreConnection.NameMaxLength)
             .WithMessage(localizer[MessageKey.MaxLengthReached, localizer[MessageKey.GlobalName], StoreConnection.NameMaxLength]);
 
+        RuleFor(command => command.Icon)
+            .Must((command, icon) => StoreConnectionIcons.IsAllowed(command.Store, StoreConnectionIcons.Normalize(icon)))
+            .WithMessage(localizer[MessageKey.StoreConnectionIconInvalid]);
+
         RuleFor(command => command.Secret)
             .NotNullOrEmpty(localizer, MessageKey.StoreSecret)
             .MaximumLength(SecretMaxLength)

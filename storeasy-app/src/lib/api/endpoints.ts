@@ -254,6 +254,8 @@ export interface AddConnectionInput {
   Secret: string
   // Microsoft only, required: when the Entra client secret expires (at most 24 months away).
   CredentialExpiryDate?: string | null
+  // Optional icon key: a generic icon or the store's own logo (400 StoreConnectionIconInvalid otherwise).
+  Icon?: string | null
 }
 
 export const connectionsApi = {
@@ -271,6 +273,10 @@ export const connectionsApi = {
       ConnectionId: connectionId,
       PackageName: packageName?.trim() || null,
     }),
+
+  // Renames the connection and sets or clears its icon; the secret is not touched. Answers the updated connection.
+  update: (organizationId: number, connectionId: number, input: { Name: string; Icon: string | null }) =>
+    apiPut<StoreConnectionDto>('/StoreConnections/connection', { OrganizationId: organizationId, ConnectionId: connectionId, ...input }),
 
   // Wipes the encrypted secret; cannot be undone.
   remove: (organizationId: number, connectionId: number) =>

@@ -260,7 +260,7 @@ export function AppWorkspace({ section, sub, stores, appWide, children }: AppWor
                 className={cn('chip', item.StoreAppId === record?.StoreAppId && 'on')}
                 aria-current={item.StoreAppId === record?.StoreAppId ? 'true' : undefined}
               >
-                <StoreTag store={item.Store} small />
+                <StoreTag store={item.Store} connectionId={item.StoreConnectionId} small />
               </Link>
             ))}
           </div>
