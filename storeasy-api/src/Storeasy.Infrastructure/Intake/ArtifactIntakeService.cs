@@ -486,6 +486,11 @@ public sealed partial class ArtifactIntakeService(IStoreasyRepositoryBase<Artifa
                                                  projection: a => new App { Id = a.Id, Name = a.Name },
                                                  cancellationToken: cancellationToken);
 
+    /// <summary>
+    /// The earlier session of the same file that a new upload repeats: one in progress, held or delivered. A rejected or
+    /// failed session never blocks the same file, since the reason may be gone (the app record, the rules or the store
+    /// changed), so the file is read and checked again.
+    /// </summary>
     private async Task<ArtifactSession> FindSameFileAsync(int organizationId, int appId, string sha256, long? exceptId, CancellationToken cancellationToken)
     {
         var candidates = await _sessionRepository.GetAllAsync(s => s.OrganizationId == organizationId
@@ -493,7 +498,8 @@ public sealed partial class ArtifactIntakeService(IStoreasyRepositoryBase<Artifa
                                                                    && s.Sha256 == sha256
                                                                    && s.Id != exceptId
                                                                    && s.Status != ArtifactSessionStatus.Duplicate
-                                                                   && !(s.Status == ArtifactSessionStatus.Rejected && s.PackageDeleted)
+                                                                   && s.Status != ArtifactSessionStatus.Rejected
+                                                                   && s.Status != ArtifactSessionStatus.Failed
                                                                    && !(s.Status == ArtifactSessionStatus.Uploading && s.UploadId == null),
                                                               projection: s => new ArtifactSession { Id = s.Id, Status = s.Status, ObjectKey = s.ObjectKey, UploadId = s.UploadId, Size = s.Size, PartSize = s.PartSize, ResumeCount = s.ResumeCount },
                                                               cancellationToken: cancellationToken);

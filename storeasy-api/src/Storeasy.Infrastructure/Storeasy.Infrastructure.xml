@@ -1249,6 +1249,13 @@
             <param name="fileName"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.FindSameFileAsync(System.Int32,System.Int32,System.String,System.Nullable{System.Int64},System.Threading.CancellationToken)">
+            <summary>
+            The earlier session of the same file that a new upload repeats: one in progress, held or delivered. A rejected or
+            failed session never blocks the same file, since the reason may be gone (the app record, the rules or the store
+            changed), so the file is read and checked again.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Intake.IntakeCleaner">
             <summary>
             The storage housekeeping of package intake and of the phase 1 asset uploads: deletes stored packages past their
