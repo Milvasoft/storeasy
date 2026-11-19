@@ -77,7 +77,10 @@ export function MsCredentialForm({
           <Input
             mono
             value={fields.tenantId}
+            name="storeasy-ms-tenantid"
             autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
             spellCheck={false}
             onChange={(event) => set('tenantId')(event.target.value)}
           />
@@ -86,7 +89,10 @@ export function MsCredentialForm({
           <Input
             mono
             value={fields.clientId}
+            name="storeasy-ms-clientid"
             autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
             spellCheck={false}
             onChange={(event) => set('clientId')(event.target.value)}
           />
@@ -95,7 +101,11 @@ export function MsCredentialForm({
       <Field label={secretLabel ?? t.connection.clientSecret} hint={t.connection.clientSecretHint} error={errors.clientSecret}>
         <PasswordInput
           value={fields.clientSecret}
-          autoComplete="off"
+          // new-password keeps password managers from filling the saved storeasy sign-in into the Entra secret.
+          name="storeasy-ms-client-secret"
+          autoComplete="new-password"
+          data-1p-ignore
+          data-lpignore="true"
           maxLength={512}
           onChange={(event) => set('clientSecret')(event.target.value)}
         />
@@ -106,7 +116,10 @@ export function MsCredentialForm({
             mono
             inputMode="numeric"
             value={fields.sellerId}
+            name="storeasy-ms-sellerid"
             autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
             onChange={(event) => set('sellerId')(event.target.value.trim())}
           />
         </Field>
@@ -203,14 +216,14 @@ export function RenewSecretDialog({
   const initial: MsCredentialFields = { ...EMPTY_CREDENTIALS, sellerId: fingerprint.SellerId ?? '' }
   const [fields, setFields] = useState<MsCredentialFields>(initial)
   const [expiry, setExpiry] = useState<DateOnly | null>(defaultExpiry())
-  const [errors, setErrors] = useState<MsFieldErrors>({})
+  const [submitted, setSubmitted] = useState(false)
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
 
   const close = () => {
     // The secret leaves the form and the memory with the dialog.
     setFields(initial)
     setExpiry(defaultExpiry())
-    setErrors({})
+    setSubmitted(false)
     setServer(null)
     onClose()
   }
@@ -233,13 +246,20 @@ export function RenewSecretDialog({
     },
   })
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
+  // Field errors follow the values once the form was submitted, so a corrected value clears its message at once.
+  const validate = (): MsFieldErrors => {
     const next = msFieldErrors(fields, expiry, t)
     if (!next.tenantId && !next.clientId && !sameIdentity(fields, fingerprint.TenantIdSuffix, fingerprint.ClientIdSuffix)) {
       next.clientId = t.connection.problem.mismatch
     }
-    setErrors(next)
+    return next
+  }
+  const errors: MsFieldErrors = submitted ? validate() : {}
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    const next = validate()
+    setSubmitted(true)
     setServer(null)
     if (!Object.values(next).some(Boolean)) {
       rotate.mutate()

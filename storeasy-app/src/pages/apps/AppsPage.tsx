@@ -124,8 +124,8 @@ function StoreCell({ app, store }: { app: AppListDto; store: StoreKind }) {
     return <span className="text-fg3">-</span>
   }
   return (
-    <span className="grid min-w-0">
-      <span className="mono truncate text-[12.5px]">{record.ExternalId ?? record.BundleId ?? '-'}</span>
+    <span className="grid min-w-0 justify-items-start gap-1">
+      <span className="mono max-w-full truncate text-[12.5px]">{record.ExternalId ?? record.BundleId ?? '-'}</span>
       <SyncBadge synced={!!record.SyncedDate} />
     </span>
   )

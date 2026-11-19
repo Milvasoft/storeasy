@@ -2189,6 +2189,13 @@ body {
     width: 100%;
     height: auto;
   }
+  /* The desktop scene stays at about its design size (720 x 470) and within the window: wide screens get margins
+     around it instead of boxes and type that grow with the width. */
+  .stage svg.hs-wide {
+    max-width: 760px;
+    max-height: max(320px, calc(100vh - 330px));
+    margin-inline: auto;
+  }
   .hs text {
     font-family: var(--font-mono);
   }
@@ -2469,8 +2476,11 @@ body {
     .hat {
       grid-template-columns: minmax(0, 1fr) 320px;
     }
+    /* Beside the scene the feed takes the scene's height and scrolls inside it; new events never make the row taller. */
     .feed {
       max-height: none;
+      contain: size;
+      min-height: 320px;
     }
   }
 
