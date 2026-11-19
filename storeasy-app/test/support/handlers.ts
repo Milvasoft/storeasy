@@ -168,6 +168,13 @@ export const defaultHandlers: HttpHandler[] = [
     return json(listEnvelope(store ? visible.filter((item) => item.Stores?.some((record) => record.Store === store)) : visible))
   }),
   endpoint('post', '/Apps/app/hidden', ({ body }) => json(envelope((body as { AppId: number }).AppId))),
+  endpoint('post', '/Apps/app/order', ({ body }) => {
+    // The listed apps come first in the asked order, so the list read after the change follows it.
+    const ids = (body as { AppIds: number[] }).AppIds
+    const placed = ids.flatMap((id) => testState.apps.filter((item) => item.Id === id))
+    testState.apps = [...placed, ...testState.apps.filter((item) => !ids.includes(item.Id))]
+    return json(envelope(ids.length))
+  }),
   endpoint('get', '/Apps/app', ({ url }) =>
     Number(url.searchParams.get('AppId')) === testState.appDetail.Id
       ? json(envelope(testState.appDetail))

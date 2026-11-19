@@ -18,6 +18,41 @@ export function isValidPackageName(value: string): boolean {
 
 export const STORE_ORDER: readonly StoreKind[] = [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]
 
+/**
+ * The order of the apps list when no sort is asked (GetAppListQueryHandler): the apps a member placed by their place,
+ * then the apps never placed by name.
+ */
+export function compareDisplayOrder(a: AppListDto, b: AppListDto): number {
+  const placedA = a.DisplayOrder ?? null
+  const placedB = b.DisplayOrder ?? null
+  if (placedA !== null && placedB !== null && placedA !== placedB) {
+    return placedA - placedB
+  }
+  if ((placedA === null) !== (placedB === null)) {
+    return placedA === null ? 1 : -1
+  }
+  return a.Name.localeCompare(b.Name, 'tr', { sensitivity: 'base' }) || a.Id - b.Id
+}
+
+/** The ids with one id moved by offset places (-1 earlier, 1 later), kept inside the list. */
+export function moveBy(ids: readonly number[], id: number, offset: number): number[] {
+  const from = ids.indexOf(id)
+  const to = Math.min(ids.length - 1, Math.max(0, from + offset))
+  return from < 0 || from === to ? [...ids] : moveTo(ids, id, ids[to])
+}
+
+/** The ids with one id moved to the place of another one (the target and the ones between shift by one). */
+export function moveTo(ids: readonly number[], id: number, targetId: number): number[] {
+  const from = ids.indexOf(id)
+  const to = ids.indexOf(targetId)
+  if (from < 0 || to < 0 || from === to) {
+    return [...ids]
+  }
+  const next = ids.filter((value) => value !== id)
+  next.splice(to, 0, id)
+  return next
+}
+
 export function recordsOf(app: AppListDto): AppStoreRecordDto[] {
   return [...(app.Stores ?? [])].sort((a, b) => a.Store - b.Store)
 }

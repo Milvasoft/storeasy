@@ -3,10 +3,13 @@ import { BuildProcessingState, ConnectionStatus, StoreJobKind, StoreJobStatus, S
 import {
   APP_COLORS,
   appColor,
+  compareDisplayOrder,
   connectionIdsOf,
   isValidPackageName,
   lastSyncOf,
   linkCandidates,
+  moveBy,
+  moveTo,
   primaryIdentifier,
   storeCounts,
 } from '@/lib/apps/apps'
@@ -123,5 +126,26 @@ describe('app helpers', () => {
     const other = app({ Id: 103, Stores: [storeRecord({ StoreAppId: 230 })] })
 
     expect(linkCandidates(ios, [ios, halka, other]).map(({ record }) => record.StoreAppId)).toEqual([210])
+  })
+
+  it('orders the placed apps first by their place, then the rest by name, as the API does', () => {
+    const apps = [
+      app({ Id: 1, Name: 'Zebra' }),
+      app({ Id: 2, Name: 'alpha', DisplayOrder: 1 }),
+      app({ Id: 3, Name: 'Beta' }),
+      app({ Id: 4, Name: 'Omega', DisplayOrder: 0 }),
+    ]
+
+    expect([...apps].sort(compareDisplayOrder).map((item) => item.Id)).toEqual([4, 2, 3, 1])
+  })
+
+  it('moves an id by one place or onto another id and stays inside the list', () => {
+    expect(moveBy([1, 2, 3], 2, -1)).toEqual([2, 1, 3])
+    expect(moveBy([1, 2, 3], 2, 1)).toEqual([1, 3, 2])
+    expect(moveBy([1, 2, 3], 1, -1)).toEqual([1, 2, 3])
+    expect(moveBy([1, 2, 3], 3, 1)).toEqual([1, 2, 3])
+    expect(moveTo([1, 2, 3, 4], 4, 2)).toEqual([1, 4, 2, 3])
+    expect(moveTo([1, 2, 3, 4], 1, 3)).toEqual([2, 3, 1, 4])
+    expect(moveTo([1, 2, 3], 9, 2)).toEqual([1, 2, 3])
   })
 })

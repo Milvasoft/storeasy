@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse, type HttpHandler } from 'msw'
 import type { ListRequest } from '@/lib/api/list'
+import { compareDisplayOrder } from '@/lib/apps/apps'
 import {
   ActionChannel,
   BuildProcessingState,
@@ -233,7 +234,8 @@ export const appsMockHandlers: HttpHandler[] = [
       .filter((app) => list.IncludeHidden || !!app.HiddenDate === !!list.Hidden)
       .filter((app) => !search || app.Name.toLocaleLowerCase('tr').includes(search))
       .map(({ Builds: _builds, ...app }) => app)
-    return page(rows, list)
+    // Without a sort the list follows the order members chose, as on the server.
+    return page(list.Sorting?.SortBy ? rows : [...rows].sort(compareDisplayOrder), list)
   }),
   http.get(`${BASE}/Apps/app`, async ({ request }) => {
     await delay(200)
@@ -278,6 +280,18 @@ export const appsMockHandlers: HttpHandler[] = [
     // The first hide date stays, as on the server.
     app.HiddenDate = Hidden ? (app.HiddenDate ?? new Date().toISOString()) : null
     return envelope(AppId)
+  }),
+  http.post(`${BASE}/Apps/app/order`, async ({ request }) => {
+    const { AppIds } = (await request.json()) as { AppIds: number[] }
+    if (AppIds.some((id) => !apps.some((app) => app.Id === id))) {
+      return refuse('AppNotFound', 'Uygulama bulunamadı.', 404)
+    }
+    // The listed apps take their index; the others lose their place, as on the server.
+    for (const app of apps) {
+      const index = AppIds.indexOf(app.Id)
+      app.DisplayOrder = index < 0 ? null : index
+    }
+    return envelope(AppIds.length)
   }),
   http.post(`${BASE}/Apps/sync`, () => envelope([(nextJobId += 1)])),
 

@@ -7,7 +7,8 @@ namespace Storeasy.Application.Features.Apps.GetAppList;
 /// <summary>
 /// Pages through the organization's apps with their store records (all stores in one list). <see cref="Store"/> narrows
 /// it to the apps that have a record in that store, on the server, so paging and the total count follow the filter.
-/// Hidden apps are left out unless <see cref="Hidden"/> or <see cref="IncludeHidden"/> asks for them.
+/// Hidden apps are left out unless <see cref="Hidden"/> or <see cref="IncludeHidden"/> asks for them. Without a sort the
+/// apps come in the order members chose (apps/app/order), then the apps never placed by name.
 /// </summary>
 [OrgAuth(OrgPermission.View)]
 public record GetAppListQuery : ListRequest, IListRequestQuery<AppListDto>, IOrganizationRequest

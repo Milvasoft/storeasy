@@ -80,6 +80,7 @@ export const AuditAction = {
   StoreAppUnlinked: 42,
   AppHidden: 44,
   AppUnhidden: 45,
+  AppsReordered: 46,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -386,6 +387,8 @@ export interface AppListDto {
   CreationDate?: IsoDateTime | null
   /** When a member hid the app from the apps list; null while it is shown. */
   HiddenDate?: IsoDateTime | null
+  /** Place in the apps list a member chose (0 is the first); null for an app never placed. */
+  DisplayOrder?: number | null
   /** One record per store at most. */
   Stores?: AppStoreRecordDto[] | null
 }

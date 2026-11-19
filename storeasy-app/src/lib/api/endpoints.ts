@@ -286,6 +286,10 @@ export const appsApi = {
   setHidden: (organizationId: number, appId: number, hidden: boolean) =>
     apiPost<number>('/Apps/app/hidden', { OrganizationId: organizationId, AppId: appId, Hidden: hidden }),
 
+  // Sets the order of the apps list: these apps first, in this order; every other app follows by name. Answers the count.
+  reorder: (organizationId: number, appIds: number[]) =>
+    apiPost<number>('/Apps/app/order', { OrganizationId: organizationId, AppIds: appIds }),
+
   // Queues a sync for one connection, or every App Store and Play connection when null. Answers the job ids.
   sync: (organizationId: number, connectionId?: number | null) =>
     apiPost<number[]>('/Apps/sync', { OrganizationId: organizationId, ConnectionId: connectionId ?? null }),

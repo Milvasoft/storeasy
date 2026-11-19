@@ -785,6 +785,14 @@ export const tr: Dictionary = {
     hiddenEmptyBody: 'Listeden gizlediğin uygulamalar, yeniden gösterene kadar burada bekler.',
     backToList: 'Tüm uygulamalar',
     hiddenBadge: 'Gizli',
+    reorderHandle: '{app} uygulamasını taşı',
+    moveEarlier: '{app} uygulamasını öne al',
+    moveLater: '{app} uygulamasını geriye al',
+    reorderHint: 'Kartları sürükleyerek sırala. Klavyeyle bir kartın tutamağına gelip Alt ve ok tuşlarına bas.',
+    reorderOffFiltered: 'Sırayı değiştirmek için aramayı ve mağaza filtresini kaldır.',
+    reorderOffPaged: 'Sırayı değiştirmek için tüm uygulamaları tek sayfada göster.',
+    movedTo: '{app} {position}. sıraya taşındı.',
+    reorderFailed: 'Yeni sıra kaydedilemedi.',
   },
   app: {
     back: 'Uygulamalar',
@@ -997,6 +1005,7 @@ export const tr: Dictionary = {
       storeAppUnlinked: 'Mağaza kaydı ayrıldı',
       appHidden: 'Uygulama gizlendi',
       appUnhidden: 'Uygulama gösterildi',
+      appsReordered: 'Uygulamalar yeniden sıralandı',
     },
   },
 }

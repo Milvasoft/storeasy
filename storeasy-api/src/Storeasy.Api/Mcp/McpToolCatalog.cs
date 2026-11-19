@@ -6,6 +6,7 @@ using Storeasy.Application.Features.Apps.AddGoogleApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
+using Storeasy.Application.Features.Apps.ReorderApps;
 using Storeasy.Application.Features.Apps.SetAppHidden;
 using Storeasy.Application.Features.Apps.SyncApps;
 using Storeasy.Application.Features.Apps.UnlinkStoreApp;
@@ -174,6 +175,7 @@ public static class McpToolCatalog
         Write<UpdateAppProfileCommand>("apps_profile_update", "Updates the catalog profile of an app (device families, regions, features, SDK, target API) used by the readiness check."),
         Write<SetAppHiddenCommand>("apps_hide", "Hides an app from the apps list and the organization wide overviews; nothing is deleted and sync keeps it hidden.", ("Hidden", true)),
         Write<SetAppHiddenCommand>("apps_unhide", "Shows a hidden app in the apps list again (apps_list with Hidden true lists the hidden ones).", ("Hidden", false)),
+        Write<ReorderAppsCommand>("apps_reorder", "Sets the order of the apps list: the given app ids come first in that order, every other app follows by name (apps_list without a sort shows this order)."),
 
         // Readiness and compliance
         Read<GetReadinessQuery>("readiness_check", "What blocks a submission of one store record, from one live read of the store and the rules catalog."),
