@@ -31,6 +31,11 @@ public class AppListDto
     public DateTime? CreationDate { get; set; }
 
     /// <summary>
+    /// UTC instant a member hid the app from the apps list; null while it is shown.
+    /// </summary>
+    public DateTime? HiddenDate { get; set; }
+
+    /// <summary>
     /// Records in the stores (one per store at most).
     /// </summary>
     public List<AppStoreRecordDto> Stores { get; set; }
@@ -46,6 +51,7 @@ public class AppListDto
         Name = a.Name,
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
+        HiddenDate = a.HiddenDate,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto
         {
             StoreAppId = s.Id,

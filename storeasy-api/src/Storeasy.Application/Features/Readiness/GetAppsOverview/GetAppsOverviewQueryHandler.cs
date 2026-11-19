@@ -8,7 +8,7 @@ using Storeasy.Domain.Apps;
 namespace Storeasy.Application.Features.Readiness.GetAppsOverview;
 
 /// <summary>
-/// Handles <see cref="GetAppsOverviewQuery"/>.
+/// Handles <see cref="GetAppsOverviewQuery"/>. Hidden apps are left out.
 /// </summary>
 /// <param name="contentService"></param>
 /// <param name="readinessService"></param>
@@ -44,7 +44,7 @@ public class GetAppsOverviewQueryHandler(IStoreContentService contentService,
             }
         }
 
-        var apps = await _appRepository.GetAllAsync(a => a.OrganizationId == request.OrganizationId,
+        var apps = await _appRepository.GetAllAsync(a => a.OrganizationId == request.OrganizationId && a.HiddenDate == null,
                                                     projection: a => new App
                                                     {
                                                         Id = a.Id,

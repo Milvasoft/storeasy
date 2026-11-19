@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { MOCK_API } from '@/config'
-import { appsApi, jobsApi } from '@/lib/api/endpoints'
+import { appsApi, jobsApi, type AppListRequest } from '@/lib/api/endpoints'
 import { SortType, type ListRequest } from '@/lib/api/list'
 import { StoreJobKind, StoreJobStatus } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
@@ -74,6 +74,8 @@ export const ActivitySourceFactoryContext = createContext<ActivitySourceFactory>
 export const SEED_REQUEST: ListRequest = { PageNumber: 1, RowCount: 50, Sorting: { SortBy: 'Id', Type: SortType.Desc } }
 // App names for the lanes, the feed and the toasts (the events carry only the app id).
 export const APP_NAMES_REQUEST: ListRequest = { PageNumber: 1, RowCount: 100, Sorting: { SortBy: 'Name', Type: SortType.Asc } }
+// The same names with the hidden apps too, for screens that only resolve an app id to its name (a hidden app still has jobs).
+export const APP_NAMES_ALL_REQUEST: AppListRequest = { ...APP_NAMES_REQUEST, IncludeHidden: true }
 
 interface ActivityContextValue {
   state: HatState
@@ -115,8 +117,8 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   const organizationId = current?.Id ?? null
 
   const apps = useQuery({
-    queryKey: queryKeys.apps.list(organizationId ?? 0, APP_NAMES_REQUEST),
-    queryFn: () => appsApi.list(organizationId ?? 0, APP_NAMES_REQUEST),
+    queryKey: queryKeys.apps.list(organizationId ?? 0, APP_NAMES_ALL_REQUEST),
+    queryFn: () => appsApi.list(organizationId ?? 0, APP_NAMES_ALL_REQUEST),
     enabled: organizationId !== null,
     staleTime: 60_000,
   })

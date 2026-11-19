@@ -37,6 +37,7 @@ public class AppDetailDto : AppListDto
         Name = a.Name,
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
+        HiddenDate = a.HiddenDate,
         Profile = a.Profile,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto
         {

@@ -60,7 +60,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | | `account/detail`, `profile`, `password/change`, `logout`, `sessions`, `session`, `sessions/others`, `push/subscription(s)`, `push/test`, `notifications`, `account/preferences` | Signed in user, own data only |
 | Organizations and members | `organizations/mine`, `organization`, `settings`, `members`, `member/role`, `member`, `invitation`, `invitation/accept`, `roles`, `role`, `audit-logs` | `View`; members and invitations `ManageMembers`; custom roles `ManageMembers` within your own permissions; rename, delete and owners `ManageOrganization`; `invitation/preview` anonymous |
 | Store connections | `storeconnections`, `connection`, `connection/verify` | List `View`; add, verify, delete `ManageConnections` |
-| Apps and readiness | `apps`, `apps/app`, `apps/google`, `apps/app/link`, `apps/app/unlink`, `apps/sync`, `apps/profile`, `apps/readiness`, `apps/overview`, `apps/compliance`, `apps/answers*`, `compliance`, `rules/*` | Reads `View`; changes `EditContent` |
+| Apps and readiness | `apps`, `apps/app`, `apps/google`, `apps/app/link`, `apps/app/unlink`, `apps/app/hidden`, `apps/sync`, `apps/profile`, `apps/readiness`, `apps/overview`, `apps/compliance`, `apps/answers*`, `compliance`, `rules/*` | Reads `View`; changes `EditContent` |
 | Change plans | `plans`, `plans/plan`, `plans/approve`, `plans/reject`, `plans/discard` | Read `View`; approve with the plan's own permission and, for submissions and production, the typed confirmation |
 | Store content | `listings`, `screenshots`, `previews`, `categories`, `age-rating`, `pricing`, `review-info`, `builds`, `releases` (each with reads, `plan` and `apply`) | Reads `View`; plans `EditContent`; test releases `ReleaseTest`; production and App Store rollouts `ReleaseProduction`; `releases/submit-for-review` `SubmitForReview` |
 | Money | `subscriptions/*`, `iap/*`, `purchasesettings/*` | Reads `View`; plans `EditContent`; server notification URLs `ManageWebhooks` |
@@ -91,5 +91,5 @@ Outgoing webhooks send these events, signed like the signed receiver (`X-Storeas
 
 ## MCP
 
-`/mcp` is not REST: it is the remote MCP server, with 139 tools that send the same requests as the endpoints above. See
+`/mcp` is not REST: it is the remote MCP server, with 141 tools that send the same requests as the endpoints above. See
 [mcp.md](mcp.md).

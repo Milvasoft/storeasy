@@ -38,6 +38,10 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.storeAppLinked
     case AuditAction.StoreAppUnlinked:
       return t.enums.auditAction.storeAppUnlinked
+    case AuditAction.AppHidden:
+      return t.enums.auditAction.appHidden
+    case AuditAction.AppUnhidden:
+      return t.enums.auditAction.appUnhidden
     default:
       return String(action)
   }

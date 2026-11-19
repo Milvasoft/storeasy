@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118182350_Phase8Final";
+    public override string LastMigrationId => "20261119065054_AddAppHiddenDate";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -125,6 +125,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .HasColumnType("text");
 
                 b.Property<DateTime?>("DeletionDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("HiddenDate")
                     .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("IconUrl")

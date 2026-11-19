@@ -926,6 +926,11 @@
             UTC instant the app was added.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.HiddenDate">
+            <summary>
+            UTC instant a member hid the app from the apps list; null while it is shown.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Stores">
             <summary>
             Records in the stores (one per store at most).
@@ -11180,6 +11185,7 @@
             <summary>
             Pages through the organization's apps with their store records (all stores in one list). <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Store"/> narrows
             it to the apps that have a record in that store, on the server, so paging and the total count follow the filter.
+            Hidden apps are left out unless <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Hidden"/> or <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.IncludeHidden"/> asks for them.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.OrganizationId">
@@ -11190,15 +11196,25 @@
             Only apps with a record in this store; null for every app.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Hidden">
+            <summary>
+            False (the default) lists the shown apps; true lists only the apps a member hid.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.IncludeHidden">
+            <summary>
+            True lists shown and hidden apps together and ignores <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Hidden"/> (for name lookups).
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store filter is part of the query.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store and hidden filters are part of the query.
             </summary>
             <param name="appRepository"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store filter is part of the query.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store and hidden filters are part of the query.
             </summary>
             <param name="appRepository"></param>
         </member>
@@ -11265,6 +11281,63 @@
         </member>
         <member name="M:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand">
+            <summary>
+            Hides an app from the apps list (and the organization wide overviews) or shows it again. Nothing is deleted: the app,
+            its records and builds stay, sync keeps reading them, and the app still opens by its address. Returns the app id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand.AppId">
+            <summary>
+            App to hide or show.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand.Hidden">
+            <summary>
+            True hides the app; false shows it again.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand"/>. An app already in the asked state is left as it is (the first hide date
+            stays) and nothing is audited; an app of another organization is reported as not found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand"/>. An app already in the asked state is left as it is (the first hide date
+            stays) and nothing is audited; an app of another organization is reported as not found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandHandler.Handle(Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand">
             <summary>
@@ -17602,7 +17675,7 @@
         </member>
         <member name="T:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQuery"/>. Hidden apps are left out.
             </summary>
             <param name="contentService"></param>
             <param name="readinessService"></param>
@@ -17612,7 +17685,7 @@
         </member>
         <member name="M:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IReadinessService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IRulesCatalog,System.TimeProvider)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Readiness.GetAppsOverview.GetAppsOverviewQuery"/>. Hidden apps are left out.
             </summary>
             <param name="contentService"></param>
             <param name="readinessService"></param>
@@ -26429,7 +26502,8 @@
         </member>
         <member name="M:Storeasy.Application.Interfaces.IStoreContentService.GetStoreAppsAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
             <summary>
-            Every store record of the organization (of one app when <paramref name="appId"/> is set).
+            Every store record of the organization's shown apps (hidden apps are left out of these organization wide reads),
+            or of one app when <paramref name="appId"/> is set, hidden or not.
             </summary>
             <param name="organizationId"></param>
             <param name="appId"></param>

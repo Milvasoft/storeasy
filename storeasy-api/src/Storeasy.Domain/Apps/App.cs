@@ -50,6 +50,12 @@ public class App : FullAuditableEntity<int>
     public AppProfile Profile { get; set; }
 
     /// <summary>
+    /// UTC instant a member hid the app from the apps list; null while it is shown. Only a member changes it (sync never
+    /// writes it), so a hidden app stays hidden when its records are read from the store again.
+    /// </summary>
+    public DateTime? HiddenDate { get; set; }
+
+    /// <summary>
     /// Store records of the app.
     /// </summary>
     public virtual List<StoreApp> StoreApps { get; set; }

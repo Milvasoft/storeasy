@@ -9,7 +9,7 @@ log are identical; audit entries record the channel as MCP.
 | | Remote MCP | Local bridge `storeasy-mcp` |
 |---|---|---|
 | Transport | Streamable HTTP at `https://<your storeasy>/mcp` (stateless) | stdio, runs on your machine, forwards to the remote `/mcp` |
-| Tools | 139 | The same 139, plus `artifact_upload` |
+| Tools | 141 | The same 141, plus `artifact_upload` |
 | Local files | No: file arguments take asset ids | Yes: file and folder arguments take local paths; the bridge uploads them first |
 | Needs | A personal access token | Node 22+ and a personal access token (or `storeasy login`) |
 
@@ -104,7 +104,7 @@ store. The full list with input schemas comes from the server (`tools/list`); th
 
 | Area | Tools | Examples |
 |---|---|---|
-| Apps and overview | 8 | `apps_summary`, `apps_list`, `apps_get`, `apps_sync`, `apps_add_google`, `apps_link_store_record`, `apps_profile_update` |
+| Apps and overview | 10 | `apps_summary`, `apps_list`, `apps_get`, `apps_sync`, `apps_add_google`, `apps_link_store_record`, `apps_profile_update`, `apps_hide`, `apps_unhide` |
 | Readiness and compliance | 3 | `readiness_check`, `compliance_app`, `compliance_list` |
 | Listings, media, categories, age rating, pricing, review info | 18 | `listings_get`, `listings_plan`, `screenshots_sets`, `screenshots_plan`, `screenshots_upload_dir`, `previews_plan`, `categories_plan`, `age_rating_plan`, `pricing_plan`, `review_info_plan` |
 | Builds and releases | 10 | `builds_list`, `builds_link`, `builds_export_compliance`, `bundle_upload_plan`, `releases_plan`, `rollout_plan`, `testers_plan`, `submit_for_review` |

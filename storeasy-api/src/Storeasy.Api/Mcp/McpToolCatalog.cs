@@ -6,6 +6,7 @@ using Storeasy.Application.Features.Apps.AddGoogleApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
+using Storeasy.Application.Features.Apps.SetAppHidden;
 using Storeasy.Application.Features.Apps.SyncApps;
 using Storeasy.Application.Features.Apps.UnlinkStoreApp;
 using Storeasy.Application.Features.Apps.UpdateAppProfile;
@@ -171,6 +172,8 @@ public static class McpToolCatalog
         Write<LinkStoreAppCommand>("apps_link_store_record", "Moves a store record to another storeasy app (links the App Store and Play records of one product)."),
         Write<UnlinkStoreAppCommand>("apps_unlink_store_record", "Moves a store record out to its own app."),
         Write<UpdateAppProfileCommand>("apps_profile_update", "Updates the catalog profile of an app (device families, regions, features, SDK, target API) used by the readiness check."),
+        Write<SetAppHiddenCommand>("apps_hide", "Hides an app from the apps list and the organization wide overviews; nothing is deleted and sync keeps it hidden.", ("Hidden", true)),
+        Write<SetAppHiddenCommand>("apps_unhide", "Shows a hidden app in the apps list again (apps_list with Hidden true lists the hidden ones).", ("Hidden", false)),
 
         // Readiness and compliance
         Read<GetReadinessQuery>("readiness_check", "What blocks a submission of one store record, from one live read of the store and the rules catalog."),
@@ -329,8 +332,8 @@ public static class McpToolCatalog
     private static McpToolDefinition Read<TRequest>(string name, string description, params (string Property, object Value)[] fixedValues)
         => Define(typeof(TRequest), name, description, McpToolKind.Read, fixedValues, [], []);
 
-    private static McpToolDefinition Write<TRequest>(string name, string description)
-        => Define(typeof(TRequest), name, description, McpToolKind.Write, [], [], []);
+    private static McpToolDefinition Write<TRequest>(string name, string description, params (string Property, object Value)[] fixedValues)
+        => Define(typeof(TRequest), name, description, McpToolKind.Write, fixedValues, [], []);
 
     private static McpToolDefinition Plan<TRequest>(string name, string description)
         => Plan<TRequest>(name, description, [], [], []);

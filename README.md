@@ -23,7 +23,7 @@ the same checks.
 - **Events.** App Store Connect webhooks, review inbox and replies, rejection cases, TestFlight, deadline reminders and
   outgoing webhooks; notifications in the app, by e-mail and as browser push.
 - **Money.** Subscriptions, offers, prices per territory and in-app purchases in both stores, as change plans.
-- **MCP.** Remote MCP at `/mcp` (139 tools) with a personal access token, plus a local bridge (`storeasy-mcp`) for
+- **MCP.** Remote MCP at `/mcp` (141 tools) with a personal access token, plus a local bridge (`storeasy-mcp`) for
   tools that take local files. See [docs/mcp.md](docs/mcp.md).
 - **CI intake.** Builds go from CI straight to storeasy (GitHub Action with OIDC, Azure DevOps task, CLI, EAS and
   generic webhooks), which checks them and delivers them to a test channel. Production is never automatic. See
@@ -50,7 +50,7 @@ integration tests against fake store servers but have not run against the real s
 | Subscriptions, offers and in-app purchases (both stores), purchase settings | Built; fakes only |
 | Reviews, rejections, TestFlight, App Store Connect webhooks, outgoing webhooks, notifications | Built; store calls fakes only |
 | Mockup studio: templates, device frames, captions per language, exports to screenshot plans | Built (caption translation suggestions need a provider; none ships) |
-| Remote MCP (139 tools), personal access tokens, local bridge | Built |
+| Remote MCP (141 tools), personal access tokens, local bridge | Built |
 | CI intake: OIDC trusted publishers, CI tokens, CLI, GitHub Action, Azure DevOps task, EAS and generic webhooks | Built; delivery fakes only, the App Store Connect build upload API needs one real build ([`External` mode](docs/ci-intake.md#apple-upload-modes) is the fallback) |
 | Store jobs, live activity (SignalR), assisted steps | Built |
 | Web app | Every area above has its screens; polishing continues |

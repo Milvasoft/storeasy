@@ -256,10 +256,14 @@ export const connectionsApi = {
 }
 
 // ---- Apps and builds -------------------------------------------------------
+// The apps list request: Hidden lists only the apps a member hid; IncludeHidden lists shown and hidden apps together
+// (for name lookups). With neither, hidden apps are left out.
+export type AppListRequest = ListRequest & { Hidden?: boolean; IncludeHidden?: boolean }
+
 export const appsApi = {
   // Every store in one list, with the store records of each app.
   // Store narrows the list on the server to the apps with a record in that store.
-  list: (organizationId: number, request: ListRequest, store?: StoreKind | null) =>
+  list: (organizationId: number, request: AppListRequest, store?: StoreKind | null) =>
     apiPatchList<AppListDto>('/Apps', { OrganizationId: organizationId, ...request, ...(store ? { Store: store } : {}) }),
 
   // The app with its store records and its newest 100 builds. 404 AppNotFound.
@@ -277,6 +281,10 @@ export const appsApi = {
   // Splits a store record off into a new app named after it. Answers the record's app id.
   unlink: (organizationId: number, storeAppId: number) =>
     apiPost<number>('/Apps/app/unlink', { OrganizationId: organizationId, StoreAppId: storeAppId }),
+
+  // Hides the app from the apps list and the overviews, or shows it again. Nothing is deleted; sync keeps it hidden.
+  setHidden: (organizationId: number, appId: number, hidden: boolean) =>
+    apiPost<number>('/Apps/app/hidden', { OrganizationId: organizationId, AppId: appId, Hidden: hidden }),
 
   // Queues a sync for one connection, or every App Store and Play connection when null. Answers the job ids.
   sync: (organizationId: number, connectionId?: number | null) =>

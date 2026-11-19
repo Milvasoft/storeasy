@@ -227,9 +227,10 @@ function listOf({ Payload: _payload, Result: _result, NextAttemptDate: _next, St
 export const appsMockHandlers: HttpHandler[] = [
   http.patch(`${BASE}/Apps`, async ({ request }) => {
     await delay(250)
-    const list = (await request.json()) as ListRequest
+    const list = (await request.json()) as ListRequest & { Hidden?: boolean; IncludeHidden?: boolean }
     const search = String(list.Filtering?.Criterias?.find((criteria) => criteria.FilterBy === 'Name')?.Value ?? '').toLocaleLowerCase('tr')
     const rows = apps
+      .filter((app) => list.IncludeHidden || !!app.HiddenDate === !!list.Hidden)
       .filter((app) => !search || app.Name.toLocaleLowerCase('tr').includes(search))
       .map(({ Builds: _builds, ...app }) => app)
     return page(rows, list)
@@ -268,6 +269,16 @@ export const appsMockHandlers: HttpHandler[] = [
     return envelope(AppId)
   }),
   http.post(`${BASE}/Apps/app/unlink`, () => envelope(101)),
+  http.post(`${BASE}/Apps/app/hidden`, async ({ request }) => {
+    const { AppId, Hidden } = (await request.json()) as { AppId: number; Hidden: boolean }
+    const app = apps.find((item) => item.Id === AppId)
+    if (!app) {
+      return refuse('AppNotFound', 'Uygulama bulunamadı.', 404)
+    }
+    // The first hide date stays, as on the server.
+    app.HiddenDate = Hidden ? (app.HiddenDate ?? new Date().toISOString()) : null
+    return envelope(AppId)
+  }),
   http.post(`${BASE}/Apps/sync`, () => envelope([(nextJobId += 1)])),
 
   http.patch(`${BASE}/StoreJobs`, async ({ request }) => {

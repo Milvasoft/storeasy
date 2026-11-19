@@ -82,6 +82,14 @@ public enum AuditAction : short
     [Description("App profile updated")]
     AppProfileUpdated = 43,
 
+    /// <summary>A storeasy app was hidden from the apps list.</summary>
+    [Description("App hidden")]
+    AppHidden = 44,
+
+    /// <summary>A hidden storeasy app was shown in the apps list again.</summary>
+    [Description("App shown")]
+    AppUnhidden = 45,
+
     /// <summary>A change plan was approved and its apply job queued.</summary>
     [Description("Change plan approved")]
     PlanApproved = 50,

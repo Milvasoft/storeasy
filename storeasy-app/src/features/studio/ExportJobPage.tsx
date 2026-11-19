@@ -7,7 +7,7 @@ import { Callout } from '@/components/ui/Feedback'
 import { Progress } from '@/components/ui/Progress'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { Button, Chip, PageHeader, PageSkeleton } from '@/components/ui/primitives'
-import { APP_NAMES_REQUEST, useActivity } from '@/lib/activity/ActivityContext'
+import { APP_NAMES_ALL_REQUEST, useActivity } from '@/lib/activity/ActivityContext'
 import { appsApi, jobsApi } from '@/lib/api/endpoints'
 import { apiErrorMessage } from '@/lib/api/http'
 import { OrgPermission, StepDirection, StoreJobStatus, StoreJobStepStatus, type StoreJobStepDto } from '@/lib/api/types'
@@ -48,8 +48,8 @@ function ManifestView({ manifest, canEdit }: { manifest: MockupExportManifest; c
   const [locale, setLocale] = useState<string | null>(null)
   const [outcomes, setOutcomes] = useState<Record<string, PlanOutcome>>({})
   const apps = useQuery({
-    queryKey: queryKeys.apps.list(organization.Id, APP_NAMES_REQUEST),
-    queryFn: () => appsApi.list(organization.Id, APP_NAMES_REQUEST),
+    queryKey: queryKeys.apps.list(organization.Id, APP_NAMES_ALL_REQUEST),
+    queryFn: () => appsApi.list(organization.Id, APP_NAMES_ALL_REQUEST),
     staleTime: 60_000,
   })
   const app = apps.data?.Data.find((item) => item.Id === manifest.AppId)
