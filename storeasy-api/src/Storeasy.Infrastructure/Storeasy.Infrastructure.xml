@@ -5685,6 +5685,15 @@
             <param name="body"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.PackageFamilyName(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            The package family name of an application resource: <c>packageFamilyName</c>, otherwise derived from
+            <c>packageIdentityName</c> and <c>publisherName</c> (<see cref="M:Storeasy.Domain.Intake.MsixIdentity.FamilyName(System.String,System.String)"/>), otherwise the bare
+            identity name. Null when the resource reports no package identity.
+            </summary>
+            <param name="app"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreServiceCollectionExtensions">
             <summary>
             Registers the Microsoft Store engine: options, the token cache, the typed client with its named HTTP client, the
@@ -5984,7 +5993,9 @@
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
             <list type="bullet">
             <item>MSIX apps: every app the Entra application sees (<c>GET applications</c>), each with its app, flight and add-on
-            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app.</item>
+            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app. Every sync
+            writes the package family name to the record's <see cref="P:Storeasy.Domain.Apps.StoreApp.BundleId"/> (package intake matches MSIX packages
+            with it); a product added by its Store id that the MSIX API lists becomes an MSIX app.</item>
             <item>MSI/EXE products: no list API, so the products added by id are read one by one (readiness, ongoing submission,
             installers). A product the store refuses that was never confirmed is removed with its empty app.</item>
             </list>
@@ -6018,7 +6029,9 @@
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
             <list type="bullet">
             <item>MSIX apps: every app the Entra application sees (<c>GET applications</c>), each with its app, flight and add-on
-            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app.</item>
+            submissions (pending and last published), flights and add-ons. New apps get their own storeasy app. Every sync
+            writes the package family name to the record's <see cref="P:Storeasy.Domain.Apps.StoreApp.BundleId"/> (package intake matches MSIX packages
+            with it); a product added by its Store id that the MSIX API lists becomes an MSIX app.</item>
             <item>MSI/EXE products: no list API, so the products added by id are read one by one (readiness, ongoing submission,
             installers). A product the store refuses that was never confirmed is removed with its empty app.</item>
             </list>
