@@ -6228,7 +6228,7 @@
             <param name="Logger"></param>
             <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
             <summary>
-            App and build reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+            App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
             Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
             deleted afterwards). Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
             </summary>
@@ -6289,6 +6289,16 @@
             Most pages read from one paginated App Store Connect list.
             </summary>
         </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.AppleIconBuilds">
+            <summary>
+            Builds read for the icon of an App Store Connect app: the newest ones, newest first.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.AppleIconSize">
+            <summary>
+            Side, in pixels, of the icon asked from Apple's image service.
+            </summary>
+        </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListAppsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -6297,6 +6307,22 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListBuildsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseAppleIconUrl(System.Text.Json.JsonElement)">
+            <summary>
+            Takes the icon of the first build in a <c>/v1/builds</c> page whose <c>iconAssetToken</c> has a template address and
+            fills the template (<c>{w}</c>, <c>{h}</c>, <c>{f}</c>) for a <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.AppleIconSize"/> square png. Null when no
+            build has one or the result is not an absolute https address.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseGoogleIconUrl(System.Text.Json.JsonElement)">
+            <summary>
+            Takes the first image of a Play listing images list (<c>images[].url</c>). Null when there is none or it is not an
+            absolute https address.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseAppleBuilds(System.Text.Json.JsonElement)">
             <summary>
@@ -6363,7 +6389,9 @@
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
             <item>Microsoft Store: not supported yet (permanent failure).</item>
             </list>
-            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+            Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
+            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+            writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
             through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
             </summary>
@@ -6375,8 +6403,9 @@
             <param name="activityPublisher"></param>
             <param name="storeJobQueue"></param>
             <param name="timeProvider"></param>
+            <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
             <list type="bullet">
@@ -6386,7 +6415,9 @@
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
             <item>Microsoft Store: not supported yet (permanent failure).</item>
             </list>
-            Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+            Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
+            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+            writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
             through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
             </summary>
@@ -6398,12 +6429,25 @@
             <param name="activityPublisher"></param>
             <param name="storeJobQueue"></param>
             <param name="timeProvider"></param>
+            <param name="logger"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.Kind">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ReadIconAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads the icon of one store record. Returns the address, an empty string when the store has no icon for it, or null
+            when the read failed (logged as a warning; the job goes on).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.SaveIconsAsync(System.Collections.Generic.Dictionary{System.Int32,System.String},System.Threading.CancellationToken)">
+            <summary>
+            Writes the icons that changed. An app whose icon could not be read is not in <paramref name="icons"/>, so a failure
+            never clears an icon. Only the icon column is written.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.RegisterWebhooksAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>

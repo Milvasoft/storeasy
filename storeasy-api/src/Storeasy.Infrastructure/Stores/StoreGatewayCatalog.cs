@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace Storeasy.Infrastructure.Stores;
 
 /// <summary>
-/// App and build reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+/// App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
 /// Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
 /// deleted afterwards). Failures become <see cref="StoreCallException"/>.
 /// </summary>
@@ -20,6 +20,16 @@ public sealed partial class StoreGateway
     /// Most pages read from one paginated App Store Connect list.
     /// </summary>
     public const int MaxPages = 10;
+
+    /// <summary>
+    /// Builds read for the icon of an App Store Connect app: the newest ones, newest first.
+    /// </summary>
+    public const int AppleIconBuilds = 5;
+
+    /// <summary>
+    /// Side, in pixels, of the icon asked from Apple's image service.
+    /// </summary>
+    public const int AppleIconSize = 512;
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken)
@@ -104,6 +114,70 @@ public sealed partial class StoreGateway
                 throw new StoreCallException(NotSupportedMessage(store), null, false);
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
+    {
+        switch (store)
+        {
+            case StoreKind.Apple:
+            {
+                // A build that is still processing has no icon asset yet, so a few of the newest builds are read.
+                var url = $"{AppleBaseUrl}/v1/builds?filter[app]={Uri.EscapeDataString(externalId)}&sort=-uploadedDate&limit={AppleIconBuilds}&fields[builds]=iconAssetToken,uploadedDate";
+
+                using var document = await SendAsync(HttpMethod.Get, url, AppleToken(secretJson), cancellationToken);
+
+                return ParseAppleIconUrl(document.RootElement);
+            }
+            case StoreKind.Google:
+                return await WithGoogleEditAsync(secretJson, externalId, async (token, editUrl) =>
+                {
+                    using var details = await SendAsync(HttpMethod.Get, $"{editUrl}/details", token, cancellationToken);
+
+                    var language = ReadString(details.RootElement, "defaultLanguage") ?? "en-US";
+
+                    using var images = await SendAsync(HttpMethod.Get, $"{editUrl}/listings/{Uri.EscapeDataString(language)}/icon", token, cancellationToken);
+
+                    return ParseGoogleIconUrl(images.RootElement);
+                }, cancellationToken);
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Takes the icon of the first build in a <c>/v1/builds</c> page whose <c>iconAssetToken</c> has a template address and
+    /// fills the template (<c>{w}</c>, <c>{h}</c>, <c>{f}</c>) for a <see cref="AppleIconSize"/> square png. Null when no
+    /// build has one or the result is not an absolute https address.
+    /// </summary>
+    public static string ParseAppleIconUrl(JsonElement root)
+    {
+        foreach (var build in Items(root, "data"))
+        {
+            var template = build.TryGetProperty("attributes", out var attributes)
+                           && attributes.TryGetProperty("iconAssetToken", out var asset)
+                ? ReadString(asset, "templateUrl")
+                : null;
+
+            if (string.IsNullOrWhiteSpace(template))
+                continue;
+
+            var size = AppleIconSize.ToString(CultureInfo.InvariantCulture);
+
+            return HttpsOrNull(template.Replace("{w}", size).Replace("{h}", size).Replace("{f}", "png"));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Takes the first image of a Play listing images list (<c>images[].url</c>). Null when there is none or it is not an
+    /// absolute https address.
+    /// </summary>
+    public static string ParseGoogleIconUrl(JsonElement root) => HttpsOrNull(Items(root, "images").Select(i => ReadString(i, "url")).FirstOrDefault(u => !string.IsNullOrWhiteSpace(u)));
+
+    private static string HttpsOrNull(string url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps ? uri.AbsoluteUri : null;
 
     private async Task<IReadOnlyList<StoreBuildRecord>> ListAppleBuildsAsync(string token, string appId, CancellationToken cancellationToken)
     {

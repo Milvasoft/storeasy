@@ -129,6 +129,35 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
     }
 
     [Fact]
+    public async Task Sync_ShouldFillTheIcons_AndKeepThemWhenALaterReadFails()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var one = new StoreAppRecord($"1{setup.Suffix}", $"com.{setup.Suffix}.one", "One");
+        var two = new StoreAppRecord($"2{setup.Suffix}", $"com.{setup.Suffix}.two", "Two");
+        var icon = $"https://is1-ssl.mzstatic.com/image/thumb/{setup.Suffix}/512x512bb.png";
+
+        GiveAppleApps(setup, one, two);
+        _factory.StoreGateway.Icons[one.ExternalId] = icon;
+
+        // Act
+        await SyncAsync(setup);
+
+        var first = await ListAppsAsync(setup);
+
+        _factory.StoreGateway.IconFailures[one.ExternalId] = new StoreCallException("503: try later", 503, true);
+
+        await SyncAsync(setup, setup.AppleConnectionId);
+
+        var second = await ListAppsAsync(setup);
+
+        // Assert
+        first.Single(a => a.Name == "One").IconUrl.Should().Be(icon);
+        first.Single(a => a.Name == "Two").IconUrl.Should().BeNull("the store has no icon for it");
+        second.Single(a => a.Name == "One").IconUrl.Should().Be(icon, "a failed icon read neither fails the job nor clears the icon");
+    }
+
+    [Fact]
     public async Task Profile_ShouldBeReadBackWithTheDetail_AndTheListShouldFilterByStore()
     {
         // Arrange
@@ -326,6 +355,6 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
                                                    .Select(s => s.Name)
                                                    .ToListAsync());
 
-        steps.Should().Equal("apps.list", "apps.save", "builds.list", "builds.save");
+        steps.Should().Equal("apps.list", "apps.save", "builds.list", "builds.save", "icons.read");
     }
 }

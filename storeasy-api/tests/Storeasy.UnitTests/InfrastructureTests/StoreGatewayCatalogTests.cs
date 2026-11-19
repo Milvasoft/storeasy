@@ -120,6 +120,81 @@ public class StoreGatewayCatalogTests
         requests.Should().Contain(r => r.Method == HttpMethod.Delete && r.RequestUri.AbsolutePath.EndsWith("/applications/com.example.app/edits/e1"));
     }
 
+    [Fact]
+    public async Task Apple_IconUrl_ShouldFillTheTemplateOfTheNewestBuildThatHasAnIcon()
+    {
+        // Arrange
+        var (gateway, requests) = CreateGateway(_ => Json("""
+            {"data":[
+              {"id":"b3","attributes":{"uploadedDate":"2026-11-02T10:00:00Z"}},
+              {"id":"b2","attributes":{"uploadedDate":"2026-11-01T10:00:00Z","iconAssetToken":{"templateUrl":"https://is1-ssl.mzstatic.com/image/thumb/Purple/v4/ab/icon.png/{w}x{h}bb.{f}","width":1024,"height":1024}}},
+              {"id":"b1","attributes":{"uploadedDate":"2026-10-01T10:00:00Z","iconAssetToken":{"templateUrl":"https://is1-ssl.mzstatic.com/old/{w}x{h}bb.{f}"}}}
+            ]}
+            """));
+
+        // Act
+        var url = await gateway.GetIconUrlAsync(StoreKind.Apple, AppleSecret(), "123", TestContext.Current.CancellationToken);
+
+        // Assert
+        url.Should().Be("https://is1-ssl.mzstatic.com/image/thumb/Purple/v4/ab/icon.png/512x512bb.png");
+        requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Get);
+        var query = Uri.UnescapeDataString(requests[0].RequestUri.Query);
+        query.Should().Contain("filter[app]=123").And.Contain("sort=-uploadedDate").And.Contain("fields[builds]=iconAssetToken,uploadedDate");
+    }
+
+    [Theory]
+    [InlineData("""{"data":[]}""")]
+    [InlineData("""{"data":[{"id":"b1","attributes":{"iconAssetToken":null}}]}""")]
+    [InlineData("""{"data":[{"id":"b1","attributes":{"iconAssetToken":{"templateUrl":"http://insecure.example.com/{w}x{h}.{f}"}}}]}""")]
+    public void Apple_IconUrl_WithoutAnUsableIcon_ShouldBeNull(string body)
+    {
+        using var document = JsonDocument.Parse(body);
+
+        StoreGateway.ParseAppleIconUrl(document.RootElement).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Google_IconUrl_ShouldReadTheIconOfTheDefaultLanguageInsideAnEditAndDeleteIt()
+    {
+        // Arrange
+        var (gateway, requests) = CreateGateway(request => (request.Method.Method, request.RequestUri.AbsolutePath) switch
+        {
+            ("POST", "/token") => Json("""{"access_token":"ya29.test"}"""),
+            ("POST", var path) when path.EndsWith("/edits") => Json("""{"id":"e1"}"""),
+            ("GET", var path) when path.EndsWith("/details") => Json("""{"defaultLanguage":"tr-TR"}"""),
+            ("GET", var path) when path.EndsWith("/listings/tr-TR/icon") => Json("""{"images":[{"id":"i1","url":"https://play-lh.googleusercontent.com/abc","sha1":"x"}]}"""),
+            ("DELETE", _) => new HttpResponseMessage(HttpStatusCode.NoContent),
+            _ => new HttpResponseMessage(HttpStatusCode.NotFound),
+        });
+
+        // Act
+        var url = await gateway.GetIconUrlAsync(StoreKind.Google, GoogleSecret(), "com.example.app", TestContext.Current.CancellationToken);
+
+        // Assert
+        url.Should().Be("https://play-lh.googleusercontent.com/abc");
+        requests.Should().Contain(r => r.Method == HttpMethod.Delete && r.RequestUri.AbsolutePath.EndsWith("/applications/com.example.app/edits/e1"));
+        requests.Where(r => r.RequestUri.AbsolutePath.Contains("/edits/e1")).Should().OnlyContain(r => r.Method == HttpMethod.Get || r.Method == HttpMethod.Delete, "the icon read changes nothing");
+    }
+
+    [Fact]
+    public void Google_IconUrl_WithoutImages_ShouldBeNull()
+    {
+        using var document = JsonDocument.Parse("{}");
+
+        StoreGateway.ParseGoogleIconUrl(document.RootElement).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Microsoft_IconUrl_ShouldBeNullWithoutACall()
+    {
+        var (gateway, requests) = CreateGateway(_ => throw new InvalidOperationException("no network"));
+
+        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NBLGGH4R315", TestContext.Current.CancellationToken);
+
+        url.Should().BeNull();
+        requests.Should().BeEmpty();
+    }
+
     [Theory]
     [InlineData(HttpStatusCode.ServiceUnavailable, true)]
     [InlineData(HttpStatusCode.TooManyRequests, true)]
