@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreDtos;
+using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.MsStore;
@@ -607,6 +609,84 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         read.StatusCode.Should().Be(HttpStatusCode.OK);
         change.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         expiring.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    private Task<string> IconOfAsync(Setup setup, string productId)
+        => _factory.DbAsync(db => db.StoreApps.Where(s => s.OrganizationId == setup.OrganizationId && s.ExternalId == productId).Select(s => s.App.IconUrl).SingleAsync());
+
+    private static string MsLogo(string name) => $"https://store-images.s-microsoft.com/image/apps.{name}";
+
+    [Fact]
+    public async Task Sync_ShouldFillTheIcons_AndKeepThemWhenALaterReadFails()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var unpublished = NewProductId();
+        var icon = MsLogo(setup.AppId);
+
+        Microsoft.AddApp(setup.Tenant, unpublished, "Tarla", null);
+        _factory.StoreGateway.Icons[setup.AppId] = icon;
+
+        // Act
+        await SyncAsync(setup);
+
+        var first = await IconOfAsync(setup, setup.AppId);
+        var firstUnpublished = await IconOfAsync(setup, unpublished);
+
+        _factory.StoreGateway.IconFailures[setup.AppId] = new StoreCallException("503: try later", 503, true);
+
+        await SyncAsync(setup);
+
+        var second = await IconOfAsync(setup, setup.AppId);
+        var steps = await _factory.DbAsync(db => db.StoreJobSteps.AsNoTracking()
+                                                   .Where(s => s.StoreJob.OrganizationId == setup.OrganizationId && s.StoreJob.Kind == StoreJobKind.MsSync)
+                                                   .OrderBy(s => s.StoreJobId).ThenBy(s => s.Order)
+                                                   .Select(s => s.Name)
+                                                   .ToListAsync());
+
+        // Assert
+        first.Should().Be(icon);
+        firstUnpublished.Should().BeNull("the catalog has no logo for a product that is not published");
+        second.Should().Be(icon, "a failed icon read neither fails the job nor clears the icon");
+        steps.Take(4).Should().Equal("apps.list", "products.read", "products.save", "icons.read");
+    }
+
+    [Fact]
+    public async Task Sync_ShouldNotReplaceAnAppStoreIcon_ButShouldRefreshItsOwnLogo()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+
+        _factory.StoreGateway.Icons[setup.AppId] = MsLogo("old");
+
+        await SyncAsync(setup);
+
+        var appId = await _factory.DbAsync(db => db.StoreApps.Where(s => s.OrganizationId == setup.OrganizationId && s.ExternalId == setup.AppId).Select(s => s.AppId).SingleAsync());
+
+        _factory.StoreGateway.Icons[setup.AppId] = MsLogo("new");
+
+        // Act
+        await SyncAsync(setup);
+
+        var refreshed = await IconOfAsync(setup, setup.AppId);
+        var appleIcon = $"https://is1-ssl.mzstatic.com/image/thumb/{setup.AppId}/512x512bb.png";
+
+        await _factory.DbAsync(async db =>
+        {
+            db.StoreApps.Add(new StoreApp { OrganizationId = setup.OrganizationId, AppId = appId, Store = StoreKind.Apple, ExternalId = $"1{setup.AppId}", BundleId = $"com.{setup.AppId}", Name = "Pusula" });
+            await db.SaveChangesAsync();
+            await db.Apps.Where(a => a.Id == appId).ExecuteUpdateAsync(s => s.SetProperty(a => a.IconUrl, appleIcon));
+        });
+
+        _factory.StoreGateway.Icons[setup.AppId] = MsLogo("newer");
+
+        await SyncAsync(setup);
+
+        var kept = await IconOfAsync(setup, setup.AppId);
+
+        // Assert
+        refreshed.Should().Be(MsLogo("new"), "a logo that came from the Microsoft Store follows the store");
+        kept.Should().Be(appleIcon, "an App Store or Google Play icon wins over a Microsoft Store logo");
     }
 }
 

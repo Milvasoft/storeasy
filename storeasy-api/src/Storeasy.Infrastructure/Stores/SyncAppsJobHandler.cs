@@ -18,10 +18,12 @@ namespace Storeasy.Infrastructure.Stores;
 /// store record has the same bundle id, otherwise it gets its own storeasy app.</item>
 /// <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
 /// service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
-/// <item>Microsoft Store: not supported yet (permanent failure).</item>
+/// <item>Microsoft Store: not read here (permanent failure). Microsoft connections are synced by the
+/// <see cref="StoreJobKind.MsSync"/> job (<see cref="Microsoft.MsSyncJobHandler"/>), which reads their icons too.</item>
 /// </list>
 /// Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="IStoreGateway.GetIconUrlAsync"/>)
-/// and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+/// and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. An
+/// App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
 /// writes are set based or bulk; the loops only call the store. App Store
 /// records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
 /// through the API is registered again (a <see cref="StoreJobKind.RegisterWebhooks"/> job, which upserts per app).

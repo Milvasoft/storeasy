@@ -1,6 +1,8 @@
-﻿using Storeasy.Application.Dtos.MsStoreDtos;
+﻿using Milvasoft.Core.Abstractions;
+using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Extensions;
+using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.MsStore;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
@@ -19,6 +21,14 @@ namespace Storeasy.Infrastructure.Stores.Microsoft;
 /// </list>
 /// Submission rows keep a status history; a submission storeasy created whose content changed since storeasy wrote it is
 /// flagged <see cref="MsSubmission.ModifiedOutsideApi"/>. Packages and installers become builds. Writes are bulk.
+/// <para>
+/// Then the logo of every product is read from the public display catalog (<see cref="IStoreGateway.GetIconUrlAsync"/>)
+/// and written to its storeasy app, like the <c>icons.read</c> step of <see cref="SyncAppsJobHandler"/>: a failed read is
+/// logged and leaves the app's icon as it was, and a product with no logo (not published yet) changes nothing. Icon
+/// precedence (<see cref="MicrosoftIconMayReplace"/>): App Store and Google Play icons win over Microsoft Store ones, so a
+/// Microsoft logo only fills an app that has no icon, has no App Store or Google Play record, or whose icon already came
+/// from the Microsoft Store.
+/// </para>
 /// </summary>
 /// <param name="storeAppRepository"></param>
 /// <param name="appRepository"></param>
@@ -31,6 +41,8 @@ namespace Storeasy.Infrastructure.Stores.Microsoft;
 /// <param name="microsoftStoreClient"></param>
 /// <param name="timeProvider"></param>
 /// <param name="stepRepository"></param>
+/// <param name="storeGateway"></param>
+/// <param name="logger"></param>
 public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                      IStoreasyRepositoryBase<App> appRepository,
                                      IStoreasyRepositoryBase<MsProduct> productRepository,
@@ -41,8 +53,17 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
                                      IStoreasyRepositoryBase<Build> buildRepository,
                                      IMicrosoftStoreClient microsoftStoreClient,
                                      TimeProvider timeProvider,
-                                     IStoreasyRepositoryBase<AssistedStep> stepRepository) : IStoreJobHandler
+                                     IStoreasyRepositoryBase<AssistedStep> stepRepository,
+                                     IStoreGateway storeGateway,
+                                     IMilvaLogger logger) : IStoreJobHandler
 {
+    /// <summary>
+    /// Host of the Microsoft Store image service, where every display catalog logo lives.
+    /// </summary>
+    public const string MicrosoftImageHost = "store-images.s-microsoft.com";
+
+    private readonly IStoreGateway _storeGateway = storeGateway;
+    private readonly IMilvaLogger _logger = logger;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<MsProduct> _productRepository = productRepository;
@@ -136,9 +157,93 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
         await context.EndStepAsync(saveStep, StoreJobStepStatus.Succeeded, $"{products.Count} products saved, {newBuilds} new builds.", cancellationToken);
 
+        // 4. Read the logos. A failed read only costs that icon: it is logged and the app keeps the icon it has.
+        var iconStep = await context.BeginStepAsync("icons.read", StepDirection.Outbound, total: products.Count, cancellationToken: cancellationToken);
+        var icons = new Dictionary<int, string>();
+        var iconFailures = 0;
+
+        for (var i = 0; i < products.Count; i++)
+        {
+            var url = await ReadIconAsync(connection, products[i].Snapshot.ProductId, cancellationToken);
+
+            if (url == null)
+                iconFailures++;
+            else if (url.Length > 0 && _appIds.TryGetValue(products[i].StoreAppId, out var appId))
+                icons.TryAdd(appId, url);
+
+            await context.ReportProgressAsync(iconStep, i + 1, cancellationToken);
+        }
+
+        var iconsChanged = await SaveIconsAsync(icons, cancellationToken);
+
+        await context.EndStepAsync(iconStep, StoreJobStepStatus.Succeeded, iconFailures == 0 ? $"{iconsChanged} icons updated." : $"{iconsChanged} icons updated; {iconFailures} could not be read.", cancellationToken);
+
         return new StoreJobOutcome($"{products.Count} Microsoft Store products synced ({newBuilds} new builds).",
-                                   new { Products = products.Count, NewBuilds = newBuilds, Refused = refused.Select(r => r.StoreApp.ExternalId).ToList(), Problems = problems });
+                                   new { Products = products.Count, NewBuilds = newBuilds, Icons = iconsChanged, Refused = refused.Select(r => r.StoreApp.ExternalId).ToList(), Problems = problems });
     }
+
+    /// <summary>
+    /// Reads the logo of one product. Returns the address, an empty string when the catalog has no logo for it, or null when
+    /// the read failed (logged as a warning; the job goes on).
+    /// </summary>
+    private async Task<string> ReadIconAsync(OpenedStoreConnection connection, string productId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var url = await _storeGateway.GetIconUrlAsync(StoreKind.Microsoft, connection.SecretJson, productId, cancellationToken);
+
+            return string.IsNullOrWhiteSpace(url) || url.Length > App.IconUrlMaxLength ? string.Empty : url;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger?.Warning("The icon of {Store} app {ExternalId} could not be read: {Error}", StoreKind.Microsoft, productId, SecretRedactor.Redact(ex.Message));
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Writes the logos that changed and that <see cref="MicrosoftIconMayReplace"/> allows. An app whose logo could not be
+    /// read is not in <paramref name="icons"/>, so a failure never clears an icon. Only the icon column is written.
+    /// </summary>
+    private async Task<int> SaveIconsAsync(Dictionary<int, string> icons, CancellationToken cancellationToken)
+    {
+        if (icons.Count == 0)
+            return 0;
+
+        var appIds = icons.Keys.ToList();
+
+        var otherStores = (await _storeAppRepository.GetAllAsync(s => appIds.Contains(s.AppId) && s.Store != StoreKind.Microsoft,
+                                                                 projection: s => new StoreApp { AppId = s.AppId },
+                                                                 cancellationToken: cancellationToken)).Select(s => s.AppId).ToHashSet();
+
+        var changed = (await _appRepository.GetAllAsync(a => appIds.Contains(a.Id),
+                                                        projection: a => new App { Id = a.Id, IconUrl = a.IconUrl },
+                                                        cancellationToken: cancellationToken)).Where(a => a.IconUrl != icons[a.Id] && MicrosoftIconMayReplace(a.IconUrl, otherStores.Contains(a.Id)))
+                                                                                              .ToList();
+
+        if (changed.Count == 0)
+            return 0;
+
+        changed.ForEach(a => a.IconUrl = icons[a.Id]);
+
+        await _appRepository.UpdateAsync(changed, cancellationToken, a => a.IconUrl);
+
+        return changed.Count;
+    }
+
+    /// <summary>
+    /// Whether a Microsoft Store logo may replace an app's <paramref name="currentIconUrl"/>. App Store and Google Play icons
+    /// win (their sync always writes its icon), so the logo is written only when the app has no icon, has no App Store or
+    /// Google Play record (<paramref name="hasOtherStoreRecord"/>), or its icon is on the Microsoft Store image host.
+    /// </summary>
+    /// <param name="currentIconUrl"></param>
+    /// <param name="hasOtherStoreRecord"></param>
+    /// <returns></returns>
+    public static bool MicrosoftIconMayReplace(string currentIconUrl, bool hasOtherStoreRecord)
+        => string.IsNullOrWhiteSpace(currentIconUrl)
+           || !hasOtherStoreRecord
+           || (Uri.TryCreate(currentIconUrl, UriKind.Absolute, out var uri) && string.Equals(uri.Host, MicrosoftImageHost, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Updates the known records and product rows, adds the new MSIX apps (app, record and product row in one insert) and
