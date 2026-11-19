@@ -62,6 +62,9 @@ public sealed partial class FakeMicrosoftStore : HttpMessageHandler
     /// <summary>Every request as "METHOD host/path".</summary>
     public ConcurrentQueue<string> Calls { get; } = new();
 
+    /// <summary>When set, every blob upload answers this status (a SAS upload that fails).</summary>
+    public HttpStatusCode? FailUploads { get; set; }
+
     public static string NewId() => Interlocked.Increment(ref _sequence).ToString();
 
     /// <summary>
@@ -167,6 +170,27 @@ public sealed partial class FakeMicrosoftStore : HttpMessageHandler
         },
         ["submissions"] = new JsonObject(),
     };
+
+    /// <summary>
+    /// Creates a draft app submission as a Partner Center user would (a copy of the published one, not made by storeasy).
+    /// </summary>
+    public string AddPartnerCenterDraft(string appId)
+    {
+        lock (_gate)
+        {
+            var app = Apps[appId];
+            var id = NewId();
+            var copy = Submissions[app.PublishedId].DeepClone().AsObject();
+
+            copy["id"] = id;
+            copy["status"] = "PendingCommit";
+            copy["fileUploadUrl"] = $"https://{BlobHost}/ingestion/{id}?sv=2014-02-14&sr=b&sig=FAKESIG";
+            Submissions[id] = copy;
+            app.PendingId = id;
+
+            return id;
+        }
+    }
 
     /// <summary>
     /// Changes a submission as a Partner Center user would.
@@ -356,6 +380,16 @@ public sealed partial class FakeMicrosoftStore : HttpMessageHandler
         var sid = match.Groups["sid"].Success ? match.Groups["sid"].Value : null;
         var op = match.Groups["op"].Success ? match.Groups["op"].Value : null;
 
+        // Partner Center binds a request body of the create call as submission content and validates it: an empty JSON
+        // object has no listings. The documented call sends no body. App submissions must keep at least one listing on update.
+        var appOwned = !match.Groups["addon"].Success && !match.Groups["flight"].Success;
+
+        if (sid == null && method == HttpMethod.Post && body is { Length: > 0 } && !HasListings(body))
+            return InvalidListings();
+
+        if (sid != null && op == null && method == HttpMethod.Put && appOwned && !HasListings(body))
+            return InvalidListings();
+
         if (sid == null && method == HttpMethod.Post)
         {
             if (owner.PendingId != null)
@@ -433,6 +467,21 @@ public sealed partial class FakeMicrosoftStore : HttpMessageHandler
             }
         }
     }
+
+    private static bool HasListings(byte[] body)
+    {
+        try
+        {
+            return body is { Length: > 0 } && JsonNode.Parse(body) is JsonObject content && content["listings"] is JsonObject listings && listings.Count > 0;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static HttpResponseMessage InvalidListings()
+        => Json(new JsonObject { ["code"] = "InvalidParameterValue", ["message"] = "The size of Listings must be 1 or more" }, HttpStatusCode.BadRequest);
 
     /// <summary>
     /// Publishes a submission (certification passed) and makes it the owner's last published one.
@@ -587,6 +636,9 @@ public sealed partial class FakeMicrosoftStore : HttpMessageHandler
     {
         if (request.Method != HttpMethod.Put || !uri.Query.Contains("sig=") || !request.Headers.TryGetValues("x-ms-blob-type", out var type) || type.Single() != "BlockBlob")
             return new HttpResponseMessage(HttpStatusCode.Forbidden);
+
+        if (FailUploads is { } failure)
+            return new HttpResponseMessage(failure);
 
         Uploads[uri.AbsolutePath.Split('/')[^1]] = body;
 

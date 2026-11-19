@@ -155,6 +155,30 @@ public class MicrosoftStoreClientTests
     }
 
     [Fact]
+    public async Task CreateAndCommitSubmission_ShouldSendNoRequestBody()
+    {
+        // Partner Center reads a body of the create call (even "{}") as the new submission and answers
+        // 400 "The size of Listings must be 1 or more".
+        var harness = Create(request => IsToken(request) ? Token()
+                                        : request.RequestUri.AbsolutePath.EndsWith("/commit", StringComparison.Ordinal) ? Json(HttpStatusCode.OK, new { status = "CommitStarted" })
+                                        : Json(HttpStatusCode.Created, new { id = "1152921504621243541", status = "PendingCommit", listings = new { } }));
+        var app = new MsSubmissionRef { Target = MsSubmissionTarget.App, ApplicationId = "9NBLGGH4R315" };
+
+        var created = await harness.Client.CreateSubmissionAsync(Secret(), app, TestContext.Current.CancellationToken);
+        var committed = await harness.Client.CommitSubmissionAsync(Secret(), app.WithSubmission("1152921504621243541"), TestContext.Current.CancellationToken);
+
+        MsSubmissionJson.String(created, "id").Should().Be("1152921504621243541");
+        committed.Status.Should().Be(MsSubmissionStatus.CommitStarted);
+
+        var calls = harness.RequestsSource.Select((r, i) => (Request: r, Body: harness.BodiesSource[i])).Where(c => !IsToken(c.Request)).ToList();
+
+        calls.Should().HaveCount(2);
+        calls.Should().OnlyContain(c => c.Request.Method == HttpMethod.Post && c.Request.Content == null && c.Body == null);
+        calls[0].Request.RequestUri.AbsolutePath.Should().EndWith("/applications/9NBLGGH4R315/submissions");
+        calls[1].Request.RequestUri.AbsolutePath.Should().EndWith("/applications/9NBLGGH4R315/submissions/1152921504621243541/commit");
+    }
+
+    [Fact]
     public async Task Unauthorized_ShouldGetAFreshTokenOnce()
     {
         var tokens = 0;

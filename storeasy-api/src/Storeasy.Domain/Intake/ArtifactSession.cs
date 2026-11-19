@@ -221,7 +221,7 @@ public class ArtifactSession : CreationAuditableEntity<long>
     public string CiSummary { get; set; }
 
     /// <summary>
-    /// Store's id of the delivered build (App Store Connect build id, Play version code), when known.
+    /// Store's id of the delivered build (App Store Connect build id, Play version code, Microsoft Store draft submission id), when known.
     /// </summary>
     [MaxLength(200)]
     public string StoreBuildId { get; set; }

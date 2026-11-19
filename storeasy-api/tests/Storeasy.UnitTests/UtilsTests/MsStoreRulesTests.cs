@@ -221,6 +221,71 @@ public class MsStoreRulesTests
         MsSubmissionJson.ReadRollout(document).Should().Match<MsRolloutDto>(r => r.IsPackageRollout && r.Percentage == 25);
     }
 
+    [Fact]
+    public void WritePackages_OnARetry_ShouldNotDuplicate_AndReplaceTheUnsentEntryOfTheSameFile()
+    {
+        var document = Submission();
+
+        MsSubmissionJson.WritePackages(document, MsSubmissionTarget.App, [], ["packages/7_Kabuk_1.0.15.0_x64.msix"]);
+        MsSubmissionJson.WritePackages(document, MsSubmissionTarget.App, [], ["packages/7_Kabuk_1.0.15.0_x64.msix"]);
+        MsSubmissionJson.WritePackages(document, MsSubmissionTarget.App, [], ["packages/9_Kabuk_1.0.15.0_x64.msix", "packages/9_Other_1.0.15.0_arm64.msix"]);
+
+        var packages = document["applicationPackages"]!.AsArray().Select(p => (p!["fileName"]!.GetValue<string>(), p["fileStatus"]!.GetValue<string>())).ToList();
+
+        packages.Should().Equal(("app_1.0.0.0_x64.msix", "Uploaded"), ("packages/9_Kabuk_1.0.15.0_x64.msix", "PendingUpload"), ("packages/9_Other_1.0.15.0_arm64.msix", "PendingUpload"));
+    }
+
+    [Theory]
+    [InlineData("packages/12_Kabuk_1.0.15.0_x64.msix", "Kabuk_1.0.15.0_x64.msix")]
+    [InlineData("packages/Kabuk_1.0.15.0_x64.msix", null)]
+    [InlineData("images/12_shot.png", null)]
+    [InlineData("app_1.0.0.0_x64.msix", null)]
+    [InlineData(null, null)]
+    public void OriginalName_ShouldReadOnlyStoreasysZipEntryNames(string entryName, string expected)
+        => MsSubmissionJson.OriginalName(MsSubmissionJson.PackagesFolder, entryName).Should().Be(expected);
+
+    [Fact]
+    public void WriteReleaseNotes_ShouldFillEveryListingLanguage_AndKeepEverythingElse()
+    {
+        var document = Submission();
+
+        MsSubmissionJson.WriteListing(document, new MsListingDto { Locale = "tr-tr", Title = "Pusula", Description = "Yeni" });
+
+        var before = document.DeepClone().AsObject();
+        var written = MsSubmissionJson.WriteReleaseNotes(document, "Faster start");
+
+        written.Should().BeEquivalentTo("en-us", "tr-tr");
+        MsSubmissionJson.ReadListings(document).Should().OnlyContain(l => l.WhatsNew == "Faster start");
+
+        foreach (var listing in document["listings"]!.AsObject())
+            listing.Value!["baseListing"]!.AsObject().Remove("releaseNotes");
+
+        document.ToJsonString().Should().Be(before.ToJsonString());
+        MsSubmissionJson.WriteReleaseNotes(document, null).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Plan_PackagesWithReleaseNotes_ShouldShowTheNotesOfEveryListing()
+    {
+        var content = Content(Submission("Published"), pending: false);
+        var change = new MsChangeInputDto { Kind = MsChangeKind.Packages, Packages = new MsPackageChangeDto { AddAssetIds = [7], ReleaseNotes = "Faster start" } };
+        var context = new MsPlanContext
+        {
+            Kind = MsProductKind.Msix,
+            ProductId = "9NBLGGH4R315",
+            FirstSubmissionDone = true,
+            AssetFileNames = new Dictionary<long, string> { [7] = "Kabuk_1.0.15.0_x64.msix" },
+        };
+
+        var plan = MsChangePlanner.Plan(5, content, change, context);
+
+        plan.Blocked.Should().BeFalse();
+        plan.CreatesSubmission.Should().BeTrue();
+        plan.Items.Should().ContainSingle(i => i.Group == "listing" && i.Locale == "en-us" && i.Field == "whatsNew" && i.After == "Faster start");
+        plan.Items.Should().ContainSingle(i => i.Group == "package" && i.Action == "add");
+        plan.Calls.Select(c => c.Method).Should().Equal("POST", "PUT", "PUT");
+    }
+
     [Theory]
     [InlineData("PendingCommit", MsSubmissionStatus.PendingCommit)]
     [InlineData("CertificationFailed", MsSubmissionStatus.CertificationFailed)]

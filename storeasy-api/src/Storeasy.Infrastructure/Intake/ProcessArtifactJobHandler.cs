@@ -10,6 +10,7 @@ using Storeasy.Domain.Apps;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Intake;
+using Storeasy.Domain.MsStore;
 using Storeasy.Infrastructure.Intake.Packages;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -32,6 +33,7 @@ namespace Storeasy.Infrastructure.Intake;
 /// <param name="ruleRepository"></param>
 /// <param name="pullSourceRepository"></param>
 /// <param name="assetRepository"></param>
+/// <param name="msSubmissionRepository"></param>
 /// <param name="settingRepository"></param>
 /// <param name="fileStorage"></param>
 /// <param name="packageReader"></param>
@@ -50,6 +52,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
                                               IStoreasyRepositoryBase<DeliveryRule> ruleRepository,
                                               IStoreasyRepositoryBase<ArtifactPullSource> pullSourceRepository,
                                               IStoreasyRepositoryBase<Asset> assetRepository,
+                                              IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
                                               IStoreasyRepositoryBase<IntakeSetting> settingRepository,
                                               IFileStorage fileStorage,
                                               PackageReader packageReader,
@@ -69,6 +72,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
     private readonly IStoreasyRepositoryBase<DeliveryRule> _ruleRepository = ruleRepository;
     private readonly IStoreasyRepositoryBase<ArtifactPullSource> _pullSourceRepository = pullSourceRepository;
     private readonly IStoreasyRepositoryBase<Asset> _assetRepository = assetRepository;
+    private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
     private readonly IStoreasyRepositoryBase<IntakeSetting> _settingRepository = settingRepository;
     private readonly IFileStorage _fileStorage = fileStorage;
     private readonly PackageReader _packageReader = packageReader;
@@ -503,13 +507,22 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
             await _assetRepository.AddAsync(asset, cancellationToken);
         }
 
-        var change = new MsChangeInputDto { Kind = MsChangeKind.Packages, FlightId = flightId, Packages = new MsPackageChangeDto { AddAssetIds = [asset.Id] } };
+        var submissionTarget = flightId == null ? MsSubmissionTarget.App : MsSubmissionTarget.Flight;
+
+        // App submissions carry the notes in every listing language ("What's new"); flight submissions have no listings.
+        var whatsNewLimit = MsListingLimits.From(_rulesCatalog.Current).WhatsNew;
+        var notes = submissionTarget == MsSubmissionTarget.App && !string.IsNullOrWhiteSpace(rule.Notes) ? rule.Notes.Trim() : null;
+
+        if (notes?.Length > whatsNewLimit)
+            notes = notes[..whatsNewLimit];
+
+        var change = new MsChangeInputDto { Kind = MsChangeKind.Packages, FlightId = flightId, Packages = new MsPackageChangeDto { AddAssetIds = [asset.Id], ReleaseNotes = notes } };
 
         var versionId = MsContentReader.Encode(new MsContentReader.Request
         {
             Kind = MsProductKind.Msix,
             ProductId = record.ExternalId,
-            Target = flightId == null ? MsSubmissionTarget.App : MsSubmissionTarget.Flight,
+            Target = submissionTarget,
             FlightId = flightId,
         }, MsChangeKind.Packages);
 
@@ -518,6 +531,16 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
         var baseHash = snapshot.Get(Storeasy.Application.Features.MsStore.ApplyMsChange.ApplyMsChangeCommandHandler.BaseHashKey);
 
         var outcome = await gateway.ApplyAsync(target, new ContentChangeSet { Microsoft = new MsPlannedChange { Change = change, BaseHash = baseHash } }, context, cancellationToken);
+
+        // The draft is never committed here; its id is kept on the session so a member can finish it in storeasy or in
+        // Partner Center.
+        session.StoreBuildId = await _msSubmissionRepository.GetFirstOrDefaultAsync(s => s.StoreAppId == record.Id
+                                                                                         && s.Target == submissionTarget
+                                                                                         && s.FlightId == flightId
+                                                                                         && s.IsPending
+                                                                                         && s.CreatedByStoreasy,
+                                                                                    projection: s => s.ExternalId,
+                                                                                    cancellationToken: cancellationToken);
 
         return $"{string.Join(" ", outcome)} The draft waits for certification: a member submits it (SubmitForReview, typed confirmation).";
     }

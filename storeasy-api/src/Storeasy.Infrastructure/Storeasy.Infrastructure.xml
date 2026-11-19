@@ -1652,6 +1652,7 @@
             <param name="ruleRepository"></param>
             <param name="pullSourceRepository"></param>
             <param name="assetRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="settingRepository"></param>
             <param name="fileStorage"></param>
             <param name="packageReader"></param>
@@ -1665,7 +1666,7 @@
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact"/> job (docs/urun-plani.md 11.8, design 13.14): downloads a pulled package,
             verifies the SHA-256, reads the package and matches it with the app's store record, runs the catalog checks, picks the
@@ -1682,6 +1683,7 @@
             <param name="ruleRepository"></param>
             <param name="pullSourceRepository"></param>
             <param name="assetRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="settingRepository"></param>
             <param name="fileStorage"></param>
             <param name="packageReader"></param>
@@ -5601,12 +5603,19 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CreateSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
             <inheritdoc/>
+            <remarks>
+            Sent without a request body, as the API documents. Partner Center reads a body (even an empty JSON object) as the
+            content of the new submission and refuses it with 400 "The size of Listings must be 1 or more".
+            </remarks>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.UpdateSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CommitSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
             <inheritdoc/>
+            <remarks>
+            Sent without a request body, as the API documents (like <see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.CreateSubmissionAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)"/>).
+            </remarks>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetSubmissionStatusAsync(System.String,Storeasy.Application.Utils.MsStore.MsSubmissionRef,System.Threading.CancellationToken)">
             <inheritdoc/>

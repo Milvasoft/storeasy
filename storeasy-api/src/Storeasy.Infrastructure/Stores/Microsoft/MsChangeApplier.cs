@@ -146,15 +146,22 @@ public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRe
 
         var files = await ApplyContentAsync(context.OrganizationId, document, target, change);
 
+        // The whole document goes back: every copied listing, image, price and unknown field, with the change written in.
+        // An app submission without listings would be refused (and would drop the store page), so it is never sent.
+        if (target == MsSubmissionTarget.App && document["listings"] is not JsonObject { Count: > 0 })
+            throw new StoreJobException($"Draft {submissionId} has no listings to send back; finish it in Partner Center.", transient: false);
+
         var writeStep = await context.BeginStepAsync("submission.update", StepDirection.Outbound, submissionId, cancellationToken: cancellationToken);
         var stored = await CallAsync(() => _microsoftStoreClient.UpdateSubmissionAsync(secret, owner.WithSubmission(submissionId), document, cancellationToken), product, change, submissionId);
 
         await context.EndStepAsync(writeStep, StoreJobStepStatus.Succeeded, null, cancellationToken);
 
+        // Recorded before the upload: if the upload fails, a retry finds the draft as storeasy wrote it and edits it again
+        // instead of taking it for a Partner Center edit.
+        await SaveDraftAsync(context.OrganizationId, product, change, target, submissionId, stored, cancellationToken);
+
         if (files.Count > 0)
             await UploadFilesAsync(context, MsSubmissionJson.String(stored, "fileUploadUrl") ?? MsSubmissionJson.String(document, "fileUploadUrl"), files, cancellationToken);
-
-        await SaveDraftAsync(context.OrganizationId, product, change, target, submissionId, stored, cancellationToken);
 
         return $"draft {submissionId} updated ({files.Count} files).";
     }
@@ -196,6 +203,9 @@ public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRe
 
                 if (target == MsSubmissionTarget.App && change.Packages.RolloutPercentage.HasValue)
                     MsSubmissionJson.WriteRollout(document, change.Packages.RolloutPercentage);
+
+                if (target == MsSubmissionTarget.App && change.Packages.ReleaseNotes != null)
+                    MsSubmissionJson.WriteReleaseNotes(document, change.Packages.ReleaseNotes);
 
                 return [.. assets.Values];
             }

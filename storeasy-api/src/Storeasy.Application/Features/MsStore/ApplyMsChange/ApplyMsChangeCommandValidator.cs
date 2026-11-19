@@ -66,6 +66,11 @@ public sealed class ApplyMsChangeCommandValidator : AbstractValidator<ApplyMsCha
                 .WithMessage(localizer[MessageKey.MsRolloutPercentageInvalid])
                 .When(command => command.Change.Kind == MsChangeKind.Packages && command.Change.Packages != null);
 
+            RuleFor(command => command.Change.Packages.ReleaseNotes)
+                .Must(n => n.Length <= limits.WhatsNew)
+                .WithMessage(localizer[MessageKey.MsListingLimitExceeded, "whatsNew", "*", limits.WhatsNew])
+                .When(command => command.Change.Kind == MsChangeKind.Packages && command.Change.Packages?.ReleaseNotes != null);
+
             RuleForEach(command => command.Change.InstallerPackages)
                 .Must(IsValidInstaller)
                 .WithMessage(localizer[MessageKey.MsInstallerInvalid])
