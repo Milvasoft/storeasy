@@ -23,6 +23,11 @@ public class InvitationPreviewDto
     public string OrganizationSlug { get; set; }
 
     /// <summary>
+    /// Short lived URL of the organization's logo; null when it has none (and for a revoked invitation).
+    /// </summary>
+    public string OrganizationLogoUrl { get; set; }
+
+    /// <summary>
     /// Who sent the invitation (pending and expired only).
     /// </summary>
     public string InviterName { get; set; }

@@ -30,4 +30,11 @@ public enum AssetPurpose : byte
     /// </summary>
     [Description("Build artifact")]
     BuildArtifact = 4,
+
+    /// <summary>
+    /// An organization logo on its way in: uploaded by the logo endpoints only, then checked, redrawn as a square PNG and
+    /// removed again (the organization keeps the redrawn copy).
+    /// </summary>
+    [Description("Organization logo")]
+    OrganizationLogo = 5,
 }

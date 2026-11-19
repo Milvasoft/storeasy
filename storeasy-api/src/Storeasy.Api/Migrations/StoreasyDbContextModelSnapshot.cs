@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119101012_AddAppDisplayOrder";
+    public override string LastMigrationId => "20261119130826_AddOrganizationLogo";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -2690,6 +2690,13 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<string>("LastModifierUserName")
                     .HasColumnType("text");
+
+                b.Property<string>("LogoKey")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.Property<DateTime?>("LogoUpdateDate")
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("Name")
                     .HasMaxLength(100)

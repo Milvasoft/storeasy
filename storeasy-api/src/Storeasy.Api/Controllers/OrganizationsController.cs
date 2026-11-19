@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
+using Storeasy.Application.Dtos.AssetDtos;
 using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Features.Organizations.AcceptInvitation;
 using Storeasy.Application.Features.Organizations.ChangeMemberRole;
 using Storeasy.Application.Features.Organizations.CreateOrganization;
+using Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload;
 using Storeasy.Application.Features.Organizations.CreateOrganizationRole;
 using Storeasy.Application.Features.Organizations.DeleteOrganizationRole;
 using Storeasy.Application.Features.Organizations.GetInvitationPreview;
@@ -19,7 +21,9 @@ using Storeasy.Application.Features.Organizations.GetOrganizationSettings;
 using Storeasy.Application.Features.Organizations.UpdateOrganizationSettings;
 using Storeasy.Application.Features.Organizations.InviteMember;
 using Storeasy.Application.Features.Organizations.RemoveMember;
+using Storeasy.Application.Features.Organizations.RemoveOrganizationLogo;
 using Storeasy.Application.Features.Organizations.RevokeInvitation;
+using Storeasy.Application.Features.Organizations.SetOrganizationLogo;
 using Storeasy.Application.Features.Organizations.UpdateOrganization;
 using Storeasy.Application.Features.Organizations.UpdateOrganizationRole;
 using Storeasy.Application.Features.StoreAuditLogs.GetStoreAuditLogList;
@@ -65,6 +69,36 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPut("organization")]
     public Task<Response<int>> UpdateOrganizationAsync(UpdateOrganizationCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Declares a logo file (PNG, JPEG or WebP, at most 2 MB; owners) and returns the presigned PUT URL for it. Confirm
+    /// with <c>PUT organizations/logo</c>.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("logo/upload")]
+    [RateLimit(30, 3600, "org-logo-upload")]
+    public Task<Response<AssetUploadDto>> CreateLogoUploadAsync(CreateOrganizationLogoUploadCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Makes the uploaded file the organization's logo (owners): checked by its signature, redrawn as a square PNG,
+    /// replacing the previous logo. Returns the new logo URL.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("logo")]
+    public Task<Response<string>> SetLogoAsync(SetOrganizationLogoCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Removes the organization's logo (owners); the organization shows its initial again.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("logo")]
+    public Task<Response<int>> RemoveLogoAsync(RemoveOrganizationLogoCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Lists members and, for member managers, pending invitations.

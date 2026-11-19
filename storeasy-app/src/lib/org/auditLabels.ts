@@ -12,6 +12,10 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.organizationCreated
     case AuditAction.OrganizationUpdated:
       return t.enums.auditAction.organizationUpdated
+    case AuditAction.OrganizationLogoSet:
+      return t.enums.auditAction.organizationLogoSet
+    case AuditAction.OrganizationLogoRemoved:
+      return t.enums.auditAction.organizationLogoRemoved
     case AuditAction.MemberInvited:
       return t.enums.auditAction.memberInvited
     case AuditAction.InvitationRevoked:

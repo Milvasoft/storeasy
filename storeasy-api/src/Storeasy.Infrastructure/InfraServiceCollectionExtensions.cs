@@ -113,6 +113,9 @@ public static class InfraServiceCollectionExtensions
         services.AddSingleton(storageOptions);
         services.AddSingleton<IFileStorage>(new S3FileStorage(S3FileStorage.CreateClient(storageOptions), storageOptions));
 
+        // Organization logos are redrawn as a square PNG before they are stored.
+        services.AddSingleton<ILogoImageNormalizer, SkiaLogoImageNormalizer>();
+
         // Mockup studio (phase 6): renderer, fonts, screenshot sizes, export job.
         services.AddStudioServices(configurationManager);
 

@@ -57,6 +57,19 @@ public class Organization : FullAuditableEntity<int>
     public string DefaultLocale { get; set; }
 
     /// <summary>
+    /// Object key of the organization's logo in the file storage (a square PNG written by the API, see
+    /// <see cref="OrganizationLogoRules"/>); null when the organization has no logo and shows its initial. Every upload
+    /// gets a fresh key, so a new logo never hides behind a cached old one.
+    /// </summary>
+    [MaxLength(OrganizationLogoRules.ObjectKeyMaxLength)]
+    public string LogoKey { get; set; }
+
+    /// <summary>
+    /// When the current logo was set (UTC); null without a logo.
+    /// </summary>
+    public DateTime? LogoUpdateDate { get; set; }
+
+    /// <summary>
     /// Members of the organization.
     /// </summary>
     public virtual List<OrganizationMember> Members { get; set; }

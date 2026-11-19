@@ -126,6 +126,11 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('get', '/Organizations/mine', () => json(envelope(testState.organizations))),
   endpoint('post', '/Organizations/organization', () => json(envelope(42))),
   endpoint('put', '/Organizations/organization', () => json(envelope(testState.organizations[0]?.Id ?? 0))),
+  endpoint('post', '/Organizations/logo/upload', () =>
+    json(envelope({ AssetId: 601, UploadUrl: `${STORAGE_URL}/logo`, PartSize: null, Parts: [], ExpiryDate: '2026-11-18T11:00:00Z' })),
+  ),
+  endpoint('put', '/Organizations/logo', () => json(envelope(`${STORAGE_URL}/org/7/logo/new.png`))),
+  endpoint('delete', '/Organizations/logo', () => json(envelope(testState.organizations[0]?.Id ?? 0))),
   endpoint('get', '/Organizations/members', () => json(envelope(testState.members))),
   endpoint('post', '/Organizations/invitation', ({ body }) =>
     json(envelope({ Id: 77, Token: `token-for-${(body as { Email?: string }).Email}`, ExpiryDate: '2026-11-25T12:00:00Z' })),
