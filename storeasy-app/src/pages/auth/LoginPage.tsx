@@ -13,6 +13,7 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { emailError, requiredError } from '@/lib/validation'
 import { readStorage, StorageKey } from '@/lib/utils/storage'
 import { GoogleSignInButton } from '@/features/access/GoogleSignIn'
+import { useDeployment } from '@/features/access/publicSettings'
 
 // Retry-After is missing on some proxies; the API's window for sign-in is a minute.
 const DEFAULT_RETRY_SECONDS = 60
@@ -38,6 +39,7 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<Problem | null>(null)
   const throttle = useCountdown()
+  const { singleTeam } = useDeployment()
   const passwordRef = useRef<HTMLInputElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
 
@@ -128,12 +130,15 @@ export function LoginPage() {
           {throttle.seconds > 0 ? `${t.login.submit} · ${formatCountdown(throttle.seconds)}` : t.login.submit}
         </Button>
         <GoogleSignInButton returnTo={returnTo} />
-        <p className="m-0 text-center text-[12.5px] text-fg2">
-          {t.login.noAccount}{' '}
-          <Link className="lnk" to="/register">
-            {t.login.register}
-          </Link>
-        </p>
+        {/* A single team instance has no sign-up: people join by invitation. */}
+        {singleTeam ? null : (
+          <p className="m-0 text-center text-[12.5px] text-fg2">
+            {t.login.noAccount}{' '}
+            <Link className="lnk" to="/register">
+              {t.login.register}
+            </Link>
+          </p>
+        )}
       </form>
     </AuthLayout>
   )

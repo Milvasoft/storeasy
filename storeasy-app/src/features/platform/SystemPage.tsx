@@ -6,7 +6,7 @@ import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Callout } from '@/components/ui/Feedback'
 import { Button, PageHeader, RadioGroup, Skeleton } from '@/components/ui/primitives'
 import { APP_VERSION, SOURCE_URL } from '@/config'
-import { RegistrationMode } from '@/lib/api/types'
+import { DeploymentMode, RegistrationMode } from '@/lib/api/types'
 import { useGlobalPermissions } from '@/lib/auth/globalPermissions'
 import { useFormat } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -192,6 +192,18 @@ function RegistrationCard() {
       }
     : null
   const data = canChange ? settings.data : fallback
+  // A single team instance is always invite only: nothing to choose.
+  if (publicSettings.data?.Mode === DeploymentMode.SingleTeam) {
+    return (
+      <section className="card grid content-start gap-2 p-4 md:col-span-2 xl:col-span-1" aria-label={t.system.registration}>
+        <span className="flex items-center gap-2">
+          <h2 className="mr-auto text-[15px] font-semibold">{t.system.registration}</h2>
+          <span className="mono text-xs text-fg3">{t.system.registrationKey}</span>
+        </span>
+        <Callout tone="info">{t.system.registrationSingleTeam}</Callout>
+      </section>
+    )
+  }
   return (
     <section className="card grid content-start gap-2 p-4 md:col-span-2 xl:col-span-1" aria-label={t.system.registration}>
       <span className="flex items-center gap-2">

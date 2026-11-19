@@ -1,6 +1,7 @@
 # storeasy self-host stack (docs/self-host.md).
 #   cp .env.example .env   # fill in the values, see the generation commands in the file
 #   docker compose up -d --build
+#   docker compose logs storeasy-api | grep "setup code"   # then open the site and finish the setup
 #
 # One origin: the web container (nginx) serves the app and proxies /api, /hubs (WebSocket), /mcp, /webhooks and /health
 # to the API.
@@ -109,7 +110,11 @@ services:
     environment:
       # The image sets ASPNETCORE_ENVIRONMENT=Production and MILVA_ENV=prod. Keep prod: test and dev open the API
       # documentation and the developer endpoints and must never run on a reachable host. Storeasy__Bootstrap__InitKey
-      # belongs only to the temporary initialization container of docs/self-host.md section 5, never to this file.
+      # belongs only to the temporary initialization container of docs/self-host.md section 5.2, never to this file.
+      # SingleTeam (default): the API prepares the database and logs a one time setup code; MultiTenant: hosted, many customers.
+      Storeasy__Mode: ${STOREASY_MODE:-SingleTeam}
+      # Optional fixed setup code for automated installs (single team, first start only). Empty: generated and logged.
+      Storeasy__Bootstrap__SetupCode: ${STOREASY_SETUP_CODE:-}
       ConnectionStrings__DefaultConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-storeasy};Username=${POSTGRES_USER:-storeasy};Password=${POSTGRES_PASSWORD}"
       Milvasoft__Caching__Redis__ConnectionString: "redis:6379"
       CacheKeys__Prefix: ${STOREASY_CACHE_PREFIX:-storeasy}
@@ -117,6 +122,7 @@ services:
       Storeasy__Encryption__MasterKey: ${STOREASY_MASTER_KEY:?set STOREASY_MASTER_KEY in .env}
       Storeasy__Encryption__KeyVersion: ${STOREASY_MASTER_KEY_VERSION:-1}
       Storeasy__App__BaseUrl: ${STOREASY_BASE_URL:?set STOREASY_BASE_URL in .env}
+      # MultiTenant only; a single team instance is always invite only.
       Storeasy__Registration__Mode: ${STOREASY_REGISTRATION_MODE:-Open}
       Storeasy__Email__Provider: ${STOREASY_EMAIL_PROVIDER:-Smtp}
       Storeasy__Email__FromName: ${STOREASY_EMAIL_FROM_NAME:-storeasy}

@@ -11,8 +11,10 @@ namespace Storeasy.Application.Features.Settings.GetSystemSettings;
 /// </summary>
 /// <param name="registrationModes"></param>
 /// <param name="registrationOptions"></param>
-public class GetSystemSettingsQueryHandler(IRegistrationModes registrationModes, RegistrationOptions registrationOptions) : IInterceptable, IQueryHandler<GetSystemSettingsQuery, SystemSettingsDto>
+/// <param name="deploymentOptions"></param>
+public class GetSystemSettingsQueryHandler(IRegistrationModes registrationModes, RegistrationOptions registrationOptions, DeploymentOptions deploymentOptions) : IInterceptable, IQueryHandler<GetSystemSettingsQuery, SystemSettingsDto>
 {
+    private readonly DeploymentOptions _deploymentOptions = deploymentOptions;
     private readonly IRegistrationModes _registrationModes = registrationModes;
     private readonly RegistrationOptions _registrationOptions = registrationOptions;
 
@@ -21,6 +23,6 @@ public class GetSystemSettingsQueryHandler(IRegistrationModes registrationModes,
     {
         var (mode, saved) = await _registrationModes.GetAsync(cancellationToken);
 
-        return Response<SystemSettingsDto>.Success(new SystemSettingsDto { RegistrationMode = mode, RegistrationModeSaved = saved, ConfiguredRegistrationMode = _registrationOptions.Mode });
+        return Response<SystemSettingsDto>.Success(new SystemSettingsDto { RegistrationMode = mode, RegistrationModeSaved = saved, ConfiguredRegistrationMode = _registrationOptions.Mode, Mode = _deploymentOptions.Mode });
     }
 }

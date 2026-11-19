@@ -65,6 +65,23 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public const string BootstrapInitKeyKey = "Storeasy:Bootstrap:InitKey";
 
     /// <summary>
+    /// Configuration key of the deployment mode. The shared host (and every host built from it unless overridden) runs
+    /// in <c>MultiTenant</c>, the mode the shared database is initialized for (root user, open registration, many
+    /// organizations); the single team tests build their own hosts with <c>SingleTeam</c>.
+    /// </summary>
+    public const string DeploymentModeKey = "Storeasy:Mode";
+
+    /// <summary>
+    /// Configuration key of the fixed first run setup code (single team mode).
+    /// </summary>
+    public const string BootstrapSetupCodeKey = "Storeasy:Bootstrap:SetupCode";
+
+    /// <summary>
+    /// Configuration key of the Redis key prefix (a separate host gets its own, so its keys never meet the shared host's).
+    /// </summary>
+    public const string CacheKeyPrefixKey = "CacheKeys:Prefix";
+
+    /// <summary>
     /// Access token signing key of the test hosts. The appsettings files carry no key, so it is given through the
     /// environment like in a deployment (in Development the application would generate a random one per host).
     /// </summary>
@@ -343,6 +360,27 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         return connectionString;
     }
 
+    /// <summary>
+    /// Creates a new database without any table (not even the migrations), for a test of what the application does on
+    /// its own with a database nobody prepared.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<string> CreateBlankDatabaseAsync()
+    {
+        var databaseName = $"app_tests_{Interlocked.Increment(ref _databaseSequence)}";
+
+        await using (var connection = new NpgsqlConnection(ConnectionString))
+        {
+            await connection.OpenAsync();
+
+            await using var command = new NpgsqlCommand($"CREATE DATABASE \"{databaseName}\"", connection);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        return new NpgsqlConnectionStringBuilder(ConnectionString) { Database = databaseName }.ConnectionString;
+    }
+
     /// <inheritdoc/>
     public override async ValueTask DisposeAsync()
     {
@@ -360,6 +398,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         [StartupExtensions.TokenSigningKeyConfigurationKey] = TokenSigningKey,
         ["Storeasy:Encryption:MasterKey"] = EncryptionMasterKey,
         [StoreJobsEnabledKey] = "true",
+        [DeploymentModeKey] = "MultiTenant",
         ["Storeasy:Jobs:PollIntervalMilliseconds"] = "100",
         ["Storeasy:Jobs:RetryBaseDelaySeconds"] = "0",
         ["Storeasy:Stores:RetryBaseDelayMilliseconds"] = "1",

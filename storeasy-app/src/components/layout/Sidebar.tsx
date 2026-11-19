@@ -8,7 +8,8 @@ import { useGlobalPermissions } from '@/lib/auth/globalPermissions'
 import { useFeature, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
-import { NAV, navLabel, HOME_PATH, type NavItem } from '@/lib/nav/nav'
+import { navGroups, navLabel, HOME_PATH, type NavItem } from '@/lib/nav/nav'
+import { useDeployment } from '@/features/access/publicSettings'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { cn } from '@/lib/utils/cn'
 import { Brand } from './Logo'
@@ -55,6 +56,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const global = useGlobalPermissions()
   const { state } = useActivity()
   const liveCount = activeJobCount(state)
+  const { singleTeam } = useDeployment()
 
   return (
     <>
@@ -63,22 +65,24 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </Link>
       <OrgSwitcher onNavigate={onNavigate} />
       <nav aria-label={t.nav.label} className="grid gap-0.5">
-        {NAV.filter((group) => !group.managerOnly || isManager).map((group) => {
-          const items = group.items.filter(
-            (item) => (!item.permission || can(item.permission)) && (!item.globalPermission || global.has(item.globalPermission)),
-          )
-          if (items.length === 0) {
-            return null
-          }
-          return (
-            <div key={group.key} className="grid gap-0.5">
-              {group.key !== 'main' ? <div className="nav-g">{t.nav.groups[group.key]}</div> : null}
-              {items.map((item) => (
-                <NavEntry key={item.key} item={item} onNavigate={onNavigate} liveCount={liveCount} />
-              ))}
-            </div>
-          )
-        })}
+        {navGroups(singleTeam)
+          .filter((group) => !group.managerOnly || isManager)
+          .map((group) => {
+            const items = group.items.filter(
+              (item) => (!item.permission || can(item.permission)) && (!item.globalPermission || global.has(item.globalPermission)),
+            )
+            if (items.length === 0) {
+              return null
+            }
+            return (
+              <div key={group.key} className="grid gap-0.5">
+                {group.key !== 'main' ? <div className={cn('nav-g', group.nested && 'pl-3')}>{t.nav.groups[group.key]}</div> : null}
+                {items.map((item) => (
+                  <NavEntry key={item.key} item={item} onNavigate={onNavigate} liveCount={liveCount} />
+                ))}
+              </div>
+            )
+          })}
       </nav>
       <div className="side-f">
         <UserMenu onNavigate={onNavigate} />

@@ -2669,8 +2669,20 @@
         </member>
         <member name="M:Storeasy.Api.Controllers.SystemController.GetPublicSettingsAsync(System.Threading.CancellationToken)">
             <summary>
-            Registration mode, whether Google sign in is on and the web push public key (anonymous).
+            Registration mode, deployment mode, whether the first run setup is pending, whether Google sign in is on and the web
+            push public key (anonymous).
             </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.SystemController.CompleteSetupAsync(Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand,System.Threading.CancellationToken)">
+            <summary>
+            First run setup of a single team instance (anonymous): with the one time setup code from the API log, creates the
+            administrator (platform manager, verified e-mail) and the team with that user as its owner in one transaction, and
+            returns the same token pair as the login. 403 <c>SetupCodeInvalid</c> for a wrong code, 409
+            <c>SetupAlreadyCompleted</c> once a user exists, 404 in multi tenant mode.
+            </summary>
+            <param name="request"></param>
             <param name="cancellation"></param>
             <returns></returns>
         </member>
@@ -3757,15 +3769,17 @@
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">
             <summary>
-            Applies migrations when the application starts, creates the missing feature flag rows, then loads the language and
-            permission lists the app reads from memory. Every step is idempotent, so it is safe on every startup.
+            Applies migrations when the application starts, prepares the static data of a single team instance, creates the
+            missing feature flag rows, then loads the language and permission lists the app reads from memory and, while a single
+            team instance has no user, prepares the setup code. Every step is idempotent, so it is safe on every startup.
             </summary>
             <param name="scopeFactory"></param>
         </member>
         <member name="M:Storeasy.Api.Migrations.MigrationHostedService.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
             <summary>
-            Applies migrations when the application starts, creates the missing feature flag rows, then loads the language and
-            permission lists the app reads from memory. Every step is idempotent, so it is safe on every startup.
+            Applies migrations when the application starts, prepares the static data of a single team instance, creates the
+            missing feature flag rows, then loads the language and permission lists the app reads from memory and, while a single
+            team instance has no user, prepares the setup code. Every step is idempotent, so it is safe on every startup.
             </summary>
             <param name="scopeFactory"></param>
         </member>

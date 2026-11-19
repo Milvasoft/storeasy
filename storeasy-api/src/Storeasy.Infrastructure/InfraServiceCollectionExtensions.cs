@@ -182,6 +182,11 @@ public static class InfraServiceCollectionExtensions
         services.AddSingleton(configurationManager.GetSection(BuildOptions.SectionName).Get<BuildOptions>() ?? new BuildOptions());
         services.AddSingleton(configurationManager.GetSection(BootstrapOptions.SectionName).Get<BootstrapOptions>() ?? new BootstrapOptions());
         services.AddScoped<IRegistrationModes, RegistrationModes>();
+
+        // Storeasy:Mode: SingleTeam (default, one team on its own instance) or MultiTenant (hosted, many customers).
+        services.AddSingleton(new DeploymentOptions { Mode = configurationManager.GetValue(DeploymentOptions.ConfigurationKey, DeploymentMode.SingleTeam) });
+        services.AddSingleton<SetupCodeStore>();
+        services.AddScoped<IFirstRunSetup, FirstRunSetup>();
         services.AddScoped<ISystemStatusProbe, SystemStatusProbe>();
 
         var emailOptions = configurationManager.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();

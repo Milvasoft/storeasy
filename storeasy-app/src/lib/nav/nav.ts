@@ -41,6 +41,7 @@ export type NavKey =
   | 'audit'
   | 'rules'
   | 'settings'
+  | 'team'
   | 'developer'
   | 'adminRules'
   | 'adminUsers'
@@ -61,10 +62,12 @@ export interface NavItem {
 }
 
 export interface NavGroup {
-  key: 'main' | 'delivery' | 'organization' | 'developer' | 'platform'
+  key: 'main' | 'delivery' | 'organization' | 'developer' | 'platform' | 'settings' | 'system'
   items: NavItem[]
   // The Platform group shows only to platform administrators (Manager user type).
   managerOnly?: boolean
+  // Drawn as a part of the group above it (single team: System under Settings).
+  nested?: boolean
 }
 
 export const NAV: NavGroup[] = [
@@ -131,6 +134,46 @@ export const NAV: NavGroup[] = [
     ],
   },
 ]
+
+function navItem(key: NavKey): NavItem {
+  const item = NAV.flatMap((group) => group.items).find((candidate) => candidate.key === key)
+  if (!item) {
+    throw new Error(`Unknown menu item ${key}`)
+  }
+  return item
+}
+
+// A single team instance (Storeasy:Mode=SingleTeam) has one organization, "the team", and its administrator is also the
+// platform administrator: one Settings area holds the team's settings and, for the administrator, the System items,
+// instead of an organization world and a platform world side by side. The routes stay the same.
+export const SINGLE_TEAM_NAV: NavGroup[] = [
+  NAV[0],
+  { key: 'delivery', items: [navItem('intake'), navItem('webhooks')] },
+  NAV[3],
+  {
+    key: 'settings',
+    items: [
+      { key: 'team', path: '/settings', icon: Settings },
+      navItem('members'),
+      navItem('connections'),
+      navItem('audit'),
+      navItem('rules'),
+    ],
+  },
+  {
+    key: 'system',
+    managerOnly: true,
+    nested: true,
+    items: ['adminSystem', 'adminUsers', 'adminRoles', 'adminLanguages', 'adminFlags', 'adminLogs', 'adminRules'].map((key) =>
+      navItem(key as NavKey),
+    ),
+  },
+]
+
+/** The menu of the deployment mode. */
+export function navGroups(singleTeam: boolean): NavGroup[] {
+  return singleTeam ? SINGLE_TEAM_NAV : NAV
+}
 
 export const NAV_ITEMS: NavItem[] = NAV.flatMap((group) => group.items)
 

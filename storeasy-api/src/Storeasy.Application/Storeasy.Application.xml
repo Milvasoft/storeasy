@@ -8548,6 +8548,16 @@
             Who may register (<c>Storeasy:Registration:Mode</c>).
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.SettingsDtos.PublicSettingsDto.Mode">
+            <summary>
+            Deployment mode (<c>Storeasy:Mode</c>): a single team instance has one organization and no sign up.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.SettingsDtos.PublicSettingsDto.SetupRequired">
+            <summary>
+            True while a single team instance has no user: the web app shows the first run setup instead of the sign in.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.SettingsDtos.PublicSettingsDto.GoogleSignInEnabled">
             <summary>
             Whether "Sign in with Google" is configured.
@@ -8581,6 +8591,11 @@
         <member name="P:Storeasy.Application.Dtos.SettingsDtos.SystemSettingsDto.ConfiguredRegistrationMode">
             <summary>
             The configured registration mode (what applies when the saved one is removed).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.SettingsDtos.SystemSettingsDto.Mode">
+            <summary>
+            Deployment mode of the instance (<c>Storeasy:Mode</c>); in single team mode the registration mode is fixed.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.SettingsDtos.SystemStatusDto">
@@ -16665,19 +16680,25 @@
         </member>
         <member name="T:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler">
             <summary>
-            Handles organization creation. The organization and the owner membership are written together.
+            Handles organization creation. The organization and the owner membership are written together. A single team
+            instance has exactly one organization: once it exists, another one is refused with
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.SingleTeamOrganizationExists"/>.
             </summary>
             <param name="OrganizationRepository"></param>
             <param name="CurrentUser"></param>
             <param name="AuditTrail"></param>
+            <param name="DeploymentOptions"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.DeploymentOptions)">
             <summary>
-            Handles organization creation. The organization and the owner membership are written together.
+            Handles organization creation. The organization and the owner membership are written together. A single team
+            instance has exactly one organization: once it exists, another one is refused with
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.SingleTeamOrganizationExists"/>.
             </summary>
             <param name="OrganizationRepository"></param>
             <param name="CurrentUser"></param>
             <param name="AuditTrail"></param>
+            <param name="DeploymentOptions"></param>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.OrganizationRepository">
             <summary></summary>
@@ -16686,6 +16707,9 @@
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.DeploymentOptions">
             <summary></summary>
         </member>
         <member name="M:Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommandHandler.Handle(Storeasy.Application.Features.Organizations.CreateOrganization.CreateOrganizationCommand,System.Threading.CancellationToken)">
@@ -19792,29 +19816,133 @@
         <member name="M:Storeasy.Application.Features.RuleWatcher.RejectRuleProposal.RejectRuleProposalCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.RuleWatcher.RejectRuleProposal.RejectRuleProposalCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand">
+            <summary>
+            First run setup of a single team instance (anonymous): creates the administrator and the team, then signs the
+            administrator in. Requires the one time setup code from the API log (or <c>Storeasy:Bootstrap:SetupCode</c>). Works
+            only while the instance has no user; afterwards it is refused with <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.SetupAlreadyCompleted"/>.
+            In multi tenant mode the endpoint does not exist (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PageNotFound"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.SetupCode">
+            <summary>
+            The one time setup code (<c>XXXX-XXXX-XXXX</c>) written to the API log at startup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.Name">
+            <summary>
+            First name of the administrator.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.Surname">
+            <summary>
+            Last name of the administrator (optional).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.Email">
+            <summary>
+            E-mail address of the administrator; it is also the sign in name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.Password">
+            <summary>
+            Password of the administrator.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.OrganizationName">
+            <summary>
+            Name of the team (the single organization of the instance).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand.DeviceId">
+            <summary>
+            Unique id of the device that signs in (optional, like the login).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand"/>: checks the mode and the setup code, lets <see cref="T:Storeasy.Application.Interfaces.IFirstRunSetup"/>
+            create the administrator and the team in one transaction, then signs the administrator in like the login does. No
+            <c>[Log]</c>: the response carries the token pair, which cannot be masked.
+            </summary>
+            <param name="FirstRunSetup"></param>
+            <param name="DeploymentOptions"></param>
+            <param name="UserRepository"></param>
+            <param name="AccountManager"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.#ctor(Storeasy.Application.Interfaces.IFirstRunSetup,Storeasy.Application.Utils.Models.DeploymentOptions,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IAccountManager,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand"/>: checks the mode and the setup code, lets <see cref="T:Storeasy.Application.Interfaces.IFirstRunSetup"/>
+            create the administrator and the team in one transaction, then signs the administrator in like the login does. No
+            <c>[Log]</c>: the response carries the token pair, which cannot be masked.
+            </summary>
+            <param name="FirstRunSetup"></param>
+            <param name="DeploymentOptions"></param>
+            <param name="UserRepository"></param>
+            <param name="AccountManager"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.FirstRunSetup">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.DeploymentOptions">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.AccountManager">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandHandler.Handle(Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandValidator.SetupCodeMaxLength">
+            <summary>
+            Longest accepted setup code (a configured code included).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Milvasoft.Identity.Abstract.IMilvaUserManager{Storeasy.Domain.User,System.Int32})">
+            <inheritdoc cref="T:Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery">
             <summary>
-            Reads the instance settings the sign in and settings pages need (anonymous): registration mode, Google sign in, the API version and the
-            web push public key.
+            Reads the instance settings the sign in and settings pages need (anonymous): registration mode, deployment mode, whether
+            the first run setup is pending, Google sign in, the API version and the web push public key.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery"/>: the registration mode in force (saved or configured) and the bound options.
+            Handles <see cref="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery"/>: the registration mode in force (saved or configured), the deployment mode,
+            whether the first run setup is pending and the bound options.
             </summary>
             <param name="registrationModes"></param>
             <param name="googleAuthOptions"></param>
             <param name="webPushOptions"></param>
             <param name="buildOptions"></param>
+            <param name="deploymentOptions"></param>
+            <param name="firstRunSetup"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes,Storeasy.Application.Utils.Models.GoogleAuthOptions,Storeasy.Application.Utils.Models.WebPushOptions,Storeasy.Application.Utils.Models.BuildOptions)">
+        <member name="M:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes,Storeasy.Application.Utils.Models.GoogleAuthOptions,Storeasy.Application.Utils.Models.WebPushOptions,Storeasy.Application.Utils.Models.BuildOptions,Storeasy.Application.Utils.Models.DeploymentOptions,Storeasy.Application.Interfaces.IFirstRunSetup)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery"/>: the registration mode in force (saved or configured) and the bound options.
+            Handles <see cref="T:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery"/>: the registration mode in force (saved or configured), the deployment mode,
+            whether the first run setup is pending and the bound options.
             </summary>
             <param name="registrationModes"></param>
             <param name="googleAuthOptions"></param>
             <param name="webPushOptions"></param>
             <param name="buildOptions"></param>
+            <param name="deploymentOptions"></param>
+            <param name="firstRunSetup"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQueryHandler.Handle(Storeasy.Application.Features.Settings.GetPublicSettings.GetPublicSettingsQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -19830,13 +19958,15 @@
             </summary>
             <param name="registrationModes"></param>
             <param name="registrationOptions"></param>
+            <param name="deploymentOptions"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Settings.GetSystemSettings.GetSystemSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes,Storeasy.Application.Utils.Models.RegistrationOptions)">
+        <member name="M:Storeasy.Application.Features.Settings.GetSystemSettings.GetSystemSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes,Storeasy.Application.Utils.Models.RegistrationOptions,Storeasy.Application.Utils.Models.DeploymentOptions)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Settings.GetSystemSettings.GetSystemSettingsQuery"/>.
             </summary>
             <param name="registrationModes"></param>
             <param name="registrationOptions"></param>
+            <param name="deploymentOptions"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Settings.GetSystemSettings.GetSystemSettingsQueryHandler.Handle(Storeasy.Application.Features.Settings.GetSystemSettings.GetSystemSettingsQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -19874,17 +20004,24 @@
         </member>
         <member name="T:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand"/>. A single team instance is always invite only, so the mode
+            cannot be changed there (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.RegistrationModeFixedInSingleTeam"/>).
             </summary>
             <param name="RegistrationModes"></param>
+            <param name="DeploymentOptions"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes)">
+        <member name="M:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler.#ctor(Storeasy.Application.Interfaces.IRegistrationModes,Storeasy.Application.Utils.Models.DeploymentOptions)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand"/>. A single team instance is always invite only, so the mode
+            cannot be changed there (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.RegistrationModeFixedInSingleTeam"/>).
             </summary>
             <param name="RegistrationModes"></param>
+            <param name="DeploymentOptions"></param>
         </member>
         <member name="P:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler.RegistrationModes">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler.DeploymentOptions">
             <summary></summary>
         </member>
         <member name="M:Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommandHandler.Handle(Storeasy.Application.Features.Settings.UpdateRegistrationMode.UpdateRegistrationModeCommand,System.Threading.CancellationToken)">
@@ -24102,6 +24239,45 @@
         </member>
         <member name="P:Storeasy.Application.Interfaces.StoredObjectInfo.ContentType">
             <summary>Stored content type.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IFirstRunSetup">
+            <summary>
+            First run of a single team instance (<see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/>): while the instance has no user, the
+            first visitor who knows the one time setup code creates the administrator and the team.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFirstRunSetup.IsRequiredAsync(System.Threading.CancellationToken)">
+            <summary>
+            True while the setup can run: single team mode and no user in the database (soft deleted rows count as users).
+            Once a user exists the answer is cached as false for the life of the process.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFirstRunSetup.PrepareAsync(System.Threading.CancellationToken)">
+            <summary>
+            Creates the setup code (or takes <c>Storeasy:Bootstrap:SetupCode</c>) and writes it to the log once, when the
+            setup is required. Called at startup; safe to call again.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFirstRunSetup.VerifyCodeAsync(System.String)">
+            <summary>
+            Compares <paramref name="code"/> with the current setup code in constant time (case, spaces and dashes ignored).
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IFirstRunSetup.CompleteAsync(Storeasy.Application.Features.Settings.CompleteSetup.CompleteSetupCommand,System.Threading.CancellationToken)">
+            <summary>
+            In one transaction (serialized across instances): creates the platform administrator (Manager, SuperAdmin role,
+            verified e-mail) and the single organization with that user as its owner. Returns the user and the organization,
+            or the message key of the refusal (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.SetupAlreadyCompleted"/> when a user exists).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IGoogleSignIn">
             <summary>
@@ -30053,6 +30229,13 @@
             <param name="tokenHash"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.CacheKeys.SetupCode">
+            <summary>
+            Key of the first run setup code of a single team instance, shared by every instance that starts while the
+            database has no user.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Application.Utils.Helpers.CacheKeys.Build(System.String)">
             <summary>
             Prefixes <paramref name="key"/> with the application's prefix.
@@ -30941,7 +31124,8 @@
         <member name="T:Storeasy.Application.Utils.Models.BootstrapOptions">
             <summary>
             Bootstrap settings (configuration section <see cref="F:Storeasy.Application.Utils.Models.BootstrapOptions.SectionName"/>, environment <c>Storeasy__Bootstrap__InitKey</c>),
-            bound once and registered as a singleton. Only the anonymous <c>developer/database/init</c> endpoint reads them.
+            bound once and registered as a singleton. The anonymous <c>developer/database/init</c> endpoint reads the init key, the
+            first run setup of a single team instance the setup code.
             </summary>
         </member>
         <member name="F:Storeasy.Application.Utils.Models.BootstrapOptions.SectionName">
@@ -30969,6 +31153,23 @@
         <member name="P:Storeasy.Application.Utils.Models.BootstrapOptions.IsInitKeyConfigured">
             <summary>
             True when <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.InitKey"/> is long enough to enable database initialization.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.BootstrapOptions.MinimumSetupCodeLength">
+            <summary>
+            Shortest <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.SetupCode"/> that is accepted; a shorter value is ignored and a random code is generated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.BootstrapOptions.SetupCode">
+            <summary>
+            Optional fixed first run setup code for automated installs (<c>Storeasy__Bootstrap__SetupCode</c>). Empty (the
+            default): while the instance has no user, the API generates a random one time code at startup and writes it to
+            the log once. Only read in <see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.BootstrapOptions.IsSetupCodeConfigured">
+            <summary>
+            True when <see cref="P:Storeasy.Application.Utils.Models.BootstrapOptions.SetupCode"/> is long enough to replace the generated code.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.BuildOptions">
@@ -31011,6 +31212,28 @@
             <summary>
             Prefix of every Redis key the application writes (the project name by default). Two applications that share one
             Redis (an API and its admin API, two environments on one server) must use different prefixes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.DeploymentOptions">
+            <summary>
+            The deployment mode of the instance (configuration key <see cref="F:Storeasy.Application.Utils.Models.DeploymentOptions.ConfigurationKey"/>, environment
+            <c>Storeasy__Mode</c>), bound once and registered as a singleton.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.DeploymentOptions.ConfigurationKey">
+            <summary>
+            Configuration key of <see cref="P:Storeasy.Application.Utils.Models.DeploymentOptions.Mode"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.DeploymentOptions.Mode">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/> by default; <see cref="F:Storeasy.Domain.Enums.DeploymentMode.MultiTenant"/> for a hosted instance
+            with many customers.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.DeploymentOptions.IsSingleTeam">
+            <summary>
+            True in <see cref="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam"/>.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.EmailOptions">

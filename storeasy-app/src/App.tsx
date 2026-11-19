@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import { BootScreen } from '@/components/common/BootScreen'
 import { RouteErrorBoundary } from '@/components/common/ErrorBoundary'
 import { GuestOnly, ProtectedRoute } from '@/components/common/ProtectedRoute'
@@ -8,6 +8,7 @@ import { ScreenState } from '@/components/ui/ScreenState'
 import { UserType } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { PageSkeleton } from '@/components/ui/primitives'
+import { useDeployment } from '@/features/access/publicSettings'
 import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
@@ -27,6 +28,7 @@ const ResetPasswordPage = lazyPage(() => import('@/pages/auth/PasswordRecoveryPa
 const InvitePage = lazyPage(() => import('@/pages/auth/InvitePage'), 'InvitePage')
 const GoogleCallbackPage = lazyPage(() => import('@/features/access/GoogleCallbackPage'), 'GoogleCallbackPage')
 const SetupPage = lazyPage(() => import('@/pages/SetupPage'), 'SetupPage')
+const FirstRunSetupPage = lazyPage(() => import('@/pages/auth/FirstRunSetupPage'), 'FirstRunSetupPage')
 const ActivityPage = lazyPage(() => import('@/pages/ActivityPage'), 'ActivityPage')
 const JobsPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobsPage')
 const JobDetailPage = lazyPage(() => import('@/pages/activity/JobsPages'), 'JobDetailPage')
@@ -53,7 +55,8 @@ function OrganizationGate({ children }: { children: JSX.Element }) {
   const { organizations, isLoading, error, refetch } = useOrganization()
   const { user } = useAuth()
   const { pathname } = useLocation()
-  if (isLoading) {
+  const deployment = useDeployment()
+  if (isLoading || deployment.isLoading) {
     return <BootScreen />
   }
   if (error) {
@@ -62,6 +65,11 @@ function OrganizationGate({ children }: { children: JSX.Element }) {
         <ScreenState error={error} onRetry={() => void refetch()} />
       </div>
     )
+  }
+  // Single team: the administrator of an install that has no team yet (an install made before the single team mode)
+  // creates it in one step; the System pages stay reachable meanwhile.
+  if (organizations.length === 0 && user?.userType === UserType.Manager && deployment.singleTeam) {
+    return pathname.startsWith('/admin/') ? children : <Navigate to="/setup" replace />
   }
   // A platform administrator without an organization lands on the admin area; an organization page (a sidebar link,
   // an old bookmark) explains why it cannot open instead of silently bouncing back, which looked like dead links.
@@ -101,6 +109,31 @@ function ProtectedLayout() {
   )
 }
 
+// The sign-in, or the first run setup while a single team instance has no user yet (system/public-settings).
+function SignInOrSetup() {
+  const { setupRequired, isLoading } = useDeployment()
+  if (isLoading) {
+    return <BootScreen />
+  }
+  return setupRequired ? (
+    <Lazy>
+      <FirstRunSetupPage />
+    </Lazy>
+  ) : (
+    <LoginPage />
+  )
+}
+
+// Sign-up: a single team instance has none; an invitation link (?invite=...) still creates the invited account.
+function SignUp() {
+  const { singleTeam, isLoading } = useDeployment()
+  const [params] = useSearchParams()
+  if (isLoading) {
+    return <BootScreen />
+  }
+  return singleTeam && !params.get('invite') ? <Navigate to="/login" replace /> : <RegisterPage />
+}
+
 function Guest({ children }: { children: JSX.Element }) {
   return (
     <GuestOnly>
@@ -116,7 +149,7 @@ export function App() {
         path="/login"
         element={
           <GuestOnly>
-            <LoginPage />
+            <SignInOrSetup />
           </GuestOnly>
         }
       />
@@ -124,7 +157,7 @@ export function App() {
         path="/register"
         element={
           <Guest>
-            <RegisterPage />
+            <SignUp />
           </Guest>
         }
       />

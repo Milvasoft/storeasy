@@ -1,4 +1,5 @@
-﻿using Milvasoft.Core.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using Milvasoft.Core.Abstractions;
 using Milvasoft.DataAccess.EfCore.Utils;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
@@ -6,6 +7,7 @@ using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Notifications;
+using Storeasy.Infrastructure.Persistence.Context;
 using System.Diagnostics;
 using System.Text;
 
@@ -16,6 +18,7 @@ namespace Storeasy.Infrastructure.Notifications;
 /// by one and their results written back in one update. Backoff: <see cref="OrgWebhookOptions.RetryBaseDelaySeconds"/>
 /// doubled per attempt, at most an hour; a 410 Gone stops the retries.
 /// </summary>
+/// <param name="dbContext"></param>
 /// <param name="deliveryRepository"></param>
 /// <param name="webhookRepository"></param>
 /// <param name="httpClientFactory"></param>
@@ -24,7 +27,8 @@ namespace Storeasy.Infrastructure.Notifications;
 /// <param name="options"></param>
 /// <param name="timeProvider"></param>
 /// <param name="logger"></param>
-public sealed class OrgWebhookSender(IStoreasyRepositoryBase<WebhookDelivery> deliveryRepository,
+public sealed class OrgWebhookSender(StoreasyDbContext dbContext,
+                                     IStoreasyRepositoryBase<WebhookDelivery> deliveryRepository,
                                      IStoreasyRepositoryBase<OrganizationWebhook> webhookRepository,
                                      IHttpClientFactory httpClientFactory,
                                      IWebhookUrlGuard urlGuard,
@@ -42,6 +46,7 @@ public sealed class OrgWebhookSender(IStoreasyRepositoryBase<WebhookDelivery> de
     private const int _leaseSeconds = 120;
     private const string _userAgent = "storeasy-webhooks/1.0";
 
+    private readonly StoreasyDbContext _dbContext = dbContext;
     private readonly IStoreasyRepositoryBase<WebhookDelivery> _deliveryRepository = deliveryRepository;
     private readonly IStoreasyRepositoryBase<OrganizationWebhook> _webhookRepository = webhookRepository;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
@@ -56,15 +61,17 @@ public sealed class OrgWebhookSender(IStoreasyRepositoryBase<WebhookDelivery> de
     {
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-        var due = await _deliveryRepository.GetSomeAsync(_batchSize,
-                                                         d => (d.Status == WebhookDeliveryStatus.Pending || d.Status == WebhookDeliveryStatus.Retrying) && d.NextAttemptDate <= now && (d.LockedUntil == null || d.LockedUntil < now),
-                                                         projection: d => new WebhookDelivery { Id = d.Id },
-                                                         cancellationToken: cancellationToken);
+        // Oldest due first, by a deterministic order: a batch limit without an order picks arbitrary rows (and EF Core
+        // warns about it on every poll).
+        var ids = await _dbContext.WebhookDeliveries.Where(d => (d.Status == WebhookDeliveryStatus.Pending || d.Status == WebhookDeliveryStatus.Retrying) && d.NextAttemptDate <= now && (d.LockedUntil == null || d.LockedUntil < now))
+                                                    .OrderBy(d => d.NextAttemptDate)
+                                                    .ThenBy(d => d.Id)
+                                                    .Select(d => d.Id)
+                                                    .Take(_batchSize)
+                                                    .ToListAsync(cancellationToken);
 
-        if (due.Count == 0)
+        if (ids.Count == 0)
             return 0;
-
-        var ids = due.Select(d => d.Id).ToList();
 
         return (await ClaimAndSendAsync(d => ids.Contains(d.Id) && (d.LockedUntil == null || d.LockedUntil < now), now, cancellationToken)).Count;
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.Helpers;
 using Storeasy.Application.Interfaces;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Application.Utils.PermissionManager;
 using Storeasy.Infrastructure.Persistence;
 using Storeasy.Infrastructure.Persistence.Context;
@@ -9,8 +10,9 @@ using Serilog;
 namespace Storeasy.Api.Migrations;
 
 /// <summary>
-/// Applies migrations when the application starts, creates the missing feature flag rows, then loads the language and
-/// permission lists the app reads from memory. Every step is idempotent, so it is safe on every startup.
+/// Applies migrations when the application starts, prepares the static data of a single team instance, creates the
+/// missing feature flag rows, then loads the language and permission lists the app reads from memory and, while a single
+/// team instance has no user, prepares the setup code. Every step is idempotent, so it is safe on every startup.
 /// </summary>
 /// <param name="scopeFactory"></param>
 public class MigrationHostedService(IServiceScopeFactory scopeFactory) : IHostedService
@@ -45,6 +47,25 @@ public class MigrationHostedService(IServiceScopeFactory scopeFactory) : IHosted
             Log.Logger.Error(ex, "An error occurred while applying migrations.");
         }
 
+        var deploymentOptions = scope.ServiceProvider.GetRequiredService<DeploymentOptions>();
+
+        if (deploymentOptions.IsSingleTeam)
+        {
+            try
+            {
+                // Single team: no developer step. The static data (SuperAdmin role, triggers, languages, permissions) is
+                // created when missing, under an advisory lock so instances that start together do it once.
+                var permissionManager = scope.ServiceProvider.GetRequiredService<IPermissionManager>();
+
+                if (await new DatabaseMigrator(scope.ServiceProvider).EnsureStaticDataAsync(permissionManager, cancellationToken))
+                    Log.Logger.Information("The database was prepared for its first run.");
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error(ex, "An error occurred while preparing the database.");
+            }
+        }
+
         try
         {
             // Every switch in FeatureFlagKeys gets its row, so it can be toggled from the management endpoints.
@@ -73,6 +94,19 @@ public class MigrationHostedService(IServiceScopeFactory scopeFactory) : IHosted
         catch (Exception ex)
         {
             Log.Logger.Error(ex, "An error occurred while initializing language and permission lists.");
+        }
+
+        if (deploymentOptions.IsSingleTeam)
+        {
+            try
+            {
+                // While the instance has no user: the one time setup code, written to the log once.
+                await scope.ServiceProvider.GetRequiredService<IFirstRunSetup>().PrepareAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error(ex, "An error occurred while preparing the first run setup.");
+            }
         }
     }
 

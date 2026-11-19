@@ -1,4 +1,5 @@
 import { HttpResponse, http, type HttpHandler } from 'msw'
+import { UserType } from '@/lib/api/types'
 import { asset, loginResponse } from './factories'
 import { testState } from './state'
 
@@ -110,6 +111,8 @@ export const defaultHandlers: HttpHandler[] = [
 
   // ---- system -------------------------------------------------------------
   endpoint('get', '/System/public-settings', () => json(envelope(testState.publicSettings))),
+  // The first run setup of a single team instance signs the new administrator in.
+  endpoint('post', '/System/setup', () => json(envelope(loginResponse({ UserType: UserType.Manager })))),
   endpoint('get', '/System/feature-flags', () => json(envelope(testState.featureFlags))),
 
   // ---- account: registration and recovery ---------------------------------

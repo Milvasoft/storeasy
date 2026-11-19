@@ -123,6 +123,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 | K10 | Kayıt herkese açık (self-host'ta `Registration:Mode` = `Open`, `InviteOnly`, `Closed`) | Açık kaynak ürünün ilk kullanıcı akışı | 01 şablonda kayıt yok, eklenir |
 | K11 | Giriş e-posta ile | 09 çok kiracılı ürün kuralı | Yok |
 | K12 | Public repo CI'ı GitHub Actions (test + build + gitleaks); Milvasoft deploy'u Azure DevOps + Dokploy (özel ops reposu) | Dış katkıcılar PR'da CI görmeli; iç deploy düzeni bozulmaz | DevOps'a soruldu |
+| K13 | Varsayılan kurulum tek takım (`Storeasy:Mode` = `SingleTeam`): API veritabanını kendisi hazırlar, ilk kullanıcı log'daki tek seferlik kurulum koduyla yöneticiyi ve takımı oluşturur, tek organizasyon, kayıt yok, davetle katılım. Çok kiracılı (`MultiTenant`) barındırma için isteğe bağlı | Açık kaynak kullanıcısı aracı kurup kullanmak ister, SaaS kurmak değil; ilk kurulumda geliştirici adımı ve kök kullanıcı karmaşası kalkar | K10'u varsayılan kurulumda geçersiz kılar |
 
 ### 4.3 İş akışı örneği (ekran görüntüsü yükleme)
 1. Arayüz veya MCP `PlanScreenshotUpload` çağırır: dosyalar S3'te, boyut ve alfa kontrolü, mevcut setle MD5 diff'i.

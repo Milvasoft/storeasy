@@ -2399,6 +2399,24 @@
             Hold the session for a member.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.DeploymentMode">
+            <summary>
+            How an instance is used (<c>Storeasy:Mode</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeploymentMode.SingleTeam">
+            <summary>
+            One team installs and uses its own instance (the default): the database is prepared on startup, the first visitor
+            with the setup code creates the administrator and the team, there is exactly one organization and people join by
+            invitation.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DeploymentMode.MultiTenant">
+            <summary>
+            A hosted instance for many customers: open registration (by <c>Storeasy:Registration:Mode</c>), any number of
+            organizations and a platform administrator created by <c>developer/database/init</c>.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.EmailOutboxKind">
             <summary>
             What an e-mail outbox row holds. Values are explicit and never reused.

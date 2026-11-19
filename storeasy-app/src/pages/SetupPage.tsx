@@ -6,6 +6,7 @@ import { AddConnectionDialog } from '@/components/connections/AddConnectionDialo
 import { AuthFooter } from '@/components/layout/AuthLayout'
 import { Brand } from '@/components/layout/Logo'
 import { CreateOrganizationForm } from '@/components/org/CreateOrganizationForm'
+import { useDeployment } from '@/features/access/publicSettings'
 import { Callout } from '@/components/ui/Feedback'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { OrgPermission } from '@/lib/api/types'
@@ -29,10 +30,16 @@ export function SetupPage() {
   const { current, switchTo, can } = useOrganization()
   const [connecting, setConnecting] = useState(false)
   const [added, setAdded] = useState(false)
+  // Single team: the organization is "the team" (one per instance).
+  const { singleTeam } = useDeployment()
   const step: StepKey = current ? 'connect' : 'organization'
 
   const steps: Array<{ key: StepKey; title: string; detail: string }> = [
-    { key: 'organization', title: t.setup.step1, detail: current ? `${current.Name} · ${current.Slug}` : t.setup.step1Detail },
+    {
+      key: 'organization',
+      title: singleTeam ? t.setup.teamStep1 : t.setup.step1,
+      detail: current ? `${current.Name} · ${current.Slug}` : t.setup.step1Detail,
+    },
     { key: 'connect', title: t.setup.step2, detail: t.setup.step2Detail },
     { key: 'apps', title: t.setup.step3, detail: t.setup.step3Detail },
   ]
@@ -86,8 +93,8 @@ export function SetupPage() {
           <span className="eb">{interpolate(t.setup.stepOf, { step: index + 1, total: steps.length })}</span>
           {step === 'organization' ? (
             <>
-              <h1 className="pg-t">{t.setup.organizationTitle}</h1>
-              <p className="m-0 text-sm text-fg2">{t.organization.newSubtitle}</p>
+              <h1 className="pg-t">{singleTeam ? t.setup.teamTitle : t.setup.organizationTitle}</h1>
+              <p className="m-0 text-sm text-fg2">{singleTeam ? t.setup.teamSubtitle : t.organization.newSubtitle}</p>
               <div className="card p-5">
                 <CreateOrganizationForm submitLabel={t.setup.createAndContinue} onCreated={(organizationId) => switchTo(organizationId)} />
               </div>

@@ -63,6 +63,26 @@ _Screenshots will be added before the first release._
 
 <!-- Planned: apps list, change plan diff, live activity, readiness check, studio export. -->
 
+## Quick start (your own server)
+
+storeasy is a tool you install and use with your team. Requirements: Docker with the Compose plugin, two DNS names
+behind a TLS proxy (the app and its file storage) and an SMTP account for invitations.
+
+```bash
+git clone <repository url> storeasy && cd storeasy/deploy
+cp .env.example .env          # fill in the addresses, the SMTP account and the generated secrets
+docker compose up -d
+docker compose logs storeasy-api | grep "setup code"
+```
+
+1. Open the site. While the server has no account it shows the **Setup** screen.
+2. Enter the setup code from the log, your name, e-mail, password and the team name. You are signed in as the
+   administrator and the owner of the team; the API prepared its database by itself.
+3. Invite your team from **Members**, then connect your stores.
+
+Details, TLS, backups and upgrades: [docs/self-host.md](docs/self-host.md). Hosting storeasy for many customers (open
+sign-up, many organizations) is the advanced `STOREASY_MODE=MultiTenant` mode described there.
+
 ## Quick start (local development)
 
 Requirements: .NET 11 SDK, Node 22+, Docker.
@@ -86,7 +106,8 @@ cp .env.example .env
 npm run dev
 ```
 
-Initialize a development database with the bootstrap key (`POST /api/v1.0/developer/database/init`), sign in as
+The development settings run the multi tenant mode (`Storeasy:Mode` in `appsettings.Development.json`; set
+`SingleTeam` to try the first run setup). Initialize a development database with the bootstrap key (`POST /api/v1.0/developer/database/init`), sign in as
 `rootuser` and seed the development users (`POST /api/v1.0/developer/database/seed`); see
 [storeasy-api/README.md](storeasy-api/README.md#5-initial-data). The documentation and the developer endpoints are
 open only with `MILVA_ENV=dev` (the launch profiles set it); never run `dev` or `test` on a public host. To run the web app without a backend:

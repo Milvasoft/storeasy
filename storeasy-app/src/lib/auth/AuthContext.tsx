@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { authApi } from '@/lib/api/endpoints'
+import { authApi, systemApi, type CompleteSetupInput } from '@/lib/api/endpoints'
 import { API_REFUSAL_EVENT, AUTH_LOST_EVENT, type ApiRefusal } from '@/lib/api/http'
 import { tokenStore, type AuthTokens } from '@/lib/api/tokenStore'
 import { UserType, type ExternalLoginProvider, type LoginResponseDto } from '@/lib/api/types'
@@ -39,6 +39,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   // Completes the Google sign in with the callback's code and state.
   loginWithGoogle: (code: string, state: string, invitationToken?: string | null) => Promise<void>
+  // Completes the first run setup of a single team instance and signs the new administrator in.
+  completeSetup: (input: CompleteSetupInput) => Promise<void>
   logout: () => Promise<void>
   // Ends the session locally after the API already invalidated it (password changed, account removed).
   endSession: () => void
@@ -134,6 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession],
   )
 
+  const completeSetup = useCallback(
+    async (input: CompleteSetupInput) => {
+      const userName = input.Email.trim()
+      await applySession(await systemApi.completeSetup({ ...input, Email: userName }), userName)
+    },
+    [applySession],
+  )
+
   const endSession = useCallback(() => {
     tokenStore.clear()
     queryClient.clear()
@@ -220,11 +230,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       needsVerification: status === 'authed' && user?.emailConfirmed === false,
       login,
       loginWithGoogle,
+      completeSetup,
       logout,
       endSession,
       refreshUser,
     }),
-    [status, user, sessionEnded, login, loginWithGoogle, logout, endSession, refreshUser],
+    [status, user, sessionEnded, login, loginWithGoogle, completeSetup, logout, endSession, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -67,6 +67,13 @@ public sealed class CacheKeys(CacheKeyOptions options)
     public string RevokedToken(string tokenHash) => Build($"revoked-token:{tokenHash}");
 
     /// <summary>
+    /// Key of the first run setup code of a single team instance, shared by every instance that starts while the
+    /// database has no user.
+    /// </summary>
+    /// <returns></returns>
+    public string SetupCode() => Build("setup-code");
+
+    /// <summary>
     /// Prefixes <paramref name="key"/> with the application's prefix.
     /// </summary>
     /// <param name="key"></param>
