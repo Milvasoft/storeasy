@@ -13,6 +13,7 @@ import { FeatureFlagsProvider, type FeatureFlags } from '@/lib/features/FeatureF
 import { I18nProvider } from '@/lib/i18n/I18nContext'
 import { OrganizationProvider, useOrganization } from '@/lib/org/OrganizationContext'
 import { createMutationCache } from '@/lib/query/queryClient'
+import { preloadLazyPages } from '@/lib/utils/lazyPage'
 import { StorageKey, storageKey } from '@/lib/utils/storage'
 import { TEST_ORG_ID, TEST_USER_ID, TEST_USER_NAME } from './factories'
 
@@ -165,5 +166,7 @@ export function renderWithProviders(ui: ReactElement, options: RenderOptions = {
 /** The whole app (routing included) at a URL, for navigation and route guard tests. */
 export async function renderApp(options: RenderOptions = {}) {
   const { App } = await import('@/App')
+  // The route chunks load here, before the test starts waiting for a page: their import cost is not a findBy's budget.
+  await preloadLazyPages()
   return renderWithProviders(<App />, { ...options, needsOrganization: false })
 }

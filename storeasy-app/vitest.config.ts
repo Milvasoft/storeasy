@@ -15,9 +15,11 @@ export default defineConfig({
     include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
     restoreMocks: true,
     clearMocks: true,
-    testTimeout: 15_000,
+    // A test types like a user, key by key, and every key re-renders the page: the slowest form tests take 8 s on an idle
+    // machine and twice that when the full parallel run shares the CPU with a build. The budget is for a loaded machine.
+    testTimeout: 30_000,
     // expect.poll waits as long as findBy* (test/support/setup.ts) before it gives up.
-    expect: { poll: { timeout: 5_000 } },
+    expect: { poll: { timeout: 10_000 } },
     // The suite must not depend on a developer's .env file: every value the app reads from the environment is pinned here.
     env: {
       VITE_API_URL: '',

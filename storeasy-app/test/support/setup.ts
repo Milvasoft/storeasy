@@ -15,9 +15,10 @@ class NoopObserver {
   }
 }
 
-// A full parallel run loads lazy route chunks slowly: findBy* and waitFor wait up to 5 s instead of 1 s, so a test waits
-// for what the user sees instead of racing the machine's load.
-configure({ asyncUtilTimeout: 5_000 })
+// findBy* and waitFor wait up to 10 s instead of 1 s, so a test waits for what the user sees instead of racing the load of
+// a full parallel run. The route chunks are loaded before the app renders (renderApp, preloadLazyPages), so this budget
+// covers the page's own work, not module imports. A passing test does not wait longer; only a failing one does.
+configure({ asyncUtilTimeout: 10_000 })
 
 export const reducedMotion = { value: false }
 
