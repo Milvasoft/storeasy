@@ -32,7 +32,7 @@ public sealed class S3FileStorageTests : IAsyncLifetime
                                                 {"identities":[{"name":"tests","credentials":[{"accessKey":"{{_user}}","secretKey":"{{_password}}"}],"actions":["Admin","Read","Write","List","Tagging"]}]}
                                                 """;
 
-    private readonly IContainer _seaweedFs = new ContainerBuilder("chrislusf/seaweedfs:4.51")
+    private readonly IContainer _seaweedFs = new ContainerBuilder("chrislusf/seaweedfs:4.53")
                                                  .WithResourceMapping(System.Text.Encoding.UTF8.GetBytes(_s3Config), _configPath)
                                                  .WithCommand("server", "-s3", $"-s3.config={_configPath}", "-dir=/data")
                                                  .WithPortBinding(_port, true)
