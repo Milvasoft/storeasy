@@ -80,6 +80,25 @@ public sealed class FakeStoreGateway : IStoreGateway
         return Task.FromResult<IReadOnlyList<StoreBuildRecord>>([.. Builds.GetValueOrDefault(externalId) ?? []]);
     }
 
+    /// <summary>
+    /// Icon addresses by app external id; an app without an entry has no icon in the store.
+    /// </summary>
+    public ConcurrentDictionary<string, string> Icons { get; } = new();
+
+    /// <summary>
+    /// Icon reads that should fail, by app external id, with the exception to throw (the other reads still work).
+    /// </summary>
+    public ConcurrentDictionary<string, StoreCallException> IconFailures { get; } = new();
+
+    /// <inheritdoc/>
+    public Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
+    {
+        if (IconFailures.TryGetValue(externalId, out var failure))
+            throw failure;
+
+        return Task.FromResult(Icons.GetValueOrDefault(externalId));
+    }
+
     /// <inheritdoc/>
     public Task<StoreVerification> VerifyAsync(StoreKind store, string secretJson, string packageName, CancellationToken cancellationToken)
     {

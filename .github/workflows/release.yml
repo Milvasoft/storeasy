@@ -139,4 +139,4 @@ jobs:
           echo "::add-mask::$credential"
           npx --yes tfx-cli@0.24.2 extension publish --manifest-globs vss-extension.json \
             --override "{\"version\": \"${TAG#v}\"}" --publisher "$MARKETPLACE_PUBLISHER" \
-            --token "$credential" --no-prompt
+            --token "$credential" --no-prompt --no-wait-validation

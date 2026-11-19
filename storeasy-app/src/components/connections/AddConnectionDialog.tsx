@@ -93,7 +93,10 @@ export function AddConnectionDialog({
   const [fileName, setFileName] = useState<string | null>(null)
   const [ms, setMs] = useState<MsCredentialFields>(EMPTY_CREDENTIALS)
   const [expiry, setExpiry] = useState<DateOnly | null>(defaultExpiry)
+  // Only a rejected file's message is kept here; field errors are computed from the values once the form was submitted,
+  // so they clear as soon as a value becomes valid.
   const [errors, setErrors] = useState<Record<string, string | null>>({})
+  const [submitted, setSubmitted] = useState(false)
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
   const [result, setResult] = useState<StoreConnectionDto | null>(null)
   const errorRef = useRef<HTMLDivElement>(null)
@@ -109,6 +112,7 @@ export function AddConnectionDialog({
     setMs(EMPTY_CREDENTIALS)
     setExpiry(defaultExpiry())
     setErrors({})
+    setSubmitted(false)
     setServer(null)
     setResult(null)
   }
@@ -193,13 +197,16 @@ export function AddConnectionDialog({
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const next = validate()
-    setErrors(next)
+    setSubmitted(true)
+    setErrors({})
     setServer(null)
     if (Object.values(next).some(Boolean)) {
       return
     }
     save.mutate()
   }
+
+  const shown: Record<string, string | null> = submitted ? { ...validate(), ...(errors.secret ? { secret: errors.secret } : {}) } : errors
 
   const title =
     step === 'pick'
@@ -231,7 +238,14 @@ export function AddConnectionDialog({
           </>
         ) : step === 'form' ? (
           <>
-            <Button variant="ghost" className="mr-auto" onClick={() => setStep('pick')}>
+            <Button
+              variant="ghost"
+              className="mr-auto"
+              onClick={() => {
+                setSubmitted(false)
+                setStep('pick')
+              }}
+            >
               <ArrowLeft aria-hidden />
               {t.common.back}
             </Button>
@@ -279,15 +293,23 @@ export function AddConnectionDialog({
       {step === 'form' ? (
         <form id="add-connection" className="grid gap-4" onSubmit={submit} noValidate>
           {server ? <FormErrors ref={errorRef} title={server.title} messages={server.messages} /> : null}
-          <Field label={t.connections.name} error={errors.name} hint={t.connections.nameHint}>
-            <Input value={name} maxLength={TEXT_LIMITS.connectionName} onChange={(event) => setName(event.target.value)} />
+          <Field label={t.connections.name} error={shown.name} hint={t.connections.nameHint}>
+            <Input
+              value={name}
+              name="storeasy-connection-name"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              maxLength={TEXT_LIMITS.connectionName}
+              onChange={(event) => setName(event.target.value)}
+            />
           </Field>
           {store === StoreKind.Apple ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t.connections.issuerId} error={errors.issuerId} hint={t.connections.issuerHint}>
+              <Field label={t.connections.issuerId} error={shown.issuerId} hint={t.connections.issuerHint}>
                 <Input mono value={issuerId} spellCheck={false} autoComplete="off" onChange={(event) => setIssuerId(event.target.value)} />
               </Field>
-              <Field label={t.connections.keyId} error={errors.keyId} hint={t.connections.keyIdHint}>
+              <Field label={t.connections.keyId} error={shown.keyId} hint={t.connections.keyIdHint}>
                 <Input
                   mono
                   value={keyId}
@@ -301,7 +323,7 @@ export function AddConnectionDialog({
           ) : null}
           {store === StoreKind.Microsoft ? (
             <>
-              <MsCredentialForm fields={ms} onChange={setMs} expiry={expiry} onExpiry={setExpiry} errors={errors} />
+              <MsCredentialForm fields={ms} onChange={setMs} expiry={expiry} onExpiry={setExpiry} errors={shown} />
               <Callout tone="info">{tm.connection.roleNote}</Callout>
             </>
           ) : (
@@ -373,7 +395,7 @@ export function AddConnectionDialog({
                   onChange={(event) => setSecretText(event.target.value)}
                 />
               )}
-              {errors.secret ? <span className="err-t">{errors.secret}</span> : null}
+              {shown.secret ? <span className="err-t">{shown.secret}</span> : null}
             </div>
           )}
           {google && secretText && (google.info.clientEmail || google.info.projectId) ? (

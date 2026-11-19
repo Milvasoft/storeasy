@@ -21,6 +21,11 @@ public class App : FullAuditableEntity<int>
     public const int NameMaxLength = 200;
 
     /// <summary>
+    /// Column length of <see cref="IconUrl"/>.
+    /// </summary>
+    public const int IconUrlMaxLength = 1000;
+
+    /// <summary>
     /// Owning organization.
     /// </summary>
     public int OrganizationId { get; set; }
@@ -32,9 +37,9 @@ public class App : FullAuditableEntity<int>
     public string Name { get; set; }
 
     /// <summary>
-    /// Icon address, when known.
+    /// Icon address, when known. The app sync job fills it from the stores and never clears it.
     /// </summary>
-    [MaxLength(1000)]
+    [MaxLength(IconUrlMaxLength)]
     public string IconUrl { get; set; }
 
     /// <summary>
