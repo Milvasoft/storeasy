@@ -2,13 +2,20 @@
 # - GitHub release with generated notes;
 # - the moving major tag (for example `v0`) that `Milvasoft/storeasy/tools/upload-action@v0` users follow;
 # - the npm package `storeasy` (CLI and the local MCP bridge) with provenance, when the NPM_TOKEN secret exists;
-# - the Azure DevOps extension (StoreasyUpload@1), when the AZURE_DEVOPS_EXT_PAT secret exists.
-# Missing secrets skip that target with a notice instead of failing the release.
+# - the Azure DevOps extension (StoreasyUpload@1) under the `milvasoft` Marketplace publisher, through Marketplace
+#   trusted publishing (GitHub OIDC, no stored token; the publisher has a policy for this repository and release.yml).
+# A missing NPM_TOKEN skips npm with a notice instead of failing the release.
+# A manual run (workflow_dispatch) with an existing tag publishes npm and the extension again for that tag only.
 name: release
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish to npm and the Marketplace again (for example v0.1.2)
+        required: true
 
 permissions:
   contents: read
@@ -19,6 +26,9 @@ concurrency:
 
 env:
   NODE_VERSION: '22'
+  TAG: ${{ inputs.tag || github.ref_name }}
+  # Marketplace publisher id; passed to tfx as well, so a manual run for an older tag publishes under it too.
+  MARKETPLACE_PUBLISHER: milvasoft
 
 jobs:
   tools:
@@ -26,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -43,22 +55,22 @@ jobs:
   github:
     name: GitHub release and action tag
     needs: tools
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - name: Create the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
         run: |
           prerelease=""
           case "$TAG" in v0.*|*-*) prerelease="--prerelease" ;; esac
           gh release create "$TAG" --verify-tag --generate-notes --title "storeasy $TAG" $prerelease
       - name: Move the major tag
-        env:
-          TAG: ${{ github.ref_name }}
         run: |
           major="${TAG%%.*}"
           git tag -f "$major" "$GITHUB_SHA"
@@ -73,6 +85,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -85,7 +99,7 @@ jobs:
         working-directory: tools
       - name: Set the package version from the tag
         working-directory: tools/storeasy-cli
-        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
       - name: Publish
         working-directory: tools/storeasy-cli
         env:
@@ -101,19 +115,33 @@ jobs:
     name: Azure DevOps extension
     needs: tools
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Publish
+      - name: Publish (Marketplace trusted publishing)
         working-directory: tools/azure-devops-task
-        env:
-          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_EXT_PAT }}
-          TAG: ${{ github.ref_name }}
         run: |
-          if [ -z "$AZURE_DEVOPS_EXT_PAT" ]; then
-            echo "::notice title=Azure DevOps extension skipped::Add the AZURE_DEVOPS_EXT_PAT repository secret (Marketplace publish scope) and set the publisher id in vss-extension.json to publish."
-            exit 0
+          # A GitHub OIDC token for the Marketplace audience, exchanged for a 15 minute publish credential
+          # (the exchange `vsce publish --oidc` does; tfx-cli has no OIDC option yet). Nothing is stored.
+          oidc=$(curl -fsS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=marketplace.visualstudio.com" | jq -r .value)
+          echo "::add-mask::$oidc"
+          credential=$(curl -fsS -X POST \
+            -H "Authorization: FederatedToken $oidc" -H 'Content-Type: application/json' -H 'Accept: application/json' \
+            -d "{\"publisherName\":\"$MARKETPLACE_PUBLISHER\"}" \
+            'https://marketplace.visualstudio.com/_apis/gallery/token?api-version=7.2-preview.1' | jq -r .credential)
+          if [ -z "$credential" ] || [ "$credential" = "null" ]; then
+            echo "::error title=Marketplace trusted publishing::The OIDC token exchange returned no credential."
+            exit 1
           fi
-          npx --yes tfx-cli@0.24.2 extension publish --manifest-globs vss-extension.json --override "{\"version\": \"${TAG#v}\"}" --token "$AZURE_DEVOPS_EXT_PAT"
+          echo "::add-mask::$credential"
+          npx --yes tfx-cli@0.24.2 extension publish --manifest-globs vss-extension.json \
+            --override "{\"version\": \"${TAG#v}\"}" --publisher "$MARKETPLACE_PUBLISHER" \
+            --token "$credential" --no-prompt
