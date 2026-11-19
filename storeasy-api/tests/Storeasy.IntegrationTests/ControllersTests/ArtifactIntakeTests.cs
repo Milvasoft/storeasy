@@ -109,6 +109,25 @@ public class ArtifactIntakeTests(StoreasyApiFactory factory) : IntakeTestBase(fa
     }
 
     [Fact]
+    public async Task SameFile_AfterARejection_ShouldBeProcessedAgain_NotADuplicate()
+    {
+        var (org, google, package) = await AndroidAppAsync(track: null);
+        var client = TokenClient(await PatAsync(org.Owner, org.OrganizationId));
+        var aab = PackageFactory.Aab(package + ".dev", 70);
+        var sha256 = PackageFactory.Sha256(aab);
+
+        var (firstId, _, _) = await UploadAsync(client, google.AppId, "dev.aab", aab);
+        var first = await WaitForSessionAsync(firstId);
+        var (_, again) = await client.PostAsync<ArtifactUploadDto>($"apps/{google.AppId}/artifacts", new { fileName = "dev.aab", size = aab.Length, sha256 });
+
+        first.Status.Should().Be(ArtifactSessionStatus.Rejected);
+        again.IsSuccess.Should().BeTrue();
+        again.Data.Duplicate.Should().BeFalse("a rejected or failed session must not block the same file: the rules or the app may have changed since");
+        again.Data.SessionId.Should().NotBe(firstId);
+        again.Data.Parts.Should().NotBeEmpty("the file is uploaded and read again");
+    }
+
+    [Fact]
     public async Task WrongPackage_LowVersionCode_AndProductionTarget_ShouldBeRefused()
     {
         var (org, google, package) = await AndroidAppAsync();
