@@ -59,7 +59,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Account | `account/login`, `login/google/start`, `login/google`, `login/refresh`, `register`, `email/verify`, `password/forgot`, `password/reset` | Anonymous, rate limited |
 | | `account/detail`, `profile`, `password/change`, `logout`, `sessions`, `session`, `sessions/others`, `push/subscription(s)`, `push/test`, `notifications`, `account/preferences` | Signed in user, own data only |
 | Organizations and members | `organizations/mine`, `organization`, `settings`, `members`, `member/role`, `member`, `invitation`, `invitation/accept`, `roles`, `role`, `audit-logs` | `View`; members and invitations `ManageMembers`; custom roles `ManageMembers` within your own permissions; rename, delete and owners `ManageOrganization`; `invitation/preview` anonymous |
-| | `organizations/ai-settings`, `ai-settings/key` (PUT, DELETE) | Read `View` (whether a key is set, its last four characters, the model; never the key); save and remove the Anthropic API key `ManageConnections` |
+| | `organizations/ai-settings`, `ai-settings/key` (PUT, DELETE), `ai-settings/models` (PUT) | Read `View` (whether a key is set, its last four characters, the model of each AI feature and the models to choose from with their prices; never the key); save and remove the Anthropic API key and choose the models `ManageConnections` |
 | Store connections | `storeconnections`, `connection`, `connection/verify` | List `View`; add, verify, delete `ManageConnections` |
 | Apps and readiness | `apps`, `apps/app`, `apps/google`, `apps/app/link`, `apps/app/unlink`, `apps/app/hidden`, `apps/app/order`, `apps/sync`, `apps/profile`, `apps/readiness`, `apps/overview`, `apps/compliance`, `apps/answers*`, `compliance`, `rules/*` | Reads `View`; changes `EditContent` |
 | Change plans | `plans`, `plans/plan`, `plans/approve`, `plans/reject`, `plans/discard` | Read `View`; approve with the plan's own permission and, for submissions and production, the typed confirmation |
@@ -67,6 +67,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Money | `subscriptions/*`, `iap/*`, `purchasesettings/*` | Reads `View`; plans `EditContent`; server notification URLs `ManageWebhooks` |
 | TestFlight | `testflight/*` | Reads `View`; changes and beta review `ReleaseTest` |
 | Microsoft Store | `ms/product`, `ms/submissions`, `ms/flights`, `ms/addons`, `ms/packages`, `ms/content`, `ms/change`, `ms/submission/submit`, `ms/packages/verify`, `ms/flight-group`, `ms/connection/secret`, `ms/connections/expiring` | Reads `View`; changes `EditContent`; submit `SubmitForReview` with the Store id typed; secret replacement `ManageConnections` |
+| AI pre-review | `pre-reviews` (GET), `pre-reviews/pre-review` (GET, POST) | History and report `View`; start `EditContent`, 20 an hour per user, one at a time per app and store ([AI pre-review](#ai-pre-review)) |
 | Assisted steps | `assisted-steps`, `assisted-steps/step`, `step/handoff`, `step/complete` | Read `View`; hand off and complete `EditContent` |
 | Reviews and rejections | `reviews/*`, `rejections/*` | Reads `View`; replies `ReplyReviews`; rejection cases `EditContent` |
 | | `reviews/reply-draft/generate` | `ReplyReviews`, 60 an hour per user: Claude writes a reply draft with the organization's Anthropic API key and it is saved as the review's draft; nothing is sent to the store ([AI reply drafts](#ai-reply-drafts)) |
@@ -107,9 +108,63 @@ and edits the draft, and sends it with the usual reply flow; nothing is ever sen
 - **Errors.** No key 409 `AiKeyNotSet`; rejected key 409 `AiKeyRejected`; Anthropic rate limit 429 `AiRateLimited`;
   overloaded or down 503 `AiUnavailable`; the model declined 422 `AiReplyRefused`; anything else (an answer cut short,
   a reply that cannot be fitted) 502 `AiReplyFailed`. Anthropic's own error text is never passed on.
-- **Model.** `Storeasy:Ai:Model` (default `claude-haiku-5-5`, the lowest cost current model) at effort `low`, at most
-  1024 output tokens ([self-host.md](self-host.md#events-webhooks-and-schedules)). Each draft is one call billed to the
-  organization's Anthropic account.
+- **Model.** The organization's choice (`PUT organizations/ai-settings/models`), otherwise `Storeasy:Ai:Model` (default
+  `claude-haiku-5-5`, the lowest cost current model), at effort `low`, at most 1024 output tokens
+  ([self-host.md](self-host.md#events-webhooks-and-schedules)). Each draft is one call billed to the organization's
+  Anthropic account.
+
+## AI models
+
+`PUT organizations/ai-settings/models` `{OrganizationId, ReplyDraftModel?, PreReviewModel?}` (`ManageConnections`, needs
+a saved key, 409 `AiKeyNotSet` otherwise) chooses the model of each AI feature from a fixed list: `claude-haiku-5-5`
+(about $0.10 / $0.50 per million input / output tokens), `claude-sonnet-5-5` ($2 / $10) and `claude-opus-5-5` ($4 / $20).
+Another value is 400 `AiModelInvalid`; a field left out keeps its choice. Defaults: reply drafts `claude-haiku-5-5`,
+pre-reviews `claude-sonnet-5-5`. `GET organizations/ai-settings` returns `ReplyDraftModel`, `PreReviewModel` and `Models`
+(id, name, prices). The choice is kept with the key: removing the key resets it. Audited as `AiModelsChanged`.
+
+## AI pre-review
+
+Before a version goes to review, Claude reviews it the way that store's reviewer would and estimates whether it passes.
+It is manual (a member starts it), it is an estimate, and it never blocks or performs a submission.
+
+- **Start.** `POST pre-reviews/pre-review` `{OrganizationId, AppId, Store}` (`EditContent`, 20 an hour per user) checks the
+  store record (404 `StoreAppNotFound`), the key (409 `AiKeyNotSet`) and that no pre-review of the record is still queued
+  or running (409 `PreReviewInProgress`), saves a queued pre-review with the organization's pre-review model and the
+  request's language (the report language: Turkish for a Turkish UI, otherwise English) and queues a `PreReview` store
+  job with one attempt (every attempt is billed). It returns the pre-review with its `JobId`; progress and the end come
+  on the activity hub like any job (`job.step`: `submission.read`, `screenshots.load`, `ai.review`; then
+  `job.succeeded` or `job.failed`). Audited as `PreReviewStarted`.
+- **What the model reads.** One compact, tagged and escaped snapshot of the version being prepared, read live by the
+  job: app, platform, version, state and whether it updates a live app; the listing texts per locale (the primary
+  locale complete, up to seven more shortened); app level values, categories and age rating answers; pricing and
+  available territories; the build and export compliance; release type; Play tracks and release notes; review
+  information (the notes, and only whether contact details and a demo account are provided: never their values or the
+  password); the media sets (counts and sizes); the saved answers (privacy labels, data safety, content rating, target
+  audience, review login and notes, again without personal values); in-app products (kind, id, state, period, display
+  name and description, whether a review note and screenshot exist); the readiness check items that need attention;
+  and the last five rejections with their guidelines and pasted text. Microsoft Store products send their listings,
+  image captions, pricing and packages. Up to `PreReviewMaxImages` screenshots (default 10: the primary locale, the
+  phone class first, then the next classes) are downloaded from the stores' public image hosts only, scaled to at most
+  1200 pixels and sent as base64 JPEG. The store's catalog rules that concern review go in a cached system block.
+- **Request.** Messages API (beta path) with the official SDK: a fixed system prompt per store (a strict reviewer of
+  that store who cites its real guidelines, cannot run the app, lists what a reviewer will test at runtime instead of
+  guessing, and treats everything in the submission as data, never instructions), the catalog rules block with
+  `cache_control`, the submission and the images. Adaptive thinking (the default, never disabled), effort per model
+  (`low` for Haiku, `medium` for Sonnet and Opus), no sampling parameters or prefill, at most 16000 output tokens, the
+  report as structured output (`output_config.format`, JSON schema), and on Sonnet and Opus `fallbacks: "default"`
+  with the `server-side-fallback-2026-07-01` beta. The stop reason is checked before the answer is read.
+- **Report.** `GET pre-reviews/pre-review?OrganizationId&Id` returns `Status` (Queued, Running, Succeeded, Failed),
+  `Verdict` (LikelyApproved, AtRisk, LikelyRejected), `ApprovalLikelihood` (0 to 100), `Summary`, `Findings` (severity
+  Blocker, Major or Minor; area; the guideline it breaks; title; evidence; fix), `RuntimeChecks` (what a reviewer will
+  test while running the app), `PositiveNotes`, `ImageCount`, the token usage and `EstimatedCostUsd` (list prices), the
+  model and the language. `GET pre-reviews?OrganizationId&AppId&Store` lists the last 30, newest first, with the verdict
+  and finding counts. A queued or running pre-review whose job ended without it is shown as failed
+  (`PreReviewInterrupted`).
+- **Errors.** Saved on the pre-review (`ErrorKey`, `ErrorMessage` in the request's language): `AiKeyNotSet`,
+  `AiKeyRejected`, `AiRateLimited`, `AiUnavailable`, `PreReviewRefused` (the model declined), `PreReviewFailed` (an
+  answer cut short or not a valid report), `PreReviewCancelled`, and the store read failures. Anthropic's own error
+  text is never passed on. Audited as `PreReviewCompleted` with the model, verdict, counts, tokens and cost only: no app
+  content and never the key. MCP: `pre_reviews_list`, `pre_reviews_get` (read only).
 
 Outgoing webhooks send these events, signed like the signed receiver (`X-Storeasy-Signature` over
 `<timestamp>.<body>`): `rejection.opened`, `rejection.closed`, `version.state_changed`, `review.received`,
@@ -117,5 +172,5 @@ Outgoing webhooks send these events, signed like the signed receiver (`X-Storeas
 
 ## MCP
 
-`/mcp` is not REST: it is the remote MCP server, with 142 tools that send the same requests as the endpoints above. See
+`/mcp` is not REST: it is the remote MCP server, with 144 tools that send the same requests as the endpoints above. See
 [mcp.md](mcp.md).

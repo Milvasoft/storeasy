@@ -1900,6 +1900,14 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.SetAiModelsAsync(Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Chooses the model of each AI feature (reply drafts, pre-reviews) from the fixed list; needs a saved key.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetRolesAsync(Storeasy.Application.Features.Organizations.GetOrganizationRoleList.GetOrganizationRoleListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending
@@ -1963,6 +1971,42 @@
             <summary>
             Migrates permissions to database.
             </summary>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Api.Controllers.PreReviewsController">
+            <summary>
+            AI pre-reviews: Claude, with the organization's Anthropic API key, reviews the version being prepared the way the store's
+            reviewer would and estimates whether it passes. Manual only; a pre-review never blocks or performs a submission.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreReviewsController.#ctor(MediatR.IMediator)">
+            <summary>
+            AI pre-reviews: Claude, with the organization's Anthropic API key, reviews the version being prepared the way the store's
+            reviewer would and estimates whether it passes. Manual only; a pre-review never blocks or performs a submission.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreReviewsController.GetPreReviewsAsync(Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The pre-review history of one app in one store, newest first.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreReviewsController.GetPreReviewAsync(Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            One pre-review with its report.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.PreReviewsController.StartPreReviewAsync(Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts a pre-review as a background job and returns it queued; the report arrives with the job.
+            </summary>
+            <param name="request"></param>
             <param name="cancellation"></param>
             <returns></returns>
         </member>
@@ -3852,6 +3896,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119140823_AddPreReviews">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119140823_AddPreReviews.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119140823_AddPreReviews.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119140823_AddPreReviews.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

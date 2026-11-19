@@ -16,7 +16,8 @@ import type {
   StoreJobDetailDto,
   StoreJobListDto,
 } from '@/lib/api/types'
-import type { AiSettingsDto } from '@/lib/api/types'
+import type { AiSettingsDto, PreReviewDto } from '@/lib/api/types'
+import { aiModels, preReview } from './preReview'
 import {
   accountDetail,
   accountSession,
@@ -63,6 +64,10 @@ export interface TestState {
   aiSettings: AiSettingsDto
   /** The text reviews/reply-draft/generate answers with. */
   aiDraft: string
+  /** pre-reviews: the saved reports, newest first (the history rows are made from them). None by default. */
+  preReviews: PreReviewDto[]
+  /** The report POST pre-reviews/pre-review starts: it answers Queued, then reads as this one. */
+  nextPreReview: PreReviewDto
   /** Every request the handlers saw, so a test can assert what the app sent. */
   requests: Array<{ method: string; path: string; body: unknown; query: Record<string, string>; headers: Record<string, string> }>
 }
@@ -92,8 +97,13 @@ function initialState(): TestState {
       ApiKeySetDate: '2026-11-18T09:30:00Z',
       ApiKeySetByUserName: 'Ayşe Yılmaz',
       Model: 'claude-haiku-5-5',
+      ReplyDraftModel: 'claude-haiku-5-5',
+      PreReviewModel: 'claude-sonnet-5-5',
+      Models: aiModels(),
     },
     aiDraft: 'Merhaba, geri bildiriminiz için teşekkürler. Ekibimiz hatırlatıcı sorununa bakacak.',
+    preReviews: [],
+    nextPreReview: preReview({ Id: 9100, Verdict: 1, ApprovalLikelihood: 88, Findings: [], Summary: 'Gönderime hazır görünüyor.' }),
     requests: [],
   }
 }

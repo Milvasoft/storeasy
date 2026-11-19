@@ -14,6 +14,9 @@ import type {
   AssetUploadDto,
   FeatureFlagStateDto,
   GeneratedReplyDraftDto,
+  PreReviewDto,
+  PreReviewListDto,
+  UpdateAiModelsInput,
   GoogleSignInStartDto,
   InvitationCreatedDto,
   InvitationPreviewDto,
@@ -243,6 +246,26 @@ export const aiApi = {
   // 60 an hour.
   generateReplyDraft: (organizationId: number, reviewId: number) =>
     apiPost<GeneratedReplyDraftDto>('/Reviews/reply-draft/generate', { OrganizationId: organizationId, ReviewId: reviewId }),
+
+  // ManageConnections. The model of each AI feature; 409 AiKeyNotSet without a key, 400 for a model not offered.
+  setModels: (organizationId: number, input: UpdateAiModelsInput) =>
+    apiPut<AiSettingsDto>('/Organizations/ai-settings/models', { OrganizationId: organizationId, ...input }),
+}
+
+// ---- AI pre-review -----------------------------------------------------------
+export const preReviewApi = {
+  // View. Newest first, at most 30.
+  list: (organizationId: number, appId: number, store: StoreKind) =>
+    apiGet<PreReviewListDto[]>('/pre-reviews', { OrganizationId: organizationId, AppId: appId, Store: store }),
+
+  // View. 404 PreReviewNotFound.
+  detail: (organizationId: number, id: number) =>
+    apiGet<PreReviewDto>('/pre-reviews/pre-review', { OrganizationId: organizationId, Id: id }),
+
+  // EditContent. Queues the review as a job and returns it Queued; 409 AiKeyNotSet or PreReviewInProgress, 429 past 20
+  // an hour. It never submits anything.
+  start: (organizationId: number, appId: number, store: StoreKind) =>
+    apiPost<PreReviewDto>('/pre-reviews/pre-review', { OrganizationId: organizationId, AppId: appId, Store: store }),
 }
 
 // ---- Store connections -----------------------------------------------------

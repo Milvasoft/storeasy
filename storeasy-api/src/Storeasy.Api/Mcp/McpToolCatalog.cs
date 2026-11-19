@@ -79,6 +79,8 @@ using Storeasy.Application.Features.Readiness.GetAppCompliance;
 using Storeasy.Application.Features.Readiness.GetAppsOverview;
 using Storeasy.Application.Features.Readiness.GetOrganizationCompliance;
 using Storeasy.Application.Features.Readiness.GetReadiness;
+using Storeasy.Application.Features.PreReviews.GetPreReviewDetail;
+using Storeasy.Application.Features.PreReviews.GetPreReviewList;
 using Storeasy.Application.Features.Rejections.CloseRejectionCase;
 using Storeasy.Application.Features.Rejections.GetRejectionCaseDetail;
 using Storeasy.Application.Features.Rejections.GetRejectionCaseList;
@@ -181,6 +183,8 @@ public static class McpToolCatalog
         Read<GetReadinessQuery>("readiness_check", "What blocks a submission of one store record, from one live read of the store and the rules catalog."),
         Read<GetAppComplianceQuery>("compliance_app", "Rules catalog deadlines and their state for one app."),
         Read<GetOrganizationComplianceQuery>("compliance_list", "Rules catalog deadlines across every app of the organization."),
+        Read<GetPreReviewListQuery>("pre_reviews_list", "AI pre-review history of one app in one store, newest first: verdict, approval likelihood (an AI estimate), finding counts. Start one in the web app."),
+        Read<GetPreReviewDetailQuery>("pre_reviews_get", "Reads one AI pre-review: verdict, approval likelihood, findings with the store guideline and fix, what a reviewer will test at runtime."),
 
         // Listings and media
         Read<GetListingQuery>("listings_get", "Reads the store listing texts of a store record, per locale."),

@@ -34,6 +34,8 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.aiKeySet
     case AuditAction.AiKeyRemoved:
       return t.enums.auditAction.aiKeyRemoved
+    case AuditAction.AiModelsChanged:
+      return t.enums.auditAction.aiModelsChanged
     case AuditAction.JobCancelled:
       return t.enums.auditAction.jobCancelled
     case AuditAction.AppAdded:
@@ -48,6 +50,10 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.appUnhidden
     case AuditAction.AppsReordered:
       return t.enums.auditAction.appsReordered
+    case AuditAction.PreReviewStarted:
+      return t.enums.auditAction.preReviewStarted
+    case AuditAction.PreReviewCompleted:
+      return t.enums.auditAction.preReviewCompleted
     default:
       return String(action)
   }

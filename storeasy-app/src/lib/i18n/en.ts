@@ -1001,6 +1001,7 @@ export const en = {
       connectionVerified: 'Store connection verified',
       aiKeySet: 'AI key set',
       aiKeyRemoved: 'AI key removed',
+      aiModelsChanged: 'AI models changed',
       jobCancelled: 'Job cancelled',
       appAdded: 'App added',
       storeAppLinked: 'Store record paired',
@@ -1008,6 +1009,8 @@ export const en = {
       appHidden: 'App hidden',
       appUnhidden: 'App shown',
       appsReordered: 'Apps reordered',
+      preReviewStarted: 'AI pre-review started',
+      preReviewCompleted: 'AI pre-review finished',
     },
   },
 }

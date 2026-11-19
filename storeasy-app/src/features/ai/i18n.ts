@@ -29,6 +29,18 @@ export const aiEn = {
     readOnly: 'Only members who manage store connections can change the key.',
     cost: 'Each draft is one short call billed to your Anthropic account.',
   },
+  models: {
+    title: 'Models',
+    intro:
+      'Choose the Claude model of each feature. Prices are approximate, in US dollars per million tokens, billed to your Anthropic account.',
+    replyDrafts: 'Review reply drafts',
+    preReview: 'Pre-review',
+    price: '${input} / ${output} per million tokens (input / output)',
+    save: 'Save models',
+    saved: 'Models saved.',
+    needsKey: 'Save a key first to choose the models.',
+    readOnly: 'Reply drafts: {replyDrafts}. Pre-review: {preReview}.',
+  },
   reply: {
     generate: 'Write with AI',
     generating: 'Writing...',
@@ -69,6 +81,17 @@ export const aiTr: AiDictionary = {
     removed: 'Anahtar kaldırıldı.',
     readOnly: 'Anahtarı yalnızca mağaza bağlantılarını yöneten üyeler değiştirebilir.',
     cost: 'Her taslak, Anthropic hesabına faturalanan kısa bir çağrıdır.',
+  },
+  models: {
+    title: 'Modeller',
+    intro: 'Her özelliğin Claude modelini seç. Fiyatlar yaklaşıktır, milyon token başına ABD doları olarak Anthropic hesabına faturalanır.',
+    replyDrafts: 'Yorum yanıtı taslakları',
+    preReview: 'Ön inceleme',
+    price: 'Milyon token başına ${input} / ${output} (girdi / çıktı)',
+    save: 'Modelleri kaydet',
+    saved: 'Modeller kaydedildi.',
+    needsKey: 'Modelleri seçmek için önce bir anahtar kaydet.',
+    readOnly: 'Yanıt taslakları: {replyDrafts}. Ön inceleme: {preReview}.',
   },
   reply: {
     generate: 'Yapay zeka ile yaz',

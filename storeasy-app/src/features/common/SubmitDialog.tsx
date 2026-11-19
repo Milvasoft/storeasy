@@ -3,7 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Modal } from '@/components/ui/Modal'
 import { Button, Field, Input } from '@/components/ui/primitives'
 import { interpolate } from '@/lib/i18n/interpolate'
+import type { StoreKind } from '@/lib/api/types'
 import { showToast } from '@/lib/toast/toast'
+import { PreReviewEntry } from '@/features/pre-review/PreReviewEntry'
 import { releasesApi } from './api'
 import { useP2 } from './i18n/useP2'
 import { contentKeys } from './keys'
@@ -30,6 +32,8 @@ export function SubmitDialog({
   appName,
   versionId,
   versionString,
+  appId,
+  store,
 }: {
   open: boolean
   onClose: () => void
@@ -38,6 +42,9 @@ export function SubmitDialog({
   appName: string
   versionId: string | null
   versionString: string | null
+  // With both, the dialog links to the AI pre-review of this app and store (advice only, it never blocks).
+  appId?: number
+  store?: StoreKind
 }) {
   const t = useP2()
   const queryClient = useQueryClient()
@@ -73,6 +80,11 @@ export function SubmitDialog({
         </>
       }
     >
+      {appId && store ? (
+        <div className="mb-3">
+          <PreReviewEntry organizationId={organizationId} appId={appId} store={store} />
+        </div>
+      ) : null}
       {!versionId ? <p className="text-[13px] text-fg2">{t.submit.noVersion}</p> : null}
       <dl className="kv mb-3">
         <dt>{t.submit.version}</dt>

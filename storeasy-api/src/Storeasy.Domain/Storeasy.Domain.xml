@@ -330,6 +330,169 @@
             Navigation property of the store record.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Apps.PreReview">
+            <summary>
+            An AI pre-review of one store record: Claude reads a compact snapshot of the version being prepared (listing, screenshots,
+            declarations, review information, rules, past rejections) and judges it the way that store's reviewer would. It is an
+            estimate saved as history; it never blocks or performs a submission. No app content is kept here beyond the model's
+            report: the snapshot itself is only fingerprinted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.ModelMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.PreReview.Model"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.LanguageMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.PreReview.Language"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.VersionMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.PreReview.VersionString"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.HashLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.PreReview.SnapshotHash"/> (lower case hex SHA-256).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.ErrorKeyMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Apps.PreReview.ErrorKey"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Apps.PreReview.SummaryMaxLength">
+            <summary>
+            Longest summary kept.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.StoreAppId">
+            <summary>
+            Store record reviewed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Store">
+            <summary>
+            Store whose reviewer is imitated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.VersionString">
+            <summary>
+            Version reviewed, when the store tells it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.SnapshotHash">
+            <summary>
+            Fingerprint of the snapshot sent to the model (texts and image checksums); equal hashes mean the same submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.JobId">
+            <summary>
+            Job that runs it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Model">
+            <summary>
+            Model asked (the organization's choice for pre-reviews).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Language">
+            <summary>
+            Language of the report (culture name, e.g. tr-TR).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Verdict">
+            <summary>
+            Expected decision; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.ApprovalLikelihood">
+            <summary>
+            Estimated chance of approval, 0 to 100; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Summary">
+            <summary>
+            Short summary of the report.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.Findings">
+            <summary>
+            Problems found.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.RuntimeChecks">
+            <summary>
+            What a reviewer will test while running the app, to check before submitting.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.PositiveNotes">
+            <summary>
+            What is already good.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.ImageCount">
+            <summary>
+            Screenshots sent as images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.InputTokens">
+            <summary>
+            Input tokens billed (uncached).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.OutputTokens">
+            <summary>
+            Output tokens billed (thinking included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.CacheReadInputTokens">
+            <summary>
+            Input tokens read from the prompt cache.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.CacheCreationInputTokens">
+            <summary>
+            Input tokens written to the prompt cache.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.EstimatedCostUsd">
+            <summary>
+            Estimated cost in US dollars from the model's list prices.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.ErrorKey">
+            <summary>
+            Message key of the failure, when it failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.CompletedDate">
+            <summary>
+            UTC instant it finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Apps.PreReview.App">
+            <summary>
+            Navigation property of the app.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Apps.SavedAnswer">
             <summary>
             One saved answer document of an app (docs/urun-plani.md 11.1): the answers to a store form that has no API (App Privacy,
@@ -1800,6 +1963,9 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.AiKeyRemoved">
             <summary>The organization's Anthropic API key was removed.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AiModelsChanged">
+            <summary>The models of the AI features (reply drafts, pre-review) were changed.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.JobCancelled">
             <summary>Store job cancelled.</summary>
         </member>
@@ -1940,6 +2106,12 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.ReviewReplyDraftGenerated">
             <summary>A review reply draft was written with AI (saved as a draft, never sent).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PreReviewStarted">
+            <summary>An AI pre-review of a store record was started (nothing is submitted).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.PreReviewCompleted">
+            <summary>An AI pre-review finished with a report.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.BetaGroupChanged">
             <summary>TestFlight group created or changed.</summary>
@@ -3440,6 +3612,80 @@
             Android package.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.PreReviewArea">
+            <summary>
+            Area of a pre-review finding. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Metadata">
+            <summary>Names, descriptions, keywords, URLs, categories.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Screenshots">
+            <summary>Screenshots and previews.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Privacy">
+            <summary>Privacy labels, data safety, privacy policy, tracking.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.AgeRating">
+            <summary>Age rating and target audience.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Payments">
+            <summary>In-app purchases, subscriptions, pricing.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Functionality">
+            <summary>Whether the app does what the listing says (as far as the listing shows).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Legal">
+            <summary>Legal: intellectual property, regional law, export compliance.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewArea.Other">
+            <summary>Anything else.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PreReviewSeverity">
+            <summary>
+            Severity of a pre-review finding. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewSeverity.Blocker">
+            <summary>A reviewer would reject the submission for it.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewSeverity.Major">
+            <summary>A likely reason for a rejection or a request for more information.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewSeverity.Minor">
+            <summary>Worth fixing; unlikely to cause a rejection alone.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PreReviewStatus">
+            <summary>
+            State of an AI pre-review. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewStatus.Queued">
+            <summary>Waiting for the job runner.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewStatus.Running">
+            <summary>The job is collecting the submission or waiting for the model.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewStatus.Succeeded">
+            <summary>The report is ready.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewStatus.Failed">
+            <summary>No report: the store, the key or the model failed.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PreReviewVerdict">
+            <summary>
+            What the AI reviewer expects the store review to decide. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewVerdict.LikelyApproved">
+            <summary>Likely to pass review as it is.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewVerdict.AtRisk">
+            <summary>Could pass, but has problems a reviewer may reject.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PreReviewVerdict.LikelyRejected">
+            <summary>Likely to be rejected as it is.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.PriceSource">
             <summary>
             Where a price shown by storeasy comes from. storeasy never makes a price up: it is the store's own equalization, a
@@ -3886,6 +4132,12 @@
             <summary>
             Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
             studio's own band.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.PreReview">
+            <summary>
+            Reviews one store record with AI the way that store's reviewer would (pre-review). Reads the store and storeasy's
+            records, asks Claude with the organization's key and saves the report; nothing is written to a store.
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent" -->
@@ -6984,6 +7236,42 @@
             Locale the remark is about, if one.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.PreReviewFinding">
+            <summary>
+            One problem an AI pre-review found in a submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Severity">
+            <summary>
+            How serious it is.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Area">
+            <summary>
+            Area of the submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Guideline">
+            <summary>
+            The store guideline it breaks (e.g. <c>App Store Review Guideline 2.3.7</c>, a Google Play policy name, a Microsoft
+            Store policy number).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Title">
+            <summary>
+            Short name of the problem.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Evidence">
+            <summary>
+            Where it was seen (field, locale, screenshot).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.PreReviewFinding.Fix">
+            <summary>
+            What to change.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.ProductAvailability">
             <summary>
             Territories where a store product is sold.
@@ -8805,9 +9093,9 @@
         </member>
         <member name="T:Storeasy.Domain.Organizations.OrganizationAiSetting">
             <summary>
-            AI settings of an organization: the Anthropic API key used to write review reply drafts. The key is envelope
-            encrypted at rest and never returned; only its last four characters are kept in clear for display. An organization
-            without a row has no key.
+            AI settings of an organization: the Anthropic API key used by the AI features (review reply drafts, pre-reviews) and
+            the model each feature uses. The key is envelope encrypted at rest and never returned; only its last four characters
+            are kept in clear for display. An organization without a row has no key (and the default models).
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Organizations.OrganizationAiSetting.LastFourLength">
@@ -8818,6 +9106,11 @@
         <member name="F:Storeasy.Domain.Organizations.OrganizationAiSetting.UserNameMaxLength">
             <summary>
             Column length of <see cref="P:Storeasy.Domain.Organizations.OrganizationAiSetting.ApiKeySetByUserName"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationAiSetting.ModelMaxLength">
+            <summary>
+            Column length of the model ids.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Organizations.OrganizationAiSetting.OrganizationId">
@@ -8853,6 +9146,16 @@
         <member name="P:Storeasy.Domain.Organizations.OrganizationAiSetting.ApiKeySetByUserName">
             <summary>
             Who saved the current key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationAiSetting.ReplyDraftModel">
+            <summary>
+            Model of the review reply drafts; null for the configured default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.OrganizationAiSetting.PreReviewModel">
+            <summary>
+            Model of the AI pre-reviews; null for the configured default.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Organizations.OrganizationAiSetting.Organization">

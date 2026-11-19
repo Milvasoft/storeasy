@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Storeasy.Application.Utils.Ai;
+using System.Globalization;
 using System.Text;
 
 namespace Storeasy.Application.Utils.Helpers;
@@ -80,17 +81,9 @@ public static class ReplyDraftPrompt
     /// <summary>
     /// <paramref name="text"/> with the characters that could open or close a tag escaped.
     /// </summary>
-    public static string Escape(string text) => text?.Replace("&", "&amp;", StringComparison.Ordinal)
-                                                     .Replace("<", "&lt;", StringComparison.Ordinal)
-                                                     .Replace(">", "&gt;", StringComparison.Ordinal);
+    public static string Escape(string text) => PromptTags.Escape(text);
 
-    private static void Tag(StringBuilder builder, string name, string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-
-        builder.Append('<').Append(name).Append('>').Append(Escape(value.Trim())).Append("</").Append(name).Append('>').Append(_lineFeed);
-    }
+    private static void Tag(StringBuilder builder, string name, string value) => PromptTags.Tag(builder, name, value);
 
     private static string StoreName(StoreKind store) => store switch
     {

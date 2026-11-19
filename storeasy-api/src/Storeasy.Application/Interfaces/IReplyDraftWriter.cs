@@ -34,6 +34,7 @@ public interface IReplyDraftWriter
 /// <param name="AppVersion">App version reviewed, if known.</param>
 /// <param name="PreviousReply">The developer's published reply, if any (the draft replaces it).</param>
 /// <param name="MaxLength">Longest reply the store accepts, in user perceived characters.</param>
+/// <param name="Model">Model to write with; null for the configured default.</param>
 public sealed record ReplyDraftRequest(string ApiKey,
                                        StoreKind Store,
                                        string AppName,
@@ -44,7 +45,8 @@ public sealed record ReplyDraftRequest(string ApiKey,
                                        string Territory,
                                        string AppVersion,
                                        string PreviousReply,
-                                       int MaxLength);
+                                       int MaxLength,
+                                       string Model = null);
 
 /// <summary>
 /// Result of <see cref="IReplyDraftWriter.WriteAsync"/>.

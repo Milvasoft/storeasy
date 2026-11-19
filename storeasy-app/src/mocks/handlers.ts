@@ -101,6 +101,8 @@ const db = {
   ] as StoreConnectionDto[],
   audit: [] as StoreAuditLogDto[],
   aiKey: null as { lastFour: string; setDate: string } | null,
+  aiModels: { replyDrafts: 'claude-haiku-5-5', preReview: 'claude-sonnet-5-5' },
+  preReviews: [] as MockPreReview[],
   nextId: 100,
 }
 
@@ -387,6 +389,75 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.AiKeySet, 'Anthropic API key added.', null)
     return envelope({ ...aiSettings(), apiKeyVerified: true })
   }),
+  http.put(`${BASE}/Organizations/ai-settings/models`, async ({ request }) => {
+    const input = await body<{ ReplyDraftModel?: string | null; PreReviewModel?: string | null }>(request)
+    if (!db.aiKey) {
+      return refuse('AiKeyNotSet', 'No Anthropic API key is set for this organization. Add one in Settings, under AI.', 409)
+    }
+    const known = AI_MODELS.map((model) => model.id)
+    if ([input.ReplyDraftModel, input.PreReviewModel].some((model) => model && !known.includes(model))) {
+      return refuse('AiModelInvalid', 'Choose one of the offered models.', 400)
+    }
+    db.aiModels = {
+      replyDrafts: input.ReplyDraftModel ?? db.aiModels.replyDrafts,
+      preReview: input.PreReviewModel ?? db.aiModels.preReview,
+    }
+    audit(AuditAction.AiModelsChanged, 'AI models changed.', null)
+    return envelope(aiSettings())
+  }),
+  // AI pre-review: a run is Queued, Running for a few seconds, then a fixed sample report.
+  http.get(`${BASE}/pre-reviews`, ({ request }) => {
+    const url = new URL(request.url)
+    const appId = Number(url.searchParams.get('AppId'))
+    const store = Number(url.searchParams.get('Store'))
+    return envelope(
+      db.preReviews
+        .filter((item) => item.appId === appId && item.store === store)
+        .map((item) => {
+          const report = preReviewView(item)
+          return {
+            id: report.id,
+            store: report.store,
+            versionString: report.versionString,
+            status: report.status,
+            verdict: report.verdict,
+            approvalLikelihood: report.approvalLikelihood,
+            model: report.model,
+            blockerCount: report.findings.filter((finding) => finding.severity === 1).length,
+            majorCount: report.findings.filter((finding) => finding.severity === 2).length,
+            minorCount: report.findings.filter((finding) => finding.severity === 3).length,
+            estimatedCostUsd: report.estimatedCostUsd,
+            createdDate: report.createdDate,
+            createdByUserName: report.createdByUserName,
+          }
+        }),
+    )
+  }),
+  http.get(`${BASE}/pre-reviews/pre-review`, ({ request }) => {
+    const id = Number(new URL(request.url).searchParams.get('Id'))
+    const item = db.preReviews.find((entry) => entry.id === id)
+    return item ? envelope(preReviewView(item)) : refuse('PreReviewNotFound', 'The pre-review was not found.', 404)
+  }),
+  http.post(`${BASE}/pre-reviews/pre-review`, async ({ request }) => {
+    const input = await body<{ AppId: number; Store: number }>(request)
+    if (!db.aiKey) {
+      return refuse('AiKeyNotSet', 'No Anthropic API key is set for this organization. Add one in Settings, under AI.', 409)
+    }
+    if (db.preReviews.some((item) => item.appId === input.AppId && item.store === input.Store && Date.now() < item.doneAt)) {
+      return refuse('PreReviewInProgress', 'A pre-review of this app is already running for this store.', 409)
+    }
+    const item: MockPreReview = {
+      id: db.nextId++,
+      appId: input.AppId,
+      store: input.Store,
+      model: db.aiModels.preReview,
+      createdDate: new Date().toISOString(),
+      doneAt: Date.now() + 5000,
+    }
+    db.preReviews = [item, ...db.preReviews]
+    audit(AuditAction.PreReviewStarted, 'AI pre-review started.', input.Store as StoreKind)
+    return envelope(preReviewView(item))
+  }),
   http.delete(`${BASE}/Organizations/ai-settings/key`, () => {
     db.aiKey = null
     audit(AuditAction.AiKeyRemoved, 'Anthropic API key removed.', null)
@@ -413,6 +484,91 @@ function aiSettings() {
     apiKeyLastFour: db.aiKey?.lastFour ?? null,
     apiKeySetDate: db.aiKey?.setDate ?? null,
     apiKeySetByUserName: db.aiKey ? 'demo' : null,
-    model: 'claude-haiku-5-5',
+    model: db.aiModels.replyDrafts,
+    replyDraftModel: db.aiModels.replyDrafts,
+    preReviewModel: db.aiModels.preReview,
+    models: AI_MODELS.map((model) => ({
+      id: model.id,
+      name: model.name,
+      inputUsdPerMTok: model.input,
+      outputUsdPerMTok: model.output,
+    })),
+  }
+}
+
+const AI_MODELS = [
+  { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', input: 0.1, output: 0.5 },
+  { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', input: 2, output: 10 },
+  { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', input: 4, output: 20 },
+]
+
+interface MockPreReview {
+  id: number
+  appId: number
+  store: number
+  model: string
+  createdDate: string
+  // Until this instant the run is queued or running.
+  doneAt: number
+}
+
+function preReviewView(item: MockPreReview) {
+  const now = Date.now()
+  const done = now >= item.doneAt
+  const findings = done
+    ? [
+        {
+          severity: 1,
+          area: 6,
+          guideline: item.store === StoreKind.Google ? 'Google Play: Minimum Functionality' : 'App Store Review Guideline 2.1',
+          title: 'Sign-in needed but no demo account',
+          evidence: 'Review information: sign-in required, no demo account given.',
+          fix: 'Add a working demo account to the review information.',
+        },
+        {
+          severity: 2,
+          area: 1,
+          guideline: item.store === StoreKind.Google ? 'Google Play: Metadata policy' : 'App Store Review Guideline 2.3.7',
+          title: 'Price in the subtitle',
+          evidence: 'en-US subtitle: "Free route planner"',
+          fix: 'Remove the price wording from the subtitle.',
+        },
+        {
+          severity: 3,
+          area: 2,
+          guideline: 'App Store Review Guideline 2.3.3',
+          title: 'Old device frame',
+          evidence: 'APP_IPHONE_67, image 3',
+          fix: 'Use a current device frame.',
+        },
+      ]
+    : []
+  return {
+    id: item.id,
+    appId: item.appId,
+    storeAppId: item.appId * 10 + item.store,
+    store: item.store,
+    versionString: '2.4',
+    status: done ? 3 : now < item.doneAt - 3500 ? 1 : 2,
+    jobId: item.id + 50000,
+    model: item.model,
+    language: 'en-US',
+    verdict: done ? 2 : null,
+    approvalLikelihood: done ? 62 : null,
+    summary: done ? 'The listing is mostly ready, but the reviewer cannot sign in.' : null,
+    findings,
+    runtimeChecks: done ? ['Deny the location permission and check the app keeps working.'] : [],
+    positiveNotes: done ? ['The privacy policy address is filled in.'] : [],
+    imageCount: done ? 6 : 0,
+    inputTokens: done ? 18200 : 0,
+    outputTokens: done ? 2100 : 0,
+    cacheReadInputTokens: 0,
+    cacheCreationInputTokens: done ? 3000 : 0,
+    estimatedCostUsd: done ? 0.0574 : 0,
+    errorKey: null,
+    errorMessage: null,
+    createdDate: item.createdDate,
+    createdByUserName: 'demo',
+    completedDate: done ? new Date(item.doneAt).toISOString() : null,
   }
 }

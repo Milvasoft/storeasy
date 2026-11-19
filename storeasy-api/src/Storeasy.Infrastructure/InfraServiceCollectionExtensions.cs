@@ -70,11 +70,15 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IStoreGateway, StoreGateway>();
 
-        // AI reply drafts (Storeasy:Ai): Claude through the Anthropic SDK with each organization's own key; nothing is
-        // called until a member asks for a draft.
+        // AI features (Storeasy:Ai): reply drafts and pre-reviews, Claude through the Anthropic SDK with each organization's
+        // own key; nothing is called until a member asks for a draft or a pre-review.
         services.AddSingleton(configurationManager.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions());
-        services.AddHttpClient(AnthropicReplyDraftWriter.HttpClientName);
+        services.AddHttpClient(AnthropicCalls.HttpClientName);
+        services.AddHttpClient(PreReviewImageLoader.HttpClientName);
         services.AddScoped<IReplyDraftWriter, AnthropicReplyDraftWriter>();
+        services.AddScoped<IPreReviewer, AnthropicPreReviewer>();
+        services.AddScoped<IPreReviewImageLoader, PreReviewImageLoader>();
+        services.AddScoped<IStoreJobHandler, PreReviewJobHandler>();
 
         // Store content engine: live reads, change plans and the gateways of each store. The rules catalog is loaded and
         // validated here, so a broken catalog stops the startup instead of producing wrong readiness answers.

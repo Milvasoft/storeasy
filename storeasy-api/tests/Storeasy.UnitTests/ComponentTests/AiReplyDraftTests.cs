@@ -149,12 +149,12 @@ public class AiReplyDraftTests
         var repository = new Mock<IStoreasyRepositoryBase<OrganizationAiSetting>>();
 
         repository.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<Expression<Func<OrganizationAiSetting, bool>>>(),
-                                                       It.IsAny<Expression<Func<OrganizationAiSetting, int?>>>(),
-                                                       It.IsAny<Expression<Func<int?, bool>>>(),
+                                                       It.IsAny<Expression<Func<OrganizationAiSetting, OrganizationAiSetting>>>(),
+                                                       It.IsAny<Expression<Func<OrganizationAiSetting, bool>>>(),
                                                        It.IsAny<bool>(),
                                                        It.IsAny<bool>(),
                                                        It.IsAny<CancellationToken>()))
-                  .ReturnsAsync(existingId);
+                  .ReturnsAsync(existingId == null ? null : new OrganizationAiSetting { Id = existingId.Value });
 
         repository.Setup(r => r.ExecuteUpdateAsync(It.IsAny<int>(), It.IsAny<SetPropertyBuilder<OrganizationAiSetting>>(), It.IsAny<CancellationToken>()))
                   .ReturnsAsync(1);
@@ -214,9 +214,10 @@ public class AiReplyDraftTests
             ApiKeyLastFour = "1234",
             ApiKeySetDate = _now.UtcDateTime,
             ApiKeySetByUserName = "owner",
-            Model = AiOptions.DefaultModel,
             ApiKeyVerified = true,
-        });
+        }.WithModels(new AiOptions(), null, null));
+        response.Data.Model.Should().Be(AiOptions.DefaultModel);
+        response.Data.PreReviewModel.Should().Be(AiOptions.DefaultPreReviewModel);
         Encoding.UTF8.GetString(harness.Protector.Plaintext).Should().Be(_fakeKey, "the key is trimmed before it is sealed");
         harness.Protector.AssociatedData.Should().Be(SecretScopes.AiProviderKey(_organizationId));
         saved.Should().NotBeNull();
