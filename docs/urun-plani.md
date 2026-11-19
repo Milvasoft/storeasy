@@ -221,7 +221,26 @@ kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
 | Homebrew | macOS ve Linux paket dağıtımı | Cask ve formül PR'ı; mağaza sayfası yok, en düşük öncelik |
 
 Kütüphane depoları (npm, NuGet, PyPI ve benzerleri) bu listede değildir: mağaza sayfası, ekran görüntüsü ve inceleme
-süreçleri yoktur. Ayrı bir modül olarak ele alınıp alınmayacağı açık sorudur (bölüm 9).
+süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
+
+### 7.2 Paket depoları modülü (planlandı, şimdilik yapılmıyor)
+
+Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
+olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
+
+İlke: storeasy yayını yapan değil, durumu izleyen ve kurulumu kolaylaştıran araçtır. Yayının kendisi CI'da kalır
+(GitHub Actions, Azure DevOps, changesets, release-please); storeasy depolara token saklamaz.
+
+| Kapsam | Ayrıntı |
+|---|---|
+| Depolar | npm, NuGet, PyPI, crates.io; sonra Maven Central, RubyGems, Packagist, pub.dev |
+| Paket özeti | Her paketin son sürümü, son yayın tarihi, hangi depodan ve hangi CI çalışmasından geldiği, tek ekranda |
+| Trusted publishing kurulumu | Her depo için adım adım sihirbaz (depo ayarı, CI dosyası, doğrulama); storeasy'nin kendi npm ve Marketplace kurulumunun tekrarlanabilir hâli |
+| Uyarılar | Süresi dolan token'lar, provenance'ı olmayan yayınlar, kullanımdan kaldırılan (deprecated) veya geri çekilen (yanked) sürümler, güvenlik bildirimleri |
+| Geçmiş | Yayın geçmişi, denetim kaydı ve bildirimlerle |
+| MCP | Okuma araçları (paket özeti, uyarılar); yazma yalnız onaylı ve dry run ile |
+
+Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 
 ## 8. Güvenlik
 
@@ -246,7 +265,7 @@ süreçleri yoktur. Ayrı bir modül olarak ele alınıp alınmayacağı açık 
 | MVP | Buğra | Kaldırıldı (18 Kasım 2026): bütün ürün tek seferde, bölüm 7 |
 | Logo ve vurgu rengi | Buğra | Karar verildi (18 Kasım 2026): logo K3 "Dört kanat e" (rüzgârgülünün bir kanadı eksik hâli, boşluk "e"nin ağzı; `docs/storeasy uygulaması tasarımı/03-Logo-Onerileri-4.html`), vurgu Ultramarin #4636FF / #857AFF. Yazı logoda ortadaki "e" vurgu renginde |
 | Microsoft Store | Buğra | Eklendi ve öne alındı (18 Kasım 2026): Faz 5, bölüm 11.6 |
-| Yeni mağazalar ve kütüphane depoları | Buğra | Mağazalar plana alındı, şimdilik yapılmıyor (19 Kasım 2026, bölüm 7.1); kütüphane depoları için ayrı modül tartışılıyor |
+| Yeni mağazalar ve kütüphane depoları | Buğra | Karar verildi (19 Kasım 2026): ikisi de plana alındı, şimdilik yapılmıyor; mağazalar bölüm 7.1, paket depoları ayrı modül bölüm 7.2 |
 
 ## 10. Altyapı varsayılanları (DevOpsçu, 18 Kasım 2026)
 
