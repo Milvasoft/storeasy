@@ -15,6 +15,8 @@ export const webhooksEn = {
     appleHint: 'One endpoint per Apple connection; version state changes arrive at once.',
     signed: 'Signed webhook',
     signedHint: 'Any sender that signs the body with the shared secret (sha256 over timestamp and body).',
+    google: 'Google Play notifications',
+    googleHint: 'Real-time developer notifications through a Pub/Sub push subscription, checked by its signed token.',
   },
   registration: {
     api: 'Registered at Apple · API',
@@ -23,7 +25,8 @@ export const webhooksEn = {
     pending: 'Waiting for registration',
   },
   endpoints: {
-    intro: 'App Store Connect version state events. Google Play and Microsoft Store states come with the periodic sync.',
+    intro:
+      'App Store Connect version, build and beta review events, and Google Play purchase notifications. Microsoft Store states come with the periodic sync.',
     add: 'Add endpoint',
     addTitle: 'Add a webhook endpoint',
     addBody: 'Each endpoint has its own secret.',
@@ -34,6 +37,10 @@ export const webhooksEn = {
     noConnection: 'No App Store Connect connection yet.',
     registerAtStore: 'Register at Apple through the API',
     name: 'Name',
+    serviceAccount: 'Push service account',
+    serviceAccountHint: 'The service account the Pub/Sub push subscription authenticates as (its token must name this e-mail).',
+    ping: 'Ping',
+    pinged: 'App Store Connect is sending a test event to each webhook. It appears in the event log.',
     copyUrl: 'Copy the URL of {name}',
     events: 'Events',
     allEvents: 'Every event',
@@ -61,6 +68,8 @@ export const webhooksEn = {
     grace: 'The old secret is accepted until {date}.',
     manualSteps:
       'Register by hand: App Store Connect > Users and Access > Integrations > Webhooks, paste the URL and the secret. The state turns to "registered by hand" with the first valid event.',
+    googleSteps:
+      'In Google Cloud: create a Pub/Sub topic, give google-play-developer-notifications@system.gserviceaccount.com the Pub/Sub Publisher role on it, and add a push subscription to this URL with authentication on (the service account above; leave the audience empty or set it to this URL). Then set the topic in Play Console > Monetization setup and send a test notification.',
   },
   events: {
     title: 'Event log',
@@ -157,6 +166,8 @@ export const webhooksTr: WebhooksDictionary = {
     appleHint: 'Her Apple bağlantısına bir uç; sürüm durumu değişiklikleri anında gelir.',
     signed: 'İmzalı webhook',
     signedHint: 'Gövdeyi ortak sırla imzalayan herhangi bir gönderici (zaman damgası ve gövde üzerinde sha256).',
+    google: 'Google Play bildirimleri',
+    googleHint: 'Pub/Sub push aboneliğiyle gelen gerçek zamanlı geliştirici bildirimleri; imzalı jetonuyla doğrulanır.',
   },
   registration: {
     api: "Apple'da kayıtlı · API",
@@ -165,7 +176,8 @@ export const webhooksTr: WebhooksDictionary = {
     pending: 'Kayıt bekleniyor',
   },
   endpoints: {
-    intro: 'App Store Connect sürüm durumu olayları. Google Play ve Microsoft Store durumu periyodik senkronla gelir.',
+    intro:
+      'App Store Connect sürüm, build ve beta inceleme olayları ile Google Play satın alma bildirimleri. Microsoft Store durumu periyodik senkronla gelir.',
     add: 'Uç ekle',
     addTitle: 'Webhook ucu ekle',
     addBody: 'Her ucun kendi gizli anahtarı vardır.',
@@ -176,6 +188,10 @@ export const webhooksTr: WebhooksDictionary = {
     noConnection: 'Henüz App Store Connect bağlantısı yok.',
     registerAtStore: "API ile Apple'a kaydet",
     name: 'Ad',
+    serviceAccount: 'Push hizmet hesabı',
+    serviceAccountHint: 'Pub/Sub push aboneliğinin kimlik doğruladığı hizmet hesabı (jetonu bu e-postayı taşımalı).',
+    ping: 'Ping',
+    pinged: "App Store Connect her webhook'a bir test olayı gönderiyor. Olay kaydında görünür.",
     copyUrl: '{name} URL’sini kopyala',
     events: 'Olaylar',
     allEvents: 'Bütün olaylar',
@@ -203,6 +219,8 @@ export const webhooksTr: WebhooksDictionary = {
     grace: 'Eski anahtar {date} tarihine kadar kabul edilir.',
     manualSteps:
       "Elle kayıt: App Store Connect > Kullanıcılar ve Erişim > Entegrasyonlar > Webhook'lar'a gir, URL'yi ve anahtarı yapıştır. İlk geçerli olay gelince durum \"elle kayıtlı\" olur.",
+    googleSteps:
+      "Google Cloud'da: bir Pub/Sub konusu aç, google-play-developer-notifications@system.gserviceaccount.com hesabına konuda Pub/Sub Publisher rolü ver ve bu URL'ye kimlik doğrulaması açık bir push aboneliği ekle (yukarıdaki hizmet hesabı; audience boş ya da bu URL). Sonra konuyu Play Console > Para kazanma ayarları'na yaz ve test bildirimi gönder.",
   },
   events: {
     title: 'Olay kaydı',

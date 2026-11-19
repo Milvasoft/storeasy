@@ -50,6 +50,18 @@ public sealed partial class StoreEventsGateway(StoreApiClient client) : IStoreEv
         => await _client.JsonOrNotFoundAsync(HttpMethod.Delete, $"{AppleBase}/v1/webhooks/{Uri.EscapeDataString(webhookId)}", _client.AppleToken(secretJson), null, cancellationToken);
 
     /// <inheritdoc/>
+    public async Task<string> PingWebhookAsync(string secretJson, string webhookId, CancellationToken cancellationToken)
+    {
+        var created = await _client.JsonAsync(HttpMethod.Post,
+                                              $"{AppleBase}/v1/webhookPings",
+                                              _client.AppleToken(secretJson),
+                                              new { data = new { type = "webhookPings", relationships = new { webhook = new { data = new { type = "webhooks", id = webhookId } } } } },
+                                              cancellationToken);
+
+        return StoreApiClient.Text(StoreApiClient.Child(created, "data"), "id");
+    }
+
+    /// <inheritdoc/>
     public async Task<StoreVersionRecord> GetVersionAsync(string secretJson, string versionId, CancellationToken cancellationToken)
     {
         var root = await _client.JsonAsync(HttpMethod.Get,

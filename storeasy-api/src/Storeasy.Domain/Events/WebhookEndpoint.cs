@@ -91,6 +91,18 @@ public class WebhookEndpoint : FullAuditableEntity<int>
     public DateTime SecretSetDate { get; set; }
 
     /// <summary>
+    /// Column length of <see cref="PushServiceAccount"/>.
+    /// </summary>
+    public const int PushServiceAccountMaxLength = 320;
+
+    /// <summary>
+    /// Service account e-mail the Pub/Sub push subscription signs its tokens as (<see cref="WebhookSource.GooglePlay"/>
+    /// only). A token of any other account is refused.
+    /// </summary>
+    [MaxLength(PushServiceAccountMaxLength)]
+    public string PushServiceAccount { get; set; }
+
+    /// <summary>
     /// Whether the sender knows the address.
     /// </summary>
     public WebhookRegistrationState Registration { get; set; } = WebhookRegistrationState.Pending;

@@ -3,7 +3,7 @@
 import type { IsoDateTime } from '@/lib/api/types'
 import type { NotificationEntity } from '@/features/notifications/types'
 
-export const WebhookSource = { AppStoreConnect: 1, Signed: 2 } as const
+export const WebhookSource = { AppStoreConnect: 1, Signed: 2, GooglePlay: 3 } as const
 export type WebhookSource = (typeof WebhookSource)[keyof typeof WebhookSource]
 
 export const WebhookRegistrationState = { Pending: 1, Api: 2, Manual: 3, Failed: 4 } as const
@@ -45,6 +45,8 @@ export interface WebhookEndpointDto {
   ExternalWebhookCount: number
   ExternalWebhooks?: ExternalWebhookRegistration[]
   Events?: string[]
+  // Google Play endpoints: the service account of the Pub/Sub push subscription.
+  PushServiceAccount?: string
   SecretSetDate: IsoDateTime
   PreviousSecretValidUntil?: IsoDateTime
   LastEventDate?: IsoDateTime

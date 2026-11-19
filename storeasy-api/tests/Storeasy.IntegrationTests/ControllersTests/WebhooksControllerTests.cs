@@ -224,6 +224,90 @@ public class WebhooksControllerTests(StoreasyApiFactory factory) : IntegrationTe
     }
 
     [Fact]
+    public async Task PingEndpoint_ShouldPingEveryAppleWebhookAndRefuseOtherEndpoints()
+    {
+        // Arrange
+        var org = await _factory.NewOrgAsync();
+        var (_, _, first) = await _factory.AddAppAsync(org);
+        var (_, _, second) = await _factory.AddAppAsync(org, name: "Mola");
+        var endpoint = await CreateAppleEndpointAsync(org, register: true);
+        (await _factory.WaitForJobAsync(endpoint.JobId.Value)).Status.Should().Be(StoreJobStatus.Succeeded);
+        var (_, signed) = await org.Owner.Client.PostAsync<WebhookSecretDto>("webhooks/endpoint", new { organizationId = org.OrganizationId, source = WebhookSource.Signed, name = "Codemagic" });
+        var webhookIds = _factory.StoreEvents.Webhooks.Where(w => w.AppId == first || w.AppId == second).Select(w => w.WebhookId).ToList();
+
+        // Act
+        var (http, jobId) = await org.Owner.Client.PostAsync<long>("webhooks/endpoint/ping", new { organizationId = org.OrganizationId, endpointId = endpoint.Id });
+        var job = await _factory.WaitForJobAsync(jobId.Data);
+        var refused = await org.Owner.Client.PostAsync<long>("webhooks/endpoint/ping", new { organizationId = org.OrganizationId, endpointId = signed.Data.Id });
+
+        // Assert
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        job.Status.Should().Be(StoreJobStatus.Succeeded);
+        _factory.StoreEvents.Pings.Should().Contain(webhookIds);
+        _factory.StoreEvents.Webhooks.Where(w => w.AppId == first).Should().OnlyContain(w => w.Registration.EventTypes.SequenceEqual(AppStoreVersionStates.RegisteredEvents));
+        refused.Http.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task GooglePlayEndpoint_ShouldAcceptOnlyThePushTokenOfItsServiceAccount()
+    {
+        // Arrange
+        var org = await _factory.NewOrgAsync();
+        const string account = "play-rtdn@storeasy-tests.iam.gserviceaccount.com";
+        var (created, endpoint) = await org.Owner.Client.PostAsync<WebhookSecretDto>("webhooks/endpoint", new { organizationId = org.OrganizationId, source = WebhookSource.GooglePlay, pushServiceAccount = account });
+        var missing = await org.Owner.Client.PostAsync<WebhookSecretDto>("webhooks/endpoint", new { organizationId = org.OrganizationId, source = WebhookSource.GooglePlay });
+        var url = endpoint.Data.Url;
+        var client = _factory.CreateClientWithAddress();
+        var package = $"com.{org.Suffix}.app";
+
+        string Push(string messageId, object notification)
+            => JsonSerializer.Serialize(new { message = new { data = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(notification))), messageId }, subscription = "projects/p/subscriptions/storeasy" });
+
+        async Task<HttpResponseMessage> SendAsync(string body, string token)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url).PathAndQuery) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+            if (token != null)
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+
+            return await client.SendAsync(request, TestContext.Current.CancellationToken);
+        }
+
+        var millis = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+        var renewed = Push($"m1-{org.Suffix}", new { version = "1.0", packageName = package, eventTimeMillis = millis, subscriptionNotification = new { version = "1.0", notificationType = 2, purchaseToken = "secret-purchase-token-value", subscriptionId = "premium" } });
+        var test = Push($"m2-{org.Suffix}", new { version = "1.0", packageName = package, eventTimeMillis = millis, testNotification = new { version = "1.0" } });
+        var valid = _factory.Google.PushToken(url, account);
+
+        // Act
+        var first = await SendAsync(renewed, valid);
+        var again = await SendAsync(renewed, valid);
+        var testResponse = await SendAsync(test, valid);
+        var otherAccount = await SendAsync(test, _factory.Google.PushToken(url, "someone@else.iam.gserviceaccount.com"));
+        var otherAudience = await SendAsync(test, _factory.Google.PushToken("https://elsewhere.example.com/push", account));
+        var unverified = await SendAsync(test, _factory.Google.PushToken(url, account, emailVerified: false));
+        var anonymous = await SendAsync(test, null);
+        var events = await _factory.DbAsync(db => db.WebhookEvents.AsNoTracking().Where(e => e.OrganizationId == org.OrganizationId).ToListAsync());
+
+        // Assert
+        created.StatusCode.Should().Be(HttpStatusCode.OK);
+        endpoint.Data.Secret.Should().BeNull("a push subscription authenticates with its token, not a shared secret");
+        url.Should().Contain("/api/webhooks/google/");
+        missing.Http.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+        again.StatusCode.Should().Be(HttpStatusCode.OK);
+        testResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        otherAccount.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        otherAudience.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        unverified.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        anonymous.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        events.Where(e => e.SignatureValid).Should().HaveCount(2, "a repeated message id is stored once");
+        events.Should().ContainSingle(e => e.EventType == "SUBSCRIPTION_RENEWED")
+              .Which.Should().Match<Domain.Events.WebhookEvent>(e => e.SubjectExternalId == package && e.NewValue == "premium" && e.ProcessResult == WebhookProcessResult.Processed && !e.Payload.Contains("secret-purchase-token-value"));
+        events.Should().ContainSingle(e => e.EventType == PlayDeveloperNotifications.TestEvent && e.SignatureValid);
+        events.Where(e => !e.SignatureValid).Should().HaveCount(4).And.OnlyContain(e => e.Payload == null && e.ProcessResult == WebhookProcessResult.InvalidSignature);
+    }
+
+    [Fact]
     public async Task CreateEndpoint_KeyWithoutRole_ShouldMarkTheRegistrationFailed()
     {
         // Arrange

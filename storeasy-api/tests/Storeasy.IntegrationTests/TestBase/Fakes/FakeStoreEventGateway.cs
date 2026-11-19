@@ -24,6 +24,8 @@ public sealed class FakeStoreEventGateway : IStoreEventGateway, IStoreReviewGate
     /// <summary>Webhooks deleted.</summary>
     public ConcurrentQueue<string> DeletedWebhooks { get; } = new();
 
+    public ConcurrentQueue<string> Pings { get; } = new();
+
     /// <summary>Apps whose webhook registration is refused (403).</summary>
     public ConcurrentDictionary<string, bool> RefuseWebhooks { get; } = new();
 
@@ -64,6 +66,13 @@ public sealed class FakeStoreEventGateway : IStoreEventGateway, IStoreReviewGate
     }
 
     /// <inheritdoc/>
+    public Task<string> PingWebhookAsync(string secretJson, string webhookId, CancellationToken cancellationToken)
+    {
+        Pings.Enqueue(webhookId);
+
+        return Task.FromResult($"ping-{Interlocked.Increment(ref _sequence)}");
+    }
+
     public Task<StoreVersionRecord> GetVersionAsync(string secretJson, string versionId, CancellationToken cancellationToken)
         => Versions.TryGetValue(versionId, out var version) ? Task.FromResult(version) : throw new StoreCallException("404: no such version", 404, false);
 

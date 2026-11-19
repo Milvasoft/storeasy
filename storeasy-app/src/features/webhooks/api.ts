@@ -11,14 +11,25 @@ import type {
 } from './types'
 
 // storeasy-api WebhooksController (owners and admins: ManageWebhooks). Inbound endpoints receive store events at
-// /api/webhooks/apple|signed/{publicId}; outgoing subscriptions post storeasy's events to the organization's own URLs.
+// /api/webhooks/apple|signed|google/{publicId}; outgoing subscriptions post storeasy's events to the organization's own
+// URLs.
 export const webhooksApi = {
   endpoints: (organizationId: number) => apiGet<WebhookEndpointDto[]>('/Webhooks', { OrganizationId: organizationId }),
 
   createEndpoint: (
     organizationId: number,
-    input: { Source: WebhookSource; StoreConnectionId: number | null; Name: string | null; RegisterAtStore: boolean },
+    input: {
+      Source: WebhookSource
+      StoreConnectionId: number | null
+      Name: string | null
+      RegisterAtStore: boolean
+      PushServiceAccount: string | null
+    },
   ) => apiPost<WebhookSecretDto>('/Webhooks/endpoint', { OrganizationId: organizationId, ...input }, { idempotent: true }),
+
+  // App Store Connect sends a signed test event to every webhook of the endpoint (a job); the pings land in the event log.
+  pingEndpoint: (organizationId: number, endpointId: number) =>
+    apiPost<number>('/Webhooks/endpoint/ping', { OrganizationId: organizationId, EndpointId: endpointId }),
 
   // The new secret is answered once; the old one is still accepted for the grace hours.
   rotateEndpointSecret: (organizationId: number, endpointId: number) =>

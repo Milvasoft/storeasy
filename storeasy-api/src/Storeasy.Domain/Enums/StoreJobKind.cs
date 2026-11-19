@@ -43,6 +43,12 @@ public enum StoreJobKind : short
     RegisterWebhooks = 401,
 
     /// <summary>
+    /// Asks App Store Connect to send a test event (ping) to every webhook of an inbound endpoint.
+    /// </summary>
+    [Description("Ping webhooks")]
+    PingWebhooks = 407,
+
+    /// <summary>
     /// Reads the App Store version states of a connection's apps (catches what a missed webhook did not report).
     /// </summary>
     [Description("Sync version states")]

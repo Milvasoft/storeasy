@@ -4,9 +4,10 @@ using Storeasy.Application.Dtos.EventDtos;
 namespace Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint;
 
 /// <summary>
-/// Adds an inbound webhook endpoint: for an App Store Connect connection (one per connection; registered at Apple through
-/// the API unless <see cref="RegisterAtStore"/> is false), or a signed endpoint for any other sender. The secret is
-/// returned once.
+/// Adds an inbound webhook endpoint: for an App Store Connect connection (one per connection; one webhook per App Store
+/// app of the connection, registered at Apple through the API unless <see cref="RegisterAtStore"/> is false), for Google
+/// Play notifications (a Pub/Sub push subscription authenticated by <see cref="PushServiceAccount"/>; no secret), or a
+/// signed endpoint for any other sender. The secret is returned once.
 /// </summary>
 [OrgAuth(OrgPermission.ManageWebhooks)]
 [VerifiedEmailRequired]
@@ -35,4 +36,9 @@ public record CreateWebhookEndpointCommand : ICommand<WebhookSecretDto>, IOrgani
     /// App Store Connect by hand and the first valid event confirms it.
     /// </summary>
     public bool RegisterAtStore { get; set; } = true;
+
+    /// <summary>
+    /// Service account e-mail of the Pub/Sub push subscription (required for <see cref="WebhookSource.GooglePlay"/>).
+    /// </summary>
+    public string PushServiceAccount { get; set; }
 }

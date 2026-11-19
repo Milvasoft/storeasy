@@ -27,7 +27,9 @@ namespace Storeasy.Infrastructure.Events;
 /// <param name="auditTrail"></param>
 /// <param name="notificationDispatcher"></param>
 /// <param name="activityPublisher"></param>
+/// <param name="googlePushTokenValidator"></param>
 /// <param name="options"></param>
+/// <param name="appOptions"></param>
 /// <param name="timeProvider"></param>
 public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpointRepository,
                                  IStoreasyRepositoryBase<WebhookEvent> eventRepository,
@@ -36,9 +38,13 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
                                  IAuditTrail auditTrail,
                                  INotificationDispatcher notificationDispatcher,
                                  IActivityPublisher activityPublisher,
+                                 IGooglePushTokenValidator googlePushTokenValidator,
                                  WebhookOptions options,
+                                 AppOptions appOptions,
                                  TimeProvider timeProvider) : IWebhookInbox
 {
+    private readonly IGooglePushTokenValidator _googlePushTokenValidator = googlePushTokenValidator;
+    private readonly AppOptions _appOptions = appOptions;
     private readonly IStoreasyRepositoryBase<WebhookEndpoint> _endpointRepository = endpointRepository;
     private readonly IStoreasyRepositoryBase<WebhookEvent> _eventRepository = eventRepository;
     private readonly ISecretProtector _secretProtector = secretProtector;
@@ -72,6 +78,7 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
                                                                             PreviousEncryptedDataKey = e.PreviousEncryptedDataKey,
                                                                             PreviousKeyVersion = e.PreviousKeyVersion,
                                                                             PreviousSecretValidUntil = e.PreviousSecretValidUntil,
+                                                                            PushServiceAccount = e.PushServiceAccount,
                                                                         },
                                                                         cancellationToken: cancellationToken);
 
@@ -82,16 +89,19 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
         var parsed = Parse(request);
         var secrets = WebhookEndpointSecrets.Valid(_secretProtector, endpoint, now);
 
-        var valid = request.Source == WebhookSource.AppStoreConnect
-            ? secrets.Any(secret => WebhookSignatures.VerifyApple(request.Body, request.Signature, secret))
-            : parsed.Timestamp.HasValue && secrets.Any(secret => WebhookSignatures.VerifyStoreasy(parsed.Timestamp.Value, request.Body, request.Signature, secret));
+        var valid = request.Source switch
+        {
+            WebhookSource.AppStoreConnect => secrets.Any(secret => WebhookSignatures.VerifyApple(request.Body, request.Signature, secret)),
+            WebhookSource.GooglePlay => await _googlePushTokenValidator.ValidateAsync(request.Signature, _options.ReceiverUrl(_appOptions, endpoint.Source, endpoint.PublicId), endpoint.PushServiceAccount, cancellationToken),
+            _ => parsed.Timestamp.HasValue && secrets.Any(secret => WebhookSignatures.VerifyStoreasy(parsed.Timestamp.Value, request.Body, request.Signature, secret)),
+        };
 
         var webhookEvent = new WebhookEvent
         {
             OrganizationId = endpoint.OrganizationId,
             WebhookEndpointId = endpoint.Id,
             EventType = Trim(parsed.EventType),
-            SignatureHeaderMasked = Trim(WebhookSignatures.Mask(request.Signature)),
+            SignatureHeaderMasked = Trim(request.Source == WebhookSource.GooglePlay ? MaskBearer(request.Signature) : WebhookSignatures.Mask(request.Signature)),
             SignatureValid = valid,
             ReceivedDate = now,
         };
@@ -121,13 +131,15 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
 
         var isStateEvent = request.Source == WebhookSource.AppStoreConnect && webhookEvent.EventType == AppStoreVersionStates.StateUpdatedEvent && parsed.SubjectId != null;
 
-        webhookEvent.Payload = parsed.IsJson ? request.Body : null;
+        var logged = request.Source is WebhookSource.Signed or WebhookSource.GooglePlay;
+
+        webhookEvent.Payload = parsed.IsJson ? parsed.StoredPayload ?? request.Body : null;
         webhookEvent.SubjectExternalId = Trim(parsed.SubjectId);
         webhookEvent.OldValue = Trim(parsed.OldValue);
         webhookEvent.NewValue = Trim(parsed.NewValue);
-        webhookEvent.ProcessResult = isStateEvent ? WebhookProcessResult.Pending : request.Source == WebhookSource.Signed ? WebhookProcessResult.Processed : WebhookProcessResult.Ignored;
+        webhookEvent.ProcessResult = isStateEvent ? WebhookProcessResult.Pending : logged ? WebhookProcessResult.Processed : WebhookProcessResult.Ignored;
         webhookEvent.ProcessedDate = isStateEvent ? null : now;
-        webhookEvent.ProcessMessage = isStateEvent ? null : request.Source == WebhookSource.Signed ? "Logged." : "Nothing to do for this event type.";
+        webhookEvent.ProcessMessage = isStateEvent ? null : logged ? "Logged." : "Nothing to do for this event type.";
         webhookEvent.RelatedEntityType = NotificationEntity.WebhookEvent;
 
         try
@@ -158,7 +170,12 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
         {
             Type = ActivityEventTypes.WebhookReceived,
             OrganizationId = endpoint.OrganizationId,
-            Store = request.Source == WebhookSource.AppStoreConnect ? StoreKind.Apple : null,
+            Store = request.Source switch
+            {
+                WebhookSource.AppStoreConnect => StoreKind.Apple,
+                WebhookSource.GooglePlay => StoreKind.Google,
+                _ => null,
+            },
             RelatedEntityType = NotificationEntity.WebhookEvent,
             RelatedEntityId = webhookEvent.Id.ToString(CultureInfo.InvariantCulture),
             Message = webhookEvent.NewValue == null ? webhookEvent.EventType : $"{webhookEvent.OldValue} -> {webhookEvent.NewValue}",
@@ -222,6 +239,16 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
                 return new ParsedEvent(true, Text(root, "type") ?? "signed", request.EventId ?? Text(root, "id"), Text(root, "subject"), null, null, null, timestamp);
             }
 
+            if (request.Source == WebhookSource.GooglePlay)
+            {
+                // The raw push carries the purchase token in base64; only the decoded notification with the tokens masked is kept.
+                var play = PlayDeveloperNotifications.Parse(request.Body);
+
+                return play == null
+                    ? new ParsedEvent(false, "invalid", null, null, null, null, null, null)
+                    : new ParsedEvent(true, play.EventType, play.MessageId, play.PackageName, null, play.ProductId, play.EventDate, null, play.RedactedJson);
+            }
+
             var data = root.ValueKind == JsonValueKind.Object && root.TryGetProperty("data", out var d) ? d : default;
             var attributes = data.ValueKind == JsonValueKind.Object && data.TryGetProperty("attributes", out var a) ? a : default;
             var instance = data.ValueKind == JsonValueKind.Object && data.TryGetProperty("relationships", out var r) && r.TryGetProperty("instance", out var i) ? i : default;
@@ -242,5 +269,16 @@ public sealed class WebhookInbox(IStoreasyRepositoryBase<WebhookEndpoint> endpoi
 
     private static string Trim(string value) => value?.Length > WebhookEvent.TextMaxLength ? value[..WebhookEvent.TextMaxLength] : value;
 
-    private sealed record ParsedEvent(bool IsJson, string EventType, string EventId, string SubjectId, string OldValue, string NewValue, DateTime? EventDate, long? Timestamp);
+    private static string MaskBearer(string authorization)
+    {
+        if (string.IsNullOrWhiteSpace(authorization))
+            return null;
+
+        var value = authorization.Trim();
+        var token = value.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? value[7..].Trim() : value;
+
+        return token.Length <= 8 ? "Bearer ********" : $"Bearer {token[..4]}***{token[^4..]}";
+    }
+
+    private sealed record ParsedEvent(bool IsJson, string EventType, string EventId, string SubjectId, string OldValue, string NewValue, DateTime? EventDate, long? Timestamp, string StoredPayload = null);
 }

@@ -59,6 +59,25 @@ public sealed class FakeGoogle : HttpMessageHandler
     }
 
     /// <inheritdoc/>
+    /// <summary>
+    /// A Pub/Sub push token as Google signs it: issuer <see cref="Authority"/>, the given audience and service account.
+    /// </summary>
+    public string PushToken(string audience, string email, bool emailVerified = true, DateTime? expires = null)
+    {
+        var now = DateTime.UtcNow;
+
+        return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+        {
+            Issuer = Authority,
+            Audience = audience,
+            IssuedAt = now.AddMinutes(-1),
+            NotBefore = now.AddMinutes(-1),
+            Expires = expires ?? now.AddMinutes(30),
+            Claims = new Dictionary<string, object> { ["email"] = email, ["email_verified"] = emailVerified, ["sub"] = "1234567890" },
+            SigningCredentials = new SigningCredentials(new RsaSecurityKey(_key) { KeyId = "google-test" }, SecurityAlgorithms.RsaSha256),
+        });
+    }
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var path = request.RequestUri.AbsolutePath;

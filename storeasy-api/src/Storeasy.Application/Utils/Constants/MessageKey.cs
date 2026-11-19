@@ -315,6 +315,7 @@ public static class MessageKey
     public const string WebhookEventStale = nameof(WebhookEventStale);
     public const string WebhookEventNotFound = nameof(WebhookEventNotFound);
     public const string WebhookEventNotReprocessable = nameof(WebhookEventNotReprocessable);
+    public const string WebhookEndpointNotPingable = nameof(WebhookEndpointNotPingable);
     public const string OrgWebhookNotFound = nameof(OrgWebhookNotFound);
     public const string OrgWebhookUrlInvalid = nameof(OrgWebhookUrlInvalid);
     public const string OrgWebhookUrlBlocked = nameof(OrgWebhookUrlBlocked);
@@ -343,6 +344,7 @@ public static class MessageKey
     public const string RuleProposalNotFound = nameof(RuleProposalNotFound);
     public const string RuleProposalDecided = nameof(RuleProposalDecided);
     public const string GlobalWebhookEndpoint = "Global.WebhookEndpoint";
+    public const string GlobalServiceAccount = "Global.ServiceAccount";
     public const string GlobalStoreReview = "Global.StoreReview";
     public const string GlobalRejectionCase = "Global.RejectionCase";
     public const string GlobalBetaGroup = "Global.BetaGroup";

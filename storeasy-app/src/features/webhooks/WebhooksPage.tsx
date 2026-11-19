@@ -142,11 +142,13 @@ function SecretDialog({
   secret,
   title,
   manual,
+  google,
   onClose,
 }: {
   secret: WebhookSecretDto
   title: string
   manual?: boolean
+  google?: boolean
   onClose: () => void
 }) {
   const t = useWebhooksText()
@@ -181,6 +183,7 @@ function SecretDialog({
           <p className="text-[13px] text-fg2">{interpolate(t.secret.grace, { date: format.dateTime(secret.PreviousSecretValidUntil) })}</p>
         ) : null}
         {manual ? <Callout tone="warning">{t.secret.manualSteps}</Callout> : null}
+        {google ? <Callout tone="info">{t.secret.googleSteps}</Callout> : null}
       </div>
     </Modal>
   )
@@ -202,20 +205,27 @@ function EndpointDialog({ onClose, onCreated }: { onClose: () => void; onCreated
   const [connectionId, setConnectionId] = useState<number | null>(null)
   const [name, setName] = useState('')
   const [register, setRegister] = useState(true)
+  const [serviceAccount, setServiceAccount] = useState('')
   const create = useMutation({
     mutationFn: () =>
       webhooksApi.createEndpoint(organization.Id, {
         Source: source,
         StoreConnectionId: source === WebhookSource.AppStoreConnect ? connectionId : null,
-        Name: source === WebhookSource.Signed ? name.trim() : null,
+        Name: source === WebhookSource.AppStoreConnect ? null : name.trim() || null,
         RegisterAtStore: source === WebhookSource.AppStoreConnect && register,
+        PushServiceAccount: source === WebhookSource.GooglePlay ? serviceAccount.trim() : null,
       }),
     onSuccess: (secret) => {
       void queryClient.invalidateQueries({ queryKey: webhookKeys.all })
       onCreated(secret)
     },
   })
-  const ready = source === WebhookSource.AppStoreConnect ? connectionId !== null : name.trim().length > 0
+  const ready =
+    source === WebhookSource.AppStoreConnect
+      ? connectionId !== null
+      : source === WebhookSource.GooglePlay
+        ? serviceAccount.trim().includes('@')
+        : name.trim().length > 0
   return (
     <Modal
       open
@@ -240,6 +250,7 @@ function EndpointDialog({ onClose, onCreated }: { onClose: () => void; onCreated
           value={source}
           options={[
             { value: WebhookSource.AppStoreConnect, label: t.source.apple, description: t.source.appleHint },
+            { value: WebhookSource.GooglePlay, label: t.source.google, description: t.source.googleHint },
             { value: WebhookSource.Signed, label: t.source.signed, description: t.source.signedHint },
           ]}
           onChange={setSource}
@@ -258,6 +269,16 @@ function EndpointDialog({ onClose, onCreated }: { onClose: () => void; onCreated
               {t.endpoints.registerAtStore}
             </Checkbox>
           </>
+        ) : source === WebhookSource.GooglePlay ? (
+          <Field label={t.endpoints.serviceAccount} hint={t.endpoints.serviceAccountHint}>
+            <Input
+              type="email"
+              value={serviceAccount}
+              maxLength={320}
+              placeholder="play-rtdn@project.iam.gserviceaccount.com"
+              onChange={(event) => setServiceAccount(event.target.value)}
+            />
+          </Field>
         ) : (
           <Field label={t.endpoints.name}>
             <Input value={name} maxLength={100} onChange={(event) => setName(event.target.value)} />
@@ -283,6 +304,10 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
       onSecret(secret)
     },
   })
+  const ping = useMutation({
+    mutationFn: () => webhooksApi.pingEndpoint(organization.Id, endpoint.Id),
+    onSuccess: () => showToast(t.endpoints.pinged, 'success'),
+  })
   const remove = useMutation({
     mutationFn: () => webhooksApi.deleteEndpoint(organization.Id, endpoint.Id),
     onSuccess: () => {
@@ -295,6 +320,8 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
       <span className="flex flex-wrap items-center gap-2">
         {endpoint.Source === WebhookSource.AppStoreConnect ? (
           <StoreTag store={StoreKind.Apple} small codeOnly />
+        ) : endpoint.Source === WebhookSource.GooglePlay ? (
+          <StoreTag store={StoreKind.Google} small codeOnly />
         ) : (
           <Badge small>{t.source.signed}</Badge>
         )}
@@ -315,15 +342,22 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
           <dt className="text-xs text-fg3">{t.endpoints.events}</dt>
           <dd className="mono break-all">{(endpoint.Events ?? []).join(', ') || t.endpoints.allEvents}</dd>
         </div>
-        <div>
-          <dt className="text-xs text-fg3">{t.endpoints.secret}</dt>
-          <dd>
-            {interpolate(t.endpoints.secretSet, { date: format.date(endpoint.SecretSetDate) })}
-            {endpoint.PreviousSecretValidUntil
-              ? ` · ${interpolate(t.endpoints.previousValid, { date: format.dateTime(endpoint.PreviousSecretValidUntil) })}`
-              : ''}
-          </dd>
-        </div>
+        {endpoint.Source === WebhookSource.GooglePlay ? (
+          <div>
+            <dt className="text-xs text-fg3">{t.endpoints.serviceAccount}</dt>
+            <dd className="mono break-all">{endpoint.PushServiceAccount ?? '-'}</dd>
+          </div>
+        ) : (
+          <div>
+            <dt className="text-xs text-fg3">{t.endpoints.secret}</dt>
+            <dd>
+              {interpolate(t.endpoints.secretSet, { date: format.date(endpoint.SecretSetDate) })}
+              {endpoint.PreviousSecretValidUntil
+                ? ` · ${interpolate(t.endpoints.previousValid, { date: format.dateTime(endpoint.PreviousSecretValidUntil) })}`
+                : ''}
+            </dd>
+          </div>
+        )}
         <div>
           <dt className="text-xs text-fg3">{t.endpoints.lastEvent}</dt>
           <dd>{endpoint.LastEventDate ? format.dateTime(endpoint.LastEventDate) : '-'}</dd>
@@ -336,24 +370,32 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
         ) : null}
       </dl>
       <span className="flex flex-wrap justify-end gap-2">
-        <Button
-          size="sm"
-          loading={rotate.isPending}
-          onClick={async () => {
-            if (
-              await confirm({
-                title: interpolate(t.endpoints.rotateTitle, { name: title }),
-                message: t.endpoints.rotateBody,
-                confirmLabel: t.endpoints.rotate,
-              })
-            ) {
-              rotate.mutate()
-            }
-          }}
-        >
-          <RefreshCw aria-hidden />
-          {t.endpoints.rotate}
-        </Button>
+        {endpoint.Source === WebhookSource.AppStoreConnect && endpoint.ExternalWebhookCount > 0 ? (
+          <Button size="sm" loading={ping.isPending} onClick={() => ping.mutate()}>
+            <Send aria-hidden />
+            {t.endpoints.ping}
+          </Button>
+        ) : null}
+        {endpoint.Source === WebhookSource.GooglePlay ? null : (
+          <Button
+            size="sm"
+            loading={rotate.isPending}
+            onClick={async () => {
+              if (
+                await confirm({
+                  title: interpolate(t.endpoints.rotateTitle, { name: title }),
+                  message: t.endpoints.rotateBody,
+                  confirmLabel: t.endpoints.rotate,
+                })
+              ) {
+                rotate.mutate()
+              }
+            }}
+          >
+            <RefreshCw aria-hidden />
+            {t.endpoints.rotate}
+          </Button>
+        )}
         <Button
           size="sm"
           variant="danger-outline"
@@ -619,7 +661,13 @@ function Inbound({ params, update }: { params: URLSearchParams; update: (changes
         />
       ) : null}
       {secret ? (
-        <SecretDialog secret={secret.value} title={secret.title} manual={manual(secret.value)} onClose={() => setSecret(null)} />
+        <SecretDialog
+          secret={secret.value}
+          title={secret.title}
+          manual={manual(secret.value)}
+          google={secret.value.Url?.includes('/api/webhooks/google/') ?? false}
+          onClose={() => setSecret(null)}
+        />
       ) : null}
       {Number.isInteger(eventId) && eventId > 0 ? <EventDrawer eventId={eventId} onClose={() => update({ event: null })} /> : null}
     </>

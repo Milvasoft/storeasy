@@ -11,7 +11,8 @@ using System.Text;
 namespace Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint;
 
 /// <summary>
-/// Handles <see cref="CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret.
+/// Handles <see cref="CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret. A Google Play endpoint
+/// gets a sealed secret too (the column is required) but never shows it: its requests are authenticated by the push token.
 /// </summary>
 /// <param name="EndpointRepository"></param>
 /// <param name="ConnectionRepository"></param>
@@ -80,13 +81,14 @@ public record CreateWebhookEndpointCommandHandler(IStoreasyRepositoryBase<Webhoo
             StoreConnectionId = request.Source == WebhookSource.AppStoreConnect ? request.StoreConnectionId : null,
             Source = request.Source,
             PublicId = publicId,
-            Name = string.IsNullOrEmpty(name) ? request.Source.ToString() : name,
+            Name = string.IsNullOrEmpty(name) ? DefaultName(request.Source) : name,
+            PushServiceAccount = request.Source == WebhookSource.GooglePlay ? request.PushServiceAccount.Trim() : null,
             EncryptedSecret = sealedSecret.EncryptedSecret,
             EncryptedDataKey = sealedSecret.EncryptedDataKey,
             KeyVersion = sealedSecret.KeyVersion,
             SecretSetDate = now,
             Registration = WebhookRegistrationState.Pending,
-            Events = request.Source == WebhookSource.AppStoreConnect ? [AppStoreVersionStates.StateUpdatedEvent] : [],
+            Events = request.Source == WebhookSource.AppStoreConnect ? [.. AppStoreVersionStates.RegisteredEvents] : [],
         };
 
         await _endpointRepository.AddAsync(endpoint, cancellationToken);
@@ -106,10 +108,16 @@ public record CreateWebhookEndpointCommandHandler(IStoreasyRepositoryBase<Webhoo
         {
             Id = endpoint.Id,
             Url = _webhookOptions.ReceiverUrl(_appOptions, endpoint.Source, publicId),
-            Secret = secret,
+            Secret = request.Source == WebhookSource.GooglePlay ? null : secret,
             Registration = endpoint.Registration,
             SecretSetDate = now,
             JobId = jobId,
         });
     }
+
+    private static string DefaultName(WebhookSource source) => source switch
+    {
+        WebhookSource.GooglePlay => "Google Play",
+        _ => source.ToString(),
+    };
 }

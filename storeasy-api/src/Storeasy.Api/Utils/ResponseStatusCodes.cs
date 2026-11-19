@@ -177,6 +177,7 @@ public static class ResponseStatusCodes
         [MessageKey.RuleProposalNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.WebhookEndpointExists] = StatusCodes.Status409Conflict,
         [MessageKey.WebhookEventNotReprocessable] = StatusCodes.Status409Conflict,
+        [MessageKey.WebhookEndpointNotPingable] = StatusCodes.Status409Conflict,
         [MessageKey.OrgWebhookLimitReached] = StatusCodes.Status409Conflict,
         [MessageKey.RejectionCaseClosed] = StatusCodes.Status409Conflict,
         [MessageKey.RejectionCaseExists] = StatusCodes.Status409Conflict,

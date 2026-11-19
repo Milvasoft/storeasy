@@ -46,6 +46,11 @@ public class WebhookEndpointDto
     /// <summary>Event types.</summary>
     public List<string> Events { get; set; }
 
+    /// <summary>
+    /// Service account of a Google Play endpoint's push subscription.
+    /// </summary>
+    public string PushServiceAccount { get; set; }
+
     /// <summary>UTC instant the current secret was set.</summary>
     public DateTime SecretSetDate { get; set; }
 
@@ -74,6 +79,7 @@ public class WebhookEndpointDto
         RegistrationError = e.RegistrationError,
         ExternalWebhooks = e.ExternalWebhooks,
         Events = e.Events,
+        PushServiceAccount = e.PushServiceAccount,
         SecretSetDate = e.SecretSetDate,
         PreviousSecretValidUntil = e.PreviousSecretValidUntil,
         LastEventDate = e.LastEventDate,
