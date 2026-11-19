@@ -94,7 +94,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 - Ödeme ve plan/paket (06 modülü): barındırılan sürüm ücretli olacaksa ayrı karar.
 - Mağaza analitiği ve gelir raporları.
 - Mobil uygulama.
-- Apple ve Google dışındaki mağazalar.
+- App Store, Google Play ve Microsoft Store dışındaki mağazalar: planlandı ama şimdilik yapılmıyor (bölüm 7.1).
 
 ## 4. Mimari
 
@@ -204,6 +204,44 @@ emekli olur.
 Microsoft Store Buğra'nın kararıyla (18 Kasım 2026) öne alındı: Faz 4'ün hemen arkasında. Hazırlık: `StoreKind` enum'u, `IStoreGateway` ve kural kataloğu baştan üç
 mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda gömülmez.
 
+### 7.1 Planlanan mağazalar (şimdilik yapılmıyor)
+
+Buğra'nın kararı (19 Kasım 2026): aşağıdaki dağıtım kanalları plana alındı ama şimdilik eklenmiyor. Sıra önerisi
+yukarıdan aşağıya. Hazırlık ilkesi Microsoft Store'daki gibidir: `StoreKind`, `IStoreGateway` ve kural kataloğu yeni
+kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
+
+| Kanal | Neden storeasy'ye uyar | Not |
+|---|---|---|
+| winget (`microsoft/winget-pkgs`) | MSI/EXE ürünleri zaten storeasy'de; aynı paketin winget manifesti | Gönderim manifest PR'ı, doğrulama ve onay süreci mağaza incelemesine benzer |
+| Chrome Web Store | Mağaza sayfası, ekran görüntüleri, inceleme süreci, yorumlar, sık değişen politika son tarihleri | Chrome Web Store API ile yükleme ve yayın |
+| Microsoft Edge Add-ons | Chrome eklentisiyle aynı paket, ayrı mağaza | Partner Center Edge API |
+| Firefox Add-ons (AMO) | Mağaza sayfası, inceleme, yorumlar | AMO API ile imzalama ve gönderim |
+| Flathub | Linux uygulama mağazası, mağaza sayfası ve ekran görüntüleri | Gönderim GitHub deposu ve PR üzerinden |
+| Snap Store | Linux uygulama mağazası, kanallar (stable, beta, edge) | snapcraft ve Snap Store API |
+| Homebrew | macOS ve Linux paket dağıtımı | Cask ve formül PR'ı; mağaza sayfası yok, en düşük öncelik |
+
+Kütüphane depoları (npm, NuGet, PyPI ve benzerleri) bu listede değildir: mağaza sayfası, ekran görüntüsü ve inceleme
+süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
+
+### 7.2 Paket depoları modülü (planlandı, şimdilik yapılmıyor)
+
+Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
+olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
+
+İlke: storeasy yayını yapan değil, durumu izleyen ve kurulumu kolaylaştıran araçtır. Yayının kendisi CI'da kalır
+(GitHub Actions, Azure DevOps, changesets, release-please); storeasy depolara token saklamaz.
+
+| Kapsam | Ayrıntı |
+|---|---|
+| Depolar | npm, NuGet, PyPI, crates.io; sonra Maven Central, RubyGems, Packagist, pub.dev |
+| Paket özeti | Her paketin son sürümü, son yayın tarihi, hangi depodan ve hangi CI çalışmasından geldiği, tek ekranda |
+| Trusted publishing kurulumu | Her depo için adım adım sihirbaz (depo ayarı, CI dosyası, doğrulama); storeasy'nin kendi npm ve Marketplace kurulumunun tekrarlanabilir hâli |
+| Uyarılar | Süresi dolan token'lar, provenance'ı olmayan yayınlar, kullanımdan kaldırılan (deprecated) veya geri çekilen (yanked) sürümler, güvenlik bildirimleri |
+| Geçmiş | Yayın geçmişi, denetim kaydı ve bildirimlerle |
+| MCP | Okuma araçları (paket özeti, uyarılar); yazma yalnız onaylı ve dry run ile |
+
+Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
+
 ## 8. Güvenlik
 
 - Mağaza gizli değerleri: zarf şifreleme (K6), yalnız `StoreJobRunner` ve doğrulama komutu çözer, bellekte kısa süre.
@@ -227,6 +265,7 @@ mağazaya açık tasarlanır; Faz 1-3'te Apple ve Google'a özel varsayım koda 
 | MVP | Buğra | Kaldırıldı (18 Kasım 2026): bütün ürün tek seferde, bölüm 7 |
 | Logo ve vurgu rengi | Buğra | Karar verildi (18 Kasım 2026): logo K3 "Dört kanat e" (rüzgârgülünün bir kanadı eksik hâli, boşluk "e"nin ağzı; `docs/storeasy uygulaması tasarımı/03-Logo-Onerileri-4.html`), vurgu Ultramarin #4636FF / #857AFF. Yazı logoda ortadaki "e" vurgu renginde |
 | Microsoft Store | Buğra | Eklendi ve öne alındı (18 Kasım 2026): Faz 5, bölüm 11.6 |
+| Yeni mağazalar ve kütüphane depoları | Buğra | Karar verildi (19 Kasım 2026): ikisi de plana alındı, şimdilik yapılmıyor; mağazalar bölüm 7.1, paket depoları ayrı modül bölüm 7.2 |
 
 ## 10. Altyapı varsayılanları (DevOpsçu, 18 Kasım 2026)
 
