@@ -533,6 +533,61 @@
             <param name="configurationManager"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Events.GooglePushTokenValidator">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IGooglePushTokenValidator"/>. The keys come from <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.GooglePushKeysUrl"/>
+            (https only) and are cached for <see cref="F:Storeasy.Infrastructure.Events.GooglePushTokenValidator.KeyCacheLifetime"/>; an unknown key id refreshes them at most once a minute.
+            Registered as a singleton.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.GooglePushTokenValidator.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.WebhookOptions,System.TimeProvider)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IGooglePushTokenValidator"/>. The keys come from <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.GooglePushKeysUrl"/>
+            (https only) and are cached for <see cref="F:Storeasy.Infrastructure.Events.GooglePushTokenValidator.KeyCacheLifetime"/>; an unknown key id refreshes them at most once a minute.
+            Registered as a singleton.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Events.GooglePushTokenValidator.HttpClientName">
+            <summary>
+            Name of the HTTP client that reads Google's key set (tests replace its handler).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Events.GooglePushTokenValidator.KeyCacheLifetime">
+            <summary>
+            How long fetched keys are used.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.GooglePushTokenValidator.ValidateAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Events.PingWebhooksJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PingWebhooks"/> job: one App Store Connect ping per webhook of the endpoint. App Store
+            Connect then posts a signed <c>webhookPingCreated</c> event to the receiver, which logs it like any other event.
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="gateway"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.PingWebhooksJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreEventGateway)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PingWebhooks"/> job: one App Store Connect ping per webhook of the endpoint. App Store
+            Connect then posts a signed <c>webhookPingCreated</c> event to the receiver, which logs it like any other event.
+            </summary>
+            <param name="endpointRepository"></param>
+            <param name="gateway"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Events.PingWebhooksJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.PingWebhooksJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Events.ProcessWebhookEventJobHandler">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent"/> job: reads the App Store version the event names (the event carries
@@ -723,10 +778,12 @@
             <param name="auditTrail"></param>
             <param name="notificationDispatcher"></param>
             <param name="activityPublisher"></param>
+            <param name="googlePushTokenValidator"></param>
             <param name="options"></param>
+            <param name="appOptions"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Events.WebhookInbox.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Utils.Models.WebhookOptions,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Events.WebhookInbox.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IGooglePushTokenValidator,Storeasy.Application.Utils.Models.WebhookOptions,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IWebhookInbox"/>. Replay protection: an event id is accepted once per endpoint (unique index), an
             App Store Connect event older than <see cref="P:Storeasy.Application.Utils.Models.WebhookOptions.MaxEventAgeHours"/> and a signed event whose timestamp is
@@ -740,7 +797,9 @@
             <param name="auditTrail"></param>
             <param name="notificationDispatcher"></param>
             <param name="activityPublisher"></param>
+            <param name="googlePushTokenValidator"></param>
             <param name="options"></param>
+            <param name="appOptions"></param>
             <param name="timeProvider"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Events.WebhookInbox.ReceiveAsync(Storeasy.Application.Interfaces.InboundWebhookRequest,System.Threading.CancellationToken)">
@@ -4452,6 +4511,9 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.DeleteWebhookAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.PingWebhookAsync(System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreClients.StoreEventsGateway.GetVersionAsync(System.String,System.String,System.Threading.CancellationToken)">

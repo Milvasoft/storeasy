@@ -4158,6 +4158,11 @@
             Registers, updates or removes the App Store Connect webhooks of an inbound endpoint.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.PingWebhooks">
+            <summary>
+            Asks App Store Connect to send a test event (ping) to every webhook of an inbound endpoint.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates">
             <summary>
             Reads the App Store version states of a connection's apps (catches what a missed webhook did not report).
@@ -4498,6 +4503,13 @@
             Any other sender with storeasy's own scheme: HMAC-SHA256 over <c>{timestamp}.{body}</c> with a timestamp and an event id.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.WebhookSource.GooglePlay">
+            <summary>
+            Google Play Real-time developer notifications through a Cloud Pub/Sub push subscription: the push request carries
+            a Google signed OIDC token (<c>Authorization: Bearer</c>) whose audience is the receiver address and whose e-mail is
+            the subscription's service account.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Events.AppVersionState">
             <summary>
             Last known review state of one store version (an App Store version, later a Microsoft submission), kept so a change is
@@ -4640,6 +4652,17 @@
         <member name="P:Storeasy.Domain.Events.WebhookEndpoint.SecretSetDate">
             <summary>
             UTC instant the current secret was set.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Events.WebhookEndpoint.PushServiceAccountMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Events.WebhookEndpoint.PushServiceAccount"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Events.WebhookEndpoint.PushServiceAccount">
+            <summary>
+            Service account e-mail the Pub/Sub push subscription signs its tokens as (<see cref="F:Storeasy.Domain.Enums.WebhookSource.GooglePlay"/>
+            only). A token of any other account is refused.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Events.WebhookEndpoint.Registration">

@@ -174,6 +174,15 @@ public static partial class StartupExtensions
                 // (only there; the value is redacted in the logs by SecretRedactingEnricher).
                 OnMessageReceived = context =>
                 {
+                    // A Pub/Sub push request carries Google's OIDC token in the Authorization header; it is not a storeasy
+                    // token, so it is left to the receiver (which checks it) instead of failing the authentication with 401.
+                    if (context.HttpContext.Request.Path.StartsWithSegments(WebhookReceiverController.GooglePushPath))
+                    {
+                        context.NoResult();
+
+                        return Task.CompletedTask;
+                    }
+
                     var accessToken = context.Request.Query[AccessTokenQueryKey];
 
                     if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments(ActivityHub.Path))

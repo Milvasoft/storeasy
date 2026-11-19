@@ -13,6 +13,7 @@ using Storeasy.Application.Features.Webhooks.GetWebhookDeliveryList;
 using Storeasy.Application.Features.Webhooks.GetWebhookEndpointList;
 using Storeasy.Application.Features.Webhooks.GetWebhookEventDetail;
 using Storeasy.Application.Features.Webhooks.GetWebhookEventList;
+using Storeasy.Application.Features.Webhooks.PingWebhookEndpoint;
 using Storeasy.Application.Features.Webhooks.ReprocessWebhookEvent;
 using Storeasy.Application.Features.Webhooks.RotateOrgWebhookSecret;
 using Storeasy.Application.Features.Webhooks.RotateWebhookSecret;
@@ -62,6 +63,17 @@ public class WebhooksController(IMediator mediator) : ControllerBase
     [HttpPost("endpoint/rotate-secret")]
     [RateLimit(20, 3600, "webhook-rotate")]
     public Task<Response<WebhookSecretDto>> RotateEndpointSecretAsync(RotateWebhookSecretCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Asks App Store Connect to send a test event to every webhook of an App Store Connect endpoint (a job). The pings
+    /// arrive in the event log. Returns the job id.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("endpoint/ping")]
+    [RateLimit(30, 3600, "webhook-ping")]
+    public Task<Response<long>> PingEndpointAsync(PingWebhookEndpointCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Removes an inbound endpoint (its App Store Connect webhooks are deleted by a job).

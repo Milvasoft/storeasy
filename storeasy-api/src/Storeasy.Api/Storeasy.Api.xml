@@ -3059,9 +3059,25 @@
             web container's proxy passes them like any API call. Rate limited per sender address and body size limited.
             </summary>
         </member>
+        <member name="F:Storeasy.Api.Controllers.WebhookReceiverController.GooglePushPath">
+            <summary>
+            Path prefix of the Google Play receiver. The API's own bearer authentication skips it: the Authorization header
+            there carries the Pub/Sub push token, which the receiver checks itself.
+            </summary>
+        </member>
         <member name="M:Storeasy.Api.Controllers.WebhookReceiverController.ReceiveAppleAsync(System.String,System.Threading.CancellationToken)">
             <summary>
             App Store Connect events (<c>x-apple-signature: hmacsha256=&lt;hex&gt;</c> over the raw body).
+            </summary>
+            <param name="publicId"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhookReceiverController.ReceiveGoogleAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Google Play Real-time developer notifications from a Cloud Pub/Sub push subscription. The authentication is the
+            push subscription's OIDC token (<c>Authorization: Bearer</c>): signed by Google, audience = this address, e-mail =
+            the endpoint's service account.
             </summary>
             <param name="publicId"></param>
             <param name="cancellation"></param>
@@ -3107,6 +3123,15 @@
         <member name="M:Storeasy.Api.Controllers.WebhooksController.RotateEndpointSecretAsync(Storeasy.Application.Features.Webhooks.RotateWebhookSecret.RotateWebhookSecretCommand,System.Threading.CancellationToken)">
             <summary>
             Rotates the secret of an inbound endpoint (the old one stays valid for 24 hours). The secret is returned once.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WebhooksController.PingEndpointAsync(Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand,System.Threading.CancellationToken)">
+            <summary>
+            Asks App Store Connect to send a test event to every webhook of an App Store Connect endpoint (a job). The pings
+            arrive in the event log. Returns the job id.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -3965,16 +3990,28 @@
         <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261119145700_AddPreReviews">
+        <member name="T:Storeasy.Api.Migrations._20261119145815_AddGooglePlayWebhooks">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119145700_AddPreReviews.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119145815_AddGooglePlayWebhooks.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119145700_AddPreReviews.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119145815_AddGooglePlayWebhooks.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119145700_AddPreReviews.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119145815_AddGooglePlayWebhooks.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119150634_AddPreReviews">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119150634_AddPreReviews.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119150634_AddPreReviews.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119150634_AddPreReviews.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

@@ -18,4 +18,12 @@ public enum WebhookSource : byte
     /// </summary>
     [Description("Signed webhook")]
     Signed = 2,
+
+    /// <summary>
+    /// Google Play Real-time developer notifications through a Cloud Pub/Sub push subscription: the push request carries
+    /// a Google signed OIDC token (<c>Authorization: Bearer</c>) whose audience is the receiver address and whose e-mail is
+    /// the subscription's service account.
+    /// </summary>
+    [Description("Google Play notifications")]
+    GooglePlay = 3,
 }

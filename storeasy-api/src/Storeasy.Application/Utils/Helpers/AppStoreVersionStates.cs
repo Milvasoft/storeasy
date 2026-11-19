@@ -12,6 +12,22 @@ public static class AppStoreVersionStates
     public const string StateUpdatedEvent = "APP_STORE_VERSION_APP_VERSION_STATE_UPDATED";
 
     /// <summary>
+    /// A build finished uploading or processing (or failed processing).
+    /// </summary>
+    public const string BuildUploadStateUpdatedEvent = "BUILD_UPLOAD_STATE_UPDATED";
+
+    /// <summary>
+    /// The external TestFlight (beta review) state of a build changed.
+    /// </summary>
+    public const string ExternalBuildStateUpdatedEvent = "BUILD_BETA_DETAIL_EXTERNAL_BUILD_STATE_UPDATED";
+
+    /// <summary>
+    /// Event types a new App Store Connect endpoint is registered for: version state (App Review), build processing and
+    /// beta review. The version state event is processed; the others are logged.
+    /// </summary>
+    public static IReadOnlyList<string> RegisteredEvents { get; } = [StateUpdatedEvent, BuildUploadStateUpdatedEvent, ExternalBuildStateUpdatedEvent];
+
+    /// <summary>
     /// Names the version state event arrives with: the singular spelling, the older plural heading and the payload's
     /// <c>data.type</c>. All are treated as <see cref="StateUpdatedEvent"/>.
     /// </summary>

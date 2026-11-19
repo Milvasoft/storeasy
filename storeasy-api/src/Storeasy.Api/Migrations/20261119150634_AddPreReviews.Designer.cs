@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261119145700_AddPreReviews")]
-partial class _20261119145700_AddPreReviews
+[Migration("20261119150634_AddPreReviews")]
+partial class _20261119150634_AddPreReviews
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -870,6 +870,10 @@ partial class _20261119145700_AddPreReviews
                 b.Property<string>("PublicId")
                     .HasMaxLength(64)
                     .HasColumnType("character varying(64)");
+
+                b.Property<string>("PushServiceAccount")
+                    .HasMaxLength(320)
+                    .HasColumnType("character varying(320)");
 
                 b.Property<byte>("Registration")
                     .HasColumnType("smallint");

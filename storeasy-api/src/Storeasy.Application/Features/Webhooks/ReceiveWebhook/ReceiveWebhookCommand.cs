@@ -24,7 +24,8 @@ public record ReceiveWebhookCommand : ICommand<long>
     public string Body { get; set; }
 
     /// <summary>
-    /// Signature header (<c>x-apple-signature</c> or <c>X-Storeasy-Signature</c>). Masked in logs.
+    /// Signature header (<c>x-apple-signature</c>, <c>X-Storeasy-Signature</c> or, for Google Play, <c>Authorization</c>).
+    /// Masked in logs.
     /// </summary>
     [LogMasked]
     public string Signature { get; set; }

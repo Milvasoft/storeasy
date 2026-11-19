@@ -37,8 +37,19 @@ public class WebhookOptions
     public int SignedToleranceSeconds { get; set; } = 300;
 
     /// <summary>
-    /// The receiving address of an inbound endpoint: <c>{base}/api/webhooks/{apple|signed}/{publicId}</c>, under <c>/api</c>
-    /// so the web container's proxy passes it to the API like every other call.
+    /// Issuers accepted on the OIDC token of a Pub/Sub push request (Google Play notifications).
+    /// </summary>
+    public List<string> GooglePushIssuers { get; set; } = ["https://accounts.google.com", "accounts.google.com"];
+
+    /// <summary>
+    /// Key set (JWKS) the Pub/Sub push tokens are signed with (https only).
+    /// </summary>
+    public string GooglePushKeysUrl { get; set; } = "https://www.googleapis.com/oauth2/v3/certs";
+
+    /// <summary>
+    /// The receiving address of an inbound endpoint: <c>{base}/api/webhooks/{apple|signed|google}/{publicId}</c>, under
+    /// <c>/api</c> so the web container's proxy passes it to the API like every other call. For a Google Play endpoint it is
+    /// also the audience the push token must carry.
     /// </summary>
     /// <param name="appOptions"></param>
     /// <param name="source"></param>
@@ -48,6 +59,13 @@ public class WebhookOptions
     {
         var baseUrl = (string.IsNullOrWhiteSpace(PublicBaseUrl) ? appOptions?.BaseUrl : PublicBaseUrl) ?? string.Empty;
 
-        return $"{baseUrl.TrimEnd('/')}/api/webhooks/{(source == WebhookSource.AppStoreConnect ? "apple" : "signed")}/{publicId}";
+        var segment = source switch
+        {
+            WebhookSource.AppStoreConnect => "apple",
+            WebhookSource.GooglePlay => "google",
+            _ => "signed",
+        };
+
+        return $"{baseUrl.TrimEnd('/')}/api/webhooks/{segment}/{publicId}";
     }
 }

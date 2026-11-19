@@ -427,7 +427,8 @@ settings in the web app (intake settings), not configuration.
 | Key | `.env` | Default | Description |
 |---|---|---|---|
 | `Storeasy:Events:SchedulesEnabled` | `STOREASY_SCHEDULES_ENABLED` | `true` | Whether this instance runs the scheduled syncs and reminders ([section 11](#11-retention-and-scheduled-work)). With several API instances keep it on in one. |
-| `Storeasy:Webhooks:PublicBaseUrl` | | `Storeasy:App:BaseUrl` | Public address of the inbound webhook receivers (`{base}/api/webhooks/apple/{id}`, `/api/webhooks/signed/{id}`), as App Store Connect and other senders reach it. |
+| `Storeasy:Webhooks:PublicBaseUrl` | | `Storeasy:App:BaseUrl` | Public address of the inbound webhook receivers (`{base}/api/webhooks/apple/{id}`, `/api/webhooks/signed/{id}`, `/api/webhooks/google/{id}`), as App Store Connect, Pub/Sub and other senders reach it. A Google Play push token must carry exactly this address as its audience. |
+| `Storeasy:Webhooks:GooglePushIssuers`, `GooglePushKeysUrl` | | `https://accounts.google.com`, `accounts.google.com`; `https://www.googleapis.com/oauth2/v3/certs` | Issuers and key set of the Pub/Sub push tokens (Google Play notifications). Change only for tests. |
 | `Storeasy:Webhooks:SecretGraceHours`, `MaxEventAgeHours`, `SignedToleranceSeconds` | | `24`, `168`, `300` | How long the previous secret works after a rotation, the oldest App Store Connect event still processed, and the clock difference accepted for signed webhooks. |
 | `Storeasy:OrgWebhooks:Enabled` | | `true` | Whether this instance runs the outgoing webhook sender. |
 | `Storeasy:OrgWebhooks:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `TimeoutSeconds` | | `2000`, `6`, `30`, `10` | Outgoing webhook delivery: pause, attempts, doubling retry delay (at most an hour), timeout of one attempt. |

@@ -16,6 +16,13 @@ public sealed record ProcessWebhookEventPayload(long EventId);
 public sealed record RegisterWebhooksPayload(int EndpointId, int ConnectionId, bool Remove = false, List<string> WebhookIds = null);
 
 /// <summary>
+/// Payload of a <see cref="StoreJobKind.PingWebhooks"/> job.
+/// </summary>
+/// <param name="EndpointId">Inbound endpoint.</param>
+/// <param name="ConnectionId">Its store connection.</param>
+public sealed record PingWebhooksPayload(int EndpointId, int ConnectionId);
+
+/// <summary>
 /// Payload of a <see cref="StoreJobKind.SyncVersionStates"/> job.
 /// </summary>
 /// <param name="ConnectionId">Store connection.</param>

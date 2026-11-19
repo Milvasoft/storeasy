@@ -2376,6 +2376,26 @@
         <member name="P:Storeasy.Application.Dtos.EventDtos.RegisterWebhooksPayload.WebhookIds">
             <summary>The store's webhook ids to remove.</summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.EventDtos.PingWebhooksPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PingWebhooks"/> job.
+            </summary>
+            <param name="EndpointId">Inbound endpoint.</param>
+            <param name="ConnectionId">Its store connection.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.EventDtos.PingWebhooksPayload.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PingWebhooks"/> job.
+            </summary>
+            <param name="EndpointId">Inbound endpoint.</param>
+            <param name="ConnectionId">Its store connection.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.EventDtos.PingWebhooksPayload.EndpointId">
+            <summary>Inbound endpoint.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.EventDtos.PingWebhooksPayload.ConnectionId">
+            <summary>Its store connection.</summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.EventDtos.SyncVersionStatesPayload">
             <summary>
             Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates"/> job.
@@ -2525,6 +2545,11 @@
         </member>
         <member name="P:Storeasy.Application.Dtos.EventDtos.WebhookEndpointDto.Events">
             <summary>Event types.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.EventDtos.WebhookEndpointDto.PushServiceAccount">
+            <summary>
+            Service account of a Google Play endpoint's push subscription.
+            </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.EventDtos.WebhookEndpointDto.SecretSetDate">
             <summary>UTC instant the current secret was set.</summary>
@@ -23618,9 +23643,10 @@
         </member>
         <member name="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand">
             <summary>
-            Adds an inbound webhook endpoint: for an App Store Connect connection (one per connection; registered at Apple through
-            the API unless <see cref="P:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand.RegisterAtStore"/> is false), or a signed endpoint for any other sender. The secret is
-            returned once.
+            Adds an inbound webhook endpoint: for an App Store Connect connection (one per connection; one webhook per App Store
+            app of the connection, registered at Apple through the API unless <see cref="P:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand.RegisterAtStore"/> is false), for Google
+            Play notifications (a Pub/Sub push subscription authenticated by <see cref="P:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand.PushServiceAccount"/>; no secret), or a
+            signed endpoint for any other sender. The secret is returned once.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand.OrganizationId">
@@ -23647,9 +23673,15 @@
             App Store Connect by hand and the first valid event confirms it.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand.PushServiceAccount">
+            <summary>
+            Service account e-mail of the Pub/Sub push subscription (required for <see cref="F:Storeasy.Domain.Enums.WebhookSource.GooglePlay"/>).
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommandHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret.
+            Handles <see cref="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret. A Google Play endpoint
+            gets a sealed secret too (the column is required) but never shows it: its requests are authenticated by the push token.
             </summary>
             <param name="EndpointRepository"></param>
             <param name="ConnectionRepository"></param>
@@ -23662,7 +23694,8 @@
         </member>
         <member name="M:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.WebhookOptions,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret.
+            Handles <see cref="T:Storeasy.Application.Features.Webhooks.CreateWebhookEndpoint.CreateWebhookEndpointCommand"/>. No [Log]: the response carries the secret. A Google Play endpoint
+            gets a sealed secret too (the column is required) but never shows it: its requests are authenticated by the push token.
             </summary>
             <param name="EndpointRepository"></param>
             <param name="ConnectionRepository"></param>
@@ -23941,6 +23974,44 @@
         <member name="M:Storeasy.Application.Features.Webhooks.GetWebhookEventList.GetWebhookEventListQueryHandler.Handle(Storeasy.Application.Features.Webhooks.GetWebhookEventList.GetWebhookEventListQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand">
+            <summary>
+            Asks App Store Connect to send a test event (ping) to every webhook of an App Store Connect endpoint, through a job.
+            The pings arrive at the receiver like real events and show in the event log with their signature verdict, so this
+            checks the address, the secret and the proxy end to end. Returns the job id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand.EndpointId">
+            <summary>
+            Endpoint.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand"/>.
+            </summary>
+            <param name="EndpointRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand"/>.
+            </summary>
+            <param name="EndpointRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommandHandler.EndpointRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommandHandler.Handle(Storeasy.Application.Features.Webhooks.PingWebhookEndpoint.PingWebhookEndpointCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Application.Features.Webhooks.ReceiveWebhook.ReceiveWebhookCommand">
             <summary>
             An inbound webhook request (anonymous; the HMAC signature is the authentication). Returns the stored event id.
@@ -23963,7 +24034,8 @@
         </member>
         <member name="P:Storeasy.Application.Features.Webhooks.ReceiveWebhook.ReceiveWebhookCommand.Signature">
             <summary>
-            Signature header (<c>x-apple-signature</c> or <c>X-Storeasy-Signature</c>). Masked in logs.
+            Signature header (<c>x-apple-signature</c>, <c>X-Storeasy-Signature</c> or, for Google Play, <c>Authorization</c>).
+            Masked in logs.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Webhooks.ReceiveWebhook.ReceiveWebhookCommand.Timestamp">
@@ -25556,6 +25628,24 @@
             or the message key of the refusal (<see cref="F:Storeasy.Application.Utils.Constants.MessageKey.SetupAlreadyCompleted"/> when a user exists).
             </summary>
             <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IGooglePushTokenValidator">
+            <summary>
+            Checks the OIDC token Cloud Pub/Sub puts on a push request (<c>Authorization: Bearer &lt;jwt&gt;</c>): signed by Google,
+            not expired, issued for the receiver address (audience) and for the subscription's service account with a verified
+            e-mail. Registered as a singleton; tests replace its HTTP client.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IGooglePushTokenValidator.ValidateAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Whether the <c>Authorization</c> header value carries a valid push token of <paramref name="serviceAccount"/> for
+            <paramref name="audience"/>.
+            </summary>
+            <param name="authorization">The <c>Authorization</c> header value.</param>
+            <param name="audience">Expected audience.</param>
+            <param name="serviceAccount">Expected service account e-mail.</param>
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
@@ -28329,6 +28419,15 @@
         <member name="M:Storeasy.Application.Interfaces.IStoreEventGateway.DeleteWebhookAsync(System.String,System.String,System.Threading.CancellationToken)">
             <summary>
             Deletes a webhook; a webhook that is already gone is not an error.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="webhookId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreEventGateway.PingWebhookAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Asks App Store Connect to send a test event (<c>webhookPingCreated</c>) to a webhook and returns the ping's id.
             </summary>
             <param name="secretJson"></param>
             <param name="webhookId"></param>
@@ -32392,6 +32491,22 @@
             The version state event type App Store Connect sends (singular spelling, as on the current documentation pages).
             </summary>
         </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.AppStoreVersionStates.BuildUploadStateUpdatedEvent">
+            <summary>
+            A build finished uploading or processing (or failed processing).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.AppStoreVersionStates.ExternalBuildStateUpdatedEvent">
+            <summary>
+            The external TestFlight (beta review) state of a build changed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.AppStoreVersionStates.RegisteredEvents">
+            <summary>
+            Event types a new App Store Connect endpoint is registered for: version state (App Review), build processing and
+            beta review. The version state event is processed; the others are logged.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Utils.Helpers.AppStoreVersionStates.StateUpdatedAliases">
             <summary>
             Names the version state event arrives with: the singular spelling, the older plural heading and the payload's
@@ -32723,6 +32838,82 @@
             <param name="date"></param>
             <param name="data"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications">
+            <summary>
+            Google Play Real-time developer notifications as Cloud Pub/Sub pushes them: <c>{"message":{"data":"&lt;base64&gt;",
+            "messageId":"..."},"subscription":"..."}</c>, the data being a <c>DeveloperNotification</c> with exactly one of
+            <c>subscriptionNotification</c>, <c>oneTimeProductNotification</c>, <c>voidedPurchaseNotification</c>,
+            <c>pendingRefundReviewNotification</c> or <c>testNotification</c>. Purchase and refund tokens are never kept: the stored
+            payload is the decoded notification with those values masked.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications.TestEvent">
+            <summary>
+            Event type of a test notification sent from Play Console.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications.VoidedPurchaseEvent">
+            <summary>
+            Event type of a voided purchase.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications.PendingRefundReviewEvent">
+            <summary>
+            Event type of a chargeback that waits for the developer's review (to be answered within 24 hours).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications.UnknownEvent">
+            <summary>
+            Event type when the notification has none of the known parts.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.PlayDeveloperNotifications.Parse(System.String)">
+            <summary>
+            Reads a push body. Returns null when it is not a Pub/Sub push with a decodable notification.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.PlayNotification">
+            <summary>
+            A decoded Play notification.
+            </summary>
+            <param name="MessageId">Pub/Sub message id (unique per notification; the replay key).</param>
+            <param name="EventType">Notification type name (for example <c>SUBSCRIPTION_RENEWED</c>).</param>
+            <param name="PackageName">Package of the app.</param>
+            <param name="ProductId">Subscription or product id when the notification names one (voided: the product type).</param>
+            <param name="EventDate">UTC instant of the event.</param>
+            <param name="RedactedJson">The decoded notification with the tokens masked.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.PlayNotification.#ctor(System.String,System.String,System.String,System.String,System.Nullable{System.DateTime},System.String)">
+            <summary>
+            A decoded Play notification.
+            </summary>
+            <param name="MessageId">Pub/Sub message id (unique per notification; the replay key).</param>
+            <param name="EventType">Notification type name (for example <c>SUBSCRIPTION_RENEWED</c>).</param>
+            <param name="PackageName">Package of the app.</param>
+            <param name="ProductId">Subscription or product id when the notification names one (voided: the product type).</param>
+            <param name="EventDate">UTC instant of the event.</param>
+            <param name="RedactedJson">The decoded notification with the tokens masked.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.MessageId">
+            <summary>Pub/Sub message id (unique per notification; the replay key).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.EventType">
+            <summary>Notification type name (for example <c>SUBSCRIPTION_RENEWED</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.PackageName">
+            <summary>Package of the app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.ProductId">
+            <summary>Subscription or product id when the notification names one (voided: the product type).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.EventDate">
+            <summary>UTC instant of the event.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Helpers.PlayNotification.RedactedJson">
+            <summary>The decoded notification with the tokens masked.</summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Helpers.PullWebhooks">
             <summary>
@@ -34495,10 +34686,21 @@
             Largest clock difference accepted for storeasy signed webhooks, in seconds.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Utils.Models.WebhookOptions.GooglePushIssuers">
+            <summary>
+            Issuers accepted on the OIDC token of a Pub/Sub push request (Google Play notifications).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WebhookOptions.GooglePushKeysUrl">
+            <summary>
+            Key set (JWKS) the Pub/Sub push tokens are signed with (https only).
+            </summary>
+        </member>
         <member name="M:Storeasy.Application.Utils.Models.WebhookOptions.ReceiverUrl(Storeasy.Application.Utils.Models.AppOptions,Storeasy.Domain.Enums.WebhookSource,System.String)">
             <summary>
-            The receiving address of an inbound endpoint: <c>{base}/api/webhooks/{apple|signed}/{publicId}</c>, under <c>/api</c>
-            so the web container's proxy passes it to the API like every other call.
+            The receiving address of an inbound endpoint: <c>{base}/api/webhooks/{apple|signed|google}/{publicId}</c>, under
+            <c>/api</c> so the web container's proxy passes it to the API like every other call. For a Google Play endpoint it is
+            also the audience the push token must carry.
             </summary>
             <param name="appOptions"></param>
             <param name="source"></param>

@@ -599,6 +599,7 @@ export const phase4Handlers: HttpHandler[] = [
   endpoint('get', '/Webhooks', () => json(envelope(phase4State.endpoints))),
   endpoint('post', '/Webhooks/endpoint', () => json(envelope(secretAnswer({ PreviousSecretValidUntil: undefined })))),
   endpoint('post', '/Webhooks/endpoint/rotate-secret', () => json(envelope(secretAnswer({ Url: undefined, Secret: 'whsec_rotated_123' })))),
+  endpoint('post', '/Webhooks/endpoint/ping', () => json(envelope(4321))),
   endpoint('delete', '/Webhooks/endpoint', () => json(envelope(31))),
   endpoint('patch', '/Webhooks/events', () => json(listEnvelope(phase4State.events))),
   endpoint('get', '/Webhooks/event', ({ url }) =>

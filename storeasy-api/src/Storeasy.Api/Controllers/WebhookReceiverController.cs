@@ -23,6 +23,12 @@ namespace Storeasy.Api.Controllers;
 [AllowAnonymous]
 public class WebhookReceiverController(IMediator mediator) : ControllerBase
 {
+    /// <summary>
+    /// Path prefix of the Google Play receiver. The API's own bearer authentication skips it: the Authorization header
+    /// there carries the Pub/Sub push token, which the receiver checks itself.
+    /// </summary>
+    public const string GooglePushPath = "/" + GlobalConstant.RoutePrefix + "/webhooks/google";
+
     private readonly IMediator _mediator = mediator;
 
     /// <summary>
@@ -41,6 +47,26 @@ public class WebhookReceiverController(IMediator mediator) : ControllerBase
             PublicId = publicId,
             Body = await ReadBodyAsync(cancellation),
             Signature = Request.Headers[WebhookSignatures.AppleHeader].FirstOrDefault(),
+        }, cancellation);
+
+    /// <summary>
+    /// Google Play Real-time developer notifications from a Cloud Pub/Sub push subscription. The authentication is the
+    /// push subscription's OIDC token (<c>Authorization: Bearer</c>): signed by Google, audience = this address, e-mail =
+    /// the endpoint's service account.
+    /// </summary>
+    /// <param name="publicId"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("google/{publicId}")]
+    [RequestSizeLimit(WebhookOptions.MaxBodyBytes)]
+    [RateLimit(600, 60, "webhook-receive")]
+    public async Task<Response<long>> ReceiveGoogleAsync(string publicId, CancellationToken cancellation)
+        => await _mediator.Send(new ReceiveWebhookCommand
+        {
+            Source = WebhookSource.GooglePlay,
+            PublicId = publicId,
+            Body = await ReadBodyAsync(cancellation),
+            Signature = Request.Headers.Authorization.FirstOrDefault(),
         }, cancellation);
 
     /// <summary>
