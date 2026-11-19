@@ -58,4 +58,4 @@ npm run lint     # eslint, text rules (SPDX headers, no em or en dashes), bundle
 After changing `storeasy-cli/src` or an action or task source, run `npm run build` and commit the bundles; `npm run
 lint` fails on a stale bundle.
 
-Releases run from `.github/workflows/release.yml` on a `v*` tag: the GitHub Action is used by path at the moving major tag (`Milvasoft/storeasy/tools/upload-action@v0`), the npm package `storeasy` is published when the `NPM_TOKEN` secret exists, and the Azure DevOps extension when `AZURE_DEVOPS_EXT_PAT` exists (publisher id in `vss-extension.json`).
+Releases run from `.github/workflows/release.yml` on a `v*` tag: the GitHub Action is used by path at the moving major tag (`Milvasoft/storeasy/tools/upload-action@v0`), the npm package `storeasy` and the Azure DevOps extension (Marketplace publisher `milvasoft`) are published with trusted publishing (GitHub OIDC), so no npm or Marketplace token is stored. A manual run of the workflow with an existing tag publishes both again for that tag.

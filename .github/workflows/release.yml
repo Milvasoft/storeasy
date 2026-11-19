@@ -1,10 +1,10 @@
 # Release on a `v*` tag (container images are built by images.yml on the same tag):
 # - GitHub release with generated notes;
 # - the moving major tag (for example `v0`) that `Milvasoft/storeasy/tools/upload-action@v0` users follow;
-# - the npm package `storeasy` (CLI and the local MCP bridge) with provenance, when the NPM_TOKEN secret exists;
+# - the npm package `storeasy` (CLI and the local MCP bridge) through npm trusted publishing (GitHub OIDC, provenance,
+#   no stored token; the package has a trusted publisher for this repository and release.yml);
 # - the Azure DevOps extension (StoreasyUpload@1) under the `milvasoft` Marketplace publisher, through Marketplace
 #   trusted publishing (GitHub OIDC, no stored token; the publisher has a policy for this repository and release.yml).
-# A missing NPM_TOKEN skips npm with a notice instead of failing the release.
 # A manual run (workflow_dispatch) with an existing tag publishes npm and the extension again for that tag only.
 name: release
 
@@ -100,16 +100,11 @@ jobs:
       - name: Set the package version from the tag
         working-directory: tools/storeasy-cli
         run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
-      - name: Publish
+      - name: npm with trusted publishing support (11.5.1 or later)
+        run: npm install -g npm@11.21.3
+      - name: Publish (npm trusted publishing)
         working-directory: tools/storeasy-cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "::notice title=npm skipped::Add the NPM_TOKEN repository secret (an npm automation or granular token for the storeasy package) to publish."
-            exit 0
-          fi
-          npm publish --provenance --access public
+        run: npm publish --access public
 
   azure-devops:
     name: Azure DevOps extension
