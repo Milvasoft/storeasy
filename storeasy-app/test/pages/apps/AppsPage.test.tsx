@@ -31,6 +31,24 @@ function render(route = '/apps', options: Parameters<typeof renderWithProviders>
 }
 
 describe('AppsPage', () => {
+  it('marks each lane with the icon of its own connection and the store chips with the oldest connection of the store', async () => {
+    testState.connections = [
+      connection({ Id: 11, Icon: 'phone' }),
+      connection({ Id: 14, Name: 'Second key', Icon: 'appstore' }),
+      connection({ Id: 12, Store: StoreKind.Google, Name: 'Play', Icon: null }),
+    ]
+    testState.apps = [app({ Stores: [storeRecord({ StoreConnectionId: 14 }), storeRecord({ StoreAppId: 202, Store: StoreKind.Google, StoreConnectionId: 12 })] })]
+
+    render()
+
+    const pusula = (await screen.findByRole('link', { name: 'Pusula' })).closest('article') as HTMLElement
+    await waitFor(() => expect(pusula.querySelector('.sti')).toHaveAttribute('data-icon', 'appstore'))
+    // The Google connection has no icon: its lane keeps the text code.
+    expect(Array.from(pusula.querySelectorAll('.st b')).map((code) => code.textContent)).toEqual(['GP'])
+    const chips = screen.getByRole('group', { name: 'Mağaza' })
+    expect(chips.querySelector('.sti')).toHaveAttribute('data-icon', 'phone')
+  })
+
   it('shows each app as a card with one lane per store record and the sync state', async () => {
     testState.apps = [app(), halka]
 

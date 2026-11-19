@@ -164,7 +164,7 @@ function RecordCard({
   return (
     <section className="card">
       <div className="card-h">
-        <StoreTag store={record.Store} small />
+        <StoreTag store={record.Store} connectionId={record.StoreConnectionId} small />
         <span className="ml-auto">
           {record.SyncedDate ? (
             <Badge tone="success" small>
@@ -336,7 +336,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
             subtitle={
               <span className="flex flex-wrap items-center gap-2">
                 {recordsOf(data).map((record) => (
-                  <StoreTag key={record.StoreAppId} store={record.Store} small codeOnly />
+                  <StoreTag key={record.StoreAppId} store={record.Store} connectionId={record.StoreConnectionId} small codeOnly />
                 ))}
                 <span>{interpolate(t.app.addedOn, { date: format.date(data.CreationDate) })}</span>
                 {data.HiddenDate ? (

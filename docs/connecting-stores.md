@@ -5,6 +5,12 @@ storeasy talks to the stores only through their official APIs, with credentials 
 permission (Owner and Admin, or a custom role that has it) and a verified e-mail address. An organization can have
 several connections per store (for example two Apple developer accounts).
 
+Each connection can have an optional icon, picked when it is added and changed later with **Edit** (with its name): the
+store's own logo or a colored generic icon. Records that come from that connection show the icon in place of the
+`AS` / `GP` / `MS` code; places that know only the store (filters, counts, store columns) use the icon of the store's
+oldest connection that has one. Without an icon the code stays. Store logos are trademarks of their owners and only
+identify the store; each is offered only for its own store.
+
 ## What storeasy keeps
 
 | Kept | Never |

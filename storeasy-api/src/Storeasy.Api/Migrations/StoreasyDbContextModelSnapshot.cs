@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119101012_AddAppDisplayOrder";
+    public override string LastMigrationId => "20261119125206_AddStoreConnectionIcon";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -3176,6 +3176,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
+
+                b.Property<string>("Icon")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");

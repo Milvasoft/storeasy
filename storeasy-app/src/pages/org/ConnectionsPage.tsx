@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plug, Plus, ShieldAlert, Trash2, RefreshCw } from 'lucide-react'
+import { Pencil, Plug, Plus, ShieldAlert, Trash2, RefreshCw } from 'lucide-react'
 import { AddConnectionDialog } from '@/components/connections/AddConnectionDialog'
 import { ConnectionStatusBadge } from '@/components/connections/ConnectionStatusBadge'
+import { EditConnectionDialog } from '@/components/connections/EditConnectionDialog'
 import { StoreTag } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { ScreenState, StateView } from '@/components/ui/ScreenState'
@@ -58,10 +59,12 @@ function ConnectionCard({
   connection,
   organizationId,
   onRenew,
+  onEdit,
 }: {
   connection: StoreConnectionDto
   organizationId: number
   onRenew: (connection: StoreConnectionDto) => void
+  onEdit: (connection: StoreConnectionDto) => void
 }) {
   const t = useT()
   const format = useFormat()
@@ -114,7 +117,7 @@ function ConnectionCard({
       aria-label={connection.Name}
     >
       <div className="card-h">
-        <StoreTag store={connection.Store} />
+        <StoreTag store={connection.Store} connectionId={connection.Id} />
         <h2 className="h3 min-w-0 flex-1 truncate">{connection.Name}</h2>
         <SecretExpiryBadge connection={connection} />
         <ConnectionStatusBadge status={connection.Status} verifying={verify.isPending} />
@@ -134,6 +137,10 @@ function ConnectionCard({
         <Button size="sm" loading={verify.isPending} onClick={() => verify.mutate()}>
           <RefreshCw aria-hidden />
           {t.connections.verify}
+        </Button>
+        <Button size="sm" onClick={() => onEdit(connection)}>
+          <Pencil aria-hidden />
+          {t.connections.edit}
         </Button>
         {connection.Store === StoreKind.Microsoft ? <RenewSecretButton onClick={() => onRenew(connection)} /> : null}
         <Button size="sm" variant="danger-outline" className="ml-auto" loading={remove.isPending} onClick={() => void askRemove()}>
@@ -174,6 +181,7 @@ export function ConnectionsPage() {
   const { can } = useOrganization()
   const [adding, setAdding] = useState(false)
   const [renewing, setRenewing] = useState<StoreConnectionDto | null>(null)
+  const [editing, setEditing] = useState<StoreConnectionDto | null>(null)
   const allowed = can(OrgPermission.ManageConnections)
 
   const connections = useQuery({
@@ -225,11 +233,23 @@ export function ConnectionsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((connection) => (
-            <ConnectionCard key={connection.Id} connection={connection} organizationId={organization.Id} onRenew={setRenewing} />
+            <ConnectionCard
+              key={connection.Id}
+              connection={connection}
+              organizationId={organization.Id}
+              onRenew={setRenewing}
+              onEdit={setEditing}
+            />
           ))}
         </div>
       )}
       <AddConnectionDialog open={adding} onClose={() => setAdding(false)} organizationId={organization.Id} />
+      <EditConnectionDialog
+        key={`edit-${editing?.Id ?? 0}`}
+        connection={editing}
+        organizationId={organization.Id}
+        onClose={() => setEditing(null)}
+      />
       <RenewSecretDialog key={renewing?.Id ?? 0} connection={renewing} organizationId={organization.Id} onClose={() => setRenewing(null)} />
     </>
   )

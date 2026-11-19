@@ -416,4 +416,58 @@ public class OrganizationsControllerTests(StoreasyApiFactory factory) : Integrat
         logs.Data[0].Channel.Should().Be(ActionChannel.Web);
         logs.Data[0].Details.Should().Contain("ABC123DEFG").And.NotContain("PRIVATE");
     }
+
+    [Fact]
+    public async Task ConnectionIcon_ShouldBeSavedOnAdd_ChangedByAnUpdate_AndShownToEveryMember()
+    {
+        // Arrange
+        var owner = await NewMemberAsync();
+        var viewer = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+
+        await AddMemberAsync(owner.User, organizationId, viewer, OrgRole.Viewer);
+
+        // Act
+        var (addHttp, added) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Apple, name = "Team key", secret = AppleSecret(), icon = "appstore" });
+        var (_, afterAdd) = await viewer.User.Client.GetAsync<List<StoreConnectionDto>>($"storeconnections?organizationId={organizationId}");
+        var (updateHttp, updated) = await owner.User.Client.PutAsync<StoreConnectionDto>("storeconnections/connection", new { organizationId, connectionId = added.Data, name = "Release key", icon = "rocket" });
+        var (clearHttp, cleared) = await owner.User.Client.PutAsync<StoreConnectionDto>("storeconnections/connection", new { organizationId, connectionId = added.Data, name = "Release key", icon = (string)null });
+        var (viewerHttp, _) = await viewer.User.Client.PutAsync<StoreConnectionDto>("storeconnections/connection", new { organizationId, connectionId = added.Data, name = "x", icon = "box" });
+        var (_, logs) = await owner.User.Client.PatchListAsync<StoreAuditLogDto>("organizations/audit-logs", new { organizationId, pageNumber = 1, rowCount = 10 });
+
+        // Assert
+        addHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterAdd.Data.Should().ContainSingle().Which.Icon.Should().Be("appstore");
+        updateHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        updated.Data.Name.Should().Be("Release key");
+        updated.Data.Icon.Should().Be("rocket");
+        clearHttp.StatusCode.Should().Be(HttpStatusCode.OK);
+        cleared.Data.Icon.Should().BeNull();
+        viewerHttp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        logs.Data.Count(l => l.Action == AuditAction.ConnectionUpdated).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ConnectionIcon_ShouldRefuseAnUnknownKeyOrAnotherStoresLogo()
+    {
+        // Arrange
+        var owner = await NewMemberAsync();
+        var organizationId = await CreateOrganizationAsync(owner.User);
+        var (_, added) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Apple, name = "Team key", secret = AppleSecret() });
+
+        // Act
+        var (unknownHttp, unknown) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Apple, name = "Other", secret = AppleSecret(), icon = "https://example.com/a.png" });
+        var (foreignHttp, _) = await owner.User.Client.PostAsync<int>("storeconnections/connection", new { organizationId, store = StoreKind.Apple, name = "Other", secret = AppleSecret(), icon = "googleplay" });
+        var (updateHttp, update) = await owner.User.Client.PutAsync<StoreConnectionDto>("storeconnections/connection", new { organizationId, connectionId = added.Data, name = "Team key", icon = "msstore" });
+        var (missingHttp, _) = await owner.User.Client.PutAsync<StoreConnectionDto>("storeconnections/connection", new { organizationId, connectionId = added.Data + 100000, name = "Team key", icon = "box" });
+
+        // Assert
+        unknownHttp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        unknown.Messages.Should().ContainSingle("the validator refuses the key before the secret is read");
+        foreignHttp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        updateHttp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        update.Messages.Should().Contain(m => m.Key == Storeasy.Application.Utils.Constants.MessageKey.StoreConnectionIconInvalid);
+        missingHttp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await _factory.DbAsync(db => db.StoreConnections.CountAsync(c => c.OrganizationId == organizationId))).Should().Be(1);
+    }
 }

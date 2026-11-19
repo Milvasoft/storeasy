@@ -10230,6 +10230,12 @@
             Display name chosen by the user (e.g. "Company team key").
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Icon">
+            <summary>
+            Icon picked by a member, a key of <see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/> (e.g. "appstore", "phone"). Null when none
+            was picked; the web then shows the store's text code.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnection.Fingerprint">
             <summary>
             Non secret identifiers safe to show (key id, masked issuer id, service account e-mail).
@@ -10275,6 +10281,62 @@
             <summary>
             Navigation property of the organization.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreConnectionIcons">
+            <summary>
+            The icons a member can pick for a store connection, so its records are told apart at a glance (the web draws them;
+            the API stores only the key). A fixed list, no uploads. The three store logos only identify their own store, so each
+            is allowed only on a connection of that store; the generic icons fit any store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.MaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreConnection.Icon"/>; longer than every key.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.AppStore">
+            <summary>App Store logo (Apple connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.GooglePlay">
+            <summary>Google Play logo (Google connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.MsStore">
+            <summary>Microsoft Store logo (Microsoft connections only).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnectionIcons.Generic">
+            <summary>
+            The generic icons, in the order the web shows them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.LogoOf(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            The store logo of <paramref name="store"/>.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.IsAllowed(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            Whether <paramref name="icon"/> may be stored on a connection of <paramref name="store"/>. Null or empty (no
+            icon, the web shows the store's text code) is allowed; a key is compared exactly (lower case).
+            </summary>
+            <param name="store"></param>
+            <param name="icon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.IsKnown(System.String)">
+            <summary>
+            Whether <paramref name="icon"/> is one of the keys (any store), or null or empty.
+            </summary>
+            <param name="icon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.Normalize(System.String)">
+            <summary>
+            The value to store: null for an empty choice, the key otherwise.
+            </summary>
+            <param name="icon"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Domain.Stores.StoreJob">
             <summary>

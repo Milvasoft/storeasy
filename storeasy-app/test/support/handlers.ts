@@ -155,6 +155,14 @@ export const defaultHandlers: HttpHandler[] = [
     const known = testState.connections.find((item) => item.Id === id) ?? { ...testState.connections[0], Id: id }
     return json(envelope({ ...known, Status: 2, LastVerifiedDate: '2026-11-18T10:00:00Z' }))
   }),
+  endpoint('put', '/StoreConnections/connection', ({ body }) => {
+    const input = body as { ConnectionId: number; Name: string; Icon: string | null }
+    const known = testState.connections.find((item) => item.Id === input.ConnectionId) ?? {
+      ...testState.connections[0],
+      Id: input.ConnectionId,
+    }
+    return json(envelope({ ...known, Name: input.Name, Icon: input.Icon }))
+  }),
   endpoint('delete', '/StoreConnections/connection', () => json(envelope(11))),
 
   // ---- apps and builds ----------------------------------------------------
