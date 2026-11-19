@@ -7515,6 +7515,11 @@
             Organization slug (not for a revoked invitation).
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.InvitationPreviewDto.OrganizationLogoUrl">
+            <summary>
+            Short lived URL of the organization's logo; null when it has none (and for a revoked invitation).
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.InvitationPreviewDto.InviterName">
             <summary>
             Who sent the invitation (pending and expired only).
@@ -7578,6 +7583,16 @@
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.MyOrganizationDto.Slug">
             <summary>
             URL key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.MyOrganizationDto.LogoUrl">
+            <summary>
+            Short lived URL of the organization's logo (a square PNG); null when it has none and shows its initial.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.MyOrganizationDto.LogoKey">
+            <summary>
+            Object key of the logo (the handler turns it into <see cref="P:Storeasy.Application.Dtos.OrganizationDtos.MyOrganizationDto.LogoUrl"/>).
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.MyOrganizationDto.Role">
@@ -16964,6 +16979,68 @@
         <member name="M:Storeasy.Application.Features.Organizations.ChangeMemberRole.ChangeMemberRoleCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Organizations.ChangeMemberRole.ChangeMemberRoleCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand">
+            <summary>
+            Declares a logo file (PNG, JPEG or WebP, at most 2 MB) and returns the presigned PUT URL to upload it with, like
+            <c>assets/upload</c> but for owners. The logo changes only when <c>PUT organizations/logo</c> confirms the upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand.ContentType">
+            <summary>
+            MIME type the upload is sent with: image/png, image/jpeg or image/webp.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand.Size">
+            <summary>
+            Exact size in bytes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand"/>: a pending <see cref="F:Storeasy.Domain.Enums.AssetPurpose.OrganizationLogo"/> asset
+            and one presigned PUT URL. An upload nobody confirms is removed by the intake cleanup like any pending asset.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="StorageOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.StorageOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand"/>: a pending <see cref="F:Storeasy.Domain.Enums.AssetPurpose.OrganizationLogo"/> asset
+            and one presigned PUT URL. An upload nobody confirms is removed by the intake cleanup like any pending asset.
+            </summary>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="StorageOptions"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.AssetRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.FileStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.StorageOptions">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandHandler.Handle(Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Organizations.CreateOrganizationRole.CreateOrganizationRoleCommand">
             <summary>
             Defines a custom role in the organization. The caller must hold every permission it grants (only owners hold all);
@@ -17161,14 +17238,16 @@
             </summary>
             <param name="invitationRepository"></param>
             <param name="timeProvider"></param>
+            <param name="fileStorage"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},System.TimeProvider)">
+        <member name="M:Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationInvitation},System.TimeProvider,Storeasy.Application.Interfaces.IFileStorage)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQuery"/>: one projection by token hash, then only what the invitation's state
             may show (see <see cref="T:Storeasy.Application.Dtos.OrganizationDtos.InvitationPreviewDto"/>). An invitation of a deleted organization reads as revoked.
             </summary>
             <param name="invitationRepository"></param>
             <param name="timeProvider"></param>
+            <param name="fileStorage"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQueryHandler.Handle(Storeasy.Application.Features.Organizations.GetInvitationPreview.GetInvitationPreviewQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -17213,13 +17292,15 @@
             </summary>
             <param name="memberRepository"></param>
             <param name="currentUser"></param>
+            <param name="fileStorage"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Organizations.GetMyOrganizations.GetMyOrganizationsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.ICurrentUser)">
+        <member name="M:Storeasy.Application.Features.Organizations.GetMyOrganizations.GetMyOrganizationsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IFileStorage)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Organizations.GetMyOrganizations.GetMyOrganizationsQuery"/>.
             </summary>
             <param name="memberRepository"></param>
             <param name="currentUser"></param>
+            <param name="fileStorage"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Organizations.GetMyOrganizations.GetMyOrganizationsQueryHandler.Handle(Storeasy.Application.Features.Organizations.GetMyOrganizations.GetMyOrganizationsQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -17427,6 +17508,44 @@
         <member name="M:Storeasy.Application.Features.Organizations.RemoveMember.RemoveMemberCommandHandler.Handle(Storeasy.Application.Features.Organizations.RemoveMember.RemoveMemberCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand">
+            <summary>
+            Removes the organization's logo; it shows its initial again. Removing when there is no logo succeeds and changes nothing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand"/>: clears the logo columns, deletes the stored file and writes an
+            audit entry. Without a logo nothing is written.
+            </summary>
+            <param name="OrganizationRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand"/>: clears the logo columns, deletes the stored file and writes an
+            audit entry. Without a logo nothing is written.
+            </summary>
+            <param name="OrganizationRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler.OrganizationRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler.FileStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommandHandler.Handle(Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Application.Features.Organizations.RevokeInvitation.RevokeInvitationCommand">
             <summary>
             Revokes a pending invitation.
@@ -17467,6 +17586,81 @@
         </member>
         <member name="M:Storeasy.Application.Features.Organizations.RevokeInvitation.RevokeInvitationCommandHandler.Handle(Storeasy.Application.Features.Organizations.RevokeInvitation.RevokeInvitationCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand">
+            <summary>
+            Makes an uploaded file (from <c>POST organizations/logo/upload</c>) the organization's logo, replacing the current one.
+            The file must really be a PNG, JPEG or WebP image of the declared type and size; it is redrawn as a square PNG of at
+            most 256 pixels and the upload itself is removed. Returns the new logo URL.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand.AssetId">
+            <summary>
+            The asset id the upload call returned.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand"/>. The storage is the source of truth: the stored size must equal the
+            declared one and the bytes must start with the signature of the declared type, then the image is redrawn by
+            <see cref="T:Storeasy.Application.Interfaces.ILogoImageNormalizer"/> (a file that does not decode is refused). The redrawn PNG gets a fresh key, the
+            organization points at it, and the upload and the previous logo are deleted. A refused upload is deleted too.
+            </summary>
+            <param name="OrganizationRepository"></param>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="Normalizer"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.Organization},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.ILogoImageNormalizer,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand"/>. The storage is the source of truth: the stored size must equal the
+            declared one and the bytes must start with the signature of the declared type, then the image is redrawn by
+            <see cref="T:Storeasy.Application.Interfaces.ILogoImageNormalizer"/> (a file that does not decode is refused). The redrawn PNG gets a fresh key, the
+            organization points at it, and the upload and the previous logo are deleted. A refused upload is deleted too.
+            </summary>
+            <param name="OrganizationRepository"></param>
+            <param name="AssetRepository"></param>
+            <param name="FileStorage"></param>
+            <param name="Normalizer"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+            <param name="Logger"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.OrganizationRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.AssetRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.FileStorage">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.Normalizer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.Logger">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.Handle(Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommandHandler.ReadAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads at most one byte more than <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxBytes"/>, so a file that grew after the size
+            check is noticed and refused instead of being read whole.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Features.Organizations.UpdateOrganizationRole.UpdateOrganizationRoleCommand">
             <summary>
@@ -24915,6 +25109,21 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.ILogoImageNormalizer">
+            <summary>
+            Redraws an uploaded organization logo (PNG, JPEG or WebP) as a square PNG of at most
+            <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputSize"/> pixels: the centre square is kept and
+            scaled down, metadata and anything that is not pixels is dropped. CPU bound and thread safe; registered as a singleton.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ILogoImageNormalizer.Normalize(System.Byte[])">
+            <summary>
+            The redrawn PNG, or null when <paramref name="data"/> does not decode as an image or its size is outside the
+            accepted range.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient">
             <summary>
             Typed client of the two Microsoft Store APIs: the MSIX submission API (<c>manage.devcenter.microsoft.com</c>: apps,
@@ -30394,6 +30603,21 @@
             <param name="assetFileNames"></param>
             <param name="limits">Listing limits of the rule catalog; catalog v1 values when null.</param>
             <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.OrganizationLogoExtensions">
+            <summary>
+            The URL a client shows an organization logo with.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.OrganizationLogoExtensions.LogoUrl(Storeasy.Application.Interfaces.IFileStorage,System.String)">
+            <summary>
+            A presigned GET URL of the logo stored under <paramref name="logoKey"/>, valid for
+            <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.UrlLifetime"/>; null when there is no logo or no storage. Creating it makes no
+            network call.
+            </summary>
+            <param name="fileStorage"></param>
+            <param name="logoKey"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Extensions.PagingExtensions">

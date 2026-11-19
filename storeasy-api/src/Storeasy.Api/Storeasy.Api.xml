@@ -1803,6 +1803,32 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.CreateLogoUploadAsync(Storeasy.Application.Features.Organizations.CreateOrganizationLogoUpload.CreateOrganizationLogoUploadCommand,System.Threading.CancellationToken)">
+            <summary>
+            Declares a logo file (PNG, JPEG or WebP, at most 2 MB; owners) and returns the presigned PUT URL for it. Confirm
+            with <c>PUT organizations/logo</c>.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.SetLogoAsync(Storeasy.Application.Features.Organizations.SetOrganizationLogo.SetOrganizationLogoCommand,System.Threading.CancellationToken)">
+            <summary>
+            Makes the uploaded file the organization's logo (owners): checked by its signature, redrawn as a square PNG,
+            replacing the previous logo. Returns the new logo URL.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.RemoveLogoAsync(Storeasy.Application.Features.Organizations.RemoveOrganizationLogo.RemoveOrganizationLogoCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes the organization's logo (owners); the organization shows its initial again.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetMembersAsync(Storeasy.Application.Features.Organizations.GetMemberList.GetMemberListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists members and, for member managers, pending invitations.
@@ -3881,6 +3907,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261119133018_AddStoreConnectionIcon.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

@@ -121,6 +121,7 @@ public static class MessageKey
     public const string AssetNotUploaded = nameof(AssetNotUploaded);
     public const string AssetSizeMismatch = nameof(AssetSizeMismatch);
     public const string AssetTooLarge = nameof(AssetTooLarge);
+    public const string OrganizationLogoInvalid = nameof(OrganizationLogoInvalid);
     public const string GlobalAsset = "Global.Asset";
     public const string GlobalFileName = "Global.FileName";
     public const string GlobalContentType = "Global.ContentType";

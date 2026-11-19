@@ -1017,6 +1017,8 @@ export const tr: Dictionary = {
     auditAction: {
       organizationCreated: 'Organizasyon oluşturuldu',
       organizationUpdated: 'Organizasyon güncellendi',
+      organizationLogoSet: 'Organizasyon logosu yüklendi',
+      organizationLogoRemoved: 'Organizasyon logosu kaldırıldı',
       memberInvited: 'Üye davet edildi',
       invitationRevoked: 'Davet geri alındı',
       memberJoined: 'Üye katıldı',

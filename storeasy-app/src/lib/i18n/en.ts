@@ -1017,6 +1017,8 @@ export const en = {
     auditAction: {
       organizationCreated: 'Organization created',
       organizationUpdated: 'Organization updated',
+      organizationLogoSet: 'Organization logo set',
+      organizationLogoRemoved: 'Organization logo removed',
       memberInvited: 'Member invited',
       invitationRevoked: 'Invitation revoked',
       memberJoined: 'Member joined',
