@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, CircleCheck, FileKey } from 'lucide-react'
 import { Badge, StoreTag } from '@/components/ui/Badge'
+import { STORE_LOGO_ICON, type StoreIconKey } from '@/components/ui/StoreIcons'
 import { Callout, FormErrors } from '@/components/ui/Feedback'
 import { FileDrop } from '@/components/ui/FileDrop'
 import { Modal } from '@/components/ui/Modal'
@@ -21,6 +22,7 @@ import { EMPTY_CREDENTIALS, MsCredentialForm, msFieldErrors } from '@/features/m
 import { useMs } from '@/features/microsoft/i18n/useMs'
 import { defaultExpiry, expiryInstant, msSecret, type MsCredentialFields } from '@/features/microsoft/rules'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
+import { StoreIconPicker } from './StoreIconPicker'
 
 type Step = 'pick' | 'form' | 'result'
 type Source = 'file' | 'paste'
@@ -87,6 +89,8 @@ export function AddConnectionDialog({
   const [store, setStore] = useState<StoreKind>(StoreKind.Apple)
   const [source, setSource] = useState<Source>('file')
   const [name, setName] = useState('')
+  // The store's own logo is suggested; "none" keeps the text code.
+  const [icon, setIcon] = useState<StoreIconKey | null>(STORE_LOGO_ICON[StoreKind.Apple])
   const [issuerId, setIssuerId] = useState('')
   const [keyId, setKeyId] = useState('')
   const [secretText, setSecretText] = useState('')
@@ -105,6 +109,7 @@ export function AddConnectionDialog({
     setStep('pick')
     setSource('file')
     setName('')
+    setIcon(STORE_LOGO_ICON[store])
     setIssuerId('')
     setKeyId('')
     setSecretText('')
@@ -134,12 +139,13 @@ export function AddConnectionDialog({
         Name: name.trim(),
         Secret: secret,
         CredentialExpiryDate: microsoft && expiry ? expiryInstant(expiry) : null,
+        Icon: icon,
       })
       // Saved as NotVerified; the check runs at once and its answer is shown here (design 14.10).
       try {
         return await connectionsApi.verify(organizationId, id)
       } catch {
-        return { Id: id, Store: store, Name: name.trim(), Status: ConnectionStatus.NotVerified } satisfies StoreConnectionDto
+        return { Id: id, Store: store, Name: name.trim(), Icon: icon, Status: ConnectionStatus.NotVerified } satisfies StoreConnectionDto
       }
     },
     meta: { silentError: true },
@@ -206,6 +212,11 @@ export function AddConnectionDialog({
     save.mutate()
   }
 
+  const pickStore = (next: StoreKind) => {
+    setStore(next)
+    setIcon(STORE_LOGO_ICON[next])
+  }
+
   const shown: Record<string, string | null> = submitted ? { ...validate(), ...(errors.secret ? { secret: errors.secret } : {}) } : errors
 
   const title =
@@ -268,7 +279,7 @@ export function AddConnectionDialog({
             body={t.connections.stores.apple.body}
             time={t.connections.stores.apple.time}
             selected={store === StoreKind.Apple}
-            onSelect={() => setStore(StoreKind.Apple)}
+            onSelect={() => pickStore(StoreKind.Apple)}
           />
           <StoreCard
             store={StoreKind.Google}
@@ -276,7 +287,7 @@ export function AddConnectionDialog({
             body={t.connections.stores.google.body}
             time={t.connections.stores.google.time}
             selected={store === StoreKind.Google}
-            onSelect={() => setStore(StoreKind.Google)}
+            onSelect={() => pickStore(StoreKind.Google)}
           />
           <StoreCard
             store={StoreKind.Microsoft}
@@ -284,7 +295,7 @@ export function AddConnectionDialog({
             body={t.connections.stores.microsoft.body}
             time={t.connections.stores.microsoft.time}
             selected={store === StoreKind.Microsoft}
-            onSelect={() => setStore(StoreKind.Microsoft)}
+            onSelect={() => pickStore(StoreKind.Microsoft)}
           />
           <Callout>{t.connections.encryptedNote}</Callout>
         </div>
@@ -304,6 +315,7 @@ export function AddConnectionDialog({
               onChange={(event) => setName(event.target.value)}
             />
           </Field>
+          <StoreIconPicker store={store} value={icon} onChange={setIcon} />
           {store === StoreKind.Apple ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t.connections.issuerId} error={shown.issuerId} hint={t.connections.issuerHint}>
@@ -414,6 +426,7 @@ export function AddConnectionDialog({
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <CircleCheck className="h-5 w-5 text-success" aria-hidden />
+            <StoreTag store={result.Store} connectionId={result.Id} codeOnly />
             <b>{result.Name}</b>
             <ConnectionStatusBadge status={result.Status} />
           </div>

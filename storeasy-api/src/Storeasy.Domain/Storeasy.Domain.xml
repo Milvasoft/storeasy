@@ -1860,6 +1860,12 @@
             A build package (IPA, AAB, MSIX) from a CI pipeline or an upload.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.OrganizationLogo">
+            <summary>
+            An organization logo on its way in: uploaded by the logo endpoints only, then checked, redrawn as a square PNG and
+            removed again (the organization keeps the redrawn copy).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AssetStatus">
             <summary>
             Upload state of a stored file.
@@ -1920,6 +1926,12 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationUpdated">
             <summary>Organization renamed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationLogoSet">
+            <summary>Organization logo uploaded or replaced.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationLogoRemoved">
+            <summary>Organization logo removed.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MemberInvited">
             <summary>Invitation sent.</summary>
@@ -9086,6 +9098,18 @@
             Default language of the organization's store texts (e.g. tr-TR); null when not chosen.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.LogoKey">
+            <summary>
+            Object key of the organization's logo in the file storage (a square PNG written by the API, see
+            <see cref="T:Storeasy.Domain.Organizations.OrganizationLogoRules"/>); null when the organization has no logo and shows its initial. Every upload
+            gets a fresh key, so a new logo never hides behind a cached old one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.LogoUpdateDate">
+            <summary>
+            When the current logo was set (UTC); null without a logo.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Organizations.Organization.Members">
             <summary>
             Members of the organization.
@@ -9238,6 +9262,76 @@
             <summary>
             Navigation property of the user who sent the invitation.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.OrganizationLogoRules">
+            <summary>
+            Pure rules of organization logos: accepted types, size limits, the file signature check and the object key of the
+            stored copy. No storage call and no image decoding (the API redraws the image through <c>ILogoImageNormalizer</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxBytes">
+            <summary>
+            Largest logo file accepted, in bytes (2 MB).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputSize">
+            <summary>
+            Width and height of the stored logo, in pixels. A smaller square is kept at its size.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxSourceDimension">
+            <summary>
+            Largest width or height of an uploaded image, in pixels (a guard against images that decode to huge bitmaps).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MinSourceDimension">
+            <summary>
+            Smallest width or height of an uploaded image, in pixels.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputContentType">
+            <summary>
+            Content type of the stored logo.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.ObjectKeyMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.Organization.LogoKey"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.UrlLifetime">
+            <summary>
+            How long a logo URL handed to a client stays valid. Clients read the organization list again well within it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.AcceptedContentTypes">
+            <summary>
+            Content types an upload may declare. SVG is not accepted: it can carry script and is not redrawn here.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.DetectContentType(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Content type of <paramref name="data"/> by its file signature (PNG, JPEG or WebP); null for anything else,
+            whatever its name or declared type says.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.IsAcceptedContentType(System.String)">
+            <summary>
+            Whether <paramref name="contentType"/> is one of <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.AcceptedContentTypes"/> (case insensitive).
+            </summary>
+            <param name="contentType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.ObjectKey(System.Int32,System.Guid)">
+            <summary>
+            Object key of a stored logo: <c>org/{organizationId}/logo/{nonce}.png</c>. The nonce is fresh per logo, so the
+            URL of a replaced logo changes and no cache shows the old one.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="nonce"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Domain.Organizations.OrganizationMember">
             <summary>
@@ -10599,6 +10693,12 @@
             Display name chosen by the user (e.g. "Company team key").
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.Icon">
+            <summary>
+            Icon picked by a member, a key of <see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/> (e.g. "appstore", "phone"). Null when none
+            was picked; the web then shows the store's text code.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnection.Fingerprint">
             <summary>
             Non secret identifiers safe to show (key id, masked issuer id, service account e-mail).
@@ -10644,6 +10744,62 @@
             <summary>
             Navigation property of the organization.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreConnectionIcons">
+            <summary>
+            The icons a member can pick for a store connection, so its records are told apart at a glance (the web draws them;
+            the API stores only the key). A fixed list, no uploads. The three store logos only identify their own store, so each
+            is allowed only on a connection of that store; the generic icons fit any store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.MaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreConnection.Icon"/>; longer than every key.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.AppStore">
+            <summary>App Store logo (Apple connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.GooglePlay">
+            <summary>Google Play logo (Google connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.MsStore">
+            <summary>Microsoft Store logo (Microsoft connections only).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnectionIcons.Generic">
+            <summary>
+            The generic icons, in the order the web shows them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.LogoOf(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            The store logo of <paramref name="store"/>.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.IsAllowed(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            Whether <paramref name="icon"/> may be stored on a connection of <paramref name="store"/>. Null or empty (no
+            icon, the web shows the store's text code) is allowed; a key is compared exactly (lower case).
+            </summary>
+            <param name="store"></param>
+            <param name="icon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.IsKnown(System.String)">
+            <summary>
+            Whether <paramref name="icon"/> is one of the keys (any store), or null or empty.
+            </summary>
+            <param name="icon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.Normalize(System.String)">
+            <summary>
+            The value to store: null for an empty choice, the key otherwise.
+            </summary>
+            <param name="icon"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Domain.Stores.StoreJob">
             <summary>

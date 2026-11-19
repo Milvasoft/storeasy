@@ -173,6 +173,19 @@ export const organizationsApi = {
   update: (organizationId: number, name: string, slug?: string | null) =>
     apiPut<number>('/Organizations/organization', { OrganizationId: organizationId, Name: name, Slug: slug || null }),
 
+  // Owners (ManageOrganization): declares a PNG, JPEG or WebP logo of at most 2 MB and answers its presigned PUT URL.
+  // 400 OrganizationLogoInvalid or AssetTooLarge; 503 StorageNotConfigured.
+  createLogoUpload: (organizationId: number, contentType: string, size: number) =>
+    apiPost<AssetUploadDto>('/Organizations/logo/upload', { OrganizationId: organizationId, ContentType: contentType, Size: size }),
+
+  // Makes the uploaded file the logo (checked by its signature, redrawn as a square PNG). Answers the new logo URL.
+  // 400 OrganizationLogoInvalid or AssetSizeMismatch; 409 AssetNotUploaded.
+  setLogo: (organizationId: number, assetId: number) =>
+    apiPut<string>('/Organizations/logo', { OrganizationId: organizationId, AssetId: assetId }),
+
+  // The organization shows its initial again.
+  removeLogo: (organizationId: number) => apiDelete<number>('/Organizations/logo', undefined, { OrganizationId: organizationId }),
+
   // Invitations are filled only for callers with ManageMembers.
   members: (organizationId: number) => apiGet<MemberListDto>('/Organizations/members', { OrganizationId: organizationId }),
 
@@ -277,6 +290,8 @@ export interface AddConnectionInput {
   Secret: string
   // Microsoft only, required: when the Entra client secret expires (at most 24 months away).
   CredentialExpiryDate?: string | null
+  // Optional icon key: a generic icon or the store's own logo (400 StoreConnectionIconInvalid otherwise).
+  Icon?: string | null
 }
 
 export const connectionsApi = {
@@ -294,6 +309,10 @@ export const connectionsApi = {
       ConnectionId: connectionId,
       PackageName: packageName?.trim() || null,
     }),
+
+  // Renames the connection and sets or clears its icon; the secret is not touched. Answers the updated connection.
+  update: (organizationId: number, connectionId: number, input: { Name: string; Icon: string | null }) =>
+    apiPut<StoreConnectionDto>('/StoreConnections/connection', { OrganizationId: organizationId, ConnectionId: connectionId, ...input }),
 
   // Wipes the encrypted secret; cannot be undone.
   remove: (organizationId: number, connectionId: number) =>

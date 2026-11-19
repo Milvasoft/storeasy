@@ -47,6 +47,10 @@ function org(id: number, name: string, slug: string, role: OrgRole): MyOrganizat
 const now = Date.now()
 const hoursAgo = (hours: number) => new Date(now - hours * 3_600_000).toISOString()
 
+// The fake bucket the logo upload PUTs to, and the last uploaded logo (a blob URL of this page).
+const MOCK_LOGO_BUCKET = 'https://mock-storage.invalid/logo'
+let mockLogo: string | null = null
+
 const db = {
   organizations: [
     org(7, 'Kuzey Lab', 'kuzey-lab', OrgRole.Owner),
@@ -83,6 +87,7 @@ const db = {
       Id: 11,
       Store: StoreKind.Apple,
       Name: 'Kuzey Lab ASC',
+      Icon: 'appstore',
       Fingerprint: { KeyId: '7QX2M4K9PL', IssuerIdSuffix: 'a91f' },
       Status: ConnectionStatus.Verified,
       LastVerifiedDate: hoursAgo(5),
@@ -92,6 +97,7 @@ const db = {
       Id: 12,
       Store: StoreKind.Google,
       Name: 'Play servis hesabı',
+      Icon: 'googleplay',
       Fingerprint: { ServiceAccountEmail: 'storeasy@kuzeylab-play.iam.gserviceaccount.com', ProjectId: 'kuzeylab-play' },
       Status: ConnectionStatus.Unreachable,
       LastVerifiedDate: hoursAgo(30),
@@ -220,6 +226,27 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.OrganizationUpdated, `Renamed to ${Name}.`)
     return envelope(OrganizationId)
   }),
+  // The logo goes to a fake bucket (answered below); the uploaded file becomes the logo as a blob URL of this page.
+  http.post(`${BASE}/Organizations/logo/upload`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    return envelope({ assetId: OrganizationId, uploadUrl: MOCK_LOGO_BUCKET, partSize: null, parts: [], expiryDate: hoursAgo(-1) })
+  }),
+  http.put(MOCK_LOGO_BUCKET, async ({ request }) => {
+    mockLogo = URL.createObjectURL(await request.blob())
+    return new HttpResponse(null, { status: 200, headers: { ETag: '"mock-logo"' } })
+  }),
+  http.put(`${BASE}/Organizations/logo`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, LogoUrl: mockLogo } : item))
+    audit(AuditAction.OrganizationLogoSet, 'Organization logo set.')
+    return envelope(mockLogo)
+  }),
+  http.delete(`${BASE}/Organizations/logo`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, LogoUrl: null } : item))
+    audit(AuditAction.OrganizationLogoRemoved, 'Organization logo removed.')
+    return envelope(OrganizationId)
+  }),
   http.get(`${BASE}/Organizations/members`, async () => {
     await delay(250)
     return envelope({ members: db.members, invitations: db.invitations })
@@ -285,7 +312,7 @@ export const mockHandlers: HttpHandler[] = [
     return envelope(db.connections)
   }),
   http.post(`${BASE}/StoreConnections/connection`, async ({ request }) => {
-    const { Store, Name, Secret } = await body<{ Store: StoreKind; Name: string; Secret: string }>(request)
+    const { Store, Name, Secret, Icon } = await body<{ Store: StoreKind; Name: string; Secret: string; Icon?: string | null }>(request)
     const id = (db.nextId += 1)
     let fingerprint = {}
     try {
@@ -301,12 +328,27 @@ export const mockHandlers: HttpHandler[] = [
       Id: id,
       Store,
       Name,
+      Icon: Icon || null,
       Fingerprint: fingerprint,
       Status: ConnectionStatus.NotVerified,
       CreationDate: new Date().toISOString(),
     })
     audit(AuditAction.ConnectionAdded, `${Name} added.`, Store)
     return envelope(id)
+  }),
+  http.put(`${BASE}/StoreConnections/connection`, async ({ request }) => {
+    const { ConnectionId, Name, Icon } = await body<{ ConnectionId: number; Name: string; Icon: string | null }>(request)
+    const connection = db.connections.find((item) => item.Id === ConnectionId)
+    if (!connection) {
+      return refuse('StoreConnectionNotFound', 'Bağlantı bulunamadı.', 404)
+    }
+    const logos: Record<string, StoreKind> = { appstore: StoreKind.Apple, googleplay: StoreKind.Google, msstore: StoreKind.Microsoft }
+    if (Icon && Icon in logos && logos[Icon] !== connection.Store) {
+      return refuse('StoreConnectionIconInvalid', 'Bilinmeyen bağlantı simgesi ya da başka bir mağazanın logosu seçildi.', 400)
+    }
+    db.connections = db.connections.map((item) => (item.Id === ConnectionId ? { ...item, Name: Name.trim(), Icon: Icon || null } : item))
+    audit(AuditAction.ConnectionUpdated, `${Name} updated.`, connection.Store)
+    return envelope(db.connections.find((item) => item.Id === ConnectionId))
   }),
   http.post(`${BASE}/StoreConnections/connection/verify`, async ({ request }) => {
     await delay(900)

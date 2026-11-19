@@ -13,8 +13,9 @@ public sealed class CreateAssetUploadCommandValidator : AbstractValidator<Create
     ///<inheritdoc cref="CreateAssetUploadCommandValidator"/>
     public CreateAssetUploadCommandValidator(IMilvaLocalizer localizer)
     {
+        // Organization logos are uploaded through organizations/logo/upload only, which owners may call.
         RuleFor(command => command.Purpose)
-            .IsInEnum()
+            .Must(purpose => Enum.IsDefined(purpose) && purpose != AssetPurpose.OrganizationLogo)
             .WithMessage(localizer[MessageKey.PleaseSendCorrect, localizer[nameof(AssetPurpose)]]);
 
         RuleFor(command => command.FileName)

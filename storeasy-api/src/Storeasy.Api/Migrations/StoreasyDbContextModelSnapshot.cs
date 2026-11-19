@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119140823_AddPreReviews";
+    public override string LastMigrationId => "20261119145700_AddPreReviews";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -2792,6 +2792,13 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("LastModifierUserName")
                     .HasColumnType("text");
 
+                b.Property<string>("LogoKey")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.Property<DateTime?>("LogoUpdateDate")
+                    .HasColumnType("timestamp with time zone");
+
                 b.Property<string>("Name")
                     .HasMaxLength(100)
                     .HasColumnType("character varying(100)");
@@ -3330,6 +3337,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
+
+                b.Property<string>("Icon")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");

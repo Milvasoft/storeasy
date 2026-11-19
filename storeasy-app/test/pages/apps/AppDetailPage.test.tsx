@@ -33,6 +33,24 @@ describe('AppDetailPage', () => {
     expect(screen.getByText('Bu uygulama için süren iş yok.')).toBeInTheDocument()
   })
 
+  it('links every record to its public store page and its console', async () => {
+    render()
+    const card = await screen.findByRole('region', { name: 'Mağaza sayfaları' })
+
+    expect(within(card).getByRole('link', { name: 'App Store mağaza sayfasını yeni sekmede aç' })).toHaveAttribute(
+      'href',
+      'https://apps.apple.com/app/id6740056789',
+    )
+    expect(within(card).getByRole('link', { name: 'App Store konsolunu yeni sekmede aç' })).toHaveAttribute(
+      'href',
+      'https://appstoreconnect.apple.com/apps/6740056789/distribution',
+    )
+    const play = within(card).getByRole('link', { name: 'Google Play mağaza sayfasını yeni sekmede aç' })
+    expect(play.getAttribute('href')).toMatch(/^https:\/\/play\.google\.com\/store\/apps\/details\?id=/)
+    expect(play).toHaveAttribute('target', '_blank')
+    expect(play).toHaveAttribute('rel', 'noreferrer noopener')
+  })
+
   it('syncs the connections of its records and follows the jobs on the line', async () => {
     testState.syncJobIds = [48300]
     const { user, source } = render()

@@ -13,10 +13,12 @@ namespace Storeasy.Application.Features.Organizations.GetInvitationPreview;
 /// </summary>
 /// <param name="invitationRepository"></param>
 /// <param name="timeProvider"></param>
-public class GetInvitationPreviewQueryHandler(IStoreasyRepositoryBase<OrganizationInvitation> invitationRepository, TimeProvider timeProvider) : IInterceptable, IQueryHandler<GetInvitationPreviewQuery, InvitationPreviewDto>
+/// <param name="fileStorage"></param>
+public class GetInvitationPreviewQueryHandler(IStoreasyRepositoryBase<OrganizationInvitation> invitationRepository, TimeProvider timeProvider, IFileStorage fileStorage) : IInterceptable, IQueryHandler<GetInvitationPreviewQuery, InvitationPreviewDto>
 {
     private readonly IStoreasyRepositoryBase<OrganizationInvitation> _invitationRepository = invitationRepository;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IFileStorage _fileStorage = fileStorage;
 
     /// <inheritdoc/>
     public async Task<Response<InvitationPreviewDto>> Handle(GetInvitationPreviewQuery request, CancellationToken cancellationToken)
@@ -40,6 +42,7 @@ public class GetInvitationPreviewQueryHandler(IStoreasyRepositoryBase<Organizati
                                                                                 OrganizationDeleted = i.Organization.IsDeleted,
                                                                                 OrganizationName = i.Organization.Name,
                                                                                 OrganizationSlug = i.Organization.Slug,
+                                                                                OrganizationLogoKey = i.Organization.LogoKey,
                                                                                 InviterName = i.Inviter.Surname == null ? i.Inviter.Name : i.Inviter.Name + " " + i.Inviter.Surname,
                                                                             },
                                                                             cancellationToken: cancellationToken);
@@ -60,6 +63,7 @@ public class GetInvitationPreviewQueryHandler(IStoreasyRepositoryBase<Organizati
 
         preview.OrganizationName = invitation.OrganizationName;
         preview.OrganizationSlug = invitation.OrganizationSlug;
+        preview.OrganizationLogoUrl = _fileStorage.LogoUrl(invitation.OrganizationLogoKey);
 
         if (status == InvitationStatus.Accepted)
             return Response<InvitationPreviewDto>.Success(preview);

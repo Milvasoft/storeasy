@@ -454,7 +454,7 @@ desc: storeasy kitinin tamamı: marka işareti ve kullanımı, iki temada renk t
 <div class="ds2">
   <div class="doc-card">
     <h3 class="dt">Rozet, mağaza etiketi, etiket</h3>
-    <p class="dsub">Rozet tonları nötr, başarı, uyarı, tehlike, bilgi, vurgu ve dolu. Mağazalar logo yerine kendi <code>AS / GP / MS</code> etiketiyle.</p>
+    <p class="dsub">Rozet tonları nötr, başarı, uyarı, tehlike, bilgi, vurgu ve dolu. Mağazalar logo yerine kendi <code>AS / GP / MS</code> etiketiyle. <b>Not, 19 Kasım 2026:</b> kullanıcı bu kuralı değiştirdi. Bir mağaza bağlantısına eklerken ya da düzenlerken isteğe bağlı bir simge seçilebilir: o mağazanın kendi logosu (yalnız mağazayı belirtmek için) ya da renkli genel bir simge. Seçilmişse etiket kod kutusu yerine o simgeyi gösterir; seçilmemişse <code>AS / GP / MS</code> kalır.</p>
     <div class="rs"><span class="bdg">Nötr</span><span class="bdg ok"><span class="dot"></span>Yayında</span><span class="bdg warn"><span class="dot"></span>İncelemede</span><span class="bdg dng"><span class="dot"></span>Reddedildi</span><span class="bdg info">Sertifikasyonda</span><span class="bdg acc"><span class="dot"></span>Tarayıcıya devredildi</span><span class="bdg sol">Yeni</span></div>
     <div class="rs"><span class="bdg sm">Küçük</span><span class="bdg ok sm">%20 yayında</span><span class="bdg live ok sm"><span class="dot"></span>Canlı</span><span class="bdg warn sm">6 gün</span><span class="bdg dng sm">5 eksik</span></div>
     <div class="rs"><span class="st"><b>AS</b>App Store</span><span class="st"><b>GP</b>Google Play</span><span class="st"><b>MS</b>Microsoft Store</span><span class="st sm"><b>AS</b></span><span class="st sm"><b>GP</b></span><span class="st sm"><b>MS</b></span></div>
@@ -896,7 +896,7 @@ desc: storeasy kitinin tamamı: marka işareti ve kullanımı, iki temada renk t
 <div class="ds2">
   <div class="doc-card">
     <h3 class="dt">İllüstrasyon dili</h3>
-    <p class="dsub">Boş durumlar, giriş görseli ve hata ekranları aynı dille çizilir: kesik çizgili hatlar, mono etiketler, vurgu renginde tek karo (storeasy), mağazalar nötr <code>AS / GP / MS</code> kutuları. Apple, Google, Microsoft logoları ve gerçek cihaz görselleri çizilmez; cihaz çerçeveleri storeasy'nin kendi parametrik çizimi.</p>
+    <p class="dsub">Boş durumlar, giriş görseli ve hata ekranları aynı dille çizilir: kesik çizgili hatlar, mono etiketler, vurgu renginde tek karo (storeasy), mağazalar nötr <code>AS / GP / MS</code> kutuları. Apple, Google, Microsoft logoları ve gerçek cihaz görselleri çizilmez; cihaz çerçeveleri storeasy'nin kendi parametrik çizimi. (19 Kasım 2026: bağlantıya seçilen mağaza simgesi bu kuralın tek istisnası.)</p>
     <svg viewBox="0 0 440 180" width="100%" style="max-width:440px;display:block" aria-hidden="true">
       <g fill="none" stroke="rgb(var(--border-strong))" stroke-width="2" stroke-dasharray="2 6"><path d="M86 90 C 150 90, 160 40, 240 40"/><path d="M86 90 C 150 90, 160 140, 240 140"/></g>
       <rect x="22" y="58" width="64" height="64" rx="18" fill="rgb(var(--accent))"/><use href="#logo" x="34" y="70" width="40" height="40" class="mk inv"/>
@@ -911,7 +911,7 @@ desc: storeasy kitinin tamamı: marka işareti ve kullanımı, iki temada renk t
       <li><svg class="ic yes"><use href="#i-check"/></svg><span>Çizgi kalınlığı 2, kesik desen <code>2 6</code>, renk <code>--border-strong</code>; etiketler JetBrains Mono 9-15.</span></li>
       <li><svg class="ic yes"><use href="#i-check"/></svg><span>Renk yalnız token: zemin <code>--surface</code>, metin <code>--fg-2</code> / <code>--fg-3</code>, tek vurgu karosu.</span></li>
       <li><svg class="ic yes"><use href="#i-check"/></svg><span>Hareket yalnız gerçek olay sırasında (SMIL <code>svg.anim</code>, azaltılmışta durur).</span></li>
-      <li><svg class="ic no"><use href="#i-x"/></svg><span>Mağaza logosu, gerçek cihaz fotoğrafı, emoji, gradyan dolgu, gölge.</span></li>
+      <li><svg class="ic no"><use href="#i-x"/></svg><span>Mağaza logosu (bağlantıya seçilen simge dışında, 19 Kasım 2026), gerçek cihaz fotoğrafı, emoji, gradyan dolgu, gölge.</span></li>
       <li><svg class="ic no"><use href="#i-x"/></svg><span>Basit kutu ve div ile ürün çizmek; nesne her zaman SVG sembolü.</span></li>
     </ul>
   </div>
@@ -943,7 +943,7 @@ desc: storeasy kitinin tamamı: marka işareti ve kullanımı, iki temada renk t
     <tr><td><code>.seg</code></td><td><code>&lt;SegmentedControl&gt;</code> · Ek</td><td><code>bg-bg2</code>, seçili <code>bg-surface</code></td><td><code>role="tablist"</code> ya da radyo grubu.</td></tr>
     <tr><td><code>.chip</code></td><td><code>&lt;Chip selected onRemove&gt;</code></td><td><code>.chip</code></td><td>Seçili <code>border-accent text-accentText</code>.</td></tr>
     <tr><td><code>.bdg</code></td><td><code>&lt;Badge tone&gt;</code> · Ek</td><td><code>neutral | success | warning | danger | info | accent | solid</code></td><td>08 bölüm 3.8 rozet tonları.</td></tr>
-    <tr><td><code>.st</code></td><td><code>&lt;StoreTag store size&gt;</code> · Ek</td><td><code>font-mono</code></td><td>Apple, Google, Microsoft logosu yok.</td></tr>
+    <tr><td><code>.st</code></td><td><code>&lt;StoreTag store size&gt;</code> · Ek</td><td><code>font-mono</code></td><td>Logo yalnız bağlantıya simge seçilmişse (<code>connectionId</code>, 19 Kasım 2026); yoksa kod kutusu.</td></tr>
     <tr><td><code>.av</code> / <code>.aic</code></td><td><code>Avatar</code> / <code>&lt;AppIcon color&gt;</code> · Ek</td><td><code>rounded-full</code> / <code>rounded-[12px]</code></td><td>Ham hex yalnız <code>AppIcon</code>'da.</td></tr>
     <tr><td><code>.tabs .tab .n</code></td><td><code>&lt;Tabs&gt;</code> · Ek</td><td><code>border-b-2 border-accent</code></td><td><code>role="tablist"</code>.</td></tr>
     <tr><td><code>.apphead</code></td><td><code>&lt;AppHeader app store tab sub&gt;</code> · Ek</td><td>-</td><td>Sekmeler ve alt bölümler rotadan.</td></tr>

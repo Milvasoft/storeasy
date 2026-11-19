@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261119140823_AddPreReviews")]
-partial class _20261119140823_AddPreReviews
+[Migration("20261119145700_AddPreReviews")]
+partial class _20261119145700_AddPreReviews
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2790,6 +2790,13 @@ partial class _20261119140823_AddPreReviews
                 b.Property<string>("LastModifierUserName")
                     .HasColumnType("text");
 
+                b.Property<string>("LogoKey")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.Property<DateTime?>("LogoUpdateDate")
+                    .HasColumnType("timestamp with time zone");
+
                 b.Property<string>("Name")
                     .HasMaxLength(100)
                     .HasColumnType("character varying(100)");
@@ -3328,6 +3335,10 @@ partial class _20261119140823_AddPreReviews
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
+
+                b.Property<string>("Icon")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");

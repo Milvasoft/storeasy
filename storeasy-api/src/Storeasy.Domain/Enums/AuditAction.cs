@@ -15,6 +15,14 @@ public enum AuditAction : short
     [Description("Organization updated")]
     OrganizationUpdated = 2,
 
+    /// <summary>Organization logo uploaded or replaced.</summary>
+    [Description("Organization logo set")]
+    OrganizationLogoSet = 3,
+
+    /// <summary>Organization logo removed.</summary>
+    [Description("Organization logo removed")]
+    OrganizationLogoRemoved = 4,
+
     /// <summary>Invitation sent.</summary>
     [Description("Member invited")]
     MemberInvited = 10,

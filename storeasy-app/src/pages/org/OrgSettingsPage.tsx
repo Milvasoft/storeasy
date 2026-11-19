@@ -17,6 +17,7 @@ import { HOME_PATH } from '@/lib/nav/nav'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
 import { AiSettingsCard } from '@/features/ai/AiSettingsCard'
+import { OrgLogoCard } from '@/features/access/OrgLogoCard'
 import { OrgRetentionCard } from '@/features/access/OrgRetentionCard'
 import { useDeployment } from '@/features/access/publicSettings'
 import { isValidSlug, toSlug, toSlugDraft } from '@/lib/utils/slug'
@@ -169,6 +170,7 @@ export function OrgSettingsPage() {
             </div>
           ) : null}
         </form>
+        <OrgLogoCard />
         {retention ? (
           <OrgRetentionCard />
         ) : (
