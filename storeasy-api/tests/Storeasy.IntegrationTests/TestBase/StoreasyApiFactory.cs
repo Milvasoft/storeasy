@@ -156,6 +156,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakePushService PushService { get; } = new();
 
     /// <summary>
+    /// The Anthropic API of the AI reply drafts (the real SDK talks to it; no test reaches Anthropic).
+    /// </summary>
+    public FakeAnthropic Anthropic { get; } = new();
+
+    /// <summary>
     /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
     /// </summary>
     public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
@@ -267,6 +272,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.AddHttpClient(Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => PushService);
             services.RemoveAll<IArtifactStorage>();
             services.AddSingleton<IArtifactStorage>(FileStorage);
+
+            // AI reply drafts: the SDK's HTTP client answers from the fake.
+            services.AddHttpClient(Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Anthropic);
         });
     }
 

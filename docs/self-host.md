@@ -434,6 +434,7 @@ settings in the web app (intake settings), not configuration.
 | `Storeasy:OrgWebhooks:PollIntervalMilliseconds`, `MaxAttempts`, `RetryBaseDelaySeconds`, `TimeoutSeconds` | | `2000`, `6`, `30`, `10` | Outgoing webhook delivery: pause, attempts, doubling retry delay (at most an hour), timeout of one attempt. |
 | `Storeasy:OrgWebhooks:AllowHttp`, `MaxSubscriptions` | | `false`, `20` | Plain HTTP targets (never in production; private addresses are refused regardless) and subscriptions per organization. |
 | `Storeasy:RuleWatcher:Enabled`, `MaxBytes` | | `true`, 2 MiB | Whether the daily rule watcher runs and the largest page it reads. |
+| `Storeasy:Ai:Model`, `MaxTokens`, `Effort`, `TimeoutSeconds` | | `claude-haiku-5-5`, `1024`, `low`, `60` | AI review reply drafts ([api.md](api.md#ai-reply-drafts)): the Claude model, its output token limit, effort and the timeout of one call. There is no instance key: each organization saves its own Anthropic API key in Settings, AI, sealed with `Storeasy:Encryption:MasterKey`. |
 | `Storeasy:RuleWatcher:AllowedHosts`, `Sources` | | Apple, Google and Microsoft developer domains; seven Apple and Google pages | Official hosts the watcher may fetch and the pages it watches (added to the database when missing). |
 
 ### Object storage

@@ -108,6 +108,46 @@ describe('ReviewsPage', () => {
     expect(lastRequestTo('/Reviews/reply-draft')?.body).toMatchObject({ ReviewId: 3001 })
   })
 
+  it('writes a draft with AI into the reply box without sending it', async () => {
+    const { user } = renderInbox('/reviews?id=3001')
+    const box = await screen.findByLabelText(/Google Play sınırı/)
+
+    await user.click(await screen.findByRole('button', { name: 'Yapay zeka ile yaz' }))
+
+    expect(await screen.findByText('Taslak yapay zeka ile yazıldı. Göndermeden önce oku ve düzenle.')).toBeInTheDocument()
+    expect(box).toHaveValue(testState.aiDraft)
+    expect(lastRequestTo('/Reviews/reply-draft/generate')?.body).toMatchObject({ OrganizationId: 7, ReviewId: 3001 })
+    expect(requestsTo('/Reviews/reply')).toHaveLength(0)
+  })
+
+  it('asks before an AI draft replaces text in the reply box', async () => {
+    const { user } = renderInbox('/reviews?id=3001')
+    const box = await screen.findByLabelText(/Google Play sınırı/)
+    await user.type(box, 'Kendi yanıtım')
+    await screen.findByRole('button', { name: 'Yapay zeka ile yaz' })
+
+    await user.click(screen.getByRole('button', { name: 'Yapay zeka ile yaz' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Mevcut metin değiştirilsin mi?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Vazgeç' }))
+
+    expect(box).toHaveValue('Kendi yanıtım')
+    expect(requestsTo('/Reviews/reply-draft/generate')).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Yapay zeka ile yaz' }))
+    await user.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Değiştir' }))
+
+    await expect.poll(() => (box as HTMLTextAreaElement).value).toBe(testState.aiDraft)
+  })
+
+  it('turns AI drafts off without a key and links to the AI settings', async () => {
+    testState.aiSettings = { HasApiKey: false, Model: 'claude-haiku-5-5' }
+
+    renderInbox('/reviews?id=3001')
+
+    expect(await screen.findByRole('link', { name: 'Yapay zeka ayarları' })).toHaveAttribute('href', '/settings#ai')
+    expect(screen.getByRole('button', { name: 'Yapay zeka ile yaz' })).toBeDisabled()
+  })
+
   it('shows a published reply and lets an editor change it', async () => {
     const { user } = renderInbox('/reviews?id=3002')
 

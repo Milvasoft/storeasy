@@ -81,11 +81,24 @@ export function ColorField({
   const invalid = shown !== '' && !HEX.test(shown)
   return (
     <div className="flex items-end gap-2">
-      <span
-        className="mb-[9px] h-6 w-6 flex-none rounded border border-borderControl"
+      {/* The swatch opens the system color picker; the hex field stays for typing an exact value. */}
+      <label
+        className="relative mb-[9px] h-6 w-6 flex-none cursor-pointer rounded border border-borderControl focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent"
         style={{ background: HEX.test(shown) ? shown : 'transparent' }}
-        aria-hidden
-      />
+        title={s.props.pickColor}
+      >
+        <input
+          type="color"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          aria-label={`${label}: ${s.props.pickColor}`}
+          value={HEX.test(shown) ? shown.toLowerCase() : '#000000'}
+          onChange={(event) => {
+            const next = event.target.value.toUpperCase()
+            setText(next)
+            onChange(next)
+          }}
+        />
+      </label>
       <div className="min-w-0 flex-1">
         <Field label={label} optional={optional} error={invalid ? s.props.colorInvalid : null}>
           <Input

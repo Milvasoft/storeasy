@@ -5,7 +5,7 @@
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261119130053_AddGooglePlayWebhooks : Migration
+public partial class _20261119132755_AddGooglePlayWebhooks : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

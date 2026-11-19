@@ -100,6 +100,7 @@ const db = {
     },
   ] as StoreConnectionDto[],
   audit: [] as StoreAuditLogDto[],
+  aiKey: null as { lastFour: string; setDate: string } | null,
   nextId: 100,
 }
 
@@ -373,4 +374,45 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.ConnectionRemoved, `${connection?.Name} removed.`, connection?.Store ?? null)
     return envelope(ConnectionId)
   }),
+  // AI reply drafts: the key is kept only as its last four characters, like the API returns it; a key with "rejected" in
+  // it is refused the way Anthropic would, and a draft is a fixed text after a short delay.
+  http.get(`${BASE}/Organizations/ai-settings`, () => envelope(aiSettings())),
+  http.put(`${BASE}/Organizations/ai-settings/key`, async ({ request }) => {
+    const { ApiKey } = await body<{ ApiKey: string }>(request)
+    await delay(400)
+    if (ApiKey.includes('rejected')) {
+      return refuse('AiKeyRejected', 'Anthropic rejected the API key. Check it or replace it in Settings, under AI.', 409)
+    }
+    db.aiKey = { lastFour: ApiKey.trim().slice(-4), setDate: new Date().toISOString() }
+    audit(AuditAction.AiKeySet, 'Anthropic API key added.', null)
+    return envelope({ ...aiSettings(), apiKeyVerified: true })
+  }),
+  http.delete(`${BASE}/Organizations/ai-settings/key`, () => {
+    db.aiKey = null
+    audit(AuditAction.AiKeyRemoved, 'Anthropic API key removed.', null)
+    return envelope(1)
+  }),
+  http.post(`${BASE}/Reviews/reply-draft/generate`, async ({ request }) => {
+    const { ReviewId } = await body<{ ReviewId: number }>(request)
+    if (!db.aiKey) {
+      return refuse('AiKeyNotSet', 'No Anthropic API key is set for this organization. Add one in Settings, under AI.', 409)
+    }
+    await delay(1200)
+    return envelope({
+      reviewId: ReviewId,
+      body: 'Thank you for taking the time to write this. We are sorry the reminders did not arrive; the team will look into it.',
+      shortened: false,
+      model: 'claude-haiku-5-5',
+    })
+  }),
 ]
+
+function aiSettings() {
+  return {
+    hasApiKey: !!db.aiKey,
+    apiKeyLastFour: db.aiKey?.lastFour ?? null,
+    apiKeySetDate: db.aiKey?.setDate ?? null,
+    apiKeySetByUserName: db.aiKey ? 'demo' : null,
+    model: 'claude-haiku-5-5',
+  }
+}

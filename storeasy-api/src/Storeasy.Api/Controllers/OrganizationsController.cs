@@ -6,6 +6,9 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreDtos;
+using Storeasy.Application.Features.AiSettings.GetAiSettings;
+using Storeasy.Application.Features.AiSettings.RemoveAiKey;
+using Storeasy.Application.Features.AiSettings.SetAiKey;
 using Storeasy.Application.Features.Organizations.AcceptInvitation;
 using Storeasy.Application.Features.Organizations.ChangeMemberRole;
 using Storeasy.Application.Features.Organizations.CreateOrganization;
@@ -152,6 +155,34 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPut("settings")]
     public Task<Response<int>> UpdateSettingsAsync(UpdateOrganizationSettingsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Reads the AI settings: whether an Anthropic API key is set (never the key), its last four characters and the model.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("ai-settings")]
+    public Task<Response<AiSettingsDto>> GetAiSettingsAsync([FromQuery] GetAiSettingsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Saves or replaces the Anthropic API key (checked with Anthropic first, sealed, never returned).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("ai-settings/key")]
+    [RateLimit(30, 3600, "org-ai-key")]
+    public Task<Response<AiSettingsDto>> SetAiKeyAsync(SetAiKeyCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Removes the Anthropic API key.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("ai-settings/key")]
+    public Task<Response<int>> RemoveAiKeyAsync(RemoveAiKeyCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending

@@ -30,6 +30,10 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.connectionRemoved
     case AuditAction.ConnectionVerified:
       return t.enums.auditAction.connectionVerified
+    case AuditAction.AiKeySet:
+      return t.enums.auditAction.aiKeySet
+    case AuditAction.AiKeyRemoved:
+      return t.enums.auditAction.aiKeyRemoved
     case AuditAction.JobCancelled:
       return t.enums.auditAction.jobCancelled
     case AuditAction.AppAdded:

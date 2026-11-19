@@ -1876,6 +1876,30 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetAiSettingsAsync(Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the AI settings: whether an Anthropic API key is set (never the key), its last four characters and the model.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.SetAiKeyAsync(Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves or replaces the Anthropic API key (checked with Anthropic first, sealed, never returned).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.RemoveAiKeyAsync(Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes the Anthropic API key.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetRolesAsync(Storeasy.Application.Features.Organizations.GetOrganizationRoleList.GetOrganizationRoleListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending
@@ -2267,6 +2291,15 @@
         <member name="M:Storeasy.Api.Controllers.ReviewsController.SaveReplyDraftAsync(Storeasy.Application.Features.Reviews.SaveReviewReplyDraft.SaveReviewReplyDraftCommand,System.Threading.CancellationToken)">
             <summary>
             Saves an unsent reply draft.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.GenerateReplyDraftAsync(Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes a reply draft with Claude (the organization's Anthropic API key) and saves it as the review's draft. Nothing
+            is sent to the store.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -3834,16 +3867,28 @@
         <member name="M:Storeasy.Api.Migrations._20261119101012_AddAppDisplayOrder.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261119130053_AddGooglePlayWebhooks">
+        <member name="T:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130053_AddGooglePlayWebhooks.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130053_AddGooglePlayWebhooks.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130053_AddGooglePlayWebhooks.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119132755_AddGooglePlayWebhooks">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119132755_AddGooglePlayWebhooks.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119132755_AddGooglePlayWebhooks.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119132755_AddGooglePlayWebhooks.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

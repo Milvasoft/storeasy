@@ -4,6 +4,48 @@
         <name>Storeasy.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> on the Anthropic Messages API with the official C# SDK and the organization's own key.
+            One request per draft: the stable system prompt of <see cref="T:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt"/>, the review as data, the model and
+            effort of <see cref="T:Storeasy.Application.Utils.Models.AiOptions"/> (Claude Haiku 5.5 at low effort by default), no sampling parameters and no prefill.
+            The stop reason is checked before the text is read, and only text blocks are read. Errors become a
+            <see cref="T:Storeasy.Application.Interfaces.ReplyDraftOutcome"/>; the provider's answer and the key are never logged or passed on.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.AiOptions,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> on the Anthropic Messages API with the official C# SDK and the organization's own key.
+            One request per draft: the stable system prompt of <see cref="T:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt"/>, the review as data, the model and
+            effort of <see cref="T:Storeasy.Application.Utils.Models.AiOptions"/> (Claude Haiku 5.5 at low effort by default), no sampling parameters and no prefill.
+            The stop reason is checked before the text is read, and only text blocks are read. Errors become a
+            <see cref="T:Storeasy.Application.Interfaces.ReplyDraftOutcome"/>; the provider's answer and the key are never logged or passed on.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.HttpClientName">
+            <summary>
+            Name of the HTTP client the SDK sends with.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.WriteAsync(Storeasy.Application.Interfaces.ReplyDraftRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.CheckKeyAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.Classify(System.Exception)">
+            <summary>
+            Outcome of an exception thrown by the SDK: typed exceptions first, the status code of any other API error next.
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Email.EmailOutbox">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>: one insert per call, the payload sealed with the secret protector
