@@ -8914,6 +8914,11 @@
             Display name.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.StoreDtos.StoreConnectionDto.Icon">
+            <summary>
+            Icon key picked for the connection (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>); null shows the store's text code.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.StoreDtos.StoreConnectionDto.Fingerprint">
             <summary>
             Non secret identifiers.
@@ -20527,6 +20532,12 @@
             Display name.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.Icon">
+            <summary>
+            Optional icon key (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>): a generic icon or the store's own logo. Null or empty
+            keeps the store's text code.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.Secret">
             <summary>
             The secret JSON. Masked in logs.
@@ -20652,6 +20663,65 @@
         </member>
         <member name="M:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler.Handle(Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand">
+            <summary>
+            Renames a store connection and sets or clears its icon. The secret is not touched (a Microsoft secret is replaced with
+            <c>RotateMsConnectionSecretCommand</c>). Answers the updated connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand.ConnectionId">
+            <summary>
+            Connection id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand.Icon">
+            <summary>
+            Icon key (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>): a generic icon or the connection's own store logo.
+            Null or empty clears it, so the store's text code shows again.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand"/>. A store logo must be the connection's own store's; a change writes
+            the name and the icon in one statement and is audited, a request that changes nothing writes and audits nothing.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand"/>. A store logo must be the connection's own store's; a change writes
+            the name and the icon in one statement and is audited, a request that changes nothing writes and audits nothing.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandHandler.Handle(Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand"/>. Whether a store logo fits the connection's store needs the
+            row, so the handler checks that; here the icon only has to be one of the keys.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.VerifyStoreConnection.VerifyStoreConnectionCommand">
             <summary>

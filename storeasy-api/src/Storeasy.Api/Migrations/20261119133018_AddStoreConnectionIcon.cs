@@ -5,16 +5,16 @@
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261119132755_AddGooglePlayWebhooks : Migration
+public partial class _20261119133018_AddStoreConnectionIcon : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
-            name: "PushServiceAccount",
-            table: "WebhookEndpoints",
-            type: "character varying(320)",
-            maxLength: 320,
+            name: "Icon",
+            table: "StoreConnections",
+            type: "character varying(20)",
+            maxLength: 20,
             nullable: true);
     }
 
@@ -22,7 +22,7 @@ public partial class _20261119132755_AddGooglePlayWebhooks : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropColumn(
-            name: "PushServiceAccount",
-            table: "WebhookEndpoints");
+            name: "Icon",
+            table: "StoreConnections");
     }
 }

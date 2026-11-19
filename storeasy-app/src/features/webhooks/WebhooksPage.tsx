@@ -319,7 +319,7 @@ function EndpointCard({ endpoint, onSecret }: { endpoint: WebhookEndpointDto; on
     <li className="card grid gap-2 p-4">
       <span className="flex flex-wrap items-center gap-2">
         {endpoint.Source === WebhookSource.AppStoreConnect ? (
-          <StoreTag store={StoreKind.Apple} small codeOnly />
+          <StoreTag store={StoreKind.Apple} connectionId={endpoint.StoreConnectionId} small codeOnly />
         ) : endpoint.Source === WebhookSource.GooglePlay ? (
           <StoreTag store={StoreKind.Google} small codeOnly />
         ) : (

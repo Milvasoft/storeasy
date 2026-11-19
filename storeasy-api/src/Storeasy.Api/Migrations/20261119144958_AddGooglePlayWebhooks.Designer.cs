@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261119132755_AddGooglePlayWebhooks")]
-partial class _20261119132755_AddGooglePlayWebhooks
+[Migration("20261119144958_AddGooglePlayWebhooks")]
+partial class _20261119144958_AddGooglePlayWebhooks
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -3223,6 +3223,10 @@ partial class _20261119132755_AddGooglePlayWebhooks
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
+
+                b.Property<string>("Icon")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");

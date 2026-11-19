@@ -377,6 +377,8 @@ export interface StoreConnectionDto {
   Id: number
   Store: StoreKind
   Name: string
+  /** Icon key a member picked (components/ui/StoreIcons.tsx); null shows the store's text code. */
+  Icon?: string | null
   Fingerprint?: ConnectionFingerprint | null
   Status: ConnectionStatus
   LastVerifiedDate?: IsoDateTime | null

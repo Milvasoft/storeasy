@@ -45,6 +45,7 @@ public record AddStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreConn
             OrganizationId = request.OrganizationId,
             Store = request.Store,
             Name = request.Name.Trim(),
+            Icon = StoreConnectionIcons.Normalize(request.Icon),
             Fingerprint = inspection.Fingerprint,
             EncryptedSecret = sealedSecret.EncryptedSecret,
             EncryptedDataKey = sealedSecret.EncryptedDataKey,
