@@ -564,6 +564,8 @@ export const en = {
         expiry: '{app} {subject} leaves TestFlight in {days} days',
         deadline: '{app}: {subject}, {days} days left',
         deadlineOverdue: '{app}: {subject}, overdue',
+        apps: '{count} apps',
+        unverified: "{count} compliance items storeasy can't verify",
       },
       attentionAction: {
         rejection: 'Open the case',
@@ -572,6 +574,7 @@ export const en = {
         pendingRelease: 'Open the version',
         expiry: 'Open TestFlight',
         deadline: 'Open compliance',
+        unverified: 'Go to compliance',
       },
       upcomingTitle: 'Coming up',
       upcomingEmpty: 'Nothing is waiting and no date is due in the next 45 days.',

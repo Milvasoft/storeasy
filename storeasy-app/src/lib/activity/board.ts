@@ -360,7 +360,7 @@ export function upcomingOf(inputs: BoardInputs, now: number): UpcomingItem[] {
 
 // ---- Needs attention ----
 
-export type AttentionKind = 'rejection' | 'jobFailed' | 'connection' | 'pendingRelease' | 'expiry' | 'deadline'
+export type AttentionKind = 'rejection' | 'jobFailed' | 'connection' | 'pendingRelease' | 'expiry' | 'deadline' | 'unverified'
 
 export interface AttentionItem {
   key: string
@@ -374,6 +374,71 @@ export interface AttentionItem {
   date: IsoDateTime | null
   daysLeft: number | null
   href: string
+  /** How many apps a grouped item stands for (a compliance rule shared by several apps); 1 otherwise. */
+  count?: number
+}
+
+/**
+ * Compliance deadlines that need a person: one item per rule and store, only for apps where the gap is confirmed
+ * (Missing), due within DEADLINE_ATTENTION_DAYS or overdue. Rows storeasy cannot verify (Unknown) never become one item
+ * each: they fold into a single "could not be verified" item, so a catalog rule that applies to every app does not
+ * flood the bar.
+ */
+function deadlineAttentionOf(compliance: ComplianceItemDto[], now: number): AttentionItem[] {
+  const groups = new Map<string, { first: ComplianceItemDto; days: number; apps: Set<number> }>()
+  let unverified = 0
+  for (const item of compliance) {
+    if (!item.DueDate || !openCompliance(item)) {
+      continue
+    }
+    const days = item.DaysLeft ?? daysUntil(item.DueDate, now)
+    if (days > DEADLINE_ATTENTION_DAYS) {
+      continue
+    }
+    if (item.Status !== ComplianceStatus.Missing) {
+      unverified += 1
+      continue
+    }
+    const key = `${item.Store}-${item.RuleId}`
+    const group = groups.get(key)
+    if (group) {
+      group.apps.add(item.AppId)
+      group.days = Math.min(group.days, days)
+    } else {
+      groups.set(key, { first: item, days, apps: new Set([item.AppId]) })
+    }
+  }
+  const items: AttentionItem[] = [...groups.entries()].map(([key, { first, days, apps }]) => ({
+    key: `dl${key}`,
+    kind: 'deadline',
+    tone: days < 0 ? 'danger' : 'warning',
+    store: first.Store,
+    appId: apps.size === 1 ? first.AppId : null,
+    appName: apps.size === 1 ? (first.AppName ?? null) : null,
+    subject: first.Title ?? first.RuleId,
+    detail: null,
+    date: first.DueDate ?? null,
+    daysLeft: days,
+    href: apps.size === 1 ? `/apps/${first.AppId}/compliance` : '/compliance',
+    count: apps.size,
+  }))
+  if (unverified > 0) {
+    items.push({
+      key: 'unverified',
+      kind: 'unverified',
+      tone: 'neutral',
+      store: null,
+      appId: null,
+      appName: null,
+      subject: null,
+      detail: null,
+      date: null,
+      daysLeft: null,
+      href: '/compliance',
+      count: unverified,
+    })
+  }
+  return items
 }
 
 export const MAX_ATTENTION = 2
@@ -470,10 +535,8 @@ export function attentionOf(inputs: BoardInputs, now: number): AttentionItem[] {
     if (item.kind === 'expiry' && item.daysLeft !== null && item.daysLeft <= EXPIRY_ATTENTION_DAYS) {
       items.push({ ...item, key: `x${item.key}`, kind: 'expiry', detail: null, tone: 'warning' })
     }
-    if (item.kind === 'deadline' && item.daysLeft !== null && item.daysLeft <= DEADLINE_ATTENTION_DAYS) {
-      items.push({ ...item, key: `x${item.key}`, kind: 'deadline', detail: null, tone: item.daysLeft < 0 ? 'danger' : 'warning' })
-    }
   }
-  const kindRank: Record<AttentionKind, number> = { rejection: 0, jobFailed: 1, connection: 2, deadline: 3, expiry: 4, pendingRelease: 5 }
+  items.push(...deadlineAttentionOf(inputs.compliance, now))
+  const kindRank: Record<AttentionKind, number> = { rejection: 0, jobFailed: 1, connection: 2, deadline: 3, expiry: 4, pendingRelease: 5, unverified: 6 }
   return items.sort((a, b) => TONE_RANK[a.tone] - TONE_RANK[b.tone] || kindRank[a.kind] - kindRank[b.kind])
 }

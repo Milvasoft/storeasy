@@ -564,6 +564,8 @@ export const tr: Dictionary = {
         expiry: "{app} {subject} {days} gün içinde TestFlight'tan düşüyor",
         deadline: '{app}: {subject}, {days} gün kaldı',
         deadlineOverdue: '{app}: {subject}, süresi geçti',
+        apps: '{count} uygulama',
+        unverified: '{count} uyum maddesi storeasy tarafından doğrulanamadı',
       },
       attentionAction: {
         rejection: 'Ret kaydını aç',
@@ -572,6 +574,7 @@ export const tr: Dictionary = {
         pendingRelease: 'Sürümü aç',
         expiry: "TestFlight'a git",
         deadline: 'Uyumluluğa git',
+        unverified: 'Uyumluluğa git',
       },
       upcomingTitle: 'Sırada',
       upcomingEmpty: 'Bekleyen bir şey yok; önümüzdeki 45 günde dolan bir tarih de yok.',
