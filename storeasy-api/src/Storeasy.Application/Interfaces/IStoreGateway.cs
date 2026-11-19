@@ -37,6 +37,13 @@ public interface IStoreGateway
     /// released to), newest first where the store orders them.
     /// </summary>
     Task<IReadOnlyList<StoreBuildRecord>> ListBuildsAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reads the address of one app's icon, read only (App Store Connect: the icon asset of the newest build that has one;
+    /// Google Play: the <c>icon</c> image of the default language listing, read inside an edit that is deleted afterwards).
+    /// Returns null when the store has no icon for the app or the store is not supported (Microsoft Store), without a call.
+    /// </summary>
+    Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken);
 }
 
 /// <summary>

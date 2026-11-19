@@ -1,8 +1,10 @@
-﻿using Storeasy.Application.Dtos.ActivityDtos;
+﻿using Milvasoft.Core.Abstractions;
+using Storeasy.Application.Dtos.ActivityDtos;
 using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Events;
@@ -18,7 +20,9 @@ namespace Storeasy.Infrastructure.Stores;
 /// service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
 /// <item>Microsoft Store: not supported yet (permanent failure).</item>
 /// </list>
-/// Builds are upserted by the store's build id. All writes are set based or bulk; the loops only call the store. App Store
+/// Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="IStoreGateway.GetIconUrlAsync"/>)
+/// and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+/// writes are set based or bulk; the loops only call the store. App Store
 /// records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
 /// through the API is registered again (a <see cref="StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
 /// </summary>
@@ -30,6 +34,7 @@ namespace Storeasy.Infrastructure.Stores;
 /// <param name="activityPublisher"></param>
 /// <param name="storeJobQueue"></param>
 /// <param name="timeProvider"></param>
+/// <param name="logger"></param>
 public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                        IStoreasyRepositoryBase<App> appRepository,
                                        IStoreasyRepositoryBase<Build> buildRepository,
@@ -37,8 +42,10 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
                                        IStoreGateway storeGateway,
                                        IActivityPublisher activityPublisher,
                                        IStoreJobQueue storeJobQueue,
-                                       TimeProvider timeProvider) : IStoreJobHandler
+                                       TimeProvider timeProvider,
+                                       IMilvaLogger logger) : IStoreJobHandler
 {
+    private readonly IMilvaLogger _logger = logger;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
@@ -109,6 +116,27 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
 
         await context.EndStepAsync(buildSaveStep, StoreJobStepStatus.Succeeded, $"{added} new builds.", cancellationToken);
 
+        // 5. Read the icons. A failed read only costs that icon: it is logged and the app keeps the icon it has.
+        var iconStep = await context.BeginStepAsync("icons.read", StepDirection.Outbound, total: synced.Count, cancellationToken: cancellationToken);
+        var icons = new Dictionary<int, string>();
+        var iconFailures = 0;
+
+        for (var i = 0; i < synced.Count; i++)
+        {
+            var url = await ReadIconAsync(connection, synced[i].ExternalId, cancellationToken);
+
+            if (url == null)
+                iconFailures++;
+            else if (url.Length > 0)
+                icons.TryAdd(synced[i].AppId, url);
+
+            await context.ReportProgressAsync(iconStep, i + 1, cancellationToken);
+        }
+
+        var iconsChanged = await SaveIconsAsync(icons, cancellationToken);
+
+        await context.EndStepAsync(iconStep, StoreJobStepStatus.Succeeded, iconFailures == 0 ? $"{iconsChanged} icons updated." : $"{iconsChanged} icons updated; {iconFailures} could not be read.", cancellationToken);
+
         foreach (var appId in synced.Select(s => s.AppId).Distinct())
         {
             await _activityPublisher.PublishAsync(new ActivityEventDto
@@ -124,7 +152,52 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
         }
 
         return new StoreJobOutcome($"{synced.Count} apps and {builds.Count} builds synced from {connection.Store} ({added} new builds).",
-                                   new { Apps = synced.Count, Builds = builds.Count, NewBuilds = added, Refused = refused.Select(r => r.ExternalId).ToList() });
+                                   new { Apps = synced.Count, Builds = builds.Count, NewBuilds = added, Icons = iconsChanged, Refused = refused.Select(r => r.ExternalId).ToList() });
+    }
+
+    /// <summary>
+    /// Reads the icon of one store record. Returns the address, an empty string when the store has no icon for it, or null
+    /// when the read failed (logged as a warning; the job goes on).
+    /// </summary>
+    private async Task<string> ReadIconAsync(OpenedStoreConnection connection, string externalId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var url = await _storeGateway.GetIconUrlAsync(connection.Store, connection.SecretJson, externalId, cancellationToken);
+
+            return string.IsNullOrWhiteSpace(url) || url.Length > App.IconUrlMaxLength ? string.Empty : url;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger?.Warning("The icon of {Store} app {ExternalId} could not be read: {Error}", connection.Store, externalId, SecretRedactor.Redact(ex.Message));
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Writes the icons that changed. An app whose icon could not be read is not in <paramref name="icons"/>, so a failure
+    /// never clears an icon. Only the icon column is written.
+    /// </summary>
+    private async Task<int> SaveIconsAsync(Dictionary<int, string> icons, CancellationToken cancellationToken)
+    {
+        if (icons.Count == 0)
+            return 0;
+
+        var appIds = icons.Keys.ToList();
+
+        var changed = (await _appRepository.GetAllAsync(a => appIds.Contains(a.Id),
+                                                        projection: a => new App { Id = a.Id, IconUrl = a.IconUrl },
+                                                        cancellationToken: cancellationToken)).Where(a => a.IconUrl != icons[a.Id]).ToList();
+
+        if (changed.Count == 0)
+            return 0;
+
+        changed.ForEach(a => a.IconUrl = icons[a.Id]);
+
+        await _appRepository.UpdateAsync(changed, cancellationToken, a => a.IconUrl);
+
+        return changed.Count;
     }
 
     /// <summary>
