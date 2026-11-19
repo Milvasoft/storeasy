@@ -36,6 +36,11 @@ public class AppListDto
     public DateTime? HiddenDate { get; set; }
 
     /// <summary>
+    /// Place of the app in the apps list a member chose (0 is the first); null for an app that was never placed.
+    /// </summary>
+    public int? DisplayOrder { get; set; }
+
+    /// <summary>
     /// Records in the stores (one per store at most).
     /// </summary>
     public List<AppStoreRecordDto> Stores { get; set; }
@@ -52,6 +57,7 @@ public class AppListDto
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
         HiddenDate = a.HiddenDate,
+        DisplayOrder = a.DisplayOrder,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto
         {
             StoreAppId = s.Id,

@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, EyeOff, LayoutGrid, Plus, RefreshCw, SearchX, Table2 } from 'lucide-react'
 import { AddGoogleAppDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
+import { AppOrderHandle, type OrderFocus } from '@/components/apps/AppOrderHandle'
 import { HideAppButton } from '@/components/apps/HideAppButton'
+import { inOrder, useReorderApps } from '@/components/apps/useReorderApps'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { ScreenState } from '@/components/ui/ScreenState'
@@ -13,9 +15,9 @@ import { Button, CardSkeleton, Chip, EmptyState, PageHeader, TableSkeleton } fro
 import { useActivity } from '@/lib/activity/ActivityContext'
 import { isActive } from '@/lib/activity/hatState'
 import { appsApi, connectionsApi, type AppListRequest } from '@/lib/api/endpoints'
-import { FilterType, SortType, type ListRequest } from '@/lib/api/list'
+import { FilterType, type ListRequest } from '@/lib/api/list'
 import { OrgPermission, StoreKind, type AppListDto } from '@/lib/api/types'
-import { lastSyncOf, primaryIdentifier, recordFor, recordsOf, STORE_ORDER, storeCounts } from '@/lib/apps/apps'
+import { lastSyncOf, moveBy, moveTo, primaryIdentifier, recordFor, recordsOf, STORE_ORDER, storeCounts } from '@/lib/apps/apps'
 import { useSyncApps } from '@/lib/apps/useSyncApps'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -36,13 +38,15 @@ function numberParam(value: string | null): number | null {
   return value && Number.isInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-/** The apps request from the address: page, size and the name search (Contains), sorted by name. */
+/**
+ * The apps request from the address: page, size and the name search (Contains). No sort is sent, so the server answers
+ * in the order members chose (then by name for the apps never placed).
+ */
 export function appsRequest(params: URLSearchParams): ListRequest {
   const search = params.get('q')?.trim()
   return {
     PageNumber: numberParam(params.get('page')) ?? 1,
     RowCount: numberParam(params.get('size')) ?? DEFAULT_PAGE_SIZE,
-    Sorting: { SortBy: 'Name', Type: SortType.Asc },
     ...(search ? { Filtering: { Criterias: [{ FilterBy: 'Name', Value: search, Type: FilterType.Contains }] } } : {}),
   }
 }
@@ -74,12 +78,24 @@ function SyncBadge({ synced }: { synced: boolean }) {
 }
 
 /** One app as a card (design 6.1): icon and identifier, one lane per store record, the date it was added. */
-function AppCard({ app, running, action }: { app: AppListDto; running: boolean; action?: ReactNode }) {
+function AppCard({
+  app,
+  running,
+  action,
+  dragging,
+  cardProps,
+}: {
+  app: AppListDto
+  running: boolean
+  action?: ReactNode
+  dragging?: boolean
+  cardProps?: HTMLAttributes<HTMLElement>
+}) {
   const t = useT()
   const format = useFormat()
   const identifier = primaryIdentifier(app)
   return (
-    <article className="appc">
+    <article className={dragging ? 'appc dragging' : 'appc'} {...cardProps}>
       <div className="flex min-w-0 items-center gap-3">
         <AppAvatar app={app} size="m" />
         <div className="min-w-0">
@@ -210,6 +226,109 @@ export function AppsPage() {
   const lastSync = lastSyncOf(all)
   const searching = !!params.get('q')
   const noConnections = connections.isSuccess && connections.data.length === 0
+
+  // Reordering (cards only): the whole shown list must be on the page, so not while searching, filtering by store, in
+  // the hidden apps or with more than one page.
+  const reorder = useReorderApps([...queryKeys.apps.list(organization.Id, request), storeFilter])
+  const listed = editor && !showHidden && view === 'grid' && all.length > 1
+  const paged = (apps.data?.TotalDataCount ?? all.length) > all.length
+  const canReorder = listed && !searching && !storeFilter && !paged
+  const reorderNote = !listed ? null : searching || storeFilter ? t.apps.reorderOffFiltered : paged ? t.apps.reorderOffPaged : t.apps.reorderHint
+  const [dragging, setDragging] = useState<number | null>(null)
+  const [preview, setPreview] = useState<number[] | null>(null)
+  const [announcement, setAnnouncement] = useState('')
+  const dropped = useRef(false)
+  const cards = useRef(new Map<number, HTMLElement>())
+  const ids = all.map((app) => app.Id)
+  const shown = preview ? inOrder(all, preview) : all
+
+  // A new read (the saved order, or the old one back after a refusal) replaces the order shown while dragging.
+  useEffect(() => {
+    if (dragging === null) {
+      setPreview(null)
+    }
+    // Only a new answer resets the preview; the end of a drag clears it itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apps.data])
+
+  const save = (next: number[]) => {
+    if (next.some((id, index) => id !== ids[index])) {
+      reorder.mutate(next)
+      return true
+    }
+    return false
+  }
+
+  const announce = (app: AppListDto, next: number[]) =>
+    setAnnouncement(interpolate(t.apps.movedTo, { app: app.Name, position: next.indexOf(app.Id) + 1 }))
+
+  const move = (app: AppListDto, offset: -1 | 1, focus: OrderFocus) => {
+    const next = moveBy(ids, app.Id, offset)
+    if (!save(next)) {
+      return
+    }
+    announce(app, next)
+    // The card moved in the page: put the focus back on the control that moved it (the handle at either end).
+    window.requestAnimationFrame(() => {
+      const card = cards.current.get(app.Id)
+      const target = card?.querySelector<HTMLButtonElement>(`[data-reorder="${focus}"]`)
+      const fallback = card?.querySelector<HTMLButtonElement>('[data-reorder="handle"]')
+      ;(target && !target.disabled ? target : fallback)?.focus()
+    })
+  }
+
+  const dragProps = (app: AppListDto): HTMLAttributes<HTMLElement> => ({
+    draggable: true,
+    onDragStart: (event: DragEvent<HTMLElement>) => {
+      dropped.current = false
+      if (event.dataTransfer) {
+        event.dataTransfer.setData('text/plain', String(app.Id))
+        event.dataTransfer.effectAllowed = 'move'
+      }
+      setDragging(app.Id)
+      setPreview(ids)
+    },
+    onDragOver: (event: DragEvent<HTMLElement>) => {
+      if (dragging === null) {
+        return
+      }
+      event.preventDefault()
+      if (app.Id !== dragging) {
+        setPreview((current) => moveTo(current ?? ids, dragging, app.Id))
+      }
+    },
+    onDragEnd: () => {
+      if (!dropped.current) {
+        setPreview(null)
+      }
+      setDragging(null)
+    },
+  })
+
+  const onListDragOver = (event: DragEvent<HTMLElement>) => {
+    if (dragging !== null) {
+      event.preventDefault()
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move'
+      }
+    }
+  }
+
+  const onListDrop = (event: DragEvent<HTMLElement>) => {
+    if (dragging === null) {
+      return
+    }
+    event.preventDefault()
+    dropped.current = true
+    const next = preview ?? ids
+    const app = all.find((item) => item.Id === dragging)
+    setDragging(null)
+    if (save(next) && app) {
+      announce(app, next)
+    } else {
+      setPreview(null)
+    }
+  }
 
   const columns: Column<AppListDto>[] = [
     {
@@ -402,9 +521,46 @@ export function AppsPage() {
             onRowClick={(app) => navigate(`/apps/${app.Id}`)}
           />
         ) : (
-          <div className="applist" aria-busy={apps.isFetching || undefined}>
-            {rows.map((app) => (
-              <AppCard key={app.Id} app={app} running={running.has(app.Id)} action={editor ? <HideAppButton app={app} /> : undefined} />
+          <div
+            className="applist"
+            aria-busy={apps.isFetching || undefined}
+            onDragOver={canReorder ? onListDragOver : undefined}
+            onDrop={canReorder ? onListDrop : undefined}
+          >
+            {shown.map((app, index) => (
+              <div
+                key={app.Id}
+                className="contents"
+                ref={(element) => {
+                  if (element) {
+                    cards.current.set(app.Id, element)
+                  } else {
+                    cards.current.delete(app.Id)
+                  }
+                }}
+              >
+                <AppCard
+                  app={app}
+                  running={running.has(app.Id)}
+                  dragging={dragging === app.Id}
+                  cardProps={canReorder ? dragProps(app) : undefined}
+                  action={
+                    editor ? (
+                      <>
+                        {canReorder ? (
+                          <AppOrderHandle
+                            app={app}
+                            first={index === 0}
+                            last={index === shown.length - 1}
+                            onMove={(offset, focus) => move(app, offset, focus)}
+                          />
+                        ) : null}
+                        <HideAppButton app={app} />
+                      </>
+                    ) : undefined
+                  }
+                />
+              </div>
             ))}
           </div>
         )}
@@ -455,6 +611,10 @@ export function AppsPage() {
           {lastSync ? interpolate(t.apps.lastSync, { time: format.relative(lastSync) }) : all.length > 0 ? t.apps.neverSynced : null}
         </span>
       </div>
+      {reorderNote && !apps.isLoading && !apps.isError ? <p className="mb-3 mt-0 text-xs text-fg3">{reorderNote}</p> : null}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
       {body}
       {editor ? (
         <>

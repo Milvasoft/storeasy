@@ -19,6 +19,7 @@ using Storeasy.Application.Features.Apps.AddGoogleApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
+using Storeasy.Application.Features.Apps.ReorderApps;
 using Storeasy.Application.Features.Apps.SetAppHidden;
 using Storeasy.Application.Features.Apps.SyncApps;
 using Storeasy.Application.Features.Apps.UnlinkStoreApp;
@@ -94,6 +95,16 @@ public class AppsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPost("app/hidden")]
     public Task<Response<int>> SetAppHiddenAsync(SetAppHiddenCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Sets the order of the apps list (editors and above): the listed apps come first in that order, every other app
+    /// follows by name. Returns the number of placed apps.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("app/order")]
+    public Task<Response<int>> ReorderAppsAsync(ReorderAppsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Queues a sync of apps and builds for one connection or all (editors and above). Returns the job ids.

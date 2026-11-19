@@ -785,6 +785,14 @@ export const en = {
     hiddenEmptyBody: 'Apps you hide from the list wait here until you show them again.',
     backToList: 'All apps',
     hiddenBadge: 'Hidden',
+    reorderHandle: 'Move {app}',
+    moveEarlier: 'Move {app} earlier',
+    moveLater: 'Move {app} later',
+    reorderHint: 'Drag the cards to set their order. With the keyboard, focus a card handle and press Alt with an arrow key.',
+    reorderOffFiltered: 'Clear the search and the store filter to change the order.',
+    reorderOffPaged: 'Show every app on one page to change the order.',
+    movedTo: '{app} moved to position {position}.',
+    reorderFailed: 'The new order could not be saved.',
   },
   app: {
     back: 'Apps',
@@ -997,6 +1005,7 @@ export const en = {
       storeAppUnlinked: 'Store record split off',
       appHidden: 'App hidden',
       appUnhidden: 'App shown',
+      appsReordered: 'Apps reordered',
     },
   },
 }

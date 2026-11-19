@@ -1,10 +1,11 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { FilterType } from '@/lib/api/list'
 import { OrgRole, StoreKind } from '@/lib/api/types'
 import { AppsPage } from '@/pages/apps/AppsPage'
 import { app, connection, organization, storeRecord } from '../../support/factories'
-import { endpoint, errorResponse } from '../../support/handlers'
+import { endpoint, errorResponse, listEnvelope } from '../../support/handlers'
 import { renderWithProviders } from '../../support/render'
 import { server } from '../../support/server'
 import { lastRequestTo, requestsTo, testState } from '../../support/state'
@@ -14,6 +15,16 @@ const halka = app({
   Name: 'Halka',
   Stores: [storeRecord({ StoreAppId: 210, Store: StoreKind.Google, ExternalId: 'dev.kuzeylab.halka', BundleId: null, SyncedDate: null })],
 })
+
+const kasa = app({
+  Id: 103,
+  Name: 'Kasa',
+  Stores: [storeRecord({ StoreAppId: 230, Store: StoreKind.Google, ExternalId: 'dev.kuzeylab.kasa', BundleId: null })],
+})
+
+function cardNames() {
+  return screen.getAllByRole('article').map((card) => within(card).getAllByRole('link')[0].textContent)
+}
 
 function render(route = '/apps', options: Parameters<typeof renderWithProviders>[1] = {}) {
   return renderWithProviders(<AppsPage />, { route, ...options })
@@ -252,6 +263,121 @@ describe('AppsPage', () => {
 
     expect(await screen.findByRole('link', { name: 'Pusula' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pusula uygulamasını gizle' })).not.toBeInTheDocument()
+  })
+
+  it('asks the server for the order members chose, without a sort', async () => {
+    render()
+    await screen.findByRole('link', { name: 'Pusula' })
+
+    const pageRequest = requestsTo('/Apps')
+      .map((request) => request.body as Record<string, unknown>)
+      .find((body) => body.RowCount === 20 && !body.Hidden)
+    expect(pageRequest).toBeDefined()
+    expect(pageRequest).not.toHaveProperty('Sorting')
+  })
+
+  it('moves a card with the keyboard on its handle and saves the whole order', async () => {
+    testState.apps = [app(), halka, kasa]
+    const { user } = render()
+    await screen.findByRole('link', { name: 'Kasa' })
+    expect(screen.getByText(/^Kartları sürükleyerek sırala/)).toBeInTheDocument()
+
+    screen.getByRole('button', { name: 'Kasa uygulamasını taşı' }).focus()
+    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/order')?.body).toEqual({ OrganizationId: 7, AppIds: [101, 103, 102] }))
+    expect(cardNames()).toEqual(['Pusula', 'Kasa', 'Halka'])
+    expect(screen.getByText('Kasa 2. sıraya taşındı.')).toHaveAttribute('aria-live', 'polite')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Kasa uygulamasını taşı' })).toHaveFocus())
+  })
+
+  it('moves a card with the earlier and later buttons behind its handle', async () => {
+    testState.apps = [app(), halka, kasa]
+    const { user } = render()
+    await screen.findByRole('link', { name: 'Kasa' })
+
+    await user.click(screen.getByRole('button', { name: 'Pusula uygulamasını taşı' }))
+    expect(screen.getByRole('button', { name: 'Pusula uygulamasını öne al' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Pusula uygulamasını geriye al' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/order')?.body).toEqual({ OrganizationId: 7, AppIds: [102, 101, 103] }))
+    expect(cardNames()).toEqual(['Halka', 'Pusula', 'Kasa'])
+  })
+
+  it('reorders the cards by dragging one onto another', async () => {
+    testState.apps = [app(), halka, kasa]
+    render()
+    await screen.findByRole('link', { name: 'Kasa' })
+    const card = (name: string) => screen.getByRole('link', { name }).closest('article') as HTMLElement
+    const dataTransfer = { setData: () => undefined, effectAllowed: '', dropEffect: '' }
+
+    fireEvent.dragStart(card('Kasa'), { dataTransfer })
+    expect(card('Kasa')).toHaveClass('dragging')
+    fireEvent.dragOver(card('Pusula'), { dataTransfer })
+    expect(cardNames()).toEqual(['Kasa', 'Pusula', 'Halka'])
+    fireEvent.drop(card('Pusula'), { dataTransfer })
+    fireEvent.dragEnd(card('Kasa'), { dataTransfer })
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/order')?.body).toEqual({ OrganizationId: 7, AppIds: [103, 101, 102] }))
+    expect(cardNames()).toEqual(['Kasa', 'Pusula', 'Halka'])
+    expect(card('Kasa')).toHaveAttribute('class', 'appc')
+  })
+
+  it('puts a dragged card back when the drag is cancelled', async () => {
+    testState.apps = [app(), halka, kasa]
+    render()
+    await screen.findByRole('link', { name: 'Kasa' })
+    const card = (name: string) => screen.getByRole('link', { name }).closest('article') as HTMLElement
+    const dataTransfer = { setData: () => undefined, effectAllowed: '', dropEffect: '' }
+
+    fireEvent.dragStart(card('Kasa'), { dataTransfer })
+    fireEvent.dragOver(card('Pusula'), { dataTransfer })
+    fireEvent.dragEnd(card('Kasa'), { dataTransfer })
+
+    expect(cardNames()).toEqual(['Pusula', 'Halka', 'Kasa'])
+    expect(requestsTo('/Apps/app/order')).toHaveLength(0)
+  })
+
+  it('puts the cards back and says why when the new order is refused', async () => {
+    testState.apps = [app(), halka, kasa]
+    server.use(endpoint('post', '/Apps/app/order', () => errorResponse('AppNotFound', 'Uygulama bulunamadı.', 404)))
+    const { user } = render()
+    await screen.findByRole('link', { name: 'Kasa' })
+
+    screen.getByRole('button', { name: 'Kasa uygulamasını taşı' }).focus()
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}')
+
+    expect(await screen.findByText('Uygulama bulunamadı.')).toBeInTheDocument()
+    await waitFor(() => expect(cardNames()).toEqual(['Pusula', 'Halka', 'Kasa']))
+  })
+
+  it('does not offer reordering while searching, filtering, on more than one page, in the table or to a viewer', async () => {
+    testState.apps = [app(), halka, kasa]
+    const searching = render('/apps?q=a')
+    await screen.findByRole('link', { name: 'Kasa' })
+    expect(screen.getByText('Sırayı değiştirmek için aramayı ve mağaza filtresini kaldır.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Kasa uygulamasını taşı' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Kasa' }).closest('article')).not.toHaveAttribute('draggable')
+    searching.unmount()
+
+    server.use(endpoint('patch', '/Apps', () => HttpResponse.json(listEnvelope(testState.apps, 1, 25, 2))))
+    const paged = render()
+    await screen.findByRole('link', { name: 'Kasa' })
+    expect(screen.getByText('Sırayı değiştirmek için tüm uygulamaları tek sayfada göster.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Kasa uygulamasını taşı' })).not.toBeInTheDocument()
+    paged.unmount()
+    server.resetHandlers()
+
+    const table = render('/apps?view=table')
+    await screen.findByRole('table', { name: 'Uygulamalar' })
+    expect(screen.queryByRole('button', { name: 'Kasa uygulamasını taşı' })).not.toBeInTheDocument()
+    table.unmount()
+
+    testState.organizations = [organization({ Role: OrgRole.Viewer })]
+    render()
+    await screen.findByRole('link', { name: 'Kasa' })
+    expect(screen.queryByRole('button', { name: 'Kasa uygulamasını taşı' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Kartları sürükleyerek sırala/)).not.toBeInTheDocument()
   })
 
   it('shows the error state with a retry when the list cannot be read', async () => {

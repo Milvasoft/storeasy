@@ -407,6 +407,87 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
     }
 
     [Fact]
+    public async Task Reorder_ShouldKeepTheChosenOrderAcrossSyncsAndPutNewAppsAfterItByName()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        GiveAppleApps(setup,
+                      new StoreAppRecord($"11{setup.Suffix}", $"com.{setup.Suffix}.alpha", "Alpha"),
+                      new StoreAppRecord($"12{setup.Suffix}", $"com.{setup.Suffix}.beta", "Beta"),
+                      new StoreAppRecord($"13{setup.Suffix}", $"com.{setup.Suffix}.gamma", "Gamma"));
+        await SyncAsync(setup);
+        var byName = (await ListAppsAsync(setup)).ToDictionary(a => a.Name, a => a.Id);
+
+        // Act
+        var (reorder, placed) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = new[] { byName["Gamma"], byName["Alpha"], byName["Beta"] } });
+        var (again, _) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = new[] { byName["Gamma"], byName["Alpha"], byName["Beta"] } });
+        GiveAppleApps(setup,
+                      new StoreAppRecord($"11{setup.Suffix}", $"com.{setup.Suffix}.alpha", "Alpha"),
+                      new StoreAppRecord($"12{setup.Suffix}", $"com.{setup.Suffix}.beta", "Beta"),
+                      new StoreAppRecord($"13{setup.Suffix}", $"com.{setup.Suffix}.gamma", "Gamma"),
+                      new StoreAppRecord($"14{setup.Suffix}", $"com.{setup.Suffix}.aardvark", "Aardvark"));
+        await SyncAsync(setup);
+        var afterSync = await ListAppsAsync(setup);
+        var (_, secondPage) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, pageNumber = 2, rowCount = 2 });
+        var (_, byNameSort) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, pageNumber = 1, rowCount = 50, sorting = new { sortBy = "Name", type = 0 } });
+        var (_, searched) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new
+        {
+            organizationId = setup.OrganizationId,
+            pageNumber = 1,
+            rowCount = 50,
+            filtering = new { criterias = new[] { new { filterBy = "Name", value = "a", type = 1 } } },
+        });
+        var (partial, _) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = new[] { byName["Beta"] } });
+        var afterPartial = await ListAppsAsync(setup);
+        var audited = await _factory.DbAsync(db => db.StoreAuditLogs.AsNoTracking().CountAsync(a => a.OrganizationId == setup.OrganizationId && a.Action == AuditAction.AppsReordered));
+
+        // Assert
+        reorder.StatusCode.Should().Be(HttpStatusCode.OK);
+        placed.Data.Should().Be(3);
+        again.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterSync.Select(a => a.Name).Should().Equal(["Gamma", "Alpha", "Beta", "Aardvark"], "a sync keeps the chosen order and a new app follows it");
+        afterSync.Select(a => a.DisplayOrder).Should().Equal([0, 1, 2, null]);
+        secondPage.Data.Select(a => a.Name).Should().Equal(["Beta", "Aardvark"]);
+        secondPage.TotalDataCount.Should().Be(4);
+        byNameSort.Data.Select(a => a.Name).Should().Equal(["Aardvark", "Alpha", "Beta", "Gamma"], "a sort in the request replaces the chosen order");
+        searched.Data.Select(a => a.Name).Should().Equal(["Gamma", "Alpha", "Beta", "Aardvark"], "a search keeps the chosen order");
+        partial.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterPartial.Select(a => a.Name).Should().Equal(["Beta", "Aardvark", "Alpha", "Gamma"], "the apps left out lose their place and follow by name");
+        audited.Should().Be(2, "an order that is already in place writes nothing");
+    }
+
+    [Fact]
+    public async Task Reorder_ShouldCheckTheRoleTheOrganizationAndTheList()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var stranger = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"15{setup.Suffix}", $"com.{setup.Suffix}.one", "One"), new StoreAppRecord($"16{setup.Suffix}", $"com.{setup.Suffix}.two", "Two"));
+        await SyncAsync(setup);
+        var ids = (await ListAppsAsync(setup)).Select(a => a.Id).ToList();
+        var viewerUser = await _factory.CreateUserAsync(email: $"v{TestApi.Unique()}@example.com");
+        var viewer = await _factory.LoginAsync(viewerUser.UserName, TestApi.DefaultPassword);
+        var (_, invitation) = await setup.Owner.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId = setup.OrganizationId, email = viewerUser.Email, role = OrgRole.Viewer });
+        await viewer.Client.PostAsync<int>("organizations/invitation/accept", new { token = invitation.Data.Token });
+        var reversed = new[] { ids[1], ids[0] };
+
+        // Act
+        var (viewerReorder, _) = await viewer.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = reversed });
+        var (foreignApps, _) = await stranger.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = stranger.OrganizationId, appIds = reversed });
+        var (duplicate, _) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = new[] { ids[0], ids[0] } });
+        var (empty, _) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = Array.Empty<int>() });
+        var (unknown, _) = await setup.Owner.Client.PostAsync<int>("apps/app/order", new { organizationId = setup.OrganizationId, appIds = new[] { ids[0], int.MaxValue } });
+
+        // Assert
+        viewerReorder.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        foreignApps.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        duplicate.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        empty.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        unknown.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await ListAppsAsync(setup)).Should().OnlyContain(a => a.DisplayOrder == null, "nothing was reordered");
+    }
+
+    [Fact]
     public async Task Sync_ShouldRecordItsSteps()
     {
         var setup = await NewSetupAsync();
