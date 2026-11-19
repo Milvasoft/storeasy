@@ -79,7 +79,7 @@ public sealed class RegisterWebhooksJobHandler(IStoreasyRepositoryBase<WebhookEn
                                                             projection: s => new StoreApp { Id = s.Id, ExternalId = s.ExternalId },
                                                             cancellationToken: cancellationToken);
 
-        var registration = new StoreWebhookRegistration(_webhookName, _webhookOptions.ReceiverUrl(_appOptions, endpoint.Source, endpoint.PublicId), secret, endpoint.Events?.Count > 0 ? endpoint.Events : [AppStoreVersionStates.StateUpdatedEvent]);
+        var registration = new StoreWebhookRegistration(_webhookName, _webhookOptions.ReceiverUrl(_appOptions, endpoint.Source, endpoint.PublicId), secret, endpoint.Events?.Count > 0 ? endpoint.Events : AppStoreVersionStates.RegisteredEvents);
         var registered = new List<ExternalWebhookRegistration>();
         var step = await context.BeginStepAsync("webhooks.register", StepDirection.Outbound, total: records.Count, cancellationToken: cancellationToken);
 

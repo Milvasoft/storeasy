@@ -43,6 +43,13 @@ You need an App Store Connect API **team key**.
 
 Apple does not let the API create apps: create the app record in App Store Connect first.
 
+**Webhooks.** Under **Webhooks**, add an App Store Connect endpoint for the connection. storeasy registers one App Store
+Connect webhook per App Store app of the connection (apps that arrive with a later sync get one too) for the version
+state (App Review), build processing (`BUILD_UPLOAD_STATE_UPDATED`) and beta review
+(`BUILD_BETA_DETAIL_EXTERNAL_BUILD_STATE_UPDATED`) events, all with the endpoint's address and secret. **Ping** asks
+App Store Connect to send a signed test event to each webhook; the pings show in the event log with their signature
+verdict.
+
 ## Google Play
 
 You need a Google Cloud service account with a JSON key, invited to your Play Console account.
@@ -69,6 +76,29 @@ You need a Google Cloud service account with a JSON key, invited to your Play Co
    edit, and removes a record Play refuses.
 
 Create the app in Play Console first. Google can require the first bundle of a new app to be uploaded in Play Console.
+
+**Purchase notifications (Real-time developer notifications).** Play publishes subscription, one-time purchase,
+voided purchase, pending refund review and test notifications to a Cloud Pub/Sub topic; storeasy receives them through
+a push subscription and checks the push token Google signs (issuer Google, audience = the receiver address, e-mail = the
+push service account). No secret is shared.
+
+1. In Google Cloud (the project of your service account, or any project), enable the **Cloud Pub/Sub API** and create a
+   topic, for example `play-rtdn`.
+2. On the topic, grant `google-play-developer-notifications@system.gserviceaccount.com` the **Pub/Sub Publisher** role.
+3. Pick the service account the push requests authenticate as (a new one, for example `play-rtdn-push`, needs no
+   roles). If the project was created before April 2021, give the Pub/Sub service agent
+   (`service-<project number>@gcp-sa-pubsub.iam.gserviceaccount.com`) the **Service Account Token Creator** role.
+4. In storeasy, under **Webhooks**, add a **Google Play notifications** endpoint with that service account's e-mail and
+   copy the address it shows (`/api/webhooks/google/{id}`).
+5. Create a **push** subscription on the topic with that address as the endpoint, **Enable authentication** on, the
+   service account from step 3, and the audience left empty (Pub/Sub then uses the address) or set to the address.
+6. In Play Console, per app, open **Monetize with Play > Monetization setup**, enter the full topic name
+   (`projects/<project>/topics/play-rtdn`), choose the notification types (subscriptions and voided purchases, and
+   all one-time products if you sell them), save, and press **Send test notification**. The test arrives in the event
+   log as `TEST_NOTIFICATION`.
+
+storeasy stores the decoded notification with purchase and refund tokens masked, keyed by the Pub/Sub message id so a
+redelivered message is stored once.
 
 ## Microsoft Store
 
@@ -105,6 +135,10 @@ assisted step with a Partner Center link instead of failing silently.
 
 Writes go through change plans like the other stores (`ms/change`), and sending a submission to certification needs the
 **Submit for review** permission and the product's Store id typed as confirmation.
+
+**No status webhooks.** Partner Center has no webhooks for Store app submission or certification state (its commercial
+marketplace webhooks are a different product); it e-mails the account. storeasy reads submission states with the
+periodic Microsoft sync instead.
 
 ## Troubleshooting
 

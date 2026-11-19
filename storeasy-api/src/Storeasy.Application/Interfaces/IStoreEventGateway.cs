@@ -27,6 +27,15 @@ public interface IStoreEventGateway
     Task DeleteWebhookAsync(string secretJson, string webhookId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Asks App Store Connect to send a test event (<c>webhookPingCreated</c>) to a webhook and returns the ping's id.
+    /// </summary>
+    /// <param name="secretJson"></param>
+    /// <param name="webhookId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<string> PingWebhookAsync(string secretJson, string webhookId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reads one App Store version with its app and build.
     /// </summary>
     /// <param name="secretJson"></param>

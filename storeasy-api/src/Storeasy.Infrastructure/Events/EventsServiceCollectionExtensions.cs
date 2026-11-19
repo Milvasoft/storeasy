@@ -53,6 +53,8 @@ public static class EventsServiceCollectionExtensions
 
         // Inbound webhooks, version states and rejections.
         services.AddScoped<IWebhookInbox, WebhookInbox>();
+        services.AddSingleton<IGooglePushTokenValidator, GooglePushTokenValidator>();
+        services.AddHttpClient(GooglePushTokenValidator.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
         services.AddScoped<IVersionStateTracker, VersionStateTracker>();
         services.AddScoped<ScheduledStoreSyncs>();
 
@@ -66,6 +68,7 @@ public static class EventsServiceCollectionExtensions
 
         services.AddScoped<IStoreJobHandler, ProcessWebhookEventJobHandler>();
         services.AddScoped<IStoreJobHandler, RegisterWebhooksJobHandler>();
+        services.AddScoped<IStoreJobHandler, PingWebhooksJobHandler>();
         services.AddScoped<IStoreJobHandler, SyncVersionStatesJobHandler>();
         services.AddScoped<IStoreJobHandler, SyncReviewsJobHandler>();
         services.AddScoped<IStoreJobHandler, ReplyToReviewJobHandler>();

@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119135713_AddOrganizationLogo";
+    public override string LastMigrationId => "20261119145815_AddGooglePlayWebhooks";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -771,6 +771,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("PublicId")
                     .HasMaxLength(64)
                     .HasColumnType("character varying(64)");
+
+                b.Property<string>("PushServiceAccount")
+                    .HasMaxLength(320)
+                    .HasColumnType("character varying(320)");
 
                 b.Property<byte>("Registration")
                     .HasColumnType("smallint");

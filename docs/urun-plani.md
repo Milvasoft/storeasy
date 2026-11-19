@@ -65,7 +65,13 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 
 ### 2.5 Webhook ve bildirimler
 - Her zaman açık alıcı: App Store Connect `APP_STORE_VERSION_APP_VERSION_STATE_UPDATED` (tekil yazım, eski çoğul yazım
-  da kabul), `x-apple-signature: hmacsha256=<hex>` kontrolü, bağlantı başına ayrı gizli anahtar.
+  da kabul), `x-apple-signature: hmacsha256=<hex>` kontrolü, bağlantı başına ayrı gizli anahtar. Uç bağlantının her
+  App Store uygulamasına bir Apple webhook'u kurar; build işleme (`BUILD_UPLOAD_STATE_UPDATED`) ve beta inceleme
+  (`BUILD_BETA_DETAIL_EXTERNAL_BUILD_STATE_UPDATED`) olayları da kaydedilir. "Ping" Apple'dan imzalı test olayı ister.
+- Google Play gerçek zamanlı geliştirici bildirimleri: Pub/Sub push aboneliği `/api/webhooks/google/{id}` adresine
+  gelir; Google'ın imzaladığı push jetonu (audience = adres, e-posta = push hizmet hesabı) doğrulanır, ortak sır yok.
+  Abonelik, tek seferlik ürün, iade (voided), bekleyen iade incelemesi ve test bildirimleri satın alma jetonları
+  maskelenerek kaydedilir. Microsoft Partner Center'da mağaza uygulamaları için durum webhook'u yok; MsSync yoklaması.
 - Bildirim kanalları: uygulama içi (bildirim merkezi), e-posta, web push (Faz 8). Kullanıcı başına tercih.
 - Red takibi: API Resolution Center metnini okuyamaz. Sürüm `REJECTED` veya `METADATA_REJECTED` olunca:
   1. bir "Red kaydı" açılır ve sahiplerine bildirim gider,

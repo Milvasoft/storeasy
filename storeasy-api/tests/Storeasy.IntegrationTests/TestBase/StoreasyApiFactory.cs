@@ -268,6 +268,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             // Phase 8: Google sign in and browser push services.
             services.AddHttpClient(Storeasy.Infrastructure.Services.GoogleSignInService.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Google);
+            services.AddHttpClient(Storeasy.Infrastructure.Events.GooglePushTokenValidator.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Google);
             services.AddHttpClient(Storeasy.Infrastructure.Notifications.WebPush.WebPushSender.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => PushService);
             services.RemoveAll<IArtifactStorage>();
             services.AddSingleton<IArtifactStorage>(FileStorage);
@@ -422,6 +423,8 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         ["Storeasy:Auth:Google:ClientId"] = FakeGoogle.ClientId,
         ["Storeasy:Auth:Google:ClientSecret"] = FakeGoogle.ClientSecret,
         ["Storeasy:Auth:Google:Authority"] = FakeGoogle.Authority,
+        ["Storeasy:Webhooks:GooglePushIssuers:0"] = FakeGoogle.Authority,
+        ["Storeasy:Webhooks:GooglePushKeysUrl"] = FakeGoogle.Authority + "/oauth2/v3/certs",
         ["Storeasy:WebPush:Subject"] = "mailto:tests@example.com",
         ["Storeasy:WebPush:PublicKey"] = VapidKeys.PublicKey,
         ["Storeasy:WebPush:PrivateKey"] = VapidKeys.PrivateKey,
