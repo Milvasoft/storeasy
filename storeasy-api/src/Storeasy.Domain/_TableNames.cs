@@ -73,5 +73,6 @@ public static class TableNames
     public const string WebPushSubscriptions = nameof(WebPushSubscriptions);
     public const string EmailOutbox = nameof(EmailOutbox);
     public const string SystemSettings = nameof(SystemSettings);
+    public const string OrganizationAiSettings = nameof(OrganizationAiSettings);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

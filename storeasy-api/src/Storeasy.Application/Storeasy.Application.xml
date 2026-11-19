@@ -2778,6 +2778,31 @@
             What the feature is (localized).
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.FeedbackDtos.GeneratedReplyDraftDto">
+            <summary>
+            A reply draft written with AI and saved as the review's draft. Nothing was sent to the store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.FeedbackDtos.GeneratedReplyDraftDto.ReviewId">
+            <summary>
+            Review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.FeedbackDtos.GeneratedReplyDraftDto.Body">
+            <summary>
+            The draft text, within the store's limit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.FeedbackDtos.GeneratedReplyDraftDto.Shortened">
+            <summary>
+            True when the model's text was longer than the store accepts and was cut after its last full sentence that fits.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.FeedbackDtos.GeneratedReplyDraftDto.Model">
+            <summary>
+            Model that wrote the draft.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.FeedbackDtos.RejectionCaseDto">
             <summary>
             A rejection case with its text, checklist, reply draft and timeline.
@@ -7410,6 +7435,43 @@
             Live event type to publish to the organization's members as well; null for none.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto">
+            <summary>
+            AI settings of an organization. The API key itself is never returned: only whether one is set, when, by whom and its
+            last four characters.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.HasApiKey">
+            <summary>
+            Whether an Anthropic API key is saved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ApiKeyLastFour">
+            <summary>
+            Last four characters of the key; null when none is set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ApiKeySetDate">
+            <summary>
+            UTC instant the key was saved; null when none is set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ApiKeySetByUserName">
+            <summary>
+            Who saved the key; null when none is set.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.Model">
+            <summary>
+            Model the reply drafts are written with (configuration, <c>Storeasy:Ai:Model</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ApiKeyVerified">
+            <summary>
+            Only in the answer of saving a key: true when Anthropic accepted it, false when it could not be checked (the key
+            is saved anyway); null otherwise.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.OrganizationDtos.InvitationCreatedDto">
             <summary>
             Result of an invitation. <see cref="P:Storeasy.Application.Dtos.OrganizationDtos.InvitationCreatedDto.Token"/> is shown only here; the app builds the accept link from it so the
@@ -10855,6 +10917,153 @@
         </member>
         <member name="M:Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQueryValidator.#ctor">
             <inheritdoc cref="T:Storeasy.Application.Features.ActivityLogs.GetActivityLogList.GetActivityLogListQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery">
+            <summary>
+            Reads the organization's AI settings: whether an Anthropic API key is set (never the key) and the model. Every member
+            reads it, so the reviews page knows whether "write with AI" is available.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read.
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Utils.Models.AiOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read.
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler.Handle(Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand">
+            <summary>
+            Removes the organization's Anthropic API key; "write with AI" is off until a key is saved again. Drafts already written
+            stay. Removing when no key is set succeeds and changes nothing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand"/>: deletes the row with the sealed key (no soft delete keeps it around).
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand"/>: deletes the row with the sealed key (no soft delete keeps it around).
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommandHandler.Handle(Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand">
+            <summary>
+            Saves or replaces the organization's Anthropic API key, used to write review reply drafts. The key is checked with
+            Anthropic first (reading the model costs nothing): a key Anthropic rejects is not saved; when Anthropic cannot be
+            reached the key is saved with a warning. It is sealed and stored; it is never returned, logged or audited.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand.ApiKey">
+            <summary>
+            The Anthropic API key (<c>sk-ant-...</c>). Masked in logs.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand"/>. No [Log]: the request carries the key, and the audit log already records the
+            change without it.
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="DraftWriter"></param>
+            <param name="SecretProtector"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.IReplyDraftWriter,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Utils.Models.AiOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand"/>. No [Log]: the request carries the key, and the audit log already records the
+            change without it.
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="DraftWriter"></param>
+            <param name="SecretProtector"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.DraftWriter">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.CurrentUser">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandHandler.Handle(Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand"/>: the shape of an Anthropic API key, never its value in a message.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator.KeyPrefix">
+            <summary>
+            Prefix of every Anthropic API key.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator.KeyMaxLength">
+            <summary>
+            Longest key accepted.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Answers.CopySavedAnswers.CopySavedAnswersCommand">
             <summary>
@@ -18859,6 +19068,73 @@
         <member name="M:Storeasy.Application.Features.Reviews.DeleteSavedReply.DeleteSavedReplyCommandHandler.Handle(Storeasy.Application.Features.Reviews.DeleteSavedReply.DeleteSavedReplyCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand">
+            <summary>
+            Writes a reply draft for a review with Claude (the organization's Anthropic API key) and saves it as the review's draft,
+            replacing the one there, exactly like <c>reviews/reply-draft</c>. Nothing goes to the store: a member reads, edits and
+            sends the reply with <c>reviews/reply</c>. Needs the same permission as saving a draft.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand.ReviewId">
+            <summary>
+            Review.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand"/>: reads the review, opens the organization's key, asks
+            <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> for a reply, fits it into the store's limit (<see cref="M:Storeasy.Application.Utils.Helpers.ReviewRules.FitReply(System.String,System.Int32)"/>) and
+            saves it as the draft. No [Log]: the review and the draft are customer text; the audit entry keeps the model and the
+            token counts only.
+            </summary>
+            <param name="ReviewRepository"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="DraftWriter"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IReplyDraftWriter,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand"/>: reads the review, opens the organization's key, asks
+            <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> for a reply, fits it into the store's limit (<see cref="M:Storeasy.Application.Utils.Helpers.ReviewRules.FitReply(System.String,System.Int32)"/>) and
+            saves it as the draft. No [Log]: the review and the draft are customer text; the audit entry keeps the model and the
+            token counts only.
+            </summary>
+            <param name="ReviewRepository"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="DraftWriter"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.ReviewRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.DraftWriter">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.Handle(Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Reviews.GetReviewList.GetReviewListQuery">
             <summary>
             The organization's review inbox (every app, App Store and Google Play), newest first.
@@ -25479,6 +25755,185 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IReplyDraftWriter">
+            <summary>
+            Writes a reply draft for a store review with a language model (Claude through the Anthropic API, with the
+            organization's own key). It only returns text: saving the draft and sending a reply are the caller's business, and a
+            reply never goes to a store without a person.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IReplyDraftWriter.WriteAsync(Storeasy.Application.Interfaces.ReplyDraftRequest,System.Threading.CancellationToken)">
+            <summary>
+            Writes one reply draft. Failures (key, limits, refusals) come back as <see cref="P:Storeasy.Application.Interfaces.ReplyDraftResult.Outcome"/>; the
+            raw answer of the provider is never passed on.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IReplyDraftWriter.CheckKeyAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Checks a key with a call that costs nothing (reading the model). Network failures and outages give
+            <see cref="F:Storeasy.Application.Interfaces.AiKeyCheck.Unverified"/>, never a rejection.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ReplyDraftRequest">
+            <summary>
+            What the model is told about one review.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic API key.</param>
+            <param name="Store">Store of the review.</param>
+            <param name="AppName">Name of the app.</param>
+            <param name="Rating">Stars, 1 to 5.</param>
+            <param name="Title">Title (App Store only), if any.</param>
+            <param name="Body">Review text.</param>
+            <param name="Locale">Language of the review, if known.</param>
+            <param name="Territory">Storefront or country, if known.</param>
+            <param name="AppVersion">App version reviewed, if known.</param>
+            <param name="PreviousReply">The developer's published reply, if any (the draft replaces it).</param>
+            <param name="MaxLength">Longest reply the store accepts, in user perceived characters.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ReplyDraftRequest.#ctor(System.String,Storeasy.Domain.Enums.StoreKind,System.String,System.Int32,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32)">
+            <summary>
+            What the model is told about one review.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic API key.</param>
+            <param name="Store">Store of the review.</param>
+            <param name="AppName">Name of the app.</param>
+            <param name="Rating">Stars, 1 to 5.</param>
+            <param name="Title">Title (App Store only), if any.</param>
+            <param name="Body">Review text.</param>
+            <param name="Locale">Language of the review, if known.</param>
+            <param name="Territory">Storefront or country, if known.</param>
+            <param name="AppVersion">App version reviewed, if known.</param>
+            <param name="PreviousReply">The developer's published reply, if any (the draft replaces it).</param>
+            <param name="MaxLength">Longest reply the store accepts, in user perceived characters.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.ApiKey">
+            <summary>The organization's Anthropic API key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Store">
+            <summary>Store of the review.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.AppName">
+            <summary>Name of the app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Rating">
+            <summary>Stars, 1 to 5.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Title">
+            <summary>Title (App Store only), if any.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Body">
+            <summary>Review text.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Locale">
+            <summary>Language of the review, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Territory">
+            <summary>Storefront or country, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.AppVersion">
+            <summary>App version reviewed, if known.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.PreviousReply">
+            <summary>The developer's published reply, if any (the draft replaces it).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.MaxLength">
+            <summary>Longest reply the store accepts, in user perceived characters.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ReplyDraftResult">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IReplyDraftWriter.WriteAsync(Storeasy.Application.Interfaces.ReplyDraftRequest,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Outcome">What happened.</param>
+            <param name="Text">The reply text when <see cref="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Written"/>; otherwise null.</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens">Input tokens billed; 0 when unknown.</param>
+            <param name="OutputTokens">Output tokens billed; 0 when unknown.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ReplyDraftResult.#ctor(Storeasy.Application.Interfaces.ReplyDraftOutcome,System.String,System.String,System.Int64,System.Int64)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IReplyDraftWriter.WriteAsync(Storeasy.Application.Interfaces.ReplyDraftRequest,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Outcome">What happened.</param>
+            <param name="Text">The reply text when <see cref="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Written"/>; otherwise null.</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens">Input tokens billed; 0 when unknown.</param>
+            <param name="OutputTokens">Output tokens billed; 0 when unknown.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftResult.Outcome">
+            <summary>What happened.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftResult.Text">
+            <summary>The reply text when <see cref="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Written"/>; otherwise null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftResult.Model">
+            <summary>Model that answered (or was asked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftResult.InputTokens">
+            <summary>Input tokens billed; 0 when unknown.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftResult.OutputTokens">
+            <summary>Output tokens billed; 0 when unknown.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ReplyDraftResult.Failure(Storeasy.Application.Interfaces.ReplyDraftOutcome,System.String)">
+            <summary>
+            A failed result without text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ReplyDraftOutcome">
+            <summary>
+            Outcome of a reply draft.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Written">
+            <summary>
+            A reply was written.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.KeyRejected">
+            <summary>
+            The provider rejected the key (401 or 403).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.RateLimited">
+            <summary>
+            The provider's rate limit was reached (429).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Unavailable">
+            <summary>
+            The provider is overloaded, failing or unreachable (5xx, 529, network, timeout).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Refused">
+            <summary>
+            The model declined to answer (stop reason <c>refusal</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ReplyDraftOutcome.Failed">
+            <summary>
+            Anything else: a request the provider refused, an answer cut short, no text.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.AiKeyCheck">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IReplyDraftWriter.CheckKeyAsync(System.String,System.Threading.CancellationToken)"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.AiKeyCheck.Valid">
+            <summary>
+            The provider accepted the key.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.AiKeyCheck.Rejected">
+            <summary>
+            The provider rejected the key (401 or 403).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.AiKeyCheck.Unverified">
+            <summary>
+            The key could not be checked (network, outage, rate limit).
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IRuleImpactFinder">
             <summary>
             The apps (of every organization) that catalog rules apply to, evaluated with the rules catalog
@@ -30707,6 +31162,28 @@
             The read model of a case.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt">
+            <summary>
+            The prompt of the AI reply drafts. The system prompt is the same for every call; the review goes in the user message as
+            data inside tags, escaped so its text cannot close them. The store's limit is told to the model and enforced again
+            with <see cref="M:Storeasy.Application.Utils.Helpers.ReviewRules.FitReply(System.String,System.Int32)"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt.SystemPrompt">
+            <summary>
+            Instructions of the model, identical on every call (line feeds only, whatever line ends the checkout uses).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt.UserMessage(Storeasy.Application.Interfaces.ReplyDraftRequest)">
+            <summary>
+            The user message for one review.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.ReplyDraftPrompt.Escape(System.String)">
+            <summary>
+            <paramref name="text"/> with the characters that could open or close a tag escaped.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Utils.Helpers.ReviewRules">
             <summary>
             Store limits of review replies. Google Play publishes 350 characters; App Store Connect publishes no number and the
@@ -30731,6 +31208,13 @@
         <member name="M:Storeasy.Application.Utils.Helpers.ReviewRules.Length(System.String)">
             <summary>
             Length of a reply as the stores count it (user perceived characters, so an emoji counts once).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.ReviewRules.FitReply(System.String,System.Int32)">
+            <summary>
+            Fits a written reply (an AI draft) into <paramref name="maxLength"/> user perceived characters. A reply that fits is
+            returned trimmed. A longer one is cut after the last full sentence that fits, when that keeps at least half of the
+            limit, so the draft never ends mid sentence; otherwise null (the caller reports that no usable draft came back).
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Helpers.SavedAnswerSecrets">
@@ -30931,6 +31415,18 @@
             </code>
             </remarks>
         </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.SecretRedactor.AnthropicKeyRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\bsk-ant-[A-Za-z0-9_-]{8,}</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at a word boundary.<br/>
+            ○ Match the string "sk-ant-".<br/>
+            ○ Match a character in the set [\-0-9A-Z_a-z] atomically at least 8 times.<br/>
+            </code>
+            </remarks>
+        </member>
         <member name="M:Storeasy.Application.Utils.Helpers.SecretRedactor.Redact(System.String)">
             <summary>
             Returns <paramref name="text"/> with credentials replaced by markers. Null stays null.
@@ -30955,6 +31451,11 @@
         <member name="M:Storeasy.Application.Utils.Helpers.SecretScopes.OrganizationWebhook(System.Int32)">
             <summary>
             Scope of an outgoing webhook's secret.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.SecretScopes.AiProviderKey(System.Int32)">
+            <summary>
+            Scope of an organization's Anthropic API key (AI reply drafts).
             </summary>
         </member>
         <member name="F:Storeasy.Application.Utils.Helpers.SecretScopes.EmailOutbox">
@@ -31232,6 +31733,42 @@
         </member>
         <member name="M:Storeasy.Application.Utils.LinkedWithFormatters.YesNoFormatter.Format(System.Object)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.AiOptions">
+            <summary>
+            Settings of the AI reply drafts (configuration section <see cref="F:Storeasy.Application.Utils.Models.AiOptions.SectionName"/>). The Anthropic API key is not here: each
+            organization saves its own (organizations/ai-settings), sealed in the database.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiOptions.DefaultModel">
+            <summary>
+            Default model: Claude Haiku 5.5, the lowest cost current model.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.Model">
+            <summary>
+            Model id of the reply drafts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.MaxTokens">
+            <summary>
+            Upper bound of the answer in tokens (thinking included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.Effort">
+            <summary>
+            Effort of the model (<c>low</c>, <c>medium</c>, <c>high</c>, <c>max</c>); a short reply needs <c>low</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.TimeoutSeconds">
+            <summary>
+            Timeout of one call to Anthropic, in seconds.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.AppOptions">
             <summary>
@@ -34224,66 +34761,98 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_14">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlanIdPattern method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AnthropicKeyRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_14.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_14.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_14.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15">
-            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IsoPeriodPattern method.</summary>
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlanIdPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_15.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_15.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IsoPeriodPattern method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -34361,6 +34930,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_A64DAC029B0DA501025A341B6A7080E38E5AC0CE0E0C9663DEAAD6A6E60D5F77">
             <summary>Supports searching for the string "-----BEGIN ".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_DED69EEB35BB6C615147A6DDEE6FC118F8624BBA03313F393AA495DB28238E12">
+            <summary>Supports searching for the string "sk-ant-".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_access_to_OrdinalIgnoreCase">
             <summary>Supports searching for the string "access_to".</summary>

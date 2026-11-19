@@ -20,6 +20,7 @@ using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
+using Storeasy.Infrastructure.Ai;
 using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
@@ -68,6 +69,12 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IOrganizationAccess, OrganizationAccess>();
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IStoreGateway, StoreGateway>();
+
+        // AI reply drafts (Storeasy:Ai): Claude through the Anthropic SDK with each organization's own key; nothing is
+        // called until a member asks for a draft.
+        services.AddSingleton(configurationManager.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions());
+        services.AddHttpClient(AnthropicReplyDraftWriter.HttpClientName);
+        services.AddScoped<IReplyDraftWriter, AnthropicReplyDraftWriter>();
 
         // Store content engine: live reads, change plans and the gateways of each store. The rules catalog is loaded and
         // validated here, so a broken catalog stops the startup instead of producing wrong readiness answers.

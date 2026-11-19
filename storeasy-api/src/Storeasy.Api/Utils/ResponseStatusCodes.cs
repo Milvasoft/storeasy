@@ -181,6 +181,15 @@ public static class ResponseStatusCodes
         [MessageKey.RejectionCaseClosed] = StatusCodes.Status409Conflict,
         [MessageKey.RejectionCaseExists] = StatusCodes.Status409Conflict,
         [MessageKey.ReviewReplyInProgress] = StatusCodes.Status409Conflict,
+
+        // AI reply drafts: a missing or rejected organization key is a settings conflict (never 401/403: those are about
+        // the caller's own session); Anthropic's limits and outages keep their meaning.
+        [MessageKey.AiKeyNotSet] = StatusCodes.Status409Conflict,
+        [MessageKey.AiKeyRejected] = StatusCodes.Status409Conflict,
+        [MessageKey.AiRateLimited] = StatusCodes.Status429TooManyRequests,
+        [MessageKey.AiUnavailable] = StatusCodes.Status503ServiceUnavailable,
+        [MessageKey.AiReplyRefused] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.AiReplyFailed] = StatusCodes.Status502BadGateway,
         [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
         [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
         [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,

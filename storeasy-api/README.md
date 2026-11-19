@@ -269,6 +269,7 @@ The HTTP contract of the client tools (CLI, `storeasy-mcp` bridge, GitHub Action
 - **Google sign in** (`account/login/google/start`, `account/login/google`, `Storeasy:Auth:Google`): authorization code with PKCE, state in Redis, linking by verified address only.
 - **Web push** (`account/push/*`, `Storeasy:WebPush`): VAPID and RFC 8291 encryption in `Notifications/WebPush`, no third party library.
 - **E-mail outbox** (`EmailOutbox`, `Storeasy:Email:Outbox`): e-mails are queued sealed and sent by a background sender.
+- **AI reply drafts** (`reviews/reply-draft/generate`, `organizations/ai-settings`, `Storeasy:Ai`): Claude through the official Anthropic SDK (`Infrastructure/Ai`, behind `IReplyDraftWriter`) with each organization's own Anthropic API key, sealed like the store credentials (`SecretScopes.AiProviderKey`). Drafts only; the tests answer from a fake Messages API and never call Anthropic.
 - **Sessions** (`account/sessions`, `account/session`, `account/sessions/others`) and a token revocation list.
 - **Instance settings and status** (`system/*`): public settings, feature flag states, the registration mode saved in `SystemSettings` (wins over `Storeasy:Registration:Mode`), and a status page of the build (`Storeasy:Build:Commit`), dependencies and queues.
 

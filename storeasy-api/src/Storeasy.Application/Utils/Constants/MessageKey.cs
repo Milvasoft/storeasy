@@ -331,6 +331,14 @@ public static class MessageKey
     public const string ReviewReplyTooLong = nameof(ReviewReplyTooLong);
     public const string ReviewReplyNotSupported = nameof(ReviewReplyNotSupported);
     public const string ReviewReplyInProgress = nameof(ReviewReplyInProgress);
+    public const string AiKeyNotSet = nameof(AiKeyNotSet);
+    public const string AiKeyInvalid = nameof(AiKeyInvalid);
+    public const string AiKeyRejected = nameof(AiKeyRejected);
+    public const string AiKeyUnverified = nameof(AiKeyUnverified);
+    public const string AiRateLimited = nameof(AiRateLimited);
+    public const string AiUnavailable = nameof(AiUnavailable);
+    public const string AiReplyRefused = nameof(AiReplyRefused);
+    public const string AiReplyFailed = nameof(AiReplyFailed);
     public const string SavedReplyNotFound = nameof(SavedReplyNotFound);
     public const string SavedReplyVariableUnknown = nameof(SavedReplyVariableUnknown);
     public const string BetaGroupNotFound = nameof(BetaGroupNotFound);
