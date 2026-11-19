@@ -29,10 +29,15 @@ function attentionText(item: AttentionItem, t: Dictionary, app: string): string 
       return interpolate(line.pendingRelease, { app, subject }).trim()
     case 'expiry':
       return interpolate(line.expiry, { app, subject, days: Math.max(0, item.daysLeft ?? 0) })
-    case 'deadline':
+    case 'deadline': {
+      // A rule shared by several apps is one card: "3 apps" stands where the app name would be.
+      const who = (item.count ?? 1) > 1 ? interpolate(line.apps, { count: item.count ?? 0 }) : app
       return (item.daysLeft ?? 0) < 0
-        ? interpolate(line.deadlineOverdue, { app, subject })
-        : interpolate(line.deadline, { app, subject, days: item.daysLeft ?? 0 })
+        ? interpolate(line.deadlineOverdue, { app: who, subject })
+        : interpolate(line.deadline, { app: who, subject, days: item.daysLeft ?? 0 })
+    }
+    case 'unverified':
+      return interpolate(line.unverified, { count: item.count ?? 0 })
   }
 }
 
@@ -41,7 +46,7 @@ function AttentionCard({ item }: { item: AttentionItem }) {
   const { appInfo } = useActivity()
   const app = appInfo(item.appId)
   const name = app?.Name ?? item.appName ?? t.activity.line.unknownApp
-  const Icon = item.tone === 'danger' ? CircleX : item.kind === 'expiry' || item.kind === 'deadline' ? Clock3 : TriangleExclamationPoint
+  const Icon = item.tone === 'danger' ? CircleX : item.kind === 'expiry' || item.kind === 'deadline' || item.kind === 'unverified' ? Clock3 : TriangleExclamationPoint
   return (
     <li className={cn('att', item.tone)}>
       <Icon className="att-ic" aria-hidden />

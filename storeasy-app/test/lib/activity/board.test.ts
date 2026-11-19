@@ -227,6 +227,37 @@ describe('quiet board and attention', () => {
     expect(attentionOf(inputs({ board: board({ Versions: [version({})] }), compliance: [compliance(30)] }), NOW)).toEqual([])
   })
 
+  it('groups a rule shared by many apps into one item and folds unverifiable rows into one', () => {
+    const overdue = (appId: number, status: ComplianceStatus = ComplianceStatus.Missing): ComplianceItemDto => ({
+      ...compliance(-80, status),
+      AppId: appId,
+      AppName: `App ${appId}`,
+      RuleId: 'apple.sdk.xcode-26',
+      Store: StoreKind.Apple,
+      Title: 'Xcode 26',
+    })
+    const items = attentionOf(
+      inputs({
+        compliance: [
+          overdue(1),
+          overdue(2),
+          overdue(3),
+          overdue(4, ComplianceStatus.Unknown),
+          overdue(5, ComplianceStatus.Unknown),
+          { ...compliance(-3, ComplianceStatus.Unknown), AppId: 6 },
+          compliance(5),
+        ],
+      }),
+      NOW,
+    )
+
+    expect(items.map((item) => [item.kind, item.count, item.href, item.tone])).toEqual([
+      ['deadline', 3, '/compliance', 'danger'],
+      ['deadline', 1, '/apps/102/compliance', 'warning'],
+      ['unverified', 3, '/compliance', 'neutral'],
+    ])
+  })
+
   it('names a rejected version with no case yet, once', () => {
     const rejectedVersion = version({ AppId: 103, StoreAppId: 220, State: 'REJECTED' })
 
