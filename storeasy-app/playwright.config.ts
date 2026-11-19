@@ -11,9 +11,16 @@ import { clientAddress } from './e2e/support/api'
 const BASE_URL = process.env.E2E_BASE_URL
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:5000'
 const PORT = Number(process.env.E2E_PORT ?? 4173)
+// The deployment mode the stack runs (deploy/e2e/stack.mjs up --mode): each has its own suite, since a single team
+// instance has no sign-up and one organization, and the upgrade suite needs a database in a given state.
+const MODE = process.env.E2E_MODE ?? 'multi'
+const TEST_DIRS: Record<string, string> = { multi: './e2e/specs', single: './e2e/single-team', upgrade: './e2e/upgrade' }
+if (!TEST_DIRS[MODE]) {
+  throw new Error(`E2E_MODE=${MODE}: multi, single or upgrade`)
+}
 
 export default defineConfig({
-  testDir: './e2e/specs',
+  testDir: TEST_DIRS[MODE],
   outputDir: './e2e/.artifacts',
   retries: process.env.CI ? 1 : 0,
   // One worker: rate-limited endpoints (sign-in) are shared by every test.

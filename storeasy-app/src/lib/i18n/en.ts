@@ -691,6 +691,7 @@ export const en = {
     slugTakenField: '{slug} belongs to another organization.',
     changes: '{count} changes',
     title: 'Organization settings',
+    teamTitle: 'Team settings',
     subtitle: 'Name, short name and retention.',
     general: 'General',
     saved: 'Settings saved',

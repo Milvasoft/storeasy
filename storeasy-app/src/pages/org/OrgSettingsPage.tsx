@@ -17,6 +17,7 @@ import { HOME_PATH } from '@/lib/nav/nav'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
 import { OrgRetentionCard } from '@/features/access/OrgRetentionCard'
+import { useDeployment } from '@/features/access/publicSettings'
 import { isValidSlug, toSlug, toSlugDraft } from '@/lib/utils/slug'
 
 export const SLUG_TAKEN_KEY = 'OrganizationSlugTaken'
@@ -30,6 +31,7 @@ const MAX_SLUG_LENGTH = 40
  */
 export function OrgSettingsPage() {
   const t = useT()
+  const { singleTeam } = useDeployment()
   const organization = useCurrentOrganization()
   const { can, refetch } = useOrganization()
   const retention = useFeature('OrganizationRetention')
@@ -106,7 +108,7 @@ export function OrgSettingsPage() {
 
   return (
     <>
-      <PageHeader title={t.settings.title} subtitle={t.settings.subtitle} />
+      <PageHeader title={singleTeam ? t.settings.teamTitle : t.settings.title} subtitle={t.settings.subtitle} />
       <div className="grid max-w-3xl gap-5">
         {!editable ? <Callout tone="info">{t.settings.readOnly}</Callout> : null}
         <form className="card" onSubmit={submit} noValidate aria-label={t.settings.general}>

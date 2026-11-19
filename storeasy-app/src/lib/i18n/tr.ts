@@ -691,6 +691,7 @@ export const tr: Dictionary = {
     slugTakenField: '{slug} başka bir organizasyonda.',
     changes: '{count} değişiklik',
     title: 'Organizasyon ayarları',
+    teamTitle: 'Takım ayarları',
     subtitle: 'Ad, kısa ad ve saklama süreleri.',
     general: 'Genel',
     saved: 'Ayarlar kaydedildi',

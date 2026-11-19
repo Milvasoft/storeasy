@@ -32,8 +32,35 @@ API); the specs that read e-mails still need Mailpit at `E2E_MAILPIT_URL`.
 | `E2E_MAILPIT_URL`        | Mailpit web/API address                                                                               | `http://localhost:8025`  |
 | `E2E_ROOT_PASSWORD_FILE` | File with the root user's password; the platform admin spec skips without it (or `E2E_ROOT_PASSWORD`) | -                        |
 | `E2E_STATE_DIR`          | Where `stack.mjs` keeps `.env` and `root-password`                                                    | `<os temp>/storeasy-e2e` |
+| `E2E_MODE`               | Which suite runs: `multi` (`e2e/specs`), `single` (`e2e/single-team`) or `upgrade` (`e2e/upgrade`)    | `multi`                  |
 
-What the specs cover: sign-up, the verification e-mail and the first organization (Turkish UI); invitation by e-mail
+## Deployment modes
+
+`stack.mjs up --mode <mode>` starts the stack in one deployment mode (`Storeasy:Mode`); a mode other than the running
+one, or `--fresh`, starts from a clean database. The compose project is `storeasy-e2e`, apart from a real install.
+
+| Mode              | Stack                                                                                     | Suite             |
+| ----------------- | ----------------------------------------------------------------------------------------- | ----------------- |
+| `multi` (default) | MultiTenant, open registration, initialized by `developer/database/init` (root user)      | `e2e/specs`       |
+| `single`          | SingleTeam as a real install starts: no user, the API logs a one time setup code          | `e2e/single-team` |
+| `upgrade`         | initialized as MultiTenant (only the root user, no organization), restarted as SingleTeam | `e2e/upgrade`     |
+
+```bash
+node ../deploy/e2e/stack.mjs up --mode single
+E2E_MODE=single E2E_BASE_URL=http://localhost:8080 npm run e2e
+node ../deploy/e2e/stack.mjs up --mode upgrade
+E2E_MODE=upgrade E2E_BASE_URL=http://localhost:8080 E2E_ROOT_PASSWORD_FILE=<state dir>/root-password npm run e2e
+```
+
+The single team suite reads the setup code where an operator does, from `docker compose logs storeasy-api`
+(`stack.mjs setup-code`); it is never written to a file. It runs the setup in the UI (a wrong code first), then checks
+one team without a switcher, no sign-up, the merged Settings menu, every sidebar link (address, heading and breadcrumb,
+also after the page loaded), a second setup (409) and a second organization (409) over the API, an invitation accepted
+by a new account in a second browser, the English UI with the system status, the health probes and that the API
+documentation is 404 with `MILVA_ENV=prod`. The upgrade suite signs the root user in, creates the team in the one-step
+screen and opens every sidebar link.
+
+What the multi tenant specs cover: sign-up, the verification e-mail and the first organization (Turkish UI); invitation by e-mail
 accepted in a second browser, role changes, a custom role, organization settings and the audit log (English UI);
 personal access token in the UI, `/mcp` initialize and tools/list (139 tools) and `tokens/current`; CI token; the store
 connection form and a check that fails without breaking anything (the key is never returned); the studio (template from
