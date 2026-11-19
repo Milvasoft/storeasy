@@ -6,6 +6,7 @@ using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.FeedbackDtos;
 using Storeasy.Application.Features.Reviews.CreateSavedReply;
 using Storeasy.Application.Features.Reviews.DeleteSavedReply;
+using Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft;
 using Storeasy.Application.Features.Reviews.GetReviewList;
 using Storeasy.Application.Features.Reviews.GetSavedReplyList;
 using Storeasy.Application.Features.Reviews.MarkReviewsRead;
@@ -65,6 +66,17 @@ public class ReviewsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPut("reply-draft")]
     public Task<Response<long>> SaveReplyDraftAsync(SaveReviewReplyDraftCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Writes a reply draft with Claude (the organization's Anthropic API key) and saves it as the review's draft. Nothing
+    /// is sent to the store.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("reply-draft/generate")]
+    [RateLimit(60, 3600, "reviews-reply-draft-generate")]
+    public Task<Response<GeneratedReplyDraftDto>> GenerateReplyDraftAsync(GenerateReviewReplyDraftCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Reads new reviews now. Returns the job ids.

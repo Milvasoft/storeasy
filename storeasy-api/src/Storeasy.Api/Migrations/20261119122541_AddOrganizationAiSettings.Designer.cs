@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261119125206_AddStoreConnectionIcon")]
-partial class _20261119125206_AddStoreConnectionIcon
+[Migration("20261119122541_AddOrganizationAiSettings")]
+partial class _20261119122541_AddOrganizationAiSettings
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2705,6 +2705,51 @@ partial class _20261119125206_AddStoreConnectionIcon
                 b.ToTable("Organizations");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationAiSetting", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("ApiKeyLastFour")
+                    .HasMaxLength(4)
+                    .HasColumnType("character varying(4)");
+
+                b.Property<string>("ApiKeySetByUserName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime>("ApiKeySetDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte[]>("EncryptedApiKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId")
+                    .IsUnique();
+
+                b.ToTable("OrganizationAiSettings");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>
             {
                 var id = b.Property<int>("Id")
@@ -3174,10 +3219,6 @@ partial class _20261119125206_AddStoreConnectionIcon
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
-
-                b.Property<string>("Icon")
-                    .HasMaxLength(20)
-                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");
@@ -4392,6 +4433,17 @@ partial class _20261119125206_AddStoreConnectionIcon
                     .IsRequired();
 
                 b.Navigation("StoreApp");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationAiSetting", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>

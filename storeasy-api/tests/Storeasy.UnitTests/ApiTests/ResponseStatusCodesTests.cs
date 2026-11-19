@@ -65,6 +65,12 @@ public class ResponseStatusCodesTests
     [InlineData(MessageKey.MediaRejected, 422)]
     [InlineData(MessageKey.StoreUnreachable, 502)]
     [InlineData(MessageKey.RulesCatalogUnavailable, 503)]
+    [InlineData(MessageKey.AiKeyNotSet, 409)]
+    [InlineData(MessageKey.AiKeyRejected, 409)]
+    [InlineData(MessageKey.AiRateLimited, 429)]
+    [InlineData(MessageKey.AiReplyRefused, 422)]
+    [InlineData(MessageKey.AiReplyFailed, 502)]
+    [InlineData(MessageKey.AiUnavailable, 503)]
     [InlineData(MessageKey.PlanConfirmMismatch, 400)]
     [InlineData(MessageKey.FieldTooManyBytes, 400)]
     public void FromKey_ShouldMapKnownKeysToTheirStatus(string key, int expected)

@@ -59,6 +59,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Account | `account/login`, `login/google/start`, `login/google`, `login/refresh`, `register`, `email/verify`, `password/forgot`, `password/reset` | Anonymous, rate limited |
 | | `account/detail`, `profile`, `password/change`, `logout`, `sessions`, `session`, `sessions/others`, `push/subscription(s)`, `push/test`, `notifications`, `account/preferences` | Signed in user, own data only |
 | Organizations and members | `organizations/mine`, `organization`, `settings`, `members`, `member/role`, `member`, `invitation`, `invitation/accept`, `roles`, `role`, `audit-logs` | `View`; members and invitations `ManageMembers`; custom roles `ManageMembers` within your own permissions; rename, delete and owners `ManageOrganization`; `invitation/preview` anonymous |
+| | `organizations/ai-settings`, `ai-settings/key` (PUT, DELETE) | Read `View` (whether a key is set, its last four characters, the model; never the key); save and remove the Anthropic API key `ManageConnections` |
 | Store connections | `storeconnections`, `connection`, `connection/verify` | List `View`; add, rename and icon (`PUT connection`), verify, delete `ManageConnections` |
 | Apps and readiness | `apps`, `apps/app`, `apps/google`, `apps/app/link`, `apps/app/unlink`, `apps/app/hidden`, `apps/app/order`, `apps/sync`, `apps/profile`, `apps/readiness`, `apps/overview`, `apps/compliance`, `apps/answers*`, `compliance`, `rules/*` | Reads `View`; changes `EditContent` |
 | Change plans | `plans`, `plans/plan`, `plans/approve`, `plans/reject`, `plans/discard` | Read `View`; approve with the plan's own permission and, for submissions and production, the typed confirmation |
@@ -68,6 +69,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Microsoft Store | `ms/product`, `ms/submissions`, `ms/flights`, `ms/addons`, `ms/packages`, `ms/content`, `ms/change`, `ms/submission/submit`, `ms/packages/verify`, `ms/flight-group`, `ms/connection/secret`, `ms/connections/expiring` | Reads `View`; changes `EditContent`; submit `SubmitForReview` with the Store id typed; secret replacement `ManageConnections` |
 | Assisted steps | `assisted-steps`, `assisted-steps/step`, `step/handoff`, `step/complete` | Read `View`; hand off and complete `EditContent` |
 | Reviews and rejections | `reviews/*`, `rejections/*` | Reads `View`; replies `ReplyReviews`; rejection cases `EditContent` |
+| | `reviews/reply-draft/generate` | `ReplyReviews`, 60 an hour per user: Claude writes a reply draft with the organization's Anthropic API key and it is saved as the review's draft; nothing is sent to the store ([AI reply drafts](#ai-reply-drafts)) |
 | Studio | `mockups/*` (templates, captions, frames, previews, exports) | Reads and previews `View`; templates and exports `EditContent`; `captions/suggest` behind the `Studio.AiCaptions` flag |
 | Files | `assets/upload`, `assets/asset/complete`, `assets/asset/download-url` | `EditContent` to upload, `View` to download; bytes go to S3 through presigned URLs |
 | Store jobs | `storejobs`, `storejobs/job`, `storejobs/job/cancel` | Read `View`; cancel `EditContent`; live on the SignalR hub `/hubs/activity` |
@@ -84,6 +86,30 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Platform admin | `users`, `roles`, `permissions`, `featureflags`, `languages`, `activitylogs`, `rules/sources`, `rules/proposals` | Platform permissions |
 | Health | `healthcheck`, `healthcheck/ready` (also `/health/live`, `/health/ready` at the API root) | Anonymous |
 | Developer | `developer/database/*`, `developer/export/*`, `developer/import/*` | Super admin; `developer/database/init` is anonymous with the bootstrap key header `X-Storeasy-Init-Key` ([self-host.md](self-host.md#5-first-admin-and-first-account)). Open only when `MILVA_ENV=dev` (404 otherwise) |
+
+## AI reply drafts
+
+"Write with AI" on the reviews page asks Claude for a reply draft. It is manual only: a member presses the button, reads
+and edits the draft, and sends it with the usual reply flow; nothing is ever sent to a store without a person.
+
+- **Key.** Each organization saves its own Anthropic API key in Settings, AI (`PUT organizations/ai-settings/key`
+  `{OrganizationId, ApiKey}`, `ManageConnections`). It is checked with Anthropic first by reading the model (no cost): a
+  key Anthropic rejects is refused (409 `AiKeyRejected`); when Anthropic cannot be reached it is saved with a warning
+  (`ApiKeyVerified: false`). It is sealed with the envelope encryption of the store credentials, bound to the
+  organization, and never returned, logged or written to the audit log; only its last four characters are shown.
+  Audited as `AiKeySet` and `AiKeyRemoved`.
+- **Draft.** `POST reviews/reply-draft/generate` `{OrganizationId, ReviewId}` returns
+  `{ReviewId, Body, Shortened, Model}` and saves `Body` as the review's draft. The model gets a fixed system prompt
+  (polite, specific to the review, no promises or invented facts, no personal data or links, the review's language) and
+  the review as escaped data, with the store's limit. A reply longer than the limit (Google Play 350, App Store 5,970
+  characters) is cut after its last full sentence that fits (`Shortened: true`) as long as that keeps at least half of
+  the limit; otherwise the call fails. Audited as `ReviewReplyDraftGenerated` with the model and token counts only.
+- **Errors.** No key 409 `AiKeyNotSet`; rejected key 409 `AiKeyRejected`; Anthropic rate limit 429 `AiRateLimited`;
+  overloaded or down 503 `AiUnavailable`; the model declined 422 `AiReplyRefused`; anything else (an answer cut short,
+  a reply that cannot be fitted) 502 `AiReplyFailed`. Anthropic's own error text is never passed on.
+- **Model.** `Storeasy:Ai:Model` (default `claude-haiku-5-5`, the lowest cost current model) at effort `low`, at most
+  1024 output tokens ([self-host.md](self-host.md#events-webhooks-and-schedules)). Each draft is one call billed to the
+  organization's Anthropic account.
 
 Outgoing webhooks send these events, signed like the signed receiver (`X-Storeasy-Signature` over
 `<timestamp>.<body>`): `rejection.opened`, `rejection.closed`, `version.state_changed`, `review.received`,

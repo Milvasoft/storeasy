@@ -5,7 +5,7 @@
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261119125206_AddStoreConnectionIcon : Migration
+public partial class _20261119133018_AddStoreConnectionIcon : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
