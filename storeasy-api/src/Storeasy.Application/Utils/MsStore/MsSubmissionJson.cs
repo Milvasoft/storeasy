@@ -178,6 +178,26 @@ public static class MsSubmissionJson
     /// <returns></returns>
     public static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
 
+    /// <summary>
+    /// The sanitized original file name of a <see cref="ZipEntryName"/> in <paramref name="folder"/> (the part after the
+    /// asset id), or null when <paramref name="entryName"/> is not such a name.
+    /// </summary>
+    /// <param name="folder"></param>
+    /// <param name="entryName"></param>
+    /// <returns></returns>
+    public static string OriginalName(string folder, string entryName)
+    {
+        var prefix = $"{folder}/";
+
+        if (entryName?.StartsWith(prefix, StringComparison.Ordinal) != true)
+            return null;
+
+        var rest = entryName[prefix.Length..];
+        var separator = rest.IndexOf('_');
+
+        return separator > 0 && rest[..separator].All(char.IsAsciiDigit) && separator < rest.Length - 1 ? rest[(separator + 1)..] : null;
+    }
+
     #region MSIX submissions
 
     /// <summary>
@@ -226,6 +246,32 @@ public static class MsSubmissionJson
 
         if (listing.SearchTerms != null)
             baseListing["keywords"] = new JsonArray([.. listing.SearchTerms.Select(f => (JsonNode)JsonValue.Create(f))]);
+    }
+
+    /// <summary>
+    /// Writes <paramref name="releaseNotes"/> into <c>releaseNotes</c> of every base listing the submission has (the
+    /// "What's new" text of each language). No language is added and nothing else of a listing changes.
+    /// </summary>
+    /// <param name="submission"></param>
+    /// <param name="releaseNotes"></param>
+    /// <returns>The languages written.</returns>
+    public static List<string> WriteReleaseNotes(JsonObject submission, string releaseNotes)
+    {
+        if (submission?["listings"] is not JsonObject listings || releaseNotes == null)
+            return [];
+
+        var written = new List<string>();
+
+        foreach (var (locale, listing) in listings)
+        {
+            if (listing?["baseListing"] is not JsonObject baseListing)
+                continue;
+
+            baseListing["releaseNotes"] = releaseNotes;
+            written.Add(locale);
+        }
+
+        return written;
     }
 
     /// <summary>
@@ -305,7 +351,10 @@ public static class MsSubmissionJson
         })];
 
     /// <summary>
-    /// Marks packages for deletion (by file name) and adds new ones (uploaded with the submission's ZIP).
+    /// Marks packages for deletion (by file name) and adds new ones (uploaded with the submission's ZIP). The existing
+    /// packages stay as they are. Adding is idempotent for a retry on the same draft: a file name already in the list is
+    /// not added again, and a <c>PendingUpload</c> entry storeasy staged earlier for the same original file (another
+    /// asset id, see <see cref="ZipEntryName"/>) is replaced, since its file was never sent.
     /// </summary>
     /// <param name="submission"></param>
     /// <param name="target"></param>
@@ -326,6 +375,20 @@ public static class MsSubmissionJson
 
         foreach (var fileName in addFileNames)
         {
+            var original = OriginalName(PackagesFolder, fileName);
+            var stale = packages.OfType<JsonObject>()
+                                .Where(p => String(p, "fileStatus") == "PendingUpload"
+                                            && String(p, "fileName") != fileName
+                                            && original != null
+                                            && OriginalName(PackagesFolder, String(p, "fileName")) == original)
+                                .ToList();
+
+            foreach (var package in stale)
+                packages.Remove(package);
+
+            if (packages.OfType<JsonObject>().Any(p => String(p, "fileName") == fileName))
+                continue;
+
             packages.Add(new JsonObject
             {
                 ["fileName"] = fileName,

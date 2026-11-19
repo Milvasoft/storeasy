@@ -19,4 +19,10 @@ public class MsPackageChangeDto
     /// Gradual rollout percentage of the new packages (app submissions); null for all customers at once.
     /// </summary>
     public double? RolloutPercentage { get; set; }
+
+    /// <summary>
+    /// Release notes ("What's new") written into every listing language of the app submission; null keeps the copied
+    /// notes. Flight submissions have no listings, so it is not used there.
+    /// </summary>
+    public string ReleaseNotes { get; set; }
 }

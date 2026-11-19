@@ -101,16 +101,23 @@ public sealed partial class MicrosoftStoreClient(IHttpClientFactory HttpClientFa
         => AsObject(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Get, submission.Path(), null, cancellationToken));
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Sent without a request body, as the API documents. Partner Center reads a body (even an empty JSON object) as the
+    /// content of the new submission and refuses it with 400 "The size of Listings must be 1 or more".
+    /// </remarks>
     public async Task<JsonObject> CreateSubmissionAsync(string secretJson, MsSubmissionRef owner, CancellationToken cancellationToken)
-        => AsObject(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Post, owner.WithSubmission(null).Path(), new JsonObject(), cancellationToken));
+        => AsObject(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Post, owner.WithSubmission(null).Path(), null, cancellationToken));
 
     /// <inheritdoc/>
     public async Task<JsonObject> UpdateSubmissionAsync(string secretJson, MsSubmissionRef submission, JsonObject content, CancellationToken cancellationToken)
         => AsObject(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Put, submission.Path(), content, cancellationToken));
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Sent without a request body, as the API documents (like <see cref="CreateSubmissionAsync"/>).
+    /// </remarks>
     public async Task<MsStatusRecord> CommitSubmissionAsync(string secretJson, MsSubmissionRef submission, CancellationToken cancellationToken)
-        => ParseStatus(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Post, $"{submission.Path()}/commit", new JsonObject(), cancellationToken));
+        => ParseStatus(await SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Post, $"{submission.Path()}/commit", null, cancellationToken));
 
     /// <inheritdoc/>
     public async Task<MsStatusRecord> GetSubmissionStatusAsync(string secretJson, MsSubmissionRef submission, CancellationToken cancellationToken)

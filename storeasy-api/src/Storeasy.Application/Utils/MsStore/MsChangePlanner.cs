@@ -327,6 +327,13 @@ public static class MsChangePlanner
         if (target == MsSubmissionTarget.App && packages.RolloutPercentage.HasValue)
             Diff(plan, "rollout", null, "packageRolloutPercentage", content.Rollout?.IsPackageRollout == true ? Number(content.Rollout.Percentage) : null, Number(packages.RolloutPercentage.Value));
 
+        // Release notes go into every listing language the submission already has.
+        if (target == MsSubmissionTarget.App && packages.ReleaseNotes != null)
+        {
+            foreach (var listing in content.Listings)
+                Diff(plan, "listing", listing.Locale, "whatsNew", listing.WhatsNew, packages.ReleaseNotes);
+        }
+
         AddSubmissionCalls(plan, content, target, uploadsFiles: (packages.AddAssetIds?.Count ?? 0) > 0);
     }
 
