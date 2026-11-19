@@ -40,8 +40,10 @@ public interface IStoreGateway
 
     /// <summary>
     /// Reads the address of one app's icon, read only (App Store Connect: the icon asset of the newest build that has one;
-    /// Google Play: the <c>icon</c> image of the default language listing, read inside an edit that is deleted afterwards).
-    /// Returns null when the store has no icon for the app or the store is not supported (Microsoft Store), without a call.
+    /// Google Play: the <c>icon</c> image of the default language listing, read inside an edit that is deleted afterwards;
+    /// Microsoft Store: the largest square logo of the product in the public display catalog, read without credentials, so
+    /// <paramref name="secretJson"/> is not used). Returns null when the store has no icon for the app (for Microsoft Store
+    /// also when the product is not published), or without a call for a store that has no icons.
     /// </summary>
     Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken);
 }

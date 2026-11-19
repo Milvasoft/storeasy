@@ -5618,6 +5618,14 @@
             </list>
             Submission rows keep a status history; a submission storeasy created whose content changed since storeasy wrote it is
             flagged <see cref="P:Storeasy.Domain.MsStore.MsSubmission.ModifiedOutsideApi"/>. Packages and installers become builds. Writes are bulk.
+            <para>
+            Then the logo of every product is read from the public display catalog (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
+            and written to its storeasy app, like the <c>icons.read</c> step of <see cref="T:Storeasy.Infrastructure.Stores.SyncAppsJobHandler"/>: a failed read is
+            logged and leaves the app's icon as it was, and a product with no logo (not published yet) changes nothing. Icon
+            precedence (<see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.MicrosoftIconMayReplace(System.String,System.Boolean)"/>): App Store and Google Play icons win over Microsoft Store ones, so a
+            Microsoft logo only fills an app that has no icon, has no App Store or Google Play record, or whose icon already came
+            from the Microsoft Store.
+            </para>
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
@@ -5630,8 +5638,10 @@
             <param name="microsoftStoreClient"></param>
             <param name="timeProvider"></param>
             <param name="stepRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep})">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsFlight},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.AssistedStep},Storeasy.Application.Interfaces.IStoreGateway,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
             <list type="bullet">
@@ -5642,6 +5652,14 @@
             </list>
             Submission rows keep a status history; a submission storeasy created whose content changed since storeasy wrote it is
             flagged <see cref="P:Storeasy.Domain.MsStore.MsSubmission.ModifiedOutsideApi"/>. Packages and installers become builds. Writes are bulk.
+            <para>
+            Then the logo of every product is read from the public display catalog (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
+            and written to its storeasy app, like the <c>icons.read</c> step of <see cref="T:Storeasy.Infrastructure.Stores.SyncAppsJobHandler"/>: a failed read is
+            logged and leaves the app's icon as it was, and a product with no logo (not published yet) changes nothing. Icon
+            precedence (<see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.MicrosoftIconMayReplace(System.String,System.Boolean)"/>): App Store and Google Play icons win over Microsoft Store ones, so a
+            Microsoft logo only fills an app that has no icon, has no App Store or Google Play record, or whose icon already came
+            from the Microsoft Store.
+            </para>
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
@@ -5654,12 +5672,41 @@
             <param name="microsoftStoreClient"></param>
             <param name="timeProvider"></param>
             <param name="stepRepository"></param>
+            <param name="storeGateway"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.MicrosoftImageHost">
+            <summary>
+            Host of the Microsoft Store image service, where every display catalog logo lives.
+            </summary>
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.Kind">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.ReadIconAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads the logo of one product. Returns the address, an empty string when the catalog has no logo for it, or null when
+            the read failed (logged as a warning; the job goes on).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.SaveIconsAsync(System.Collections.Generic.Dictionary{System.Int32,System.String},System.Threading.CancellationToken)">
+            <summary>
+            Writes the logos that changed and that <see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.MicrosoftIconMayReplace(System.String,System.Boolean)"/> allows. An app whose logo could not be
+            read is not in <paramref name="icons"/>, so a failure never clears an icon. Only the icon column is written.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.MicrosoftIconMayReplace(System.String,System.Boolean)">
+            <summary>
+            Whether a Microsoft Store logo may replace an app's <paramref name="currentIconUrl"/>. App Store and Google Play icons
+            win (their sync always writes its icon), so the logo is written only when the app has no icon, has no App Store or
+            Google Play record (<paramref name="hasOtherStoreRecord"/>), or its icon is on the Microsoft Store image host.
+            </summary>
+            <param name="currentIconUrl"></param>
+            <param name="hasOtherStoreRecord"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler.SaveProductsAsync(System.Int32,System.Int32,System.Collections.Generic.List{Storeasy.Infrastructure.Stores.Microsoft.MsProductSnapshot},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsProduct},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsProduct},System.DateTime,System.Threading.CancellationToken)">
             <summary>
@@ -6228,9 +6275,10 @@
             <param name="Logger"></param>
             <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
             <summary>
-            App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+            App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>,
             Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
-            deleted afterwards). Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            deleted afterwards) and, for Microsoft Store icons only, the public display catalog. Failures become
+            <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
             </summary>
             <summary>
             Microsoft Store side of the store gateway: offline inspection of the Entra secret. Verification and reads delegate to
@@ -6299,6 +6347,16 @@
             Side, in pixels, of the icon asked from Apple's image service.
             </summary>
         </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.MicrosoftCatalogBaseUrl">
+            <summary>
+            Public Microsoft Store display catalog, read without credentials for the logo of a published product.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.MicrosoftCatalogTimeout">
+            <summary>
+            Time allowed for one display catalog read, shorter than the store client's own timeout.
+            </summary>
+        </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ListAppsAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -6310,6 +6368,26 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.GetMicrosoftIconUrlAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads the logo of a Microsoft Store product from the public display catalog (no credentials). A product the catalog
+            does not list (not published yet, or not in the US market) has no icon: null, not an error. The call has its own
+            <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.MicrosoftCatalogTimeout"/>; a timeout, 429 or 5xx is a transient <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.MicrosoftCatalogUrl(System.String)">
+            <summary>
+            Display catalog address of one product (US market, English).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseMicrosoftIconUrl(System.Text.Json.JsonElement)">
+            <summary>
+            Takes the logo of the first product of a display catalog answer (<c>Products[].LocalizedProperties[].Images[]</c>):
+            the largest square image whose <c>ImagePurpose</c> is <c>Logo</c>, else the largest square <c>Tile</c>, else the
+            largest square <c>BoxArt</c>. The catalog gives protocol relative addresses (<c>//store-images...</c>), which become
+            https. Null when there is no product or no such image, or the result is not an absolute https address.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ParseAppleIconUrl(System.Text.Json.JsonElement)">
             <summary>
@@ -6387,10 +6465,12 @@
             store record has the same bundle id, otherwise it gets its own storeasy app.</item>
             <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
-            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            <item>Microsoft Store: not read here (permanent failure). Microsoft connections are synced by the
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job (<see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler"/>), which reads their icons too.</item>
             </list>
             Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
-            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. An
+            App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
             writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
             through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
@@ -6413,10 +6493,12 @@
             store record has the same bundle id, otherwise it gets its own storeasy app.</item>
             <item>Google Play: no list API, so the records added by package name are read one by one (the edit probe proves the
             service account's access). A record Play refuses that was never confirmed is removed with its empty app.</item>
-            <item>Microsoft Store: not supported yet (permanent failure).</item>
+            <item>Microsoft Store: not read here (permanent failure). Microsoft connections are synced by the
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job (<see cref="T:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler"/>), which reads their icons too.</item>
             </list>
             Builds are upserted by the store's build id. Then the icon of every record is read (<see cref="M:Storeasy.Application.Interfaces.IStoreGateway.GetIconUrlAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)"/>)
-            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. All
+            and written to its storeasy app when it changed; a failed icon read is logged and leaves the app's icon as it was. An
+            App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
             writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
             through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).

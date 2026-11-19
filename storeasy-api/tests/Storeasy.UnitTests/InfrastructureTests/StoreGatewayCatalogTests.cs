@@ -184,15 +184,120 @@ public class StoreGatewayCatalogTests
         StoreGateway.ParseGoogleIconUrl(document.RootElement).Should().BeNull();
     }
 
+    /// <summary>
+    /// A display catalog answer recorded from <c>displaycatalog.mp.microsoft.com</c> (trimmed to the fields the parser reads).
+    /// </summary>
+    private static string Fixture(string name) => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "InfrastructureTests", "Fixtures", name));
+
+    private const string _recordedLogo = "https://store-images.s-microsoft.com/image/apps.25295.14479219485906847.1d173f2c-063b-4bd8-8ff6-d94c5e1d30c5.7cd15392-9e2d-4533-9d7a-51c5d94495b4";
+
     [Fact]
-    public async Task Microsoft_IconUrl_ShouldBeNullWithoutACall()
+    public async Task Microsoft_IconUrl_ShouldReadTheLargestLogoFromTheDisplayCatalogWithoutCredentials()
+    {
+        // Arrange
+        var (gateway, requests) = CreateGateway(_ => Json(Fixture("display-catalog-9NZB9KKR92G4.json")));
+
+        // Act
+        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{\"clientSecret\":\"not-sent\"}", "9NZB9KKR92G4", TestContext.Current.CancellationToken);
+
+        // Assert
+        url.Should().Be(_recordedLogo, "the 300 px logo is the largest square Logo; the larger BoxArt is only a fallback");
+        var request = requests.Should().ContainSingle().Which;
+        request.Method.Should().Be(HttpMethod.Get);
+        request.RequestUri.Host.Should().Be("displaycatalog.mp.microsoft.com");
+        request.RequestUri.AbsolutePath.Should().Be("/v7.0/products");
+        request.RequestUri.Query.Should().Contain("bigIds=9NZB9KKR92G4").And.Contain("market=US").And.Contain("languages=en-us");
+        request.Headers.Authorization.Should().BeNull("the catalog is public and the connection secret is never sent");
+    }
+
+    [Fact]
+    public async Task Microsoft_IconUrl_OfAnUnpublishedProduct_ShouldBeNull()
+    {
+        var (gateway, _) = CreateGateway(_ => Json(Fixture("display-catalog-unpublished.json")));
+
+        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NZZZZZZZZZZ", TestContext.Current.CancellationToken);
+
+        url.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Microsoft_IconUrl_NotFound_ShouldBeNull()
+    {
+        var (gateway, _) = CreateGateway(_ => Json("{}", HttpStatusCode.NotFound));
+
+        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NZB9KKR92G4", TestContext.Current.CancellationToken);
+
+        url.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Microsoft_IconUrl_WithoutAProductId_ShouldBeNullWithoutACall()
     {
         var (gateway, requests) = CreateGateway(_ => throw new InvalidOperationException("no network"));
 
-        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NBLGGH4R315", TestContext.Current.CancellationToken);
+        var url = await gateway.GetIconUrlAsync(StoreKind.Microsoft, "{}", " ", TestContext.Current.CancellationToken);
 
         url.Should().BeNull();
         requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Microsoft_IconUrl_ServerErrorOrTimeout_ShouldBeTransient()
+    {
+        var (unavailable, _) = CreateGateway(_ => Json("{}", HttpStatusCode.ServiceUnavailable));
+        var (timedOut, _) = CreateGateway(_ => throw new TaskCanceledException("timeout"));
+
+        var unavailableAct = () => unavailable.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NZB9KKR92G4", TestContext.Current.CancellationToken);
+        var timedOutAct = () => timedOut.GetIconUrlAsync(StoreKind.Microsoft, "{}", "9NZB9KKR92G4", TestContext.Current.CancellationToken);
+
+        (await unavailableAct.Should().ThrowAsync<StoreCallException>()).Which.Transient.Should().BeTrue();
+        (await timedOutAct.Should().ThrowAsync<StoreCallException>()).Which.Transient.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Microsoft_IconUrl_ShouldMakeTheProtocolRelativeAddressHttps()
+    {
+        using var document = JsonDocument.Parse(Fixture("display-catalog-9NZB9KKR92G4.json"));
+
+        var url = StoreGateway.ParseMicrosoftIconUrl(document.RootElement);
+
+        url.Should().StartWith("https://store-images.s-microsoft.com/image/apps.");
+    }
+
+    [Theory]
+    [InlineData(true, "https://store-images.s-microsoft.com/tile-150")]
+    [InlineData(false, "https://store-images.s-microsoft.com/box-2160")]
+    public void Microsoft_IconUrl_WithoutALogo_ShouldFallBackToTheLargestSquareTileThenBoxArt(bool withSquareTile, string expected)
+    {
+        var tile = withSquareTile ? """{"ImagePurpose":"Tile","Width":150,"Height":150,"Uri":"//store-images.s-microsoft.com/tile-150"},""" : string.Empty;
+        using var document = JsonDocument.Parse($$"""
+            {"Products":[{"LocalizedProperties":[{"Images":[
+              {{tile}}
+              {"ImagePurpose":"Tile","Width":310,"Height":150,"Uri":"//store-images.s-microsoft.com/wide-tile"},
+              {"ImagePurpose":"BoxArt","Width":1080,"Height":1080,"Uri":"//store-images.s-microsoft.com/box-1080"},
+              {"ImagePurpose":"BoxArt","Width":2160,"Height":2160,"Uri":"//store-images.s-microsoft.com/box-2160"},
+              {"ImagePurpose":"Screenshot","Width":2880,"Height":2880,"Uri":"//store-images.s-microsoft.com/shot"}
+            ]}]}]}
+            """);
+
+        var url = StoreGateway.ParseMicrosoftIconUrl(document.RootElement);
+
+        url.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("""{"Products":[]}""")]
+    [InlineData("""{}""")]
+    [InlineData("""{"Products":[{"LocalizedProperties":[]}]}""")]
+    [InlineData("""{"Products":[{"LocalizedProperties":[{"Images":[{"ImagePurpose":"Screenshot","Width":300,"Height":300,"Uri":"//store-images.s-microsoft.com/shot"}]}]}]}""")]
+    [InlineData("""{"Products":[{"LocalizedProperties":[{"Images":[{"ImagePurpose":"Logo","Width":300,"Height":150,"Uri":"//store-images.s-microsoft.com/wide"}]}]}]}""")]
+    [InlineData("""{"Products":[{"LocalizedProperties":[{"Images":[{"ImagePurpose":"Logo","Width":300,"Height":300,"Uri":"http://insecure.example.com/logo"}]}]}]}""")]
+    [InlineData("""{"Products":[{"LocalizedProperties":[{"Images":[{"ImagePurpose":"Logo","Width":300,"Height":300}]}]}]}""")]
+    public void Microsoft_IconUrl_WithoutAnUsableLogo_ShouldBeNull(string body)
+    {
+        using var document = JsonDocument.Parse(body);
+
+        StoreGateway.ParseMicrosoftIconUrl(document.RootElement).Should().BeNull();
     }
 
     [Theory]

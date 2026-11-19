@@ -10,9 +10,10 @@ using System.Text.Json;
 namespace Storeasy.Infrastructure.Stores;
 
 /// <summary>
-/// App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>, and
+/// App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>,
 /// Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
-/// deleted afterwards). Failures become <see cref="StoreCallException"/>.
+/// deleted afterwards) and, for Microsoft Store icons only, the public display catalog. Failures become
+/// <see cref="StoreCallException"/>.
 /// </summary>
 public sealed partial class StoreGateway
 {
@@ -30,6 +31,16 @@ public sealed partial class StoreGateway
     /// Side, in pixels, of the icon asked from Apple's image service.
     /// </summary>
     public const int AppleIconSize = 512;
+
+    /// <summary>
+    /// Public Microsoft Store display catalog, read without credentials for the logo of a published product.
+    /// </summary>
+    public const string MicrosoftCatalogBaseUrl = "https://displaycatalog.mp.microsoft.com";
+
+    /// <summary>
+    /// Time allowed for one display catalog read, shorter than the store client's own timeout.
+    /// </summary>
+    public static readonly TimeSpan MicrosoftCatalogTimeout = TimeSpan.FromSeconds(20);
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken)
@@ -140,10 +151,85 @@ public sealed partial class StoreGateway
 
                     return ParseGoogleIconUrl(images.RootElement);
                 }, cancellationToken);
+            case StoreKind.Microsoft:
+                return await GetMicrosoftIconUrlAsync(externalId, cancellationToken);
             default:
                 return null;
         }
     }
+
+    /// <summary>
+    /// Reads the logo of a Microsoft Store product from the public display catalog (no credentials). A product the catalog
+    /// does not list (not published yet, or not in the US market) has no icon: null, not an error. The call has its own
+    /// <see cref="MicrosoftCatalogTimeout"/>; a timeout, 429 or 5xx is a transient <see cref="StoreCallException"/>.
+    /// </summary>
+    private async Task<string> GetMicrosoftIconUrlAsync(string productId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(productId))
+            return null;
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        timeout.CancelAfter(MicrosoftCatalogTimeout);
+
+        try
+        {
+            using var document = await SendRequestAsync(new HttpRequestMessage(HttpMethod.Get, MicrosoftCatalogUrl(productId)), timeout.Token);
+
+            return ParseMicrosoftIconUrl(document.RootElement);
+        }
+        catch (StoreCallException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new StoreCallException("The Microsoft Store catalog did not answer in time.", null, true);
+        }
+    }
+
+    /// <summary>
+    /// Display catalog address of one product (US market, English).
+    /// </summary>
+    public static string MicrosoftCatalogUrl(string productId)
+        => $"{MicrosoftCatalogBaseUrl}/v7.0/products?bigIds={Uri.EscapeDataString(productId)}&market=US&languages=en-us";
+
+    /// <summary>
+    /// Takes the logo of the first product of a display catalog answer (<c>Products[].LocalizedProperties[].Images[]</c>):
+    /// the largest square image whose <c>ImagePurpose</c> is <c>Logo</c>, else the largest square <c>Tile</c>, else the
+    /// largest square <c>BoxArt</c>. The catalog gives protocol relative addresses (<c>//store-images...</c>), which become
+    /// https. Null when there is no product or no such image, or the result is not an absolute https address.
+    /// </summary>
+    public static string ParseMicrosoftIconUrl(JsonElement root)
+    {
+        var product = Items(root, "Products").FirstOrDefault();
+
+        if (product.ValueKind != JsonValueKind.Object)
+            return null;
+
+        var images = Items(product, "LocalizedProperties").SelectMany(l => Items(l, "Images"))
+                                                          .Select(i => (Purpose: ReadString(i, "ImagePurpose"), Width: ReadInt(i, "Width"), Height: ReadInt(i, "Height"), Uri: ReadString(i, "Uri")))
+                                                          .Where(i => i.Width > 0 && i.Width == i.Height && !string.IsNullOrWhiteSpace(i.Uri))
+                                                          .ToList();
+
+        foreach (var purpose in _microsoftIconPurposes)
+        {
+            var best = images.Where(i => string.Equals(i.Purpose, purpose, StringComparison.OrdinalIgnoreCase))
+                             .OrderByDescending(i => i.Width)
+                             .Select(i => HttpsOrNull(i.Uri.StartsWith("//", StringComparison.Ordinal) ? $"https:{i.Uri}" : i.Uri))
+                             .FirstOrDefault(u => u != null);
+
+            if (best != null)
+                return best;
+        }
+
+        return null;
+    }
+
+    private static readonly string[] _microsoftIconPurposes = ["Logo", "Tile", "BoxArt"];
+
+    private static int ReadInt(JsonElement element, string name)
+        => element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number) ? number : 0;
 
     /// <summary>
     /// Takes the icon of the first build in a <c>/v1/builds</c> page whose <c>iconAssetToken</c> has a template address and
