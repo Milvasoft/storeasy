@@ -10,6 +10,7 @@ using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Features.AiSettings.GetAiSettings;
 using Storeasy.Application.Features.AiSettings.RemoveAiKey;
 using Storeasy.Application.Features.AiSettings.SetAiKey;
+using Storeasy.Application.Features.AiSettings.SetAiModels;
 using Storeasy.Application.Features.Organizations.AcceptInvitation;
 using Storeasy.Application.Features.Organizations.ChangeMemberRole;
 using Storeasy.Application.Features.Organizations.CreateOrganization;
@@ -217,6 +218,15 @@ public class OrganizationsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpDelete("ai-settings/key")]
     public Task<Response<int>> RemoveAiKeyAsync(RemoveAiKeyCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Chooses the model of each AI feature (reply drafts, pre-reviews) from the fixed list; needs a saved key.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("ai-settings/models")]
+    public Task<Response<AiSettingsDto>> SetAiModelsAsync(SetAiModelsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending

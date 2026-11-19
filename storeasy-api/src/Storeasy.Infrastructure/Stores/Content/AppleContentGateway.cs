@@ -371,8 +371,15 @@ public sealed partial class AppleContentGateway(StoreHttp http, IFileStorage fil
             Width = JsonRead.Int(image, "width"),
             Height = JsonRead.Int(image, "height"),
             State = JsonRead.Str(JsonRead.Get(attributes, "assetDeliveryState"), "state"),
+            ImageUrl = ImageUrlOf(JsonRead.Str(image, "templateUrl")),
         };
     }
+
+    // The asset's template address ({w}x{h}bb.{f}) filled for a 1200 pixel bounding box as JPEG; null without one.
+    private static string ImageUrlOf(string templateUrl)
+        => string.IsNullOrWhiteSpace(templateUrl) || !templateUrl.Contains("{w}", StringComparison.Ordinal)
+            ? null
+            : templateUrl.Replace("{w}", "1200", StringComparison.Ordinal).Replace("{h}", "1200", StringComparison.Ordinal).Replace("{f}", "jpg", StringComparison.Ordinal);
 
     private static async Task ReadReviewAsync(AppStoreConnectApi api, StoreContentSnapshot snapshot, CancellationToken cancellationToken)
     {

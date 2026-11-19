@@ -263,6 +263,12 @@ public sealed class MediaItemState
     /// Address of the item (Play), if any.
     /// </summary>
     public string Url { get; set; }
+
+    /// <summary>
+    /// Address of a scaled down copy of the image on the store's public image host (App Store: the asset's template
+    /// address filled for a 1200 pixel box as JPEG), if any. Read by the AI pre-review; not shown in the listing screens.
+    /// </summary>
+    public string ImageUrl { get; set; }
 }
 
 /// <summary>

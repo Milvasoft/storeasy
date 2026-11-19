@@ -191,6 +191,8 @@ public static class ResponseStatusCodes
         [MessageKey.AiUnavailable] = StatusCodes.Status503ServiceUnavailable,
         [MessageKey.AiReplyRefused] = StatusCodes.Status422UnprocessableEntity,
         [MessageKey.AiReplyFailed] = StatusCodes.Status502BadGateway,
+        [MessageKey.PreReviewNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.PreReviewInProgress] = StatusCodes.Status409Conflict,
         [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
         [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
         [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,

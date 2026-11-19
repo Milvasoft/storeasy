@@ -78,6 +78,7 @@ export const AuditAction = {
   ConnectionVerified: 23,
   AiKeySet: 24,
   AiKeyRemoved: 25,
+  AiModelsChanged: 26,
   JobCancelled: 30,
   AppAdded: 40,
   StoreAppLinked: 41,
@@ -85,6 +86,8 @@ export const AuditAction = {
   AppHidden: 44,
   AppUnhidden: 45,
   AppsReordered: 46,
+  PreReviewStarted: 450,
+  PreReviewCompleted: 451,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -315,6 +318,105 @@ export interface AiSettingsDto {
   Model?: string | null
   // Only in the answer of saving a key: true when Anthropic accepted it, false when it could not be checked.
   ApiKeyVerified?: boolean | null
+  // The model of each AI feature (the organization's choice, or the default) and the models one may choose.
+  ReplyDraftModel?: string | null
+  PreReviewModel?: string | null
+  Models?: AiModelOptionDto[] | null
+}
+
+// A model offered in the AI settings, with its approximate price in US dollars per million tokens.
+export interface AiModelOptionDto {
+  Id: string
+  Name: string
+  InputUsdPerMTok: number
+  OutputUsdPerMTok: number
+}
+
+/** PUT organizations/ai-settings/models: only the fields sent change. */
+export interface UpdateAiModelsInput {
+  ReplyDraftModel?: string | null
+  PreReviewModel?: string | null
+}
+
+// ---- AI pre-review (pre-reviews/*) ----
+
+export const PreReviewStatus = { Queued: 1, Running: 2, Succeeded: 3, Failed: 4 } as const
+export type PreReviewStatus = (typeof PreReviewStatus)[keyof typeof PreReviewStatus]
+
+export const PreReviewVerdict = { LikelyApproved: 1, AtRisk: 2, LikelyRejected: 3 } as const
+export type PreReviewVerdict = (typeof PreReviewVerdict)[keyof typeof PreReviewVerdict]
+
+export const PreReviewSeverity = { Blocker: 1, Major: 2, Minor: 3 } as const
+export type PreReviewSeverity = (typeof PreReviewSeverity)[keyof typeof PreReviewSeverity]
+
+export const PreReviewArea = {
+  Metadata: 1,
+  Screenshots: 2,
+  Privacy: 3,
+  AgeRating: 4,
+  Payments: 5,
+  Functionality: 6,
+  Legal: 7,
+  Other: 8,
+} as const
+export type PreReviewArea = (typeof PreReviewArea)[keyof typeof PreReviewArea]
+
+export interface PreReviewFindingDto {
+  Severity: PreReviewSeverity
+  Area: PreReviewArea
+  Guideline?: string | null
+  Title?: string | null
+  Evidence?: string | null
+  Fix?: string | null
+}
+
+// One AI pre-review of an app in one store: an estimate of how the store's reviewer would judge the submission. It never
+// blocks or performs a submission.
+export interface PreReviewDto {
+  Id: number
+  AppId: number
+  StoreAppId: number
+  Store: StoreKind
+  VersionString?: string | null
+  Status: PreReviewStatus
+  JobId?: number | null
+  Model: string
+  Language?: string | null
+  Verdict?: PreReviewVerdict | null
+  // 0 to 100.
+  ApprovalLikelihood?: number | null
+  Summary?: string | null
+  Findings?: PreReviewFindingDto[] | null
+  // What a reviewer would test in the running app: to check before submitting.
+  RuntimeChecks?: string[] | null
+  PositiveNotes?: string[] | null
+  ImageCount?: number
+  InputTokens?: number
+  OutputTokens?: number
+  CacheReadInputTokens?: number
+  CacheCreationInputTokens?: number
+  EstimatedCostUsd?: number
+  ErrorKey?: string | null
+  ErrorMessage?: string | null
+  CreatedDate: string
+  CreatedByUserName?: string | null
+  CompletedDate?: string | null
+}
+
+export interface PreReviewListDto {
+  Id: number
+  Store: StoreKind
+  VersionString?: string | null
+  Status: PreReviewStatus
+  Verdict?: PreReviewVerdict | null
+  ApprovalLikelihood?: number | null
+  Model: string
+  BlockerCount: number
+  MajorCount: number
+  MinorCount: number
+  EstimatedCostUsd?: number
+  CreatedDate: string
+  CreatedByUserName?: string | null
 }
 
 // A reply draft written with AI (POST reviews/reply-draft/generate): already saved on the review, nothing sent.

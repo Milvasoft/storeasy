@@ -8,7 +8,8 @@ using Storeasy.Domain.Organizations;
 namespace Storeasy.Application.Features.AiSettings.GetAiSettings;
 
 /// <summary>
-/// Handles <see cref="GetAiSettingsQuery"/>. The sealed key columns are never read.
+/// Handles <see cref="GetAiSettingsQuery"/>. The sealed key columns are never read. Without a row the default models are
+/// returned.
 /// </summary>
 /// <param name="SettingRepository"></param>
 /// <param name="Options"></param>
@@ -20,18 +21,27 @@ public record GetAiSettingsQueryHandler(IStoreasyRepositoryBase<OrganizationAiSe
     /// <inheritdoc/>
     public async Task<Response<AiSettingsDto>> Handle(GetAiSettingsQuery request, CancellationToken cancellationToken)
     {
-        var settings = await _settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == request.OrganizationId,
-                                                                       projection: s => new AiSettingsDto
+        var setting = await _settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == request.OrganizationId,
+                                                                       projection: s => new OrganizationAiSetting
                                                                        {
-                                                                           HasApiKey = true,
                                                                            ApiKeyLastFour = s.ApiKeyLastFour,
                                                                            ApiKeySetDate = s.ApiKeySetDate,
                                                                            ApiKeySetByUserName = s.ApiKeySetByUserName,
+                                                                           ReplyDraftModel = s.ReplyDraftModel,
+                                                                           PreReviewModel = s.PreReviewModel,
                                                                        },
-                                                                       cancellationToken: cancellationToken) ?? new AiSettingsDto();
+                                                                       cancellationToken: cancellationToken);
 
-        settings.Model = _options.Model;
+        var settings = setting == null
+            ? new AiSettingsDto()
+            : new AiSettingsDto
+            {
+                HasApiKey = true,
+                ApiKeyLastFour = setting.ApiKeyLastFour,
+                ApiKeySetDate = setting.ApiKeySetDate,
+                ApiKeySetByUserName = setting.ApiKeySetByUserName,
+            };
 
-        return Response<AiSettingsDto>.Success(settings);
+        return Response<AiSettingsDto>.Success(settings.WithModels(_options, setting?.ReplyDraftModel, setting?.PreReviewModel));
     }
 }

@@ -4,6 +4,7 @@ export const p2tr: P2Dictionary = {
   workspace: {
     sections: 'Uygulama bölümleri',
     readiness: 'Hazırlık',
+    preReview: 'Ön inceleme',
     listing: 'Mağaza kaydı',
     media: 'Görseller',
     release: 'Yayın',

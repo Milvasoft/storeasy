@@ -74,5 +74,6 @@ public static class TableNames
     public const string EmailOutbox = nameof(EmailOutbox);
     public const string SystemSettings = nameof(SystemSettings);
     public const string OrganizationAiSettings = nameof(OrganizationAiSettings);
+    public const string PreReviews = nameof(PreReviews);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

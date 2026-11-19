@@ -1,5 +1,4 @@
 ﻿using Anthropic;
-using Anthropic.Exceptions;
 using Anthropic.Models.Messages;
 using Microsoft.Extensions.Logging;
 using Storeasy.Application.Interfaces;
@@ -23,7 +22,7 @@ public sealed class AnthropicReplyDraftWriter(IHttpClientFactory httpClientFacto
     /// <summary>
     /// Name of the HTTP client the SDK sends with.
     /// </summary>
-    public const string HttpClientName = "anthropic";
+    public const string HttpClientName = AnthropicCalls.HttpClientName;
 
     // One retry of a 429 or 5xx (the SDK honours Retry-After); someone is waiting for the answer.
     private const int _maxRetries = 1;
@@ -36,13 +35,14 @@ public sealed class AnthropicReplyDraftWriter(IHttpClientFactory httpClientFacto
     public async Task<ReplyDraftResult> WriteAsync(ReplyDraftRequest request, CancellationToken cancellationToken = default)
     {
         var client = CreateClient(request.ApiKey);
+        var requestedModel = request.Model ?? _options.Model;
         Message response;
 
         try
         {
             response = await client.Messages.Create(new MessageCreateParams
             {
-                Model = _options.Model,
+                Model = requestedModel,
                 MaxTokens = _options.MaxTokens,
                 System = ReplyDraftPrompt.SystemPrompt,
                 OutputConfig = new OutputConfig { Effort = ParseEffort(_options.Effort) },
@@ -55,7 +55,7 @@ public sealed class AnthropicReplyDraftWriter(IHttpClientFactory httpClientFacto
 
             _logger.LogWarning("Anthropic reply draft failed: {Outcome} ({ErrorType}).", outcome, exception.GetType().Name);
 
-            return ReplyDraftResult.Failure(outcome, _options.Model);
+            return ReplyDraftResult.Failure(outcome, requestedModel);
         }
 
         var model = response.Model.Raw();
@@ -113,22 +113,15 @@ public sealed class AnthropicReplyDraftWriter(IHttpClientFactory httpClientFacto
     /// </summary>
     /// <param name="exception"></param>
     /// <returns></returns>
-    public static ReplyDraftOutcome Classify(Exception exception) => exception switch
+    public static ReplyDraftOutcome Classify(Exception exception) => AnthropicCalls.Classify(exception) switch
     {
-        AnthropicUnauthorizedException or AnthropicForbiddenException => ReplyDraftOutcome.KeyRejected,
-        AnthropicRateLimitException => ReplyDraftOutcome.RateLimited,
-        Anthropic5xxException or AnthropicIOException or HttpRequestException or TimeoutException or TaskCanceledException => ReplyDraftOutcome.Unavailable,
-        AnthropicApiException { StatusCode: var status } when (int)status >= 500 => ReplyDraftOutcome.Unavailable,
+        AiCallFailure.KeyRejected => ReplyDraftOutcome.KeyRejected,
+        AiCallFailure.RateLimited => ReplyDraftOutcome.RateLimited,
+        AiCallFailure.Unavailable => ReplyDraftOutcome.Unavailable,
         _ => ReplyDraftOutcome.Failed,
     };
 
-    private AnthropicClient CreateClient(string apiKey) => new()
-    {
-        ApiKey = apiKey,
-        HttpClient = _httpClientFactory.CreateClient(HttpClientName),
-        MaxRetries = _maxRetries,
-        Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds),
-    };
+    private AnthropicClient CreateClient(string apiKey) => AnthropicCalls.CreateClient(_httpClientFactory, apiKey, _options.TimeoutSeconds, _maxRetries);
 
     private static Effort ParseEffort(string effort) => effort?.Trim().ToLowerInvariant() switch
     {

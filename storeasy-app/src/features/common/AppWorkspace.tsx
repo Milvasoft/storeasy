@@ -24,6 +24,7 @@ import { storeFromSlug, storeSlug } from './store'
 
 export type WorkspaceSection =
   | 'readiness'
+  | 'preReview'
   | 'listing'
   | 'media'
   | 'release'
@@ -90,6 +91,7 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
 
 const SECTION_PATHS: Record<WorkspaceSection, string> = {
   readiness: 'readiness',
+  preReview: 'pre-review',
   listing: 'listing/texts',
   media: 'listing/screenshots',
   release: 'release/versions',
@@ -116,6 +118,7 @@ function sectionShown(section: WorkspaceSection, stores: StoreKind[]): boolean {
 
 const SECTIONS: WorkspaceSection[] = [
   'readiness',
+  'preReview',
   'listing',
   'media',
   'release',

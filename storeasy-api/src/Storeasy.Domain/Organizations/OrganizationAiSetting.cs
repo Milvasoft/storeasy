@@ -6,9 +6,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Storeasy.Domain.Organizations;
 
 /// <summary>
-/// AI settings of an organization: the Anthropic API key used to write review reply drafts. The key is envelope
-/// encrypted at rest and never returned; only its last four characters are kept in clear for display. An organization
-/// without a row has no key.
+/// AI settings of an organization: the Anthropic API key used by the AI features (review reply drafts, pre-reviews) and
+/// the model each feature uses. The key is envelope encrypted at rest and never returned; only its last four characters
+/// are kept in clear for display. An organization without a row has no key (and the default models).
 /// </summary>
 [Table(TableNames.OrganizationAiSettings)]
 [Index(nameof(OrganizationId), IsUnique = true)]
@@ -23,6 +23,11 @@ public class OrganizationAiSetting : CreationAuditableEntity<int>
     /// Column length of <see cref="ApiKeySetByUserName"/>.
     /// </summary>
     public const int UserNameMaxLength = 200;
+
+    /// <summary>
+    /// Column length of the model ids.
+    /// </summary>
+    public const int ModelMaxLength = 64;
 
     /// <summary>
     /// Owning organization.
@@ -60,6 +65,18 @@ public class OrganizationAiSetting : CreationAuditableEntity<int>
     /// </summary>
     [MaxLength(UserNameMaxLength)]
     public string ApiKeySetByUserName { get; set; }
+
+    /// <summary>
+    /// Model of the review reply drafts; null for the configured default.
+    /// </summary>
+    [MaxLength(ModelMaxLength)]
+    public string ReplyDraftModel { get; set; }
+
+    /// <summary>
+    /// Model of the AI pre-reviews; null for the configured default.
+    /// </summary>
+    [MaxLength(ModelMaxLength)]
+    public string PreReviewModel { get; set; }
 
     /// <summary>
     /// Navigation property of the organization.

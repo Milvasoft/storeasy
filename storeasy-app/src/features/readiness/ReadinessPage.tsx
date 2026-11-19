@@ -17,6 +17,7 @@ import { contentKeys } from '@/features/common/keys'
 import { readinessView } from '@/features/common/labels'
 import { fixRouteHref, storeSlug } from '@/features/common/store'
 import { SubmitDialog } from '@/features/common/SubmitDialog'
+import { PreReviewEntry } from '@/features/pre-review/PreReviewEntry'
 import { MediaSlotFill, ReadinessStatus, type AppOverviewDto, type ReadinessItemDto, type ReadinessSlotDto } from '@/features/common/types'
 
 // Design 6.8-6.11: "what is missing before a submission", one row per catalog check, grouped; the submission gate opens
@@ -159,7 +160,10 @@ function Readiness({ context }: { context: WorkspaceContext }) {
       </div>
       <div className="card mt-4">
         <div className="card-b flex flex-wrap items-center gap-3">
-          <div className="min-w-0 flex-1 text-[13px] text-fg2">{gateReason ?? t.readiness.noBlockers}</div>
+          <div className="grid min-w-0 flex-1 gap-1.5">
+            <div className="text-[13px] text-fg2">{gateReason ?? t.readiness.noBlockers}</div>
+            <PreReviewEntry organizationId={organizationId} appId={app.Id} store={store} />
+          </div>
           <Button variant="primary" disabled={!!gateReason} onClick={() => setSubmitting(true)}>
             <Send aria-hidden />
             {t.readiness.submit}
@@ -174,6 +178,8 @@ function Readiness({ context }: { context: WorkspaceContext }) {
         appName={app.Name}
         versionId={data.VersionId ?? null}
         versionString={data.VersionString ?? null}
+        appId={app.Id}
+        store={store}
       />
     </>
   )

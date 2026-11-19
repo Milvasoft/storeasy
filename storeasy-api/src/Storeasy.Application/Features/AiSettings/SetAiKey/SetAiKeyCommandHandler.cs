@@ -52,9 +52,10 @@ public record SetAiKeyCommandHandler(IStoreasyRepositoryBase<OrganizationAiSetti
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var userName = _currentUser.UserName;
 
-        var existingId = await _settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == request.OrganizationId,
-                                                                         projection: s => (int?)s.Id,
-                                                                         cancellationToken: cancellationToken);
+        var existing = await _settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == request.OrganizationId,
+                                                                       projection: s => new OrganizationAiSetting { Id = s.Id, ReplyDraftModel = s.ReplyDraftModel, PreReviewModel = s.PreReviewModel },
+                                                                       cancellationToken: cancellationToken);
+        var existingId = existing?.Id;
 
         if (existingId.HasValue)
         {
@@ -96,9 +97,8 @@ public record SetAiKeyCommandHandler(IStoreasyRepositoryBase<OrganizationAiSetti
             ApiKeyLastFour = lastFour,
             ApiKeySetDate = now,
             ApiKeySetByUserName = userName,
-            Model = _options.Model,
             ApiKeyVerified = verified,
-        };
+        }.WithModels(_options, existing?.ReplyDraftModel, existing?.PreReviewModel);
 
         return verified
             ? Response<AiSettingsDto>.Success(settings)

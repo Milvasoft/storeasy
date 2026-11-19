@@ -5,9 +5,9 @@ import { KeyRound, Sparkles } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Callout, FormErrors } from '@/components/ui/Feedback'
 import { ScreenState } from '@/components/ui/ScreenState'
-import { Button, Field, Input, Skeleton } from '@/components/ui/primitives'
+import { Button, Field, Input, RadioGroup, Skeleton } from '@/components/ui/primitives'
 import { apiErrorMessage } from '@/lib/api/http'
-import { OrgPermission } from '@/lib/api/types'
+import { OrgPermission, type AiModelOptionDto } from '@/lib/api/types'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
@@ -50,7 +50,10 @@ export function AiSettingsCard() {
         ) : settings.isError ? (
           <ScreenState error={settings.error} onRetry={() => void settings.refetch()} />
         ) : settings.data ? (
-          <KeyForm settings={settings.data} />
+          <>
+            <KeyForm settings={settings.data} />
+            <ModelsForm settings={settings.data} />
+          </>
         ) : null}
       </div>
     </section>
@@ -184,6 +187,113 @@ function KeyForm({ settings }: { settings: AiSettingsDto }) {
           <Button onClick={() => setEditing(true)}>{t.settings.replace}</Button>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+/** The price hint of a model: approximate US dollars per million input and output tokens. */
+export function modelPrice(model: AiModelOptionDto, template: string): string {
+  return interpolate(template, { input: formatUsd(model.InputUsdPerMTok), output: formatUsd(model.OutputUsdPerMTok) })
+}
+
+function formatUsd(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2)
+}
+
+/** The display name of a model id, or the id itself when the list does not have it. */
+export function modelName(models: AiModelOptionDto[] | null | undefined, id: string | null | undefined): string {
+  return models?.find((model) => model.Id === id)?.Name ?? id ?? '-'
+}
+
+// The model of each AI feature. Members who manage the key choose them once a key is saved; everyone else reads them.
+function ModelsForm({ settings }: { settings: AiSettingsDto }) {
+  const t = useAiText()
+  const base = useT()
+  const queryClient = useQueryClient()
+  const organization = useCurrentOrganization()
+  const { can } = useOrganization()
+  const models = settings.Models ?? []
+  const [replyDrafts, setReplyDrafts] = useState(settings.ReplyDraftModel ?? settings.Model ?? '')
+  const [preReview, setPreReview] = useState(settings.PreReviewModel ?? '')
+  const [server, setServer] = useState<string | null>(null)
+
+  useEffect(() => {
+    setReplyDrafts(settings.ReplyDraftModel ?? settings.Model ?? '')
+    setPreReview(settings.PreReviewModel ?? '')
+  }, [settings.ReplyDraftModel, settings.PreReviewModel, settings.Model])
+
+  const save = useMutation({
+    mutationFn: () => aiApi.setModels(organization.Id, { ReplyDraftModel: replyDrafts, PreReviewModel: preReview }),
+    meta: { silentError: true },
+    onSuccess: (saved) => {
+      setServer(null)
+      queryClient.setQueryData(aiKeys.settings(organization.Id), saved)
+      void queryClient.invalidateQueries({ queryKey: aiKeys.settings(organization.Id) })
+      showToast(t.models.saved, 'success')
+    },
+    onError: (failure) => setServer(apiErrorMessage(failure, base.common.error)),
+  })
+
+  if (models.length === 0) {
+    return null
+  }
+
+  const editable = can(OrgPermission.ManageConnections) && settings.HasApiKey
+  const options = models.map((model) => ({ value: model.Id, label: model.Name, description: modelPrice(model, t.models.price) }))
+  const changed = replyDrafts !== (settings.ReplyDraftModel ?? settings.Model ?? '') || preReview !== (settings.PreReviewModel ?? '')
+
+  return (
+    <div className="grid gap-3 border-t border-border pt-4">
+      <h3 className="h4 m-0">{t.models.title}</h3>
+      <p className="m-0 text-[13px] text-fg2">{t.models.intro}</p>
+      {!editable ? (
+        <>
+          <span className="text-xs text-fg3">
+            {interpolate(t.models.readOnly, {
+              replyDrafts: modelName(models, settings.ReplyDraftModel ?? settings.Model),
+              preReview: modelName(models, settings.PreReviewModel),
+            })}
+          </span>
+          {can(OrgPermission.ManageConnections) && !settings.HasApiKey ? <Callout tone="neutral">{t.models.needsKey}</Callout> : null}
+        </>
+      ) : (
+        <form
+          className="grid gap-3"
+          onSubmit={(event) => {
+            event.preventDefault()
+            save.mutate()
+          }}
+        >
+          {server ? <FormErrors title={server} /> : null}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1">
+              <b className="text-[13px]">{t.models.replyDrafts}</b>
+              <RadioGroup
+                name="ai-model-reply-drafts"
+                label={t.models.replyDrafts}
+                value={replyDrafts}
+                options={options}
+                onChange={setReplyDrafts}
+              />
+            </div>
+            <div className="grid gap-1">
+              <b className="text-[13px]">{t.models.preReview}</b>
+              <RadioGroup
+                name="ai-model-pre-review"
+                label={t.models.preReview}
+                value={preReview}
+                options={options}
+                onChange={setPreReview}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" loading={save.isPending} disabled={!changed}>
+              {t.models.save}
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }

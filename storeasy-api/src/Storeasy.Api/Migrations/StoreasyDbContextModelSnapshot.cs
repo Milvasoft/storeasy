@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119145815_AddGooglePlayWebhooks";
+    public override string LastMigrationId => "20261119150634_AddPreReviews";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -302,6 +302,107 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("Builds");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.PreReview", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("ApprovalLikelihood")
+                    .HasColumnType("integer");
+
+                b.Property<long>("CacheCreationInputTokens")
+                    .HasColumnType("bigint");
+
+                b.Property<long>("CacheReadInputTokens")
+                    .HasColumnType("bigint");
+
+                b.Property<DateTime?>("CompletedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("ErrorKey")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<decimal>("EstimatedCostUsd")
+                    .HasColumnType("numeric(12,6)");
+
+                b.Property<List<PreReviewFinding>>("Findings")
+                    .HasColumnType("jsonb");
+
+                b.Property<int>("ImageCount")
+                    .HasColumnType("integer");
+
+                b.Property<long>("InputTokens")
+                    .HasColumnType("bigint");
+
+                b.Property<long?>("JobId")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("Language")
+                    .HasMaxLength(16)
+                    .HasColumnType("character varying(16)");
+
+                b.Property<string>("Model")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<long>("OutputTokens")
+                    .HasColumnType("bigint");
+
+                b.PrimitiveCollection<string>("PositiveNotes")
+                    .HasColumnType("jsonb");
+
+                b.PrimitiveCollection<string>("RuntimeChecks")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("SnapshotHash")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Summary")
+                    .HasMaxLength(4000)
+                    .HasColumnType("character varying(4000)");
+
+                b.Property<byte?>("Verdict")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("VersionString")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId");
+
+                b.HasIndex("OrganizationId", "AppId", "Store", "CreationDate");
+
+                b.ToTable("PreReviews");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Apps.SavedAnswer", b =>
@@ -2755,6 +2856,14 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
 
+                b.Property<string>("PreReviewModel")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<string>("ReplyDraftModel")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
                 b.HasKey("Id");
 
                 b.HasIndex("OrganizationId")
@@ -4209,6 +4318,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsRequired();
 
                 b.Navigation("StoreApp");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Apps.PreReview", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.App", "App")
+                    .WithMany()
+                    .HasForeignKey("AppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("App");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Apps.SavedAnswer", b =>

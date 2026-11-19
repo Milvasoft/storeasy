@@ -1,6 +1,7 @@
 import { HttpResponse, http, type HttpHandler } from 'msw'
 import { UserType } from '@/lib/api/types'
 import { asset, loginResponse } from './factories'
+import { preReviewRow } from './preReview'
 import { testState } from './state'
 
 const BASE = '*/api/v1.0'
@@ -161,6 +162,46 @@ export const defaultHandlers: HttpHandler[] = [
       Model: 'claude-haiku-5-5',
     }
     return json(envelope({ ...testState.aiSettings, ApiKeyVerified: !key.includes('offline') }))
+  }),
+  endpoint('put', '/Organizations/ai-settings/models', ({ body }) => {
+    if (!testState.aiSettings.HasApiKey) {
+      return errorResponse('AiKeyNotSet', 'Bu organizasyon için Anthropic API anahtarı girilmemiş.', 409)
+    }
+    const input = body as { ReplyDraftModel?: string | null; PreReviewModel?: string | null }
+    testState.aiSettings = {
+      ...testState.aiSettings,
+      ReplyDraftModel: input.ReplyDraftModel ?? testState.aiSettings.ReplyDraftModel,
+      PreReviewModel: input.PreReviewModel ?? testState.aiSettings.PreReviewModel,
+    }
+    testState.aiSettings.Model = testState.aiSettings.ReplyDraftModel
+    return json(envelope(testState.aiSettings))
+  }),
+  endpoint('get', '/pre-reviews', ({ url }) =>
+    json(
+      envelope(
+        testState.preReviews
+          .filter(
+            (report) => String(report.AppId) === url.searchParams.get('AppId') && String(report.Store) === url.searchParams.get('Store'),
+          )
+          .map(preReviewRow),
+      ),
+    ),
+  ),
+  endpoint('get', '/pre-reviews/pre-review', ({ url }) => {
+    const report = testState.preReviews.find((item) => String(item.Id) === url.searchParams.get('Id'))
+    return report ? json(envelope(report)) : errorResponse('PreReviewNotFound', 'Ön inceleme bulunamadı.', 404)
+  }),
+  endpoint('post', '/pre-reviews/pre-review', ({ body }) => {
+    if (!testState.aiSettings.HasApiKey) {
+      return errorResponse('AiKeyNotSet', 'Bu organizasyon için Anthropic API anahtarı girilmemiş.', 409)
+    }
+    const input = body as { AppId: number; Store: 1 | 2 | 3 }
+    const finished = { ...testState.nextPreReview, AppId: input.AppId, Store: input.Store }
+    // The job "runs" at once: the start answers Queued, the next read finds the report.
+    testState.preReviews = [finished, ...testState.preReviews]
+    return json(
+      envelope({ ...finished, Status: 1, Verdict: null, ApprovalLikelihood: null, Summary: null, Findings: [], CompletedDate: null }),
+    )
   }),
   endpoint('delete', '/Organizations/ai-settings/key', () => {
     testState.aiSettings = { HasApiKey: false, Model: 'claude-haiku-5-5' }

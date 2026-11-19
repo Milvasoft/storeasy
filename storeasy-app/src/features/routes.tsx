@@ -8,6 +8,7 @@ import type { SectionKey } from '@/pages/SectionPages'
 // Every page is its own lazy chunk.
 
 const ReadinessPage = lazyPage(() => import('@/features/readiness/ReadinessPage'), 'ReadinessPage')
+const PreReviewPage = lazyPage(() => import('@/features/pre-review/PreReviewPage'), 'PreReviewPage')
 const ReadinessOverviewPage = lazyPage(() => import('@/features/readiness/ReadinessPage'), 'ReadinessOverviewPage')
 const AppCompliancePage = lazyPage(() => import('@/features/compliance/CompliancePages'), 'AppCompliancePage')
 const OrgCompliancePage = lazyPage(() => import('@/features/compliance/CompliancePages'), 'OrgCompliancePage')
@@ -93,6 +94,7 @@ export function contentRoutes() {
     <>
       <Route path="/apps/readiness" element={<ReadinessOverviewPage />} />
       <Route path="/apps/:appId/readiness" element={<ReadinessPage />} />
+      <Route path="/apps/:appId/pre-review" element={<PreReviewPage />} />
       <Route path="/apps/:appId/compliance" element={<AppCompliancePage />} />
       <Route path="/apps/:appId/settings/profile" element={<AppProfilePage />} />
       <Route path="/apps/:appId/listing/texts" element={<ListingsPage />} />

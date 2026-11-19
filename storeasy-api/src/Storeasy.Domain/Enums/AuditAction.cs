@@ -79,6 +79,10 @@ public enum AuditAction : short
     [Description("AI key removed")]
     AiKeyRemoved = 25,
 
+    /// <summary>The models of the AI features (reply drafts, pre-review) were changed.</summary>
+    [Description("AI models changed")]
+    AiModelsChanged = 26,
+
     /// <summary>Store job cancelled.</summary>
     [Description("Store job cancelled")]
     JobCancelled = 30,
@@ -265,6 +269,14 @@ public enum AuditAction : short
     /// <summary>A review reply draft was written with AI (saved as a draft, never sent).</summary>
     [Description("Reply draft written with AI")]
     ReviewReplyDraftGenerated = 432,
+
+    /// <summary>An AI pre-review of a store record was started (nothing is submitted).</summary>
+    [Description("AI pre-review started")]
+    PreReviewStarted = 450,
+
+    /// <summary>An AI pre-review finished with a report.</summary>
+    [Description("AI pre-review completed")]
+    PreReviewCompleted = 451,
 
     /// <summary>TestFlight group created or changed.</summary>
     [Description("Beta group changed")]

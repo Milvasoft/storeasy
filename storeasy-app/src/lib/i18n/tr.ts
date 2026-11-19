@@ -1030,6 +1030,7 @@ export const tr: Dictionary = {
       connectionVerified: 'Mağaza bağlantısı doğrulandı',
       aiKeySet: 'Yapay zeka anahtarı girildi',
       aiKeyRemoved: 'Yapay zeka anahtarı kaldırıldı',
+      aiModelsChanged: 'Yapay zeka modelleri değişti',
       jobCancelled: 'İş iptal edildi',
       appAdded: 'Uygulama eklendi',
       storeAppLinked: 'Mağaza kaydı eşlendi',
@@ -1037,6 +1038,8 @@ export const tr: Dictionary = {
       appHidden: 'Uygulama gizlendi',
       appUnhidden: 'Uygulama gösterildi',
       appsReordered: 'Uygulamalar yeniden sıralandı',
+      preReviewStarted: 'Yapay zeka ön incelemesi başladı',
+      preReviewCompleted: 'Yapay zeka ön incelemesi bitti',
     },
   },
 }

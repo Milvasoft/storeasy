@@ -7460,11 +7460,46 @@
             Live event type to publish to the organization's members as well; null for none.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.OrganizationDtos.AiModelOptionDto">
+            <summary>
+            A model the organization can choose for an AI feature, with Anthropic's list prices.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiModelOptionDto.Id">
+            <summary>
+            Model id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiModelOptionDto.Name">
+            <summary>
+            Display name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiModelOptionDto.InputUsdPerMTok">
+            <summary>
+            Input price in US dollars per million tokens.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiModelOptionDto.OutputUsdPerMTok">
+            <summary>
+            Output price in US dollars per million tokens.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto">
             <summary>
             AI settings of an organization. The API key itself is never returned: only whether one is set, when, by whom and its
             last four characters.
             </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.WithModels(Storeasy.Application.Utils.Models.AiOptions,System.String,System.String)">
+            <summary>
+            The settings with the models resolved from <paramref name="replyDraftModel"/> and <paramref name="preReviewModel"/>
+            (the organization's choices, null for the defaults) and the list of models.
+            </summary>
+            <param name="options"></param>
+            <param name="replyDraftModel"></param>
+            <param name="preReviewModel"></param>
+            <returns></returns>
         </member>
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.HasApiKey">
             <summary>
@@ -7488,7 +7523,22 @@
         </member>
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.Model">
             <summary>
-            Model the reply drafts are written with (configuration, <c>Storeasy:Ai:Model</c>).
+            Model the reply drafts are written with (same as <see cref="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ReplyDraftModel"/>; kept for older clients).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ReplyDraftModel">
+            <summary>
+            Model of the review reply drafts: the organization's choice, or the configured default (<c>Storeasy:Ai:Model</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.PreReviewModel">
+            <summary>
+            Model of the AI pre-reviews: the organization's choice, or the configured default (<c>Storeasy:Ai:PreReviewModel</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.Models">
+            <summary>
+            Models that can be chosen, with their list prices.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.OrganizationDtos.AiSettingsDto.ApiKeyVerified">
@@ -7864,6 +7914,247 @@
         <member name="P:Storeasy.Application.Dtos.PermissionDtos.PermissionListDto.Projection">
             <summary>
             Projection expression for mapping Permission entity to PermissionListDto.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto">
+            <summary>
+            An AI pre-review of a store record: the model's estimate of how that store's reviewer would decide, with the problems
+            found and the guideline each breaks. It is an estimate; it never blocks or performs a submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Id">
+            <summary>
+            Pre-review id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.VersionString">
+            <summary>
+            Version reviewed, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.JobId">
+            <summary>
+            Job that runs it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Model">
+            <summary>
+            Model asked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Language">
+            <summary>
+            Language of the report (culture name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Verdict">
+            <summary>
+            Expected decision; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.ApprovalLikelihood">
+            <summary>
+            Estimated chance of approval, 0 to 100; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Summary">
+            <summary>
+            Short summary.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.Findings">
+            <summary>
+            Problems found, most severe first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.RuntimeChecks">
+            <summary>
+            What a reviewer will test while running the app; check them before submitting.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.PositiveNotes">
+            <summary>
+            What is already good.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.ImageCount">
+            <summary>
+            Screenshots sent as images.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.InputTokens">
+            <summary>
+            Input tokens billed (uncached).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.OutputTokens">
+            <summary>
+            Output tokens billed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.CacheReadInputTokens">
+            <summary>
+            Input tokens read from the prompt cache.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.CacheCreationInputTokens">
+            <summary>
+            Input tokens written to the prompt cache.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.EstimatedCostUsd">
+            <summary>
+            Estimated cost in US dollars from the model's list prices.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.ErrorKey">
+            <summary>
+            Message key of the failure, when it failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.ErrorMessage">
+            <summary>
+            The failure in the request's language, when it failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.CreatedDate">
+            <summary>
+            UTC instant it was started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.CreatedByUserName">
+            <summary>
+            Who started it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewDto.CompletedDate">
+            <summary>
+            UTC instant it finished.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto">
+            <summary>
+            One problem an AI pre-review found.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Severity">
+            <summary>
+            How serious it is.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Area">
+            <summary>
+            Area of the submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Guideline">
+            <summary>
+            The store guideline it breaks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Title">
+            <summary>
+            Short name of the problem.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Evidence">
+            <summary>
+            Where it was seen (field, locale, screenshot).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewFindingDto.Fix">
+            <summary>
+            What to change.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto">
+            <summary>
+            A pre-review in the history of a store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.Id">
+            <summary>
+            Pre-review id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.VersionString">
+            <summary>
+            Version reviewed, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.Verdict">
+            <summary>
+            Expected decision; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.ApprovalLikelihood">
+            <summary>
+            Estimated chance of approval, 0 to 100; null until it succeeds.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.Model">
+            <summary>
+            Model asked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.BlockerCount">
+            <summary>
+            Blocker findings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.MajorCount">
+            <summary>
+            Major findings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.MinorCount">
+            <summary>
+            Minor findings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.EstimatedCostUsd">
+            <summary>
+            Estimated cost in US dollars.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.CreatedDate">
+            <summary>
+            UTC instant it was started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.PreReviewDtos.PreReviewListDto.CreatedByUserName">
+            <summary>
+            Who started it.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.ReadinessDtos.AppOverviewDto">
@@ -9041,6 +9332,21 @@
         </member>
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.MockupExportTarget.Height">
             <summary></summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.PreReviewPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PreReview"/> job.
+            </summary>
+            <param name="PreReviewId">The pre-review to run.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreJobDtos.PreReviewPayload.#ctor(System.Int64)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PreReview"/> job.
+            </summary>
+            <param name="PreReviewId">The pre-review to run.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.PreReviewPayload.PreReviewId">
+            <summary>The pre-review to run.</summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ProcessArtifactPayload">
             <summary>
@@ -10974,14 +11280,16 @@
         </member>
         <member name="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read.
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read. Without a row the default models are
+            returned.
             </summary>
             <param name="SettingRepository"></param>
             <param name="Options"></param>
         </member>
         <member name="M:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Utils.Models.AiOptions)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read.
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery"/>. The sealed key columns are never read. Without a row the default models are
+            returned.
             </summary>
             <param name="SettingRepository"></param>
             <param name="Options"></param>
@@ -11109,6 +11417,64 @@
         </member>
         <member name="M:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand">
+            <summary>
+            Chooses the model of each AI feature (review reply drafts, pre-reviews) from the fixed list of
+            <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>. Needs a saved key: the choice is kept with the key and removing the key resets
+            it. A field left null keeps its current choice.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand.ReplyDraftModel">
+            <summary>
+            Model of the review reply drafts; null keeps the current one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand.PreReviewModel">
+            <summary>
+            Model of the AI pre-reviews; null keeps the current one.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand"/>: stores the choices on the organization's AI settings row and audits the change
+            (the model ids only).
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.AiOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand"/>: stores the choices on the organization's AI settings row and audits the change
+            (the model ids only).
+            </summary>
+            <param name="SettingRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandHandler.Handle(Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommand"/>: only models of <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AiSettings.SetAiModels.SetAiModelsCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Answers.CopySavedAnswers.CopySavedAnswersCommand">
             <summary>
@@ -17907,6 +18273,213 @@
         <member name="M:Storeasy.Application.Features.Permissions.GetPermissionList.GetPermissionListQueryValidator.#ctor">
             <inheritdoc cref="T:Storeasy.Application.Features.Permissions.GetPermissionList.GetPermissionListQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery">
+            <summary>
+            One pre-review with its report (verdict, likelihood, findings with guidelines and fixes, runtime checks, usage and cost).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery.Id">
+            <summary>
+            Pre-review id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery"/>. A pre-review of another organization is not found.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="Localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.PreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery"/>. A pre-review of another organization is not found.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="Localizer"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler.PreReviewRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler.Localizer">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryHandler.Handle(Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewDetail.GetPreReviewDetailQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery">
+            <summary>
+            The pre-review history of one app in one store, newest first (at most <see cref="F:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery.MaxRows"/>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery.MaxRows">
+            <summary>
+            Most pre-reviews returned.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery"/>. An app of another organization gives an empty list.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="JobRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.PreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery"/>. An app of another organization gives an empty list.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="JobRepository"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryHandler.PreReviewRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryHandler.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryHandler.Handle(Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.PreReviews.GetPreReviewList.GetPreReviewListQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand">
+            <summary>
+            Starts an AI pre-review of one app in one store: Claude (the organization's Anthropic API key and its pre-review model)
+            reviews the version being prepared the way that store's reviewer would, as a background job
+            (<see cref="F:Storeasy.Domain.Enums.StoreJobKind.PreReview"/>). Returns the queued pre-review; the report arrives with the job
+            (<c>job.succeeded</c> on the activity hub, or read it again). Manual only; it never blocks or performs a submission. One
+            at a time per app and store. Needs the permission of preparing a submission's content.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand.Store">
+            <summary>
+            Store whose reviewer is imitated.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand"/>: checks the store record, the key and that no pre-review of the record is
+            still running, saves a queued pre-review with the organization's model and the request's language, queues its job (one
+            attempt: every attempt costs the organization money) and writes the audit entry. No [Log]: the answer carries token
+            counts, which the log masking takes for secrets; the audit entry records the start.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="SettingRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="ContentService"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+            <param name="Localizer"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.PreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.ICurrentUser,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Utils.Models.AiOptions,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand"/>: checks the store record, the key and that no pre-review of the record is
+            still running, saves a queued pre-review with the organization's model and the request's language, queues its job (one
+            attempt: every attempt costs the organization money) and writes the audit entry. No [Log]: the answer carries token
+            counts, which the log masking takes for secrets; the audit entry records the start.
+            </summary>
+            <param name="PreReviewRepository"></param>
+            <param name="SettingRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="ContentService"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+            <param name="Localizer"></param>
+            <param name="Options"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.PreReviewRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.CurrentUser">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.Localizer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.DefaultLanguage">
+            <summary>
+            Report language when the request has none.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandHandler.Handle(Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.PreReviews.StartPreReview.StartPreReviewCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.PurchaseSettings.GetSandboxTesterList.GetSandboxTesterListQuery">
             <summary>
             Lists the App Store sandbox testers of the store record's developer account, live.
@@ -19319,8 +19892,9 @@
             <param name="SecretProtector"></param>
             <param name="DraftWriter"></param>
             <param name="AuditTrail"></param>
+            <param name="Options"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IReplyDraftWriter,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IReplyDraftWriter,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.AiOptions)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand"/>: reads the review, opens the organization's key, asks
             <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> for a reply, fits it into the store's limit (<see cref="M:Storeasy.Application.Utils.Helpers.ReviewRules.FitReply(System.String,System.Int32)"/>) and
@@ -19332,6 +19906,7 @@
             <param name="SecretProtector"></param>
             <param name="DraftWriter"></param>
             <param name="AuditTrail"></param>
+            <param name="Options"></param>
         </member>
         <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.ReviewRepository">
             <summary></summary>
@@ -19346,6 +19921,9 @@
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.Options">
             <summary></summary>
         </member>
         <member name="M:Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommandHandler.Handle(Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand,System.Threading.CancellationToken)">
@@ -24076,6 +24654,21 @@
         <member name="P:Storeasy.Application.Interfaces.AppleBuildUploadState.Errors">
             <summary>Error descriptions of a failed upload.</summary>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IAppStoreRequest">
+            <summary>
+            A request about one app in one store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IAppStoreRequest.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IAppStoreRequest.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IArtifactIntakeService">
             <summary>
             Package intake (docs/urun-plani.md 11.8, tools/CONTRACT.md 3): opens, resumes and deduplicates upload sessions,
@@ -26030,6 +26623,227 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IPreReviewer">
+            <summary>
+            Reviews a submission snapshot with a language model the way the store's reviewer would (Claude through the Anthropic
+            API, with the organization's own key) and returns a structured report. It only judges: nothing is saved or submitted
+            here, and the raw answer of the provider is never passed on.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IPreReviewer.ReviewAsync(Storeasy.Application.Interfaces.PreReviewRequest,System.Threading.CancellationToken)">
+            <summary>
+            Runs one pre-review. Failures (key, limits, refusals, an answer that is not a valid report) come back as
+            <see cref="P:Storeasy.Application.Interfaces.PreReviewResult.Outcome"/>.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IPreReviewImageLoader">
+            <summary>
+            Downloads the screenshots chosen for a pre-review and scales them down for the model. Images that cannot be read are
+            left out; the review goes on without them.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IPreReviewImageLoader.LoadAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.Ai.PreReviewImageCandidate},System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Loads <paramref name="candidates"/> in order, at most <paramref name="max"/> of them.
+            </summary>
+            <param name="candidates"></param>
+            <param name="max"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.PreReviewRequest">
+            <summary>
+            What the model is given for one pre-review.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic API key.</param>
+            <param name="Model">Model id.</param>
+            <param name="Store">Store whose reviewer is imitated.</param>
+            <param name="Language">Culture name of the report language (e.g. tr-TR).</param>
+            <param name="RulesBlock">The store's rules from the catalog (<see cref="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.RulesBlock(Storeasy.Domain.Rules.RuleCatalog,Storeasy.Domain.Enums.StoreKind)"/>).</param>
+            <param name="Snapshot">The submission snapshot.</param>
+            <param name="Images">Screenshots, in the order of their labels.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.PreReviewRequest.#ctor(System.String,System.String,Storeasy.Domain.Enums.StoreKind,System.String,System.String,Storeasy.Application.Utils.Ai.PreReviewSnapshot,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.PreReviewImage})">
+            <summary>
+            What the model is given for one pre-review.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic API key.</param>
+            <param name="Model">Model id.</param>
+            <param name="Store">Store whose reviewer is imitated.</param>
+            <param name="Language">Culture name of the report language (e.g. tr-TR).</param>
+            <param name="RulesBlock">The store's rules from the catalog (<see cref="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.RulesBlock(Storeasy.Domain.Rules.RuleCatalog,Storeasy.Domain.Enums.StoreKind)"/>).</param>
+            <param name="Snapshot">The submission snapshot.</param>
+            <param name="Images">Screenshots, in the order of their labels.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.ApiKey">
+            <summary>The organization's Anthropic API key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.Model">
+            <summary>Model id.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.Store">
+            <summary>Store whose reviewer is imitated.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.Language">
+            <summary>Culture name of the report language (e.g. tr-TR).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.RulesBlock">
+            <summary>The store's rules from the catalog (<see cref="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.RulesBlock(Storeasy.Domain.Rules.RuleCatalog,Storeasy.Domain.Enums.StoreKind)"/>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.Snapshot">
+            <summary>The submission snapshot.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewRequest.Images">
+            <summary>Screenshots, in the order of their labels.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.PreReviewRequest.ToString">
+            <summary>
+            Masks the key so the record never prints it.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.PreReviewImage">
+            <summary>
+            A screenshot ready for the model.
+            </summary>
+            <param name="Label">How the prompt refers to it (e.g. <c>image 2: APP_IPHONE_67, en-US, position 2</c>).</param>
+            <param name="MediaType">MIME type of <paramref name="Data"/> (image/jpeg).</param>
+            <param name="Data">Image bytes.</param>
+            <param name="Checksum">The store's checksum of the original, when known.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.PreReviewImage.#ctor(System.String,System.String,System.Byte[],System.String)">
+            <summary>
+            A screenshot ready for the model.
+            </summary>
+            <param name="Label">How the prompt refers to it (e.g. <c>image 2: APP_IPHONE_67, en-US, position 2</c>).</param>
+            <param name="MediaType">MIME type of <paramref name="Data"/> (image/jpeg).</param>
+            <param name="Data">Image bytes.</param>
+            <param name="Checksum">The store's checksum of the original, when known.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewImage.Label">
+            <summary>How the prompt refers to it (e.g. <c>image 2: APP_IPHONE_67, en-US, position 2</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewImage.MediaType">
+            <summary>MIME type of <paramref name="Data"/> (image/jpeg).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewImage.Data">
+            <summary>Image bytes.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewImage.Checksum">
+            <summary>The store's checksum of the original, when known.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.PreReviewResult">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IPreReviewer.ReviewAsync(Storeasy.Application.Interfaces.PreReviewRequest,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Outcome">What happened.</param>
+            <param name="Report">The report when <see cref="F:Storeasy.Application.Interfaces.PreReviewOutcome.Reviewed"/>; otherwise null.</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="Usage">Tokens billed.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.PreReviewResult.#ctor(Storeasy.Application.Interfaces.PreReviewOutcome,Storeasy.Application.Utils.Ai.PreReviewReport,System.String,Storeasy.Application.Interfaces.AiUsage)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IPreReviewer.ReviewAsync(Storeasy.Application.Interfaces.PreReviewRequest,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Outcome">What happened.</param>
+            <param name="Report">The report when <see cref="F:Storeasy.Application.Interfaces.PreReviewOutcome.Reviewed"/>; otherwise null.</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="Usage">Tokens billed.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewResult.Outcome">
+            <summary>What happened.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewResult.Report">
+            <summary>The report when <see cref="F:Storeasy.Application.Interfaces.PreReviewOutcome.Reviewed"/>; otherwise null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewResult.Model">
+            <summary>Model that answered (or was asked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.PreReviewResult.Usage">
+            <summary>Tokens billed.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.PreReviewResult.Failure(Storeasy.Application.Interfaces.PreReviewOutcome,System.String,Storeasy.Application.Interfaces.AiUsage)">
+            <summary>
+            A failed result without a report.
+            </summary>
+            <param name="outcome"></param>
+            <param name="model"></param>
+            <param name="usage"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.AiUsage">
+            <summary>
+            Tokens of one call.
+            </summary>
+            <param name="InputTokens">Uncached input tokens.</param>
+            <param name="OutputTokens">Output tokens (thinking included).</param>
+            <param name="CacheReadInputTokens">Input tokens read from the prompt cache.</param>
+            <param name="CacheCreationInputTokens">Input tokens written to the prompt cache.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.AiUsage.#ctor(System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Tokens of one call.
+            </summary>
+            <param name="InputTokens">Uncached input tokens.</param>
+            <param name="OutputTokens">Output tokens (thinking included).</param>
+            <param name="CacheReadInputTokens">Input tokens read from the prompt cache.</param>
+            <param name="CacheCreationInputTokens">Input tokens written to the prompt cache.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AiUsage.InputTokens">
+            <summary>Uncached input tokens.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AiUsage.OutputTokens">
+            <summary>Output tokens (thinking included).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AiUsage.CacheReadInputTokens">
+            <summary>Input tokens read from the prompt cache.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AiUsage.CacheCreationInputTokens">
+            <summary>Input tokens written to the prompt cache.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AiUsage.None">
+            <summary>
+            No tokens (the call failed before an answer).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.PreReviewOutcome">
+            <summary>
+            Outcome of a pre-review call.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.Reviewed">
+            <summary>
+            A valid report came back.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.KeyRejected">
+            <summary>
+            The provider rejected the key (401 or 403).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.RateLimited">
+            <summary>
+            The provider's rate limit was reached (429).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.Unavailable">
+            <summary>
+            The provider is overloaded, failing or unreachable (5xx, 529, network, timeout).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.Refused">
+            <summary>
+            The model declined to answer (stop reason <c>refusal</c>), also after the fallback.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.PreReviewOutcome.Failed">
+            <summary>
+            Anything else: a request the provider refused, an answer cut short, an answer that is not a valid report.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IReadinessContributor">
             <summary>
             Adds items to the readiness check of a store record beside the content checks (e.g. subscriptions and In-App
@@ -26158,8 +26972,9 @@
             <param name="AppVersion">App version reviewed, if known.</param>
             <param name="PreviousReply">The developer's published reply, if any (the draft replaces it).</param>
             <param name="MaxLength">Longest reply the store accepts, in user perceived characters.</param>
+            <param name="Model">Model to write with; null for the configured default.</param>
         </member>
-        <member name="M:Storeasy.Application.Interfaces.ReplyDraftRequest.#ctor(System.String,Storeasy.Domain.Enums.StoreKind,System.String,System.Int32,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32)">
+        <member name="M:Storeasy.Application.Interfaces.ReplyDraftRequest.#ctor(System.String,Storeasy.Domain.Enums.StoreKind,System.String,System.Int32,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32,System.String)">
             <summary>
             What the model is told about one review.
             </summary>
@@ -26174,6 +26989,7 @@
             <param name="AppVersion">App version reviewed, if known.</param>
             <param name="PreviousReply">The developer's published reply, if any (the draft replaces it).</param>
             <param name="MaxLength">Longest reply the store accepts, in user perceived characters.</param>
+            <param name="Model">Model to write with; null for the configured default.</param>
         </member>
         <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.ApiKey">
             <summary>The organization's Anthropic API key.</summary>
@@ -26207,6 +27023,9 @@
         </member>
         <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.MaxLength">
             <summary>Longest reply the store accepts, in user perceived characters.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ReplyDraftRequest.Model">
+            <summary>Model to write with; null for the configured default.</summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.ReplyDraftResult">
             <summary>
@@ -26866,6 +27685,12 @@
         <member name="P:Storeasy.Application.Interfaces.MediaItemState.Url">
             <summary>
             Address of the item (Play), if any.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.MediaItemState.ImageUrl">
+            <summary>
+            Address of a scaled down copy of the image on the store's public image host (App Store: the asset's template
+            address filled for a 1200 pixel box as JPEG), if any. Read by the AI pre-review; not shown in the listing screens.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.StoreVersionState">
@@ -29029,6 +29854,427 @@
         <member name="P:Storeasy.Application.Interfaces.WebPushMessage.NotificationId">
             <summary>In-app notification id, when there is one.</summary>
         </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewPrompt">
+            <summary>
+            The prompt of the AI pre-review. Stable parts first, so they are cached: the system prompt (one per store) and the
+            store's rules from the catalog (one per store and catalog version). The submission follows in the user message as
+            escaped data inside <c>&lt;submission&gt;</c>, then the screenshots as images, each after its label. The answer is a
+            JSON report in the shape of <see cref="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.OutputSchemaJson"/> (structured outputs).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.Verdicts">
+            <summary>
+            Wire values of the verdict.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.Severities">
+            <summary>
+            Wire values of the severity.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.Areas">
+            <summary>
+            Wire values of the area.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.SystemPrompt(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Instructions of the model for <paramref name="store"/>, identical on every call for that store (line feeds only).
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.RulesBlock(Storeasy.Domain.Rules.RuleCatalog,Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            The store's rules from the catalog that concern review, as tagged text: identical for one store and catalog version,
+            so it is cached with the system prompt.
+            </summary>
+            <param name="catalog"></param>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.UserMessage(Storeasy.Application.Utils.Ai.PreReviewSnapshot,System.String,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            The text of the user message before the images: the task, the report language and the submission.
+            </summary>
+            <param name="snapshot"></param>
+            <param name="language">Culture name of the report language.</param>
+            <param name="imageLabels">Labels of the images that follow, in order.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.ImageLabel(System.Int32,System.String)">
+            <summary>
+            The label of image <paramref name="index"/> (from 0) as the prompt writes it.
+            </summary>
+            <param name="index"></param>
+            <param name="label"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewPrompt.LanguageName(System.String)">
+            <summary>
+            English name of the report language: Turkish for a Turkish culture, otherwise English.
+            </summary>
+            <param name="language"></param>
+            <returns></returns>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.OutputSchemaJson">
+            <summary>
+            JSON schema of the report (structured outputs: every property required, no additional properties).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewReport">
+            <summary>
+            The report of an AI pre-review, read from the model's JSON answer and checked: known verdict, severity and area values,
+            a likelihood clamped to 0 to 100, text cut to the stored lengths, empty items dropped, findings ordered by severity.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewReport.MaxFindings">
+            <summary>
+            Most findings kept.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewReport.MaxRuntimeChecks">
+            <summary>
+            Most runtime checks kept.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewReport.MaxPositiveNotes">
+            <summary>
+            Most positive notes kept.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewReport.ItemMaxLength">
+            <summary>
+            Longest text of one field of a finding or one list item.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.Verdict">
+            <summary>
+            Expected decision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.ApprovalLikelihood">
+            <summary>
+            Estimated chance of approval, 0 to 100.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.Summary">
+            <summary>
+            Short summary.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.Findings">
+            <summary>
+            Problems found, most severe first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.RuntimeChecks">
+            <summary>
+            What a reviewer will test while running the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewReport.PositiveNotes">
+            <summary>
+            What is already good.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewReport.Parse(System.String)">
+            <summary>
+            Reads and checks the model's answer. Returns null when it is not a report: not JSON, an unknown verdict, no
+            likelihood or no summary. A finding with an unknown severity or area is kept as minor or other.
+            </summary>
+            <param name="json"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewSnapshot">
+            <summary>
+            The compact, structured description of one store record's submission that an AI pre-review reads: tagged text (see
+            <see cref="T:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder"/>) plus the screenshots worth sending as images. Built from data; never contains a
+            password, a contact's personal details or a key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewSnapshot.Text">
+            <summary>
+            The submission as tagged, escaped text (the <c>&lt;submission&gt;</c> element).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewSnapshot.VersionString">
+            <summary>
+            Version being prepared, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewSnapshot.ImageCandidates">
+            <summary>
+            Screenshots to send as images, most important first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewSnapshot.Hash">
+            <summary>
+            Lower case hex SHA-256 of the text and the checksums of the image candidates: equal hashes mean the same submission.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewImageCandidate">
+            <summary>
+            A screenshot of the store that may be sent to the model.
+            </summary>
+            <param name="Label">How the prompt refers to it.</param>
+            <param name="Url">Address of the image (the store's public image host).</param>
+            <param name="Checksum">The store's checksum, when known.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewImageCandidate.#ctor(System.String,System.String,System.String)">
+            <summary>
+            A screenshot of the store that may be sent to the model.
+            </summary>
+            <param name="Label">How the prompt refers to it.</param>
+            <param name="Url">Address of the image (the store's public image host).</param>
+            <param name="Checksum">The store's checksum, when known.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewImageCandidate.Label">
+            <summary>How the prompt refers to it.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewImageCandidate.Url">
+            <summary>Address of the image (the store's public image host).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewImageCandidate.Checksum">
+            <summary>The store's checksum, when known.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewInput">
+            <summary>
+            Everything storeasy knows about one store record's submission, gathered by the pre-review job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.App">
+            <summary>
+            The store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.Content">
+            <summary>
+            Live store content (App Store, Google Play); null for the Microsoft Store or when the read failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.MsContent">
+            <summary>
+            Live Microsoft Store content; null for the other stores.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.Readiness">
+            <summary>
+            Readiness check of the record; null when it could not run.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.Answers">
+            <summary>
+            Saved answers of the app by kind (the stored JSON documents; secrets are never part of them).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.Products">
+            <summary>
+            In-app products of the record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewInput.Rejections">
+            <summary>
+            Past rejections of the record, newest first.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewProduct">
+            <summary>
+            An in-app product as the pre-review sees it.
+            </summary>
+            <param name="Kind">Kind.</param>
+            <param name="ProductId">Product id.</param>
+            <param name="ReferenceName">Reference name.</param>
+            <param name="State">State.</param>
+            <param name="Duration">Subscription period, if any.</param>
+            <param name="Localizations">Display names and descriptions.</param>
+            <param name="HasReviewNote">Whether a review note is written.</param>
+            <param name="HasReviewScreenshot">Whether a review screenshot is uploaded.</param>
+            <param name="PriceCount">Prices set.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewProduct.#ctor(Storeasy.Domain.Enums.StoreProductKind,System.String,System.String,Storeasy.Domain.Enums.ProductState,System.String,System.Collections.Generic.List{Storeasy.Domain.JsonModels.ProductLocalization},System.Boolean,System.Boolean,System.Int32)">
+            <summary>
+            An in-app product as the pre-review sees it.
+            </summary>
+            <param name="Kind">Kind.</param>
+            <param name="ProductId">Product id.</param>
+            <param name="ReferenceName">Reference name.</param>
+            <param name="State">State.</param>
+            <param name="Duration">Subscription period, if any.</param>
+            <param name="Localizations">Display names and descriptions.</param>
+            <param name="HasReviewNote">Whether a review note is written.</param>
+            <param name="HasReviewScreenshot">Whether a review screenshot is uploaded.</param>
+            <param name="PriceCount">Prices set.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.Kind">
+            <summary>Kind.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.ProductId">
+            <summary>Product id.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.ReferenceName">
+            <summary>Reference name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.State">
+            <summary>State.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.Duration">
+            <summary>Subscription period, if any.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.Localizations">
+            <summary>Display names and descriptions.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.HasReviewNote">
+            <summary>Whether a review note is written.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.HasReviewScreenshot">
+            <summary>Whether a review screenshot is uploaded.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewProduct.PriceCount">
+            <summary>Prices set.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewRejection">
+            <summary>
+            A past rejection as the pre-review sees it.
+            </summary>
+            <param name="OpenedDate">When it was opened.</param>
+            <param name="VersionString">Version rejected.</param>
+            <param name="Kind">Kind.</param>
+            <param name="State">Open or closed.</param>
+            <param name="Guidelines">Guidelines cited.</param>
+            <param name="RawText">The reviewer's message as pasted, if any.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewRejection.#ctor(System.DateTime,System.String,Storeasy.Domain.Enums.RejectionKind,Storeasy.Domain.Enums.RejectionState,System.Collections.Generic.List{Storeasy.Domain.JsonModels.RejectionGuideline},System.String)">
+            <summary>
+            A past rejection as the pre-review sees it.
+            </summary>
+            <param name="OpenedDate">When it was opened.</param>
+            <param name="VersionString">Version rejected.</param>
+            <param name="Kind">Kind.</param>
+            <param name="State">Open or closed.</param>
+            <param name="Guidelines">Guidelines cited.</param>
+            <param name="RawText">The reviewer's message as pasted, if any.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.OpenedDate">
+            <summary>When it was opened.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.VersionString">
+            <summary>Version rejected.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.Kind">
+            <summary>Kind.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.State">
+            <summary>Open or closed.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.Guidelines">
+            <summary>Guidelines cited.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Ai.PreReviewRejection.RawText">
+            <summary>The reviewer's message as pasted, if any.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder">
+            <summary>
+            Turns a <see cref="T:Storeasy.Application.Utils.Ai.PreReviewInput"/> into the <see cref="T:Storeasy.Application.Utils.Ai.PreReviewSnapshot"/> the model reads: one
+            <c>&lt;submission&gt;</c> element of named, escaped tags (app, listings per locale, settings, pricing, build, release,
+            review information, declarations, in-app products, readiness, past rejections, screenshots), cut to sensible lengths.
+            The primary locale is complete; other locales are shortened. Review contact details and the demo account are only
+            reported as present or missing, and passwords never appear.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.MaxLocales">
+            <summary>
+            Most locales written out (the primary one first).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.PrimaryValueMaxLength">
+            <summary>
+            Longest value of the primary locale.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.OtherValueMaxLength">
+            <summary>
+            Longest value of another locale.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.RejectionTextMaxLength">
+            <summary>
+            Longest pasted rejection text.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.MaxRejections">
+            <summary>
+            Most past rejections written out.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.MaxProducts">
+            <summary>
+            Most in-app products written out.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.MaxReadinessItems">
+            <summary>
+            Most readiness items written out.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.Build(Storeasy.Application.Utils.Ai.PreReviewInput)">
+            <summary>
+            Builds the snapshot.
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.ImageCandidates(Storeasy.Application.Interfaces.StoreContentSnapshot)">
+            <summary>
+            The screenshots worth sending, in order: the primary locale (or the first one) only, the phone class first (up to six
+            of its screenshots), then the other classes (up to three each) in the order a reviewer looks at them.
+            </summary>
+            <param name="content"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PreReviewSnapshotBuilder.StoreName(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Display name of a store.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Ai.PromptTags">
+            <summary>
+            Writing data into a prompt: every value goes inside a named tag and is escaped so its text cannot open or close a tag.
+            Prompts use line feeds only, so they are the same bytes on every platform and checkout.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.PromptTags.LineFeed">
+            <summary>
+            Line feed (char 10).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PromptTags.Escape(System.String)">
+            <summary>
+            <paramref name="text"/> with the characters that could open or close a tag escaped.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PromptTags.Tag(System.Text.StringBuilder,System.String,System.String,System.Int32)">
+            <summary>
+            Appends <c>&lt;name&gt;value&lt;/name&gt;</c> and a line feed; nothing when the value is empty. The value is trimmed,
+            cut to <paramref name="maxLength"/> characters (with a note) and escaped; its line ends become line feeds.
+            </summary>
+            <param name="builder"></param>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="maxLength">Longest value kept; 0 for no limit.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.PromptTags.Cut(System.String,System.Int32)">
+            <summary>
+            <paramref name="value"/> cut to <paramref name="maxLength"/> characters with a note of the original length.
+            </summary>
+            <param name="value"></param>
+            <param name="maxLength">0 for no limit.</param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Aspects.UserActivityLogAspect.UserActivityLogInterceptor">
             <summary>
             Specifies that the method marked with this attribute will be added to as activity to database by the <see cref="T:Storeasy.Application.Utils.Aspects.UserActivityLogAspect.UserActivityLogInterceptor"/>.
@@ -30151,6 +31397,76 @@
             <param name="releases"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.AiSettingRepositoryExtensions">
+            <summary>
+            Reads the organization's AI settings for a call to Anthropic: the key in clear (for the call only) and the chosen models.
+            Shared by every AI feature so the key is opened the same way everywhere.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.AiSettingRepositoryExtensions.OpenAiSettingAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            The organization's AI settings with the key opened, or null when no key is saved. A sealed value that no longer
+            opens (a master key that was removed) counts as no key: it has to be saved again.
+            </summary>
+            <param name="repository"></param>
+            <param name="secretProtector"></param>
+            <param name="organizationId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.AiSettingRepositoryExtensions.HasAiKeyAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Whether the organization has a key saved (the key is not opened).
+            </summary>
+            <param name="repository"></param>
+            <param name="organizationId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.OpenedAiSetting">
+            <summary>
+            The organization's AI settings with the key in clear. Keep it in memory for one call only.
+            </summary>
+            <param name="ApiKey">The Anthropic API key.</param>
+            <param name="ReplyDraftModel">Chosen model of the reply drafts; null for the default.</param>
+            <param name="PreReviewModel">Chosen model of the pre-reviews; null for the default.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.OpenedAiSetting.#ctor(System.String,System.String,System.String)">
+            <summary>
+            The organization's AI settings with the key in clear. Keep it in memory for one call only.
+            </summary>
+            <param name="ApiKey">The Anthropic API key.</param>
+            <param name="ReplyDraftModel">Chosen model of the reply drafts; null for the default.</param>
+            <param name="PreReviewModel">Chosen model of the pre-reviews; null for the default.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Extensions.OpenedAiSetting.ApiKey">
+            <summary>The Anthropic API key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Extensions.OpenedAiSetting.ReplyDraftModel">
+            <summary>Chosen model of the reply drafts; null for the default.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Extensions.OpenedAiSetting.PreReviewModel">
+            <summary>Chosen model of the pre-reviews; null for the default.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.OpenedAiSetting.ToString">
+            <summary>
+            Masks the key so the record never prints it.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.AppStoreValidatorExtensions">
+            <summary>
+            Validation rules shared by the requests about one app in one store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.AppStoreValidatorExtensions.AppStoreRules``1(FluentValidation.AbstractValidator{``0},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            The app must be sent and the store must be known.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="validator"></param>
+            <param name="localizer"></param>
+        </member>
         <member name="T:Storeasy.Application.Utils.Extensions.FileHelper">
             <summary>
             File helpers.
@@ -30733,6 +32049,43 @@
             <param name="rowCount"></param>
             <param name="defaultRowCount"></param>
             <param name="maxRowCount">Upper bound; <see cref="F:Storeasy.Application.Utils.Constants.GlobalConstant.MaxRowCount"/> unless the list also backs an export.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Extensions.PreReviewRepositoryExtensions">
+            <summary>
+            Reads of the AI pre-reviews shared by the start command and the queries: the projection, the DTOs, and how a pre-review
+            whose job ended without it (a crash, a cancelled job) is shown: as failed with <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PreReviewInterrupted"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Extensions.PreReviewRepositoryExtensions.Projection">
+            <summary>
+            Every column of a pre-review.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.PreReviewRepositoryExtensions.ResolveInterruptedAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},System.Collections.Generic.IReadOnlyCollection{Storeasy.Domain.Apps.PreReview},System.Threading.CancellationToken)">
+            <summary>
+            Marks the queued or running pre-reviews whose job has finished (or is gone) as failed with
+            <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.PreReviewInterrupted"/>, in memory, for display. A queued pre-review without a job yet is left
+            alone.
+            </summary>
+            <param name="jobRepository"></param>
+            <param name="rows"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.PreReviewRepositoryExtensions.ToDto(Storeasy.Domain.Apps.PreReview,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            The detail DTO; the failure message is localized with <paramref name="localizer"/>.
+            </summary>
+            <param name="row"></param>
+            <param name="localizer"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.PreReviewRepositoryExtensions.ToListDto(Storeasy.Domain.Apps.PreReview)">
+            <summary>
+            The history DTO.
+            </summary>
+            <param name="row"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Extensions.RejectionCaseExtensions">
@@ -32219,10 +33572,124 @@
         <member name="M:Storeasy.Application.Utils.LinkedWithFormatters.YesNoFormatter.Format(System.Object)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Utils.Models.AiModelCatalog">
+            <summary>
+            The models an organization can choose for its AI features, with Anthropic's list prices in US dollars per million
+            tokens (MTok). The list is fixed on purpose: a small choice between cost and depth. Prices only feed the cost estimate
+            shown with a pre-review; Anthropic's invoice is the truth.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiModelCatalog.Haiku">
+            <summary>
+            Claude Haiku 5.5.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiModelCatalog.Sonnet">
+            <summary>
+            Claude Sonnet 5.5.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiModelCatalog.Opus">
+            <summary>
+            Claude Opus 5.5.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelCatalog.All">
+            <summary>
+            Every model that can be chosen, cheapest first.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiModelCatalog.Find(System.String)">
+            <summary>
+            The model with <paramref name="id"/>, or null.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiModelCatalog.IsKnown(System.String)">
+            <summary>
+            Whether <paramref name="id"/> can be chosen.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiModelCatalog.EstimateCostUsd(System.String,System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Estimated cost of one call in US dollars, rounded to six decimals. Unknown models cost 0. Cache reads and writes are
+            priced separately from the uncached input tokens, as Anthropic bills them.
+            </summary>
+            <param name="model"></param>
+            <param name="inputTokens">Uncached input tokens.</param>
+            <param name="outputTokens">Output tokens (thinking included).</param>
+            <param name="cacheReadTokens">Input tokens read from the cache.</param>
+            <param name="cacheWriteTokens">Input tokens written to the cache (5 minute lifetime).</param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.AiModelInfo">
+            <summary>
+            A model of <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>.
+            </summary>
+            <param name="Id">Model id sent to Anthropic.</param>
+            <param name="Name">Display name.</param>
+            <param name="InputUsdPerMTok">Input price per million tokens.</param>
+            <param name="OutputUsdPerMTok">Output price per million tokens.</param>
+            <param name="CacheReadUsdPerMTok">Price of a cache read per million tokens.</param>
+            <param name="CacheWriteUsdPerMTok">Price of a 5 minute cache write per million tokens.</param>
+            <param name="SupportsFallback">Whether the server-side refusal fallback is available on the model.</param>
+            <param name="LongPromptThreshold">Prompt size above which the long prompt prices apply; 0 when there is one rate card.</param>
+            <param name="LongInputUsdPerMTok">Input price above the threshold.</param>
+            <param name="LongOutputUsdPerMTok">Output price above the threshold.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiModelInfo.#ctor(System.String,System.String,System.Decimal,System.Decimal,System.Decimal,System.Decimal,System.Boolean,System.Int64,System.Decimal,System.Decimal)">
+            <summary>
+            A model of <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>.
+            </summary>
+            <param name="Id">Model id sent to Anthropic.</param>
+            <param name="Name">Display name.</param>
+            <param name="InputUsdPerMTok">Input price per million tokens.</param>
+            <param name="OutputUsdPerMTok">Output price per million tokens.</param>
+            <param name="CacheReadUsdPerMTok">Price of a cache read per million tokens.</param>
+            <param name="CacheWriteUsdPerMTok">Price of a 5 minute cache write per million tokens.</param>
+            <param name="SupportsFallback">Whether the server-side refusal fallback is available on the model.</param>
+            <param name="LongPromptThreshold">Prompt size above which the long prompt prices apply; 0 when there is one rate card.</param>
+            <param name="LongInputUsdPerMTok">Input price above the threshold.</param>
+            <param name="LongOutputUsdPerMTok">Output price above the threshold.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.Id">
+            <summary>Model id sent to Anthropic.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.Name">
+            <summary>Display name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.InputUsdPerMTok">
+            <summary>Input price per million tokens.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.OutputUsdPerMTok">
+            <summary>Output price per million tokens.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.CacheReadUsdPerMTok">
+            <summary>Price of a cache read per million tokens.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.CacheWriteUsdPerMTok">
+            <summary>Price of a 5 minute cache write per million tokens.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.SupportsFallback">
+            <summary>Whether the server-side refusal fallback is available on the model.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.LongPromptThreshold">
+            <summary>Prompt size above which the long prompt prices apply; 0 when there is one rate card.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.LongInputUsdPerMTok">
+            <summary>Input price above the threshold.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiModelInfo.LongOutputUsdPerMTok">
+            <summary>Output price above the threshold.</summary>
+        </member>
         <member name="T:Storeasy.Application.Utils.Models.AiOptions">
             <summary>
-            Settings of the AI reply drafts (configuration section <see cref="F:Storeasy.Application.Utils.Models.AiOptions.SectionName"/>). The Anthropic API key is not here: each
-            organization saves its own (organizations/ai-settings), sealed in the database.
+            Settings of the AI features (configuration section <see cref="F:Storeasy.Application.Utils.Models.AiOptions.SectionName"/>): review reply drafts and pre-reviews. The
+            Anthropic API key is not here: each organization saves its own (organizations/ai-settings), sealed in the database,
+            together with its choice of model per feature from <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>.
             </summary>
         </member>
         <member name="F:Storeasy.Application.Utils.Models.AiOptions.SectionName">
@@ -32232,28 +33699,93 @@
         </member>
         <member name="F:Storeasy.Application.Utils.Models.AiOptions.DefaultModel">
             <summary>
-            Default model: Claude Haiku 5.5, the lowest cost current model.
+            Default model of the reply drafts: Claude Haiku 5.5, the lowest cost current model.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.AiOptions.DefaultPreReviewModel">
+            <summary>
+            Default model of the pre-reviews: Claude Sonnet 5.5.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.Models.AiOptions.Model">
             <summary>
-            Model id of the reply drafts.
+            Default model of the reply drafts, when the organization has not chosen one.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.Models.AiOptions.MaxTokens">
             <summary>
-            Upper bound of the answer in tokens (thinking included).
+            Upper bound of a reply draft in tokens (thinking included).
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.Models.AiOptions.Effort">
             <summary>
-            Effort of the model (<c>low</c>, <c>medium</c>, <c>high</c>, <c>max</c>); a short reply needs <c>low</c>.
+            Effort of the reply drafts (<c>low</c>, <c>medium</c>, <c>high</c>, <c>max</c>); a short reply needs <c>low</c>.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Utils.Models.AiOptions.TimeoutSeconds">
             <summary>
-            Timeout of one call to Anthropic, in seconds.
+            Timeout of one reply draft call to Anthropic, in seconds.
             </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewModel">
+            <summary>
+            Default model of the pre-reviews, when the organization has not chosen one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewMaxTokens">
+            <summary>
+            Upper bound of a pre-review answer in tokens (thinking included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewEffort">
+            <summary>
+            Effort of the pre-reviews by model id; a model not listed uses <c>medium</c>. Defaults: <c>low</c> for Claude Haiku
+            5.5, <c>medium</c> for Claude Sonnet 5.5 and Claude Opus 5.5.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewFallback">
+            <summary>
+            Whether a pre-review on a model that supports it opts into the server-side refusal fallback
+            (<c>fallbacks: "default"</c>, beta <c>server-side-fallback-2026-07-01</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewMaxImages">
+            <summary>
+            Most screenshots sent as images in one pre-review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewImageMaxEdge">
+            <summary>
+            Longest edge of a screenshot sent to the model, in pixels (larger ones are scaled down).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewTimeoutSeconds">
+            <summary>
+            Timeout of one pre-review call to Anthropic, in seconds.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiOptions.PreReviewEffortOf(System.String)">
+            <summary>
+            Effort of a pre-review on <paramref name="model"/>.
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiOptions.ReplyDraftModelFor(System.String)">
+            <summary>
+            Model of the reply drafts: the organization's choice when it is in <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>, otherwise
+            <see cref="P:Storeasy.Application.Utils.Models.AiOptions.Model"/>.
+            </summary>
+            <param name="chosen"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Models.AiOptions.PreReviewModelFor(System.String)">
+            <summary>
+            Model of the pre-reviews: the organization's choice when it is in <see cref="T:Storeasy.Application.Utils.Models.AiModelCatalog"/>, otherwise
+            <see cref="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewModel"/>.
+            </summary>
+            <param name="chosen"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Models.AppOptions">
             <summary>

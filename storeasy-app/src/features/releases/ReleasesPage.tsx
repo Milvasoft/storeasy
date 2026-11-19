@@ -532,6 +532,8 @@ function AppleVersions({ context, versions, plan }: { context: WorkspaceContext;
         appName={app.Name}
         versionId={dialog?.version.VersionId ?? null}
         versionString={dialog?.version.VersionString ?? null}
+        appId={app.Id}
+        store={record.Store}
       />
     </section>
   )

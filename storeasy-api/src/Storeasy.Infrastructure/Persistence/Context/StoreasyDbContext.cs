@@ -104,6 +104,7 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<EmailOutboxItem> EmailOutbox { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
     public DbSet<OrganizationAiSetting> OrganizationAiSettings { get; set; }
+    public DbSet<PreReview> PreReviews { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

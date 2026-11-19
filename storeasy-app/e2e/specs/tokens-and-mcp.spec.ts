@@ -1,8 +1,8 @@
 import { API, BASE_URL, apiCall, apiRaw } from '../support/api'
 import { expect, signIn, test } from '../support/fixtures'
 
-// Tools of the remote MCP (storeasy-api/src/Storeasy.Api/Mcp, README "142 tools").
-const MCP_TOOL_COUNT = 142
+// Tools of the remote MCP (storeasy-api/src/Storeasy.Api/Mcp, README "144 tools").
+const MCP_TOOL_COUNT = 144
 
 interface CurrentToken {
   kind?: string | number

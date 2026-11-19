@@ -93,3 +93,36 @@ describe('AiSettingsCard', () => {
     expect(screen.queryByRole('button', { name: 'Anahtarı kaldır' })).not.toBeInTheDocument()
   })
 })
+
+describe('AiSettingsCard models', () => {
+  it('offers the models of each feature with their prices and saves the choice', async () => {
+    const { user } = renderWithProviders(<AiSettingsCard />)
+
+    const preReview = await screen.findByRole('radiogroup', { name: 'Ön inceleme' })
+    expect(within(preReview).getByRole('radio', { name: /Claude Sonnet 5.5/ })).toBeChecked()
+    expect(within(preReview).getByText('Milyon token başına $2 / $10 (girdi / çıktı)')).toBeInTheDocument()
+    const replies = screen.getByRole('radiogroup', { name: 'Yorum yanıtı taslakları' })
+    expect(within(replies).getByRole('radio', { name: /Claude Haiku 5.5/ })).toBeChecked()
+    expect(within(replies).getByText('Milyon token başına $0.10 / $0.50 (girdi / çıktı)')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Modelleri kaydet' })).toBeDisabled()
+
+    await user.click(within(preReview).getByRole('radio', { name: /Claude Opus 5.5/ }))
+    await user.click(screen.getByRole('button', { name: 'Modelleri kaydet' }))
+
+    expect(await screen.findByText('Modeller kaydedildi.')).toBeInTheDocument()
+    expect(lastRequestTo('/Organizations/ai-settings/models')?.body).toEqual({
+      OrganizationId: 7,
+      ReplyDraftModel: 'claude-haiku-5-5',
+      PreReviewModel: 'claude-opus-5-5',
+    })
+  })
+
+  it('shows the models read only to members who do not manage connections', async () => {
+    testState.organizations = [organization({ Role: OrgRole.Editor })]
+
+    renderWithProviders(<AiSettingsCard />)
+
+    expect(await screen.findByText('Yanıt taslakları: Claude Haiku 5.5. Ön inceleme: Claude Sonnet 5.5.')).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Ön inceleme' })).not.toBeInTheDocument()
+  })
+})

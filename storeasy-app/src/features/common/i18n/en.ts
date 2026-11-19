@@ -4,6 +4,7 @@ export const p2en = {
   workspace: {
     sections: 'App sections',
     readiness: 'Readiness',
+    preReview: 'Pre-review',
     listing: 'Store listing',
     media: 'Media',
     release: 'Release',

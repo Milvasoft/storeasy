@@ -342,6 +342,14 @@ public static class MessageKey
     public const string AiUnavailable = nameof(AiUnavailable);
     public const string AiReplyRefused = nameof(AiReplyRefused);
     public const string AiReplyFailed = nameof(AiReplyFailed);
+    public const string AiModelInvalid = nameof(AiModelInvalid);
+    public const string PreReviewNotFound = nameof(PreReviewNotFound);
+    public const string PreReviewInProgress = nameof(PreReviewInProgress);
+    public const string PreReviewRefused = nameof(PreReviewRefused);
+    public const string PreReviewFailed = nameof(PreReviewFailed);
+    public const string PreReviewInterrupted = nameof(PreReviewInterrupted);
+    public const string PreReviewCancelled = nameof(PreReviewCancelled);
+    public const string GlobalPreReview = "Global.PreReview";
     public const string SavedReplyNotFound = nameof(SavedReplyNotFound);
     public const string SavedReplyVariableUnknown = nameof(SavedReplyVariableUnknown);
     public const string BetaGroupNotFound = nameof(BetaGroupNotFound);

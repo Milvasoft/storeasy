@@ -31,6 +31,14 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Mockup export")]
     MockupExport = 60,
+
+    /// <summary>
+    /// Reviews one store record with AI the way that store's reviewer would (pre-review). Reads the store and storeasy's
+    /// records, asks Claude with the organization's key and saves the report; nothing is written to a store.
+    /// </summary>
+    [Description("AI pre-review")]
+    PreReview = 90,
+
     /// Processes one inbound webhook event (App Store version state change: state, rejection case, notifications).
     /// </summary>
     [Description("Process webhook event")]

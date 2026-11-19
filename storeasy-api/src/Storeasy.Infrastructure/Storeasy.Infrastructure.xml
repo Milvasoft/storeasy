@@ -4,6 +4,108 @@
         <name>Storeasy.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:Storeasy.Infrastructure.Ai.AnthropicCalls">
+            <summary>
+            What every AI feature shares about calling Anthropic with an organization's key: the client (on the named HTTP client,
+            so tests and proxies see every call) and how SDK exceptions are classified. The key lives in the client for one call
+            only and is never logged.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AnthropicCalls.HttpClientName">
+            <summary>
+            Name of the HTTP client the SDK sends with.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicCalls.CreateClient(System.Net.Http.IHttpClientFactory,System.String,System.Int32,System.Int32)">
+            <summary>
+            A client for one call with <paramref name="apiKey"/>.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="apiKey"></param>
+            <param name="timeoutSeconds"></param>
+            <param name="maxRetries">Retries of a 429 or 5xx (the SDK honours Retry-After).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicCalls.Classify(System.Exception)">
+            <summary>
+            Failure class of an exception thrown by the SDK: typed exceptions first, the status code of any other API error next.
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Ai.AiCallFailure">
+            <summary>
+            Why a call to Anthropic failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AiCallFailure.KeyRejected">
+            <summary>
+            The provider rejected the key (401 or 403).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AiCallFailure.RateLimited">
+            <summary>
+            The provider's rate limit was reached (429).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AiCallFailure.Unavailable">
+            <summary>
+            The provider is overloaded, failing or unreachable (5xx, 529, network, timeout).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.AiCallFailure.Failed">
+            <summary>
+            Anything else (a request the provider refused).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Ai.AnthropicPreReviewer">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IPreReviewer"/> on the Anthropic Messages API (beta path, for the server-side refusal fallback) with the
+            official C# SDK and the organization's own key. One non-streaming request per pre-review:
+            <list type="bullet">
+            <item>system: the store's reviewer prompt and the catalog rules, the second block marked for prompt caching;</item>
+            <item>user: the submission as escaped data, then each screenshot (base64 JPEG) after its text label;</item>
+            <item>adaptive thinking (the default; never disabled), the effort of <see cref="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewEffort"/>, no
+            sampling parameters, no prefill;</item>
+            <item>the report as structured output (<c>output_config.format</c> with <see cref="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.OutputSchemaJson"/>);</item>
+            <item><c>fallbacks: "default"</c> with the <c>server-side-fallback-2026-07-01</c> beta on models that support it.</item>
+            </list>
+            The stop reason is checked before the content is read, and only text blocks are read. Errors become a
+            <see cref="T:Storeasy.Application.Interfaces.PreReviewOutcome"/>; the provider's answer and the key are never logged or passed on.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicPreReviewer.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.AiOptions,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Ai.AnthropicPreReviewer})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IPreReviewer"/> on the Anthropic Messages API (beta path, for the server-side refusal fallback) with the
+            official C# SDK and the organization's own key. One non-streaming request per pre-review:
+            <list type="bullet">
+            <item>system: the store's reviewer prompt and the catalog rules, the second block marked for prompt caching;</item>
+            <item>user: the submission as escaped data, then each screenshot (base64 JPEG) after its text label;</item>
+            <item>adaptive thinking (the default; never disabled), the effort of <see cref="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewEffort"/>, no
+            sampling parameters, no prefill;</item>
+            <item>the report as structured output (<c>output_config.format</c> with <see cref="F:Storeasy.Application.Utils.Ai.PreReviewPrompt.OutputSchemaJson"/>);</item>
+            <item><c>fallbacks: "default"</c> with the <c>server-side-fallback-2026-07-01</c> beta on models that support it.</item>
+            </list>
+            The stop reason is checked before the content is read, and only text blocks are read. Errors become a
+            <see cref="T:Storeasy.Application.Interfaces.PreReviewOutcome"/>; the provider's answer and the key are never logged or passed on.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicPreReviewer.ReviewAsync(Storeasy.Application.Interfaces.PreReviewRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicPreReviewer.BuildParams(Storeasy.Application.Interfaces.PreReviewRequest)">
+            <summary>
+            The request of one pre-review.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IReplyDraftWriter"/> on the Anthropic Messages API with the official C# SDK and the organization's own key.
@@ -45,6 +147,160 @@
             </summary>
             <param name="exception"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Ai.PreReviewImageLoader">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IPreReviewImageLoader"/>: downloads screenshots from the stores' public image hosts only (HTTPS,
+            App Store and Google Play image hosts), refuses large files, scales them so the longest edge is at most
+            <see cref="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewImageMaxEdge"/> pixels and encodes them as JPEG. The images go to Anthropic as base64,
+            because a store address may not be reachable from there. An image that cannot be loaded is skipped.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewImageLoader.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.AiOptions,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Ai.PreReviewImageLoader})">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IPreReviewImageLoader"/>: downloads screenshots from the stores' public image hosts only (HTTPS,
+            App Store and Google Play image hosts), refuses large files, scales them so the longest edge is at most
+            <see cref="P:Storeasy.Application.Utils.Models.AiOptions.PreReviewImageMaxEdge"/> pixels and encodes them as JPEG. The images go to Anthropic as base64,
+            because a store address may not be reachable from there. An image that cannot be loaded is skipped.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.PreReviewImageLoader.HttpClientName">
+            <summary>
+            Name of the HTTP client the images are downloaded with.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Ai.PreReviewImageLoader.MaxDownloadBytes">
+            <summary>
+            Largest image downloaded, in bytes.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewImageLoader.LoadAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.Ai.PreReviewImageCandidate},System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewImageLoader.IsAllowed(System.String)">
+            <summary>
+            Whether <paramref name="url"/> is an HTTPS address on a store image host.
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewImageLoader.Downscale(System.Byte[],System.Int32)">
+            <summary>
+            <paramref name="bytes"/> decoded, scaled so its longest edge is at most <paramref name="maxEdge"/> and encoded as
+            JPEG; null when it is not an image.
+            </summary>
+            <param name="bytes"></param>
+            <param name="maxEdge"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Ai.PreReviewJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PreReview"/> job: runs one AI pre-review. Steps on the activity hub:
+            <list type="number">
+            <item><c>submission.read</c>: reads the store record live (content and readiness check for the App Store and Google
+            Play, the current content for the Microsoft Store) and storeasy's records (saved answers, in-app products, past
+            rejections) into a <see cref="T:Storeasy.Application.Utils.Ai.PreReviewSnapshot"/>;</item>
+            <item><c>screenshots.load</c>: downloads and scales down the chosen screenshots;</item>
+            <item><c>ai.review</c>: asks <see cref="T:Storeasy.Application.Interfaces.IPreReviewer"/> with the organization's key and saves the report, the usage and the
+            cost estimate.</item>
+            </list>
+            Every failure is saved on the pre-review with its message key before the job fails, so the history shows why. Nothing is
+            written to a store. The audit entry keeps the model, the verdict, the counts, the tokens and the cost; no app content and
+            never the key.
+            </summary>
+            <param name="preReviewRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="answerRepository"></param>
+            <param name="productRepository"></param>
+            <param name="rejectionRepository"></param>
+            <param name="msProductRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="contentService"></param>
+            <param name="readinessService"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="secretProtector"></param>
+            <param name="rulesCatalog"></param>
+            <param name="imageLoader"></param>
+            <param name="preReviewer"></param>
+            <param name="auditTrail"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.PreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.SavedAnswer},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Monetization.StoreProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.RejectionCase},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsProduct},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IReadinessService,Storeasy.Application.Interfaces.IMicrosoftStoreClient,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IPreReviewImageLoader,Storeasy.Application.Interfaces.IPreReviewer,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.AiOptions,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.PreReview"/> job: runs one AI pre-review. Steps on the activity hub:
+            <list type="number">
+            <item><c>submission.read</c>: reads the store record live (content and readiness check for the App Store and Google
+            Play, the current content for the Microsoft Store) and storeasy's records (saved answers, in-app products, past
+            rejections) into a <see cref="T:Storeasy.Application.Utils.Ai.PreReviewSnapshot"/>;</item>
+            <item><c>screenshots.load</c>: downloads and scales down the chosen screenshots;</item>
+            <item><c>ai.review</c>: asks <see cref="T:Storeasy.Application.Interfaces.IPreReviewer"/> with the organization's key and saves the report, the usage and the
+            cost estimate.</item>
+            </list>
+            Every failure is saved on the pre-review with its message key before the job fails, so the history shows why. Nothing is
+            written to a store. The audit entry keeps the model, the verdict, the counts, the tokens and the cost; no app content and
+            never the key.
+            </summary>
+            <param name="preReviewRepository"></param>
+            <param name="settingRepository"></param>
+            <param name="answerRepository"></param>
+            <param name="productRepository"></param>
+            <param name="rejectionRepository"></param>
+            <param name="msProductRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="contentService"></param>
+            <param name="readinessService"></param>
+            <param name="microsoftStoreClient"></param>
+            <param name="secretProtector"></param>
+            <param name="rulesCatalog"></param>
+            <param name="imageLoader"></param>
+            <param name="preReviewer"></param>
+            <param name="auditTrail"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Ai.PreReviewJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewJobHandler.FailureKey(Storeasy.Application.Interfaces.PreReviewOutcome)">
+            <summary>
+            Message key of a failed pre-review call.
+            </summary>
+            <param name="outcome"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Ai.PreReviewJobHandler.PreReviewFailure">
+            <summary>
+            A failure with its message key, saved on the pre-review before the job fails.
+            </summary>
+            <param name="errorKey"></param>
+            <param name="usage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Ai.PreReviewJobHandler.PreReviewFailure.#ctor(System.String,Storeasy.Application.Interfaces.AiUsage)">
+            <summary>
+            A failure with its message key, saved on the pre-review before the job fails.
+            </summary>
+            <param name="errorKey"></param>
+            <param name="usage"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Ai.PreReviewJobHandler.PreReviewFailure.ErrorKey">
+            <summary>
+            Message key of the failure.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Ai.PreReviewJobHandler.PreReviewFailure.Usage">
+            <summary>
+            Tokens billed before it failed.
+            </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Email.EmailOutbox">
             <summary>

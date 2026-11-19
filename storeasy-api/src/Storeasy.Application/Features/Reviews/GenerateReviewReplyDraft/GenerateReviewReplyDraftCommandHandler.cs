@@ -5,9 +5,8 @@ using Milvasoft.DataAccess.EfCore.Utils;
 using Storeasy.Application.Dtos.FeedbackDtos;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Feedback;
+using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Organizations;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft;
 
@@ -22,17 +21,20 @@ namespace Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft;
 /// <param name="SecretProtector"></param>
 /// <param name="DraftWriter"></param>
 /// <param name="AuditTrail"></param>
+/// <param name="Options"></param>
 public record GenerateReviewReplyDraftCommandHandler(IStoreasyRepositoryBase<StoreReview> ReviewRepository,
                                                      IStoreasyRepositoryBase<OrganizationAiSetting> SettingRepository,
                                                      ISecretProtector SecretProtector,
                                                      IReplyDraftWriter DraftWriter,
-                                                     IAuditTrail AuditTrail) : IInterceptable, ICommandHandler<GenerateReviewReplyDraftCommand, GeneratedReplyDraftDto>
+                                                     IAuditTrail AuditTrail,
+                                                     AiOptions Options) : IInterceptable, ICommandHandler<GenerateReviewReplyDraftCommand, GeneratedReplyDraftDto>
 {
     private readonly IStoreasyRepositoryBase<StoreReview> _reviewRepository = ReviewRepository;
     private readonly IStoreasyRepositoryBase<OrganizationAiSetting> _settingRepository = SettingRepository;
     private readonly ISecretProtector _secretProtector = SecretProtector;
     private readonly IReplyDraftWriter _draftWriter = DraftWriter;
     private readonly IAuditTrail _auditTrail = AuditTrail;
+    private readonly AiOptions _options = Options;
 
     /// <inheritdoc/>
     public async Task<Response<GeneratedReplyDraftDto>> Handle(GenerateReviewReplyDraftCommand request, CancellationToken cancellationToken)
@@ -65,12 +67,12 @@ public record GenerateReviewReplyDraftCommandHandler(IStoreasyRepositoryBase<Sto
         if (review.ReplyState == ReviewReplyState.Sending)
             return Response<GeneratedReplyDraftDto>.Error(null, MessageKey.ReviewReplyInProgress);
 
-        var apiKey = await OpenKeyAsync(request.OrganizationId, cancellationToken);
+        var setting = await _settingRepository.OpenAiSettingAsync(_secretProtector, request.OrganizationId, cancellationToken);
 
-        if (apiKey == null)
+        if (setting == null)
             return Response<GeneratedReplyDraftDto>.Error(null, MessageKey.AiKeyNotSet);
 
-        var result = await _draftWriter.WriteAsync(new ReplyDraftRequest(apiKey,
+        var result = await _draftWriter.WriteAsync(new ReplyDraftRequest(setting.ApiKey,
                                                                          review.Store,
                                                                          review.AppName,
                                                                          review.Rating,
@@ -80,7 +82,8 @@ public record GenerateReviewReplyDraftCommandHandler(IStoreasyRepositoryBase<Sto
                                                                          review.Territory,
                                                                          review.AppVersion,
                                                                          review.ReplyState == ReviewReplyState.Published ? review.ReplyBody : null,
-                                                                         maxLength),
+                                                                         maxLength,
+                                                                         _options.ReplyDraftModelFor(setting.ReplyDraftModel)),
                                                    cancellationToken);
 
         if (result.Outcome != ReplyDraftOutcome.Written)
@@ -110,34 +113,6 @@ public record GenerateReviewReplyDraftCommandHandler(IStoreasyRepositoryBase<Sto
                                      cancellationToken: cancellationToken);
 
         return Response<GeneratedReplyDraftDto>.Success(new GeneratedReplyDraftDto { ReviewId = review.Id, Body = body, Shortened = shortened, Model = result.Model });
-    }
-
-    // The organization's key in clear, or null when none is saved. A sealed value that no longer opens (a master key that
-    // was removed) counts as no key: it has to be saved again.
-    private async Task<string> OpenKeyAsync(int organizationId, CancellationToken cancellationToken)
-    {
-        var setting = await _settingRepository.GetFirstOrDefaultAsync(s => s.OrganizationId == organizationId,
-                                                                      projection: s => new OrganizationAiSetting
-                                                                      {
-                                                                          EncryptedApiKey = s.EncryptedApiKey,
-                                                                          EncryptedDataKey = s.EncryptedDataKey,
-                                                                          KeyVersion = s.KeyVersion,
-                                                                      },
-                                                                      cancellationToken: cancellationToken);
-
-        if (setting == null)
-            return null;
-
-        try
-        {
-            var plaintext = _secretProtector.Unprotect(new ProtectedSecret(setting.EncryptedApiKey, setting.EncryptedDataKey, setting.KeyVersion), SecretScopes.AiProviderKey(organizationId));
-
-            return Encoding.UTF8.GetString(plaintext);
-        }
-        catch (CryptographicException)
-        {
-            return null;
-        }
     }
 
     private static string FailureKey(ReplyDraftOutcome outcome) => outcome switch
