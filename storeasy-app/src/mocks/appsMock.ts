@@ -58,10 +58,28 @@ function builds(storeAppId: number, store: StoreKind, versions: string[]): Build
   }))
 }
 
+// Small made up app icons (inline SVG, nothing is fetched): a gradient tile with a glyph.
+function icon(from: string, to: string, glyph: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect width="64" height="64" fill="url(#g)"/>${glyph}</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+const ICONS = {
+  pusula: icon('#4636ff', '#22c3ee', '<path d="M32 12 40 32 32 52 24 32Z" fill="#fff"/><circle cx="32" cy="32" r="4" fill="#4636ff"/>'),
+  halka: icon('#f97316', '#e11d48', '<circle cx="32" cy="32" r="15" fill="none" stroke="#fff" stroke-width="7"/>'),
+  mola: icon(
+    '#15803d',
+    '#84cc16',
+    '<path d="M20 26h22v10a11 11 0 0 1-22 0Z" fill="#fff"/><path d="M42 29h4a5 5 0 0 1 0 10h-4" fill="none" stroke="#fff" stroke-width="3"/>',
+  ),
+  ada: icon('#0f172a', '#6366f1', '<path d="M18 44c6-14 22-14 28 0Z" fill="#fff"/><circle cx="40" cy="22" r="5" fill="#fde047"/>'),
+}
+
 const apps: AppDetailDto[] = [
   {
     Id: 101,
     Name: 'Pusula',
+    IconUrl: ICONS.pusula,
     CreationDate: '2026-09-02T09:30:00Z',
     Stores: [
       {
@@ -88,6 +106,7 @@ const apps: AppDetailDto[] = [
   {
     Id: 102,
     Name: 'Halka',
+    IconUrl: ICONS.halka,
     CreationDate: '2026-10-11T12:00:00Z',
     Stores: [
       {
@@ -105,6 +124,7 @@ const apps: AppDetailDto[] = [
   {
     Id: 103,
     Name: 'Mola',
+    IconUrl: ICONS.mola,
     CreationDate: '2026-10-20T08:00:00Z',
     Stores: [
       {
@@ -118,6 +138,24 @@ const apps: AppDetailDto[] = [
       },
     ],
     Builds: builds(220, StoreKind.Apple, ['1.4.0', '1.3.2']),
+  },
+  {
+    Id: 104,
+    Name: 'Ada Notları',
+    IconUrl: ICONS.ada,
+    CreationDate: '2026-11-02T10:00:00Z',
+    Stores: [
+      {
+        StoreAppId: 230,
+        Store: StoreKind.Microsoft,
+        ExternalId: '9NBLGGH4R2X1',
+        BundleId: 'KuzeyLab.AdaNotlari',
+        Name: 'Ada Notları',
+        StoreConnectionId: null,
+        SyncedDate: minutesAgo(40),
+      },
+    ],
+    Builds: [],
   },
 ]
 

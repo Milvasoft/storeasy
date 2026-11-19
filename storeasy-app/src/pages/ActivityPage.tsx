@@ -1,14 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { ClipboardCheck, Pause, Play } from 'lucide-react'
-import { HatScene, HatScenePhone, HatStatusList, jobTitle, progressText } from '@/components/activity/Hat'
+import { HatLine, jobTitle, progressText, type StoreRow } from '@/components/activity/Hat'
+import { AttentionBar, UpcomingBoard } from '@/components/activity/HatBoard'
 import { Badge, StoreTag } from '@/components/ui/Badge'
 import { Banner } from '@/components/ui/Feedback'
 import { Tabs } from '@/components/ui/Tabs'
 import { Button, Chip, EmptyState, PageHeader } from '@/components/ui/primitives'
+import { complianceApi } from '@/features/common/api'
+import { contentKeys } from '@/features/common/keys'
+import { rejectionKeys, rejectionsApi } from '@/features/rejections/api'
+import { RejectionState } from '@/features/rejections/types'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import { ActivityEventType } from '@/lib/activity/events'
-import { isActive, jobsOf, lanesOf, type FeedItem, type JobView } from '@/lib/activity/hatState'
+import { attentionOf, gateItemsOf, hourStrip, upcomingOf, type BoardInputs } from '@/lib/activity/board'
+import { ActivityEventType, InboundEventType } from '@/lib/activity/events'
+import {
+  isActive,
+  jobsOf,
+  lanesOf,
+  LANE_STORES,
+  nextExpiry,
+  tracksOf,
+  type FeedItem,
+  type HatState,
+  type JobView,
+  type Track,
+} from '@/lib/activity/hatState'
+import { connectionsApi, jobsApi } from '@/lib/api/endpoints'
+import { SortType, type ListRequest } from '@/lib/api/list'
 import { StoreKind } from '@/lib/api/types'
 import { useFeature } from '@/lib/features/FeatureFlagsContext'
 import { usePrefersReducedMotion } from '@/lib/hooks/usePrefersReducedMotion'
@@ -17,6 +37,8 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import type { Dictionary } from '@/lib/i18n/en'
 import { connectionStatusLabel, jobKindLabel, jobStatusView } from '@/lib/jobs/labels'
 import { channelLabel } from '@/lib/org/auditLabels'
+import { useOrganization } from '@/lib/org/OrganizationContext'
+import { queryKeys } from '@/lib/query/keys'
 import { cn } from '@/lib/utils/cn'
 
 const STORE_PARAM: Record<string, StoreKind> = { apple: StoreKind.Apple, google: StoreKind.Google, microsoft: StoreKind.Microsoft }
@@ -122,7 +144,7 @@ function LiveBadge() {
 
 const FEED_DIR: Record<FeedItem['kind'], { className: string; key: keyof Dictionary['activity']['direction'] }> = {
   out: { className: 'out', key: 'out' },
-  in: { className: '', key: 'in' },
+  in: { className: 'in', key: 'in' },
   event: { className: '', key: 'event' },
   error: { className: 'err', key: 'error' },
 }
@@ -134,7 +156,10 @@ function feedSubject(item: FeedItem, t: Dictionary, appName: string | null): str
       ? interpolate(t.activity.connectionChecked, { status: connectionStatusLabel(item.connectionStatus, t) })
       : null
   }
-  if (item.name === ActivityEventType.AppSynced) {
+  if (item.name === ActivityEventType.AppSynced || item.name === InboundEventType.ReviewReceived) {
+    return appName
+  }
+  if (item.name === InboundEventType.WebhookReceived || item.name === InboundEventType.ArtifactProgress) {
     return appName
   }
   return [appName, item.jobKind ? jobKindLabel(item.jobKind, t) : null].filter(Boolean).join(' · ') || null
@@ -231,10 +256,79 @@ function ActiveJobs({ jobs }: { jobs: JobView[] }) {
   )
 }
 
+// The live page reads its clock from here: it moves on every event, every half minute for the elapsed times, and once
+// more when a lingering token or a pulse is due to leave. A frozen screen keeps its clock too.
+function useLineClock(state: HatState, frozen: boolean): number {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (frozen) {
+      return
+    }
+    setNow(Date.now())
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [state, frozen])
+  useEffect(() => {
+    if (frozen) {
+      return
+    }
+    const next = nextExpiry(state, Date.now())
+    if (next === null) {
+      return
+    }
+    const timer = window.setTimeout(() => setNow(Date.now()), Math.max(50, next - Date.now() + 50))
+    return () => window.clearTimeout(timer)
+  }, [state, now, frozen])
+  return now
+}
+
+const OPEN_REJECTIONS: ListRequest = { PageNumber: 1, RowCount: 20, Sorting: { SortBy: 'Id', Type: SortType.Desc } }
+
+// The calm data beside the stream: the board (reviews, builds, 24 hours), open rejection cases, open compliance
+// deadlines and the connections. Each one that fails (a role without the right, an older API) only leaves its part out.
+function useBoardInputs(jobs: JobView[]): BoardInputs {
+  const { current } = useOrganization()
+  const organizationId = current?.Id ?? 0
+  const enabled = organizationId > 0
+  const quiet = { enabled, retry: false, staleTime: 30_000 } as const
+  const board = useQuery({
+    queryKey: queryKeys.jobs.board(organizationId),
+    queryFn: () => jobsApi.board(organizationId),
+    refetchInterval: 120_000,
+    ...quiet,
+  })
+  const rejections = useQuery({
+    queryKey: [...rejectionKeys.all, 'open', organizationId] as const,
+    queryFn: () => rejectionsApi.list(organizationId, { State: RejectionState.Open }, OPEN_REJECTIONS),
+    ...quiet,
+  })
+  const compliance = useQuery({
+    queryKey: contentKeys.orgCompliance(organizationId, true),
+    queryFn: () => complianceApi.organization(organizationId, { OpenOnly: true }),
+    ...quiet,
+    staleTime: 300_000,
+  })
+  const connections = useQuery({
+    queryKey: queryKeys.connections.list(organizationId),
+    queryFn: () => connectionsApi.list(organizationId),
+    ...quiet,
+  })
+  return useMemo(
+    () => ({
+      board: board.data ?? null,
+      rejections: rejections.data?.Data ?? [],
+      compliance: compliance.data ?? [],
+      connections: connections.data ?? [],
+      jobs,
+    }),
+    [board.data, rejections.data, compliance.data, connections.data, jobs],
+  )
+}
+
 /**
- * The live view (design 11.1-11.3, 11.13, 11.14): the Hat scene and its event feed, driven by the activity hub. With
- * reduced motion the scene is replaced by one status row per lane. Store chips filter on the client; the filter lives
- * in the address (?store=apple).
+ * The live view: what needs attention, the line (storeasy, its sources, one line per store with its tokens, pulses, 24
+ * hours and gate), what is coming up, the event feed and the jobs. Reduced motion keeps the same line without the motion.
+ * Store chips filter on the client; the filter lives in the address (?store=apple).
  */
 export function ActivityPage() {
   const t = useT()
@@ -242,11 +336,31 @@ export function ActivityPage() {
   const { state, frozen, setFrozen } = useActivity()
   const [params, setParams] = useSearchParams()
   const storeFilter = STORE_PARAM[params.get('store') ?? ''] ?? null
+  const now = useLineClock(state, frozen)
 
-  const lanes = useMemo(() => lanesOf(state).filter((lane) => !storeFilter || lane.store === storeFilter), [state, storeFilter])
-  const jobs = useMemo(() => jobsOf(state).filter((job) => !storeFilter || job.store === storeFilter), [state, storeFilter])
+  const allJobs = useMemo(() => jobsOf(state), [state])
+  const inputs = useBoardInputs(allJobs)
+  const stores = LANE_STORES.filter((store) => !storeFilter || store === storeFilter)
+  const lanes = useMemo(() => lanesOf(state), [state])
+  const tracks = useMemo(() => tracksOf(state, now), [state, now])
+  const upcomingAll = upcomingOf(inputs, now)
+  const rows: StoreRow[] = stores.map((store) => ({
+    store,
+    track: tracks.find((track) => track.store === store) as Track,
+    lane: lanes.find((lane) => lane.store === store),
+    items: gateItemsOf(store, inputs, now),
+    bars: hourStrip(inputs.board, store, now),
+    parked: upcomingAll.filter((item) => item.store === store),
+  }))
+  const inStores = <T extends { store: StoreKind | null }>(item: T) => !storeFilter || item.store === storeFilter
+  const attention = attentionOf(inputs, now).filter(inStores)
+  const upcoming = upcomingAll.filter(inStores)
+  const jobs = allJobs.filter((job) => !storeFilter || job.store === storeFilter)
   const feed = storeFilter ? state.feed.filter((item) => item.store === storeFilter) : state.feed
-  const quiet = lanes.every((lane) => lane.jobs.length === 0)
+  const moving = rows.some((row) => row.track.tokens.length > 0)
+  const inboundToday = (inputs.board?.Hours ?? [])
+    .filter((hour) => !storeFilter || hour.Store === storeFilter)
+    .reduce((sum, hour) => sum + hour.Inbound, 0)
 
   const setStore = (key: string | null) => {
     const next = new URLSearchParams(params)
@@ -290,6 +404,7 @@ export function ActivityPage() {
       <div className="hat">
         <section className="stage" aria-label={t.activity.sceneLabel}>
           <div className="stage-h">
+            <AttentionBar items={attention} />
             <ul className="legend">
               <li>
                 <i className="lo" />
@@ -300,31 +415,23 @@ export function ActivityPage() {
                 {t.activity.legendIn}
               </li>
               <li>
+                <i className="lp" />
+                {t.activity.legendPulse}
+              </li>
+              <li>
                 <i className="lx" />
                 {t.activity.legendError}
               </li>
             </ul>
           </div>
-          {reduced ? (
-            <HatStatusList lanes={lanes} />
-          ) : (
-            <div className={cn('stage-b', frozen && 'frozen')}>
-              <div className="w-full max-md:hidden">
-                <HatScene lanes={lanes} frozen={frozen} />
-              </div>
-              <div className="w-full md:hidden">
-                <HatScenePhone lanes={lanes} frozen={frozen} />
-              </div>
-              {quiet ? (
-                <div className="pb-1 pt-2 text-center">
-                  <b className="block text-[13.5px]">{t.activity.quietTitle}</b>
-                  <span className="text-xs text-fg3">{t.activity.quietBody}</span>
-                </div>
-              ) : null}
-            </div>
-          )}
+          <div className={cn('stage-b', frozen && 'frozen')}>
+            <HatLine state={state} rows={rows} inboundToday={inboundToday} now={now} calm={reduced} frozen={frozen} />
+          </div>
         </section>
-        <Feed items={feed} />
+        <div className="hat-low">
+          <UpcomingBoard items={upcoming} rows={moving ? 4 : 8} now={now} />
+          <Feed items={feed} />
+        </div>
       </div>
       <ActiveJobs jobs={jobs} />
     </>

@@ -32,5 +32,6 @@ export const queryKeys = {
     list: (organizationId: number, request: ListRequest, appId?: number | null) =>
       ['jobs', 'list', organizationId, request, appId ?? null] as const,
     detail: (organizationId: number, jobId: number) => ['jobs', 'detail', organizationId, jobId] as const,
+    board: (organizationId: number) => ['jobs', 'board', organizationId] as const,
   },
 }

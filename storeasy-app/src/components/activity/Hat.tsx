@@ -1,51 +1,34 @@
-import { useId } from 'react'
-import { Badge, StoreTag } from '@/components/ui/Badge'
-import { LOGO_PATHS } from '@/components/layout/Logo'
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { Link } from 'react-router-dom'
+import { AppAvatar } from '@/components/apps/AppAvatar'
+import { LogoMark } from '@/components/layout/Logo'
+import { StoreTag, storeName } from '@/components/ui/Badge'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import type { JobView, Lane } from '@/lib/activity/hatState'
-import { StepDirection, StoreKind } from '@/lib/api/types'
+import { gateState, type GateItem, type GateState, type HourBar, type UpcomingItem } from '@/lib/activity/board'
+import {
+  activeIntakes,
+  isActive,
+  lastIntake,
+  type HatState,
+  type JobView,
+  type Lane,
+  type PulseGroup,
+  type Token,
+  type Track,
+} from '@/lib/activity/hatState'
+import { StoreJobStepStatus, type StoreKind } from '@/lib/api/types'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import type { Dictionary } from '@/lib/i18n/en'
 import type { Formatters } from '@/lib/i18n/format'
-import { jobKindLabel } from '@/lib/jobs/labels'
+import { jobKindLabel, jobStatusView } from '@/lib/jobs/labels'
 import { cn } from '@/lib/utils/cn'
 
-// The scene's geometry, from design 11.1 (viewBox 720 x 470): storeasy in the middle left, the three stores on the right,
-// the CI source below left. Each lane is one path; packets ride it with SMIL animateMotion.
-interface Point {
-  x: number
-  y: number
-}
-
-// `waiting` is the middle of the rail (t = 0.5), `stop` three quarters along it (t = 0.75).
-const LANE_GEOMETRY: Record<
-  StoreKind,
-  { path: string; node: Point; label: Point & { anchor: 'end' | 'middle' }; waiting: Point; stop: Point }
-> = {
-  [StoreKind.Apple]: {
-    path: 'M320 230 C 420 230, 420 84, 520 84',
-    node: { x: 520, y: 36 },
-    label: { x: 510, y: 50, anchor: 'end' },
-    waiting: { x: 420, y: 157 },
-    stop: { x: 461, y: 107 },
-  },
-  [StoreKind.Google]: {
-    path: 'M320 230 L 520 230',
-    node: { x: 520, y: 182 },
-    label: { x: 420, y: 212, anchor: 'middle' },
-    waiting: { x: 420, y: 230 },
-    stop: { x: 461, y: 230 },
-  },
-  [StoreKind.Microsoft]: {
-    path: 'M320 230 C 420 230, 420 376, 520 376',
-    node: { x: 520, y: 328 },
-    label: { x: 510, y: 414, anchor: 'end' },
-    waiting: { x: 420, y: 303 },
-    stop: { x: 461, y: 353 },
-  },
-}
-const CI_PATH = 'M118 372 C 118 320, 250 340, 250 302'
+// The live line (design 11, second version): storeasy on the left with what flows into it (package uploads, store
+// events), one line per store running to the store's gate on the right. Every job on its way is a token at the place
+// its real step puts it; store events ride back along the line as pulses; under each line, its last 24 hours. The gate
+// says what is with the store now. All of it is HTML laid out by a grid (nothing is placed over anything else) and moved
+// with transforms only. `calm` (reduced motion) keeps every element and only takes the motion away.
 
 // A step's progress: bytes for a transfer ("31,4 / 48,0 MB"), plain units otherwise ("4 / 5").
 export function progressText(job: Pick<JobView, 'progress' | 'total' | 'stepName'>, format: Formatters): string | null {
@@ -57,309 +40,513 @@ export function progressText(job: Pick<JobView, 'progress' | 'total' | 'stepName
     : `${format.number(job.progress)} / ${format.number(job.total)}`
 }
 
-function packetLabel(job: JobView): string {
-  const first = job.stepName ?? ''
-  return first.length > 14 ? `${first.slice(0, 13)}…` : first
-}
-
 export function storeLabel(store: StoreKind, t: Dictionary): string {
-  return store === StoreKind.Apple ? t.auth.artStoreApple : store === StoreKind.Google ? t.auth.artStoreGoogle : t.auth.artStoreMicrosoft
-}
-
-export function laneDetail(lane: Lane, t: Dictionary, format: Formatters): string {
-  const job = lane.jobs[0]
-  if (!job) {
-    return lane.last ? t.activity.lastFinished : t.activity.idle
-  }
-  if (lane.failed) {
-    return job.retrying && job.attempt && job.maxAttempts
-      ? interpolate(t.activity.retrying, { attempt: job.attempt, max: job.maxAttempts })
-      : t.activity.failedStep
-  }
-  return [job.stepName, progressText(job, format)].filter(Boolean).join(' · ') || t.activity.queued
+  return storeName(store, t.enums.store)
 }
 
 /** "Pusula · Sync apps and builds": the app when the job has one, then what the job does. */
-export function jobTitle(job: JobView, t: Dictionary, appName: string | null): string {
+export function jobTitle(job: Pick<JobView, 'kind'>, t: Dictionary, appName: string | null): string {
   return [appName, jobKindLabel(job.kind, t)].filter(Boolean).join(' · ')
 }
 
-function useJobTitle(): (job: JobView | null, fallback: string) => string {
-  const t = useT()
-  const { appName } = useActivity()
-  return (job, fallback) => (job ? jobTitle(job, t, appName(job.appId)) : fallback)
+/** "35 dk", "3 sa 10 dk", "2 g 4 sa": how long something has been going on, two units at most. */
+export function elapsedText(ms: number, t: Dictionary): string {
+  const minutes = Math.max(1, Math.floor(ms / 60_000))
+  if (minutes < 60) {
+    return `${minutes} ${t.time.minuteShort}`
+  }
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) {
+    const rest = minutes % 60
+    return rest > 0 ? `${hours} ${t.time.hourShort} ${rest} ${t.time.minuteShort}` : `${hours} ${t.time.hourShort}`
+  }
+  const days = Math.floor(hours / 24)
+  const rest = hours % 24
+  return rest > 0 ? `${days} ${t.time.dayShort} ${rest} ${t.time.hourShort}` : `${days} ${t.time.dayShort}`
 }
 
-function Packet({ lane, pathId, reverse }: { lane: Lane; pathId: string; reverse?: boolean }) {
-  const job = lane.jobs[0]
-  const label = packetLabel(job)
-  const width = Math.max(44, label.length * 6.4 + 16)
-  if (reverse) {
-    return (
-      <g>
-        <circle r="9" className="ack" />
-        <path d="m-4 0 3 3 5-6" className="ackm" />
-        <animateMotion dur="2.6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
-          <mpath href={`#${pathId}`} />
-        </animateMotion>
-      </g>
-    )
+export function sinceText(date: string | null | undefined, now: number, t: Dictionary): string | null {
+  const from = date ? Date.parse(date) : Number.NaN
+  return Number.isNaN(from) ? null : elapsedText(now - from, t)
+}
+
+/** "waiting 2 d 4 h" for a review, "in 12 d", "today" or "3 d late" for a date. */
+export function upcomingWhen(item: UpcomingItem, t: Dictionary, now: number): string {
+  if (item.kind === 'review') {
+    return interpolate(t.activity.line.upcomingWaiting, { time: elapsedText(now - Date.parse(item.date), t) })
   }
+  const days = item.daysLeft ?? 0
+  if (days < 0) {
+    return interpolate(t.activity.line.upcomingOverdue, { days: -days })
+  }
+  return days === 0 ? t.activity.line.upcomingToday : interpolate(t.activity.line.upcomingDays, { days })
+}
+
+export function intakeStatus(status: string, t: Dictionary): string {
+  const names: Record<string, string> = t.activity.line.intakeStatus
+  return names[status] ?? status
+}
+
+// ---- Rows: which tokens share a line without touching ----
+
+// A token's width (px, the CSS --tkw) and the gap kept between two tokens of one row.
+const TOKEN_WIDTH = 158
+const TOKEN_GAP = 8
+
+/**
+ * Row 0 sits on the rail, row 1 above it; a token that fits in neither goes to the emptier row. `share` is the part of
+ * the line two tokens need between their places so they do not touch (a token's width over the line's travel).
+ */
+export function assignRows(tokens: Array<Pick<Token, 'x'>>, share = 0.36): number[] {
+  const placed: Array<{ x: number; row: number }> = []
+  return tokens.map((token) => {
+    const clash = (row: number) => placed.some((item) => item.row === row && Math.abs(item.x - token.x) < share)
+    const count = (row: number) => placed.filter((item) => item.row === row).length
+    const row = !clash(0) ? 0 : !clash(1) ? 1 : count(0) <= count(1) ? 0 : 1
+    placed.push({ x: token.x, row })
+    return row
+  })
+}
+
+// ---- Pieces ----
+
+function JobToken({ token, row }: { token: Token; row: number }) {
+  const t = useT()
+  const format = useFormat()
+  const { appInfo } = useActivity()
+  const { job, phase } = token
+  const app = appInfo(job.appId)
+  const title = jobTitle(job, t, app?.Name ?? null)
+  const progress = progressText(job, format)
+  const percent = job.progress !== null && job.total ? Math.round((job.progress / job.total) * 100) : null
+  const step =
+    job.stepOrder !== null && job.stepName ? interpolate(t.activity.line.tokenStep, { order: job.stepOrder, name: job.stepName }) : null
+  const attempt =
+    job.retrying && job.attempt && job.maxAttempts ? interpolate(t.activity.retrying, { attempt: job.attempt, max: job.maxAttempts }) : null
+  const reason = phase === 'failed' ? job.message : null
+  const label = [title, t.activity.line.phase[phase], step, progress, attempt, reason].filter(Boolean).join(', ')
+  const status =
+    phase === 'failed'
+      ? (reason ?? t.activity.line.phase.failed)
+      : percent !== null
+        ? `${percent}%`
+        : (job.stepName ?? t.activity.line.phase[phase])
   return (
-    <g>
-      <rect x={-width / 2} y="-11" width={width} height="22" rx="6" className="pk" />
-      <text y="3.5" textAnchor="middle" className="pk-t">
-        {label}
-      </text>
-      <animateMotion dur="2.6s" repeatCount="indefinite">
-        <mpath href={`#${pathId}`} />
-      </animateMotion>
-    </g>
+    <li className="tk-slot" data-row={row}>
+      <div className="tk-run" style={{ transform: `translateX(${(token.x * 100).toFixed(2)}%)` }}>
+        <Link to={`/activity/jobs/${job.id}`} className={cn('tk', phase, token.indeterminate && 'ind')} aria-label={label}>
+          <span className="tk-i">{app ? <AppAvatar app={app} size="s" /> : <LogoMark size={18} />}</span>
+          <span className="tk-b">
+            <span className="tk-t">{app?.Name ?? jobKindLabel(job.kind, t)}</span>
+            <span className="tk-s">{status}</span>
+          </span>
+          {job.steps.length > 0 ? (
+            <span className="tk-pips" aria-hidden>
+              {job.steps.map((pip) => (
+                <i
+                  key={pip.order}
+                  className={cn(
+                    pip.status === StoreJobStepStatus.Failed && 'x',
+                    pip.status === StoreJobStepStatus.Running && 'r',
+                    pip.status === StoreJobStepStatus.Succeeded && 'ok',
+                  )}
+                />
+              ))}
+            </span>
+          ) : null}
+          <span className="tk-tip" aria-hidden>
+            <b>{title}</b>
+            <span>{[t.activity.line.phase[phase], step].filter(Boolean).join(' · ')}</span>
+            {progress ? <span className="mono">{progress}</span> : null}
+            {attempt ? <span>{attempt}</span> : null}
+            {reason ? <span className="dng">{reason}</span> : null}
+          </span>
+        </Link>
+      </div>
+    </li>
   )
+}
+
+function PulseChip({ group, store }: { group: PulseGroup; store: StoreKind }) {
+  const t = useT()
+  const { appInfo } = useActivity()
+  const app = appInfo(group.appId)
+  const kind = t.activity.line.pulseKind[group.kind]
+  const subject = [app?.Name, group.label].filter(Boolean).join(' · ') || kind
+  return (
+    <li className="pl-run">
+      <span
+        className={cn('pl', group.kind === 'rejection' && 'x')}
+        title={group.pulses.map((pulse) => pulse.detail ?? pulse.label ?? kind).join('\n')}
+        aria-label={interpolate(t.activity.line.pulseLabel, { kind, store: storeLabel(store, t), subject })}
+      >
+        <i className="pl-dot" aria-hidden />
+        <span className="pl-t" aria-hidden>
+          {subject}
+        </span>
+        {group.count > 1 ? (
+          <b className="pl-n" aria-hidden>
+            ×{group.count}
+          </b>
+        ) : null}
+      </span>
+    </li>
+  )
+}
+
+function HourStrip({ bars, store }: { bars: HourBar[]; store: StoreKind }) {
+  const t = useT()
+  const format = useFormat()
+  const top = Math.max(1, ...bars.map((bar) => bar.succeeded + bar.failed))
+  const sum = bars.reduce(
+    (all, bar) => ({ ok: all.ok + bar.succeeded, failed: all.failed + bar.failed, inbound: all.inbound + bar.inbound }),
+    {
+      ok: 0,
+      failed: 0,
+      inbound: 0,
+    },
+  )
+  return (
+    <div className="hs-strip">
+      <div className="hs-bars" role="img" aria-label={interpolate(t.activity.line.stripLabel, { store: storeLabel(store, t), ...sum })}>
+        {bars.map((bar) => {
+          const jobs = bar.succeeded + bar.failed
+          const height = jobs > 0 ? Math.max(22, Math.round((jobs / top) * 100)) : 0
+          return (
+            <span
+              key={bar.hour}
+              className="hb"
+              title={interpolate(t.activity.line.stripHour, {
+                hour: format.time(bar.hour),
+                ok: bar.succeeded,
+                failed: bar.failed,
+                inbound: bar.inbound,
+              })}
+            >
+              {jobs > 0 ? <span className={cn('hb-f', bar.failed > 0 && 'x')} style={{ height: `${height}%` }} /> : null}
+              {bar.inbound > 0 ? <i className="hb-in" /> : null}
+            </span>
+          )
+        })}
+      </div>
+      <div className="hs-axis" aria-hidden>
+        <span>{t.activity.line.stripStart}</span>
+        <span>{t.activity.line.stripNow}</span>
+      </div>
+    </div>
+  )
+}
+
+// The line's width, measured, so tokens that would touch are put on different rows.
+function useWidth<T extends HTMLElement>(): [RefObject<T>, number] {
+  const ref = useRef<T>(null)
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    const element = ref.current
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return
+    }
+    const observer = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, width]
+}
+
+// When nothing moves on a line, what comes next on it waits on the rail: a review that waits, a date that is due.
+const PARKED_PLACES = [0.08, 0.62]
+
+function ParkedChip({ item, now, row, x }: { item: UpcomingItem; now: number; row: number; x: number }) {
+  const t = useT()
+  const { appInfo } = useActivity()
+  const app = appInfo(item.appId)
+  const name = app?.Name ?? item.appName ?? t.activity.line.unknownApp
+  const kind = t.activity.line.upcomingKind[item.kind]
+  const when = upcomingWhen(item, t, now)
+  return (
+    <li className="tk-slot" data-row={row}>
+      <div className="tk-run" style={{ transform: `translateX(${(x * 100).toFixed(2)}%)` }}>
+        <Link
+          to={item.href}
+          className={cn('tk park', item.tone)}
+          title={[name, item.subject, kind, when].filter(Boolean).join(' · ')}
+          aria-label={[name, item.subject, kind, when].filter(Boolean).join(', ')}
+        >
+          <span className="tk-i">{app ? <AppAvatar app={app} size="s" /> : <LogoMark size={18} />}</span>
+          <span className="tk-b">
+            <span className="tk-t">{name}</span>
+            <span className="tk-s">
+              {kind} · {when}
+            </span>
+          </span>
+        </Link>
+      </div>
+    </li>
+  )
+}
+
+function LineTrack({ track, bars, parked, now }: { track: Track; bars: HourBar[]; parked: UpcomingItem[]; now: number }) {
+  const t = useT()
+  const [laneRef, width] = useWidth<HTMLDivElement>()
+  const travel = width - TOKEN_WIDTH
+  const share = width > 0 ? (travel > 0 ? Math.min(1.01, (TOKEN_WIDTH + TOKEN_GAP) / travel) : 1.01) : 0.36
+  const rows = assignRows(track.tokens, share)
+  const parkedRows = assignRows(
+    PARKED_PLACES.map((x) => ({ x })),
+    share,
+  )
+  const outbound = track.tokens.some((token) => token.phase === 'out')
+  const inbound = track.tokens.some((token) => token.phase === 'in') || track.pulses.length > 0
+  return (
+    <div className={cn('ln-track', track.failed && 'x')}>
+      <div className="ln-lane" ref={laneRef}>
+        <span className={cn('ln-rail', outbound && 'mv', track.failed && 'x')} aria-hidden />
+        <span className={cn('ln-ret', inbound && 'mv')} aria-hidden />
+        <ul className="tk-list" aria-label={interpolate(t.activity.line.trackLabel, { store: storeLabel(track.store, t) })}>
+          {track.tokens.map((token, index) => (
+            <JobToken key={token.job.id} token={token} row={rows[index]} />
+          ))}
+          {track.tokens.length === 0
+            ? parked
+                .slice(0, PARKED_PLACES.length)
+                .map((item, index) => <ParkedChip key={item.key} item={item} now={now} row={parkedRows[index]} x={PARKED_PLACES[index]} />)
+            : null}
+        </ul>
+        {track.hidden > 0 ? <span className="tk-more">{interpolate(t.activity.line.moreJobs, { count: track.hidden })}</span> : null}
+        {track.pulses.length > 0 ? (
+          <ul className="pl-list" aria-label={t.activity.legendIn}>
+            {track.pulses.map((group) => (
+              <PulseChip key={group.id} group={group} store={track.store} />
+            ))}
+          </ul>
+        ) : null}
+      </div>
+      <HourStrip bars={bars} store={track.store} />
+    </div>
+  )
+}
+
+const GATE_LIGHT: Record<GateState, string> = { error: 'x', attention: 'w', busy: 'b', calm: 'c' }
+const VISIBLE_GATE_ITEMS = 3
+
+function GateRow({ item, now }: { item: GateItem; now: number }) {
+  const t = useT()
+  const { appInfo } = useActivity()
+  const app = appInfo(item.appId)
+  const since = sinceText(item.since, now, t)
+  const failure = item.kind === 'lastFailed' || item.kind === 'connection'
+  const when = since ? interpolate(failure ? t.activity.line.ago : t.activity.line.since, { time: since }) : null
+  const name = item.kind === 'connection' ? item.subject : (app?.Name ?? (item.appId ? t.activity.line.unknownApp : null))
+  const body = (
+    <>
+      <span className="gi-i">{app ? <AppAvatar app={app} size="s" /> : <i className={cn('gi-d', item.tone)} />}</span>
+      <span className="gi-b">
+        <span className="gi-t">
+          {name ? <b>{name}</b> : null}
+          {item.kind !== 'connection' && item.subject ? <span className="mono"> {item.subject}</span> : null}
+        </span>
+        <span className={cn('gi-s', item.tone)}>
+          {t.activity.line.gateItem[item.kind]}
+          {item.rateLimited ? ` · ${t.activity.line.rateLimited}` : null}
+          {when ? ` · ${when}` : null}
+        </span>
+        {failure && item.detail ? <span className="gi-m">{item.detail}</span> : null}
+      </span>
+    </>
+  )
+  return (
+    <li>
+      {item.href ? (
+        <Link className="gi" to={item.href}>
+          {body}
+        </Link>
+      ) : (
+        <span className="gi">{body}</span>
+      )}
+    </li>
+  )
+}
+
+function Gate({
+  store,
+  items,
+  lane,
+  moving,
+  now,
+}: {
+  store: StoreKind
+  items: GateItem[]
+  lane: Lane | undefined
+  moving: boolean
+  now: number
+}) {
+  const t = useT()
+  const { appName } = useActivity()
+  const [open, setOpen] = useState(false)
+  const state = gateState(items, moving)
+  const shown = open ? items : items.slice(0, VISIBLE_GATE_ITEMS)
+  const last = lane?.last ?? null
+  const lastAgo = last ? sinceText(last.updatedAt, now, t) : null
+  return (
+    <section className={cn('gate', GATE_LIGHT[state])} aria-label={storeLabel(store, t)}>
+      <header className="gate-h">
+        <StoreTag store={store} small />
+        <span className={cn('gate-l', GATE_LIGHT[state])}>
+          <i aria-hidden />
+          {t.activity.line.gateState[state]}
+        </span>
+      </header>
+      {items.length > 0 ? (
+        <ul className="gate-b">
+          {shown.map((item) => (
+            <GateRow key={item.key} item={item} now={now} />
+          ))}
+        </ul>
+      ) : (
+        <p className="gate-calm">{t.activity.line.gateCalm}</p>
+      )}
+      {items.length > VISIBLE_GATE_ITEMS ? (
+        <button type="button" className="gate-more" onClick={() => setOpen(!open)} aria-expanded={open}>
+          {open ? t.activity.line.gateLess : interpolate(t.activity.line.gateMore, { count: items.length - VISIBLE_GATE_ITEMS })}
+        </button>
+      ) : null}
+      <footer className="gate-f">
+        {last && lastAgo
+          ? interpolate(t.activity.line.gateLast, {
+              title: jobTitle(last, t, appName(last.appId)),
+              status: jobStatusView(last.status, t).label.toLocaleLowerCase(),
+              time: lastAgo,
+            })
+          : t.activity.line.gateNever}
+      </footer>
+    </section>
+  )
+}
+
+function Hub({ state, tracks, inboundToday, now }: { state: HatState; tracks: Track[]; inboundToday: number; now: number }) {
+  const t = useT()
+  const { appInfo } = useActivity()
+  const tokens = tracks.flatMap((track) => track.tokens)
+  const onLine = tokens.filter((token) => isActive(token.job)).length + tracks.reduce((sum, track) => sum + track.hidden, 0)
+  const count = (phase: Token['phase']) => tokens.filter((token) => token.phase === phase).length
+  const parts = (['out', 'in', 'queued', 'failed'] as const)
+    .filter((phase) => count(phase) > 0)
+    .map((phase) =>
+      interpolate(
+        { out: t.activity.line.hubOut, in: t.activity.line.hubIn, queued: t.activity.line.hubQueued, failed: t.activity.line.hubFailed }[
+          phase
+        ],
+        { count: count(phase) },
+      ),
+    )
+  const intakes = activeIntakes(state)
+  const last = lastIntake(state)
+  const lastEvent = state.lastEventAt ? sinceText(state.lastEventAt, now, t) : null
+  return (
+    <div className="ln-hub">
+      <div className={cn('hub-core', onLine > 0 && 'on')}>
+        <span className="hub-mark" aria-hidden>
+          <LogoMark size={30} />
+        </span>
+        <b className="hub-n">{onLine > 0 ? interpolate(t.activity.line.hubOnLine, { count: onLine }) : t.activity.quietTitle}</b>
+        <span className="hub-d">
+          {parts.length > 0
+            ? parts.join(' · ')
+            : lastEvent
+              ? interpolate(t.activity.line.hubLastEvent, { time: lastEvent })
+              : t.activity.line.hubNoEvent}
+        </span>
+      </div>
+      <div className="hub-src">
+        <h3 className="hub-k">{t.activity.line.sources}</h3>
+        <div className={cn('src', intakes.length > 0 && 'on')}>
+          <span className="src-t">{t.activity.line.sourceIntake}</span>
+          {intakes.length > 0 ? (
+            <ul className="src-l">
+              {intakes.slice(0, 3).map((item) => {
+                const app = appInfo(item.appId)
+                return (
+                  <li key={item.sessionId} className="src-i">
+                    {app ? <AppAvatar app={app} size="s" /> : null}
+                    <span className="min-w-0 truncate">{app?.Name ?? t.activity.line.unknownApp}</span>
+                    <span className="src-st">{intakeStatus(item.status, t)}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <span className="src-d">
+              {last
+                ? interpolate(t.activity.line.sourceIntakeLast, {
+                    subject: [appInfo(last.appId)?.Name, intakeStatus(last.status, t)].filter(Boolean).join(' '),
+                    time: sinceText(new Date(last.receivedAt).toISOString(), now, t) ?? '',
+                  })
+                : t.activity.line.sourceIntakeIdle}
+            </span>
+          )}
+        </div>
+        <div className="src">
+          <span className="src-t">{t.activity.line.sourceStore}</span>
+          <span className="src-d">
+            {inboundToday > 0 ? interpolate(t.activity.line.sourceStoreCount, { count: inboundToday }) : t.activity.line.sourceStoreNone}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export interface StoreRow {
+  store: StoreKind
+  track: Track
+  lane: Lane | undefined
+  items: GateItem[]
+  bars: HourBar[]
+  // What comes next on this line (shown on the rail while nothing moves).
+  parked: UpcomingItem[]
 }
 
 /**
- * The animated "Hat" (design 11.1): outbound steps travel as accent packets, answers come back as neutral rings, a
- * failing lane turns red and stops. The CI node stays idle until package intake has its events. Nothing moves when nothing is on the way. Under
- * reduced motion the page shows HatStatusList instead of this scene.
+ * The line: storeasy and its sources, then one row per store (its line, then its gate). The grid keeps every row's line
+ * and gate side by side on wide screens and stacks them on a phone; nothing is positioned over another element.
  */
-export function HatScene({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean }) {
+export function HatLine({
+  state,
+  rows,
+  inboundToday,
+  now,
+  calm,
+  frozen,
+}: {
+  state: HatState
+  rows: StoreRow[]
+  inboundToday: number
+  now: number
+  calm: boolean
+  frozen: boolean
+}) {
   const t = useT()
-  const format = useFormat()
-  const titleOf = useJobTitle()
-  const id = useId().replace(/:/g, '')
-  const activeJobs = lanes.reduce((sum, lane) => sum + lane.jobs.length, 0)
-  const animate = !frozen
-
   return (
-    <svg className="hs hs-wide" viewBox="0 0 720 470" role="img" aria-label={t.activity.sceneLabel}>
-      <defs>
-        {lanes.map((lane) => (
-          <path key={lane.store} id={`${id}-${lane.store}`} d={LANE_GEOMETRY[lane.store].path} />
+    <div
+      className={cn('ln', calm && 'calm', frozen && 'frozen', rows.length === 1 && 'one')}
+      role="group"
+      aria-label={t.activity.sceneLabel}
+    >
+      <Hub state={state} tracks={rows.map((row) => row.track)} inboundToday={inboundToday} now={now} />
+      <div className="ln-rows">
+        {rows.map((row) => (
+          <div className="ln-row" key={row.store}>
+            <LineTrack track={row.track} bars={row.bars} parked={row.parked} now={now} />
+            <Gate
+              store={row.store}
+              items={row.items}
+              lane={row.lane}
+              moving={row.track.tokens.some((token) => isActive(token.job))}
+              now={now}
+            />
+          </div>
         ))}
-        <path id={`${id}-ci`} d={CI_PATH} />
-      </defs>
-      {lanes.map((lane) => (
-        <g key={`rail-${lane.store}`}>
-          <use href={`#${id}-${lane.store}`} className="rail-w" />
-          <use href={`#${id}-${lane.store}`} className="rail" />
-          {lane.failed ? <path d={LANE_GEOMETRY[lane.store].path} pathLength={100} className="rail-x" /> : null}
-        </g>
-      ))}
-      <use href={`#${id}-ci`} className="rail-w" />
-      <use href={`#${id}-ci`} className="rail" />
-
-      {lanes.map((lane) => {
-        const job = lane.jobs[0]
-        const geometry = LANE_GEOMETRY[lane.store]
-        if (!job) {
-          return null
-        }
-        return (
-          <g key={`move-${lane.store}`}>
-            <text
-              x={geometry.label.x}
-              y={geometry.label.y}
-              textAnchor={geometry.label.anchor}
-              className={cn('rl', lane.failed && 'dng')}
-              fontSize="10"
-              fill="rgb(var(--fg-3))"
-            >
-              {[job.stepName, job.message].filter(Boolean).join(' · ')}
-            </text>
-            {lane.moving && animate ? (
-              <Packet lane={lane} pathId={`${id}-${lane.store}`} reverse={job.direction === StepDirection.Inbound} />
-            ) : null}
-            {lane.failed ? (
-              <>
-                {/* The waiting packet stands still at the middle of the rail; the cross sits where it stopped. */}
-                <g transform={`translate(${geometry.waiting.x} ${geometry.waiting.y})`}>
-                  <rect x="-26" y="-11" width="52" height="22" rx="6" className="pk-w" />
-                  <text y="3.5" textAnchor="middle" className="pk-wt">
-                    {truncate(packetLabel(job), 8)}
-                  </text>
-                </g>
-                <g transform={`translate(${geometry.stop.x} ${geometry.stop.y})`}>
-                  <circle r="10" className="xm" />
-                  <path d="M-4 -4 4 4M4 -4-4 4" className="xl" />
-                </g>
-              </>
-            ) : null}
-          </g>
-        )
-      })}
-
-      <rect x="180" y="160" width="140" height="140" rx="36" className="hub" />
-      <g transform="translate(214 180) scale(1.5)">
-        {LOGO_PATHS.map((path, index) => (
-          <path key={path.d} d={path.d} fill="rgb(var(--accent-fg))" opacity={index === 1 ? 0.55 : 1} />
-        ))}
-      </g>
-      <text x="250" y="282" textAnchor="middle" className="hub-t">
-        {activeJobs > 0 ? interpolate(t.activity.hubJobs, { count: activeJobs }) : t.activity.hubIdle}
-      </text>
-
-      <rect x="12" y="372" width="212" height="82" rx="20" className="node" />
-      <text x="30" y="396" className="lbl">
-        {t.activity.ciLabel}
-      </text>
-      <text x="30" y="420" className="ttl">
-        {t.activity.ciIdle}
-      </text>
-      <text x="30" y="442" className="det">
-        {t.activity.ciHint}
-      </text>
-
-      {lanes.map((lane) => {
-        const { x, y } = LANE_GEOMETRY[lane.store].node
-        const job = lane.jobs[0] ?? null
-        const percent = job && job.progress !== null && job.total ? Math.min(1, job.progress / job.total) : null
-        return (
-          <g key={`node-${lane.store}`}>
-            <rect x={x} y={y} width="190" height="96" rx="22" className={cn('node', lane.failed && 'x')} />
-            <text x={x + 18} y={y + 24} className="lbl">
-              {storeLabel(lane.store, t)}
-            </text>
-            <text x={x + 18} y={y + 50} className="ttl">
-              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 18)}
-            </text>
-            <text x={x + 18} y={y + 74} className={cn('det', lane.failed && 'dng')}>
-              {truncate(laneDetail(lane, t, format), 30)}
-            </text>
-            {percent !== null ? (
-              <>
-                <rect x={x + 18} y={y + 80} width="154" height="4" rx="2" className="bt" />
-                <rect x={x + 18} y={y + 80} width={154 * percent} height="4" rx="2" className="bf" />
-              </>
-            ) : null}
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
-
-function truncate(text: string, length: number): string {
-  return text.length > length ? `${text.slice(0, length - 1)}…` : text
-}
-
-/** The same lanes as text: one row per lane (design 11.2), what the reduced motion view shows instead of the scene. */
-export function HatStatusList({ lanes }: { lanes: Lane[] }) {
-  const t = useT()
-  const format = useFormat()
-  const titleOf = useJobTitle()
-  return (
-    <ul className="m-0 list-none p-0" aria-label={t.activity.statusListLabel}>
-      {lanes.map((lane) => {
-        const job = lane.jobs[0] ?? null
-        return (
-          <li key={lane.store} className="rml">
-            <span className="ei">
-              <StoreTag store={lane.store} small codeOnly />
-            </span>
-            <div>
-              <div className="rt">{interpolate(t.activity.routeOut, { store: storeLabel(lane.store, t) })}</div>
-              <b className="text-sm">{titleOf(job ?? lane.last, t.activity.nodeIdle)}</b>
-              <div className={cn('s', lane.failed && 'text-danger')}>{laneDetail(lane, t, format)}</div>
-            </div>
-            {job ? (
-              lane.failed ? (
-                <Badge tone="danger" small>
-                  {t.activity.statusRetrying}
-                </Badge>
-              ) : (
-                <Badge tone="accent" small dot>
-                  {t.activity.statusRunning}
-                </Badge>
-              )
-            ) : (
-              <Badge small>{t.activity.statusIdle}</Badge>
-            )}
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
-const PHONE_GEOMETRY: Record<StoreKind, { path: string; node: Point; width: number }> = {
-  [StoreKind.Apple]: { path: 'M180 82 C 180 130, 55 128, 55 180', node: { x: 0, y: 180 }, width: 110 },
-  [StoreKind.Google]: { path: 'M180 82 L 180 180', node: { x: 125, y: 180 }, width: 110 },
-  [StoreKind.Microsoft]: { path: 'M180 82 C 180 130, 305 128, 305 180', node: { x: 250, y: 180 }, width: 108 },
-}
-
-/** The phone form of the scene (design 11.1): storeasy on top, the stores below, packets as unlabeled dots. */
-export function HatScenePhone({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean }) {
-  const t = useT()
-  const format = useFormat()
-  const titleOf = useJobTitle()
-  const id = useId().replace(/:/g, '')
-  const activeJobs = lanes.reduce((sum, lane) => sum + lane.jobs.length, 0)
-  return (
-    <svg className="hs" viewBox="0 0 358 250" role="img" aria-label={t.activity.sceneLabel}>
-      <defs>
-        {lanes.map((lane) => (
-          <path key={lane.store} id={`${id}-p${lane.store}`} d={PHONE_GEOMETRY[lane.store].path} />
-        ))}
-        <path id={`${id}-pci`} d="M100 46 L 144 46" />
-      </defs>
-      {lanes.map((lane) => (
-        <g key={`rail-${lane.store}`}>
-          <use href={`#${id}-p${lane.store}`} className="rail-w" />
-          <use href={`#${id}-p${lane.store}`} className="rail" />
-          {lane.failed ? <path d={PHONE_GEOMETRY[lane.store].path} pathLength={100} className="rail-x" /> : null}
-        </g>
-      ))}
-      <use href={`#${id}-pci`} className="rail-w" />
-      <use href={`#${id}-pci`} className="rail" />
-      {lanes.map((lane) =>
-        lane.moving && !frozen ? (
-          <g key={`dot-${lane.store}`}>
-            <circle r="6" className={lane.jobs[0]?.direction === StepDirection.Inbound ? 'ack' : 'pk'} />
-            <animateMotion
-              dur="2.6s"
-              repeatCount="indefinite"
-              {...(lane.jobs[0]?.direction === StepDirection.Inbound ? { keyPoints: '1;0', keyTimes: '0;1', calcMode: 'linear' } : {})}
-            >
-              <mpath href={`#${id}-p${lane.store}`} />
-            </animateMotion>
-          </g>
-        ) : null,
-      )}
-      <rect x="144" y="10" width="72" height="72" rx="20" className="hub" />
-      <g transform="translate(162 16) scale(0.75)">
-        {LOGO_PATHS.map((path, index) => (
-          <path key={path.d} d={path.d} fill="rgb(var(--accent-fg))" opacity={index === 1 ? 0.55 : 1} />
-        ))}
-      </g>
-      <text x="180" y="72" textAnchor="middle" className="hub-t" style={{ fontSize: 8.5 }}>
-        {activeJobs > 0 ? interpolate(t.activity.hubJobs, { count: activeJobs }) : t.activity.hubIdle}
-      </text>
-      <rect x="0" y="24" width="100" height="44" rx="12" className="node" />
-      <text x="10" y="40" className="lbl" style={{ fontSize: 8 }}>
-        {t.activity.ciShort}
-      </text>
-      <text x="10" y="58" className="ttl s">
-        {truncate(t.activity.ciIdle, 11)}
-      </text>
-      {lanes.map((lane) => {
-        const { node, width } = PHONE_GEOMETRY[lane.store]
-        const job = lane.jobs[0] ?? null
-        return (
-          <g key={`node-${lane.store}`}>
-            <rect x={node.x} y={node.y} width={width} height="64" rx="16" className={cn('node', lane.failed && 'x')} />
-            <text x={node.x + 12} y={node.y + 18} className="lbl" style={{ fontSize: 8.5 }}>
-              {truncate(storeLabel(lane.store, t), 14)}
-            </text>
-            <text x={node.x + 12} y={node.y + 37} className="ttl s">
-              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 12)}
-            </text>
-            <text x={node.x + 12} y={node.y + 54} className={cn('det s', lane.failed && 'dng')}>
-              {truncate(laneDetail(lane, t, format), 17)}
-            </text>
-          </g>
-        )
-      })}
-    </svg>
+      </div>
+    </div>
   )
 }
