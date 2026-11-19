@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MessageSquare, RefreshCw, Star } from 'lucide-react'
+import { MessageSquare, RefreshCw, Sparkles, Star } from 'lucide-react'
 import { Badge, StoreTag, type BadgeTone } from '@/components/ui/Badge'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Pagination } from '@/components/ui/DataTable'
 import { Callout } from '@/components/ui/Feedback'
 import { Menu, type MenuEntry } from '@/components/ui/Menu'
@@ -21,6 +22,9 @@ import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationC
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { cn } from '@/lib/utils/cn'
+import { aiApi, useAiSettings } from '@/features/ai/api'
+import { AI_SETTINGS_ANCHOR } from '@/features/ai/AiSettingsCard'
+import { useAiText } from '@/features/ai/i18n'
 import { AppWorkspace } from '@/features/common/AppWorkspace'
 import { storeFromSlug, storeSlug } from '@/features/common/store'
 import { useLiveRefresh } from '@/features/notifications/live'
@@ -154,6 +158,67 @@ function SavedReplyPicker({ review, onPick }: { review: ReviewListDto; onPick: (
   return <Menu label={t.reply.saved} className="w-[340px]" trigger={<Button size="sm">{t.reply.saved}</Button>} entries={entries} />
 }
 
+// "Write with AI": Claude writes a draft with the organization's Anthropic key (saved on the review as its draft, never
+// sent), and it lands in the reply box for the member to read, edit and send. Text already in the box is replaced only
+// after a confirmation. Without a key the button is off and a hint links to the AI settings.
+function GenerateDraftButton({ review, body, onDraft }: { review: ReviewListDto; body: string; onDraft: (text: string) => void }) {
+  const t = useAiText()
+  const confirm = useConfirm()
+  const organization = useCurrentOrganization()
+  const queryClient = useQueryClient()
+  const settings = useAiSettings(organization.Id)
+  const hasKey = settings.data?.HasApiKey === true
+
+  const generate = useMutation({
+    mutationFn: () => aiApi.generateReplyDraft(organization.Id, review.Id),
+    onSuccess: (draft) => {
+      onDraft(draft.Body)
+      showToast(t.reply.generated, 'success', draft.Shortened ? t.reply.shortened : undefined)
+      void queryClient.invalidateQueries({ queryKey: reviewKeys.all })
+    },
+  })
+
+  const run = async () => {
+    if (body.trim().length > 0) {
+      const ok = await confirm({ title: t.reply.replaceTitle, message: t.reply.replaceBody, confirmLabel: t.reply.replaceConfirm })
+      if (!ok) {
+        return
+      }
+    }
+    generate.mutate()
+  }
+
+  return (
+    <Button
+      size="sm"
+      loading={generate.isPending}
+      disabled={!hasKey}
+      title={hasKey ? undefined : t.reply.noKeyHint}
+      onClick={() => void run()}
+    >
+      <Sparkles aria-hidden />
+      {generate.isPending ? t.reply.generating : t.reply.generate}
+    </Button>
+  )
+}
+
+function NoAiKeyHint() {
+  const t = useAiText()
+  const organization = useCurrentOrganization()
+  const settings = useAiSettings(organization.Id)
+  if (!settings.data || settings.data.HasApiKey) {
+    return null
+  }
+  return (
+    <p className="m-0 text-xs text-fg3">
+      {t.reply.noKeyHint}{' '}
+      <Link className="lnk" to={`/settings#${AI_SETTINGS_ANCHOR}`}>
+        {t.reply.noKeyLink}
+      </Link>
+    </p>
+  )
+}
+
 function ReplyEditor({ review, onDone }: { review: ReviewListDto; onDone?: () => void }) {
   const t = useReviewsText()
   const organization = useCurrentOrganization()
@@ -188,6 +253,14 @@ function ReplyEditor({ review, onDone }: { review: ReviewListDto; onDone?: () =>
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <b className="mr-auto text-[13.5px]">{t.reply.title}</b>
+        <GenerateDraftButton
+          review={review}
+          body={body}
+          onDraft={(text) => {
+            setBody(text)
+            setSavedReplyId(null)
+          }}
+        />
         <SavedReplyPicker
           review={review}
           onPick={(text, id) => {
@@ -196,6 +269,7 @@ function ReplyEditor({ review, onDone }: { review: ReviewListDto; onDone?: () =>
           }}
         />
       </div>
+      <NoAiKeyHint />
       <Field
         label={limitLabel}
         counter={{ value: length, max }}

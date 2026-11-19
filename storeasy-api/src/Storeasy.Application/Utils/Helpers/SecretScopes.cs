@@ -17,6 +17,11 @@ public static class SecretScopes
     public static string OrganizationWebhook(int organizationId) => $"OrganizationWebhook:{organizationId}";
 
     /// <summary>
+    /// Scope of an organization's Anthropic API key (AI reply drafts).
+    /// </summary>
+    public static string AiProviderKey(int organizationId) => $"AiProviderKey:{organizationId}";
+
+    /// <summary>
     /// Associated data of a sealed e-mail outbox payload.
     /// </summary>
     public const string EmailOutbox = "EmailOutbox";

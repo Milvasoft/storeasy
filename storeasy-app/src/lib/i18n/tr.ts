@@ -999,6 +999,8 @@ export const tr: Dictionary = {
       connectionUpdated: 'Mağaza bağlantısı güncellendi',
       connectionRemoved: 'Mağaza bağlantısı silindi',
       connectionVerified: 'Mağaza bağlantısı doğrulandı',
+      aiKeySet: 'Yapay zeka anahtarı girildi',
+      aiKeyRemoved: 'Yapay zeka anahtarı kaldırıldı',
       jobCancelled: 'İş iptal edildi',
       appAdded: 'Uygulama eklendi',
       storeAppLinked: 'Mağaza kaydı eşlendi',

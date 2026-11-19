@@ -999,6 +999,8 @@ export const en = {
       connectionUpdated: 'Store connection updated',
       connectionRemoved: 'Store connection removed',
       connectionVerified: 'Store connection verified',
+      aiKeySet: 'AI key set',
+      aiKeyRemoved: 'AI key removed',
       jobCancelled: 'Job cancelled',
       appAdded: 'App added',
       storeAppLinked: 'Store record paired',
