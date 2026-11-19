@@ -68,6 +68,8 @@ public static class McpSchemaBuilder
 
         schema["type"] = "object";
 
+        ReplaceBooleanSchemas(schema);
+
         return schema;
     }
 
@@ -78,6 +80,11 @@ public static class McpSchemaBuilder
             TreatNullObliviousAsNonNullable = true,
             TransformSchemaNode = (context, node) =>
             {
+                // A free-form value (JsonElement) comes out as the boolean schema true: give it the object form so it
+                // can carry its description too.
+                if (node is JsonValue value && value.TryGetValue<bool>(out var allowed) && allowed)
+                    node = new JsonObject();
+
                 if (node is JsonObject json && context.PropertyInfo?.AttributeProvider is MemberInfo member && Describe(member) is { } description)
                     json["description"] = description;
 
@@ -88,6 +95,62 @@ public static class McpSchemaBuilder
         var node = Json.GetJsonSchemaAsNode(type, exporterOptions) as JsonObject ?? [];
 
         node.Remove("$schema");
+
+        ReplaceBooleanSchemas(node);
+
+        return node;
+    }
+
+    /// <summary>
+    /// Replaces boolean subschemas with their object form. The exporter writes <c>true</c> for a free-form value
+    /// (<see cref="JsonElement"/>), which JSON Schema allows but MCP clients refuse: they validate every property schema as
+    /// an object and then drop the whole tool list.
+    /// </summary>
+    /// <param name="node"></param>
+    public static void ReplaceBooleanSchemas(JsonNode node)
+    {
+        switch (node)
+        {
+            case JsonObject json:
+                foreach (var key in _schemaMapKeywords)
+                {
+                    if (json[key] is JsonObject map)
+                    {
+                        foreach (var name in map.Select(p => p.Key).ToList())
+                            map[name] = AsObject(map[name]);
+                    }
+                }
+
+                foreach (var key in _schemaKeywords)
+                {
+                    if (json.ContainsKey(key) && json[key] is not JsonArray)
+                        json[key] = AsObject(json[key]);
+                }
+
+                foreach (var key in _schemaListKeywords)
+                {
+                    if (json[key] is JsonArray list)
+                    {
+                        for (var i = 0; i < list.Count; i++)
+                            list[i] = AsObject(list[i]);
+                    }
+                }
+
+                break;
+        }
+    }
+
+    private static readonly string[] _schemaMapKeywords = ["properties", "$defs", "definitions", "patternProperties"];
+    private static readonly string[] _schemaKeywords = ["items", "additionalProperties", "not", "contains"];
+    private static readonly string[] _schemaListKeywords = ["anyOf", "oneOf", "allOf", "prefixItems"];
+
+    private static JsonNode AsObject(JsonNode node)
+    {
+        if (node is JsonValue value && value.TryGetValue<bool>(out var allowed))
+            return allowed ? new JsonObject() : new JsonObject { ["not"] = new JsonObject() };
+
+        if (node != null)
+            ReplaceBooleanSchemas(node);
 
         return node;
     }
