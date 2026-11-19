@@ -3405,6 +3405,14 @@
             <param name="tool"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Mcp.McpSchemaBuilder.ReplaceBooleanSchemas(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Replaces boolean subschemas with their object form. The exporter writes <c>true</c> for a free-form value
+            (<see cref="T:System.Text.Json.JsonElement"/>), which JSON Schema allows but MCP clients refuse: they validate every property schema as
+            an object and then drop the whole tool list.
+            </summary>
+            <param name="node"></param>
+        </member>
         <member name="T:Storeasy.Api.Mcp.McpToolCatalog">
             <summary>
             The tools of the remote MCP (docs/urun-plani.md 2.6, 11.7): every API row of the coverage matrix that exists, named
