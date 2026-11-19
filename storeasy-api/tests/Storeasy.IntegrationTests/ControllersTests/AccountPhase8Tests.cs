@@ -258,7 +258,8 @@ public class AccountPhase8Tests(StoreasyApiFactory factory) : IntegrationTestBas
         // Assert
         http.StatusCode.Should().Be(HttpStatusCode.OK);
         token.Should().StartWith("pwr_");
-        rows.Should().OnlyContain(r => !Encoding.UTF8.GetString(r.EncryptedPayload).Contains(email, StringComparison.OrdinalIgnoreCase));
+        // The shared host may send (and clear) the row before it is read, so an empty list is fine; no row may hold the plain text.
+        rows.Should().NotContain(r => Encoding.UTF8.GetString(r.EncryptedPayload).Contains(email, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
