@@ -132,7 +132,7 @@ export function HatScene({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean })
   const animate = !frozen
 
   return (
-    <svg className="hs" viewBox="0 0 720 470" role="img" aria-label={t.activity.sceneLabel}>
+    <svg className="hs hs-wide" viewBox="0 0 720 470" role="img" aria-label={t.activity.sceneLabel}>
       <defs>
         {lanes.map((lane) => (
           <path key={lane.store} id={`${id}-${lane.store}`} d={LANE_GEOMETRY[lane.store].path} />
@@ -221,7 +221,7 @@ export function HatScene({ lanes, frozen }: { lanes: Lane[]; frozen?: boolean })
               {storeLabel(lane.store, t)}
             </text>
             <text x={x + 18} y={y + 50} className="ttl">
-              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 22)}
+              {truncate(titleOf(job ?? lane.last, t.activity.nodeIdle), 18)}
             </text>
             <text x={x + 18} y={y + 74} className={cn('det', lane.failed && 'dng')}>
               {truncate(laneDetail(lane, t, format), 30)}
