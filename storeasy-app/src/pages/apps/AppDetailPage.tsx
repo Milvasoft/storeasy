@@ -223,14 +223,16 @@ function StorePages({ app }: { app: AppDetailDto }) {
           {t.app.storePages}
         </h2>
       </div>
-      <ul className="card-b m-0 grid list-none gap-3 p-0">
+      {/* The card's own padding stays (card-b); each store gets its tag on one line and the two links side by side under
+          it, so the narrow side column never pushes them past the card edge. */}
+      <ul className="card-b m-0 grid list-none gap-4">
         {records.map((record) => {
           const links = storeLinksOf(record)
           const store = storeName(record.Store, t.enums.store)
           return (
-            <li key={record.StoreAppId} className="flex flex-wrap items-center gap-2">
+            <li key={record.StoreAppId} className="grid min-w-0 gap-2">
               <StoreTag store={record.Store} small />
-              <span className="ml-auto flex flex-wrap gap-2">
+              <span className="grid grid-cols-2 gap-2 [&>a]:min-w-0 [&>a]:justify-center [&>a]:overflow-hidden [&>a]:px-2.5">
                 {links.publicUrl ? (
                   <a
                     className="btn sm"
@@ -240,7 +242,7 @@ function StorePages({ app }: { app: AppDetailDto }) {
                     aria-label={interpolate(t.app.openPublicPageOf, { store })}
                   >
                     <ExternalLink aria-hidden />
-                    {t.app.openPublicPage}
+                    <span className="truncate">{t.app.openPublicPage}</span>
                   </a>
                 ) : null}
                 {links.consoleUrl ? (
@@ -252,7 +254,7 @@ function StorePages({ app }: { app: AppDetailDto }) {
                     aria-label={interpolate(t.app.openConsoleOf, { store })}
                   >
                     <ExternalLink aria-hidden />
-                    {t.app.openConsole}
+                    <span className="truncate">{t.app.openConsole}</span>
                   </a>
                 ) : null}
               </span>

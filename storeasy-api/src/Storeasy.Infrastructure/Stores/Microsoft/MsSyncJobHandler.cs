@@ -15,7 +15,9 @@ namespace Storeasy.Infrastructure.Stores.Microsoft;
 /// The <see cref="StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
 /// <list type="bullet">
 /// <item>MSIX apps: every app the Entra application sees (<c>GET applications</c>), each with its app, flight and add-on
-/// submissions (pending and last published), flights and add-ons. New apps get their own storeasy app.</item>
+/// submissions (pending and last published), flights and add-ons. New apps get their own storeasy app. Every sync
+/// writes the package family name to the record's <see cref="StoreApp.BundleId"/> (package intake matches MSIX packages
+/// with it); a product added by its Store id that the MSIX API lists becomes an MSIX app.</item>
 /// <item>MSI/EXE products: no list API, so the products added by id are read one by one (readiness, ongoing submission,
 /// installers). A product the store refuses that was never confirmed is removed with its empty app.</item>
 /// </list>
@@ -107,8 +109,11 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
         await context.EndStepAsync(listStep, StoreJobStepStatus.Succeeded, $"{applications.Count} MSIX apps.", cancellationToken);
 
-        // 2. Details of every MSIX app and MSI/EXE product of this connection.
-        var installers = known.Where(p => p.Kind == MsProductKind.MsiExe && p.StoreApp.StoreConnectionId == connection.Id).ToList();
+        // 2. Details of every MSIX app and MSI/EXE product of this connection. A product added by its Store id starts as
+        // MSI/EXE; when the MSIX API lists it, it is an MSIX app: it is read as one (and becomes one when saved), never
+        // through the MSI/EXE API, so its record gets the package family name.
+        var listed = applications.Select(a => a.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var installers = known.Where(p => p.Kind == MsProductKind.MsiExe && p.StoreApp.StoreConnectionId == connection.Id && !listed.Contains(p.StoreApp.ExternalId)).ToList();
         var readStep = await context.BeginStepAsync("products.read", StepDirection.Outbound, total: applications.Count + installers.Count, cancellationToken: cancellationToken);
         var snapshots = new List<MsProductSnapshot>();
         var refused = new List<MsProduct>();
@@ -309,6 +314,7 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
         {
             await _productRepository.UpdateAsync(rows,
                                                  cancellationToken,
+                                                 p => p.Kind,
                                                  p => p.FirstSubmissionDone,
                                                  p => p.HasMandatoryUpdate,
                                                  p => p.PricingV2,
@@ -374,6 +380,7 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
     private static void Apply(MsProduct row, MsProductSnapshot snapshot, DateTime now)
     {
+        row.Kind = snapshot.Kind;
         row.FirstSubmissionDone = snapshot.FirstSubmissionDone;
         row.HasMandatoryUpdate = snapshot.HasMandatoryUpdate;
         row.PricingV2 = snapshot.PricingV2;
