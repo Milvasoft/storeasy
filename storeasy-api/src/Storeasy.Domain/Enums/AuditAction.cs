@@ -90,6 +90,10 @@ public enum AuditAction : short
     [Description("App shown")]
     AppUnhidden = 45,
 
+    /// <summary>A member reordered the organization's apps list.</summary>
+    [Description("Apps reordered")]
+    AppsReordered = 46,
+
     /// <summary>A change plan was approved and its apply job queued.</summary>
     [Description("Change plan approved")]
     PlanApproved = 50,

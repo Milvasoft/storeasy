@@ -931,6 +931,11 @@
             UTC instant a member hid the app from the apps list; null while it is shown.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.DisplayOrder">
+            <summary>
+            Place of the app in the apps list a member chose (0 is the first); null for an app that was never placed.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.Stores">
             <summary>
             Records in the stores (one per store at most).
@@ -11185,7 +11190,8 @@
             <summary>
             Pages through the organization's apps with their store records (all stores in one list). <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Store"/> narrows
             it to the apps that have a record in that store, on the server, so paging and the total count follow the filter.
-            Hidden apps are left out unless <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Hidden"/> or <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.IncludeHidden"/> asks for them.
+            Hidden apps are left out unless <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.Hidden"/> or <see cref="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.IncludeHidden"/> asks for them. Without a sort the
+            apps come in the order members chose (apps/app/order), then the apps never placed by name.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery.OrganizationId">
@@ -11208,13 +11214,17 @@
         </member>
         <member name="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store and hidden filters are part of the query.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Without a sort in the request the list follows the order members chose
+            (<see cref="P:Storeasy.Domain.Apps.App.DisplayOrder"/>), and the apps never placed follow by name; a sort in the request replaces that order.
+            The store and hidden filters are part of the query.
             </summary>
             <param name="appRepository"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Apps.GetAppList.GetAppListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Sorted by name by default; the store and hidden filters are part of the query.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppList.GetAppListQuery"/>. Without a sort in the request the list follows the order members chose
+            (<see cref="P:Storeasy.Domain.Apps.App.DisplayOrder"/>), and the apps never placed follow by name; a sort in the request replaces that order.
+            The store and hidden filters are part of the query.
             </summary>
             <param name="appRepository"></param>
         </member>
@@ -11281,6 +11291,63 @@
         </member>
         <member name="M:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Apps.LinkStoreApp.LinkStoreAppCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand">
+            <summary>
+            Sets the order of the organization's apps list. The apps in <see cref="P:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand.AppIds"/> come first, in that order; every
+            other app of the organization loses its place and follows them by name (as an app that was never placed). Returns the
+            number of placed apps.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand.MaxAppCount">
+            <summary>
+            Most apps one request places.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand.AppIds">
+            <summary>
+            App ids in the new order, the first one first. Each app once; every id must be an app of the organization.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand"/>. The new places are written in one statement (the listed apps take their index,
+            the apps placed before that the order leaves out lose their place), and an order that is already in place writes and
+            audits nothing. An id that is not an app of the organization (of another organization, or deleted) is reported as not
+            found and nothing changes.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand"/>. The new places are written in one statement (the listed apps take their index,
+            the apps placed before that the order leaves out lose their place), and an order that is already in place writes and
+            audits nothing. An id that is not an app of the organization (of another organization, or deleted) is reported as not
+            found and nothing changes.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandHandler.Handle(Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand">
             <summary>

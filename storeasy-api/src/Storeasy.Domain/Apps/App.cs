@@ -56,6 +56,12 @@ public class App : FullAuditableEntity<int>
     public DateTime? HiddenDate { get; set; }
 
     /// <summary>
+    /// Place of the app in the organization's apps list, set when a member reorders the list (0 is the first). Null for
+    /// an app that was never placed; those follow the placed apps by name. Only a member changes it (sync never writes it).
+    /// </summary>
+    public int? DisplayOrder { get; set; }
+
+    /// <summary>
     /// Store records of the app.
     /// </summary>
     public virtual List<StoreApp> StoreApps { get; set; }
