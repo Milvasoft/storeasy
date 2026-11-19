@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPatchList, apiPost, apiPut } from '@/lib/api/http
 import type { ListRequest } from '@/lib/api/list'
 import { getDeviceId } from '@/lib/api/tokenStore'
 import type {
+  ActivityBoardDto,
   AccountDetailDto,
   AiSettingsDto,
   AccountSessionDto,
@@ -372,6 +373,10 @@ export const jobsApi = {
   // A queued job stops at once (Cancelled); a running one at its next step (Running). 409 StoreJobAlreadyFinished.
   cancel: (organizationId: number, jobId: number) =>
     apiPost<StoreJobStatus>('/StoreJobs/job/cancel', { OrganizationId: organizationId, JobId: jobId }),
+
+  // The live page's board: versions with App Review, builds processing or near their TestFlight expiry, the last 24 hours
+  // per store. Read from storeasy's records; no store is called.
+  board: (organizationId: number) => apiGet<ActivityBoardDto>('/StoreJobs/board', { OrganizationId: organizationId }),
 }
 
 // ---- Assets ----------------------------------------------------------------

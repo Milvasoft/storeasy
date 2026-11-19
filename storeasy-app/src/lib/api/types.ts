@@ -91,7 +91,26 @@ export const AuditAction = {
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
-export const StoreJobKind = { SyncApps: 1 } as const
+// Storeasy.Domain.Enums.StoreJobKind: what a job does.
+export const StoreJobKind = {
+  SyncApps: 1,
+  ApplyChangePlan: 2,
+  ProcessArtifact: 30,
+  MsSync: 50,
+  MsSubmit: 52,
+  MsCheckInstaller: 53,
+  MockupExport: 60,
+  SyncMonetization: 70,
+  PreReview: 90,
+  ProcessWebhookEvent: 400,
+  RegisterWebhooks: 401,
+  SyncVersionStates: 402,
+  SyncReviews: 403,
+  ReplyToReview: 404,
+  SyncTestFlight: 405,
+  UpdateTestFlight: 406,
+  PingWebhooks: 407,
+} as const
 export type StoreJobKind = (typeof StoreJobKind)[keyof typeof StoreJobKind]
 
 export const StoreJobStatus = { Queued: 1, Running: 2, Succeeded: 3, Failed: 4, Cancelled: 5 } as const
@@ -611,6 +630,49 @@ export interface StoreJobDetailDto extends StoreJobListDto {
   NextAttemptDate?: IsoDateTime | null
   /** In order, across attempts. */
   Steps?: StoreJobStepDto[] | null
+}
+
+/** One version's last known review state (ActivityBoardVersionDto). State as the store names it (IN_REVIEW, REJECTED). */
+export interface ActivityBoardVersionDto {
+  AppId: number
+  StoreAppId: number
+  Store: StoreKind
+  VersionString?: string | null
+  BuildNumber?: string | null
+  State?: string | null
+  PreviousState?: string | null
+  ChangedDate: IsoDateTime
+  SubmittedDate?: IsoDateTime | null
+}
+
+/** A build still processing at the store, or a valid one within 14 days of its TestFlight expiry. */
+export interface ActivityBoardBuildDto {
+  AppId: number
+  StoreAppId: number
+  Store: StoreKind
+  Version?: string | null
+  BuildNumber?: string | null
+  ProcessingState: BuildProcessingState
+  UploadedDate?: IsoDateTime | null
+  ExpiryDate?: IsoDateTime | null
+}
+
+/** One hour of one store: finished jobs and store events (webhooks) received. Empty hours are left out. */
+export interface ActivityBoardHourDto {
+  Store: StoreKind
+  Hour: IsoDateTime
+  Succeeded: number
+  Failed: number
+  Inbound: number
+}
+
+/** GET StoreJobs/board: what the live page shows beside the moving jobs. */
+export interface ActivityBoardDto {
+  GeneratedDate: IsoDateTime
+  HoursStartDate: IsoDateTime
+  Versions?: ActivityBoardVersionDto[] | null
+  Builds?: ActivityBoardBuildDto[] | null
+  Hours?: ActivityBoardHourDto[] | null
 }
 
 // ---- Assets ----

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { MOCK_API } from '@/config'
 import { appsApi, jobsApi, type AppListRequest } from '@/lib/api/endpoints'
 import { SortType, type ListRequest } from '@/lib/api/list'
-import { StoreJobKind, StoreJobStatus } from '@/lib/api/types'
+import { StoreJobKind, StoreJobStatus, type AppListDto } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { getDictionary } from '@/lib/i18n/dictionaries'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -14,13 +14,14 @@ import { showToast } from '@/lib/toast/toast'
 import {
   ActivityEventType,
   createEmitter,
+  InboundEventType,
   JOB_FINISHED_TYPES,
   type ActivityEvent,
   type ActivitySource,
   type ConnectionInfo,
 } from './events'
 import { hatReducer, initialHatState, type HatAction, type HatState } from './hatState'
-import { createMockActivitySource } from './mockSource'
+import { createMockActivitySource, demoScenario } from './mockSource'
 import { createSignalRSource } from './signalrSource'
 
 export type ActivitySourceFactory = (organizationId: number) => ActivitySource
@@ -29,7 +30,7 @@ export type ActivitySourceFactory = (organizationId: number) => ActivitySource
 // never shows made-up events.
 export const defaultSourceFactory: ActivitySourceFactory = (organizationId) => {
   if (MOCK_API) {
-    return createMockActivitySource()
+    return createMockActivitySource({ scenario: demoScenario() })
   }
   const live = createSignalRSource(organizationId)
   if (!import.meta.env.DEV) {
@@ -85,6 +86,8 @@ interface ActivityContextValue {
   setFrozen: (frozen: boolean) => void
   reconnect: () => void
   appName: (appId: number | null | undefined) => string | null
+  // The app's list record (name, icon) for the line's tokens and gates.
+  appInfo: (appId: number | null | undefined) => AppListDto | null
   // Jobs this screen started (a sync, an added app): their end is announced with a toast wherever the user is.
   watchJobs: (jobIds: number[]) => void
   // Every live event as it arrives (frozen or not), for screens that refresh on their own event types.
@@ -122,10 +125,12 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
     enabled: organizationId !== null,
     staleTime: 60_000,
   })
-  const names = useMemo(() => new Map((apps.data?.Data ?? []).map((app) => [app.Id, app.Name])), [apps.data])
+  const byId = useMemo(() => new Map((apps.data?.Data ?? []).map((app) => [app.Id, app])), [apps.data])
+  const names = useMemo(() => new Map([...byId.values()].map((app) => [app.Id, app.Name])), [byId])
   const namesRef = useRef(names)
   namesRef.current = names
   const appName = useCallback((appId: number | null | undefined) => (appId ? (names.get(appId) ?? null) : null), [names])
+  const appInfo = useCallback((appId: number | null | undefined) => (appId ? (byId.get(appId) ?? null) : null), [byId])
 
   useEffect(() => {
     if (organizationId === null) {
@@ -155,7 +160,9 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const offEvents = source.subscribe((event) => {
+    const offEvents = source.subscribe((received) => {
+      // Stamped with this browser's clock: pulses and arriving tokens time out against it.
+      const event: ActivityEvent = { ...received, ReceivedAt: Date.now() }
       if (JOB_FINISHED_TYPES.includes(event.Type)) {
         announce(event)
         void queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all })
@@ -169,6 +176,13 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.apps.all })
       } else if (event.Type === ActivityEventType.ConnectionVerified) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.connections.all })
+      } else if (
+        event.Type === InboundEventType.VersionState ||
+        event.Type === InboundEventType.RejectionOpened ||
+        event.Type === InboundEventType.WebhookReceived
+      ) {
+        // A store said something: the live page's board (review states, builds) reads it again.
+        void queryClient.invalidateQueries({ queryKey: queryKeys.jobs.board(organizationId) })
       }
       dispatch(event)
       listeners.emit(event)
@@ -220,10 +234,11 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       setFrozen,
       reconnect,
       appName,
+      appInfo,
       watchJobs,
       subscribe: listeners.subscribe,
     }),
-    [frozen, snapshot, state, connection, setFrozen, reconnect, appName, watchJobs, listeners],
+    [frozen, snapshot, state, connection, setFrozen, reconnect, appName, appInfo, watchJobs, listeners],
   )
 
   return <ActivityContext.Provider value={value}>{children}</ActivityContext.Provider>

@@ -73,7 +73,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | | `reviews/reply-draft/generate` | `ReplyReviews`, 60 an hour per user: Claude writes a reply draft with the organization's Anthropic API key and it is saved as the review's draft; nothing is sent to the store ([AI reply drafts](#ai-reply-drafts)) |
 | Studio | `mockups/*` (templates, captions, frames, previews, exports) | Reads and previews `View`; templates and exports `EditContent`; `captions/suggest` behind the `Studio.AiCaptions` flag |
 | Files | `assets/upload`, `assets/asset/complete`, `assets/asset/download-url` | `EditContent` to upload, `View` to download; bytes go to S3 through presigned URLs |
-| Store jobs | `storejobs`, `storejobs/job`, `storejobs/job/cancel` | Read `View`; cancel `EditContent`; live on the SignalR hub `/hubs/activity` |
+| Store jobs | `storejobs`, `storejobs/job`, `storejobs/job/cancel`, `storejobs/board` | Read `View`; cancel `EditContent`; live on the SignalR hub `/hubs/activity`; `board` is the live page's calm half (versions with App Review, builds processing or near their TestFlight expiry, the last 24 hours per store) |
 | Package intake | `apps/{appId}/artifacts`, `artifacts/{sessionId}/complete`, `artifacts/session(s)`, `artifacts/summary`, `artifacts/counts`, `artifacts/session/deliver` | Upload with a PAT `ReleaseTest`, or a CI or upload token; deliver held `ReleaseTest`; reads `View` |
 | | `artifacts/ci-token(s)`, `artifacts/trusted-publisher(s)`, `artifacts/delivery-rules`, `artifacts/source(s)`, `artifacts/settings` | Reads `View`; changes `ManageConnections` |
 | | `oidc/exchange` | Anonymous; the CI provider's OIDC token is the credential |

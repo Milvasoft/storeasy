@@ -39,6 +39,19 @@ export const RecordEventType = {
   NotificationCreated: 'notification.created',
 } as const
 
+// What arrives from outside storeasy's own jobs (ActivityEventTypes on the API): a store event received by a webhook
+// endpoint (Store, Message "OLD -> NEW" or the event type), an App Store version state change and a rejection case (AppId,
+// Message the notification text), new store reviews (AppId), and a package upload session (AppId, Store, JobId once it
+// is delivering, Message "Session {id}: {status}").
+export const InboundEventType = {
+  WebhookReceived: 'webhook.received',
+  VersionState: 'version.state',
+  RejectionOpened: 'rejection.opened',
+  ReviewReceived: 'review.received',
+  ArtifactProgress: 'artifact.progress',
+} as const
+export type InboundEventType = (typeof InboundEventType)[keyof typeof InboundEventType]
+
 export const JOB_FINISHED_TYPES: readonly string[] = [
   ActivityEventType.JobSucceeded,
   ActivityEventType.JobFailed,
@@ -70,6 +83,9 @@ export interface ActivityEvent {
   RelatedEntityType?: number | null
   RelatedEntityId?: string | null
   NotificationId?: number | null
+  // Client only: when this browser received the event (ms since epoch). Short-lived visuals (a pulse, a token that just
+  // arrived) time out against it, so a server clock that differs from the browser's never hides or freezes them.
+  ReceivedAt?: number
 }
 
 // 'connecting' on start, 'reconnecting' between retries, 'disconnected' when the retries gave up (design 18.12).

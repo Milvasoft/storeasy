@@ -9261,6 +9261,164 @@
             loaded for a read.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto">
+            <summary>
+            A build the activity page names: still processing at the store, or close to its TestFlight expiry.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.Version">
+            <summary>
+            Version string.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.BuildNumber">
+            <summary>
+            Build number or version code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.ProcessingState">
+            <summary>
+            Processing state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.UploadedDate">
+            <summary>
+            UTC instant of the upload.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardBuildDto.ExpiryDate">
+            <summary>
+            UTC instant the TestFlight build expires.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto">
+            <summary>
+            What the live activity page shows next to the moving jobs: versions with App Review, builds in processing or close to
+            their TestFlight expiry, and the last 24 hours of finished jobs and store events per store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.GeneratedDate">
+            <summary>
+            UTC instant the board was read; elapsed times and countdowns are relative to it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.HoursStartDate">
+            <summary>
+            UTC start of the first hour of <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Hours"/> (the hour 23 hours before the current one).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Versions">
+            <summary>
+            The latest known state of each store record whose version is with App Review or changed state in the last 30 days,
+            newest change first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Builds">
+            <summary>
+            Builds the store still processes and valid builds whose TestFlight expiry is within 14 days, processing first, then
+            soonest expiry first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Hours">
+            <summary>
+            Hourly counts of the last 24 hours per store; hours without anything are left out.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto">
+            <summary>
+            One hour of one store on the activity page's 24 hour strip.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto.Hour">
+            <summary>
+            UTC start of the hour.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto.Succeeded">
+            <summary>
+            Jobs that finished successfully in the hour.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto.Failed">
+            <summary>
+            Jobs that failed for good in the hour.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto.Inbound">
+            <summary>
+            Store events (webhooks) received in the hour.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto">
+            <summary>
+            The last known review state of one store version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.VersionString">
+            <summary>
+            User facing version (1.4).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.BuildNumber">
+            <summary>
+            Build number attached to the version, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.State">
+            <summary>
+            State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>, <c>REJECTED</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.PreviousState">
+            <summary>
+            State before the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.ChangedDate">
+            <summary>
+            UTC instant of the last change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.SubmittedDate">
+            <summary>
+            UTC instant the version was first seen in a submitted state.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ApplyChangePlanPayload">
             <summary>
             Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ApplyChangePlan"/> job: the approved plan to apply.
@@ -21620,6 +21778,57 @@
         </member>
         <member name="M:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.StoreJobs.CancelStoreJob.CancelStoreJobCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery">
+            <summary>
+            The live activity page's board: versions with App Review, builds processing or close to expiry, and the last 24 hours
+            of finished jobs and store events per store. Read from storeasy's own records; no store is called.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>.
+            </summary>
+            <param name="versionStateRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="eventRepository"></param>
+            <param name="endpointRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>.
+            </summary>
+            <param name="versionStateRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="jobRepository"></param>
+            <param name="eventRepository"></param>
+            <param name="endpointRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.MaxRows">
+            <summary>
+            Most rows of each list.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.ExpiryDays">
+            <summary>
+            How far ahead a TestFlight expiry is named.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.RecentVersionDays">
+            <summary>
+            How long a version that left App Review stays on the board.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.Handle(Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Application.Features.StoreJobs.GetStoreJobDetail.GetStoreJobDetailQuery">
             <summary>

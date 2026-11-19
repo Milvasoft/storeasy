@@ -1,12 +1,37 @@
-import { act, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { ActivityEventType, createManualSource, type ActivityEvent } from '@/lib/activity/events'
-import { ConnectionStatus, StepDirection, StoreJobKind, StoreJobStatus, StoreJobStepStatus, StoreKind } from '@/lib/api/types'
+import { act, screen, waitFor, within } from '@testing-library/react'
+import { HttpResponse } from 'msw'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { ComplianceItemDto } from '@/features/common/types'
+import type { RejectionCaseListDto } from '@/features/rejections/types'
+import { ActivityEventType, createManualSource, InboundEventType, type ActivityEvent } from '@/lib/activity/events'
+import {
+  BuildProcessingState,
+  ConnectionStatus,
+  StepDirection,
+  StoreJobKind,
+  StoreJobStatus,
+  StoreJobStepStatus,
+  StoreKind,
+} from '@/lib/api/types'
 import { ActivityPage } from '@/pages/ActivityPage'
 import { activityEvent, app, job, TEST_USER_NAME } from '../support/factories'
+import { endpoint, envelope, listEnvelope } from '../support/handlers'
 import { renderWithProviders } from '../support/render'
+import { server } from '../support/server'
 import { reducedMotion } from '../support/setup'
 import { testState } from '../support/state'
+
+// What the live page reads beside the stream from the feature endpoints (empty unless a test fills them).
+let openRejections: RejectionCaseListDto[] = []
+let openCompliance: ComplianceItemDto[] = []
+beforeEach(() => {
+  openRejections = []
+  openCompliance = []
+  server.use(
+    endpoint('patch', '/Rejections', () => HttpResponse.json(listEnvelope(openRejections))),
+    endpoint('get', '/Compliance', () => HttpResponse.json(envelope(openCompliance))),
+  )
+})
 
 const sync = { JobId: 48213, JobKind: StoreJobKind.SyncApps, Store: StoreKind.Apple, AppId: 101, Attempt: 1 }
 const queued = activityEvent({ ...sync, Type: ActivityEventType.JobQueued, JobStatus: StoreJobStatus.Queued })
@@ -55,7 +80,15 @@ describe('ActivityPage', () => {
     expect(screen.queryByText('Hat şu an sessiz')).not.toBeInTheDocument()
     expect(screen.getAllByText('builds.list').length).toBeGreaterThan(0)
     expect(screen.getAllByText('GİDEN').length).toBeGreaterThan(0)
-    expect(document.querySelectorAll('animateMotion').length).toBeGreaterThan(0)
+    // The token: the app's name, at its step's place, opening the job.
+    const line = screen.getByRole('list', { name: "storeasy'den App Store hattı" })
+    const token = within(line).getByRole('link', {
+      name: /^Pusula · Uygulama ve build senkronu, mağazaya gidiyor, 3\. adım: builds\.list, 2 \/ 5/,
+    })
+    expect(token).toHaveAttribute('href', '/activity/jobs/48213')
+    expect(token).toHaveClass('tk', 'out')
+    expect(token.parentElement).toHaveStyle({ transform: 'translateX(44.00%)' })
+    expect(screen.getByText('1 iş hatta')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Etkin işler' })).toBeInTheDocument()
     expect(await screen.findByRole('link', { name: 'Pusula · Uygulama ve build senkronu' })).toHaveAttribute('href', '/activity/jobs/48213')
   })
@@ -68,17 +101,109 @@ describe('ActivityPage', () => {
     expect(screen.getByRole('link', { name: 'Uygulama ve build senkronu' })).toHaveAttribute('href', '/activity/jobs/7')
   })
 
-  it('shows the status list and no animation under reduced motion', async () => {
+  it('keeps the same line without motion under reduced motion', async () => {
     reducedMotion.value = true
     testState.jobs = []
     const { push } = setup()
-    await screen.findByText('Hareket azaltma açık: hat durum listesi olarak gösteriliyor.')
+    await screen.findByText('Hareket azaltma açık: hat hareketsiz gösteriliyor, bilgiler aynı.')
 
     push(queued, listing)
 
-    expect(screen.getByRole('list', { name: 'Hat durumu' })).toBeInTheDocument()
-    expect(screen.getAllByText('Sürüyor').length).toBeGreaterThan(0)
-    expect(document.querySelectorAll('animateMotion')).toHaveLength(0)
+    expect(screen.getByRole('group', { name: /Canlı hat/ })).toHaveClass('ln', 'calm')
+    expect(screen.getByRole('link', { name: /mağazaya gidiyor, 3\. adım: builds\.list/ })).toBeInTheDocument()
+  })
+
+  it('stops a failed token in red with its reason and asks for attention when the job fails', async () => {
+    testState.jobs = []
+    const { push } = setup()
+    await screen.findByText('Hat şu an sessiz')
+
+    // Today: a failure asks for attention for a day.
+    const Date = new globalThis.Date().toISOString()
+    push(
+      { ...queued, Date },
+      { ...listing, Date, StepStatus: StoreJobStepStatus.Failed, Message: '429 Too Many Requests' },
+      activityEvent({ ...sync, Date, Type: ActivityEventType.JobFailed, JobStatus: StoreJobStatus.Failed, Message: '429 Too Many Requests' }),
+    )
+
+    const token = screen.getByRole('link', { name: /durdu, 3\. adım: builds\.list.*429 Too Many Requests/ })
+    expect(token).toHaveClass('failed')
+    const attention = screen.getByRole('region', { name: 'Dikkat isteyenler' })
+    expect(within(attention).getByText('App Store için son iş başarısız')).toBeInTheDocument()
+    expect(within(attention).getByRole('link', { name: /İşi aç/ })).toHaveAttribute('href', '/activity/jobs/48213')
+    const gate = screen.getByRole('region', { name: 'App Store' })
+    expect(within(gate).getByText(/Son iş başarısız · hız sınırı/)).toBeInTheDocument()
+  })
+
+  it('rides a store event into storeasy as a pulse on its line', async () => {
+    testState.jobs = []
+    const { push } = setup()
+    await screen.findByText('Hat şu an sessiz')
+
+    push(
+      activityEvent({ Type: InboundEventType.WebhookReceived, Store: StoreKind.Google, Message: 'SUBSCRIPTION_RENEWED' }),
+      activityEvent({ Type: InboundEventType.WebhookReceived, Store: StoreKind.Google, Message: 'SUBSCRIPTION_RENEWED' }),
+    )
+
+    expect(screen.getByLabelText('Google Play kaynaklı Mağaza bildirimi: SUBSCRIPTION_RENEWED')).toBeInTheDocument()
+    expect(screen.getByText('×2')).toBeInTheDocument()
+    expect(screen.getAllByText('webhook.received')).toHaveLength(2)
+  })
+
+  it('fills the quiet line with what waits: reviews, expiries, deadlines and the gates, by app name', async () => {
+    testState.jobs = []
+    testState.apps = [app(), app({ Id: 103, Name: 'Mola' })]
+    const now = Date.now()
+    testState.board = {
+      GeneratedDate: new Date(now).toISOString(),
+      HoursStartDate: new Date(now - 23 * 3_600_000).toISOString(),
+      Versions: [
+        {
+          AppId: 103,
+          StoreAppId: 220,
+          Store: StoreKind.Apple,
+          VersionString: '1.4.0',
+          BuildNumber: '400',
+          State: 'IN_REVIEW',
+          ChangedDate: new Date(now - 26 * 3_600_000 - 60_000).toISOString(),
+        },
+      ],
+      Builds: [
+        {
+          AppId: 101,
+          StoreAppId: 201,
+          Store: StoreKind.Apple,
+          Version: '2.2.4',
+          BuildNumber: '398',
+          ProcessingState: BuildProcessingState.Valid,
+          ExpiryDate: new Date(now + 2.5 * 86_400_000).toISOString(),
+        },
+      ],
+      Hours: [{ Store: StoreKind.Apple, Hour: new Date(now - 2 * 3_600_000).toISOString(), Succeeded: 4, Failed: 1, Inbound: 2 }],
+    }
+    setup()
+
+    const gate = await screen.findByRole('region', { name: 'App Store' })
+    expect(await within(gate).findByText('Mola')).toBeInTheDocument()
+    expect(within(gate).getByText(/İncelemede · 1 g 2 sa oldu/)).toBeInTheDocument()
+    const upcoming = screen.getByRole('region', { name: 'Sırada' })
+    expect(within(upcoming).getByText('1 g 2 sa bekliyor')).toBeInTheDocument()
+    expect(within(upcoming).getByText('2 gün')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Mola, 1\.4\.0 \(400\), App Review, 1 g 2 sa bekliyor/ })).toHaveAttribute(
+      'href',
+      '/apps/103/release/versions',
+    )
+    expect(screen.getByRole('img', { name: 'App Store son 24 saat: 4 iş başarılı, 1 başarısız, 2 mağaza bildirimi' })).toBeInTheDocument()
+    const attention = screen.getByRole('region', { name: 'Dikkat isteyenler' })
+    expect(within(attention).getByText("Pusula 2.2.4 (398) 2 gün içinde TestFlight'tan düşüyor")).toBeInTheDocument()
+  })
+
+  it('says nothing needs the user when all is well', async () => {
+    testState.jobs = []
+    testState.connections = []
+    setup()
+
+    expect(await screen.findByText('Şu an senden bekleyen bir şey yok.')).toBeInTheDocument()
   })
 
   it('marks a lane whose attempt failed and waits for a retry', async () => {

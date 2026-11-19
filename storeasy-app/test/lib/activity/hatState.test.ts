@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { ActivityEventType, type ActivityEvent } from '@/lib/activity/events'
+import { InboundEventType } from '@/lib/activity/events'
 import {
+  activeIntakes,
   activeJobCount,
+  DONE_LINGER_MS,
   hatReducer,
+  MAX_TOKENS,
+  nextExpiry,
+  PULSE_MS,
+  pulseLabel,
+  readIntakeMessage,
+  tokenPosition,
+  tracksOf,
   initialHatState,
   jobsOf,
   lanesOf,
@@ -135,7 +145,7 @@ describe('hatReducer', () => {
   it('ignores a type it does not know and job events without a job id', () => {
     const before = run(queued)
 
-    expect(hatReducer(before, activityEvent({ Type: 'review.received' }))).toBe(before)
+    expect(hatReducer(before, activityEvent({ Type: 'plan.created' }))).toBe(before)
     expect(hatReducer(before, activityEvent({ Type: ActivityEventType.JobStep }))).toBe(before)
   })
 
@@ -159,5 +169,138 @@ describe('hatReducer', () => {
     expect(state.jobs[1]).toMatchObject({ status: StoreJobStatus.Running, store: StoreKind.Google, requestedBy: 'ece@kuzeylab.dev' })
     expect(state.jobs[2]).toMatchObject({ status: StoreJobStatus.Running, maxAttempts: 5, stepName: 'apps.list' })
     expect(jobsOf(state).map((item) => item.id)).toContain(1)
+  })
+})
+
+const T0 = Date.parse('2026-11-18T09:12:00Z')
+const apple = (state: HatState, now = T0) => tracksOf(state, now).find((track) => track.store === StoreKind.Apple)!
+
+describe('tokens', () => {
+  it('stands a token where its real step puts it: queued at storeasy, out by progress, back on the return, done at the gate', () => {
+    const queuedJob = run(queued).jobs[48213]
+    const outbound = run(queued, step({ StepOrder: 3, Progress: 1, Total: 4 })).jobs[48213]
+    const further = run(queued, step({ StepOrder: 3, Progress: 3, Total: 4 })).jobs[48213]
+    const answered = run(step({ StepStatus: StoreJobStepStatus.Succeeded })).jobs[48213]
+    const inbound = run(step({ Direction: StepDirection.Inbound, StepOrder: 4, Progress: 3, Total: 4 })).jobs[48213]
+    const internal = run(step({ Direction: StepDirection.Internal, StepOrder: 2 })).jobs[48213]
+    const done = run(step(), activityEvent({ ...sync, Type: ActivityEventType.JobSucceeded })).jobs[48213]
+
+    expect(tokenPosition(queuedJob)).toBeCloseTo(0.04)
+    expect(tokenPosition(outbound)).toBeCloseTo(0.35)
+    expect(tokenPosition(further)).toBeCloseTo(0.65)
+    expect(tokenPosition(answered)).toBeCloseTo(0.85)
+    expect(tokenPosition(inbound)).toBeCloseTo(0.35)
+    expect(tokenPosition(internal)).toBeCloseTo(0.14)
+    expect(tokenPosition(done)).toBe(1)
+  })
+
+  it('keeps the steps a job went through as its stations, in order', () => {
+    const state = run(
+      step({ StepOrder: 1, StepStatus: StoreJobStepStatus.Succeeded }),
+      step({ StepOrder: 2, StepName: 'apps.save', Direction: StepDirection.Internal, StepStatus: StoreJobStepStatus.Succeeded }),
+      step({ StepOrder: 3, StepName: 'builds.list' }),
+      step({ StepOrder: 3, StepName: 'builds.list', Progress: 2, Total: 4 }),
+    )
+
+    expect(state.jobs[48213].steps.map((pip) => [pip.order, pip.status])).toEqual([
+      [1, StoreJobStepStatus.Succeeded],
+      [2, StoreJobStepStatus.Succeeded],
+      [3, StoreJobStepStatus.Running],
+    ])
+  })
+
+  it('marks an outbound step without progress as in flight, and a failed step as stopped where it failed', () => {
+    const flying = apple(run(queued, step()))
+    const failed = apple(run(queued, step({ StepOrder: 3, Progress: 2, Total: 4, StepStatus: StoreJobStepStatus.Failed, Message: '429' })))
+
+    expect(flying.tokens[0]).toMatchObject({ phase: 'out', indeterminate: true })
+    expect(failed.tokens[0]).toMatchObject({ phase: 'failed', x: 0.5 })
+    expect(failed.failed).toBe(true)
+  })
+
+  it('lets a finished job glide into the gate and leave, and keeps a failed one on the line longer', () => {
+    const ok = run(queued, step(), activityEvent({ ...sync, Type: ActivityEventType.JobSucceeded, ReceivedAt: T0 }))
+    const bad = run(queued, step(), activityEvent({ ...sync, Type: ActivityEventType.JobFailed, ReceivedAt: T0, Message: '403' }))
+
+    expect(apple(ok, T0 + 1000).tokens[0]).toMatchObject({ phase: 'done', x: 1 })
+    expect(apple(ok, T0 + DONE_LINGER_MS + 1).tokens).toHaveLength(0)
+    expect(apple(bad, T0 + DONE_LINGER_MS + 1).tokens[0].phase).toBe('failed')
+    expect(nextExpiry(ok, T0 + 1000)).toBe(T0 + DONE_LINGER_MS)
+  })
+
+  it('draws at most a few tokens per line and counts the rest', () => {
+    const events = Array.from({ length: MAX_TOKENS + 2 }, (_, index) =>
+      activityEvent({ ...sync, JobId: 100 + index, Type: ActivityEventType.JobQueued }),
+    )
+    const track = apple(run(...events))
+
+    expect(track.tokens).toHaveLength(MAX_TOKENS)
+    expect(track.hidden).toBe(2)
+  })
+})
+
+describe('inbound pulses and package intake', () => {
+  it('turns a store event into a pulse on its store, labelled with the new state, and lists it as incoming', () => {
+    const state = run(
+      activityEvent({
+        Type: InboundEventType.WebhookReceived,
+        Store: StoreKind.Apple,
+        Message: 'WAITING_FOR_REVIEW -> IN_REVIEW',
+        ReceivedAt: T0,
+      }),
+    )
+
+    expect(apple(state, T0 + 100).pulses[0]).toMatchObject({ kind: 'webhook', label: 'IN_REVIEW', count: 1 })
+    expect(state.feed[0]).toMatchObject({ kind: 'in', name: 'webhook.received', store: StoreKind.Apple })
+    expect(apple(state, T0 + PULSE_MS + 1).pulses).toHaveLength(0)
+  })
+
+  it('folds a burst into one pulse with a count, and puts a version state and a rejection on the App Store line', () => {
+    const burst = run(
+      ...[0, 300, 600].map((offset) =>
+        activityEvent({
+          Type: InboundEventType.WebhookReceived,
+          Store: StoreKind.Google,
+          Message: 'SUBSCRIPTION_RENEWED',
+          ReceivedAt: T0 + offset,
+        }),
+      ),
+    )
+    const review = run(
+      activityEvent({
+        Type: InboundEventType.VersionState,
+        AppId: 101,
+        Message: 'Pusula 2.3.1: WAITING_FOR_REVIEW -> IN_REVIEW',
+        ReceivedAt: T0,
+      }),
+      activityEvent({ Type: InboundEventType.RejectionOpened, AppId: 103, Message: 'Mola 1.4.0: REJECTED', ReceivedAt: T0 + 500 }),
+    )
+    const google = tracksOf(burst, T0 + 700).find((track) => track.store === StoreKind.Google)!
+
+    expect(google.pulses).toHaveLength(1)
+    expect(google.pulses[0]).toMatchObject({ count: 3, label: 'SUBSCRIPTION_RENEWED' })
+    expect(apple(review, T0 + 600).pulses[0]).toMatchObject({ kind: 'rejection', count: 2, appId: null })
+    expect(review.feed[0]).toMatchObject({ kind: 'error', name: 'rejection.opened', appId: 103 })
+  })
+
+  it('reads the state a store message names', () => {
+    expect(pulseLabel('PROCESSING -> COMPLETE')).toBe('COMPLETE')
+    expect(pulseLabel('Mola 1.4.0: REJECTED')).toBe('REJECTED')
+    expect(pulseLabel('SUBSCRIPTION_PURCHASED')).toBe('SUBSCRIPTION_PURCHASED')
+    expect(pulseLabel('Halka: 2 new reviews.')).toBeNull()
+    expect(pulseLabel(null)).toBeNull()
+  })
+
+  it('follows a package upload session from its first state to its end', () => {
+    const intake = (status: string) =>
+      activityEvent({ Type: InboundEventType.ArtifactProgress, AppId: 101, Store: StoreKind.Apple, Message: `Session 77: ${status}` })
+    const uploading = run(intake('Uploading'), intake('Parsing'))
+    const delivered = run(intake('Uploading'), intake('Parsing'), intake('Delivered'))
+
+    expect(readIntakeMessage('Session 12: Checking')).toEqual({ sessionId: 12, status: 'Checking' })
+    expect(activeIntakes(uploading).map((item) => item.status)).toEqual(['Parsing'])
+    expect(uploading.feed).toHaveLength(1)
+    expect(activeIntakes(delivered)).toHaveLength(0)
+    expect(delivered.feed[0]).toMatchObject({ kind: 'in', name: 'artifact.progress', detail: 'Delivered' })
   })
 })

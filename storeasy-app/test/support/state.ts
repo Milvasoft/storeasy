@@ -15,6 +15,7 @@ import type {
   StoreConnectionDto,
   StoreJobDetailDto,
   StoreJobListDto,
+  ActivityBoardDto,
 } from '@/lib/api/types'
 import type { AiSettingsDto, PreReviewDto } from '@/lib/api/types'
 import { aiModels, preReview } from './preReview'
@@ -49,6 +50,8 @@ export interface TestState {
   appDetail: AppDetailDto
   jobs: StoreJobListDto[]
   jobDetail: StoreJobDetailDto
+  /** GET StoreJobs/board: the live page's board (empty by default). */
+  board: ActivityBoardDto
   /** Job ids POST apps/sync answers. */
   syncJobIds: number[]
   /** Phase 8: anonymous instance settings, the server flags (none by default: the client defaults apply). */
@@ -83,6 +86,7 @@ function initialState(): TestState {
     appDetail: appDetail(),
     jobs: [job()],
     jobDetail: jobDetail(),
+    board: { GeneratedDate: '2026-11-18T09:12:00Z', HoursStartDate: '2026-11-17T10:00:00Z', Versions: [], Builds: [], Hours: [] },
     syncJobIds: [48300],
     publicSettings: publicSettings(),
     featureFlags: [],

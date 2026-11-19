@@ -1,4 +1,5 @@
 import { delay, http, HttpResponse, type HttpHandler } from 'msw'
+import { activityMockHandlers } from './activityMock'
 import { appsMockHandlers } from './appsMock'
 import { studioMockHandlers } from './studioMock'
 import type { FilterCriteria, ListRequest } from '@/lib/api/list'
@@ -363,6 +364,7 @@ export const mockHandlers: HttpHandler[] = [
     return envelope(connection)
   }),
   ...studioMockHandlers,
+  ...activityMockHandlers,
   ...appsMockHandlers,
   // Phase 8: instance settings, server feature flags, organization roles and settings, sessions and push.
   http.get(`${BASE}/System/public-settings`, () =>

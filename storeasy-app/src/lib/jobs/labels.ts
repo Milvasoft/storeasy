@@ -5,13 +5,30 @@ import { interpolate } from '@/lib/i18n/interpolate'
 
 // Labels and tones of the job, step and build enums (design 11.4, 8.1), translated in one place.
 
+const KIND_KEY: Record<StoreJobKind, keyof Dictionary['jobs']['kind']> = {
+  [StoreJobKind.SyncApps]: 'syncApps',
+  [StoreJobKind.ApplyChangePlan]: 'applyChangePlan',
+  [StoreJobKind.ProcessArtifact]: 'processArtifact',
+  [StoreJobKind.MsSync]: 'msSync',
+  [StoreJobKind.MsSubmit]: 'msSubmit',
+  [StoreJobKind.MsCheckInstaller]: 'msCheckInstaller',
+  [StoreJobKind.MockupExport]: 'mockupExport',
+  [StoreJobKind.SyncMonetization]: 'syncMonetization',
+  [StoreJobKind.PreReview]: 'preReview',
+  [StoreJobKind.ProcessWebhookEvent]: 'processWebhookEvent',
+  [StoreJobKind.RegisterWebhooks]: 'registerWebhooks',
+  [StoreJobKind.SyncVersionStates]: 'syncVersionStates',
+  [StoreJobKind.SyncReviews]: 'syncReviews',
+  [StoreJobKind.ReplyToReview]: 'replyToReview',
+  [StoreJobKind.SyncTestFlight]: 'syncTestFlight',
+  [StoreJobKind.UpdateTestFlight]: 'updateTestFlight',
+  [StoreJobKind.PingWebhooks]: 'pingWebhooks',
+}
+
 export function jobKindLabel(kind: StoreJobKind | null | undefined, t: Dictionary): string {
-  switch (kind) {
-    case StoreJobKind.SyncApps:
-      return t.jobs.kind.syncApps
-    default:
-      return kind ? String(kind) : t.jobs.job
-  }
+  const key = kind ? KIND_KEY[kind] : undefined
+  // A kind newer than this client reads as "Job", never as its bare number.
+  return key ? t.jobs.kind[key] : t.jobs.job
 }
 
 export interface StatusView {

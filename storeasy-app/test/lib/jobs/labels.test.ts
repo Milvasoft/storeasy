@@ -30,7 +30,10 @@ import { app, storeRecord } from '../../support/factories'
 describe('job labels', () => {
   it('names the job kinds and falls back for an unknown one', () => {
     expect(jobKindLabel(StoreJobKind.SyncApps, tr)).toBe('Uygulama ve build senkronu')
-    expect(jobKindLabel(99 as StoreJobKind, en)).toBe('99')
+    // Never a bare number (the live page once titled jobs "402"): a kind this client knows is named, a newer one is "Job".
+    expect(jobKindLabel(StoreJobKind.SyncVersionStates, tr)).toBe('İnceleme durumu senkronu')
+    expect(jobKindLabel(StoreJobKind.SyncReviews, en)).toBe('Sync reviews')
+    expect(jobKindLabel(99 as StoreJobKind, en)).toBe('Job')
     expect(jobKindLabel(null, en)).toBe('Job')
   })
 

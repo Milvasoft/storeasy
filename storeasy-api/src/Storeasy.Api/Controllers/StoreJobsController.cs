@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Features.StoreJobs.CancelStoreJob;
+using Storeasy.Application.Features.StoreJobs.GetActivityBoard;
 using Storeasy.Application.Features.StoreJobs.GetStoreJobDetail;
 using Storeasy.Application.Features.StoreJobs.GetStoreJobList;
 using Storeasy.Application.Utils.Constants;
@@ -40,6 +41,16 @@ public class StoreJobsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpGet("job")]
     public Task<Response<StoreJobDetailDto>> GetJobAsync([FromQuery] GetStoreJobDetailQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The live activity page's board (any member): versions with App Review, builds processing or close to their TestFlight
+    /// expiry, and the last 24 hours of finished jobs and store events per store.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("board")]
+    public Task<Response<ActivityBoardDto>> GetBoardAsync([FromQuery] GetActivityBoardQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Cancels a queued job at once, or asks a running job to stop at its next step (editors and above). Returns the state

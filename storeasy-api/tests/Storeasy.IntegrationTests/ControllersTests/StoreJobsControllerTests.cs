@@ -4,6 +4,7 @@ using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Events;
 using Storeasy.Domain.Stores;
 using Storeasy.IntegrationTests.TestBase;
 using Storeasy.IntegrationTests.TestBase.Fakes;
@@ -232,5 +233,50 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         wrongOrganization.StatusCode.Should().Be(HttpStatusCode.NotFound, "a job of another organization is not found");
         viewerDetail.StatusCode.Should().Be(HttpStatusCode.OK);
         viewerCancel.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Board_ShouldNameReviewsBuildsAndTheLast24HoursOfTheOrganization()
+    {
+        // Arrange
+        var org = await _factory.NewOrgAsync();
+        var stranger = await _factory.NewOrgAsync();
+        var (appId, storeAppId, externalId) = await _factory.AddAppAsync(org, name: "Pusula");
+        var (otherAppId, otherStoreAppId, _) = await _factory.AddAppAsync(org, name: "Mola");
+        var now = DateTime.UtcNow;
+
+        await _factory.DbAsync(async db =>
+        {
+            db.AppVersionStates.AddRange(
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = appId, StoreAppId = storeAppId, Store = StoreKind.Apple, ExternalVersionId = $"v1{org.Suffix}", VersionString = "2.3.0", State = "READY_FOR_SALE", ChangedDate = now.AddDays(-60), SubmittedDate = now.AddDays(-62) },
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = appId, StoreAppId = storeAppId, Store = StoreKind.Apple, ExternalVersionId = $"v2{org.Suffix}", VersionString = "2.3.1", BuildNumber = "400", State = "IN_REVIEW", PreviousState = "WAITING_FOR_REVIEW", ChangedDate = now.AddHours(-26), SubmittedDate = now.AddHours(-40) },
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = otherAppId, StoreAppId = otherStoreAppId, Store = StoreKind.Apple, ExternalVersionId = $"v3{org.Suffix}", VersionString = "1.0", State = "READY_FOR_SALE", ChangedDate = now.AddDays(-45) });
+
+            db.StoreJobs.AddRange(
+                new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Apple, Status = StoreJobStatus.Succeeded, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddMinutes(-5) },
+                new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Google, Status = StoreJobStatus.Failed, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddMinutes(-5) },
+                new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Apple, Status = StoreJobStatus.Succeeded, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddDays(-3) });
+
+            await db.SaveChangesAsync();
+        });
+
+        await _factory.AddBuildAsync(org.OrganizationId, storeAppId, $"b1{externalId}", "2.3.2", "412", null, BuildProcessingState.Processing);
+        await _factory.AddBuildAsync(org.OrganizationId, storeAppId, $"b2{externalId}", "2.2.4", "398", now.AddDays(3));
+        await _factory.AddBuildAsync(org.OrganizationId, storeAppId, $"b3{externalId}", "2.2.0", "390", now.AddDays(40));
+
+        // Act
+        var (http, body) = await org.Owner.Client.GetAsync<ActivityBoardDto>($"storejobs/board?organizationId={org.OrganizationId}");
+        var (strangerHttp, _) = await stranger.Owner.Client.GetAsync<ActivityBoardDto>($"storejobs/board?organizationId={org.OrganizationId}");
+
+        // Assert
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        strangerHttp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        body.Data.Versions.Should().ContainSingle("the latest state of each record, and only recent or in review ones");
+        body.Data.Versions[0].Should().Match<ActivityBoardVersionDto>(v => v.AppId == appId && v.State == "IN_REVIEW" && v.VersionString == "2.3.1" && v.SubmittedDate != null);
+        body.Data.Builds.Select(b => (b.BuildNumber, b.ProcessingState, b.AppId)).Should().Equal(("412", BuildProcessingState.Processing, appId), ("398", BuildProcessingState.Valid, appId));
+        body.Data.Hours.Should().HaveCount(2);
+        body.Data.Hours.Should().ContainSingle(h => h.Store == StoreKind.Apple).Which.Succeeded.Should().Be(1);
+        body.Data.Hours.Should().ContainSingle(h => h.Store == StoreKind.Google).Which.Failed.Should().Be(1);
+        body.Data.Hours.Should().OnlyContain(h => h.Hour >= body.Data.HoursStartDate && h.Hour <= body.Data.GeneratedDate);
     }
 }

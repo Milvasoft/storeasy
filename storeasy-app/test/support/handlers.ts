@@ -278,6 +278,7 @@ export const defaultHandlers: HttpHandler[] = [
       : errorResponse('StoreJobNotFound', 'İş bulunamadı.', 404),
   ),
   endpoint('post', '/StoreJobs/job/cancel', () => json(envelope(5))),
+  endpoint('get', '/StoreJobs/board', () => json(envelope(testState.board))),
 
   // ---- assets -------------------------------------------------------------
   endpoint('post', '/Assets/upload', () =>
