@@ -48,6 +48,17 @@ describe('template editor: properties', () => {
     expect(spec.Background).toMatchObject({ Kind: 'gradient', Colors: ['#4636FF', '#0F4C45'], Angle: 160 })
   })
 
+  it('picks a background color from the color picker on the swatch', async () => {
+    const { user } = await open()
+
+    await user.click(screen.getByRole('radio', { name: 'Gradyan' }))
+    fireEvent.change(screen.getByLabelText('İkinci renk: Renk seç'), { target: { value: '#12ab34' } })
+
+    expect(screen.getByLabelText('İkinci renk')).toHaveValue('#12AB34')
+    const spec = await savedSpec(user)
+    expect(spec.Background?.Colors?.[1]).toBe('#12AB34')
+  })
+
   it('offers the background image upload for an image background', async () => {
     const { user } = await open()
 
