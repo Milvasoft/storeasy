@@ -636,6 +636,14 @@ body {
   }
 
   /* ---------- Badges and store tags ---------- */
+  /* Pills keep their own width: inside a grid or flex column they would otherwise stretch to the cell and leave the text off center. */
+  .bdg,
+  .st,
+  .chip {
+    width: fit-content;
+    max-width: 100%;
+    justify-content: center;
+  }
   .bdg {
     display: inline-flex;
     align-items: center;
