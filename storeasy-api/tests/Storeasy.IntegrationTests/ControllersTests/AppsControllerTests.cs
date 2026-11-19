@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Storeasy.Application.Dtos.AppDtos;
 using Storeasy.Application.Dtos.OrganizationDtos;
+using Storeasy.Application.Dtos.ReadinessDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Stores;
@@ -310,6 +311,70 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
         viewerList.StatusCode.Should().Be(HttpStatusCode.OK);
         strangerList.StatusCode.Should().Be(HttpStatusCode.NotFound);
         foreignSync.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task HideAndUnhide_ShouldMoveTheAppBetweenTheListsAndSurviveASync()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"6{setup.Suffix}", $"com.{setup.Suffix}.kept", "Kept"), new StoreAppRecord($"7{setup.Suffix}", $"com.{setup.Suffix}.hidden", "Hidden one"));
+        await SyncAsync(setup);
+        var hiddenId = (await ListAppsAsync(setup)).Single(a => a.Name == "Hidden one").Id;
+
+        // Act
+        var (hide, hidden) = await setup.Owner.Client.PostAsync<int>("apps/app/hidden", new { organizationId = setup.OrganizationId, appId = hiddenId, hidden = true });
+        var (hideAgain, _) = await setup.Owner.Client.PostAsync<int>("apps/app/hidden", new { organizationId = setup.OrganizationId, appId = hiddenId, hidden = true });
+        await SyncAsync(setup);
+        var shown = await ListAppsAsync(setup);
+        var (_, hiddenList) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, hidden = true, pageNumber = 1, rowCount = 50 });
+        var (_, everything) = await setup.Owner.Client.PatchListAsync<AppListDto>("apps", new { organizationId = setup.OrganizationId, includeHidden = true, pageNumber = 1, rowCount = 50 });
+        var (_, overview) = await setup.Owner.Client.GetAsync<List<AppOverviewDto>>($"apps/overview?organizationId={setup.OrganizationId}");
+        var (detail, hiddenDetail) = await setup.Owner.Client.GetAsync<AppDetailDto>($"apps/app?organizationId={setup.OrganizationId}&appId={hiddenId}");
+        var (unhide, _) = await setup.Owner.Client.PostAsync<int>("apps/app/hidden", new { organizationId = setup.OrganizationId, appId = hiddenId, hidden = false });
+        var afterUnhide = await ListAppsAsync(setup);
+        var audited = await _factory.DbAsync(db => db.StoreAuditLogs.AsNoTracking().CountAsync(a => a.OrganizationId == setup.OrganizationId && (a.Action == AuditAction.AppHidden || a.Action == AuditAction.AppUnhidden)));
+
+        // Assert
+        hide.StatusCode.Should().Be(HttpStatusCode.OK);
+        hidden.Data.Should().Be(hiddenId);
+        hideAgain.StatusCode.Should().Be(HttpStatusCode.OK);
+        shown.Select(a => a.Name).Should().Equal(["Kept"], "a sync never shows a hidden app again");
+        hiddenList.Data.Should().ContainSingle().Which.Should().Match<AppListDto>(a => a.Id == hiddenId && a.HiddenDate != null);
+        hiddenList.TotalDataCount.Should().Be(1);
+        everything.Data.Should().HaveCount(2);
+        overview.Data.Select(a => a.Name).Should().Equal(["Kept"]);
+        detail.StatusCode.Should().Be(HttpStatusCode.OK, "a hidden app still opens by its id");
+        hiddenDetail.Data.HiddenDate.Should().NotBeNull();
+        unhide.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterUnhide.Select(a => a.Name).Should().BeEquivalentTo(["Kept", "Hidden one"]);
+        audited.Should().Be(2, "hiding an app that is already hidden writes nothing");
+    }
+
+    [Fact]
+    public async Task Hide_ShouldCheckTheRoleAndTheOrganization()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var stranger = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"8{setup.Suffix}", $"com.{setup.Suffix}.app", "App"));
+        await SyncAsync(setup);
+        var appId = (await ListAppsAsync(setup)).Single().Id;
+        var viewerUser = await _factory.CreateUserAsync(email: $"v{TestApi.Unique()}@example.com");
+        var viewer = await _factory.LoginAsync(viewerUser.UserName, TestApi.DefaultPassword);
+        var (_, invitation) = await setup.Owner.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId = setup.OrganizationId, email = viewerUser.Email, role = OrgRole.Viewer });
+        await viewer.Client.PostAsync<int>("organizations/invitation/accept", new { token = invitation.Data.Token });
+
+        // Act
+        var (viewerHide, _) = await viewer.Client.PostAsync<int>("apps/app/hidden", new { organizationId = setup.OrganizationId, appId, hidden = true });
+        var (foreignApp, _) = await stranger.Owner.Client.PostAsync<int>("apps/app/hidden", new { organizationId = stranger.OrganizationId, appId, hidden = true });
+        var (badId, _) = await setup.Owner.Client.PostAsync<int>("apps/app/hidden", new { organizationId = setup.OrganizationId, appId = 0, hidden = true });
+
+        // Assert
+        viewerHide.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        foreignApp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        badId.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await ListAppsAsync(setup)).Should().ContainSingle("nothing was hidden");
     }
 
     [Fact]

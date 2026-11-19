@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Boxes, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Boxes, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
+import { useSetAppHidden } from '@/components/apps/useSetAppHidden'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
 import { DataTable, type Column } from '@/components/ui/DataTable'
@@ -288,6 +289,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
   const [started, setStarted] = useState<Set<number>>(() => new Set())
   const sync = useSyncApps((jobIds) => setStarted((current) => new Set([...current, ...jobIds])))
   const editor = can(OrgPermission.EditContent)
+  const setHidden = useSetAppHidden()
 
   const app = useQuery({
     queryKey: queryKeys.apps.detail(organization.Id, appId),
@@ -337,11 +339,20 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
                   <StoreTag key={record.StoreAppId} store={record.Store} small codeOnly />
                 ))}
                 <span>{interpolate(t.app.addedOn, { date: format.date(data.CreationDate) })}</span>
+                {data.HiddenDate ? (
+                  <Badge tone="neutral" small>
+                    {t.apps.hiddenBadge}
+                  </Badge>
+                ) : null}
               </span>
             }
             actions={
               editor ? (
                 <>
+                  <Button loading={setHidden.isPending} onClick={() => setHidden.mutate({ app: data, hidden: !data.HiddenDate })}>
+                    {data.HiddenDate ? <Eye aria-hidden /> : <EyeOff aria-hidden />}
+                    {data.HiddenDate ? t.apps.unhide : t.apps.hide}
+                  </Button>
                   <Button onClick={() => setLinking(true)}>
                     <Link2 aria-hidden />
                     {t.app.link}

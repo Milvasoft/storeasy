@@ -49,7 +49,8 @@ public interface IStoreContentService
     Task<StoreOptionsRead> ListOptionsAsync(StoreAppContext app, StoreOptionKind kind, string filter, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Every store record of the organization (of one app when <paramref name="appId"/> is set).
+    /// Every store record of the organization's shown apps (hidden apps are left out of these organization wide reads),
+    /// or of one app when <paramref name="appId"/> is set, hidden or not.
     /// </summary>
     /// <param name="organizationId"></param>
     /// <param name="appId"></param>

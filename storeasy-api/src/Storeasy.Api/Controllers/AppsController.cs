@@ -19,6 +19,7 @@ using Storeasy.Application.Features.Apps.AddGoogleApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
+using Storeasy.Application.Features.Apps.SetAppHidden;
 using Storeasy.Application.Features.Apps.SyncApps;
 using Storeasy.Application.Features.Apps.UnlinkStoreApp;
 using Storeasy.Application.Utils.Constants;
@@ -83,6 +84,16 @@ public class AppsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPost("app/unlink")]
     public Task<Response<int>> UnlinkStoreAppAsync(UnlinkStoreAppCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Hides an app from the apps list and the organization wide overviews, or shows it again (editors and above). The
+    /// app stays reachable by its id; sync never shows it again.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("app/hidden")]
+    public Task<Response<int>> SetAppHiddenAsync(SetAppHiddenCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Queues a sync of apps and builds for one connection or all (editors and above). Returns the job ids.

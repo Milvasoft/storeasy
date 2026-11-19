@@ -120,6 +120,12 @@
             features). Null until a member fills it.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Apps.App.HiddenDate">
+            <summary>
+            UTC instant a member hid the app from the apps list; null while it is shown. Only a member changes it (sync never
+            writes it), so a hidden app stays hidden when its records are read from the store again.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Apps.App.StoreApps">
             <summary>
             Store records of the app.
@@ -1791,6 +1797,12 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.AppProfileUpdated">
             <summary>A storeasy app's catalog profile (device families, regions, features) changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppHidden">
+            <summary>A storeasy app was hidden from the apps list.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppUnhidden">
+            <summary>A hidden storeasy app was shown in the apps list again.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.PlanApproved">
             <summary>A change plan was approved and its apply job queued.</summary>

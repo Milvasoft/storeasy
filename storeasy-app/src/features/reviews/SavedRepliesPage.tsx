@@ -19,7 +19,7 @@ import {
   RadioGroup,
   Textarea,
 } from '@/components/ui/primitives'
-import { APP_NAMES_REQUEST } from '@/lib/activity/ActivityContext'
+import { APP_NAMES_ALL_REQUEST, APP_NAMES_REQUEST } from '@/lib/activity/ActivityContext'
 import { appsApi } from '@/lib/api/endpoints'
 import { OrgPermission } from '@/lib/api/types'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
@@ -243,8 +243,8 @@ export function SavedRepliesPage() {
     queryFn: () => reviewsApi.savedReplies(organization.Id),
   })
   const apps = useQuery({
-    queryKey: queryKeys.apps.list(organization.Id, APP_NAMES_REQUEST),
-    queryFn: () => appsApi.list(organization.Id, APP_NAMES_REQUEST),
+    queryKey: queryKeys.apps.list(organization.Id, APP_NAMES_ALL_REQUEST),
+    queryFn: () => appsApi.list(organization.Id, APP_NAMES_ALL_REQUEST),
     staleTime: 60_000,
   })
   const appName = (id: number) => apps.data?.Data.find((app) => app.Id === id)?.Name ?? `#${id}`

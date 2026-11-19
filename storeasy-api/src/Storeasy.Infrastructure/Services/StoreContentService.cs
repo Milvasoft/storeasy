@@ -106,7 +106,7 @@ public sealed class StoreContentService(IStoreasyRepositoryBase<StoreApp> storeA
     /// <inheritdoc/>
     public async Task<List<StoreAppContext>> GetStoreAppsAsync(int organizationId, int? appId, CancellationToken cancellationToken)
     {
-        var rows = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == organizationId && !s.App.IsDeleted && (appId == null || s.AppId == appId),
+        var rows = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == organizationId && !s.App.IsDeleted && (appId == null ? s.App.HiddenDate == null : s.AppId == appId),
                                                          projection: s => new StoreApp { Id = s.Id, AppId = s.AppId, App = new App { Name = s.App.Name, Profile = s.App.Profile }, Store = s.Store, ExternalId = s.ExternalId, StoreConnectionId = s.StoreConnectionId },
                                                          cancellationToken: cancellationToken);
 

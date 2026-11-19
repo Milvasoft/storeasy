@@ -8,7 +8,7 @@ using Storeasy.Domain.Apps;
 namespace Storeasy.Application.Features.Apps.GetAppList;
 
 /// <summary>
-/// Handles <see cref="GetAppListQuery"/>. Sorted by name by default; the store filter is part of the query.
+/// Handles <see cref="GetAppListQuery"/>. Sorted by name by default; the store and hidden filters are part of the query.
 /// </summary>
 /// <param name="appRepository"></param>
 public class GetAppListQueryHandler(IStoreasyRepositoryBase<App> appRepository) : IInterceptable, IListQueryHandler<GetAppListQuery, AppListDto>
@@ -23,7 +23,9 @@ public class GetAppListQueryHandler(IStoreasyRepositoryBase<App> appRepository) 
         request.Sorting ??= new SortRequest { SortBy = nameof(AppListDto.Name), Type = Milvasoft.Components.Rest.Enums.SortType.Asc };
 
         var response = await _appRepository.GetAllAsync(request,
-                                                        condition: a => a.OrganizationId == request.OrganizationId && (request.Store == null || a.StoreApps.Any(s => s.Store == request.Store)),
+                                                        condition: a => a.OrganizationId == request.OrganizationId
+                                                                        && (request.Store == null || a.StoreApps.Any(s => s.Store == request.Store))
+                                                                        && (request.IncludeHidden || (request.Hidden ? a.HiddenDate != null : a.HiddenDate == null)),
                                                         projection: AppListDto.Projection,
                                                         cancellationToken: cancellationToken);
 

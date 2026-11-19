@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { LayoutGrid, Plus, RefreshCw, SearchX, Table2 } from 'lucide-react'
+import { ArrowLeft, EyeOff, LayoutGrid, Plus, RefreshCw, SearchX, Table2 } from 'lucide-react'
 import { AddGoogleAppDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
+import { HideAppButton } from '@/components/apps/HideAppButton'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { ScreenState } from '@/components/ui/ScreenState'
@@ -11,7 +12,7 @@ import { SegmentedControl } from '@/components/ui/Tabs'
 import { Button, CardSkeleton, Chip, EmptyState, PageHeader, TableSkeleton } from '@/components/ui/primitives'
 import { useActivity } from '@/lib/activity/ActivityContext'
 import { isActive } from '@/lib/activity/hatState'
-import { appsApi, connectionsApi } from '@/lib/api/endpoints'
+import { appsApi, connectionsApi, type AppListRequest } from '@/lib/api/endpoints'
 import { FilterType, SortType, type ListRequest } from '@/lib/api/list'
 import { OrgPermission, StoreKind, type AppListDto } from '@/lib/api/types'
 import { lastSyncOf, primaryIdentifier, recordFor, recordsOf, STORE_ORDER, storeCounts } from '@/lib/apps/apps'
@@ -27,6 +28,8 @@ const DEFAULT_PAGE_SIZE = 20
 const SEARCH_DELAY_MS = 400
 const STORE_PARAM: Record<string, StoreKind> = { apple: StoreKind.Apple, google: StoreKind.Google, microsoft: StoreKind.Microsoft }
 const PARAM_OF: Record<StoreKind, string> = { [StoreKind.Apple]: 'apple', [StoreKind.Google]: 'google', [StoreKind.Microsoft]: 'microsoft' }
+// One row is enough: the hidden apps link needs only the total.
+const HIDDEN_COUNT_REQUEST: AppListRequest = { PageNumber: 1, RowCount: 1, Hidden: true }
 
 function numberParam(value: string | null): number | null {
   const parsed = Number(value)
@@ -71,7 +74,7 @@ function SyncBadge({ synced }: { synced: boolean }) {
 }
 
 /** One app as a card (design 6.1): icon and identifier, one lane per store record, the date it was added. */
-function AppCard({ app, running }: { app: AppListDto; running: boolean }) {
+function AppCard({ app, running, action }: { app: AppListDto; running: boolean; action?: ReactNode }) {
   const t = useT()
   const format = useFormat()
   const identifier = primaryIdentifier(app)
@@ -87,11 +90,14 @@ function AppCard({ app, running }: { app: AppListDto; running: boolean }) {
           </h3>
           {identifier ? <div className="mono truncate text-xs text-fg3">{identifier}</div> : null}
         </div>
-        {running ? (
-          <span className="ml-auto">
-            <Badge tone="accent" small live>
-              {t.jobs.state.running}
-            </Badge>
+        {running || action ? (
+          <span className="ml-auto flex shrink-0 items-center gap-1">
+            {running ? (
+              <Badge tone="accent" small live>
+                {t.jobs.state.running}
+              </Badge>
+            ) : null}
+            {action}
           </span>
         ) : null}
       </div>
@@ -133,7 +139,8 @@ function StoreCell({ app, store }: { app: AppListDto; store: StoreKind }) {
 
 /**
  * The apps (design 6.1-6.6): cards or a table (?view=table), a name search in the address, store chips, the last sync
- * and "Pull from stores". With no store connection yet the page leads to the connections (6.4).
+ * and "Pull from stores". With no store connection yet the page leads to the connections (6.4). Hidden apps are left
+ * out; ?hidden=1 lists only them, each with "Show" to bring it back.
  */
 export function AppsPage() {
   const t = useT()
@@ -143,7 +150,8 @@ export function AppsPage() {
   const organization = useCurrentOrganization()
   const { can } = useOrganization()
   const [params, setParams] = useSearchParams()
-  const request = useMemo(() => appsRequest(params), [params])
+  const showHidden = params.get('hidden') === '1'
+  const request = useMemo<AppListRequest>(() => ({ ...appsRequest(params), ...(showHidden ? { Hidden: true } : {}) }), [params, showHidden])
   const view = params.get('view') === 'table' ? 'table' : 'grid'
   const storeFilter = STORE_PARAM[params.get('store') ?? ''] ?? null
   const [search, setSearch] = useState(params.get('q') ?? '')
@@ -163,6 +171,11 @@ export function AppsPage() {
     queryKey: queryKeys.connections.list(organization.Id),
     queryFn: () => connectionsApi.list(organization.Id),
   })
+  const hiddenApps = useQuery({
+    queryKey: queryKeys.apps.list(organization.Id, HIDDEN_COUNT_REQUEST),
+    queryFn: () => appsApi.list(organization.Id, HIDDEN_COUNT_REQUEST),
+  })
+  const hiddenCount = hiddenApps.data?.TotalDataCount ?? 0
 
   const update = (changes: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(params)
@@ -224,14 +237,28 @@ export function AppsPage() {
       role: 'hidePhone' as const,
       cell: (app: AppListDto) => <span className="tabular-nums">{format.date(app.CreationDate)}</span>,
     },
+    ...(editor
+      ? [{ key: 'actions', header: t.apps.actions, role: 'action' as const, cell: (app: AppListDto) => <HideAppButton app={app} /> }]
+      : []),
   ]
 
   const header = (
     <PageHeader
-      title={t.apps.title}
-      subtitle={t.apps.subtitle}
+      title={showHidden ? t.apps.hiddenTitle : t.apps.title}
+      subtitle={showHidden ? t.apps.hiddenSubtitle : t.apps.subtitle}
       actions={
         <>
+          {showHidden ? (
+            <Button variant="ghost" onClick={() => update({ hidden: null })}>
+              <ArrowLeft aria-hidden />
+              {t.apps.backToList}
+            </Button>
+          ) : hiddenCount > 0 ? (
+            <Button variant="ghost" onClick={() => update({ hidden: '1' })}>
+              <EyeOff aria-hidden />
+              {interpolate(t.apps.hiddenLink, { count: hiddenCount })}
+            </Button>
+          ) : null}
           <SegmentedControl
             label={t.apps.view}
             value={view}
@@ -257,7 +284,7 @@ export function AppsPage() {
               },
             ]}
           />
-          {editor ? (
+          {editor && !showHidden ? (
             <>
               <Button onClick={() => setAdding(true)}>
                 <Plus aria-hidden />
@@ -314,6 +341,15 @@ export function AppsPage() {
         action={<Button onClick={() => update({ store: null })}>{t.activity.allStores}</Button>}
       />
     )
+  } else if (all.length === 0 && showHidden) {
+    body = (
+      <EmptyState
+        icon={<EyeOff aria-hidden />}
+        title={t.apps.hiddenEmptyTitle}
+        description={t.apps.hiddenEmptyBody}
+        action={<Button onClick={() => update({ hidden: null })}>{t.apps.backToList}</Button>}
+      />
+    )
   } else if (all.length === 0 && noConnections) {
     // Design 6.4: the first open of a new organization leads to the store connections, or says who can add one.
     body = (
@@ -358,7 +394,7 @@ export function AppsPage() {
       <>
         {view === 'table' ? (
           <DataTable
-            caption={t.apps.listLabel}
+            caption={showHidden ? t.apps.hiddenListLabel : t.apps.listLabel}
             columns={columns}
             rows={rows}
             rowKey={(app) => app.Id}
@@ -368,7 +404,7 @@ export function AppsPage() {
         ) : (
           <div className="applist" aria-busy={apps.isFetching || undefined}>
             {rows.map((app) => (
-              <AppCard key={app.Id} app={app} running={running.has(app.Id)} />
+              <AppCard key={app.Id} app={app} running={running.has(app.Id)} action={editor ? <HideAppButton app={app} /> : undefined} />
             ))}
           </div>
         )}

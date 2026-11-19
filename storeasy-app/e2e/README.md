@@ -62,7 +62,7 @@ screen and opens every sidebar link.
 
 What the multi tenant specs cover: sign-up, the verification e-mail and the first organization (Turkish UI); invitation by e-mail
 accepted in a second browser, role changes, a custom role, organization settings and the audit log (English UI);
-personal access token in the UI, `/mcp` initialize and tools/list (139 tools) and `tokens/current`; CI token; the store
+personal access token in the UI, `/mcp` initialize and tools/list (141 tools) and `tokens/current`; CI token; the store
 connection form and a check that fails without breaking anything (the key is never returned); the studio (template from
 a starter, server preview, export plan); rules catalog, notification bell, live activity over the SignalR hub; the
 root user on the system status page; health probes and webhook receivers through the web origin.

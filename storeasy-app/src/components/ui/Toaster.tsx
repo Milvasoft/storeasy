@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from 'lucide-react'
 import { useT } from '@/lib/i18n/I18nContext'
 import { dismissToast, getToasts, subscribeToasts, type ToastType } from '@/lib/toast/toast'
-import { IconButton } from './primitives'
+import { Button, IconButton } from './primitives'
 
 const TONE: Record<ToastType, { className: string; icon: JSX.Element }> = {
   success: { className: 'ok', icon: <CircleCheck aria-hidden /> },
@@ -25,6 +25,18 @@ export function Toaster() {
             <b className="block font-semibold">{item.message}</b>
             {item.detail ? <span className="text-fg2">{item.detail}</span> : null}
           </div>
+          {item.action ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                item.action?.onClick()
+                dismissToast(item.id)
+              }}
+            >
+              {item.action.label}
+            </Button>
+          ) : null}
           <IconButton label={t.common.close} size="sm" ghost onClick={() => dismissToast(item.id)}>
             <X aria-hidden />
           </IconButton>

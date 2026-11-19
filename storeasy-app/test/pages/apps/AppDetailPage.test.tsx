@@ -174,6 +174,27 @@ describe('AppDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Uygulamalar' })).toBeInTheDocument()
   })
 
+  it('hides the app from its header', async () => {
+    const { user } = render()
+    await screen.findByRole('heading', { name: 'Pusula', level: 1 })
+
+    await user.click(screen.getByRole('button', { name: 'Gizle' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 101, Hidden: true }))
+    expect(await screen.findByText('Pusula gizlendi. Gizli uygulamalar altında duruyor.')).toBeInTheDocument()
+  })
+
+  it('marks a hidden app and shows it again from its header', async () => {
+    testState.appDetail = appDetail({ HiddenDate: '2026-11-18T10:00:00Z' })
+    const { user } = render()
+    await screen.findByRole('heading', { name: 'Pusula', level: 1 })
+
+    expect(screen.getByText('Gizli')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Göster' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 101, Hidden: false }))
+  })
+
   it('hides pairing and sync from a viewer', async () => {
     testState.organizations = [organization({ Role: OrgRole.Viewer })]
 

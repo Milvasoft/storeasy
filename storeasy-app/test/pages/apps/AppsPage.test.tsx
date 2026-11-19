@@ -186,6 +186,74 @@ describe('AppsPage', () => {
     expect(screen.queryByRole('button', { name: 'Google Play uygulaması ekle' })).not.toBeInTheDocument()
   })
 
+  it('hides an app from its card without a confirmation and offers to undo it', async () => {
+    testState.apps = [app(), halka]
+    const { user } = render()
+    await screen.findByRole('link', { name: 'Halka' })
+
+    await user.click(screen.getByRole('button', { name: 'Halka uygulamasını gizle' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 102, Hidden: true }))
+    expect(await screen.findByText('Halka gizlendi. Gizli uygulamalar altında duruyor.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Geri al' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 102, Hidden: false }))
+    expect(await screen.findByText('Halka yeniden uygulamalar listesinde.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Geri al' })).not.toBeInTheDocument()
+  })
+
+  it('leaves the hidden apps out of the list and the store counts, and links to them', async () => {
+    testState.apps = [app(), { ...halka, HiddenDate: '2026-11-18T10:00:00Z' }]
+    const { user } = render()
+
+    expect(await screen.findByRole('link', { name: 'Pusula' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Halka' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Google Play · 1/ })).toBeInTheDocument()
+    await user.click(await screen.findByRole('button', { name: 'Gizli uygulamalar · 1' }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/apps?hidden=1')
+    expect(await screen.findByRole('heading', { name: 'Gizli uygulamalar' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Halka' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Pusula' })).not.toBeInTheDocument()
+    expect(requestsTo('/Apps').map((request) => request.body)).toContainEqual(
+      expect.objectContaining({ Hidden: true, PageNumber: 1, RowCount: 20 }),
+    )
+  })
+
+  it('shows a hidden app again from the hidden apps table', async () => {
+    testState.apps = [app(), { ...halka, HiddenDate: '2026-11-18T10:00:00Z' }]
+    const { user } = render('/apps?hidden=1&view=table')
+
+    const table = await screen.findByRole('table', { name: 'Gizli uygulamalar' })
+    await user.click(within(table).getByRole('button', { name: 'Halka uygulamasını göster' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 102, Hidden: false }))
+    expect(await screen.findByText('Halka yeniden uygulamalar listesinde.')).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent('/apps?hidden=1&view=table')
+  })
+
+  it('says when there is no hidden app and leads back to the list', async () => {
+    const { user } = render('/apps?hidden=1')
+
+    expect(await screen.findByRole('heading', { name: 'Gizli uygulama yok' })).toBeInTheDocument()
+    await user.click(
+      within(screen.getByRole('heading', { name: 'Gizli uygulama yok' }).parentElement as HTMLElement).getByRole('button', {
+        name: 'Tüm uygulamalar',
+      }),
+    )
+
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/apps$/)
+  })
+
+  it('does not offer hiding to a viewer', async () => {
+    testState.organizations = [organization({ Role: OrgRole.Viewer })]
+
+    render()
+
+    expect(await screen.findByRole('link', { name: 'Pusula' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pusula uygulamasını gizle' })).not.toBeInTheDocument()
+  })
+
   it('shows the error state with a retry when the list cannot be read', async () => {
     server.use(endpoint('patch', '/Apps', () => errorResponse('UnhandledException', 'Sunucu hatası.', 500)))
 
