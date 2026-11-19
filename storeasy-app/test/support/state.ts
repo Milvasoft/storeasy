@@ -16,6 +16,7 @@ import type {
   StoreJobDetailDto,
   StoreJobListDto,
 } from '@/lib/api/types'
+import type { AiSettingsDto } from '@/lib/api/types'
 import {
   accountDetail,
   accountSession,
@@ -58,6 +59,10 @@ export interface TestState {
   invitationPreview: InvitationPreviewDto | null
   sessions: AccountSessionDto[]
   pushSubscriptions: WebPushSubscriptionDto[]
+  /** organizations/ai-settings (a key is set by default). */
+  aiSettings: AiSettingsDto
+  /** The text reviews/reply-draft/generate answers with. */
+  aiDraft: string
   /** Every request the handlers saw, so a test can assert what the app sent. */
   requests: Array<{ method: string; path: string; body: unknown; query: Record<string, string>; headers: Record<string, string> }>
 }
@@ -81,6 +86,14 @@ function initialState(): TestState {
     invitationPreview: invitationPreview(),
     sessions: [accountSession()],
     pushSubscriptions: [],
+    aiSettings: {
+      HasApiKey: true,
+      ApiKeyLastFour: 'Xy9Z',
+      ApiKeySetDate: '2026-11-18T09:30:00Z',
+      ApiKeySetByUserName: 'Ayşe Yılmaz',
+      Model: 'claude-haiku-5-5',
+    },
+    aiDraft: 'Merhaba, geri bildiriminiz için teşekkürler. Ekibimiz hatırlatıcı sorununa bakacak.',
     requests: [],
   }
 }

@@ -1902,6 +1902,30 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetAiSettingsAsync(Storeasy.Application.Features.AiSettings.GetAiSettings.GetAiSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Reads the AI settings: whether an Anthropic API key is set (never the key), its last four characters and the model.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.SetAiKeyAsync(Storeasy.Application.Features.AiSettings.SetAiKey.SetAiKeyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves or replaces the Anthropic API key (checked with Anthropic first, sealed, never returned).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.OrganizationsController.RemoveAiKeyAsync(Storeasy.Application.Features.AiSettings.RemoveAiKey.RemoveAiKeyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes the Anthropic API key.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.OrganizationsController.GetRolesAsync(Storeasy.Application.Features.Organizations.GetOrganizationRoleList.GetOrganizationRoleListQuery,System.Threading.CancellationToken)">
             <summary>
             Lists the organization's roles: the four locked seeded roles, then the custom roles, with member and pending
@@ -2298,6 +2322,15 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.ReviewsController.GenerateReplyDraftAsync(Storeasy.Application.Features.Reviews.GenerateReviewReplyDraft.GenerateReviewReplyDraftCommand,System.Threading.CancellationToken)">
+            <summary>
+            Writes a reply draft with Claude (the organization's Anthropic API key) and saves it as the review's draft. Nothing
+            is sent to the store.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.ReviewsController.SyncAsync(Storeasy.Application.Features.Reviews.SyncReviews.SyncReviewsCommand,System.Threading.CancellationToken)">
             <summary>
             Reads new reviews now. Returns the job ids.
@@ -2554,6 +2587,15 @@
         <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.AddConnectionAsync(Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand,System.Threading.CancellationToken)">
             <summary>
             Adds a store connection. The secret is validated offline, encrypted and never returned.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.UpdateConnectionAsync(Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Renames a connection and sets or clears its icon (a generic icon or the connection's own store logo). The secret
+            is not touched. Answers the updated connection.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -3835,16 +3877,40 @@
         <member name="M:Storeasy.Api.Migrations._20261119101012_AddAppDisplayOrder.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261119130826_AddOrganizationLogo">
+        <member name="T:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130826_AddOrganizationLogo.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130826_AddOrganizationLogo.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261119130826_AddOrganizationLogo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261119122541_AddOrganizationAiSettings.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119133018_AddStoreConnectionIcon">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119133018_AddStoreConnectionIcon.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119133018_AddStoreConnectionIcon.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119133018_AddStoreConnectionIcon.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261119135713_AddOrganizationLogo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

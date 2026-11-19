@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261119130826_AddOrganizationLogo : Migration
+public partial class _20261119135713_AddOrganizationLogo : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

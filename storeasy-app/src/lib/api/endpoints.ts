@@ -3,6 +3,7 @@ import type { ListRequest } from '@/lib/api/list'
 import { getDeviceId } from '@/lib/api/tokenStore'
 import type {
   AccountDetailDto,
+  AiSettingsDto,
   AccountSessionDto,
   AppAddedDto,
   AppDetailDto,
@@ -12,6 +13,7 @@ import type {
   AssetPurpose,
   AssetUploadDto,
   FeatureFlagStateDto,
+  GeneratedReplyDraftDto,
   GoogleSignInStartDto,
   InvitationCreatedDto,
   InvitationPreviewDto,
@@ -236,6 +238,26 @@ export const organizationsApi = {
     apiPatchList<StoreAuditLogDto>('/Organizations/audit-logs', { OrganizationId: organizationId, ...request }),
 }
 
+// ---- AI reply drafts -------------------------------------------------------
+// The Anthropic API key is sent once when it is saved and never comes back: only whether one is set and its last four
+// characters do.
+export const aiApi = {
+  // Every member reads it (the reviews page needs to know whether a key is set).
+  settings: (organizationId: number) => apiGet<AiSettingsDto>('/Organizations/ai-settings', { OrganizationId: organizationId }),
+
+  // ManageConnections. Checked with Anthropic first: a key Anthropic rejects is refused (409 AiKeyRejected); when
+  // Anthropic cannot be reached it is saved with ApiKeyVerified false.
+  setKey: (organizationId: number, apiKey: string) =>
+    apiPut<AiSettingsDto>('/Organizations/ai-settings/key', { OrganizationId: organizationId, ApiKey: apiKey }),
+
+  removeKey: (organizationId: number) => apiDelete<number>('/Organizations/ai-settings/key', undefined, { OrganizationId: organizationId }),
+
+  // ReplyReviews. Writes a draft with Claude and saves it as the review's draft; 409 AiKeyNotSet without a key, 429 past
+  // 60 an hour.
+  generateReplyDraft: (organizationId: number, reviewId: number) =>
+    apiPost<GeneratedReplyDraftDto>('/Reviews/reply-draft/generate', { OrganizationId: organizationId, ReviewId: reviewId }),
+}
+
 // ---- Store connections -----------------------------------------------------
 export interface AddConnectionInput {
   Store: StoreKind
@@ -245,6 +267,8 @@ export interface AddConnectionInput {
   Secret: string
   // Microsoft only, required: when the Entra client secret expires (at most 24 months away).
   CredentialExpiryDate?: string | null
+  // Optional icon key: a generic icon or the store's own logo (400 StoreConnectionIconInvalid otherwise).
+  Icon?: string | null
 }
 
 export const connectionsApi = {
@@ -262,6 +286,10 @@ export const connectionsApi = {
       ConnectionId: connectionId,
       PackageName: packageName?.trim() || null,
     }),
+
+  // Renames the connection and sets or clears its icon; the secret is not touched. Answers the updated connection.
+  update: (organizationId: number, connectionId: number, input: { Name: string; Icon: string | null }) =>
+    apiPut<StoreConnectionDto>('/StoreConnections/connection', { OrganizationId: organizationId, ConnectionId: connectionId, ...input }),
 
   // Wipes the encrypted secret; cannot be undone.
   remove: (organizationId: number, connectionId: number) =>

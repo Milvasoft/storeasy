@@ -26,6 +26,12 @@ public record AddStoreConnectionCommand : ICommand<int>, IOrganizationRequest
     public string Name { get; set; }
 
     /// <summary>
+    /// Optional icon key (<see cref="Domain.Stores.StoreConnectionIcons"/>): a generic icon or the store's own logo. Null or empty
+    /// keeps the store's text code.
+    /// </summary>
+    public string Icon { get; set; }
+
+    /// <summary>
     /// The secret JSON. Masked in logs.
     /// </summary>
     [LogMasked]

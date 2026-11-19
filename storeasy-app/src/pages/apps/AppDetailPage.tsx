@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Boxes, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Boxes, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { useSetAppHidden } from '@/components/apps/useSetAppHidden'
@@ -25,6 +25,7 @@ import {
   type StoreConnectionDto,
 } from '@/lib/api/types'
 import { connectionIdsOf, recordsOf } from '@/lib/apps/apps'
+import { storeLinksOf } from '@/lib/apps/storeLinks'
 import { useSyncApps } from '@/lib/apps/useSyncApps'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
@@ -164,7 +165,7 @@ function RecordCard({
   return (
     <section className="card">
       <div className="card-h">
-        <StoreTag store={record.Store} small />
+        <StoreTag store={record.Store} connectionId={record.StoreConnectionId} small />
         <span className="ml-auto">
           {record.SyncedDate ? (
             <Badge tone="success" small>
@@ -204,6 +205,61 @@ function RecordCard({
         <dt>{t.app.lastSync}</dt>
         <dd className="tabular-nums">{record.SyncedDate ? format.dateTime(record.SyncedDate) : t.app.notSynced}</dd>
       </dl>
+    </section>
+  )
+}
+
+/** Quick links to every record's public store page and its console page, opened in a new tab. */
+function StorePages({ app }: { app: AppDetailDto }) {
+  const t = useT()
+  const records = recordsOf(app)
+  if (records.length === 0) {
+    return null
+  }
+  return (
+    <section className="card" aria-labelledby="store-pages-title">
+      <div className="card-h">
+        <h2 id="store-pages-title" className="h3">
+          {t.app.storePages}
+        </h2>
+      </div>
+      <ul className="card-b m-0 grid list-none gap-3 p-0">
+        {records.map((record) => {
+          const links = storeLinksOf(record)
+          const store = storeName(record.Store, t.enums.store)
+          return (
+            <li key={record.StoreAppId} className="flex flex-wrap items-center gap-2">
+              <StoreTag store={record.Store} small />
+              <span className="ml-auto flex flex-wrap gap-2">
+                {links.publicUrl ? (
+                  <a
+                    className="btn sm"
+                    href={links.publicUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={interpolate(t.app.openPublicPageOf, { store })}
+                  >
+                    <ExternalLink aria-hidden />
+                    {t.app.openPublicPage}
+                  </a>
+                ) : null}
+                {links.consoleUrl ? (
+                  <a
+                    className="btn sm"
+                    href={links.consoleUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={interpolate(t.app.openConsoleOf, { store })}
+                  >
+                    <ExternalLink aria-hidden />
+                    {t.app.openConsole}
+                  </a>
+                ) : null}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
     </section>
   )
 }
@@ -265,7 +321,8 @@ function Overview({ app, connections, started }: { app: AppDetailDto; connection
             <BuildsTable builds={builds} compact />
           )}
         </section>
-        <aside className="grid gap-4">
+        <aside className="grid content-start gap-4">
+          <StorePages app={app} />
           <OnTheLine app={app} started={started} />
         </aside>
       </div>
@@ -336,7 +393,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
             subtitle={
               <span className="flex flex-wrap items-center gap-2">
                 {recordsOf(data).map((record) => (
-                  <StoreTag key={record.StoreAppId} store={record.Store} small codeOnly />
+                  <StoreTag key={record.StoreAppId} store={record.Store} connectionId={record.StoreConnectionId} small codeOnly />
                 ))}
                 <span>{interpolate(t.app.addedOn, { date: format.date(data.CreationDate) })}</span>
                 {data.HiddenDate ? (

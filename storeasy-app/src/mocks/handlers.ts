@@ -87,6 +87,7 @@ const db = {
       Id: 11,
       Store: StoreKind.Apple,
       Name: 'Kuzey Lab ASC',
+      Icon: 'appstore',
       Fingerprint: { KeyId: '7QX2M4K9PL', IssuerIdSuffix: 'a91f' },
       Status: ConnectionStatus.Verified,
       LastVerifiedDate: hoursAgo(5),
@@ -96,6 +97,7 @@ const db = {
       Id: 12,
       Store: StoreKind.Google,
       Name: 'Play servis hesabı',
+      Icon: 'googleplay',
       Fingerprint: { ServiceAccountEmail: 'storeasy@kuzeylab-play.iam.gserviceaccount.com', ProjectId: 'kuzeylab-play' },
       Status: ConnectionStatus.Unreachable,
       LastVerifiedDate: hoursAgo(30),
@@ -104,6 +106,7 @@ const db = {
     },
   ] as StoreConnectionDto[],
   audit: [] as StoreAuditLogDto[],
+  aiKey: null as { lastFour: string; setDate: string } | null,
   nextId: 100,
 }
 
@@ -307,7 +310,7 @@ export const mockHandlers: HttpHandler[] = [
     return envelope(db.connections)
   }),
   http.post(`${BASE}/StoreConnections/connection`, async ({ request }) => {
-    const { Store, Name, Secret } = await body<{ Store: StoreKind; Name: string; Secret: string }>(request)
+    const { Store, Name, Secret, Icon } = await body<{ Store: StoreKind; Name: string; Secret: string; Icon?: string | null }>(request)
     const id = (db.nextId += 1)
     let fingerprint = {}
     try {
@@ -323,12 +326,27 @@ export const mockHandlers: HttpHandler[] = [
       Id: id,
       Store,
       Name,
+      Icon: Icon || null,
       Fingerprint: fingerprint,
       Status: ConnectionStatus.NotVerified,
       CreationDate: new Date().toISOString(),
     })
     audit(AuditAction.ConnectionAdded, `${Name} added.`, Store)
     return envelope(id)
+  }),
+  http.put(`${BASE}/StoreConnections/connection`, async ({ request }) => {
+    const { ConnectionId, Name, Icon } = await body<{ ConnectionId: number; Name: string; Icon: string | null }>(request)
+    const connection = db.connections.find((item) => item.Id === ConnectionId)
+    if (!connection) {
+      return refuse('StoreConnectionNotFound', 'Bağlantı bulunamadı.', 404)
+    }
+    const logos: Record<string, StoreKind> = { appstore: StoreKind.Apple, googleplay: StoreKind.Google, msstore: StoreKind.Microsoft }
+    if (Icon && Icon in logos && logos[Icon] !== connection.Store) {
+      return refuse('StoreConnectionIconInvalid', 'Bilinmeyen bağlantı simgesi ya da başka bir mağazanın logosu seçildi.', 400)
+    }
+    db.connections = db.connections.map((item) => (item.Id === ConnectionId ? { ...item, Name: Name.trim(), Icon: Icon || null } : item))
+    audit(AuditAction.ConnectionUpdated, `${Name} updated.`, connection.Store)
+    return envelope(db.connections.find((item) => item.Id === ConnectionId))
   }),
   http.post(`${BASE}/StoreConnections/connection/verify`, async ({ request }) => {
     await delay(900)
@@ -398,4 +416,45 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.ConnectionRemoved, `${connection?.Name} removed.`, connection?.Store ?? null)
     return envelope(ConnectionId)
   }),
+  // AI reply drafts: the key is kept only as its last four characters, like the API returns it; a key with "rejected" in
+  // it is refused the way Anthropic would, and a draft is a fixed text after a short delay.
+  http.get(`${BASE}/Organizations/ai-settings`, () => envelope(aiSettings())),
+  http.put(`${BASE}/Organizations/ai-settings/key`, async ({ request }) => {
+    const { ApiKey } = await body<{ ApiKey: string }>(request)
+    await delay(400)
+    if (ApiKey.includes('rejected')) {
+      return refuse('AiKeyRejected', 'Anthropic rejected the API key. Check it or replace it in Settings, under AI.', 409)
+    }
+    db.aiKey = { lastFour: ApiKey.trim().slice(-4), setDate: new Date().toISOString() }
+    audit(AuditAction.AiKeySet, 'Anthropic API key added.', null)
+    return envelope({ ...aiSettings(), apiKeyVerified: true })
+  }),
+  http.delete(`${BASE}/Organizations/ai-settings/key`, () => {
+    db.aiKey = null
+    audit(AuditAction.AiKeyRemoved, 'Anthropic API key removed.', null)
+    return envelope(1)
+  }),
+  http.post(`${BASE}/Reviews/reply-draft/generate`, async ({ request }) => {
+    const { ReviewId } = await body<{ ReviewId: number }>(request)
+    if (!db.aiKey) {
+      return refuse('AiKeyNotSet', 'No Anthropic API key is set for this organization. Add one in Settings, under AI.', 409)
+    }
+    await delay(1200)
+    return envelope({
+      reviewId: ReviewId,
+      body: 'Thank you for taking the time to write this. We are sorry the reminders did not arrive; the team will look into it.',
+      shortened: false,
+      model: 'claude-haiku-5-5',
+    })
+  }),
 ]
+
+function aiSettings() {
+  return {
+    hasApiKey: !!db.aiKey,
+    apiKeyLastFour: db.aiKey?.lastFour ?? null,
+    apiKeySetDate: db.aiKey?.setDate ?? null,
+    apiKeySetByUserName: db.aiKey ? 'demo' : null,
+    model: 'claude-haiku-5-5',
+  }
+}

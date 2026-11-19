@@ -76,6 +76,8 @@ export const AuditAction = {
   ConnectionUpdated: 21,
   ConnectionRemoved: 22,
   ConnectionVerified: 23,
+  AiKeySet: 24,
+  AiKeyRemoved: 25,
   JobCancelled: 30,
   AppAdded: 40,
   StoreAppLinked: 41,
@@ -304,6 +306,26 @@ export interface OrganizationSettingsDto {
   DefaultLocale?: string | null
 }
 
+// AI settings of the organization (GET organizations/ai-settings). The Anthropic API key itself never comes back.
+export interface AiSettingsDto {
+  HasApiKey: boolean
+  ApiKeyLastFour?: string | null
+  ApiKeySetDate?: string | null
+  ApiKeySetByUserName?: string | null
+  Model?: string | null
+  // Only in the answer of saving a key: true when Anthropic accepted it, false when it could not be checked.
+  ApiKeyVerified?: boolean | null
+}
+
+// A reply draft written with AI (POST reviews/reply-draft/generate): already saved on the review, nothing sent.
+export interface GeneratedReplyDraftDto {
+  ReviewId: number
+  Body: string
+  // The model wrote more than the store accepts and the text was cut after its last full sentence that fits.
+  Shortened: boolean
+  Model?: string | null
+}
+
 /** Only the fields sent change. */
 export interface UpdateOrganizationSettingsInput {
   AuditRetentionDays?: number | null
@@ -360,6 +382,8 @@ export interface StoreConnectionDto {
   Id: number
   Store: StoreKind
   Name: string
+  /** Icon key a member picked (components/ui/StoreIcons.tsx); null shows the store's text code. */
+  Icon?: string | null
   Fingerprint?: ConnectionFingerprint | null
   Status: ConnectionStatus
   LastVerifiedDate?: IsoDateTime | null

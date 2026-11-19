@@ -71,6 +71,14 @@ public enum AuditAction : short
     [Description("Store connection verified")]
     ConnectionVerified = 23,
 
+    /// <summary>The organization's Anthropic API key (AI reply drafts) was saved or replaced.</summary>
+    [Description("AI key set")]
+    AiKeySet = 24,
+
+    /// <summary>The organization's Anthropic API key was removed.</summary>
+    [Description("AI key removed")]
+    AiKeyRemoved = 25,
+
     /// <summary>Store job cancelled.</summary>
     [Description("Store job cancelled")]
     JobCancelled = 30,
@@ -253,6 +261,10 @@ public enum AuditAction : short
     /// <summary>Saved reply added, changed or removed.</summary>
     [Description("Saved reply changed")]
     SavedReplyChanged = 431,
+
+    /// <summary>A review reply draft was written with AI (saved as a draft, never sent).</summary>
+    [Description("Reply draft written with AI")]
+    ReviewReplyDraftGenerated = 432,
 
     /// <summary>TestFlight group created or changed.</summary>
     [Description("Beta group changed")]

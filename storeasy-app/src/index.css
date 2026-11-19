@@ -729,6 +729,46 @@ body {
     min-width: 22px;
     font-size: 9px;
   }
+  /* A connection icon in place of the code box (StoreIcons.tsx): a square tile of the same height, logos drawn in their
+     own colors, generic glyphs white on the icon's color. */
+  .sti {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--sti, transparent);
+    color: #fff;
+  }
+  .sti > svg {
+    width: 100%;
+    height: 100%;
+  }
+  .sti:not(.logo) > svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.2;
+  }
+  .st.sm .sti {
+    width: 16px;
+    height: 16px;
+    border-radius: 4.5px;
+  }
+  .st.sm .sti:not(.logo) > svg {
+    width: 11px;
+    height: 11px;
+  }
+  .sti.lg {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+  .sti.lg:not(.logo) > svg {
+    width: 18px;
+    height: 18px;
+  }
   .tag {
     display: inline-flex;
     align-items: center;

@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119130826_AddOrganizationLogo";
+    public override string LastMigrationId => "20261119135713_AddOrganizationLogo";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -2714,6 +2714,51 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("Organizations");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationAiSetting", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("ApiKeyLastFour")
+                    .HasMaxLength(4)
+                    .HasColumnType("character varying(4)");
+
+                b.Property<string>("ApiKeySetByUserName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime>("ApiKeySetDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte[]>("EncryptedApiKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId")
+                    .IsUnique();
+
+                b.ToTable("OrganizationAiSettings");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>
             {
                 var id = b.Property<int>("Id")
@@ -3183,6 +3228,10 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<ConnectionFingerprint>("Fingerprint")
                     .HasColumnType("jsonb");
+
+                b.Property<string>("Icon")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
                 b.Property<bool>("IsDeleted")
                     .HasColumnType("boolean");
@@ -4397,6 +4446,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsRequired();
 
                 b.Navigation("StoreApp");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationAiSetting", b =>
+            {
+                b.HasOne("Storeasy.Domain.Organizations.Organization", "Organization")
+                    .WithMany()
+                    .HasForeignKey("OrganizationId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Organization");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Organizations.OrganizationInvitation", b =>

@@ -112,6 +112,8 @@ describe('ConnectionsPage', () => {
     const sent = lastRequestTo('/StoreConnections/connection')?.body as { Store: number; Name: string; Secret: string }
     expect(sent.Store).toBe(StoreKind.Apple)
     expect(JSON.parse(sent.Secret)).toEqual({ issuerId: SAMPLE_ISSUER, keyId: '7QX2M4K9PL', privateKey: SAMPLE_P8 })
+    // The store's own logo is the suggested icon.
+    expect(lastRequestTo('/StoreConnections/connection')?.body).toMatchObject({ Icon: 'appstore' })
     expect(lastRequestTo('/StoreConnections/connection/verify')?.body).toMatchObject({ ConnectionId: 55 })
   })
 
@@ -152,6 +154,7 @@ describe('ConnectionsPage', () => {
       Store: StoreKind.Google,
       Name: 'Play',
       Secret: SAMPLE_SERVICE_ACCOUNT,
+      Icon: 'googleplay',
     })
   })
 
@@ -172,5 +175,57 @@ describe('ConnectionsPage', () => {
     expect(await screen.findByText('Anahtar P-256 değil.')).toBeInTheDocument()
     expect(screen.getByLabelText('Bağlantı adı')).toHaveValue('Kuzey')
     expect(screen.getByLabelText('.p8 anahtarı')).toHaveValue('')
+  })
+
+  it('offers only the own store logo plus the generic icons, and saves without an icon when none is picked', async () => {
+    testState.connections = []
+    const { user } = renderWithProviders(<ConnectionsPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Bağlantı ekle' }))
+    await user.click(screen.getByRole('radio', { name: /Google Play/ }))
+    await user.click(screen.getByRole('button', { name: 'Devam et' }))
+    const picker = screen.getByRole('group', { name: /Simge/ })
+    expect(within(picker).getByRole('radio', { name: 'Google Play' })).toBeChecked()
+    expect(within(picker).queryByRole('radio', { name: 'App Store' })).not.toBeInTheDocument()
+    expect(within(picker).queryByRole('radio', { name: 'Microsoft Store' })).not.toBeInTheDocument()
+    expect(within(picker).getAllByRole('radio')).toHaveLength(10)
+
+    await user.click(within(picker).getByRole('radio', { name: 'Yok (Metin kodu)' }))
+    await user.type(screen.getByLabelText('Bağlantı adı'), 'Play')
+    await user.upload(
+      screen.getByLabelText("Servis hesabı JSON'u"),
+      new File([SAMPLE_SERVICE_ACCOUNT], 'play.json', { type: 'application/json' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Kaydet ve doğrula' }))
+
+    await screen.findByRole('heading', { name: 'Bağlantı kaydedildi' })
+    expect(lastRequestTo('/StoreConnections/connection')?.body).toMatchObject({ Store: StoreKind.Google, Icon: null })
+  })
+
+  it('edits the name and the icon of a connection and shows the new icon on its card', async () => {
+    testState.connections = [connection({ Icon: null })]
+    const { user } = renderWithProviders(<ConnectionsPage />)
+
+    const card = await screen.findByRole('article', { name: 'Kuzey Lab ASC' })
+    expect(card.querySelector('.st b')).toHaveTextContent('AS')
+    await user.click(within(card).getByRole('button', { name: 'Düzenle' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Kuzey Lab ASC bağlantısını düzenle' })
+    expect(within(dialog).getByRole('radio', { name: 'Yok (Metin kodu)' })).toBeChecked()
+    await user.clear(within(dialog).getByLabelText('Bağlantı adı'))
+    await user.type(within(dialog).getByLabelText('Bağlantı adı'), 'Yayın anahtarı')
+    await user.click(within(dialog).getByRole('radio', { name: 'Roket' }))
+    testState.connections = [connection({ Name: 'Yayın anahtarı', Icon: 'rocket' })]
+    await user.click(within(dialog).getByRole('button', { name: 'Kaydet' }))
+
+    expect(await screen.findByText('Bağlantı güncellendi')).toBeInTheDocument()
+    expect(lastRequestTo('/StoreConnections/connection')?.method).toBe('PUT')
+    expect(lastRequestTo('/StoreConnections/connection')?.body).toEqual({
+      OrganizationId: TEST_ORG_ID,
+      ConnectionId: 11,
+      Name: 'Yayın anahtarı',
+      Icon: 'rocket',
+    })
+    const updated = await screen.findByRole('article', { name: 'Yayın anahtarı' })
+    await waitFor(() => expect(updated.querySelector('.sti')).toHaveAttribute('data-icon', 'rocket'))
   })
 })

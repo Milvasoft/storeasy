@@ -92,6 +92,11 @@ export function useOrganization(): OrganizationContextValue {
   return ctx
 }
 
+// For shared components that may render outside the provider (a store tag in a test of its own): null there.
+export function useOptionalOrganization(): OrganizationContextValue | null {
+  return useContext(OrganizationContext)
+}
+
 // For pages inside the shell, which renders only when an organization is selected.
 export function useCurrentOrganization(): MyOrganizationDto {
   const { current } = useOrganization()

@@ -147,6 +147,37 @@ export const defaultHandlers: HttpHandler[] = [
   endpoint('delete', '/Organizations/role', ({ body }) => json(envelope((body as { RoleId: number }).RoleId))),
   endpoint('get', '/Organizations/settings', () => json(envelope(testState.orgSettings))),
   endpoint('put', '/Organizations/settings', () => json(envelope(testState.organizations[0]?.Id ?? 0))),
+  endpoint('get', '/Organizations/ai-settings', () => json(envelope(testState.aiSettings))),
+  endpoint('put', '/Organizations/ai-settings/key', ({ body }) => {
+    const key = (body as { ApiKey: string }).ApiKey
+    if (key.includes('rejected')) {
+      return errorResponse('AiKeyRejected', 'Anthropic API anahtarını reddetti.', 409)
+    }
+    testState.aiSettings = {
+      HasApiKey: true,
+      ApiKeyLastFour: key.slice(-4),
+      ApiKeySetDate: '2026-11-19T10:00:00Z',
+      ApiKeySetByUserName: 'Test Kullanıcı',
+      Model: 'claude-haiku-5-5',
+    }
+    return json(envelope({ ...testState.aiSettings, ApiKeyVerified: !key.includes('offline') }))
+  }),
+  endpoint('delete', '/Organizations/ai-settings/key', () => {
+    testState.aiSettings = { HasApiKey: false, Model: 'claude-haiku-5-5' }
+    return json(envelope(testState.organizations[0]?.Id ?? 0))
+  }),
+  endpoint('post', '/Reviews/reply-draft/generate', ({ body }) =>
+    testState.aiSettings.HasApiKey
+      ? json(
+          envelope({
+            ReviewId: (body as { ReviewId: number }).ReviewId,
+            Body: testState.aiDraft,
+            Shortened: false,
+            Model: 'claude-haiku-5-5',
+          }),
+        )
+      : errorResponse('AiKeyNotSet', 'Bu organizasyon için Anthropic API anahtarı girilmemiş.', 409),
+  ),
   endpoint('post', '/Organizations/invitation/accept', () => json(envelope(8))),
   endpoint('put', '/Organizations/member/role', () => json(envelope(2))),
   endpoint('delete', '/Organizations/member', () => json(envelope(2))),
@@ -159,6 +190,14 @@ export const defaultHandlers: HttpHandler[] = [
     const id = (body as { ConnectionId: number }).ConnectionId
     const known = testState.connections.find((item) => item.Id === id) ?? { ...testState.connections[0], Id: id }
     return json(envelope({ ...known, Status: 2, LastVerifiedDate: '2026-11-18T10:00:00Z' }))
+  }),
+  endpoint('put', '/StoreConnections/connection', ({ body }) => {
+    const input = body as { ConnectionId: number; Name: string; Icon: string | null }
+    const known = testState.connections.find((item) => item.Id === input.ConnectionId) ?? {
+      ...testState.connections[0],
+      Id: input.ConnectionId,
+    }
+    return json(envelope({ ...known, Name: input.Name, Icon: input.Icon }))
   }),
   endpoint('delete', '/StoreConnections/connection', () => json(envelope(11))),
 

@@ -27,6 +27,11 @@ public class StoreConnectionDto
     public string Name { get; set; }
 
     /// <summary>
+    /// Icon key picked for the connection (<see cref="StoreConnectionIcons"/>); null shows the store's text code.
+    /// </summary>
+    public string Icon { get; set; }
+
+    /// <summary>
     /// Non secret identifiers.
     /// </summary>
     public ConnectionFingerprint Fingerprint { get; set; }
@@ -67,6 +72,7 @@ public class StoreConnectionDto
         Id = c.Id,
         Store = c.Store,
         Name = c.Name,
+        Icon = c.Icon,
         Fingerprint = c.Fingerprint,
         Status = c.Status,
         LastVerifiedDate = c.LastVerifiedDate,

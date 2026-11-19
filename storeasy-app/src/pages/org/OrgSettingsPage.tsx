@@ -16,6 +16,7 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { HOME_PATH } from '@/lib/nav/nav'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
+import { AiSettingsCard } from '@/features/ai/AiSettingsCard'
 import { OrgLogoCard } from '@/features/access/OrgLogoCard'
 import { OrgRetentionCard } from '@/features/access/OrgRetentionCard'
 import { useDeployment } from '@/features/access/publicSettings'
@@ -28,7 +29,8 @@ const MAX_SLUG_LENGTH = 40
  * Organization settings (design 15.20-15.22). The owner edits the name and the short name (PUT organization; only a
  * changed short name is sent). Changing the short name breaks addresses that use it, which the warning says; a taken
  * one comes back as 409 and stays in the form with suggestions. Retention and the default language have their own card
- * (organizations/settings), behind the OrganizationRetention flag.
+ * (organizations/settings), behind the OrganizationRetention flag. The AI card holds the Anthropic API key of the review
+ * reply drafts (organizations/ai-settings).
  */
 export function OrgSettingsPage() {
   const t = useT()
@@ -181,6 +183,7 @@ export function OrgSettingsPage() {
             <p className="card-b m-0 text-[13px] text-fg2">{t.settings.retentionBody}</p>
           </section>
         )}
+        <AiSettingsCard />
       </div>
     </>
   )

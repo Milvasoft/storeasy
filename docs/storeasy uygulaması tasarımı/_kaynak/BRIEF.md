@@ -85,6 +85,7 @@ geçirirken de buradaki kararları esas alır. Standartlar: `C:\Users\bugra\sour
 - Durum renkleri yalnız rozet, toast ikonu, tehlikeli eylem metni, hata kenarlığı; her zaman metinle birlikte.
 - Kart ve listede gölge yok; gölge yalnız yüzen öğelerde. Alan odağı nötr çizgi (`.inp.foc`).
 - Apple, Google, Microsoft logoları ve cihaz görselleri ÇİZİLMEZ. Mağazalar nötr metin + kendi `AS / GP / MS` etiketiyle. Cihaz çerçeveleri storeasy'nin kendi parametrik çizimi.
+  - Not, 19 Kasım 2026: kullanıcı bu kuralı değiştirdi. Bir mağaza bağlantısına isteğe bağlı simge seçilebilir (mağazanın kendi logosu, yalnız mağazayı belirtmek için, ya da renkli genel bir simge); seçilmişse etiket kod kutusu yerine onu gösterir, seçilmemişse `AS / GP / MS` kalır.
 - Emoji yok. Uzun tire (U+2014) ve en dash (U+2013) hiçbir yerde yok; boş değer `-`, aralık `1-10`, ayırıcı ` · `, ok gerekiyorsa `→`.
 - Bütün metin doğal Türkçe (i18n'e hazır: sabit metin gibi değil, sözlük anahtarına dönecek cümleler). Teknik adlar (track, build, TestFlight, AAB, MSIX, webhook, token) olduğu gibi. Kimlik, sürüm, boyut, hash, uç adları `.mono`.
 - Tarih biçimi: "18 Kas 2026", "18 Kasım 2026, 14:02"; bugün **18 Kasım 2026** (Çarşamba). Sayılar Türkçe ayraçla (4,7 puan, 31,4 MB, 12.480).

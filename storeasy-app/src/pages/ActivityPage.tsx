@@ -316,7 +316,7 @@ export function ActivityPage() {
                 <HatScenePhone lanes={lanes} frozen={frozen} />
               </div>
               {quiet ? (
-                <div className="pointer-events-none absolute inset-x-0 bottom-3 text-center">
+                <div className="pb-1 pt-2 text-center">
                   <b className="block text-[13.5px]">{t.activity.quietTitle}</b>
                   <span className="text-xs text-fg3">{t.activity.quietBody}</span>
                 </div>
