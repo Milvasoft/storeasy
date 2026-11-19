@@ -11,10 +11,12 @@ namespace Storeasy.Application.Features.Organizations.GetMyOrganizations;
 /// </summary>
 /// <param name="memberRepository"></param>
 /// <param name="currentUser"></param>
-public class GetMyOrganizationsQueryHandler(IStoreasyRepositoryBase<OrganizationMember> memberRepository, ICurrentUser currentUser) : IInterceptable, IQueryHandler<GetMyOrganizationsQuery, List<MyOrganizationDto>>
+/// <param name="fileStorage"></param>
+public class GetMyOrganizationsQueryHandler(IStoreasyRepositoryBase<OrganizationMember> memberRepository, ICurrentUser currentUser, IFileStorage fileStorage) : IInterceptable, IQueryHandler<GetMyOrganizationsQuery, List<MyOrganizationDto>>
 {
     private readonly IStoreasyRepositoryBase<OrganizationMember> _memberRepository = memberRepository;
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IFileStorage _fileStorage = fileStorage;
 
     /// <inheritdoc/>
     public async Task<Response<List<MyOrganizationDto>>> Handle(GetMyOrganizationsQuery request, CancellationToken cancellationToken)
@@ -26,7 +28,10 @@ public class GetMyOrganizationsQueryHandler(IStoreasyRepositoryBase<Organization
                                                                 cancellationToken: cancellationToken);
 
         foreach (var organization in organizations)
+        {
             organization.Permissions = [.. OrgAccess.Of(organization.Role, organization.CustomRoleId, organization.CustomPermissions).Permissions.Order()];
+            organization.LogoUrl = _fileStorage.LogoUrl(organization.LogoKey);
+        }
 
         return Response<List<MyOrganizationDto>>.Success([.. organizations.OrderBy(o => o.Name)]);
     }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Clock, Link2Off, MailWarning, UserPlus } from 'lucide-react'
 import { AuthCard, SoloLayout } from '@/components/layout/AuthLayout'
+import { OrgAvatar } from '@/components/org/OrgAvatar'
 import { FormErrors } from '@/components/ui/Feedback'
 import { Avatar, Button, SpinnerCenter } from '@/components/ui/primitives'
 import { organizationsApi } from '@/lib/api/endpoints'
@@ -33,9 +34,14 @@ function PreviewDetails({ preview }: { preview: InvitationPreviewDto }) {
     <div className="grid gap-3 rounded-md border border-border bg-bg2/50 p-4 text-left text-[13px]">
       <dl className="kv">
         <dt>{access.invitePreview.organization}</dt>
-        <dd>
-          <b>{preview.OrganizationName}</b>
-          {preview.OrganizationSlug ? <span className="mono ml-1.5 text-xs text-fg3">{preview.OrganizationSlug}</span> : null}
+        <dd className="flex min-w-0 items-center gap-2">
+          {preview.OrganizationName ? (
+            <OrgAvatar name={preview.OrganizationName} logoUrl={preview.OrganizationLogoUrl} className="!h-6 !w-6 !rounded-md !text-[11px]" />
+          ) : null}
+          <span className="min-w-0">
+            <b>{preview.OrganizationName}</b>
+            {preview.OrganizationSlug ? <span className="mono ml-1.5 text-xs text-fg3">{preview.OrganizationSlug}</span> : null}
+          </span>
         </dd>
         {role ? (
           <>

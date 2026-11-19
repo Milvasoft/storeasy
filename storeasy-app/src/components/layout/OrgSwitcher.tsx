@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, ChevronsUpDown, Plus, Settings } from 'lucide-react'
 import { CreateOrganizationForm } from '@/components/org/CreateOrganizationForm'
+import { OrgAvatar } from '@/components/org/OrgAvatar'
 import { useDeployment } from '@/features/access/publicSettings'
 import { Menu, type MenuEntry } from '@/components/ui/Menu'
 import { Modal } from '@/components/ui/Modal'
@@ -14,10 +15,6 @@ import { showToast } from '@/lib/toast/toast'
 
 // The search box shows only above this many organizations (design 5.26).
 const SEARCH_FROM = 6
-
-function initialOf(name: string): string {
-  return name.trim().slice(0, 1).toLocaleUpperCase('tr') || '?'
-}
 
 /** The organization switcher at the top of the menu (design 5.26): the list, "New organization", the settings link. */
 export function OrgSwitcher({ onNavigate }: { onNavigate?: () => void }) {
@@ -36,7 +33,7 @@ export function OrgSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   if (singleTeam) {
     return (
       <div className="orgsw" role="group" aria-label={interpolate(t.orgSwitcher.team, { name: current.Name })}>
-        <span className="oav">{initialOf(current.Name)}</span>
+        <OrgAvatar name={current.Name} logoUrl={current.LogoUrl} />
         <span className="min-w-0 flex-1">
           <b className="truncate">{current.Name}</b>
           <small>{roleLabel(current.Role, t)}</small>
@@ -69,7 +66,7 @@ export function OrgSwitcher({ onNavigate }: { onNavigate?: () => void }) {
     ...visible.map((org) => ({
       key: `org-${org.Id}`,
       checked: org.Id === current.Id,
-      icon: <span className="oav !h-[26px] !w-[26px] !rounded-sm !text-xs">{initialOf(org.Name)}</span>,
+      icon: <OrgAvatar name={org.Name} logoUrl={org.LogoUrl} className="!h-[26px] !w-[26px] !rounded-sm !text-xs" />,
       label: (
         <span className="flex items-center gap-2">
           <span className="min-w-0 flex-1">
@@ -108,7 +105,7 @@ export function OrgSwitcher({ onNavigate }: { onNavigate?: () => void }) {
         className="w-[300px]"
         trigger={
           <button type="button" className="orgsw" aria-label={interpolate(t.orgSwitcher.current, { name: current.Name })}>
-            <span className="oav">{initialOf(current.Name)}</span>
+            <OrgAvatar name={current.Name} logoUrl={current.LogoUrl} />
             <span className="min-w-0 flex-1">
               <b className="truncate">{current.Name}</b>
               <small>{roleLabel(current.Role, t)}</small>

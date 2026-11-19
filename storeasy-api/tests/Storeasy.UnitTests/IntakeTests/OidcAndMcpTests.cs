@@ -118,7 +118,74 @@ public class OidcAndMcpTests
 
             if (tool.Kind == McpToolKind.Plan && tool.RequestType != null)
                 tool.Fixed.Should().ContainKey("DryRun", $"{tool.Name} must stay a dry run");
+
+            // MCP clients validate every subschema as an object and drop the whole tool list on a boolean one.
+            BooleanSchemaPaths(schema, "$").Should().BeEmpty(tool.Name);
         }
+    }
+
+    [Fact]
+    public void FreeFormArguments_ShouldGetAnObjectSchemaWithTheirDescription()
+    {
+        var schema = McpSchemaBuilder.Build(McpToolCatalog.Find("answers_update"));
+
+        var answers = schema["properties"]!["answers"].Should().BeOfType<JsonObject>().Subject;
+        answers.ContainsKey("description").Should().BeTrue();
+    }
+
+    private static IEnumerable<string> BooleanSchemaPaths(JsonNode node, string path)
+    {
+        if (node is not JsonObject json)
+            yield break;
+
+        foreach (var key in new[] { "properties", "$defs", "definitions", "patternProperties" })
+        {
+            if (json[key] is JsonObject map)
+            {
+                foreach (var (name, child) in map)
+                {
+                    if (child is JsonValue)
+                        yield return $"{path}.{key}.{name}";
+
+                    foreach (var inner in BooleanSchemaPaths(child, $"{path}.{key}.{name}"))
+                        yield return inner;
+                }
+            }
+        }
+
+        foreach (var key in new[] { "items", "additionalProperties", "not", "contains" })
+        {
+            if (json[key] is JsonValue)
+                yield return $"{path}.{key}";
+
+            foreach (var inner in BooleanSchemaPaths(json[key], $"{path}.{key}"))
+                yield return inner;
+        }
+
+        foreach (var key in new[] { "anyOf", "oneOf", "allOf", "prefixItems" })
+        {
+            if (json[key] is JsonArray list)
+            {
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (list[i] is JsonValue)
+                        yield return $"{path}.{key}[{i}]";
+
+                    foreach (var inner in BooleanSchemaPaths(list[i], $"{path}.{key}[{i}]"))
+                        yield return inner;
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void BooleanSubschemas_ShouldBecomeObjects()
+    {
+        var schema = JsonNode.Parse("""{"type":"object","properties":{"a":true,"b":{"type":"array","items":false},"c":{"type":"object","additionalProperties":true}}}""")!;
+
+        McpSchemaBuilder.ReplaceBooleanSchemas(schema);
+
+        JsonSerializer.Serialize(schema).Should().Be("""{"type":"object","properties":{"a":{},"b":{"type":"array","items":{"not":{}}},"c":{"type":"object","additionalProperties":{}}}}""");
     }
 
     [Fact]

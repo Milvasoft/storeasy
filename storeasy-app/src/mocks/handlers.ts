@@ -47,6 +47,10 @@ function org(id: number, name: string, slug: string, role: OrgRole): MyOrganizat
 const now = Date.now()
 const hoursAgo = (hours: number) => new Date(now - hours * 3_600_000).toISOString()
 
+// The fake bucket the logo upload PUTs to, and the last uploaded logo (a blob URL of this page).
+const MOCK_LOGO_BUCKET = 'https://mock-storage.invalid/logo'
+let mockLogo: string | null = null
+
 const db = {
   organizations: [
     org(7, 'Kuzey Lab', 'kuzey-lab', OrgRole.Owner),
@@ -218,6 +222,27 @@ export const mockHandlers: HttpHandler[] = [
     }
     db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, Name, Slug: Slug || item.Slug } : item))
     audit(AuditAction.OrganizationUpdated, `Renamed to ${Name}.`)
+    return envelope(OrganizationId)
+  }),
+  // The logo goes to a fake bucket (answered below); the uploaded file becomes the logo as a blob URL of this page.
+  http.post(`${BASE}/Organizations/logo/upload`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    return envelope({ assetId: OrganizationId, uploadUrl: MOCK_LOGO_BUCKET, partSize: null, parts: [], expiryDate: hoursAgo(-1) })
+  }),
+  http.put(MOCK_LOGO_BUCKET, async ({ request }) => {
+    mockLogo = URL.createObjectURL(await request.blob())
+    return new HttpResponse(null, { status: 200, headers: { ETag: '"mock-logo"' } })
+  }),
+  http.put(`${BASE}/Organizations/logo`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, LogoUrl: mockLogo } : item))
+    audit(AuditAction.OrganizationLogoSet, 'Organization logo set.')
+    return envelope(mockLogo)
+  }),
+  http.delete(`${BASE}/Organizations/logo`, async ({ request }) => {
+    const { OrganizationId } = await body<{ OrganizationId: number }>(request)
+    db.organizations = db.organizations.map((item) => (item.Id === OrganizationId ? { ...item, LogoUrl: null } : item))
+    audit(AuditAction.OrganizationLogoRemoved, 'Organization logo removed.')
     return envelope(OrganizationId)
   }),
   http.get(`${BASE}/Organizations/members`, async () => {

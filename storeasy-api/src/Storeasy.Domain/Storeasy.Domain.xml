@@ -1697,6 +1697,12 @@
             A build package (IPA, AAB, MSIX) from a CI pipeline or an upload.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AssetPurpose.OrganizationLogo">
+            <summary>
+            An organization logo on its way in: uploaded by the logo endpoints only, then checked, redrawn as a square PNG and
+            removed again (the organization keeps the redrawn copy).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AssetStatus">
             <summary>
             Upload state of a stored file.
@@ -1757,6 +1763,12 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationUpdated">
             <summary>Organization renamed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationLogoSet">
+            <summary>Organization logo uploaded or replaced.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.OrganizationLogoRemoved">
+            <summary>Organization logo removed.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.MemberInvited">
             <summary>Invitation sent.</summary>
@@ -8821,6 +8833,18 @@
             Default language of the organization's store texts (e.g. tr-TR); null when not chosen.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.LogoKey">
+            <summary>
+            Object key of the organization's logo in the file storage (a square PNG written by the API, see
+            <see cref="T:Storeasy.Domain.Organizations.OrganizationLogoRules"/>); null when the organization has no logo and shows its initial. Every upload
+            gets a fresh key, so a new logo never hides behind a cached old one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Organizations.Organization.LogoUpdateDate">
+            <summary>
+            When the current logo was set (UTC); null without a logo.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Organizations.Organization.Members">
             <summary>
             Members of the organization.
@@ -8958,6 +8982,76 @@
             <summary>
             Navigation property of the user who sent the invitation.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Organizations.OrganizationLogoRules">
+            <summary>
+            Pure rules of organization logos: accepted types, size limits, the file signature check and the object key of the
+            stored copy. No storage call and no image decoding (the API redraws the image through <c>ILogoImageNormalizer</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxBytes">
+            <summary>
+            Largest logo file accepted, in bytes (2 MB).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputSize">
+            <summary>
+            Width and height of the stored logo, in pixels. A smaller square is kept at its size.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxSourceDimension">
+            <summary>
+            Largest width or height of an uploaded image, in pixels (a guard against images that decode to huge bitmaps).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MinSourceDimension">
+            <summary>
+            Smallest width or height of an uploaded image, in pixels.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputContentType">
+            <summary>
+            Content type of the stored logo.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.ObjectKeyMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Organizations.Organization.LogoKey"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.UrlLifetime">
+            <summary>
+            How long a logo URL handed to a client stays valid. Clients read the organization list again well within it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Organizations.OrganizationLogoRules.AcceptedContentTypes">
+            <summary>
+            Content types an upload may declare. SVG is not accepted: it can carry script and is not redrawn here.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.DetectContentType(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Content type of <paramref name="data"/> by its file signature (PNG, JPEG or WebP); null for anything else,
+            whatever its name or declared type says.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.IsAcceptedContentType(System.String)">
+            <summary>
+            Whether <paramref name="contentType"/> is one of <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.AcceptedContentTypes"/> (case insensitive).
+            </summary>
+            <param name="contentType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Organizations.OrganizationLogoRules.ObjectKey(System.Int32,System.Guid)">
+            <summary>
+            Object key of a stored logo: <c>org/{organizationId}/logo/{nonce}.png</c>. The nonce is fresh per logo, so the
+            URL of a replaced logo changes and no cache shows the old one.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="nonce"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Domain.Organizations.OrganizationMember">
             <summary>

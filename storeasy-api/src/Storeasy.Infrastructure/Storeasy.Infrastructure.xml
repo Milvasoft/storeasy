@@ -3891,6 +3891,18 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.SkiaLogoImageNormalizer">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.ILogoImageNormalizer"/> with SkiaSharp (the library of the mockup renderer). The header is read first, so an
+            image whose size is outside <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MinSourceDimension"/> and
+            <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.MaxSourceDimension"/> is refused before it is decoded. The centre square is drawn on a
+            transparent canvas of at most <see cref="F:Storeasy.Domain.Organizations.OrganizationLogoRules.OutputSize"/> pixels and written as PNG, so the stored
+            file holds only pixels.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.SkiaLogoImageNormalizer.Normalize(System.Byte[])">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.StoreContentService">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IStoreContentService"/>. The connection secret is opened for one call and dropped; store failures

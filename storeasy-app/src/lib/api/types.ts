@@ -65,6 +65,8 @@ export type ActionChannel = (typeof ActionChannel)[keyof typeof ActionChannel]
 export const AuditAction = {
   OrganizationCreated: 1,
   OrganizationUpdated: 2,
+  OrganizationLogoSet: 3,
+  OrganizationLogoRemoved: 4,
   MemberInvited: 10,
   InvitationRevoked: 11,
   MemberJoined: 12,
@@ -231,6 +233,8 @@ export interface MyOrganizationDto {
   Id: number
   Name: string
   Slug: string
+  /** Short lived URL of the organization's square logo; null when it has none and shows its initial. */
+  LogoUrl?: string | null
   Role: OrgRole
   /** Set when Role is Custom. */
   CustomRoleId?: number | null
@@ -285,6 +289,7 @@ export interface InvitationPreviewDto {
   Status: InvitationStatus
   OrganizationName?: string | null
   OrganizationSlug?: string | null
+  OrganizationLogoUrl?: string | null
   InviterName?: string | null
   Role?: OrgRole | null
   CustomRoleName?: string | null

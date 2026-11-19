@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { MonitorSmartphone } from 'lucide-react'
 import { PasswordPolicy } from '@/components/auth/PasswordPolicy'
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
+import { OrgAvatar } from '@/components/org/OrgAvatar'
 import { Badge } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { FormErrors } from '@/components/ui/Feedback'
@@ -92,7 +93,7 @@ export function AccountPage() {
             <ul className="m-0 list-none p-0">
               {organizations.map((organization) => (
                 <li key={organization.Id} className="lst-i">
-                  <span className="oav">{organization.Name.slice(0, 1).toLocaleUpperCase('tr')}</span>
+                  <OrgAvatar name={organization.Name} logoUrl={organization.LogoUrl} />
                   <span className="min-w-0 flex-1">
                     <b className="block truncate">{organization.Name}</b>
                     <span className="mono block text-xs text-fg3">{organization.Slug}</span>

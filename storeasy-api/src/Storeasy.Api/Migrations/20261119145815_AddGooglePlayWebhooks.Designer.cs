@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261119144958_AddGooglePlayWebhooks")]
-partial class _20261119144958_AddGooglePlayWebhooks
+[Migration("20261119145815_AddGooglePlayWebhooks")]
+partial class _20261119145815_AddGooglePlayWebhooks
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2692,6 +2692,13 @@ partial class _20261119144958_AddGooglePlayWebhooks
 
                 b.Property<string>("LastModifierUserName")
                     .HasColumnType("text");
+
+                b.Property<string>("LogoKey")
+                    .HasMaxLength(512)
+                    .HasColumnType("character varying(512)");
+
+                b.Property<DateTime?>("LogoUpdateDate")
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("Name")
                     .HasMaxLength(100)

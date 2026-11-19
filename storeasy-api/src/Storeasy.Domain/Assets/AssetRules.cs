@@ -39,6 +39,7 @@ public static class AssetRules
     {
         AssetPurpose.BuildArtifact => 8L * 1024 * 1024 * 1024,
         AssetPurpose.Screenshot or AssetPurpose.MockupOutput => 50L * 1024 * 1024,
+        AssetPurpose.OrganizationLogo => Organizations.OrganizationLogoRules.MaxBytes,
         _ => 20L * 1024 * 1024,
     };
 
