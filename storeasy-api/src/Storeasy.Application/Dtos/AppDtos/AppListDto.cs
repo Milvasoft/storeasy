@@ -36,6 +36,11 @@ public class AppListDto
     public DateTime? HiddenDate { get; set; }
 
     /// <summary>
+    /// UTC instant a member muted the app's alerts (the live board and the notifications leave it out); null while they are on.
+    /// </summary>
+    public DateTime? AlertsMutedDate { get; set; }
+
+    /// <summary>
     /// Place of the app in the apps list a member chose (0 is the first); null for an app that was never placed.
     /// </summary>
     public int? DisplayOrder { get; set; }
@@ -57,6 +62,7 @@ public class AppListDto
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
         HiddenDate = a.HiddenDate,
+        AlertsMutedDate = a.AlertsMutedDate,
         DisplayOrder = a.DisplayOrder,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto
         {

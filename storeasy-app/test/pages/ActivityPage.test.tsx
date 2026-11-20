@@ -2,7 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import { HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { ComplianceItemDto } from '@/features/common/types'
-import type { RejectionCaseListDto } from '@/features/rejections/types'
+import { RejectionKind, RejectionSource, RejectionState, type RejectionCaseListDto } from '@/features/rejections/types'
 import { ActivityEventType, createManualSource, InboundEventType, type ActivityEvent } from '@/lib/activity/events'
 import {
   BuildProcessingState,
@@ -196,6 +196,33 @@ describe('ActivityPage', () => {
     expect(screen.getByRole('img', { name: 'App Store son 24 saat: 4 iş başarılı, 1 başarısız, 2 mağaza bildirimi' })).toBeInTheDocument()
     const attention = screen.getByRole('region', { name: 'Dikkat isteyenler' })
     expect(within(attention).getByText("Pusula 2.2.4 (398) 2 gün içinde TestFlight'tan düşüyor")).toBeInTheDocument()
+  })
+
+  it('leaves a muted app out of what needs attention and says how many apps are muted', async () => {
+    testState.jobs = []
+    testState.connections = []
+    testState.apps = [app(), app({ Id: 103, Name: 'Expenny', AlertsMutedDate: '2026-11-19T08:00:00Z' })]
+    const now = Date.now()
+    testState.board = {
+      GeneratedDate: new Date(now).toISOString(),
+      HoursStartDate: new Date(now - 23 * 3_600_000).toISOString(),
+      Versions: [],
+      Builds: [],
+      Hours: [],
+      MutedAppIds: [103],
+    }
+    const opened = { Store: StoreKind.Apple, Kind: RejectionKind.Rejected, State: RejectionState.Open, OpenedVia: RejectionSource.Webhook, OpenedDate: new Date(now - 3_600_000).toISOString(), ChecklistDone: 0, ChecklistTotal: 0 }
+    openRejections = [
+      { ...opened, Id: 5, AppId: 103, StoreAppId: 220, VersionString: '1.2' },
+      { ...opened, Id: 6, AppId: 101, StoreAppId: 201, VersionString: '2.4' },
+    ]
+    setup()
+
+    const attention = await screen.findByRole('region', { name: 'Dikkat isteyenler' })
+    expect(await within(attention).findByText('Pusula 2.4 reddedildi')).toBeInTheDocument()
+    expect(within(attention).getByRole('link')).toHaveAttribute('href', '/apps/101/rejections/6')
+    expect(within(attention).queryByText(/Expenny/)).not.toBeInTheDocument()
+    expect(within(attention).getByText('Susturulan uygulama dışarıda: 1')).toHaveAttribute('title', 'Expenny')
   })
 
   it('says nothing needs the user when all is well', async () => {

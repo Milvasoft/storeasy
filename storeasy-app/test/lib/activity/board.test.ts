@@ -10,8 +10,10 @@ import {
   hourStrip,
   isExternalHref,
   lastFailedJob,
+  mutedAppIdsOf,
   reviewPhase,
   upcomingOf,
+  withoutMutedApps,
   type BoardInputs,
 } from '@/lib/activity/board'
 import { ActivityEventType } from '@/lib/activity/events'
@@ -313,5 +315,35 @@ describe('token rows', () => {
     expect(assignRows([{ x: 0.1 }, { x: 0.8 }], 0.36)).toEqual([0, 0])
     expect(assignRows([{ x: 0.5 }, { x: 0.6 }], 0.36)).toEqual([0, 1])
     expect(assignRows([{ x: 0.5 }, { x: 0.55 }, { x: 0.6 }], 0.36)).toEqual([0, 1, 0])
+  })
+})
+
+describe('muted apps', () => {
+  it('leaves the muted apps out of attention, the gates and what is coming, and keeps the rest', () => {
+    const all = inputs({
+      rejections: [rejection, { ...rejection, Id: 6, AppId: 104, StoreAppId: 230 }],
+      compliance: [compliance(5), { ...compliance(3), AppId: 103, AppName: 'Expenny' }],
+      board: board({
+        MutedAppIds: [103],
+        Versions: [version({ AppId: 103, StoreAppId: 220, State: 'REJECTED' }), version({ AppId: 105, StoreAppId: 250 })],
+        Builds: [
+          { AppId: 103, StoreAppId: 220, Store: StoreKind.Apple, Version: '1.4', BuildNumber: '9', ProcessingState: BuildProcessingState.Processing },
+        ],
+      }),
+    })
+
+    const kept = withoutMutedApps(all)
+
+    expect(mutedAppIdsOf(kept)).toEqual([103])
+    expect(attentionOf(kept, NOW).map((item) => item.href)).toEqual(['/apps/104/rejections/6', '/apps/102/compliance'])
+    expect(gateItemsOf(StoreKind.Apple, kept, NOW).map((item) => item.appId)).toEqual([105])
+    expect(upcomingOf(kept, NOW).map((item) => item.appId)).toEqual([105, 102])
+  })
+
+  it('changes nothing while no app is muted', () => {
+    const all = inputs({ rejections: [rejection], board: board({ MutedAppIds: [] }) })
+
+    expect(withoutMutedApps(all)).toBe(all)
+    expect(mutedAppIdsOf(EMPTY_INPUTS)).toEqual([])
   })
 })

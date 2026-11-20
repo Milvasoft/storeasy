@@ -52,6 +52,10 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.appHidden
     case AuditAction.AppUnhidden:
       return t.enums.auditAction.appUnhidden
+    case AuditAction.AppAlertsMuted:
+      return t.enums.auditAction.appAlertsMuted
+    case AuditAction.AppAlertsUnmuted:
+      return t.enums.auditAction.appAlertsUnmuted
     case AuditAction.AppsReordered:
       return t.enums.auditAction.appsReordered
     case AuditAction.PreReviewStarted:

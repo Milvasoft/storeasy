@@ -351,6 +351,10 @@ export const appsApi = {
   setHidden: (organizationId: number, appId: number, hidden: boolean) =>
     apiPost<number>('/Apps/app/hidden', { OrganizationId: organizationId, AppId: appId, Hidden: hidden }),
 
+  // Mutes the app's alerts (the live board and the notifications leave it out) or turns them on again. The app stays listed.
+  setAlertsMuted: (organizationId: number, appId: number, muted: boolean) =>
+    apiPost<number>('/Apps/app/alerts-muted', { OrganizationId: organizationId, AppId: appId, Muted: muted }),
+
   // Sets the order of the apps list: these apps first, in this order; every other app follows by name. Answers the count.
   reorder: (organizationId: number, appIds: number[]) =>
     apiPost<number>('/Apps/app/order', { OrganizationId: organizationId, AppIds: appIds }),

@@ -6,6 +6,7 @@ import { AddGoogleAppDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { AppOrderHandle, type OrderFocus } from '@/components/apps/AppOrderHandle'
 import { HideAppButton } from '@/components/apps/HideAppButton'
+import { MutedAlertsIcon } from '@/components/apps/MutedAlertsIcon'
 import { inOrder, useReorderApps } from '@/components/apps/useReorderApps'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
@@ -99,10 +100,11 @@ function AppCard({
       <div className="flex min-w-0 items-center gap-3">
         <AppAvatar app={app} size="m" />
         <div className="min-w-0">
-          <h3 className="h3 truncate">
-            <Link className="hover:underline" to={`/apps/${app.Id}`}>
+          <h3 className="h3 flex min-w-0 items-center gap-1.5">
+            <Link className="truncate hover:underline" to={`/apps/${app.Id}`}>
               {app.Name}
             </Link>
+            <MutedAlertsIcon app={app} />
           </h3>
           {identifier ? <div className="mono truncate text-xs text-fg3">{identifier}</div> : null}
         </div>
@@ -345,7 +347,10 @@ export function AppsPage() {
         <span className="flex min-w-0 items-center gap-2.5">
           <AppAvatar app={app} size="s" />
           <span className="grid min-w-0">
-            <b className="truncate">{app.Name}</b>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <b className="truncate">{app.Name}</b>
+              <MutedAlertsIcon app={app} />
+            </span>
             <span className="mono truncate text-[11.5px] text-fg3">{primaryIdentifier(app) ?? ''}</span>
           </span>
         </span>

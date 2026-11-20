@@ -131,6 +131,14 @@
             writes it), so a hidden app stays hidden when its records are read from the store again.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Apps.App.AlertsMutedDate">
+            <summary>
+            UTC instant a member muted the app's alerts; null while they are on. A muted app stays everywhere (apps list, its
+            pages, builds, rejection records) and keeps syncing, but the alerting surfaces leave it out: the live activity
+            board and its attention items, and the notifications, e-mails, web pushes and live events sent to members about
+            it. Only a member changes it (sync never writes it).
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Apps.App.DisplayOrder">
             <summary>
             Place of the app in the organization's apps list, set when a member reorders the list (0 is the first). Null for
@@ -2001,6 +2009,12 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.AppsReordered">
             <summary>A member reordered the organization's apps list.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppAlertsMuted">
+            <summary>A storeasy app's alerts were muted (the live board and the notifications leave it out).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppAlertsUnmuted">
+            <summary>A storeasy app's muted alerts were turned on again.</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.PlanApproved">
             <summary>A change plan was approved and its apply job queued.</summary>

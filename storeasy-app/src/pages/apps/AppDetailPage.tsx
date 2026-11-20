@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Boxes, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, Boxes, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
+import { useSetAppAlertsMuted } from '@/components/apps/useSetAppAlertsMuted'
 import { useSetAppHidden } from '@/components/apps/useSetAppHidden'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
@@ -349,6 +350,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
   const sync = useSyncApps((jobIds) => setStarted((current) => new Set([...current, ...jobIds])))
   const editor = can(OrgPermission.EditContent)
   const setHidden = useSetAppHidden()
+  const setMuted = useSetAppAlertsMuted()
 
   const app = useQuery({
     queryKey: queryKeys.apps.detail(organization.Id, appId),
@@ -403,6 +405,12 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
                     {t.apps.hiddenBadge}
                   </Badge>
                 ) : null}
+                {data.AlertsMutedDate ? (
+                  <Badge tone="neutral" small>
+                    <BellOff className="h-3 w-3" aria-hidden />
+                    {t.apps.mutedBadge}
+                  </Badge>
+                ) : null}
               </span>
             }
             actions={
@@ -411,6 +419,14 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
                   <Button loading={setHidden.isPending} onClick={() => setHidden.mutate({ app: data, hidden: !data.HiddenDate })}>
                     {data.HiddenDate ? <Eye aria-hidden /> : <EyeOff aria-hidden />}
                     {data.HiddenDate ? t.apps.unhide : t.apps.hide}
+                  </Button>
+                  <Button
+                    loading={setMuted.isPending}
+                    aria-pressed={!!data.AlertsMutedDate}
+                    onClick={() => setMuted.mutate({ app: data, muted: !data.AlertsMutedDate })}
+                  >
+                    {data.AlertsMutedDate ? <Bell aria-hidden /> : <BellOff aria-hidden />}
+                    {data.AlertsMutedDate ? t.apps.unmuteAlerts : t.apps.muteAlerts}
                   </Button>
                   <Button onClick={() => setLinking(true)}>
                     <Link2 aria-hidden />

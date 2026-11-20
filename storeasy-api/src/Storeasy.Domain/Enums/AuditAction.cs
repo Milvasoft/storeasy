@@ -114,6 +114,14 @@ public enum AuditAction : short
     [Description("Apps reordered")]
     AppsReordered = 46,
 
+    /// <summary>A storeasy app's alerts were muted (the live board and the notifications leave it out).</summary>
+    [Description("App alerts muted")]
+    AppAlertsMuted = 47,
+
+    /// <summary>A storeasy app's muted alerts were turned on again.</summary>
+    [Description("App alerts unmuted")]
+    AppAlertsUnmuted = 48,
+
     /// <summary>A change plan was approved and its apply job queued.</summary>
     [Description("Change plan approved")]
     PlanApproved = 50,

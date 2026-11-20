@@ -11,8 +11,11 @@ using Storeasy.Domain.Stores;
 namespace Storeasy.Application.Features.StoreJobs.GetActivityBoard;
 
 /// <summary>
-/// Handles <see cref="GetActivityBoardQuery"/>.
+/// Handles <see cref="GetActivityBoardQuery"/>. Apps whose alerts are muted (<see cref="App.AlertsMutedDate"/>) are left out
+/// of the versions and builds and named in <see cref="ActivityBoardDto.MutedAppIds"/> instead; the hourly job and event
+/// counts are per store and keep them.
 /// </summary>
+/// <param name="appRepository"></param>
 /// <param name="versionStateRepository"></param>
 /// <param name="buildRepository"></param>
 /// <param name="storeAppRepository"></param>
@@ -21,7 +24,8 @@ namespace Storeasy.Application.Features.StoreJobs.GetActivityBoard;
 /// <param name="endpointRepository"></param>
 /// <param name="msSubmissionRepository"></param>
 /// <param name="timeProvider"></param>
-public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionState> versionStateRepository,
+public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<App> appRepository,
+                                          IStoreasyRepositoryBase<AppVersionState> versionStateRepository,
                                           IStoreasyRepositoryBase<Build> buildRepository,
                                           IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                           IStoreasyRepositoryBase<StoreJob> jobRepository,
@@ -54,6 +58,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
 
     private static readonly List<string> _withReview = ["WAITING_FOR_REVIEW", "IN_REVIEW"];
 
+    private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<AppVersionState> _versionStateRepository = versionStateRepository;
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
@@ -72,7 +77,13 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
         var recentSince = now.AddDays(-RecentVersionDays);
         var expiryUntil = now.AddDays(ExpiryDays);
 
-        var states = await _versionStateRepository.GetAllAsync(s => s.OrganizationId == organizationId && (s.ChangedDate >= recentSince || _withReview.Contains(s.State)),
+        var mutedAppIds = (await _appRepository.GetAllAsync(a => a.OrganizationId == organizationId && a.AlertsMutedDate != null,
+                                                            projection: a => new App { Id = a.Id },
+                                                            cancellationToken: cancellationToken)).Select(a => a.Id).OrderBy(id => id).ToList();
+
+        var states = await _versionStateRepository.GetAllAsync(s => s.OrganizationId == organizationId
+                                                                    && !mutedAppIds.Contains(s.AppId)
+                                                                    && (s.ChangedDate >= recentSince || _withReview.Contains(s.State)),
                                                                projection: s => new AppVersionState
                                                                {
                                                                    AppId = s.AppId,
@@ -102,7 +113,9 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                                         },
                                                         cancellationToken: cancellationToken);
 
-        var storeApps = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == organizationId,
+        // Builds and Microsoft Store submissions reach the board only through these records, so leaving the muted apps'
+        // records out here leaves their builds and submissions out too.
+        var storeApps = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == organizationId && !mutedAppIds.Contains(s.AppId),
                                                               projection: s => new StoreApp { Id = s.Id, AppId = s.AppId, ExternalId = s.ExternalId },
                                                               cancellationToken: cancellationToken);
 
@@ -236,6 +249,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
             Versions = versions,
             Builds = boardBuilds,
             Hours = [.. hours.Values.OrderBy(h => h.Store).ThenBy(h => h.Hour)],
+            MutedAppIds = mutedAppIds,
         });
     }
 

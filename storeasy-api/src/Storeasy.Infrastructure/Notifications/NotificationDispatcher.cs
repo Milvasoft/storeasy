@@ -7,6 +7,7 @@ using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Helpers;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
+using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Notifications;
 using Storeasy.Domain.Organizations;
@@ -21,7 +22,13 @@ namespace Storeasy.Infrastructure.Notifications;
 /// <c>notification.created</c> to each recipient, queues the e-mails (outbox) and the web pushes, and queues the outgoing
 /// webhook and the live event when the notification names them. Custom role members receive what the seeded role their
 /// permissions match (<see cref="OrganizationRole.AudienceRole"/>) receives.
+/// <para>
+/// A notification about an app whose alerts are muted (<see cref="App.AlertsMutedDate"/>) reaches no role audience and
+/// publishes no live event; users it names directly (the member whose own action failed) still get it, and the outgoing
+/// webhook is still queued, since integrations subscribe to events rather than to alerts.
+/// </para>
 /// </summary>
+/// <param name="appRepository"></param>
 /// <param name="memberRepository"></param>
 /// <param name="userRepository"></param>
 /// <param name="preferenceRepository"></param>
@@ -35,7 +42,8 @@ namespace Storeasy.Infrastructure.Notifications;
 /// <param name="appOptions"></param>
 /// <param name="timeProvider"></param>
 /// <param name="logger"></param>
-public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationMember> memberRepository,
+public sealed class NotificationDispatcher(IStoreasyRepositoryBase<App> appRepository,
+                                           IStoreasyRepositoryBase<OrganizationMember> memberRepository,
                                            IStoreasyRepositoryBase<User> userRepository,
                                            IStoreasyRepositoryBase<NotificationPreference> preferenceRepository,
                                            IStoreasyRepositoryBase<InternalNotification> notificationRepository,
@@ -52,6 +60,7 @@ public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationM
     private const int _textMaxLength = 1000;
     private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
+    private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<OrganizationMember> _memberRepository = memberRepository;
     private readonly IStoreasyRepositoryBase<User> _userRepository = userRepository;
     private readonly IStoreasyRepositoryBase<NotificationPreference> _preferenceRepository = preferenceRepository;
@@ -75,9 +84,12 @@ public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationM
 
         text = text?.Length > _textMaxLength ? text[.._textMaxLength] : text;
 
+        var alertsMuted = false;
+
         try
         {
-            delivered = await NotifyUsersAsync(notification, text, now, cancellationToken);
+            alertsMuted = await AlertsMutedAsync(notification, cancellationToken);
+            delivered = await NotifyUsersAsync(notification, text, now, alertsMuted, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -96,7 +108,7 @@ public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationM
             }
         }
 
-        if (notification.OrganizationId.HasValue && notification.ActivityType != null)
+        if (notification.OrganizationId.HasValue && notification.ActivityType != null && !alertsMuted)
         {
             await _activityPublisher.PublishAsync(new ActivityEventDto
             {
@@ -113,9 +125,24 @@ public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationM
         return delivered;
     }
 
-    private async Task<int> NotifyUsersAsync(OrgNotification notification, string text, DateTime now, CancellationToken cancellationToken)
+    private async Task<bool> AlertsMutedAsync(OrgNotification notification, CancellationToken cancellationToken)
     {
-        var recipients = await ResolveRecipientsAsync(notification, cancellationToken);
+        if (!notification.OrganizationId.HasValue || !notification.AppId.HasValue)
+            return false;
+
+        var organizationId = notification.OrganizationId.Value;
+        var appId = notification.AppId.Value;
+
+        var mutedDate = await _appRepository.GetFirstOrDefaultAsync(a => a.Id == appId && a.OrganizationId == organizationId,
+                                                                    projection: a => a.AlertsMutedDate,
+                                                                    cancellationToken: cancellationToken);
+
+        return mutedDate != null;
+    }
+
+    private async Task<int> NotifyUsersAsync(OrgNotification notification, string text, DateTime now, bool alertsMuted, CancellationToken cancellationToken)
+    {
+        var recipients = await ResolveRecipientsAsync(notification, alertsMuted, cancellationToken);
 
         if (recipients.Count == 0)
             return 0;
@@ -186,9 +213,10 @@ public sealed class NotificationDispatcher(IStoreasyRepositoryBase<OrganizationM
         return rows.Count;
     }
 
-    private async Task<List<User>> ResolveRecipientsAsync(OrgNotification notification, CancellationToken cancellationToken)
+    private async Task<List<User>> ResolveRecipientsAsync(OrgNotification notification, bool alertsMuted, CancellationToken cancellationToken)
     {
-        var roles = notification.Roles ?? [];
+        // A muted app's notification goes only to the users named directly.
+        List<OrgRole> roles = alertsMuted ? [] : notification.Roles ?? [];
         var userIds = notification.UserIds ?? [];
         var recipients = new List<User>();
 

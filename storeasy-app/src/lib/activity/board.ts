@@ -33,6 +33,37 @@ export interface BoardInputs {
 
 export const EMPTY_INPUTS: BoardInputs = { board: null, rejections: [], compliance: [], connections: [], jobs: [] }
 
+/** Ids of the apps whose alerts are muted, as the board names them. */
+export function mutedAppIdsOf(inputs: BoardInputs): number[] {
+  return inputs.board?.MutedAppIds ?? []
+}
+
+/**
+ * Leaves the apps whose alerts are muted out of everything the board decides from: their versions and builds (the
+ * server already leaves them out), open rejection cases, compliance deadlines and failed jobs. Their records stay on
+ * their own pages; the connections and the jobs on the line are not about one app and stay.
+ */
+export function withoutMutedApps(inputs: BoardInputs): BoardInputs {
+  const muted = new Set(mutedAppIdsOf(inputs))
+  if (muted.size === 0) {
+    return inputs
+  }
+  const kept = (appId: number | null | undefined) => appId == null || !muted.has(appId)
+  return {
+    ...inputs,
+    board: inputs.board
+      ? {
+          ...inputs.board,
+          Versions: (inputs.board.Versions ?? []).filter((version) => kept(version.AppId)),
+          Builds: (inputs.board.Builds ?? []).filter((build) => kept(build.AppId)),
+        }
+      : null,
+    rejections: inputs.rejections.filter((item) => kept(item.AppId)),
+    compliance: inputs.compliance.filter((item) => kept(item.AppId)),
+    jobs: inputs.jobs.filter((job) => kept(job.appId)),
+  }
+}
+
 const DAY_MS = 86_400_000
 // A version that went live stays on its gate this long ("live since 2 days").
 const LIVE_SHOWN_MS = 3 * DAY_MS

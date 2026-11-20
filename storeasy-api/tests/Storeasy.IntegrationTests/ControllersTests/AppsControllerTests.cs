@@ -407,6 +407,65 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
     }
 
     [Fact]
+    public async Task MuteAndUnmute_ShouldKeepTheAppListedSurviveASyncAndAuditOnce()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"6{setup.Suffix}", $"com.{setup.Suffix}.loud", "Loud"), new StoreAppRecord($"7{setup.Suffix}", $"com.{setup.Suffix}.quiet", "Quiet"));
+        await SyncAsync(setup);
+        var quietId = (await ListAppsAsync(setup)).Single(a => a.Name == "Quiet").Id;
+
+        // Act
+        var (mute, muted) = await setup.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = setup.OrganizationId, appId = quietId, muted = true });
+        var (muteAgain, _) = await setup.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = setup.OrganizationId, appId = quietId, muted = true });
+        await SyncAsync(setup);
+        var listed = await ListAppsAsync(setup);
+        var (_, mutedDetail) = await setup.Owner.Client.GetAsync<AppDetailDto>($"apps/app?organizationId={setup.OrganizationId}&appId={quietId}");
+        var (unmute, _) = await setup.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = setup.OrganizationId, appId = quietId, muted = false });
+        var afterUnmute = await ListAppsAsync(setup);
+        var audited = await _factory.DbAsync(db => db.StoreAuditLogs.AsNoTracking().CountAsync(a => a.OrganizationId == setup.OrganizationId && (a.Action == AuditAction.AppAlertsMuted || a.Action == AuditAction.AppAlertsUnmuted)));
+
+        // Assert
+        mute.StatusCode.Should().Be(HttpStatusCode.OK);
+        muted.Data.Should().Be(quietId);
+        muteAgain.StatusCode.Should().Be(HttpStatusCode.OK);
+        listed.Select(a => a.Name).Should().BeEquivalentTo(["Loud", "Quiet"], "a muted app stays in the apps list");
+        listed.Single(a => a.Id == quietId).AlertsMutedDate.Should().NotBeNull("a sync never turns the alerts on again");
+        listed.Single(a => a.Name == "Loud").AlertsMutedDate.Should().BeNull();
+        mutedDetail.Data.AlertsMutedDate.Should().NotBeNull();
+        mutedDetail.Data.HiddenDate.Should().BeNull("muting does not hide");
+        unmute.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterUnmute.Should().OnlyContain(a => a.AlertsMutedDate == null);
+        audited.Should().Be(2, "muting an app that is already muted writes nothing");
+    }
+
+    [Fact]
+    public async Task Mute_ShouldCheckTheRoleAndTheOrganization()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var stranger = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"8{setup.Suffix}", $"com.{setup.Suffix}.app", "App"));
+        await SyncAsync(setup);
+        var appId = (await ListAppsAsync(setup)).Single().Id;
+        var viewerUser = await _factory.CreateUserAsync(email: $"v{TestApi.Unique()}@example.com");
+        var viewer = await _factory.LoginAsync(viewerUser.UserName, TestApi.DefaultPassword);
+        var (_, invitation) = await setup.Owner.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId = setup.OrganizationId, email = viewerUser.Email, role = OrgRole.Viewer });
+        await viewer.Client.PostAsync<int>("organizations/invitation/accept", new { token = invitation.Data.Token });
+
+        // Act
+        var (viewerMute, _) = await viewer.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = setup.OrganizationId, appId, muted = true });
+        var (foreignApp, _) = await stranger.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = stranger.OrganizationId, appId, muted = true });
+        var (badId, _) = await setup.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = setup.OrganizationId, appId = 0, muted = true });
+
+        // Assert
+        viewerMute.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        foreignApp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        badId.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await ListAppsAsync(setup)).Should().ContainSingle().Which.AlertsMutedDate.Should().BeNull("nothing was muted");
+    }
+
+    [Fact]
     public async Task Reorder_ShouldKeepTheChosenOrderAcrossSyncsAndPutNewAppsAfterItByName()
     {
         // Arrange

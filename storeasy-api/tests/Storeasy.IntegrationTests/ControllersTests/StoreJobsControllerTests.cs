@@ -301,4 +301,54 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         body.Data.Hours.Should().ContainSingle(h => h.Store == StoreKind.Google).Which.Failed.Should().Be(1);
         body.Data.Hours.Should().OnlyContain(h => h.Hour >= body.Data.HoursStartDate && h.Hour <= body.Data.GeneratedDate);
     }
+
+    [Fact]
+    public async Task Board_ShouldLeaveMutedAppsOutAndNameThem()
+    {
+        // Arrange: two apps rejected by App Review, each with a processing build and a build close to expiry, and a
+        // Microsoft Store product waiting for "Publish now"; the first app and the product are muted.
+        var org = await _factory.NewOrgAsync();
+        var (mutedAppId, mutedStoreAppId, mutedExternalId) = await _factory.AddAppAsync(org, name: "Expenny");
+        var (loudAppId, loudStoreAppId, loudExternalId) = await _factory.AddAppAsync(org, name: "Pusula");
+        var (mutedMsAppId, mutedMsStoreAppId, _) = await _factory.AddAppAsync(org, StoreKind.Microsoft, name: "Kabuk");
+        var now = DateTime.UtcNow;
+
+        await _factory.DbAsync(async db =>
+        {
+            db.AppVersionStates.AddRange(
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = mutedAppId, StoreAppId = mutedStoreAppId, Store = StoreKind.Apple, ExternalVersionId = $"m1{org.Suffix}", VersionString = "1.2", State = "REJECTED", PreviousState = "IN_REVIEW", ChangedDate = now.AddHours(-1) },
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = loudAppId, StoreAppId = loudStoreAppId, Store = StoreKind.Apple, ExternalVersionId = $"l1{org.Suffix}", VersionString = "3.0", State = "REJECTED", PreviousState = "IN_REVIEW", ChangedDate = now.AddHours(-2) });
+
+            db.MsSubmissions.Add(new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = mutedMsStoreAppId, Target = MsSubmissionTarget.App, ExternalId = $"9{org.Suffix}", PackageVersion = "1.0.1.0", Status = MsSubmissionStatus.PendingPublication, IsPending = true, CreationDate = now });
+
+            await db.SaveChangesAsync();
+        });
+
+        await _factory.AddBuildAsync(org.OrganizationId, mutedStoreAppId, $"b1{mutedExternalId}", "1.3", "20", null, BuildProcessingState.Processing);
+        await _factory.AddBuildAsync(org.OrganizationId, mutedStoreAppId, $"b2{mutedExternalId}", "1.2", "19", now.AddDays(2));
+        await _factory.AddBuildAsync(org.OrganizationId, loudStoreAppId, $"b1{loudExternalId}", "3.1", "70", null, BuildProcessingState.Processing);
+        await _factory.AddBuildAsync(org.OrganizationId, loudStoreAppId, $"b2{loudExternalId}", "3.0", "69", now.AddDays(2));
+
+        foreach (var appId in new[] { mutedAppId, mutedMsAppId })
+        {
+            var (mute, _) = await org.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = org.OrganizationId, appId, muted = true });
+
+            mute.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        // Act
+        var (http, body) = await org.Owner.Client.GetAsync<ActivityBoardDto>($"storejobs/board?organizationId={org.OrganizationId}");
+        await org.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = org.OrganizationId, appId = mutedAppId, muted = false });
+        var (_, afterUnmute) = await org.Owner.Client.GetAsync<ActivityBoardDto>($"storejobs/board?organizationId={org.OrganizationId}");
+
+        // Assert
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        body.Data.Versions.Should().ContainSingle("the muted apps' rejection and waiting submission are left out")
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == loudAppId && v.State == "REJECTED");
+        body.Data.Builds.Should().HaveCount(2).And.OnlyContain(b => b.AppId == loudAppId, "the muted app's builds are left out");
+        body.Data.MutedAppIds.Should().BeEquivalentTo([mutedAppId, mutedMsAppId]);
+        afterUnmute.Data.Versions.Select(v => v.AppId).Should().BeEquivalentTo([mutedAppId, loudAppId], "the records were kept and come back when the alerts are on again");
+        afterUnmute.Data.Builds.Should().HaveCount(4);
+        afterUnmute.Data.MutedAppIds.Should().Equal(mutedMsAppId);
+    }
 }

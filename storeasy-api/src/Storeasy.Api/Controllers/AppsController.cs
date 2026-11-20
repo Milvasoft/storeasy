@@ -20,6 +20,7 @@ using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
 using Storeasy.Application.Features.Apps.ReorderApps;
+using Storeasy.Application.Features.Apps.SetAppAlertsMuted;
 using Storeasy.Application.Features.Apps.SetAppHidden;
 using Storeasy.Application.Features.Apps.SyncApps;
 using Storeasy.Application.Features.Apps.UnlinkStoreApp;
@@ -95,6 +96,16 @@ public class AppsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPost("app/hidden")]
     public Task<Response<int>> SetAppHiddenAsync(SetAppHiddenCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Mutes an app's alerts or turns them on again (editors and above). The app stays in the apps list and on its own
+    /// pages and keeps syncing; the live activity board and the notifications to members leave it out.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("app/alerts-muted")]
+    public Task<Response<int>> SetAppAlertsMutedAsync(SetAppAlertsMutedCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Sets the order of the apps list (editors and above): the listed apps come first in that order, every other app

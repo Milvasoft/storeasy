@@ -213,6 +213,29 @@ describe('AppDetailPage', () => {
     await waitFor(() => expect(lastRequestTo('/Apps/app/hidden')?.body).toEqual({ OrganizationId: 7, AppId: 101, Hidden: false }))
   })
 
+  it('mutes the alerts of the app from its header', async () => {
+    const { user } = render()
+    await screen.findByRole('heading', { name: 'Pusula', level: 1 })
+
+    await user.click(screen.getByRole('button', { name: 'Sustur' }))
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/alerts-muted')?.body).toEqual({ OrganizationId: 7, AppId: 101, Muted: true }))
+    expect(await screen.findByText('Pusula susturuldu. Listelerde kalıyor; canlı akış ve bildirimler onu dışarıda bırakıyor.')).toBeInTheDocument()
+  })
+
+  it('marks a muted app and turns its alerts on again from its header', async () => {
+    testState.appDetail = appDetail({ AlertsMutedDate: '2026-11-19T08:00:00Z' })
+    const { user } = render()
+    await screen.findByRole('heading', { name: 'Pusula', level: 1 })
+
+    expect(screen.getByText('Susturuldu')).toBeInTheDocument()
+    const toggle = screen.getByRole('button', { name: 'Sesi aç' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await user.click(toggle)
+
+    await waitFor(() => expect(lastRequestTo('/Apps/app/alerts-muted')?.body).toEqual({ OrganizationId: 7, AppId: 101, Muted: false }))
+  })
+
   it('hides pairing and sync from a viewer', async () => {
     testState.organizations = [organization({ Role: OrgRole.Viewer })]
 
