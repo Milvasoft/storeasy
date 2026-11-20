@@ -987,6 +987,11 @@ export const en = {
     emptyBody: 'Builds uploaded to the stores show up here after a sync, including Xcode Cloud and Transporter uploads.',
     noMatch: 'No builds in this state.',
     limitNote: 'The newest 100 builds across the stores.',
+    package: 'Package',
+    download: 'Download',
+    downloadLabel: 'Download the package of {version} ({build})',
+    inStore: 'In the store',
+    inStoreLabel: 'Open {version} ({build}) in {store} in a new tab',
   },
   addGoogle: {
     title: 'Add a Google Play app',
@@ -1161,6 +1166,7 @@ export const en = {
       appsReordered: 'Apps reordered',
       preReviewStarted: 'AI pre-review started',
       preReviewCompleted: 'AI pre-review finished',
+      buildPackageDownloaded: 'Build package downloaded',
     },
   },
 }

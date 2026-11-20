@@ -184,6 +184,7 @@ public static class MessageKey
     public const string MediaTooMany = nameof(MediaTooMany);
     public const string BuildNotFound = nameof(BuildNotFound);
     public const string BuildNotValid = nameof(BuildNotValid);
+    public const string BuildPackageNotStored = nameof(BuildPackageNotStored);
     public const string AssistedStepNotFound = nameof(AssistedStepNotFound);
     public const string TrackInvalid = nameof(TrackInvalid);
     public const string RolloutInvalid = nameof(RolloutInvalid);

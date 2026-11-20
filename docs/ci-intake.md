@@ -180,6 +180,15 @@ Packages are kept for the organization's retention (1 to 365 days, default 30, u
 deleted with their files; the session history stays. The largest package accepted is 4 GiB unless the organization sets
 a lower limit.
 
+While a package is kept, the build it became has a download link: the app's Builds tab and the overview's latest builds
+show **Download** for it, `GET /api/v1.0/builds/download-url?organizationId=&buildId=` (any member, `View`) answers a
+presigned URL that works for 30 minutes (`Storage:S3:PresignedUrlLifetimeMinutes`), and MCP has
+`builds_download_url`. Each link is written to the audit log (`BuildPackageDownloaded`, without the URL). A build has no
+key of its own to a session: it is matched by its store record and the store's build id the delivery saved (App Store
+Connect build id, Play version code), else by version and build number (Partner Center: the package version). A build
+whose package was deleted, or that reached the store without storeasy, links to its store instead (TestFlight, Play
+Console, Partner Center).
+
 ## Apple upload modes
 
 The instance setting `Storeasy:Intake:AppleUploadMode` (`.env`: `STOREASY_APPLE_UPLOAD_MODE`, see
