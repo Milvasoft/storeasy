@@ -65,4 +65,17 @@ public class ListingSuggestionsTests
     [InlineData("{broken")]
     public void Parse_ShouldRefuseAnAnswerWithoutAValue(string text)
         => ListingSuggestionPrompt.Parse(text).Should().BeNull();
+
+    [Theory]
+    [InlineData("{\"primary\": \"TRAVEL\", \"secondary\": \"NAVIGATION\", \"reason\": \"Why.\"}", "TRAVEL", "NAVIGATION", "Why.")]
+    [InlineData("{\"primary\": \"TRAVEL\", \"secondary\": null}", "TRAVEL", null, null)]
+    [InlineData("```json {\"primary\": \" TRAVEL \", \"secondary\": \"none\"} ```", "TRAVEL", null, null)]
+    public void ParseCategories_ShouldReadThePrimaryTheSecondaryAndTheReason(string text, string primary, string secondary, string reason)
+        => CategorySuggestionPrompt.Parse(text).Should().Be((primary, secondary, reason));
+
+    [Theory]
+    [InlineData("{\"secondary\": \"TRAVEL\"}")]
+    [InlineData("nothing")]
+    public void ParseCategories_ShouldRefuseAnAnswerWithoutAPrimary(string text)
+        => CategorySuggestionPrompt.Parse(text).Should().BeNull();
 }

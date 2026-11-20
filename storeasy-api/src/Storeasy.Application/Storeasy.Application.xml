@@ -1541,6 +1541,46 @@
             DOES_NOT_USE_THIRD_PARTY_CONTENT or USES_THIRD_PARTY_CONTENT.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto">
+            <summary>
+            An AI suggestion for the App Store categories. Nothing was saved: the member reviews it and plans it with categories (PUT).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.CurrentPrimary">
+            <summary>
+            Current primary category id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.CurrentSecondary">
+            <summary>
+            Current secondary category id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.Primary">
+            <summary>
+            Suggested primary category id (one of the store's).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.Secondary">
+            <summary>
+            Suggested secondary category id, or null for none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.Reason">
+            <summary>
+            Why, in the listing's primary language (from the model).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.CategorySuggestionDto.Model">
+            <summary>
+            Model that wrote it.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.ContentDtos.ChangePlanDto">
             <summary>
             A change plan with its diff, remarks, store calls and state.
@@ -15720,6 +15760,89 @@
         <member name="M:Storeasy.Application.Features.Listings.PlanReviewInfo.PlanReviewInfoCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Listings.PlanReviewInfo.PlanReviewInfoCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand">
+            <summary>
+            Suggests the App Store primary and secondary category of a store record with the organization's AI key, chosen from
+            the store's own category list, from the listing texts of the primary language and the app's catalog profile. Nothing is
+            saved and nothing reaches the store: the member reviews the suggestion and plans it with categories (PUT). The audit
+            entry keeps the model, the tokens and the cost.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand.InstructionMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand.Instruction"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand.StoreAppId">
+            <summary>
+            App Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand.Instruction">
+            <summary>
+            Optional note for this suggestion, at most 500 characters.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand"/>: reads the categories and the texts live (as categories and listings
+            do), lists the store's categories, opens the organization's AI key and asks <see cref="T:Storeasy.Application.Interfaces.IListingSuggestionWriter"/> with
+            the reply drafts' model setting. An id the store does not offer is dropped (a secondary) or fails the call (a primary).
+            No [Log]: the texts are the customer's; the audit entry keeps the model, the token counts and the estimated cost only.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="SuggestionWriter"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IListingSuggestionWriter,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.AiOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand"/>: reads the categories and the texts live (as categories and listings
+            do), lists the store's categories, opens the organization's AI key and asks <see cref="T:Storeasy.Application.Interfaces.IListingSuggestionWriter"/> with
+            the reply drafts' model setting. An id the store does not offer is dropped (a secondary) or fails the call (a primary).
+            No [Log]: the texts are the customer's; the audit entry keeps the model, the token counts and the estimated cost only.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="SuggestionWriter"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.SuggestionWriter">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandHandler.Handle(Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand">
             <summary>
             Suggests a value of one listing text (App Store name, subtitle, description, keywords, promotional text, What's New;
@@ -26392,6 +26515,14 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestCategoriesAsync(Storeasy.Application.Interfaces.CategorySuggestionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Asks the model for the App Store primary and secondary category, chosen from the store's list.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.ListingSuggestionRequest">
             <summary>
             What the model is given for one listing field. Every text is data for the prompt, never instructions.
@@ -26536,6 +26667,113 @@
             <param name="outcome"></param>
             <param name="model"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.CategorySuggestionRequest">
+            <summary>
+            What the model is given for an App Store category suggestion. Every text is data for the prompt, never instructions.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic key.</param>
+            <param name="AppName">storeasy's name of the app.</param>
+            <param name="Language">Language of the reason (the listing's primary language).</param>
+            <param name="Categories">The store's categories (id and title) to choose from.</param>
+            <param name="CurrentPrimary">Current primary category id, or null.</param>
+            <param name="CurrentSecondary">Current secondary category id, or null.</param>
+            <param name="Texts">Listing texts of the primary language (name, subtitle, description, keywords).</param>
+            <param name="Profile">The app's catalog profile as short lines.</param>
+            <param name="Instruction">The member's own note, or null.</param>
+            <param name="Model">Model to use; null for the instance default.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.CategorySuggestionRequest.#ctor(System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.String,System.String}},System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IReadOnlyList{System.String},System.String,System.String)">
+            <summary>
+            What the model is given for an App Store category suggestion. Every text is data for the prompt, never instructions.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic key.</param>
+            <param name="AppName">storeasy's name of the app.</param>
+            <param name="Language">Language of the reason (the listing's primary language).</param>
+            <param name="Categories">The store's categories (id and title) to choose from.</param>
+            <param name="CurrentPrimary">Current primary category id, or null.</param>
+            <param name="CurrentSecondary">Current secondary category id, or null.</param>
+            <param name="Texts">Listing texts of the primary language (name, subtitle, description, keywords).</param>
+            <param name="Profile">The app's catalog profile as short lines.</param>
+            <param name="Instruction">The member's own note, or null.</param>
+            <param name="Model">Model to use; null for the instance default.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.ApiKey">
+            <summary>The organization's Anthropic key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.AppName">
+            <summary>storeasy's name of the app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Language">
+            <summary>Language of the reason (the listing's primary language).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Categories">
+            <summary>The store's categories (id and title) to choose from.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.CurrentPrimary">
+            <summary>Current primary category id, or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.CurrentSecondary">
+            <summary>Current secondary category id, or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Texts">
+            <summary>Listing texts of the primary language (name, subtitle, description, keywords).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Profile">
+            <summary>The app's catalog profile as short lines.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Instruction">
+            <summary>The member's own note, or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionRequest.Model">
+            <summary>Model to use; null for the instance default.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.CategorySuggestionResult">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestCategoriesAsync(Storeasy.Application.Interfaces.CategorySuggestionRequest,System.Threading.CancellationToken)"/>. The ids are the model's answer as given; the
+            caller checks them against the store's list.
+            </summary>
+            <param name="Outcome"></param>
+            <param name="Primary">Suggested primary category id (when written).</param>
+            <param name="Secondary">Suggested secondary category id, or null for none.</param>
+            <param name="Reason">One or two sentences on why (when written).</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens"></param>
+            <param name="OutputTokens"></param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.CategorySuggestionResult.#ctor(Storeasy.Application.Interfaces.ReplyDraftOutcome,System.String,System.String,System.String,System.String,System.Int64,System.Int64)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestCategoriesAsync(Storeasy.Application.Interfaces.CategorySuggestionRequest,System.Threading.CancellationToken)"/>. The ids are the model's answer as given; the
+            caller checks them against the store's list.
+            </summary>
+            <param name="Outcome"></param>
+            <param name="Primary">Suggested primary category id (when written).</param>
+            <param name="Secondary">Suggested secondary category id, or null for none.</param>
+            <param name="Reason">One or two sentences on why (when written).</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens"></param>
+            <param name="OutputTokens"></param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.Outcome">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.Primary">
+            <summary>Suggested primary category id (when written).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.Secondary">
+            <summary>Suggested secondary category id, or null for none.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.Reason">
+            <summary>One or two sentences on why (when written).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.Model">
+            <summary>Model that answered (or was asked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.InputTokens">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.CategorySuggestionResult.OutputTokens">
+            <summary></summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.ILogoImageNormalizer">
             <summary>
@@ -30599,6 +30837,33 @@
         <member name="P:Storeasy.Application.Interfaces.WebPushMessage.NotificationId">
             <summary>In-app notification id, when there is one.</summary>
         </member>
+        <member name="T:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt">
+            <summary>
+            The prompt of the AI App Store category suggestions. The model picks from the store's own list; the app's texts,
+            profile and the member's note go in the user message as escaped data. The answer is a JSON object with the primary
+            and secondary category ids and a short reason (<see cref="M:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt.Parse(System.String)"/>); the ids are checked against the list again.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt.SystemPrompt">
+            <summary>
+            Instructions of the model, identical on every call (line feeds only).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt.UserMessage(Storeasy.Application.Interfaces.CategorySuggestionRequest)">
+            <summary>
+            The user message.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt.Parse(System.String)">
+            <summary>
+            Reads the model's JSON answer ({"primary": ..., "secondary": ..., "reason": ...}); a fenced or surrounded object is
+            accepted. Null when there is no primary.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt">
             <summary>
             The prompt of the AI listing suggestions. The system prompt is the same for every call; the app's texts, profile and
@@ -31948,6 +32213,20 @@
             <param name="value"></param>
             <param name="maxLength"></param>
             <param name="maxBytes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.ProfileLines(Storeasy.Domain.JsonModels.AppProfile)">
+            <summary>
+            The app's catalog profile (Profile tab) as short prompt lines.
+            </summary>
+            <param name="profile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.FailureKey(Storeasy.Application.Interfaces.ReplyDraftOutcome)">
+            <summary>
+            The message key of a failed AI suggestion call.
+            </summary>
+            <param name="outcome"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Content.MediaPlanner">

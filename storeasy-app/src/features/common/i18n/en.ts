@@ -281,6 +281,12 @@ export const p2en = {
     rights: 'Content rights',
     rightsNone: 'Does not use third party content',
     rightsUses: 'Uses third party content, with the rights to it',
+    suggest: 'Suggest categories',
+    suggesting: 'Choosing categories...',
+    suggestionTitle: 'AI suggestion: categories',
+    suggestionNow: 'now {value}',
+    suggestionHint: 'Nothing is saved yet. Put it in the form, then make a plan.',
+    useSuggestion: 'Put in the form',
   },
   ageRating: {
     title: 'Age rating',

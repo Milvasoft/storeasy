@@ -234,6 +234,9 @@ public sealed partial class FakeAppStoreConnect
             return Ok(new JsonObject { ["data"] = Resource("ageRatingDeclarations", m.Groups[1].Value, new JsonObject()) });
         }
 
+        if (method == "GET" && Path("^/v1/appCategories$", path).Success)
+            return Ok(new JsonObject { ["data"] = new JsonArray([.. new[] { "PRODUCTIVITY", "NAVIGATION", "TRAVEL", "UTILITIES" }.Select(id => (JsonNode)Resource("appCategories", id, new JsonObject { ["platforms"] = new JsonArray("IOS") }))]) });
+
         if (method == "GET" && Path("^/v1/apps/[^/]+/appPriceSchedule$", path).Success)
             return NotFound();
 

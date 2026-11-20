@@ -530,6 +530,19 @@ export const contentHandlers: HttpHandler[] = [
     return json(envelope({ ...contentState.listing, Fields: fields }))
   }),
   endpoint('get', '/Listings/details', () => json(envelope(contentState.details))),
+  endpoint('post', '/Categories/suggest', ({ body }) =>
+    json(
+      envelope({
+        StoreAppId: (body as { StoreAppId: number }).StoreAppId,
+        CurrentPrimary: 'NAVIGATION',
+        CurrentSecondary: 'TRAVEL',
+        Primary: 'TRAVEL',
+        Secondary: 'NAVIGATION',
+        Reason: 'Uygulama önce bir seyahat aracı.',
+        Model: 'claude-haiku-5-5',
+      }),
+    ),
+  ),
   endpoint('post', '/Listings/plan', planAnswer()),
   endpoint('post', '/Listings/suggest', ({ body }) => {
     const request = body as { StoreAppId: number; Locale: string; Field: string }

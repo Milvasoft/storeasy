@@ -282,6 +282,10 @@ public enum AuditAction : short
     [Description("Listing suggestion written with AI")]
     ListingSuggestionGenerated = 433,
 
+    /// <summary>An AI suggestion for the App Store categories was written (shown to the member, never saved or sent).</summary>
+    [Description("Category suggestion written with AI")]
+    CategorySuggestionGenerated = 434,
+
     /// <summary>An AI pre-review of a store record was started (nothing is submitted).</summary>
     [Description("AI pre-review started")]
     PreReviewStarted = 450,

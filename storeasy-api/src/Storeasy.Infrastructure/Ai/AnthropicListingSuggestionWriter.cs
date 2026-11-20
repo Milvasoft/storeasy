@@ -30,8 +30,48 @@ public sealed class AnthropicListingSuggestionWriter(IHttpClientFactory httpClie
     /// <inheritdoc/>
     public async Task<ListingSuggestionResult> SuggestAsync(ListingSuggestionRequest request, CancellationToken cancellationToken = default)
     {
-        var client = AnthropicCalls.CreateClient(_httpClientFactory, request.ApiKey, _options.TimeoutSeconds, _maxRetries);
-        var requestedModel = request.Model ?? _options.Model;
+        var call = await CompleteAsync(request.ApiKey, request.Model, ListingSuggestionPrompt.SystemPrompt, ListingSuggestionPrompt.UserMessage(request), "listing suggestion", cancellationToken);
+
+        if (call.Outcome != ReplyDraftOutcome.Written)
+            return new ListingSuggestionResult(call.Outcome, null, null, call.Model, call.InputTokens, call.OutputTokens);
+
+        if (ListingSuggestionPrompt.Parse(call.Text) is not { } parsed)
+        {
+            _logger.LogWarning("Anthropic listing suggestion was not the expected JSON object.");
+
+            return new ListingSuggestionResult(ReplyDraftOutcome.Failed, null, null, call.Model, call.InputTokens, call.OutputTokens);
+        }
+
+        return new ListingSuggestionResult(ReplyDraftOutcome.Written, parsed.Value, parsed.Reason, call.Model, call.InputTokens, call.OutputTokens);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CategorySuggestionResult> SuggestCategoriesAsync(CategorySuggestionRequest request, CancellationToken cancellationToken = default)
+    {
+        var call = await CompleteAsync(request.ApiKey, request.Model, CategorySuggestionPrompt.SystemPrompt, CategorySuggestionPrompt.UserMessage(request), "category suggestion", cancellationToken);
+
+        if (call.Outcome != ReplyDraftOutcome.Written)
+            return new CategorySuggestionResult(call.Outcome, null, null, null, call.Model, call.InputTokens, call.OutputTokens);
+
+        if (CategorySuggestionPrompt.Parse(call.Text) is not { } parsed)
+        {
+            _logger.LogWarning("Anthropic category suggestion was not the expected JSON object.");
+
+            return new CategorySuggestionResult(ReplyDraftOutcome.Failed, null, null, null, call.Model, call.InputTokens, call.OutputTokens);
+        }
+
+        return new CategorySuggestionResult(ReplyDraftOutcome.Written, parsed.Primary, parsed.Secondary, parsed.Reason, call.Model, call.InputTokens, call.OutputTokens);
+    }
+
+    private async Task<(ReplyDraftOutcome Outcome, string Text, string Model, long InputTokens, long OutputTokens)> CompleteAsync(string apiKey,
+                                                                                                                              string model,
+                                                                                                                              string system,
+                                                                                                                              string user,
+                                                                                                                              string what,
+                                                                                                                              CancellationToken cancellationToken)
+    {
+        var client = AnthropicCalls.CreateClient(_httpClientFactory, apiKey, _options.TimeoutSeconds, _maxRetries);
+        var requestedModel = model ?? _options.Model;
         Message response;
 
         try
@@ -40,49 +80,42 @@ public sealed class AnthropicListingSuggestionWriter(IHttpClientFactory httpClie
             {
                 Model = requestedModel,
                 MaxTokens = Math.Max(_options.MaxTokens, _minMaxTokens),
-                System = ListingSuggestionPrompt.SystemPrompt,
+                System = system,
                 OutputConfig = new OutputConfig { Effort = ParseEffort(_options.Effort) },
-                Messages = [new UserMessageParam { Content = ListingSuggestionPrompt.UserMessage(request) }],
+                Messages = [new UserMessageParam { Content = user }],
             }, cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             var outcome = AnthropicReplyDraftWriter.Classify(exception);
 
-            _logger.LogWarning("Anthropic listing suggestion failed: {Outcome} ({ErrorType}).", outcome, exception.GetType().Name);
+            _logger.LogWarning("Anthropic {What} failed: {Outcome} ({ErrorType}).", what, outcome, exception.GetType().Name);
 
-            return ListingSuggestionResult.Failure(outcome, requestedModel);
+            return (outcome, null, requestedModel, 0, 0);
         }
 
-        var model = response.Model.Raw();
+        var answeredModel = response.Model.Raw();
         var inputTokens = response.Usage?.InputTokens ?? 0;
         var outputTokens = response.Usage?.OutputTokens ?? 0;
         var stopReason = response.StopReason?.Value();
 
         if (stopReason == StopReason.Refusal)
         {
-            _logger.LogInformation("Anthropic declined to write a listing suggestion.");
+            _logger.LogInformation("Anthropic declined to write a {What}.", what);
 
-            return new ListingSuggestionResult(ReplyDraftOutcome.Refused, null, null, model, inputTokens, outputTokens);
+            return (ReplyDraftOutcome.Refused, null, answeredModel, inputTokens, outputTokens);
         }
 
         if (stopReason != StopReason.EndTurn)
         {
-            _logger.LogWarning("Anthropic listing suggestion stopped early: {StopReason}.", response.StopReason?.Raw());
+            _logger.LogWarning("Anthropic {What} stopped early: {StopReason}.", what, response.StopReason?.Raw());
 
-            return new ListingSuggestionResult(ReplyDraftOutcome.Failed, null, null, model, inputTokens, outputTokens);
+            return (ReplyDraftOutcome.Failed, null, answeredModel, inputTokens, outputTokens);
         }
 
         var text = string.Concat(response.Content.Select(block => block.Value).OfType<TextBlock>().Select(block => block.Text));
 
-        if (ListingSuggestionPrompt.Parse(text) is not { } parsed)
-        {
-            _logger.LogWarning("Anthropic listing suggestion was not the expected JSON object.");
-
-            return new ListingSuggestionResult(ReplyDraftOutcome.Failed, null, null, model, inputTokens, outputTokens);
-        }
-
-        return new ListingSuggestionResult(ReplyDraftOutcome.Written, parsed.Value, parsed.Reason, model, inputTokens, outputTokens);
+        return (ReplyDraftOutcome.Written, text, answeredModel, inputTokens, outputTokens);
     }
 
     private static Effort ParseEffort(string effort) => effort?.Trim().ToLowerInvariant() switch

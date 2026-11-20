@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { Sparkles } from 'lucide-react'
+import { useAiSettings } from '@/features/ai/api'
 import { Badge } from '@/components/ui/Badge'
 import { Callout } from '@/components/ui/Feedback'
 import { ScreenState } from '@/components/ui/ScreenState'
@@ -25,7 +27,7 @@ import { AppWorkspace, type WorkspaceContext } from '@/features/common/AppWorksp
 import { useP2 } from '@/features/common/i18n/useP2'
 import { contentKeys } from '@/features/common/keys'
 import { PlanDialog } from '@/features/common/PlanView'
-import type { AgeRatingAnswerDto, ChangePlanDto, ReviewInfoDto, TerritoryDto } from '@/features/common/types'
+import type { AgeRatingAnswerDto, CategorySuggestionDto, ChangePlanDto, ReviewInfoDto, TerritoryDto } from '@/features/common/types'
 
 // Design 7.19-7.21 and 8.23: categories and rights, age rating (new descriptors without an API are assisted steps),
 // price and territories with Apple's price points, and the App Review information. Every save is a change plan.
@@ -52,11 +54,92 @@ function SaveBar({ editor, disabled, loading, children }: { editor: boolean; dis
 // ---- Categories -----------------------------------------------------------------------------------------------------------
 const RIGHTS = ['DOES_NOT_USE_THIRD_PARTY_CONTENT', 'USES_THIRD_PARTY_CONTENT'] as const
 
+/**
+ * "Suggest categories": the organization's AI chooses a primary and secondary category from the store's list, with its
+ * reason. "Put in the form" fills the selects; the plan is made as for any other change. Nothing is saved by it.
+ */
+function CategorySuggestion({
+  organizationId,
+  storeAppId,
+  labelOf,
+  onApply,
+}: {
+  organizationId: number
+  storeAppId: number
+  labelOf: (key: string | null | undefined) => string
+  onApply: (primary: string, secondary: string) => void
+}) {
+  const t = useP2()
+  const [suggestion, setSuggestion] = useState<CategorySuggestionDto | null>(null)
+  const [note, setNote] = useState('')
+  const suggest = useMutation({
+    mutationFn: () => metadataApi.suggestCategories(organizationId, storeAppId, note),
+    onSuccess: setSuggestion,
+  })
+  if (!suggestion) {
+    return (
+      <div>
+        <Button size="sm" variant="ghost" loading={suggest.isPending} onClick={() => suggest.mutate()}>
+          <Sparkles aria-hidden />
+          {suggest.isPending ? t.category.suggesting : t.category.suggest}
+        </Button>
+      </div>
+    )
+  }
+  const row = (label: string, value: string | null | undefined, now: string | null | undefined) => (
+    <div className="text-[13px]">
+      <span className="text-fg3">{label}: </span>
+      <b>{labelOf(value)}</b>
+      {value !== now ? <span className="ml-2 text-xs text-fg3">({interpolate(t.category.suggestionNow, { value: labelOf(now) })})</span> : null}
+    </div>
+  )
+  return (
+    <section className="card" aria-label={t.category.suggestionTitle}>
+      <div className="card-b grid gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles aria-hidden className="h-4 w-4" />
+          <b className="text-[13.5px]">{t.category.suggestionTitle}</b>
+        </div>
+        {row(t.category.primary, suggestion.Primary, suggestion.CurrentPrimary)}
+        {row(t.category.secondary, suggestion.Secondary, suggestion.CurrentSecondary)}
+        {suggestion.Reason ? <p className="m-0 text-[13px]">{suggestion.Reason}</p> : null}
+        <Field label={t.listing.suggestionNote}>
+          <Input value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} />
+        </Field>
+        <p className="m-0 text-xs text-fg3">
+          {t.category.suggestionHint} {interpolate(t.listing.suggestionModel, { model: suggestion.Model })}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => {
+              onApply(suggestion.Primary, suggestion.Secondary ?? '')
+              setSuggestion(null)
+            }}
+          >
+            {t.category.useSuggestion}
+          </Button>
+          <Button size="sm" loading={suggest.isPending} onClick={() => suggest.mutate()}>
+            {t.listing.suggestAgain}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSuggestion(null)}>
+            {t.listing.closeSuggestion}
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Categories({ context }: { context: WorkspaceContext }) {
   const t = useP2()
   const { record, organizationId, editor } = context
   const [plan, setPlan] = usePlanState()
   const [draft, setDraft] = useState<{ primary?: string; secondary?: string; copyright?: string; rights?: string }>({})
+  const aiSettings = useAiSettings(organizationId)
+  // Suggestions need the organization's AI key; without it the button is not shown.
+  const canSuggest = editor && aiSettings.data?.HasApiKey === true
   const categories = useQuery({
     queryKey: contentKeys.categories(organizationId, record.StoreAppId),
     queryFn: () => metadataApi.categories(organizationId, record.StoreAppId),
@@ -92,6 +175,14 @@ function Categories({ context }: { context: WorkspaceContext }) {
   return (
     <form className="grid max-w-xl gap-4" noValidate onSubmit={submit}>
       <PageHeader title={t.category.title} />
+      {canSuggest ? (
+        <CategorySuggestion
+          organizationId={organizationId}
+          storeAppId={record.StoreAppId}
+          labelOf={(key) => (key ? (options.find((option) => option.value === key)?.label ?? key) : t.category.secondaryNone)}
+          onApply={(nextPrimary, nextSecondary) => setDraft((d) => ({ ...d, primary: nextPrimary, secondary: nextSecondary }))}
+        />
+      ) : null}
       <Field label={t.category.primary}>
         <Select
           value={primary}

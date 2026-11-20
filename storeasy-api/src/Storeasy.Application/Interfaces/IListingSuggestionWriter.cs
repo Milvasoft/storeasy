@@ -13,6 +13,14 @@ public interface IListingSuggestionWriter
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<ListingSuggestionResult> SuggestAsync(ListingSuggestionRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asks the model for the App Store primary and secondary category, chosen from the store's list.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<CategorySuggestionResult> SuggestCategoriesAsync(CategorySuggestionRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -73,3 +81,40 @@ public sealed record ListingSuggestionResult(ReplyDraftOutcome Outcome, string V
     /// <returns></returns>
     public static ListingSuggestionResult Failure(ReplyDraftOutcome outcome, string model) => new(outcome, null, null, model);
 }
+
+/// <summary>
+/// What the model is given for an App Store category suggestion. Every text is data for the prompt, never instructions.
+/// </summary>
+/// <param name="ApiKey">The organization's Anthropic key.</param>
+/// <param name="AppName">storeasy's name of the app.</param>
+/// <param name="Language">Language of the reason (the listing's primary language).</param>
+/// <param name="Categories">The store's categories (id and title) to choose from.</param>
+/// <param name="CurrentPrimary">Current primary category id, or null.</param>
+/// <param name="CurrentSecondary">Current secondary category id, or null.</param>
+/// <param name="Texts">Listing texts of the primary language (name, subtitle, description, keywords).</param>
+/// <param name="Profile">The app's catalog profile as short lines.</param>
+/// <param name="Instruction">The member's own note, or null.</param>
+/// <param name="Model">Model to use; null for the instance default.</param>
+public sealed record CategorySuggestionRequest(string ApiKey,
+                                               string AppName,
+                                               string Language,
+                                               IReadOnlyList<(string Id, string Title)> Categories,
+                                               string CurrentPrimary,
+                                               string CurrentSecondary,
+                                               IReadOnlyDictionary<string, string> Texts,
+                                               IReadOnlyList<string> Profile,
+                                               string Instruction,
+                                               string Model = null);
+
+/// <summary>
+/// Result of <see cref="IListingSuggestionWriter.SuggestCategoriesAsync"/>. The ids are the model's answer as given; the
+/// caller checks them against the store's list.
+/// </summary>
+/// <param name="Outcome"></param>
+/// <param name="Primary">Suggested primary category id (when written).</param>
+/// <param name="Secondary">Suggested secondary category id, or null for none.</param>
+/// <param name="Reason">One or two sentences on why (when written).</param>
+/// <param name="Model">Model that answered (or was asked).</param>
+/// <param name="InputTokens"></param>
+/// <param name="OutputTokens"></param>
+public sealed record CategorySuggestionResult(ReplyDraftOutcome Outcome, string Primary, string Secondary, string Reason, string Model, long InputTokens = 0, long OutputTokens = 0);

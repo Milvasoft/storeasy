@@ -153,6 +153,7 @@ export const AuditAction = {
   SavedReplyChanged: 431,
   ReviewReplyDraftGenerated: 432,
   ListingSuggestionGenerated: 433,
+  CategorySuggestionGenerated: 434,
   BetaGroupChanged: 440,
   BetaTestersChanged: 441,
   BetaTextChanged: 442,

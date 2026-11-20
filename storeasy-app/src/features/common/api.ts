@@ -38,6 +38,7 @@ import type {
   StoreOptionDto,
   TerritoryDto,
   ListingSuggestionDto,
+  CategorySuggestionDto,
 } from './types'
 
 // The phase 2 endpoints (storeasy-api controllers: Apps, Rules, Compliance, plans, Listings, Screenshots, Previews,
@@ -209,6 +210,15 @@ export const metadataApi = {
 
   planCategories: (organizationId: number, storeAppId: number, input: CategoriesInput) =>
     apiPut<ChangePlanDto>('/Categories', { OrganizationId: organizationId, StoreAppId: storeAppId, ...input, DryRun: true }),
+
+  // An AI suggestion for the App Store categories from the store's list (editors). Nothing is saved or planned; audited
+  // with the tokens and the cost. 409 AiKeyNotSet.
+  suggestCategories: (organizationId: number, storeAppId: number, instruction?: string | null) =>
+    apiPost<CategorySuggestionDto>('/Categories/suggest', {
+      OrganizationId: organizationId,
+      StoreAppId: storeAppId,
+      Instruction: instruction?.trim() || null,
+    }),
 
   ageRating: (organizationId: number, storeAppId: number) =>
     apiGet<AgeRatingDto>('/age-rating', { OrganizationId: organizationId, StoreAppId: storeAppId }),

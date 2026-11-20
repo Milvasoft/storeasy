@@ -6,6 +6,7 @@ using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.ContentDtos;
 using Storeasy.Application.Features.Listings.GetCategories;
 using Storeasy.Application.Features.Listings.PlanCategories;
+using Storeasy.Application.Features.Listings.SuggestCategories;
 using Storeasy.Application.Utils.Constants;
 
 namespace Storeasy.Api.Controllers;
@@ -39,4 +40,15 @@ public class CategoriesController(IMediator mediator) : ControllerBase
     [HttpPut]
     [RateLimit(240, 3600, "content-plan")]
     public Task<Response<ChangePlanDto>> PlanCategoriesAsync(PlanCategoriesCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Suggests the App Store primary and secondary category with the organization's AI key (editors and above), from the
+    /// store's own list. Nothing is saved or sent: the member reviews it and plans it. 409 AiKeyNotSet without a key.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("suggest")]
+    [RateLimit(120, 3600, "ai-category-suggest")]
+    public Task<Response<CategorySuggestionDto>> SuggestAsync(SuggestCategoriesCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 }

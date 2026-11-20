@@ -1162,6 +1162,15 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.CategoriesController.SuggestAsync(Storeasy.Application.Features.Listings.SuggestCategories.SuggestCategoriesCommand,System.Threading.CancellationToken)">
+            <summary>
+            Suggests the App Store primary and secondary category with the organization's AI key (editors and above), from the
+            store's own list. Nothing is saved or sent: the member reviews it and plans it. 409 AiKeyNotSet without a key.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.ChangePlansController">
             <summary>
             Change plan endpoints (docs/urun-plani.md 2.2): the approval queue, one plan with its diff, approve (which queues the apply job), reject and discard. Every store write of storeasy goes through a plan.
