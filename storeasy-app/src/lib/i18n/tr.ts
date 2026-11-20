@@ -1167,6 +1167,7 @@ export const tr: Dictionary = {
       preReviewStarted: 'Yapay zeka ön incelemesi başladı',
       preReviewCompleted: 'Yapay zeka ön incelemesi bitti',
       buildPackageDownloaded: 'Build paketi indirildi',
+      listingSuggestionGenerated: 'Mağaza kaydı önerisi yapay zeka ile yazıldı',
     },
   },
 }

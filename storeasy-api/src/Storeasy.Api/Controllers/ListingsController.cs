@@ -9,6 +9,7 @@ using Storeasy.Application.Features.Listings.GetListing;
 using Storeasy.Application.Features.Listings.GetListingByField;
 using Storeasy.Application.Features.Listings.GetListingDetails;
 using Storeasy.Application.Features.Listings.PlanListing;
+using Storeasy.Application.Features.Listings.SuggestListingField;
 using Storeasy.Application.Utils.Constants;
 
 namespace Storeasy.Api.Controllers;
@@ -60,6 +61,17 @@ public class ListingsController(IMediator mediator) : ControllerBase
     [HttpPost("plan")]
     [RateLimit(240, 3600, "content-plan")]
     public Task<Response<ChangePlanDto>> PlanListingAsync(PlanListingCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Suggests one listing text with the organization's AI key (editors and above). Nothing is saved or sent: the member
+    /// edits the suggestion and plans it. 409 AiKeyNotSet when the organization has no key.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("suggest")]
+    [RateLimit(120, 3600, "ai-listing-suggest")]
+    public Task<Response<ListingSuggestionDto>> SuggestAsync(SuggestListingFieldCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Approves a listing plan and queues its apply job.

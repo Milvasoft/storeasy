@@ -1167,6 +1167,7 @@ export const en = {
       preReviewStarted: 'AI pre-review started',
       preReviewCompleted: 'AI pre-review finished',
       buildPackageDownloaded: 'Build package downloaded',
+      listingSuggestionGenerated: 'Listing suggestion written with AI',
     },
   },
 }

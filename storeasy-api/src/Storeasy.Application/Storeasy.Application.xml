@@ -1887,6 +1887,61 @@
             Required fields.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto">
+            <summary>
+            An AI suggestion for one listing field. Nothing was saved: the member edits it and plans it with listings/plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Locale">
+            <summary>
+            Language.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Field">
+            <summary>
+            Listing field key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Before">
+            <summary>
+            The field's value in the store when the suggestion was made.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Value">
+            <summary>
+            Suggested value, within the field's limits.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Reason">
+            <summary>
+            Why, in the field's language (from the model).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Shortened">
+            <summary>
+            Whether the model's text had to be shortened to fit the limit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.MaxLength">
+            <summary>
+            Character limit of the field, when the catalog has one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.MaxBytes">
+            <summary>
+            Byte limit of the field, when the catalog has one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.ContentDtos.ListingSuggestionDto.Model">
+            <summary>
+            Model that wrote it.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.ContentDtos.MediaClassDto">
             <summary>
             One media class (slot) of a locale with its catalog requirement and fill state.
@@ -15665,6 +15720,110 @@
         <member name="M:Storeasy.Application.Features.Listings.PlanReviewInfo.PlanReviewInfoCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Listings.PlanReviewInfo.PlanReviewInfoCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand">
+            <summary>
+            Suggests a value of one listing text (App Store name, subtitle, description, keywords, promotional text, What's New;
+            Play title, short and full description) with the organization's AI key, from the listing as the store has it, the
+            app's catalog profile and the field's catalog rules and limits. Nothing is saved and nothing reaches the store: the
+            member edits the suggestion and plans it with listings/plan. The audit entry keeps the model, the tokens and the cost.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.InstructionMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.Instruction"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.VersionId">
+            <summary>
+            App Store version whose texts are read (null: the editable version, as listings/get).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.Locale">
+            <summary>
+            Language of the listing (one the listing has).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.Field">
+            <summary>
+            Listing field key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand.Instruction">
+            <summary>
+            Optional note for this suggestion ("shorter", "mention offline mode"), at most 500 characters.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand"/>: reads the listing live (as listings/get), opens the organization's
+            AI key, asks <see cref="T:Storeasy.Application.Interfaces.IListingSuggestionWriter"/> with the reply drafts' model setting and fits the answer into the
+            catalog limit (<see cref="M:Storeasy.Application.Utils.Content.ListingSuggestions.Fit(System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>). No [Log]: the listing and the suggestion are the customer's text;
+            the audit entry keeps the field, the model, the token counts and the estimated cost only.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="RulesCatalog"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="SuggestionWriter"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationAiSetting},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IListingSuggestionWriter,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Utils.Models.AiOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand"/>: reads the listing live (as listings/get), opens the organization's
+            AI key, asks <see cref="T:Storeasy.Application.Interfaces.IListingSuggestionWriter"/> with the reply drafts' model setting and fits the answer into the
+            catalog limit (<see cref="M:Storeasy.Application.Utils.Content.ListingSuggestions.Fit(System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>). No [Log]: the listing and the suggestion are the customer's text;
+            the audit entry keeps the field, the model, the token counts and the estimated cost only.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="RulesCatalog"></param>
+            <param name="SettingRepository"></param>
+            <param name="SecretProtector"></param>
+            <param name="SuggestionWriter"></param>
+            <param name="AuditTrail"></param>
+            <param name="Options"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.RulesCatalog">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.SettingRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.SuggestionWriter">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.Options">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandHandler.Handle(Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand"/>. Whether the field gets suggestions in its store is checked by
+            the handler, which knows the store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Media.GetMediaSets.GetMediaSetsQuery">
             <summary>
             Reads the screenshot (or preview) classes of one locale of a store record live, with the catalog requirement of each class: required, filled by its own items, filled by a fallback class, or missing (iPad classes only when the app supports iPad).
@@ -26219,6 +26378,165 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IListingSuggestionWriter">
+            <summary>
+            Writes a suggestion for one store listing field with the organization's own AI key (the same provider, key and model
+            as the review reply drafts). Nothing is saved or sent to a store: a member reviews the suggestion and plans it.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestAsync(Storeasy.Application.Interfaces.ListingSuggestionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Asks the model for a value of the field.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ListingSuggestionRequest">
+            <summary>
+            What the model is given for one listing field. Every text is data for the prompt, never instructions.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic key.</param>
+            <param name="Store">Store of the listing.</param>
+            <param name="AppName">storeasy's name of the app.</param>
+            <param name="Field">Listing field key (name, subtitle, description, keywords, promotionalText, whatsNew, title, shortDescription, fullDescription).</param>
+            <param name="Locale">Language of the suggestion.</param>
+            <param name="PrimaryLocale">Primary language of the listing.</param>
+            <param name="MaxLength">Character limit of the field (catalog), or null.</param>
+            <param name="MaxBytes">Byte limit of the field (catalog), or null.</param>
+            <param name="MinLength">Minimum characters (catalog), or null.</param>
+            <param name="Rules">Catalog rules of the field (title and description).</param>
+            <param name="CurrentValue">The field's value in the store, or null.</param>
+            <param name="LocaleTexts">The other listing texts of the same language.</param>
+            <param name="PrimaryTexts">The listing texts of the primary language (when it is another language).</param>
+            <param name="Profile">The app's catalog profile as short lines (platforms, device families, type, features).</param>
+            <param name="VersionString">Version the listing belongs to (App Store), or null.</param>
+            <param name="Instruction">The member's own note for this suggestion, or null.</param>
+            <param name="Model">Model to use; null for the instance default.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ListingSuggestionRequest.#ctor(System.String,Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Int32},System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Collections.Generic.IReadOnlyList{System.String},System.String,System.String,System.String)">
+            <summary>
+            What the model is given for one listing field. Every text is data for the prompt, never instructions.
+            </summary>
+            <param name="ApiKey">The organization's Anthropic key.</param>
+            <param name="Store">Store of the listing.</param>
+            <param name="AppName">storeasy's name of the app.</param>
+            <param name="Field">Listing field key (name, subtitle, description, keywords, promotionalText, whatsNew, title, shortDescription, fullDescription).</param>
+            <param name="Locale">Language of the suggestion.</param>
+            <param name="PrimaryLocale">Primary language of the listing.</param>
+            <param name="MaxLength">Character limit of the field (catalog), or null.</param>
+            <param name="MaxBytes">Byte limit of the field (catalog), or null.</param>
+            <param name="MinLength">Minimum characters (catalog), or null.</param>
+            <param name="Rules">Catalog rules of the field (title and description).</param>
+            <param name="CurrentValue">The field's value in the store, or null.</param>
+            <param name="LocaleTexts">The other listing texts of the same language.</param>
+            <param name="PrimaryTexts">The listing texts of the primary language (when it is another language).</param>
+            <param name="Profile">The app's catalog profile as short lines (platforms, device families, type, features).</param>
+            <param name="VersionString">Version the listing belongs to (App Store), or null.</param>
+            <param name="Instruction">The member's own note for this suggestion, or null.</param>
+            <param name="Model">Model to use; null for the instance default.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.ApiKey">
+            <summary>The organization's Anthropic key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Store">
+            <summary>Store of the listing.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.AppName">
+            <summary>storeasy's name of the app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Field">
+            <summary>Listing field key (name, subtitle, description, keywords, promotionalText, whatsNew, title, shortDescription, fullDescription).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Locale">
+            <summary>Language of the suggestion.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.PrimaryLocale">
+            <summary>Primary language of the listing.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.MaxLength">
+            <summary>Character limit of the field (catalog), or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.MaxBytes">
+            <summary>Byte limit of the field (catalog), or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.MinLength">
+            <summary>Minimum characters (catalog), or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Rules">
+            <summary>Catalog rules of the field (title and description).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.CurrentValue">
+            <summary>The field's value in the store, or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.LocaleTexts">
+            <summary>The other listing texts of the same language.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.PrimaryTexts">
+            <summary>The listing texts of the primary language (when it is another language).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Profile">
+            <summary>The app's catalog profile as short lines (platforms, device families, type, features).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.VersionString">
+            <summary>Version the listing belongs to (App Store), or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Instruction">
+            <summary>The member's own note for this suggestion, or null.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionRequest.Model">
+            <summary>Model to use; null for the instance default.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ListingSuggestionResult">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestAsync(Storeasy.Application.Interfaces.ListingSuggestionRequest,System.Threading.CancellationToken)"/>. The token counts are reported even for a failure the
+            model answered, so the audit entry carries what the call cost.
+            </summary>
+            <param name="Outcome"></param>
+            <param name="Value">Suggested value (when written).</param>
+            <param name="Reason">One or two sentences on why (when written).</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens"></param>
+            <param name="OutputTokens"></param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ListingSuggestionResult.#ctor(Storeasy.Application.Interfaces.ReplyDraftOutcome,System.String,System.String,System.String,System.Int64,System.Int64)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Interfaces.IListingSuggestionWriter.SuggestAsync(Storeasy.Application.Interfaces.ListingSuggestionRequest,System.Threading.CancellationToken)"/>. The token counts are reported even for a failure the
+            model answered, so the audit entry carries what the call cost.
+            </summary>
+            <param name="Outcome"></param>
+            <param name="Value">Suggested value (when written).</param>
+            <param name="Reason">One or two sentences on why (when written).</param>
+            <param name="Model">Model that answered (or was asked).</param>
+            <param name="InputTokens"></param>
+            <param name="OutputTokens"></param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.Outcome">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.Value">
+            <summary>Suggested value (when written).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.Reason">
+            <summary>One or two sentences on why (when written).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.Model">
+            <summary>Model that answered (or was asked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.InputTokens">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ListingSuggestionResult.OutputTokens">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ListingSuggestionResult.Failure(Storeasy.Application.Interfaces.ReplyDraftOutcome,System.String)">
+            <summary>
+            A failure before the model answered.
+            </summary>
+            <param name="outcome"></param>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.ILogoImageNormalizer">
             <summary>
             Redraws an uploaded organization logo (PNG, JPEG or WebP) as a square PNG of at most
@@ -30281,6 +30599,42 @@
         <member name="P:Storeasy.Application.Interfaces.WebPushMessage.NotificationId">
             <summary>In-app notification id, when there is one.</summary>
         </member>
+        <member name="T:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt">
+            <summary>
+            The prompt of the AI listing suggestions. The system prompt is the same for every call; the app's texts, profile and
+            the member's note go in the user message as data inside tags, escaped so their text cannot close them. The answer is
+            a JSON object with the value and a short reason (<see cref="M:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt.Parse(System.String)"/>); the limit is enforced again by
+            <see cref="M:Storeasy.Application.Utils.Content.ListingSuggestions.Fit(System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt.SystemPrompt">
+            <summary>
+            Instructions of the model, identical on every call (line feeds only).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt.UserMessage(Storeasy.Application.Interfaces.ListingSuggestionRequest)">
+            <summary>
+            The user message for one field.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt.Parse(System.String)">
+            <summary>
+            Reads the model's JSON answer ({"value": ..., "reason": ...}); a fenced or surrounded object is accepted. Null when
+            there is no usable value.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Ai.ListingSuggestionPrompt.FieldName(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            English name of a listing field for the prompt.
+            </summary>
+            <param name="store"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Utils.Ai.PreReviewPrompt">
             <summary>
             The prompt of the AI pre-review. Stable parts first, so they are cached: the system prompt (one per store) and the
@@ -31547,6 +31901,53 @@
             <param name="field"></param>
             <param name="value"></param>
             <param name="catalog"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Content.ListingSuggestions">
+            <summary>
+            Which listing fields get AI suggestions and how a suggestion is fitted into the catalog limits. Only the free text
+            fields of a listing: links, contact details and the EULA are facts the model cannot know.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Content.ListingSuggestions.Fields">
+            <summary>
+            Fields with suggestions, per store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.Find(Storeasy.Domain.Enums.StoreKind,System.String)">
+            <summary>
+            The listing field of <paramref name="field"/> when it gets suggestions; otherwise null.
+            </summary>
+            <param name="store"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.Limits(Storeasy.Domain.Content.ListingField,Storeasy.Domain.Rules.RuleCatalog)">
+            <summary>
+            The limits of a field from the rules catalog: characters, bytes, the minimum (characters, or per keyword).
+            </summary>
+            <param name="field"></param>
+            <param name="catalog"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.RuleLines(Storeasy.Domain.Content.ListingField,Storeasy.Domain.Rules.RuleCatalog)">
+            <summary>
+            The catalog rules of a field as prompt lines (English title and description).
+            </summary>
+            <param name="field"></param>
+            <param name="catalog"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Content.ListingSuggestions.Fit(System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            <paramref name="value"/> within the field's limits, and whether it had to be shortened. Keywords lose whole keywords
+            from the end (and their duplicates and spaces); other texts are cut at the last sentence or word that fits. Null when
+            nothing usable is left.
+            </summary>
+            <param name="field"></param>
+            <param name="value"></param>
+            <param name="maxLength"></param>
+            <param name="maxBytes"></param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Content.MediaPlanner">

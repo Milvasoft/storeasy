@@ -406,6 +406,21 @@ export interface ListingChangeDto {
   Value: string | null
 }
 
+/** An AI suggestion for one listing text (listings/suggest). Nothing is saved: it goes into the draft, then a plan. */
+export interface ListingSuggestionDto {
+  StoreAppId: number
+  Locale: string
+  Field: string
+  Before?: string | null
+  Value: string
+  Reason?: string | null
+  /** The model's text was cut to fit the limit. */
+  Shortened: boolean
+  MaxLength?: number | null
+  MaxBytes?: number | null
+  Model: string
+}
+
 // ---- Screenshots and previews ----
 
 export interface MediaItemDto {

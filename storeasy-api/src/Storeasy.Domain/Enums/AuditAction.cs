@@ -278,6 +278,10 @@ public enum AuditAction : short
     [Description("Reply draft written with AI")]
     ReviewReplyDraftGenerated = 432,
 
+    /// <summary>An AI suggestion for a listing field was written (shown to the member, never saved or sent).</summary>
+    [Description("Listing suggestion written with AI")]
+    ListingSuggestionGenerated = 433,
+
     /// <summary>An AI pre-review of a store record was started (nothing is submitted).</summary>
     [Description("AI pre-review started")]
     PreReviewStarted = 450,

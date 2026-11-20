@@ -531,6 +531,23 @@ export const contentHandlers: HttpHandler[] = [
   }),
   endpoint('get', '/Listings/details', () => json(envelope(contentState.details))),
   endpoint('post', '/Listings/plan', planAnswer()),
+  endpoint('post', '/Listings/suggest', ({ body }) => {
+    const request = body as { StoreAppId: number; Locale: string; Field: string }
+    return json(
+      envelope({
+        StoreAppId: request.StoreAppId,
+        Locale: request.Locale,
+        Field: request.Field,
+        Before: null,
+        Value: 'Pusula: Rota ve Harita',
+        Reason: 'Ana faydayı adın yanına ekler.',
+        Shortened: false,
+        MaxLength: 30,
+        MaxBytes: null,
+        Model: 'claude-haiku-5-5',
+      }),
+    )
+  }),
 
   endpoint('get', '/Screenshots/sets', () => json(envelope(contentState.media))),
   endpoint('get', '/Previews/sets', () => json(envelope({ ...contentState.media, Kind: MediaKind.Preview }))),

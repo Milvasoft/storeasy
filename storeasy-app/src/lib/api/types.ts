@@ -91,6 +91,7 @@ export const AuditAction = {
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
   BuildPackageDownloaded: 314,
+  ListingSuggestionGenerated: 433,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 

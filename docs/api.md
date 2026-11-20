@@ -71,6 +71,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Assisted steps | `assisted-steps`, `assisted-steps/step`, `step/handoff`, `step/complete` | Read `View`; hand off and complete `EditContent` |
 | Reviews and rejections | `reviews/*`, `rejections/*` | Reads `View`; replies `ReplyReviews`; rejection cases `EditContent` |
 | | `reviews/reply-draft/generate` | `ReplyReviews`, 60 an hour per user: Claude writes a reply draft with the organization's Anthropic API key and it is saved as the review's draft; nothing is sent to the store ([AI reply drafts](#ai-reply-drafts)) |
+| | `listings/suggest` | `EditContent`, 120 an hour per user: Claude suggests one listing text with the organization's Anthropic API key; nothing is saved or planned ([AI listing suggestions](#ai-listing-suggestions)) |
 | Studio | `mockups/*` (templates, captions, frames, previews, exports) | Reads and previews `View`; templates and exports `EditContent`; `captions/suggest` behind the `Studio.AiCaptions` flag |
 | Files | `assets/upload`, `assets/asset/complete`, `assets/asset/download-url` | `EditContent` to upload, `View` to download; bytes go to S3 through presigned URLs |
 | Store jobs | `storejobs`, `storejobs/job`, `storejobs/job/cancel`, `storejobs/board` | Read `View`; cancel `EditContent`; live on the SignalR hub `/hubs/activity`; `board` is the live page's calm half (versions with App Review, builds processing or near their TestFlight expiry, the last 24 hours per store) |
@@ -112,6 +113,29 @@ and edits the draft, and sends it with the usual reply flow; nothing is ever sen
   `claude-haiku-5-5`, the lowest cost current model), at effort `low`, at most 1024 output tokens
   ([self-host.md](self-host.md#events-webhooks-and-schedules)). Each draft is one call billed to the organization's
   Anthropic account.
+
+## AI listing suggestions
+
+"Suggest" under a listing text (Store listing, Texts) asks Claude for a value of that one field. It uses the same key,
+model setting (`ReplyDraftModel`), effort and error handling as the reply drafts, and is manual only: the suggestion is
+shown with its reason, the member edits it and puts it in the draft, and the draft becomes a change plan that a member
+approves as any other edit. Nothing is saved, planned or sent by the suggestion itself.
+
+- **Fields.** App Store `name`, `subtitle`, `description`, `keywords`, `promotionalText`, `whatsNew`; Google Play `title`,
+  `shortDescription`, `fullDescription`. Links, contacts and the EULA are facts the model cannot know (400
+  `AiSuggestionNotSupported`). The language must be one the listing has (400 `AiSuggestionLocaleNotFound`).
+- **Call.** `POST listings/suggest` `{OrganizationId, StoreAppId, VersionId?, Locale, Field, Instruction?}` returns
+  `{StoreAppId, Locale, Field, Before, Value, Reason, Shortened, MaxLength, MaxBytes, Model}`. The model gets a fixed
+  system prompt (the store's metadata rules, no invented facts, no other brands, no claims or prices in the name) and, as
+  escaped data: the field's current value, the other texts of the language, the primary language's texts, the app's
+  catalog profile (Profile tab), the field's catalog rule and its limit, and the member's optional note (at most 500
+  characters). An answer over the limit is fitted: keywords lose whole keywords from the end, other texts are cut after
+  the last sentence or word that fits (`Shortened: true`).
+- **Audit and cost.** Every answered call is audited as `ListingSuggestionGenerated` with the field, language, model, token
+  counts and `EstimatedCostUsd`; never the texts or the key.
+- **Errors.** As the reply drafts: 409 `AiKeyNotSet` / `AiKeyRejected`, 429 `AiRateLimited`, 503 `AiUnavailable`; the model
+  declined 422 `AiSuggestionRefused`; an answer that is not the expected JSON or cannot be fitted 502 `AiSuggestionFailed`.
+- **Web.** The button is shown to editors only while the organization has a key. MCP: `listings_suggest`.
 
 ## AI models
 
