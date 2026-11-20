@@ -57,6 +57,8 @@ public static class MsRowWriter
                                                    s => s.FriendlyName,
                                                    s => s.RolloutPercentage,
                                                    s => s.RolloutStatus,
+                                                   s => s.PublishMode,
+                                                   s => s.PublishDate,
                                                    s => s.SyncedDate);
         }
 

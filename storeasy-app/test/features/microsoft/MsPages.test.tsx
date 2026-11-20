@@ -16,6 +16,7 @@ import {
   MsAssistedReason,
   MsChangeKind,
   MsProductKind,
+  MsPublishMode,
   MsRolloutAction,
   MsSignatureStatus,
   MsSubmissionStatus,
@@ -637,5 +638,39 @@ describe('Microsoft Store submissions', () => {
     render(<MsSubmissionsPage />, 'submissions')
 
     expect(await screen.findByText('Henüz gönderim yok.')).toBeInTheDocument()
+  })
+
+  it('warns that a Manual submission the API reports as Release waits for Publish now in Partner Center', async () => {
+    msState.submissions = [
+      msSubmission({ Status: MsSubmissionStatus.Release, PublishMode: MsPublishMode.Manual, AwaitsManualPublish: true }),
+      msSubmission({ Id: 901, FriendlyName: '2.2.0.0', Status: MsSubmissionStatus.Release, PublishMode: MsPublishMode.Immediate }),
+    ]
+
+    render(<MsSubmissionsPage />, 'submissions', 'en')
+
+    const waiting = await screen.findByRole('article', { name: '2.3.0.0' })
+    expect(within(waiting).getByText('Certified, waiting for Publish now')).toBeInTheDocument()
+    expect(within(waiting).getByText('Waiting for publication')).toBeInTheDocument()
+    expect(within(waiting).getByRole('link', { name: 'Publish now in Partner Center' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('9P4K7Q2MZL1D'),
+    )
+    const releasing = screen.getByRole('article', { name: '2.2.0.0' })
+    expect(within(releasing).queryByText('Certified, waiting for Publish now')).not.toBeInTheDocument()
+    expect(within(releasing).getByText('Releasing')).toBeInTheDocument()
+  })
+
+  it('names the scheduled publish date of a SpecificDate submission, and only while it is ahead', async () => {
+    msState.submissions = [
+      msSubmission({ PublishMode: MsPublishMode.SpecificDate, PublishDate: '2099-03-01T09:00:00Z' }),
+      msSubmission({ Id: 901, FriendlyName: '2.2.0.0', PublishMode: MsPublishMode.SpecificDate, PublishDate: '2020-03-01T09:00:00Z' }),
+    ]
+
+    render(<MsSubmissionsPage />, 'submissions', 'en')
+
+    const scheduled = await screen.findByRole('article', { name: '2.3.0.0' })
+    expect(within(scheduled).getByText(/^Scheduled to publish on .*2099/)).toBeInTheDocument()
+    expect(within(scheduled).queryByText('Certified, waiting for Publish now')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('article', { name: '2.2.0.0' })).queryByText(/Scheduled to publish/)).not.toBeInTheDocument()
   })
 })

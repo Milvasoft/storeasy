@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreDtos;
+using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
 using Storeasy.Domain.Apps;
@@ -260,6 +261,19 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
 
         row.CreatedByStoreasy.Should().BeTrue();
         row.ContentHash.Should().NotBeNullOrEmpty();
+        row.PublishMode.Should().Be(MsPublishMode.Immediate, "the row records the mode storeasy wrote");
+        row.PublishDate.Should().BeNull();
+
+        // A sync reads back what storeasy wrote: the publish mode it set is no Partner Center edit.
+        await SyncAsync(setup);
+
+        var synced = await _factory.DbAsync(db => db.MsSubmissions.AsNoTracking().SingleAsync(s => s.StoreAppId == storeAppId && s.ExternalId == draftId));
+        var published = await _factory.DbAsync(db => db.MsSubmissions.AsNoTracking().SingleAsync(s => s.StoreAppId == storeAppId && s.ExternalId == publishedId));
+
+        synced.ModifiedOutsideApi.Should().BeFalse();
+        synced.PublishMode.Should().Be(MsPublishMode.Immediate);
+        published.PublishMode.Should().Be(MsPublishMode.Manual);
+        published.PublishDate.Should().Be(new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc));
         stale.StatusCode.Should().Be(HttpStatusCode.Conflict);
         staleBody.Messages.Should().Contain(m => m.Key == MessageKey.MsPlanStale);
         tooLong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -351,6 +365,36 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         submitBody.Messages.Should().Contain(m => m.Key == MessageKey.MsSubmissionModifiedOutsideApi);
         discard.Status.Should().Be(StoreJobStatus.Succeeded, discard.Error);
         Microsoft.Apps[setup.AppId].PendingId.Should().BeNull("the changed draft can only be deleted");
+    }
+
+    [Fact]
+    public async Task ManualSubmissionInRelease_ShouldBeShownAsAwaitingPublishNow()
+    {
+        // Arrange: Partner Center shows a Manual submission as ready to publish while the API reports it as Release.
+        var setup = await NewSetupAsync();
+        var draftId = Microsoft.AddPartnerCenterDraft(setup.AppId);
+
+        Microsoft.Submissions[draftId]["status"] = "Release";
+        Microsoft.Submissions[draftId]["targetPublishMode"] = "manual";
+        Microsoft.Submissions[draftId]["applicationPackages"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject { ["fileName"] = "app_1.0.7.0_x64.msix", ["fileStatus"] = "Uploaded", ["id"] = FakeMicrosoftStore.NewId(), ["version"] = "1.0.7.0", ["architecture"] = "x64" });
+
+        // Act
+        await SyncAsync(setup);
+
+        var storeAppId = await StoreAppIdAsync(setup, setup.AppId);
+        var (_, submissions) = await setup.Owner.Client.GetAsync<List<MsSubmissionDto>>($"ms/submissions?organizationId={setup.OrganizationId}&storeAppId={storeAppId}");
+        var (_, product) = await setup.Owner.Client.GetAsync<MsProductDto>($"ms/product?organizationId={setup.OrganizationId}&storeAppId={storeAppId}");
+        var (_, board) = await setup.Owner.Client.GetAsync<ActivityBoardDto>($"storejobs/board?organizationId={setup.OrganizationId}");
+        var builds = await _factory.DbAsync(db => db.Builds.AsNoTracking().Where(b => b.StoreAppId == storeAppId && b.Version == "1.0.7.0").ToListAsync());
+
+        // Assert
+        submissions.Data.Should().ContainSingle(s => s.SubmissionId == draftId)
+            .Which.Should().Match<MsSubmissionDto>(s => s.Status == MsSubmissionStatus.Release && s.IsPending && s.PublishMode == MsPublishMode.Manual && s.AwaitsManualPublish);
+        submissions.Data.Where(s => s.SubmissionId != draftId).Should().OnlyContain(s => !s.AwaitsManualPublish);
+        product.Data.ActiveSubmission.AwaitsManualPublish.Should().BeTrue();
+        board.Data.Versions.Should().ContainSingle(v => v.StoreAppId == storeAppId)
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.State == "PENDINGPUBLICATION" && v.VersionString == "1.0.7.0");
+        builds.Should().NotBeEmpty().And.OnlyContain(b => b.ProcessingState == BuildProcessingState.Valid, "a certified submission processes nothing any more");
     }
 
     [Fact]

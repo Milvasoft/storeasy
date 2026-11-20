@@ -230,6 +230,101 @@ public class MsStoreRulesTests
     }
 
     [Theory]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.Manual, BuildProcessingState.Valid)]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.Immediate, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.SpecificDate, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.Release, null, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.Certification, MsPublishMode.Manual, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.PendingPublication, MsPublishMode.Immediate, BuildProcessingState.Valid)]
+    public void PackageState_ShouldCallAManualSubmissionInReleaseValid(bool pending, MsSubmissionStatus status, MsPublishMode? mode, BuildProcessingState expected)
+    {
+        MsSyncReader.PackageState(pending, status, mode).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("Immediate", MsPublishMode.Immediate)]
+    [InlineData("Manual", MsPublishMode.Manual)]
+    [InlineData("manual", MsPublishMode.Manual)]
+    [InlineData("SpecificDate", MsPublishMode.SpecificDate)]
+    [InlineData("SPECIFICDATE", MsPublishMode.SpecificDate)]
+    [InlineData("Later", null)]
+    [InlineData(null, null)]
+    public void ReadPublishMode_ShouldParseCaseInsensitively_AndReturnNullForUnknownValues(string value, MsPublishMode? expected)
+    {
+        var document = Submission();
+
+        if (value != null)
+            document["targetPublishMode"] = value;
+
+        MsSubmissionJson.ReadPublishMode(document).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ReadPublishMode_ShouldReturnNullForANonStringValueOrAMissingDocument()
+    {
+        var document = Submission();
+
+        document["targetPublishMode"] = 2;
+
+        MsSubmissionJson.ReadPublishMode(document).Should().BeNull();
+        MsSubmissionJson.ReadPublishMode(null).Should().BeNull();
+    }
+
+    [Fact]
+    public void ReadPublishDate_ShouldReadTheDateAsUtc()
+    {
+        var document = Submission();
+
+        MsSubmissionJson.ReadPublishDate(document).Should().BeNull();
+
+        document["targetPublishDate"] = "2026-12-01T09:30:00+03:00";
+
+        var date = MsSubmissionJson.ReadPublishDate(document);
+
+        date.Should().Be(new DateTime(2026, 12, 1, 6, 30, 0, DateTimeKind.Utc));
+        date!.Value.Kind.Should().Be(DateTimeKind.Utc);
+
+        document["targetPublishDate"] = "not a date";
+
+        MsSubmissionJson.ReadPublishDate(document).Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true, MsSubmissionStatus.PendingPublication, null, true)]
+    [InlineData(true, MsSubmissionStatus.PendingPublication, MsPublishMode.Immediate, true)]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.Manual, true)]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.Immediate, false)]
+    [InlineData(true, MsSubmissionStatus.Release, MsPublishMode.SpecificDate, false)]
+    [InlineData(true, MsSubmissionStatus.Release, null, false)]
+    [InlineData(true, MsSubmissionStatus.Certification, MsPublishMode.Manual, false)]
+    [InlineData(true, MsSubmissionStatus.Publishing, MsPublishMode.Manual, false)]
+    [InlineData(false, MsSubmissionStatus.PendingPublication, MsPublishMode.Manual, false)]
+    [InlineData(false, MsSubmissionStatus.Release, MsPublishMode.Manual, false)]
+    public void AwaitsManualPublish_ShouldCatchPendingPublicationAndAManualSubmissionInRelease(bool pending, MsSubmissionStatus status, MsPublishMode? mode, bool expected)
+    {
+        MsSubmissionJson.AwaitsManualPublish(pending, status, mode).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ContentHash_ShouldMatchTheStoredDocumentAfterWritePublishImmediately()
+    {
+        // storeasy records the hash of the document it sent (with the mode it wrote), so a later read of the same document
+        // is not taken for a Partner Center edit; a mode changed in Partner Center afterwards is one.
+        var document = Submission();
+
+        document["targetPublishMode"] = "Manual";
+        MsSubmissionJson.WritePublishImmediately(document);
+
+        var stored = JsonNode.Parse(document.ToJsonString())!.AsObject();
+
+        MsSubmissionJson.ContentHash(stored).Should().Be(MsSubmissionJson.ContentHash(document));
+
+        stored["targetPublishMode"] = "Manual";
+
+        MsSubmissionJson.ContentHash(stored).Should().NotBe(MsSubmissionJson.ContentHash(document));
+    }
+
+    [Theory]
     [InlineData(MsSubmissionStatus.PendingCommit, true, "changed", true)]
     [InlineData(MsSubmissionStatus.PendingCommit, true, "written", false)]
     [InlineData(MsSubmissionStatus.Certification, true, "changed", false)]

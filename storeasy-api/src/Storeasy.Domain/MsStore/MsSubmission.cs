@@ -123,6 +123,17 @@ public class MsSubmission : AuditableEntity<long>
     public MsRolloutStatus? RolloutStatus { get; set; }
 
     /// <summary>
+    /// When the submission publishes after certification (<c>targetPublishMode</c>). Null when the store did not report it
+    /// (MSI/EXE submissions, or rows written before storeasy stored it).
+    /// </summary>
+    public MsPublishMode? PublishMode { get; set; }
+
+    /// <summary>
+    /// UTC publish date of a <see cref="MsPublishMode.SpecificDate"/> submission (<c>targetPublishDate</c>).
+    /// </summary>
+    public DateTime? PublishDate { get; set; }
+
+    /// <summary>
     /// UTC instant of the last read from the store.
     /// </summary>
     public DateTime? SyncedDate { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Milvasoft.Attributes.Annotations;
+using Storeasy.Application.Utils.MsStore;
 using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.MsStore;
 using System.Linq.Expressions;
@@ -93,6 +94,22 @@ public class MsSubmissionDto
     public MsRolloutStatus? RolloutStatus { get; set; }
 
     /// <summary>
+    /// When the submission publishes after certification; null when the store did not report it.
+    /// </summary>
+    public MsPublishMode? PublishMode { get; set; }
+
+    /// <summary>
+    /// UTC publish date of a <see cref="MsPublishMode.SpecificDate"/> submission.
+    /// </summary>
+    public DateTime? PublishDate { get; set; }
+
+    /// <summary>
+    /// Whether the submission passed certification and waits for "Publish now" in Partner Center
+    /// (<see cref="MsSubmissionJson.AwaitsManualPublish"/>).
+    /// </summary>
+    public bool AwaitsManualPublish => MsSubmissionJson.AwaitsManualPublish(IsPending, Status, PublishMode);
+
+    /// <summary>
     /// UTC instant of the last read.
     /// </summary>
     public DateTime? SyncedDate { get; set; }
@@ -120,6 +137,8 @@ public class MsSubmissionDto
         ModifiedOutsideApi = s.ModifiedOutsideApi,
         RolloutPercentage = s.RolloutPercentage,
         RolloutStatus = s.RolloutStatus,
+        PublishMode = s.PublishMode,
+        PublishDate = s.PublishDate,
         SyncedDate = s.SyncedDate,
     };
 }
