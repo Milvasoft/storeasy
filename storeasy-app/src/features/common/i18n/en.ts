@@ -160,7 +160,7 @@ export const p2en = {
   profile: {
     title: 'Catalog profile',
     subtitle: 'What the rules need to know that the stores do not report. Unknown fields make the rules that need them "unknown".',
-    unknownNote: 'The API does not send the saved profile back yet, so the form starts empty; saving replaces the whole profile.',
+    unknownNote: 'Empty fields count as unknown. Saving replaces the whole profile with what the form shows.',
     platforms: 'Platforms',
     deviceFamilies: 'Device families',
     features: 'Features',
