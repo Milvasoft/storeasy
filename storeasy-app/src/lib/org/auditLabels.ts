@@ -4,67 +4,16 @@ import type { Dictionary } from '@/lib/i18n/en'
 // Enum labels of the audit log (t.enums.*), translated in one place.
 
 export const AUDIT_ACTIONS: readonly AuditAction[] = Object.values(AuditAction)
+
+const AUDIT_ACTION_NAMES: ReadonlyMap<AuditAction, string> = new Map(
+  Object.entries(AuditAction).map(([name, value]) => [value, name] as [AuditAction, string]),
+)
 export const CHANNELS: readonly ActionChannel[] = Object.values(ActionChannel)
 
 export function auditActionLabel(action: AuditAction, t: Dictionary): string {
-  switch (action) {
-    case AuditAction.OrganizationCreated:
-      return t.enums.auditAction.organizationCreated
-    case AuditAction.OrganizationUpdated:
-      return t.enums.auditAction.organizationUpdated
-    case AuditAction.OrganizationLogoSet:
-      return t.enums.auditAction.organizationLogoSet
-    case AuditAction.OrganizationLogoRemoved:
-      return t.enums.auditAction.organizationLogoRemoved
-    case AuditAction.MemberInvited:
-      return t.enums.auditAction.memberInvited
-    case AuditAction.InvitationRevoked:
-      return t.enums.auditAction.invitationRevoked
-    case AuditAction.MemberJoined:
-      return t.enums.auditAction.memberJoined
-    case AuditAction.MemberRoleChanged:
-      return t.enums.auditAction.memberRoleChanged
-    case AuditAction.MemberRemoved:
-      return t.enums.auditAction.memberRemoved
-    case AuditAction.ConnectionAdded:
-      return t.enums.auditAction.connectionAdded
-    case AuditAction.ConnectionUpdated:
-      return t.enums.auditAction.connectionUpdated
-    case AuditAction.ConnectionRemoved:
-      return t.enums.auditAction.connectionRemoved
-    case AuditAction.ConnectionVerified:
-      return t.enums.auditAction.connectionVerified
-    case AuditAction.AiKeySet:
-      return t.enums.auditAction.aiKeySet
-    case AuditAction.AiKeyRemoved:
-      return t.enums.auditAction.aiKeyRemoved
-    case AuditAction.AiModelsChanged:
-      return t.enums.auditAction.aiModelsChanged
-    case AuditAction.JobCancelled:
-      return t.enums.auditAction.jobCancelled
-    case AuditAction.AppAdded:
-      return t.enums.auditAction.appAdded
-    case AuditAction.StoreAppLinked:
-      return t.enums.auditAction.storeAppLinked
-    case AuditAction.StoreAppUnlinked:
-      return t.enums.auditAction.storeAppUnlinked
-    case AuditAction.AppHidden:
-      return t.enums.auditAction.appHidden
-    case AuditAction.AppUnhidden:
-      return t.enums.auditAction.appUnhidden
-    case AuditAction.AppAlertsMuted:
-      return t.enums.auditAction.appAlertsMuted
-    case AuditAction.AppAlertsUnmuted:
-      return t.enums.auditAction.appAlertsUnmuted
-    case AuditAction.AppsReordered:
-      return t.enums.auditAction.appsReordered
-    case AuditAction.PreReviewStarted:
-      return t.enums.auditAction.preReviewStarted
-    case AuditAction.PreReviewCompleted:
-      return t.enums.auditAction.preReviewCompleted
-    default:
-      return String(action)
-  }
+  const name = AUDIT_ACTION_NAMES.get(action)
+  const key = name ? ((name[0].toLowerCase() + name.slice(1)) as keyof Dictionary['enums']['auditAction']) : undefined
+  return (key && t.enums.auditAction[key]) || String(action)
 }
 
 export function channelLabel(channel: ActionChannel, t: Dictionary): string {
