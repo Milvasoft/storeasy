@@ -6,6 +6,8 @@ import { Callout } from '@/components/ui/Feedback'
 import { Timeline, type TimelineTone } from '@/components/ui/Progress'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { CardSkeleton, EmptyState, PageHeader } from '@/components/ui/primitives'
+import { StoreKind } from '@/lib/api/types'
+import { storeLinksOf } from '@/lib/apps/storeLinks'
 import { useFormat } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { msApi } from './api'
@@ -77,6 +79,20 @@ export function SubmissionCard({
             </Badge>
           ) : null}
         </div>
+        {submission.IsPending && submission.Status === MsSubmissionStatus.PendingPublication ? (
+          <Callout tone="warning" title={t.submissions.pendingPublishTitle}>
+            <span className="block">{t.submissions.pendingPublishBody}</span>
+            <a
+              className="lnk mt-1 inline-flex items-center gap-1"
+              href={storeLinksOf({ Store: StoreKind.Microsoft, ExternalId: context.product.ProductId ?? null, BundleId: null }).consoleUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+              {t.submissions.publishNow}
+            </a>
+          </Callout>
+        ) : null}
         {history.length > 0 ? (
           <section aria-label={t.submissions.history}>
             <h4 className="lbl mb-1">{t.submissions.history}</h4>

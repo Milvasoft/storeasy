@@ -190,6 +190,46 @@ public class MsStoreRulesTests
     }
 
     [Fact]
+    public void WritePublishImmediately_ShouldSetImmediateAndDropTheDate_AndKeepEveryOtherField()
+    {
+        var document = Submission();
+
+        document["targetPublishMode"] = "Manual";
+        document["targetPublishDate"] = "2026-12-01T00:00:00Z";
+
+        var changed = MsSubmissionJson.WritePublishImmediately(document);
+
+        changed.Should().BeTrue();
+        document["targetPublishMode"]!.GetValue<string>().Should().Be("Immediate");
+        document.ContainsKey("targetPublishDate").Should().BeFalse();
+        document["visibility"]!.GetValue<string>().Should().Be("Public");
+        MsSubmissionJson.WritePublishImmediately(document).Should().BeFalse("it is already immediate");
+    }
+
+    [Fact]
+    public void WritePublishImmediately_ShouldLeaveADocumentWithoutAPublishModeAlone()
+    {
+        var document = Submission();
+        var before = document.ToJsonString();
+
+        MsSubmissionJson.WritePublishImmediately(document).Should().BeFalse();
+        MsSubmissionJson.WritePublishImmediately(null).Should().BeFalse();
+        document.ToJsonString().Should().Be(before);
+    }
+
+    [Theory]
+    [InlineData(false, MsSubmissionStatus.Published, BuildProcessingState.Valid)]
+    [InlineData(true, MsSubmissionStatus.PendingPublication, BuildProcessingState.Valid)]
+    [InlineData(true, MsSubmissionStatus.Publishing, BuildProcessingState.Valid)]
+    [InlineData(true, MsSubmissionStatus.Certification, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.PreProcessing, BuildProcessingState.Processing)]
+    [InlineData(true, MsSubmissionStatus.PendingCommit, BuildProcessingState.Processing)]
+    public void PackageState_ShouldNotCallACertifiedSubmissionProcessing(bool pending, MsSubmissionStatus status, BuildProcessingState expected)
+    {
+        MsSyncReader.PackageState(pending, status).Should().Be(expected);
+    }
+
+    [Fact]
     public void WriteListing_ShouldKeepEveryOtherField_AndAddNewLanguages()
     {
         var document = Submission();

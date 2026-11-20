@@ -298,6 +298,10 @@ export const msTr: MsDictionary = {
     createdElsewhere: 'Partner Center',
     rollout: 'Dağıtım {percent}',
     submit: 'Sertifikasyona gönder',
+    pendingPublishTitle: "Sertifikasyonu geçti, Partner Center'da yayın bekliyor",
+    pendingPublishBody:
+      "Bu gönderim sertifikasyonu geçti ama ancak Partner Center'da Yayınla (Publish now) seçilince yayına çıkar; gönderim API'si onu yayınlayamaz.",
+    publishNow: "Partner Center'da yayınla",
   },
   submit: {
     title: '{name} sertifikasyona gönderilsin mi?',

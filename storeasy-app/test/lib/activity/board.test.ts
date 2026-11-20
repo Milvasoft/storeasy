@@ -8,6 +8,7 @@ import {
   gateItemsOf,
   gateState,
   hourStrip,
+  isExternalHref,
   lastFailedJob,
   reviewPhase,
   upcomingOf,
@@ -96,6 +97,7 @@ describe('gates', () => {
     expect(reviewPhase('waiting_for_review')).toBe('waiting')
     expect(reviewPhase('METADATA_REJECTED')).toBe('rejected')
     expect(reviewPhase('PENDING_DEVELOPER_RELEASE')).toBe('pendingRelease')
+    expect(reviewPhase('PENDINGPUBLICATION')).toBe('pendingPublish')
     expect(reviewPhase('READY_FOR_SALE')).toBe('live')
     expect(reviewPhase('PREPARE_FOR_SUBMISSION')).toBe('other')
   })
@@ -129,6 +131,38 @@ describe('gates', () => {
     ])
     expect(items[2].since).toBe(iso(NOW - 26 * HOUR))
     expect(gateState(items, false)).toBe('error')
+  })
+
+  it('names a certified Microsoft submission as waiting for Publish now in Partner Center, not as a processing build', () => {
+    const items = gateItemsOf(
+      StoreKind.Microsoft,
+      inputs({
+        board: board({
+          Versions: [
+            version({
+              AppId: 105,
+              StoreAppId: 240,
+              Store: StoreKind.Microsoft,
+              VersionString: '1.0.15.0',
+              BuildNumber: null,
+              State: 'PENDINGPUBLICATION',
+              PreviousState: null,
+              ChangedDate: iso(NOW - 2 * HOUR),
+              SubmittedDate: null,
+              ExternalId: '9NBLGGH4R315',
+            }),
+          ],
+        }),
+      }),
+      NOW,
+    )
+
+    expect(items.map((item) => [item.kind, item.tone, item.subject, item.href])).toEqual([
+      ['pendingPublish', 'warning', '1.0.15.0', 'https://partner.microsoft.com/dashboard/products/9NBLGGH4R315/overview'],
+    ])
+    expect(isExternalHref(items[0].href ?? '')).toBe(true)
+    expect(isExternalHref('/apps/105/release/versions')).toBe(false)
+    expect(gateState(items, false)).toBe('attention')
   })
 
   it('names a failed last job and a failing connection, and spots a rate limit', () => {
@@ -209,7 +243,12 @@ describe('quiet board and attention', () => {
         rejections: [rejection],
         jobs: failedJob('403 The caller does not have permission'),
         compliance: [compliance(5)],
-        board: board({ Versions: [version({ AppId: 104, StoreAppId: 230, State: 'PENDING_DEVELOPER_RELEASE' })] }),
+        board: board({
+          Versions: [
+            version({ AppId: 104, StoreAppId: 230, State: 'PENDING_DEVELOPER_RELEASE' }),
+            version({ AppId: 105, StoreAppId: 240, Store: StoreKind.Microsoft, State: 'PENDINGPUBLICATION', ExternalId: '9NBLGGH4R315' }),
+          ],
+        }),
       }),
       NOW,
     )
@@ -219,6 +258,7 @@ describe('quiet board and attention', () => {
       ['jobFailed', '/activity/jobs/7'],
       ['deadline', '/apps/102/compliance'],
       ['pendingRelease', '/apps/104/release/versions'],
+      ['pendingPublish', 'https://partner.microsoft.com/dashboard/products/9NBLGGH4R315/overview'],
     ])
     expect(items[0].detail).toBe('1/3')
   })

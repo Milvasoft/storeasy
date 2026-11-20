@@ -643,6 +643,8 @@ export interface ActivityBoardVersionDto {
   PreviousState?: string | null
   ChangedDate: IsoDateTime
   SubmittedDate?: IsoDateTime | null
+  // The store's id of the record (App Store app id, Microsoft Store product id), for links to the store's console.
+  ExternalId?: string | null
 }
 
 /** A build still processing at the store, or a valid one within 14 days of its TestFlight expiry. */

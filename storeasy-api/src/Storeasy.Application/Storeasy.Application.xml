@@ -9331,7 +9331,7 @@
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Versions">
             <summary>
             The latest known state of each store record whose version is with App Review or changed state in the last 30 days,
-            newest change first.
+            and each Microsoft Store product whose submission waits for "Publish now" in Partner Center, newest change first.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Builds">
@@ -9407,7 +9407,8 @@
         </member>
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.State">
             <summary>
-            State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>, <c>REJECTED</c>).
+            State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>, <c>REJECTED</c>; for a Microsoft Store
+            submission waiting for "Publish now" in Partner Center, <c>PENDINGPUBLICATION</c>).
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.PreviousState">
@@ -9423,6 +9424,11 @@
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.SubmittedDate">
             <summary>
             UTC instant the version was first seen in a submitted state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.ExternalId">
+            <summary>
+            The store's id of the record (App Store app id, Microsoft Store product id), to link to the store's own console.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ApplyChangePlanPayload">
@@ -21804,9 +21810,10 @@
             <param name="jobRepository"></param>
             <param name="eventRepository"></param>
             <param name="endpointRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},System.TimeProvider)">
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},System.TimeProvider)">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>.
             </summary>
@@ -21816,6 +21823,7 @@
             <param name="jobRepository"></param>
             <param name="eventRepository"></param>
             <param name="endpointRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="timeProvider"></param>
         </member>
         <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.MaxRows">
@@ -21831,6 +21839,12 @@
         <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.RecentVersionDays">
             <summary>
             How long a version that left App Review stays on the board.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.MsPendingPublicationState">
+            <summary>
+            <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.State"/> of a Microsoft Store submission that passed certification and waits for
+            "Publish now" in Partner Center (the API's own status name).
             </summary>
         </member>
         <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.Handle(Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery,System.Threading.CancellationToken)">
@@ -36431,6 +36445,18 @@
             </summary>
             <param name="submission"></param>
             <param name="percentage"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.WritePublishImmediately(System.Text.Json.Nodes.JsonObject)">
+            <summary>
+            Makes a new app, flight or add-on submission publish as soon as it passes certification: sets
+            <c>targetPublishMode</c> to <c>Immediate</c> and removes <c>targetPublishDate</c>. Partner Center clones a new
+            submission from the last published one, so it inherits that one's publish mode; a <c>Manual</c> mode would leave the
+            certified submission waiting in <c>PendingPublication</c>, and the submission API has no call that publishes it
+            (only "Publish now" in Partner Center does). Documents without a <c>targetPublishMode</c> field are left as they are.
+            Returns whether the document changed.
+            </summary>
+            <param name="submission"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.IsMandatoryUpdate(System.Text.Json.Nodes.JsonObject)">
             <summary>

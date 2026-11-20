@@ -4,7 +4,7 @@ import { AppAvatar } from '@/components/apps/AppAvatar'
 import { LogoMark } from '@/components/layout/Logo'
 import { StoreTag, storeName } from '@/components/ui/Badge'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import { gateState, type GateItem, type GateState, type HourBar, type UpcomingItem } from '@/lib/activity/board'
+import { gateState, isExternalHref, type GateItem, type GateState, type HourBar, type UpcomingItem } from '@/lib/activity/board'
 import {
   activeIntakes,
   isActive,
@@ -356,7 +356,11 @@ function GateRow({ item, now }: { item: GateItem; now: number }) {
   )
   return (
     <li>
-      {item.href ? (
+      {item.href && isExternalHref(item.href) ? (
+        <a className="gi" href={item.href} target="_blank" rel="noopener noreferrer">
+          {body}
+        </a>
+      ) : item.href ? (
         <Link className="gi" to={item.href}>
           {body}
         </Link>
