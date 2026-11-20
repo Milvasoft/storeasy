@@ -142,11 +142,12 @@ public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRe
             // Recorded right away: if a later step fails, the draft is still known as storeasy's own.
             await SaveDraftAsync(context.OrganizationId, product, change, target, submissionId, document, cancellationToken);
             await context.EndStepAsync(createStep, StoreJobStepStatus.Succeeded, submissionId, cancellationToken);
-
-            // The clone inherits the last published submission's publish mode; storeasy's own drafts publish once certified.
-            // Written after the draft is recorded, so the recorded draft matches what the store holds until the update below.
-            MsSubmissionJson.WritePublishImmediately(document);
         }
+
+        // The clone inherits the last published submission's publish mode; storeasy's own drafts publish once certified.
+        // Also applied to a pending draft (the planner only lets storeasy edit its own), so a retry after a failed update
+        // does not keep the inherited mode. Written after the draft is recorded, so the recorded draft matches the store.
+        MsSubmissionJson.WritePublishImmediately(document);
 
         var files = await ApplyContentAsync(context.OrganizationId, document, target, change);
 
