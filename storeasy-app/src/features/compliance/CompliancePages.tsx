@@ -19,16 +19,18 @@ import { complianceView } from '@/features/common/labels'
 import { ComplianceStatus, type ComplianceItemDto } from '@/features/common/types'
 
 // Design 6.12 (one app) and 6.13 (the organization, grouped by month): catalog deadlines with their state, the days left
-// in a warning tone under 30 days and in danger once passed, the source and its check date, a note when sources disagree.
+// in a warning tone under 30 days, in danger once passed only when the app is known not to comply (a passed date with
+// an unknown state reads as "in effect for N days"), the source and its check date, a note when sources disagree.
 
 const SOON_DAYS = 30
 
-function DaysLeft({ days }: { days: number }) {
+export function DaysLeft({ days, status }: { days: number; status: ComplianceStatus }) {
   const t = useP2()
-  const tone = days < 0 ? 'danger' : days <= SOON_DAYS ? 'warning' : 'neutral'
+  const missing = status === ComplianceStatus.Missing
+  const tone = days < 0 ? (missing ? 'danger' : 'neutral') : days <= SOON_DAYS ? 'warning' : 'neutral'
   const text =
     days < 0
-      ? interpolate(t.compliance.overdue, { days: -days })
+      ? interpolate(missing ? t.compliance.overdue : t.compliance.inEffect, { days: -days })
       : days === 0
         ? t.compliance.today
         : interpolate(t.compliance.daysLeft, { days })
@@ -49,7 +51,7 @@ function ComplianceRow({ item, showApp }: { item: ComplianceItemDto; showApp: bo
         <div className="flex flex-wrap items-center gap-2">
           <StoreTag store={item.Store} small codeOnly />
           <b className="min-w-0 flex-1 text-[14px]">{item.Title ?? item.RuleId}</b>
-          {typeof item.DaysLeft === 'number' && item.Status !== ComplianceStatus.Done ? <DaysLeft days={item.DaysLeft} /> : null}
+          {typeof item.DaysLeft === 'number' && item.Status !== ComplianceStatus.Done ? <DaysLeft days={item.DaysLeft} status={item.Status} /> : null}
           <Badge tone={view.tone} dot>
             {view.label}
           </Badge>

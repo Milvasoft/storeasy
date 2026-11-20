@@ -148,6 +148,7 @@ export const p2tr: P2Dictionary = {
     emptyBody: 'Katalogda bu uygulamalarla eşleşen tarihli kural yok.',
     daysLeft: '{days} gün',
     overdue: '{days} gün geçti',
+    inEffect: '{days} gündür yürürlükte',
     today: 'bugün',
     noDate: 'Tarih bekleniyor',
     source: 'Kaynak',
@@ -555,7 +556,7 @@ export const p2tr: P2Dictionary = {
       notApplicable: 'Geçerli değil',
       unknown: 'Bilinmiyor',
     },
-    complianceStatus: { done: 'Tamam', missing: 'Açık', unknown: 'Bilinmiyor', notApplicable: 'Geçerli değil' },
+    complianceStatus: { done: 'Tamam', missing: 'Eksik', unknown: 'Bilinmiyor', notApplicable: 'Geçerli değil' },
     ruleStatus: { inForce: 'Yürürlükte', upcoming: 'Yaklaşan', deprecated: 'Kaldırıldı' },
     applicability: { applies: 'Geçerli', doesNotApply: 'Geçerli değil', unknown: 'Bilinmiyor' },
     planStatus: {
