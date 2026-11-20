@@ -6147,6 +6147,18 @@
             <param name="details"></param>
             <param name="now"></param>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionRows.ObserveContent(Storeasy.Domain.MsStore.MsSubmission,Storeasy.Domain.Enums.MsSubmissionStatus,System.Boolean,System.String)">
+            <summary>
+            Partner Center rule: a draft storeasy created whose content changed since storeasy wrote it can no longer be changed
+            or committed through the API. Only a draft (<see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.PendingCommit"/>) is compared: once
+            committed, Microsoft fills in the submission itself (package details, processing fields), which is no edit, and
+            nothing can change it through the API anyway, so the flag is cleared.
+            </summary>
+            <param name="row"></param>
+            <param name="status"></param>
+            <param name="isPending"></param>
+            <param name="contentHash"></param>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsInstallerRows">
             <summary>
             Merges installer packages read from the store into storeasy's rows, keeping the signature check of an unchanged URL.
