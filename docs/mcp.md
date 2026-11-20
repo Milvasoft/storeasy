@@ -106,7 +106,7 @@ store. The full list with input schemas comes from the server (`tools/list`); th
 |---|---|---|
 | Apps and overview | 13 | `apps_summary`, `apps_list`, `apps_get`, `apps_sync`, `apps_add_google`, `apps_link_store_record`, `apps_profile_update`, `apps_hide`, `apps_unhide`, `apps_mute_alerts`, `apps_unmute_alerts`, `apps_reorder` |
 | Readiness, compliance and AI pre-review | 5 | `readiness_check`, `compliance_app`, `compliance_list`, `pre_reviews_list`, `pre_reviews_get` |
-| Listings, media, categories, age rating, pricing, review info | 18 | `listings_get`, `listings_plan`, `screenshots_sets`, `screenshots_plan`, `screenshots_upload_dir`, `previews_plan`, `categories_plan`, `age_rating_plan`, `pricing_plan`, `review_info_plan` |
+| Listings, media, categories, age rating, pricing, review info | 19 | `listings_get`, `listings_suggest`, `listings_plan`, `screenshots_sets`, `screenshots_plan`, `screenshots_upload_dir`, `previews_plan`, `categories_plan`, `age_rating_plan`, `pricing_plan`, `review_info_plan` |
 | Builds and releases | 11 | `builds_list`, `builds_download_url`, `builds_link`, `builds_export_compliance`, `bundle_upload_plan`, `releases_plan`, `rollout_plan`, `testers_plan`, `submit_for_review` |
 | Saved answers and assisted steps | 8 | `answers_get`, `answers_update`, `data_safety_plan`, `assisted_steps_list`, `assisted_step_handoff`, `assisted_step_complete` |
 | Change plans and jobs | 8 | `plans_list`, `plans_get`, `plans_approve`, `plans_reject`, `plans_discard`, `jobs_list`, `jobs_get`, `jobs_cancel` |

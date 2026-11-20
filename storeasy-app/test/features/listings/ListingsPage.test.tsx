@@ -5,7 +5,7 @@ import { ListingDetailsPage, ListingsPage } from '@/features/listings/ListingsPa
 import { contentState, listing, setupContentApi } from '../../support/content'
 import { organization } from '../../support/factories'
 import { renderWithProviders } from '../../support/render'
-import { lastRequestTo, testState } from '../../support/state'
+import { lastRequestTo, requestsTo, testState } from '../../support/state'
 
 setupContentApi()
 
@@ -14,6 +14,36 @@ function render(query = '?store=apple') {
 }
 
 describe('ListingsPage', () => {
+  it('suggests a text with AI, lets it be edited and puts it in the draft for a plan', async () => {
+    const { user } = render()
+    await screen.findByLabelText('Ad')
+
+    await user.click(screen.getByRole('button', { name: 'Ad için yapay zekadan öneri al' }))
+
+    const panel = await screen.findByRole('region', { name: 'Yapay zeka önerisi: Ad' })
+    expect(lastRequestTo('/Listings/suggest')?.body).toMatchObject({ StoreAppId: 201, VersionId: 'v-24', Locale: 'tr', Field: 'name', Instruction: null })
+    expect(within(panel).getByText('Ana faydayı adın yanına ekler.')).toBeInTheDocument()
+    expect(requestsTo('/Listings/plan')).toHaveLength(0)
+    const suggested = within(panel).getByRole('textbox', { name: 'Ad' })
+    await user.clear(suggested)
+    await user.type(suggested, 'Pusula Rota')
+    await user.click(within(panel).getByRole('button', { name: 'Taslağa al' }))
+
+    expect(screen.queryByRole('region', { name: 'Yapay zeka önerisi: Ad' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Ad')).toHaveValue('Pusula Rota')
+    expect(screen.getByText('Değişti')).toBeInTheDocument()
+    expect(requestsTo('/Listings/plan')).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: /URL'si için yapay zekadan/ })).not.toBeInTheDocument()
+  })
+
+  it('hides the suggestions without an AI key', async () => {
+    testState.aiSettings = { ...testState.aiSettings, HasApiKey: false }
+    render()
+    await screen.findByLabelText('Ad')
+
+    expect(screen.queryByRole('button', { name: /yapay zekadan öneri al/ })).not.toBeInTheDocument()
+  })
+
   it('shows the fields of the primary language with the catalog limits counted', async () => {
     render()
 

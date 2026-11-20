@@ -37,6 +37,7 @@ import type {
   SavedAnswerSetDto,
   StoreOptionDto,
   TerritoryDto,
+  ListingSuggestionDto,
 } from './types'
 
 // The phase 2 endpoints (storeasy-api controllers: Apps, Rules, Compliance, plans, Listings, Screenshots, Previews,
@@ -123,6 +124,18 @@ export const listingsApi = {
       VersionId: versionId,
       Changes: changes,
       DryRun: true,
+    }),
+
+  // An AI suggestion for one listing text with the organization's key (editors). Nothing is saved or planned; audited
+  // with the tokens and the cost. 409 AiKeyNotSet; 400 AiSuggestionNotSupported / AiSuggestionLocaleNotFound.
+  suggest: (organizationId: number, storeAppId: number, versionId: string | null, locale: string, field: string, instruction?: string | null) =>
+    apiPost<ListingSuggestionDto>('/Listings/suggest', {
+      OrganizationId: organizationId,
+      StoreAppId: storeAppId,
+      VersionId: versionId,
+      Locale: locale,
+      Field: field,
+      Instruction: instruction?.trim() || null,
     }),
 }
 
