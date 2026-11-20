@@ -32,4 +32,11 @@ public class ActivityBoardDto
     /// Hourly counts of the last 24 hours per store; hours without anything are left out.
     /// </summary>
     public List<ActivityBoardHourDto> Hours { get; set; } = [];
+
+    /// <summary>
+    /// Apps of the organization whose alerts are muted, by id. Their versions and builds are left out of
+    /// <see cref="Versions"/> and <see cref="Builds"/>; the web app leaves their rejection cases, deadlines and failed jobs
+    /// out of the attention items too and says how many apps are muted.
+    /// </summary>
+    public List<int> MutedAppIds { get; set; } = [];
 }

@@ -13,7 +13,7 @@ import { contentKeys } from '@/features/common/keys'
 import { rejectionKeys, rejectionsApi } from '@/features/rejections/api'
 import { RejectionState } from '@/features/rejections/types'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import { attentionOf, gateItemsOf, hourStrip, upcomingOf, type BoardInputs } from '@/lib/activity/board'
+import { attentionOf, gateItemsOf, hourStrip, mutedAppIdsOf, upcomingOf, withoutMutedApps, type BoardInputs } from '@/lib/activity/board'
 import { ActivityEventType, InboundEventType } from '@/lib/activity/events'
 import {
   isActive,
@@ -286,6 +286,7 @@ const OPEN_REJECTIONS: ListRequest = { PageNumber: 1, RowCount: 20, Sorting: { S
 
 // The calm data beside the stream: the board (reviews, builds, 24 hours), open rejection cases, open compliance
 // deadlines and the connections. Each one that fails (a role without the right, an older API) only leaves its part out.
+// Apps whose alerts are muted are left out of all of it (the attention bar says how many).
 function useBoardInputs(jobs: JobView[]): BoardInputs {
   const { current } = useOrganization()
   const organizationId = current?.Id ?? 0
@@ -314,13 +315,14 @@ function useBoardInputs(jobs: JobView[]): BoardInputs {
     ...quiet,
   })
   return useMemo(
-    () => ({
-      board: board.data ?? null,
-      rejections: rejections.data?.Data ?? [],
-      compliance: compliance.data ?? [],
-      connections: connections.data ?? [],
-      jobs,
-    }),
+    () =>
+      withoutMutedApps({
+        board: board.data ?? null,
+        rejections: rejections.data?.Data ?? [],
+        compliance: compliance.data ?? [],
+        connections: connections.data ?? [],
+        jobs,
+      }),
     [board.data, rejections.data, compliance.data, connections.data, jobs],
   )
 }
@@ -404,7 +406,7 @@ export function ActivityPage() {
       <div className="hat">
         <section className="stage" aria-label={t.activity.sceneLabel}>
           <div className="stage-h">
-            <AttentionBar items={attention} />
+            <AttentionBar items={attention} mutedAppIds={mutedAppIdsOf(inputs)} />
             <ul className="legend">
               <li>
                 <i className="lo" />

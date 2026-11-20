@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, CircleX, Clock3, ExternalLink, TriangleExclamationPoint } from 'lucide-react'
+import { ArrowRight, BellOff, CircleCheck, CircleX, Clock3, ExternalLink, TriangleExclamationPoint } from 'lucide-react'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { StoreTag } from '@/components/ui/Badge'
 import { storeLabel, upcomingWhen as whenText } from '@/components/activity/Hat'
@@ -71,15 +71,34 @@ function AttentionCard({ item }: { item: AttentionItem }) {
   )
 }
 
+/** Says that apps with muted alerts were left out, so nothing disappears silently; their names are in the tooltip. */
+function MutedNote({ appIds }: { appIds: number[] }) {
+  const t = useT()
+  const { appName } = useActivity()
+  if (appIds.length === 0) {
+    return null
+  }
+  const names = appIds.map((id) => appName(id) ?? `#${id}`).join(', ')
+  return (
+    <p className="att-muted" title={names}>
+      <BellOff aria-hidden />
+      {interpolate(t.activity.line.mutedNote, { count: appIds.length })}
+    </p>
+  )
+}
+
 /** One or two things a person should act on, most urgent first; the rest behind "+n more". */
-export function AttentionBar({ items }: { items: AttentionItem[] }) {
+export function AttentionBar({ items, mutedAppIds = [] }: { items: AttentionItem[]; mutedAppIds?: number[] }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   if (items.length === 0) {
     return (
-      <div className="att-none">
-        <CircleCheck aria-hidden />
-        {t.activity.line.attentionNone}
+      <div className="att-bar">
+        <div className="att-none">
+          <CircleCheck aria-hidden />
+          {t.activity.line.attentionNone}
+        </div>
+        <MutedNote appIds={mutedAppIds} />
       </div>
     )
   }
@@ -97,6 +116,7 @@ export function AttentionBar({ items }: { items: AttentionItem[] }) {
           {open ? t.activity.line.gateLess : interpolate(t.activity.line.attentionMore, { count: items.length - MAX_ATTENTION })}
         </button>
       ) : null}
+      <MutedNote appIds={mutedAppIds} />
     </section>
   )
 }

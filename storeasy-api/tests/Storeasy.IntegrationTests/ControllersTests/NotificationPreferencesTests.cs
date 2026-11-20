@@ -89,4 +89,42 @@ public class NotificationPreferencesTests(StoreasyApiFactory factory) : Integrat
         seenHttp.StatusCode.Should().Be(HttpStatusCode.OK);
         seen.Data.Should().ContainSingle(n => n.Id == seenId && n.IsSeen);
     }
+
+    [Fact]
+    public async Task Dispatch_AboutAMutedApp_ShouldReachOnlyTheUsersNamedDirectly()
+    {
+        // Arrange
+        var org = await _factory.NewOrgAsync();
+        var (mutedAppId, _, _) = await _factory.AddAppAsync(org, name: "Expenny");
+        var (loudAppId, _, _) = await _factory.AddAppAsync(org, name: "Pusula");
+        var admin = await _factory.AddMemberAsync(org.OrganizationId, OrgRole.Admin);
+        var editor = await _factory.AddMemberAsync(org.OrganizationId, OrgRole.Editor);
+        var (mute, _) = await org.Owner.Client.PostAsync<int>("apps/app/alerts-muted", new { organizationId = org.OrganizationId, appId = mutedAppId, muted = true });
+
+        Task<int> DispatchAsync(int appId, string name, List<int> userIds) => _factory.WithServiceAsync<INotificationDispatcher, int>(d => d.DispatchAsync(new OrgNotification
+        {
+            OrganizationId = org.OrganizationId,
+            Kind = NotificationType.Rejection,
+            Roles = NotificationAudiences.OwnersAndAdmins,
+            UserIds = userIds,
+            AppId = appId,
+            TextKey = Application.Utils.Constants.MessageKey.NotificationRejection,
+            TextArgs = [name, "1.4", "REJECTED"],
+        }, CancellationToken.None));
+
+        // Act
+        var mutedReached = await DispatchAsync(mutedAppId, "Expenny", []);
+        var namedReached = await DispatchAsync(mutedAppId, "Expenny", [editor.Id]);
+        var loudReached = await DispatchAsync(loudAppId, "Pusula", []);
+        var (_, adminList) = await admin.Client.PatchListAsync<AccountNotificationDto>("account/notifications", new { pageNumber = 1, rowCount = 10 });
+        var (_, editorList) = await editor.Client.PatchListAsync<AccountNotificationDto>("account/notifications", new { pageNumber = 1, rowCount = 10 });
+
+        // Assert
+        mute.StatusCode.Should().Be(HttpStatusCode.OK);
+        mutedReached.Should().Be(0, "nobody is alerted about a muted app");
+        namedReached.Should().Be(1, "a user named directly still hears about the work they asked for");
+        loudReached.Should().Be(2);
+        adminList.Data.Should().ContainSingle(n => n.OrganizationId == org.OrganizationId).Which.Text.Should().Contain("Pusula");
+        editorList.Data.Should().ContainSingle(n => n.OrganizationId == org.OrganizationId).Which.Text.Should().Contain("Expenny");
+    }
 }

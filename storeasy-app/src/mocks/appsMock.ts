@@ -319,6 +319,16 @@ export const appsMockHandlers: HttpHandler[] = [
     app.HiddenDate = Hidden ? (app.HiddenDate ?? new Date().toISOString()) : null
     return envelope(AppId)
   }),
+  http.post(`${BASE}/Apps/app/alerts-muted`, async ({ request }) => {
+    const { AppId, Muted } = (await request.json()) as { AppId: number; Muted: boolean }
+    const app = apps.find((item) => item.Id === AppId)
+    if (!app) {
+      return refuse('AppNotFound', 'Uygulama bulunamadı.', 404)
+    }
+    // The first mute date stays, as on the server.
+    app.AlertsMutedDate = Muted ? (app.AlertsMutedDate ?? new Date().toISOString()) : null
+    return envelope(AppId)
+  }),
   http.post(`${BASE}/Apps/app/order`, async ({ request }) => {
     const { AppIds } = (await request.json()) as { AppIds: number[] }
     if (AppIds.some((id) => !apps.some((app) => app.Id === id))) {

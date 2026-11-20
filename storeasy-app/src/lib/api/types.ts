@@ -86,6 +86,8 @@ export const AuditAction = {
   AppHidden: 44,
   AppUnhidden: 45,
   AppsReordered: 46,
+  AppAlertsMuted: 47,
+  AppAlertsUnmuted: 48,
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
 } as const
@@ -537,6 +539,8 @@ export interface AppListDto {
   CreationDate?: IsoDateTime | null
   /** When a member hid the app from the apps list; null while it is shown. */
   HiddenDate?: IsoDateTime | null
+  /** When a member muted the app's alerts (the live board and the notifications leave it out); null while they are on. */
+  AlertsMutedDate?: IsoDateTime | null
   /** Place in the apps list a member chose (0 is the first); null for an app never placed. */
   DisplayOrder?: number | null
   /** One record per store at most. */
@@ -675,6 +679,8 @@ export interface ActivityBoardDto {
   Versions?: ActivityBoardVersionDto[] | null
   Builds?: ActivityBoardBuildDto[] | null
   Hours?: ActivityBoardHourDto[] | null
+  /** Apps whose alerts are muted: their versions and builds are already left out; the page leaves out the rest too. */
+  MutedAppIds?: number[] | null
 }
 
 // ---- Assets ----

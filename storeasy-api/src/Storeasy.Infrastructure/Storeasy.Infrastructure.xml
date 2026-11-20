@@ -2208,7 +2208,13 @@
             <c>notification.created</c> to each recipient, queues the e-mails (outbox) and the web pushes, and queues the outgoing
             webhook and the live event when the notification names them. Custom role members receive what the seeded role their
             permissions match (<see cref="P:Storeasy.Domain.Organizations.OrganizationRole.AudienceRole"/>) receives.
+            <para>
+            A notification about an app whose alerts are muted (<see cref="P:Storeasy.Domain.Apps.App.AlertsMutedDate"/>) reaches no role audience and
+            publishes no live event; users it names directly (the member whose own action failed) still get it, and the outgoing
+            webhook is still queued, since integrations subscribe to events rather than to alerts.
+            </para>
             </summary>
+            <param name="appRepository"></param>
             <param name="memberRepository"></param>
             <param name="userRepository"></param>
             <param name="preferenceRepository"></param>
@@ -2223,14 +2229,20 @@
             <param name="timeProvider"></param>
             <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.NotificationPreference},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IEmailOutbox,Storeasy.Application.Interfaces.IWebPushQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IUserNotificationPublisher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Notifications.NotificationDispatcher.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Organizations.OrganizationMember},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Notifications.NotificationPreference},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.InternalNotification},Storeasy.Application.Interfaces.IEmailOutbox,Storeasy.Application.Interfaces.IWebPushQueue,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IUserNotificationPublisher,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,Storeasy.Application.Utils.Models.AppOptions,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.INotificationDispatcher"/>: resolves the recipients (organization roles, named users, platform
             admins), applies each user's preference for the kind, writes the in-app notifications in one insert, pushes
             <c>notification.created</c> to each recipient, queues the e-mails (outbox) and the web pushes, and queues the outgoing
             webhook and the live event when the notification names them. Custom role members receive what the seeded role their
             permissions match (<see cref="P:Storeasy.Domain.Organizations.OrganizationRole.AudienceRole"/>) receives.
+            <para>
+            A notification about an app whose alerts are muted (<see cref="P:Storeasy.Domain.Apps.App.AlertsMutedDate"/>) reaches no role audience and
+            publishes no live event; users it names directly (the member whose own action failed) still get it, and the outgoing
+            webhook is still queued, since integrations subscribe to events rather than to alerts.
+            </para>
             </summary>
+            <param name="appRepository"></param>
             <param name="memberRepository"></param>
             <param name="userRepository"></param>
             <param name="preferenceRepository"></param>

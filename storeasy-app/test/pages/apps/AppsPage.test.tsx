@@ -215,6 +215,15 @@ describe('AppsPage', () => {
     expect(screen.queryByRole('button', { name: 'Google Play uygulaması ekle' })).not.toBeInTheDocument()
   })
 
+  it('marks an app whose alerts are muted with a bell-off beside its name', async () => {
+    testState.apps = [app(), { ...halka, AlertsMutedDate: '2026-11-19T08:00:00Z' }]
+    render()
+    await screen.findByRole('link', { name: 'Halka' })
+
+    expect(screen.getByRole('img', { name: 'Halka susturuldu' })).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Pusula susturuldu' })).not.toBeInTheDocument()
+  })
+
   it('hides an app from its card without a confirmation and offers to undo it', async () => {
     testState.apps = [app(), halka]
     const { user } = render()

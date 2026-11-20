@@ -38,6 +38,7 @@ public class AppDetailDto : AppListDto
         IconUrl = a.IconUrl,
         CreationDate = a.CreationDate,
         HiddenDate = a.HiddenDate,
+        AlertsMutedDate = a.AlertsMutedDate,
         DisplayOrder = a.DisplayOrder,
         Profile = a.Profile,
         Stores = a.StoreApps.OrderBy(s => s.Store).Select(s => new AppStoreRecordDto

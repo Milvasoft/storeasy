@@ -931,6 +931,11 @@
             UTC instant a member hid the app from the apps list; null while it is shown.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.AlertsMutedDate">
+            <summary>
+            UTC instant a member muted the app's alerts (the live board and the notifications leave it out); null while they are on.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.AppDtos.AppListDto.DisplayOrder">
             <summary>
             Place of the app in the apps list a member chose (0 is the first); null for an app that was never placed.
@@ -9361,6 +9366,13 @@
             Hourly counts of the last 24 hours per store; hours without anything are left out.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.MutedAppIds">
+            <summary>
+            Apps of the organization whose alerts are muted, by id. Their versions and builds are left out of
+            <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Versions"/> and <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.Builds"/>; the web app leaves their rejection cases, deadlines and failed jobs
+            out of the attention items too and says how many apps are muted.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardHourDto">
             <summary>
             One hour of one store on the activity page's 24 hour strip.
@@ -12154,6 +12166,64 @@
         </member>
         <member name="M:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Apps.ReorderApps.ReorderAppsCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand">
+            <summary>
+            Mutes an app's alerts or turns them on again. A muted app stays everywhere (apps list, its pages, builds, rejection
+            records) and keeps syncing; only the alerting surfaces leave it out: the live activity board and its attention items,
+            and the notifications, e-mails, web pushes and live events sent to members about it. Returns the app id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand.AppId">
+            <summary>
+            App to mute or unmute.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand.Muted">
+            <summary>
+            True mutes the app's alerts; false turns them on again.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand"/>. An app already in the asked state is left as it is (the first mute
+            date stays) and nothing is audited; an app of another organization is reported as not found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand"/>. An app already in the asked state is left as it is (the first mute
+            date stays) and nothing is audited; an app of another organization is reported as not found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandHandler.Handle(Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.SetAppAlertsMuted.SetAppAlertsMutedCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Apps.SetAppHidden.SetAppHiddenCommand">
             <summary>
@@ -21818,8 +21888,11 @@
         </member>
         <member name="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>. Apps whose alerts are muted (<see cref="P:Storeasy.Domain.Apps.App.AlertsMutedDate"/>) are left out
+            of the versions and builds and named in <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.MutedAppIds"/> instead; the hourly job and event
+            counts are per store and keep them.
             </summary>
+            <param name="appRepository"></param>
             <param name="versionStateRepository"></param>
             <param name="buildRepository"></param>
             <param name="storeAppRepository"></param>
@@ -21829,10 +21902,13 @@
             <param name="msSubmissionRepository"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},System.TimeProvider)">
+        <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEvent},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},System.TimeProvider)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery"/>. Apps whose alerts are muted (<see cref="P:Storeasy.Domain.Apps.App.AlertsMutedDate"/>) are left out
+            of the versions and builds and named in <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardDto.MutedAppIds"/> instead; the hourly job and event
+            counts are per store and keep them.
             </summary>
+            <param name="appRepository"></param>
             <param name="versionStateRepository"></param>
             <param name="buildRepository"></param>
             <param name="storeAppRepository"></param>

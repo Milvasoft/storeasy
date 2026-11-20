@@ -56,6 +56,14 @@ public class App : FullAuditableEntity<int>
     public DateTime? HiddenDate { get; set; }
 
     /// <summary>
+    /// UTC instant a member muted the app's alerts; null while they are on. A muted app stays everywhere (apps list, its
+    /// pages, builds, rejection records) and keeps syncing, but the alerting surfaces leave it out: the live activity
+    /// board and its attention items, and the notifications, e-mails, web pushes and live events sent to members about
+    /// it. Only a member changes it (sync never writes it).
+    /// </summary>
+    public DateTime? AlertsMutedDate { get; set; }
+
+    /// <summary>
     /// Place of the app in the organization's apps list, set when a member reorders the list (0 is the first). Null for
     /// an app that was never placed; those follow the placed apps by name. Only a member changes it (sync never writes it).
     /// </summary>
