@@ -474,7 +474,8 @@
             <summary>
             Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
             provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
-            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status, or with a success status whose
+            response envelope says it refused the message (<c>isSuccess: false</c>), so the outbox retries instead of dropping it.
             </summary>
             <param name="httpClientFactory"></param>
             <param name="options"></param>
@@ -483,7 +484,8 @@
             <summary>
             Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
             provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
-            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status.
+            <see cref="F:Storeasy.Infrastructure.Email.NotifikeEmailSender.HttpClientName"/>. Throws when the API answers with a failure status, or with a success status whose
+            response envelope says it refused the message (<c>isSuccess: false</c>), so the outbox retries instead of dropping it.
             </summary>
             <param name="httpClientFactory"></param>
             <param name="options"></param>
@@ -500,6 +502,13 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.SendAsync(Storeasy.Application.Interfaces.EmailMessage,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Email.NotifikeEmailSender.ReadRefusal(System.String)">
+            <summary>
+            The refusal of a Notifike response envelope (<c>{ isSuccess, messages: [{ key, message }] }</c>): null when the
+            body is empty, not JSON or does not say <c>isSuccess: false</c>; otherwise its message keys and texts.
+            </summary>
+            <param name="body"></param>
         </member>
         <member name="T:Storeasy.Infrastructure.Email.SmtpEmailSender">
             <summary>

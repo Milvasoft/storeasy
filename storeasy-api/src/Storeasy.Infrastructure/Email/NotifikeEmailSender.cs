@@ -8,7 +8,8 @@ namespace Storeasy.Infrastructure.Email;
 /// <summary>
 /// Sends e-mails through the Notifike notification API (<c>Storeasy:Email:Notifike</c>), the Milvasoft hosting
 /// provider: <c>POST {BaseUrl}/notifications/send</c> with the <c>X-Api-Key</c> header. Uses the named HTTP client
-/// <see cref="HttpClientName"/>. Throws when the API answers with a failure status.
+/// <see cref="HttpClientName"/>. Throws when the API answers with a failure status, or with a success status whose
+/// response envelope says it refused the message (<c>isSuccess: false</c>), so the outbox retries instead of dropping it.
 /// </summary>
 /// <param name="httpClientFactory"></param>
 /// <param name="options"></param>
@@ -55,5 +56,50 @@ public sealed class NotifikeEmailSender(IHttpClientFactory httpClientFactory, Em
         // The key is never part of the message; only the status is reported.
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException($"Notifike answered {(int)response.StatusCode}.", null, response.StatusCode);
+
+        var refusal = ReadRefusal(await response.Content.ReadAsStringAsync(cancellationToken));
+
+        if (refusal != null)
+            throw new HttpRequestException($"Notifike refused the message: {refusal}", null, response.StatusCode);
+    }
+
+    /// <summary>
+    /// The refusal of a Notifike response envelope (<c>{ isSuccess, messages: [{ key, message }] }</c>): null when the
+    /// body is empty, not JSON or does not say <c>isSuccess: false</c>; otherwise its message keys and texts.
+    /// </summary>
+    /// <param name="body"></param>
+    public static string ReadRefusal(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                return null;
+
+            var root = document.RootElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value, StringComparer.OrdinalIgnoreCase);
+
+            if (!root.TryGetValue("isSuccess", out var success) || success.ValueKind != JsonValueKind.False)
+                return null;
+
+            var messages = root.TryGetValue("messages", out var list) && list.ValueKind == JsonValueKind.Array
+                ? list.EnumerateArray()
+                      .Where(m => m.ValueKind == JsonValueKind.Object)
+                      .Select(m => string.Join(" ", m.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.String && (p.NameEquals("key") || p.NameEquals("message") || p.NameEquals("Key") || p.NameEquals("Message"))).Select(p => p.Value.GetString())))
+                      .Where(m => !string.IsNullOrWhiteSpace(m))
+                      .ToList()
+                : [];
+
+            var text = messages.Count > 0 ? string.Join("; ", messages) : "no reason given";
+
+            return text.Length > 300 ? text[..300] : text;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }
