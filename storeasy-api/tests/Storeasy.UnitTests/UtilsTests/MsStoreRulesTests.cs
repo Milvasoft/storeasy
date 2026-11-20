@@ -340,6 +340,22 @@ public class MsStoreRulesTests
     }
 
     [Fact]
+    public void SettleBuilds_ShouldKeepOneRecordPerPackage_PreferringTheSettledOne()
+    {
+        var pending = new Storeasy.Application.Interfaces.StoreBuildRecord("1", "1.0.0.0", "1.0.0.0", BuildProcessingState.Processing, null, null, "pending x64", null);
+        var published = pending with { ProcessingState = BuildProcessingState.Valid, Tracks = "published x64" };
+        var newer = pending with { ExternalId = "2", Version = "1.0.1.0" };
+
+        var builds = MsBuildRows.Settle([pending, newer, published, pending with { ExternalId = "" }]);
+
+        builds.Should().HaveCount(2);
+        builds.Single(b => b.ExternalId == "1").Should().Match<Storeasy.Application.Interfaces.StoreBuildRecord>(b => b.ProcessingState == BuildProcessingState.Valid && b.Tracks == "published x64");
+        builds.Single(b => b.ExternalId == "2").ProcessingState.Should().Be(BuildProcessingState.Processing);
+        MsBuildRows.IsReplaced(BuildProcessingState.Processing).Should().BeTrue();
+        MsBuildRows.IsReplaced(BuildProcessingState.Failed).Should().BeFalse();
+    }
+
+    [Fact]
     public void WriteListing_ShouldKeepEveryOtherField_AndAddNewLanguages()
     {
         var document = Submission();

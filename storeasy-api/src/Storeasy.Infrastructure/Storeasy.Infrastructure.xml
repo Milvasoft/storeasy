@@ -655,21 +655,23 @@
         <member name="T:Storeasy.Infrastructure.Events.ScheduledStoreSyncs">
             <summary>
             Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
-            and TestFlight per store record. A target that already has a queued or running job of the same kind is skipped.
+            and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
             </summary>
             <param name="connectionRepository"></param>
             <param name="storeAppRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
             <summary>
             Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
-            and TestFlight per store record. A target that already has a queued or running job of the same kind is skipped.
+            and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
             </summary>
             <param name="connectionRepository"></param>
             <param name="storeAppRepository"></param>
+            <param name="msSubmissionRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
@@ -677,6 +679,12 @@
         <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueVersionStateSyncsAsync(System.Threading.CancellationToken)">
             <summary>
             Queues a version state sync for every verified App Store Connect connection.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueMsSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a Microsoft Store sync for every verified Partner Center connection with a pending submission. Partner Center
+            sends no notifications, so certification, publishing and a manual "Publish now" are only seen by reading again.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueReviewSyncsAsync(System.Threading.CancellationToken)">
@@ -1824,6 +1832,25 @@
             <param name="scopeFactory"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.IntakeCleanupJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.MsSyncJob">
+            <summary>
+            Every 15 minutes: queues the Microsoft Store syncs of connections with a pending submission.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.MsSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 15 minutes: queues the Microsoft Store syncs of connections with a pending submission.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.MsSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.NotificationCleanerJob">
@@ -6138,6 +6165,25 @@
             <summary>
             Writes the outcome of <see cref="M:Storeasy.Infrastructure.Stores.Microsoft.MsInstallerRows.Merge(System.Int32,System.Collections.Generic.IEnumerable{System.ValueTuple{System.Int32,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.MsStore.MsInstallerPackageRecord}}},System.Collections.Generic.List{Storeasy.Domain.MsStore.MsInstallerPackage},System.DateTime)"/>: updates, inserts and deletes of the installer rows.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsBuildRows">
+            <summary>
+            Pure rules of the Microsoft Store build rows.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsBuildRows.Settle(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.StoreBuildRecord})">
+            <summary>
+            One record per package. A package in more than one submission (a pending submission keeps the published one's
+            packages) takes the settled record: valid wins over processing, so a published package does not show as processing
+            while a newer submission is pending.
+            </summary>
+            <param name="builds"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsBuildRows.IsReplaced(Storeasy.Domain.Enums.BuildProcessingState)">
+            <summary>
+            Whether a stored build that is in no submission any more is moved out of processing.
+            </summary>
+            <param name="state"></param>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionRows">
             <summary>
