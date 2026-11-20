@@ -136,12 +136,15 @@ public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRe
         {
             var createStep = await context.BeginStepAsync("submission.create", StepDirection.Outbound, cancellationToken: cancellationToken);
 
-            document = await CallAsync(() => _microsoftStoreClient.CreateSubmissionAsync(secret, owner, cancellationToken), product, change, null);
+            // Not cancelled by a host shutdown: once Partner Center creates the draft, its id must be recorded, or the next
+            // attempt finds a pending draft storeasy does not know and refuses it as not its own. A graceful shutdown waits
+            // for this short call; the HTTP client timeout still bounds it.
+            document = await CallAsync(() => _microsoftStoreClient.CreateSubmissionAsync(secret, owner, CancellationToken.None), product, change, null);
             submissionId = MsSubmissionJson.String(document, "id") ?? throw new StoreJobException("The new submission has no id.", transient: false);
 
             // Recorded right away: if a later step fails, the draft is still known as storeasy's own.
-            await SaveDraftAsync(context.OrganizationId, product, change, target, submissionId, document, cancellationToken);
-            await context.EndStepAsync(createStep, StoreJobStepStatus.Succeeded, submissionId, cancellationToken);
+            await SaveDraftAsync(context.OrganizationId, product, change, target, submissionId, document, CancellationToken.None);
+            await context.EndStepAsync(createStep, StoreJobStepStatus.Succeeded, submissionId, CancellationToken.None);
         }
 
         // The clone inherits the last published submission's publish mode; storeasy's own drafts publish once certified.
