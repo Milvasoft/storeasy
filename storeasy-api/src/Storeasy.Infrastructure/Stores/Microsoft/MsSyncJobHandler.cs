@@ -642,20 +642,32 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
     private async Task<int> SaveBuildsAsync(int organizationId, List<(int StoreAppId, MsProductSnapshot Snapshot)> products, DateTime now, CancellationToken cancellationToken)
     {
-        var builds = products.SelectMany(p => p.Snapshot.Builds.Where(b => !string.IsNullOrEmpty(b.ExternalId)).Select(b => (p.StoreAppId, Build: b)))
-                             .DistinctBy(b => (b.StoreAppId, b.Build.ExternalId))
-                             .ToList();
-
-        if (builds.Count == 0)
-            return 0;
+        var builds = products.SelectMany(p => MsBuildRows.Settle(p.Snapshot.Builds).Select(b => (p.StoreAppId, Build: b))).ToList();
 
         var storeAppIds = products.Select(p => p.StoreAppId).ToList();
         var existing = (await _buildRepository.GetAllAsync(b => storeAppIds.Contains(b.StoreAppId),
-                                                           projection: b => new Build { Id = b.Id, StoreAppId = b.StoreAppId, ExternalId = b.ExternalId },
+                                                           projection: b => new Build { Id = b.Id, StoreAppId = b.StoreAppId, ExternalId = b.ExternalId, ProcessingState = b.ProcessingState },
                                                            cancellationToken: cancellationToken)).ToDictionary(b => (b.StoreAppId, b.ExternalId));
 
         var updated = new List<Build>();
         var added = new List<Build>();
+        var replaced = new List<Build>();
+
+        // A package no longer in any submission was replaced; it is not processing any more. Only products read without
+        // problems: a partial read does not prove the package is gone.
+        var completeIds = products.Where(p => p.Snapshot.Problems.Count == 0).Select(p => p.StoreAppId).ToHashSet();
+        var seen = builds.Select(b => (b.StoreAppId, Trim(b.Build.ExternalId, StoreApp.ExternalIdMaxLength))).ToHashSet();
+
+        foreach (var row in existing.Values.Where(b => completeIds.Contains(b.StoreAppId) && !seen.Contains((b.StoreAppId, b.ExternalId)) && MsBuildRows.IsReplaced(b.ProcessingState)))
+        {
+            row.ProcessingState = BuildProcessingState.Valid;
+            row.Tracks = null;
+            row.SyncedDate = now;
+            replaced.Add(row);
+        }
+
+        if (builds.Count == 0 && replaced.Count == 0)
+            return 0;
 
         foreach (var (storeAppId, record) in builds)
         {
@@ -674,6 +686,9 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
         if (updated.Count > 0)
             await _buildRepository.UpdateAsync(updated, cancellationToken, b => b.Version, b => b.BuildNumber, b => b.ProcessingState, b => b.Tracks, b => b.SyncedDate);
 
+        if (replaced.Count > 0)
+            await _buildRepository.UpdateAsync(replaced, cancellationToken, b => b.ProcessingState, b => b.Tracks, b => b.SyncedDate);
+
         if (added.Count > 0)
             await _buildRepository.AddRangeAsync(added, cancellationToken);
 
@@ -690,6 +705,29 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
     };
 
     private static string Trim(string value, int maxLength) => value?.Length > maxLength ? value[..maxLength] : value;
+}
+
+/// <summary>
+/// Pure rules of the Microsoft Store build rows.
+/// </summary>
+public static class MsBuildRows
+{
+    /// <summary>
+    /// One record per package. A package in more than one submission (a pending submission keeps the published one's
+    /// packages) takes the settled record: valid wins over processing, so a published package does not show as processing
+    /// while a newer submission is pending.
+    /// </summary>
+    /// <param name="builds"></param>
+    public static List<StoreBuildRecord> Settle(IEnumerable<StoreBuildRecord> builds)
+        => [.. builds.Where(b => !string.IsNullOrEmpty(b.ExternalId))
+                     .GroupBy(b => b.ExternalId)
+                     .Select(g => g.FirstOrDefault(b => b.ProcessingState != BuildProcessingState.Processing) ?? g.First())];
+
+    /// <summary>
+    /// Whether a stored build that is in no submission any more is moved out of processing.
+    /// </summary>
+    /// <param name="state"></param>
+    public static bool IsReplaced(BuildProcessingState state) => state == BuildProcessingState.Processing;
 }
 
 /// <summary>

@@ -1,9 +1,11 @@
 ﻿using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.FeedbackDtos;
+using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Dtos.TestFlightDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 using System.Text.Json;
 
@@ -11,21 +13,24 @@ namespace Storeasy.Infrastructure.Events;
 
 /// <summary>
 /// Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
-/// and TestFlight per store record. A target that already has a queued or running job of the same kind is skipped.
+/// and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
 /// </summary>
 /// <param name="connectionRepository"></param>
 /// <param name="storeAppRepository"></param>
+/// <param name="msSubmissionRepository"></param>
 /// <param name="jobRepository"></param>
 /// <param name="storeJobQueue"></param>
 /// <param name="auditTrail"></param>
 public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection> connectionRepository,
                                         IStoreasyRepositoryBase<StoreApp> storeAppRepository,
+                                        IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
                                         IStoreasyRepositoryBase<StoreJob> jobRepository,
                                         IStoreJobQueue storeJobQueue,
                                         IAuditTrail auditTrail)
 {
     private readonly IStoreasyRepositoryBase<StoreConnection> _connectionRepository = connectionRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
+    private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
     private readonly IStoreasyRepositoryBase<StoreJob> _jobRepository = jobRepository;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
     private readonly IAuditTrail _auditTrail = auditTrail;
@@ -40,6 +45,24 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                                                   cancellationToken: cancellationToken);
 
         return await QueueAsync(StoreJobKind.SyncVersionStates, [.. connections.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.SyncVersionStates, new SyncVersionStatesPayload(c.Id), StoreKind.Apple))], cancellationToken);
+    }
+
+    /// <summary>
+    /// Queues a Microsoft Store sync for every verified Partner Center connection with a pending submission. Partner Center
+    /// sends no notifications, so certification, publishing and a manual "Publish now" are only seen by reading again.
+    /// </summary>
+    public async Task<int> QueueMsSyncsAsync(CancellationToken cancellationToken)
+    {
+        var connectionIds = (await _msSubmissionRepository.GetAllAsync(s => s.IsPending
+                                                                           && s.StoreApp.StoreConnectionId != null
+                                                                           && !s.StoreApp.App.IsDeleted
+                                                                           && s.StoreApp.StoreConnection.Status == ConnectionStatus.Verified,
+                                                                      projection: s => new MsSubmission { OrganizationId = s.OrganizationId, StoreApp = new StoreApp { StoreConnectionId = s.StoreApp.StoreConnectionId } },
+                                                                      cancellationToken: cancellationToken)).Select(s => (s.OrganizationId, ConnectionId: s.StoreApp.StoreConnectionId.Value))
+                                                                                                            .Distinct()
+                                                                                                            .ToList();
+
+        return await QueueAsync(StoreJobKind.MsSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.MsSync, new MsSyncPayload(c.ConnectionId), StoreKind.Microsoft))], cancellationToken);
     }
 
     /// <summary>

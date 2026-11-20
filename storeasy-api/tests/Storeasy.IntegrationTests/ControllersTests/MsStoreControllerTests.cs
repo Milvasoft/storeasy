@@ -398,6 +398,41 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
     }
 
     [Fact]
+    public async Task Builds_ShouldNotStayProcessing_WhenTheyArePublishedOrReplaced()
+    {
+        // Arrange: a draft in certification keeps the published package and adds two new ones.
+        var setup = await NewSetupAsync();
+        var draftId = Microsoft.AddPartnerCenterDraft(setup.AppId);
+        var draft = Microsoft.Submissions[draftId];
+        var packages = draft["applicationPackages"]!.AsArray();
+        var publishedVersion = packages[0]!["version"]!.GetValue<string>();
+
+        draft["status"] = "Certification";
+        packages.Add(new System.Text.Json.Nodes.JsonObject { ["fileName"] = "app_1.0.6.0_x64.msix", ["fileStatus"] = "Uploaded", ["id"] = FakeMicrosoftStore.NewId(), ["version"] = "1.0.6.0", ["architecture"] = "x64" });
+        packages.Add(new System.Text.Json.Nodes.JsonObject { ["fileName"] = "app_1.0.7.0_x64.msix", ["fileStatus"] = "Uploaded", ["id"] = FakeMicrosoftStore.NewId(), ["version"] = "1.0.7.0", ["architecture"] = "x64" });
+
+        // Act
+        await SyncAsync(setup);
+
+        var storeAppId = await StoreAppIdAsync(setup, setup.AppId);
+        var whileCertifying = await _factory.DbAsync(db => db.Builds.AsNoTracking().Where(b => b.StoreAppId == storeAppId).ToDictionaryAsync(b => b.Version, b => b.ProcessingState));
+
+        // The 1.0.6.0 package is removed before publishing; the draft is published in Partner Center.
+        packages.RemoveAt(1);
+        Microsoft.Publish(draftId);
+
+        await SyncAsync(setup);
+
+        var afterPublish = await _factory.DbAsync(db => db.Builds.AsNoTracking().Where(b => b.StoreAppId == storeAppId).ToDictionaryAsync(b => b.Version, b => b.ProcessingState));
+
+        // Assert
+        whileCertifying[publishedVersion].Should().Be(BuildProcessingState.Valid, "the published package is not processed again by a pending submission");
+        whileCertifying["1.0.6.0"].Should().Be(BuildProcessingState.Processing);
+        whileCertifying["1.0.7.0"].Should().Be(BuildProcessingState.Processing);
+        afterPublish.Should().HaveCount(3).And.OnlyContain(b => b.Value == BuildProcessingState.Valid, "a published or replaced package is not processing");
+    }
+
+    [Fact]
     public async Task OnlyOneActiveSubmission_ShouldBlockChanges_WhileOneIsInCertification()
     {
         // Arrange
