@@ -82,7 +82,7 @@ public record SuggestListingFieldCommandHandler(IStoreContentService ContentServ
                                                                                        before,
                                                                                        Texts(app.Store, snapshot, locale, except: field.Field),
                                                                                        primary == null ? null : Texts(app.Store, snapshot, primary, except: null),
-                                                                                       ProfileLines(app.Profile),
+                                                                                       ListingSuggestions.ProfileLines(app.Profile),
                                                                                        app.Store == StoreKind.Apple ? snapshot.VersionString : null,
                                                                                        string.IsNullOrWhiteSpace(request.Instruction) ? null : request.Instruction.Trim(),
                                                                                        _options.ReplyDraftModelFor(setting.ReplyDraftModel)),
@@ -113,7 +113,7 @@ public record SuggestListingFieldCommandHandler(IStoreContentService ContentServ
         }
 
         if (result.Outcome != ReplyDraftOutcome.Written)
-            return Response<ListingSuggestionDto>.Error(null, FailureKey(result.Outcome));
+            return Response<ListingSuggestionDto>.Error(null, ListingSuggestions.FailureKey(result.Outcome));
 
         if (fitted == null)
             return Response<ListingSuggestionDto>.Error(null, MessageKey.AiSuggestionFailed);
@@ -139,40 +139,4 @@ public record SuggestListingFieldCommandHandler(IStoreContentService ContentServ
                         .Select(f => (f.Field, Value: snapshot.Get(ContentKey.Of(f.Group, locale, f.Field))))
                         .Where(t => !string.IsNullOrWhiteSpace(t.Value))
                         .ToDictionary(t => t.Field, t => t.Value, StringComparer.Ordinal);
-
-    private static List<string> ProfileLines(AppProfile profile)
-    {
-        if (profile == null)
-            return [];
-
-        var lines = new List<string>();
-
-        void Add(string label, IEnumerable<string> values)
-        {
-            var list = values?.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
-
-            if (list is { Count: > 0 })
-                lines.Add($"{label}: {string.Join(", ", list)}");
-        }
-
-        Add("Platforms", profile.Platforms);
-        Add("Device families", profile.DeviceFamilies);
-        Add("App type", [profile.AppType]);
-        Add("Features", profile.Features);
-        Add("Regions", profile.Regions);
-
-        if (profile.IsLive is { } live)
-            lines.Add(live ? "Already live in the store" : "Not live in the store yet");
-
-        return lines;
-    }
-
-    private static string FailureKey(ReplyDraftOutcome outcome) => outcome switch
-    {
-        ReplyDraftOutcome.KeyRejected => MessageKey.AiKeyRejected,
-        ReplyDraftOutcome.RateLimited => MessageKey.AiRateLimited,
-        ReplyDraftOutcome.Unavailable => MessageKey.AiUnavailable,
-        ReplyDraftOutcome.Refused => MessageKey.AiSuggestionRefused,
-        _ => MessageKey.AiSuggestionFailed,
-    };
 }

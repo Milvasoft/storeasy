@@ -128,6 +128,52 @@ public static class ListingSuggestions
         return cut.Length == 0 ? null : (cut, true);
     }
 
+    /// <summary>
+    /// The app's catalog profile (Profile tab) as short prompt lines.
+    /// </summary>
+    /// <param name="profile"></param>
+    /// <returns></returns>
+    public static List<string> ProfileLines(AppProfile profile)
+    {
+        if (profile == null)
+            return [];
+
+        var lines = new List<string>();
+
+        void Add(string label, IEnumerable<string> values)
+        {
+            var list = values?.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+
+            if (list is { Count: > 0 })
+                lines.Add($"{label}: {string.Join(", ", list)}");
+        }
+
+        Add("Platforms", profile.Platforms);
+        Add("Device families", profile.DeviceFamilies);
+        Add("App type", [profile.AppType]);
+        Add("Features", profile.Features);
+        Add("Regions", profile.Regions);
+
+        if (profile.IsLive is { } live)
+            lines.Add(live ? "Already live in the store" : "Not live in the store yet");
+
+        return lines;
+    }
+
+    /// <summary>
+    /// The message key of a failed AI suggestion call.
+    /// </summary>
+    /// <param name="outcome"></param>
+    /// <returns></returns>
+    public static string FailureKey(ReplyDraftOutcome outcome) => outcome switch
+    {
+        ReplyDraftOutcome.KeyRejected => MessageKey.AiKeyRejected,
+        ReplyDraftOutcome.RateLimited => MessageKey.AiRateLimited,
+        ReplyDraftOutcome.Unavailable => MessageKey.AiUnavailable,
+        ReplyDraftOutcome.Refused => MessageKey.AiSuggestionRefused,
+        _ => MessageKey.AiSuggestionFailed,
+    };
+
     private static bool Fits(string text, int? maxLength, int? maxBytes)
         => (maxLength == null || ContentDiff.CharCount(text) <= maxLength) && (maxBytes == null || ContentDiff.ByteCount(text) <= maxBytes);
 

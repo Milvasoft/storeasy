@@ -1229,6 +1229,7 @@ export const tr: Dictionary = {
       savedReplyChanged: 'Kayıtlı yanıt değişti',
       reviewReplyDraftGenerated: 'Yanıt taslağı AI ile yazıldı',
       listingSuggestionGenerated: 'Mağaza kaydı önerisi yapay zeka ile yazıldı',
+      categorySuggestionGenerated: 'Kategori önerisi yapay zeka ile yazıldı',
       betaGroupChanged: 'Beta grubu değişti',
       betaTestersChanged: 'Beta test kullanıcıları değişti',
       betaTextChanged: 'Beta metinleri değişti',

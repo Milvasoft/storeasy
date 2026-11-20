@@ -407,6 +407,18 @@ export interface ListingChangeDto {
 }
 
 /** An AI suggestion for one listing text (listings/suggest). Nothing is saved: it goes into the draft, then a plan. */
+/** An AI suggestion for the App Store categories (categories/suggest). Nothing is saved: it goes into the form, then a plan. */
+export interface CategorySuggestionDto {
+  StoreAppId: number
+  CurrentPrimary?: string | null
+  CurrentSecondary?: string | null
+  Primary: string
+  /** Null: no secondary category. */
+  Secondary?: string | null
+  Reason?: string | null
+  Model: string
+}
+
 export interface ListingSuggestionDto {
   StoreAppId: number
   Locale: string

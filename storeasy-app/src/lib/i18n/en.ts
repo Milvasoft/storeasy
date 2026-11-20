@@ -1229,6 +1229,7 @@ export const en = {
       savedReplyChanged: 'Saved reply changed',
       reviewReplyDraftGenerated: 'Reply draft written with AI',
       listingSuggestionGenerated: 'Listing suggestion written with AI',
+      categorySuggestionGenerated: 'Category suggestion written with AI',
       betaGroupChanged: 'Beta group changed',
       betaTestersChanged: 'Beta testers changed',
       betaTextChanged: 'Beta texts changed',

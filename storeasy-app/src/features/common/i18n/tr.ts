@@ -281,6 +281,12 @@ export const p2tr: P2Dictionary = {
     rights: 'İçerik hakları',
     rightsNone: 'Üçüncü taraf içerik kullanmıyor',
     rightsUses: 'Üçüncü taraf içerik kullanıyor, hakları var',
+    suggest: 'Kategori öner',
+    suggesting: 'Kategoriler seçiliyor...',
+    suggestionTitle: 'Yapay zeka önerisi: kategoriler',
+    suggestionNow: 'şu an {value}',
+    suggestionHint: 'Henüz hiçbir şey kaydedilmedi. Forma al, sonra plan yap.',
+    useSuggestion: 'Forma al',
   },
   ageRating: {
     title: 'Yaş derecelendirmesi',

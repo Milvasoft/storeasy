@@ -48,6 +48,7 @@ using Storeasy.Application.Features.Listings.PlanCategories;
 using Storeasy.Application.Features.Listings.PlanListing;
 using Storeasy.Application.Features.Listings.PlanPricing;
 using Storeasy.Application.Features.Listings.PlanReviewInfo;
+using Storeasy.Application.Features.Listings.SuggestCategories;
 using Storeasy.Application.Features.Listings.SuggestListingField;
 using Storeasy.Application.Features.Media.GetMediaSets;
 using Storeasy.Application.Features.Media.PlanMediaSet;
@@ -204,6 +205,7 @@ public static class McpToolCatalog
         Plan<PlanMediaSetCommand>("previews_plan", "Plans one app preview set (locale and class).",
                                   [("Kind", MediaKind.Preview)], [], [("AssetIds", new McpUploadSpec("files", 1, ".mp4", ".mov", ".m4v"))]),
         Read<GetCategoriesQuery>("categories_get", "Reads the categories of a store record and the store's choices."),
+        Write<SuggestCategoriesCommand>("categories_suggest", "Suggests the App Store primary and secondary category from the store's list with the organization's AI key. Nothing is saved: review it and plan it with categories_plan. Audited with tokens and cost."),
         Plan<PlanCategoriesCommand>("categories_plan", "Plans category changes."),
         Read<GetAgeRatingQuery>("age_rating_get", "Reads the age rating answers (including the newest questions)."),
         Plan<PlanAgeRatingCommand>("age_rating_plan", "Plans age rating answers."),

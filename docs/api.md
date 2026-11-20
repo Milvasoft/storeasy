@@ -71,6 +71,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Assisted steps | `assisted-steps`, `assisted-steps/step`, `step/handoff`, `step/complete` | Read `View`; hand off and complete `EditContent` |
 | Reviews and rejections | `reviews/*`, `rejections/*` | Reads `View`; replies `ReplyReviews`; rejection cases `EditContent` |
 | | `reviews/reply-draft/generate` | `ReplyReviews`, 60 an hour per user: Claude writes a reply draft with the organization's Anthropic API key and it is saved as the review's draft; nothing is sent to the store ([AI reply drafts](#ai-reply-drafts)) |
+| | `categories/suggest` | `EditContent`, 120 an hour per user: Claude suggests the App Store primary and secondary category from the store's list; nothing is saved or planned ([AI listing suggestions](#ai-listing-suggestions)) |
 | | `listings/suggest` | `EditContent`, 120 an hour per user: Claude suggests one listing text with the organization's Anthropic API key; nothing is saved or planned ([AI listing suggestions](#ai-listing-suggestions)) |
 | Studio | `mockups/*` (templates, captions, frames, previews, exports) | Reads and previews `View`; templates and exports `EditContent`; `captions/suggest` behind the `Studio.AiCaptions` flag |
 | Files | `assets/upload`, `assets/asset/complete`, `assets/asset/download-url` | `EditContent` to upload, `View` to download; bytes go to S3 through presigned URLs |
@@ -136,6 +137,13 @@ approves as any other edit. Nothing is saved, planned or sent by the suggestion 
 - **Errors.** As the reply drafts: 409 `AiKeyNotSet` / `AiKeyRejected`, 429 `AiRateLimited`, 503 `AiUnavailable`; the model
   declined 422 `AiSuggestionRefused`; an answer that is not the expected JSON or cannot be fitted 502 `AiSuggestionFailed`.
 - **Web.** The button is shown to editors only while the organization has a key. MCP: `listings_suggest`.
+- **Categories (App Store).** `POST categories/suggest` `{OrganizationId, StoreAppId, Instruction?}` returns
+  `{StoreAppId, CurrentPrimary, CurrentSecondary, Primary, Secondary, Reason, Model}`. The model chooses only from the
+  store's category list, given the primary language's texts, the catalog profile and the current categories. A primary
+  the store does not offer fails the call (502 `AiSuggestionFailed`); an unknown secondary, or one equal to the primary,
+  becomes none. "Suggest categories" on Category and rights puts the choice in the form; the plan is made as usual.
+  Audited as `CategorySuggestionGenerated` with the chosen ids, model, tokens and `EstimatedCostUsd`. Google Play's API
+  has no category, so there is no Play suggestion. MCP: `categories_suggest`.
 
 ## AI models
 

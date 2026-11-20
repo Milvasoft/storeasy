@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { AgeRatingPage, CategoriesPage, PricingPage, ReviewInfoPage } from '@/features/metadata/MetadataPages'
 import { setupContentApi } from '../../support/content'
 import { renderWithProviders } from '../../support/render'
-import { lastRequestTo } from '../../support/state'
+import { lastRequestTo, requestsTo, testState } from '../../support/state'
 
 setupContentApi()
 
@@ -12,6 +12,34 @@ function at(path: string, element: JSX.Element) {
 }
 
 describe('CategoriesPage', () => {
+  it('suggests categories with AI and plans them only after they are put in the form', async () => {
+    const { user } = at('listing/category', <CategoriesPage />)
+    await screen.findByLabelText(/İkincil kategori/)
+
+    await user.click(screen.getByRole('button', { name: 'Kategori öner' }))
+
+    const panel = await screen.findByRole('region', { name: 'Yapay zeka önerisi: kategoriler' })
+    expect(lastRequestTo('/Categories/suggest')?.body).toMatchObject({ StoreAppId: 201, Instruction: null })
+    expect(within(panel).getByText('Uygulama önce bir seyahat aracı.')).toBeInTheDocument()
+    expect(within(panel).getByText('Travel')).toBeInTheDocument()
+    expect(within(panel).getByText('(şu an Navigation)')).toBeInTheDocument()
+    expect(requestsTo('/Categories').filter((request) => request.method === 'PUT')).toHaveLength(0)
+
+    await user.click(within(panel).getByRole('button', { name: 'Forma al' }))
+    await user.click(screen.getByRole('button', { name: 'Planla' }))
+
+    await screen.findByRole('dialog')
+    expect(lastRequestTo('/Categories')?.body).toMatchObject({ StoreAppId: 201, Primary: 'TRAVEL', Secondary: 'NAVIGATION', DryRun: true })
+  })
+
+  it('hides the category suggestion without an AI key', async () => {
+    testState.aiSettings = { ...testState.aiSettings, HasApiKey: false }
+    at('listing/category', <CategoriesPage />)
+    await screen.findByLabelText(/İkincil kategori/)
+
+    expect(screen.queryByRole('button', { name: 'Kategori öner' })).not.toBeInTheDocument()
+  })
+
   it('refuses a secondary category equal to the primary one', async () => {
     const { user } = at('listing/category', <CategoriesPage />)
     const secondary = await screen.findByLabelText(/İkincil kategori/)
