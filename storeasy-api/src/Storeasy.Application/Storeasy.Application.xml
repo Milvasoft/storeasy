@@ -6988,6 +6988,22 @@
             Gradual rollout state.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsSubmissionDto.PublishMode">
+            <summary>
+            When the submission publishes after certification; null when the store did not report it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsSubmissionDto.PublishDate">
+            <summary>
+            UTC publish date of a <see cref="F:Storeasy.Domain.Enums.MsPublishMode.SpecificDate"/> submission.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsSubmissionDto.AwaitsManualPublish">
+            <summary>
+            Whether the submission passed certification and waits for "Publish now" in Partner Center
+            (<see cref="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.AwaitsManualPublish(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus,System.Nullable{Storeasy.Domain.Enums.MsPublishMode})"/>).
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.MsStoreDtos.MsSubmissionDto.SyncedDate">
             <summary>
             UTC instant of the last read.
@@ -21844,7 +21860,8 @@
         <member name="F:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.MsPendingPublicationState">
             <summary>
             <see cref="P:Storeasy.Application.Dtos.StoreJobDtos.ActivityBoardVersionDto.State"/> of a Microsoft Store submission that passed certification and waits for
-            "Publish now" in Partner Center (the API's own status name).
+            "Publish now" in Partner Center (<see cref="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.AwaitsManualPublish(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus,System.Nullable{Storeasy.Domain.Enums.MsPublishMode})"/>; named after the API's own status,
+            though a Manual submission can report <see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.Release"/> meanwhile).
             </summary>
         </member>
         <member name="M:Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQueryHandler.Handle(Storeasy.Application.Features.StoreJobs.GetActivityBoard.GetActivityBoardQuery,System.Threading.CancellationToken)">
@@ -36456,6 +36473,33 @@
             Returns whether the document changed.
             </summary>
             <param name="submission"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.ReadPublishMode(System.Text.Json.Nodes.JsonObject)">
+            <summary>
+            Reads <c>targetPublishMode</c> (case-insensitive). Null when the field is missing or carries a value storeasy does
+            not know.
+            </summary>
+            <param name="submission"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.ReadPublishDate(System.Text.Json.Nodes.JsonObject)">
+            <summary>
+            Reads <c>targetPublishDate</c> as a UTC instant, or null when missing or not a date.
+            </summary>
+            <param name="submission"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.AwaitsManualPublish(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus,System.Nullable{Storeasy.Domain.Enums.MsPublishMode})">
+            <summary>
+            Whether a submission passed certification and waits for "Publish now" in Partner Center (the API cannot publish it):
+            a pending submission in <see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.PendingPublication"/>, or a pending <see cref="F:Storeasy.Domain.Enums.MsPublishMode.Manual"/>
+            submission in <see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.Release"/> (the status the API reports while Partner Center shows the
+            submission as ready to publish).
+            </summary>
+            <param name="isPending"></param>
+            <param name="status"></param>
+            <param name="mode"></param>
             <returns></returns>
         </member>
         <member name="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.IsMandatoryUpdate(System.Text.Json.Nodes.JsonObject)">

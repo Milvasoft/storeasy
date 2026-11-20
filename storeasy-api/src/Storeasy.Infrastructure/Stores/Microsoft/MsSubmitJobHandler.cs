@@ -106,7 +106,7 @@ public sealed class MsSubmitJobHandler(IStoreasyRepositoryBase<MsProduct> produc
             result = await _microsoftStoreClient.GetSubmissionStatusAsync(secret, submission, cancellationToken);
         }
 
-        await SaveStatusAsync(context.OrganizationId, product.StoreAppId, payload.Target, payload.SubmissionId, result.Status, result.Details, cancellationToken);
+        await SaveStatusAsync(context.OrganizationId, product.StoreAppId, payload.Target, payload.SubmissionId, result.Status, result.Details, document, cancellationToken);
 
         var failed = result.Status is MsSubmissionStatus.CommitFailed or MsSubmissionStatus.PreProcessingFailed or MsSubmissionStatus.CertificationFailed;
 
@@ -138,7 +138,7 @@ public sealed class MsSubmitJobHandler(IStoreasyRepositoryBase<MsProduct> produc
         var publishing = await _microsoftStoreClient.GetProductSubmissionStatusAsync(secret, product.ProductId, submissionId, cancellationToken);
         var state = publishing.HasFailed ? MsSubmissionStatus.Failed : publishing.Status;
 
-        await SaveStatusAsync(context.OrganizationId, product.StoreAppId, MsSubmissionTarget.Installer, submissionId, state, null, cancellationToken);
+        await SaveStatusAsync(context.OrganizationId, product.StoreAppId, MsSubmissionTarget.Installer, submissionId, state, null, null, cancellationToken);
 
         await _productRepository.ExecuteUpdateAsync(p => p.StoreAppId == product.StoreAppId,
                                                     new SetPropertyBuilder<MsProduct>().SetPropertyValue(p => p.PendingSubmissionId, state == MsSubmissionStatus.InProgress ? submissionId : null),
@@ -152,7 +152,18 @@ public sealed class MsSubmitJobHandler(IStoreasyRepositoryBase<MsProduct> produc
         return new StoreJobOutcome($"Product {product.ProductId} submitted ({submissionId}): {state}.", new { SubmissionId = submissionId, Status = state });
     }
 
-    private Task SaveStatusAsync(int organizationId, int storeAppId, MsSubmissionTarget target, string submissionId, MsSubmissionStatus status, Domain.JsonModels.MsStatusDetails details, CancellationToken cancellationToken)
+    /// <summary>
+    /// Saves the status of a submission storeasy committed or submitted; <paramref name="document"/> is the committed MSIX
+    /// document (its publish mode is stored), null for MSI/EXE submissions.
+    /// </summary>
+    private Task SaveStatusAsync(int organizationId,
+                                 int storeAppId,
+                                 MsSubmissionTarget target,
+                                 string submissionId,
+                                 MsSubmissionStatus status,
+                                 Domain.JsonModels.MsStatusDetails details,
+                                 System.Text.Json.Nodes.JsonObject document,
+                                 CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -162,6 +173,13 @@ public sealed class MsSubmitJobHandler(IStoreasyRepositoryBase<MsProduct> produc
 
             row.IsPending = status is not (MsSubmissionStatus.Published or MsSubmissionStatus.Canceled);
             row.CreatedByStoreasy = row.CreatedByStoreasy || target == MsSubmissionTarget.Installer;
+
+            if (document != null)
+            {
+                row.PublishMode = MsSubmissionJson.ReadPublishMode(document);
+                row.PublishDate = MsSubmissionJson.ReadPublishDate(document);
+            }
+
             row.SyncedDate = now;
         }, cancellationToken);
     }

@@ -302,6 +302,7 @@ export const msTr: MsDictionary = {
     pendingPublishBody:
       "Bu gönderim sertifikasyonu geçti ama ancak Partner Center'da Yayınla (Publish now) seçilince yayına çıkar; gönderim API'si onu yayınlayamaz.",
     publishNow: "Partner Center'da yayınla",
+    scheduledPublish: '{date} tarihinde yayınlanmak üzere planlandı.',
   },
   submit: {
     title: '{name} sertifikasyona gönderilsin mi?',

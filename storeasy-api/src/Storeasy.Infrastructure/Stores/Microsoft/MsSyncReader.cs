@@ -100,6 +100,12 @@ public sealed class MsSubmissionSnapshot
 
     /// <summary>Rollout state.</summary>
     public MsRolloutStatus? RolloutStatus { get; set; }
+
+    /// <summary>Publish mode after certification.</summary>
+    public MsPublishMode? PublishMode { get; set; }
+
+    /// <summary>UTC publish date of a scheduled submission.</summary>
+    public DateTime? PublishDate { get; set; }
 }
 
 /// <summary>
@@ -273,6 +279,7 @@ public static class MsSyncReader
         var packages = target == MsSubmissionTarget.Addon ? [] : MsSubmissionJson.ReadPackages(document, target);
         var rollout = MsSubmissionJson.ReadRollout(document);
         var status = MsSubmissionJson.ParseStatus(MsSubmissionJson.String(document, "status"));
+        var publishMode = MsSubmissionJson.ReadPublishMode(document);
 
         snapshot.Submissions.Add(new MsSubmissionSnapshot
         {
@@ -288,6 +295,8 @@ public static class MsSyncReader
             PackageVersion = packages.Select(p => p.Version).Where(v => v != null).OrderByDescending(v => Version.TryParse(v, out var parsed) ? parsed : new Version()).FirstOrDefault(),
             RolloutPercentage = rollout?.IsPackageRollout == true ? rollout.Percentage : null,
             RolloutStatus = rollout?.IsPackageRollout == true ? rollout.Status : null,
+            PublishMode = publishMode,
+            PublishDate = MsSubmissionJson.ReadPublishDate(document),
         });
 
         var tracks = target == MsSubmissionTarget.Flight ? $"flight:{flightName ?? flightId}" : pending ? "pending" : "published";
@@ -295,7 +304,7 @@ public static class MsSyncReader
         snapshot.Builds.AddRange(packages.Select(p => new StoreBuildRecord(p.Id ?? p.FileName,
                                                                            p.Version,
                                                                            p.Version,
-                                                                           PackageState(pending, status),
+                                                                           PackageState(pending, status, publishMode),
                                                                            null,
                                                                            null,
                                                                            p.Architecture == null ? tracks : $"{tracks} {p.Architecture}",
@@ -304,15 +313,16 @@ public static class MsSyncReader
 
     /// <summary>
     /// State of the packages of a submission: the published one's are valid, and so are a pending one's once it passed
-    /// certification (<see cref="MsSubmissionStatus.PendingPublication"/>, <see cref="MsSubmissionStatus.Publishing"/>):
-    /// nothing is processed any more, the submission only waits for "Publish now" in Partner Center or is being published.
-    /// Every other pending submission's packages are still processing.
+    /// certification and waits for "Publish now" in Partner Center (<see cref="MsSubmissionJson.AwaitsManualPublish"/>) or
+    /// is being published (<see cref="MsSubmissionStatus.Publishing"/>): nothing is processed any more. Every other pending
+    /// submission's packages are still processing.
     /// </summary>
     /// <param name="pending"></param>
     /// <param name="status"></param>
+    /// <param name="mode">Publish mode of the submission; null when unknown.</param>
     /// <returns></returns>
-    public static BuildProcessingState PackageState(bool pending, MsSubmissionStatus status)
-        => !pending || status is MsSubmissionStatus.PendingPublication or MsSubmissionStatus.Publishing ? BuildProcessingState.Valid : BuildProcessingState.Processing;
+    public static BuildProcessingState PackageState(bool pending, MsSubmissionStatus status, MsPublishMode? mode = null)
+        => !pending || status == MsSubmissionStatus.Publishing || MsSubmissionJson.AwaitsManualPublish(pending, status, mode) ? BuildProcessingState.Valid : BuildProcessingState.Processing;
 
     private static async Task<T> TryReadAsync<T>(MsProductSnapshot snapshot, Func<Task<T>> read, Action refused = null) where T : class
     {

@@ -61,6 +61,9 @@ export type MsSignatureStatus = (typeof MsSignatureStatus)[keyof typeof MsSignat
 export const MsRolloutStatus = { NotStarted: 1, InProgress: 2, Complete: 3, Stopped: 4 } as const
 export type MsRolloutStatus = (typeof MsRolloutStatus)[keyof typeof MsRolloutStatus]
 
+export const MsPublishMode = { Immediate: 1, Manual: 2, SpecificDate: 3 } as const
+export type MsPublishMode = (typeof MsPublishMode)[keyof typeof MsPublishMode]
+
 export const MsRolloutAction = { SetPercentage: 1, Halt: 2, Complete: 3 } as const
 export type MsRolloutAction = (typeof MsRolloutAction)[keyof typeof MsRolloutAction]
 
@@ -103,6 +106,12 @@ export interface MsSubmissionDto {
   ModifiedOutsideApi: boolean
   RolloutPercentage?: number | null
   RolloutStatus?: MsRolloutStatus | null
+  /** When the submission publishes after certification; null when the store did not report it. */
+  PublishMode?: MsPublishMode | null
+  /** Publish date of a SpecificDate submission. */
+  PublishDate?: IsoDateTime | null
+  /** Passed certification and waits for "Publish now" in Partner Center (computed by the API). */
+  AwaitsManualPublish: boolean
   SyncedDate?: IsoDateTime | null
 }
 

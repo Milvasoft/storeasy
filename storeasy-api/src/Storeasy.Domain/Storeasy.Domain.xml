@@ -3146,6 +3146,27 @@
             MSI or EXE app, managed by the Microsoft Store submission API for MSI/EXE (api.store.microsoft.com).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.MsPublishMode">
+            <summary>
+            When a Microsoft Store submission publishes after it passed certification (the API's <c>targetPublishMode</c>). The
+            submission API has no call that publishes; a <see cref="F:Storeasy.Domain.Enums.MsPublishMode.Manual"/> submission waits for "Publish now" in Partner Center.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MsPublishMode.Immediate">
+            <summary>
+            Publishes as soon as it passed certification.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MsPublishMode.Manual">
+            <summary>
+            Waits for "Publish now" in Partner Center after certification.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MsPublishMode.SpecificDate">
+            <summary>
+            Publishes at the submission's publish date (<c>targetPublishDate</c>).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.MsRolloutAction">
             <summary>
             A change to a gradual package rollout.
@@ -8836,6 +8857,17 @@
         <member name="P:Storeasy.Domain.MsStore.MsSubmission.RolloutStatus">
             <summary>
             Gradual rollout state, when the submission rolls out gradually.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.MsStore.MsSubmission.PublishMode">
+            <summary>
+            When the submission publishes after certification (<c>targetPublishMode</c>). Null when the store did not report it
+            (MSI/EXE submissions, or rows written before storeasy stored it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.MsStore.MsSubmission.PublishDate">
+            <summary>
+            UTC publish date of a <see cref="F:Storeasy.Domain.Enums.MsPublishMode.SpecificDate"/> submission (<c>targetPublishDate</c>).
             </summary>
         </member>
         <member name="P:Storeasy.Domain.MsStore.MsSubmission.SyncedDate">

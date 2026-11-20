@@ -419,6 +419,8 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
             row.PackageVersion = Trim(snapshot.PackageVersion, MsSubmission.PackageVersionMaxLength) ?? row.PackageVersion;
             row.RolloutPercentage = snapshot.RolloutPercentage;
             row.RolloutStatus = snapshot.RolloutStatus;
+            row.PublishMode = snapshot.PublishMode;
+            row.PublishDate = snapshot.PublishDate;
             row.SyncedDate = now;
 
             (row.Id == 0 ? added : updated).Add(row);
@@ -447,6 +449,8 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
                                                     s => s.PackageVersion,
                                                     s => s.RolloutPercentage,
                                                     s => s.RolloutStatus,
+                                                    s => s.PublishMode,
+                                                    s => s.PublishDate,
                                                     s => s.SyncedDate);
         }
 

@@ -6004,6 +6004,12 @@
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSubmitJobHandler.SaveStatusAsync(System.Int32,System.Int32,Storeasy.Domain.Enums.MsSubmissionTarget,System.String,Storeasy.Domain.Enums.MsSubmissionStatus,Storeasy.Domain.JsonModels.MsStatusDetails,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <summary>
+            Saves the status of a submission storeasy committed or submitted; <paramref name="document"/> is the committed MSIX
+            document (its publish mode is stored), null for MSI/EXE submissions.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsSyncJobHandler">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.MsSync"/> job: reads one Microsoft connection and saves what it sees.
@@ -6268,6 +6274,12 @@
         <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.RolloutStatus">
             <summary>Rollout state.</summary>
         </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.PublishMode">
+            <summary>Publish mode after certification.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Microsoft.MsSubmissionSnapshot.PublishDate">
+            <summary>UTC publish date of a scheduled submission.</summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.MsAddonSnapshot">
             <summary>
             An add-on as the sync read it.
@@ -6315,15 +6327,16 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader.PackageState(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus)">
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader.PackageState(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus,System.Nullable{Storeasy.Domain.Enums.MsPublishMode})">
             <summary>
             State of the packages of a submission: the published one's are valid, and so are a pending one's once it passed
-            certification (<see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.PendingPublication"/>, <see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.Publishing"/>):
-            nothing is processed any more, the submission only waits for "Publish now" in Partner Center or is being published.
-            Every other pending submission's packages are still processing.
+            certification and waits for "Publish now" in Partner Center (<see cref="M:Storeasy.Application.Utils.MsStore.MsSubmissionJson.AwaitsManualPublish(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus,System.Nullable{Storeasy.Domain.Enums.MsPublishMode})"/>) or
+            is being published (<see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.Publishing"/>): nothing is processed any more. Every other pending
+            submission's packages are still processing.
             </summary>
             <param name="pending"></param>
             <param name="status"></param>
+            <param name="mode">Publish mode of the submission; null when unknown.</param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway">

@@ -2,6 +2,7 @@
 using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
 using Storeasy.Application.Dtos.StoreJobDtos;
+using Storeasy.Application.Utils.MsStore;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Events;
 using Storeasy.Domain.MsStore;
@@ -46,7 +47,8 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
 
     /// <summary>
     /// <see cref="ActivityBoardVersionDto.State"/> of a Microsoft Store submission that passed certification and waits for
-    /// "Publish now" in Partner Center (the API's own status name).
+    /// "Publish now" in Partner Center (<see cref="MsSubmissionJson.AwaitsManualPublish"/>; named after the API's own status,
+    /// though a Manual submission can report <see cref="MsSubmissionStatus.Release"/> meanwhile).
     /// </summary>
     public const string MsPendingPublicationState = "PENDINGPUBLICATION";
 
@@ -105,12 +107,19 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                                               cancellationToken: cancellationToken);
 
         // Microsoft Store submissions have no review states; one that passed certification and waits for "Publish now" in
-        // Partner Center (the API cannot publish it) is named like a version waiting for its release.
-        var awaitingPublish = await _msSubmissionRepository.GetAllAsync(s => s.OrganizationId == organizationId && s.IsPending && s.Status == MsSubmissionStatus.PendingPublication,
+        // Partner Center (the API cannot publish it) is named like a version waiting for its release. The filter is the
+        // database form of MsSubmissionJson.AwaitsManualPublish, which is applied again below.
+        var awaitingPublish = await _msSubmissionRepository.GetAllAsync(s => s.OrganizationId == organizationId
+                                                                             && s.IsPending
+                                                                             && (s.Status == MsSubmissionStatus.PendingPublication
+                                                                                 || (s.PublishMode == MsPublishMode.Manual && s.Status == MsSubmissionStatus.Release)),
                                                                         projection: s => new MsSubmission
                                                                         {
                                                                             StoreAppId = s.StoreAppId,
                                                                             Target = s.Target,
+                                                                            Status = s.Status,
+                                                                            IsPending = s.IsPending,
+                                                                            PublishMode = s.PublishMode,
                                                                             FriendlyName = s.FriendlyName,
                                                                             PackageVersion = s.PackageVersion,
                                                                             StatusHistory = s.StatusHistory,
@@ -153,7 +162,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                  ExternalId = externalIdOf.GetValueOrDefault(s.StoreAppId),
                              })
                              // One per product (the app submission before a flight's): the place to act on is the same.
-                             .Concat(awaitingPublish.Where(s => appOf.ContainsKey(s.StoreAppId))
+                             .Concat(awaitingPublish.Where(s => appOf.ContainsKey(s.StoreAppId) && MsSubmissionJson.AwaitsManualPublish(s.IsPending, s.Status, s.PublishMode))
                                                     .GroupBy(s => s.StoreAppId)
                                                     .Select(g => g.OrderBy(s => s.Target == MsSubmissionTarget.App ? 0 : 1).First())
                                                     .Select(s => new ActivityBoardVersionDto
@@ -164,6 +173,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                                         VersionString = s.PackageVersion ?? s.FriendlyName,
                                                         State = MsPendingPublicationState,
                                                         ChangedDate = s.StatusHistory?.LastOrDefault(c => c.Status == MsSubmissionStatus.PendingPublication)?.Date
+                                                                      ?? s.StatusHistory?.LastOrDefault(c => c.Status == MsSubmissionStatus.Release)?.Date
                                                                       ?? s.SyncedDate
                                                                       ?? s.CreationDate
                                                                       ?? now,

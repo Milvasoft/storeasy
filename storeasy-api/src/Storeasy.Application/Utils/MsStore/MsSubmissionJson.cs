@@ -465,6 +465,40 @@ public static class MsSubmissionJson
     }
 
     /// <summary>
+    /// Reads <c>targetPublishMode</c> (case-insensitive). Null when the field is missing or carries a value storeasy does
+    /// not know.
+    /// </summary>
+    /// <param name="submission"></param>
+    /// <returns></returns>
+    public static MsPublishMode? ReadPublishMode(JsonObject submission) => String(submission, "targetPublishMode")?.ToUpperInvariant() switch
+    {
+        "IMMEDIATE" => MsPublishMode.Immediate,
+        "MANUAL" => MsPublishMode.Manual,
+        "SPECIFICDATE" => MsPublishMode.SpecificDate,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Reads <c>targetPublishDate</c> as a UTC instant, or null when missing or not a date.
+    /// </summary>
+    /// <param name="submission"></param>
+    /// <returns></returns>
+    public static DateTime? ReadPublishDate(JsonObject submission) => ReadDate(submission, "targetPublishDate");
+
+    /// <summary>
+    /// Whether a submission passed certification and waits for "Publish now" in Partner Center (the API cannot publish it):
+    /// a pending submission in <see cref="MsSubmissionStatus.PendingPublication"/>, or a pending <see cref="MsPublishMode.Manual"/>
+    /// submission in <see cref="MsSubmissionStatus.Release"/> (the status the API reports while Partner Center shows the
+    /// submission as ready to publish).
+    /// </summary>
+    /// <param name="isPending"></param>
+    /// <param name="status"></param>
+    /// <param name="mode"></param>
+    /// <returns></returns>
+    public static bool AwaitsManualPublish(bool isPending, MsSubmissionStatus status, MsPublishMode? mode)
+        => isPending && (status == MsSubmissionStatus.PendingPublication || (mode == MsPublishMode.Manual && status == MsSubmissionStatus.Release));
+
+    /// <summary>
     /// Whether the submission makes its packages a mandatory update (the API refuses such apps).
     /// </summary>
     /// <param name="submission"></param>

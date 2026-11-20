@@ -267,6 +267,8 @@ public sealed class MsChangeApplier(IStoreasyRepositoryBase<MsProduct> productRe
             row.FlightId = change.FlightId;
             row.AddonStoreId = change.AddonStoreId;
             row.FriendlyName = MsSubmissionJson.String(document, "friendlyName") ?? row.FriendlyName;
+            row.PublishMode = MsSubmissionJson.ReadPublishMode(document);
+            row.PublishDate = MsSubmissionJson.ReadPublishDate(document);
             row.SyncedDate = now;
         }, cancellationToken);
 

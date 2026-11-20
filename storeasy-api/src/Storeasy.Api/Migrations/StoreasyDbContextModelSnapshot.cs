@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119150634_AddPreReviews";
+    public override string LastMigrationId => "20261120100955_AddMsSubmissionPublishMode";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -2517,6 +2517,12 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("PackageVersion")
                     .HasMaxLength(100)
                     .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("PublishDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte?>("PublishMode")
+                    .HasColumnType("smallint");
 
                 b.Property<double?>("RolloutPercentage")
                     .HasColumnType("double precision");

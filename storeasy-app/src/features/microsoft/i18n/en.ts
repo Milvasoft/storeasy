@@ -302,6 +302,7 @@ export const msEn = {
     pendingPublishBody:
       'This submission passed certification but publishes only when someone selects Publish now in Partner Center; the submission API cannot publish it.',
     publishNow: 'Publish now in Partner Center',
+    scheduledPublish: 'Scheduled to publish on {date}.',
   },
   submit: {
     title: 'Send {name} to certification?',

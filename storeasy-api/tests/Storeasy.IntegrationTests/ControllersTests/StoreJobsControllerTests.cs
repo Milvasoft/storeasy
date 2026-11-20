@@ -246,6 +246,8 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         var (appId, storeAppId, externalId) = await _factory.AddAppAsync(org, name: "Pusula");
         var (otherAppId, otherStoreAppId, _) = await _factory.AddAppAsync(org, name: "Mola");
         var (msAppId, msStoreAppId, msProductId) = await _factory.AddAppAsync(org, StoreKind.Microsoft, name: "Kabuk");
+        var (manualAppId, manualStoreAppId, _) = await _factory.AddAppAsync(org, StoreKind.Microsoft, name: "Kiler");
+        var (_, immediateStoreAppId, _) = await _factory.AddAppAsync(org, StoreKind.Microsoft, name: "Kuyu");
         var now = DateTime.UtcNow;
 
         await _factory.DbAsync(async db =>
@@ -263,7 +265,11 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
             // A certified Microsoft Store submission waiting for "Publish now", and one still in certification.
             db.MsSubmissions.AddRange(
                 new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = msStoreAppId, Target = MsSubmissionTarget.App, ExternalId = $"5{org.Suffix}", PackageVersion = "1.0.15.0", Status = MsSubmissionStatus.PendingPublication, IsPending = true, CreationDate = now, StatusHistory = [new MsStatusChange { Status = MsSubmissionStatus.Certification, Date = now.AddHours(-30) }, new MsStatusChange { Status = MsSubmissionStatus.PendingPublication, Date = now.AddHours(-2) }] },
-                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = msStoreAppId, Target = MsSubmissionTarget.Flight, ExternalId = $"6{org.Suffix}", FlightId = "f1", PackageVersion = "1.0.16.0", Status = MsSubmissionStatus.Certification, IsPending = true, CreationDate = now });
+                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = msStoreAppId, Target = MsSubmissionTarget.Flight, ExternalId = $"6{org.Suffix}", FlightId = "f1", PackageVersion = "1.0.16.0", Status = MsSubmissionStatus.Certification, IsPending = true, CreationDate = now },
+                // A Manual submission the API reports as Release while Partner Center waits for "Publish now", and an
+                // Immediate one in Release (really being released).
+                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = manualStoreAppId, Target = MsSubmissionTarget.App, ExternalId = $"7{org.Suffix}", PackageVersion = "3.1.0.0", Status = MsSubmissionStatus.Release, PublishMode = MsPublishMode.Manual, IsPending = true, CreationDate = now, StatusHistory = [new MsStatusChange { Status = MsSubmissionStatus.Certification, Date = now.AddHours(-20) }, new MsStatusChange { Status = MsSubmissionStatus.Release, Date = now.AddHours(-4) }] },
+                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = immediateStoreAppId, Target = MsSubmissionTarget.App, ExternalId = $"8{org.Suffix}", PackageVersion = "4.0.0.0", Status = MsSubmissionStatus.Release, PublishMode = MsPublishMode.Immediate, IsPending = true, CreationDate = now, StatusHistory = [new MsStatusChange { Status = MsSubmissionStatus.Release, Date = now.AddHours(-1) }] });
 
             await db.SaveChangesAsync();
         });
@@ -281,9 +287,14 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         strangerHttp.StatusCode.Should().Be(HttpStatusCode.NotFound);
         body.Data.Versions.Where(v => v.Store == StoreKind.Apple).Should().ContainSingle("the latest state of each record, and only recent or in review ones")
             .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == appId && v.State == "IN_REVIEW" && v.VersionString == "2.3.1" && v.SubmittedDate != null && v.ExternalId == externalId);
-        body.Data.Versions.Where(v => v.Store == StoreKind.Microsoft).Should().ContainSingle("only the submission waiting for Publish now")
-            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == msAppId && v.StoreAppId == msStoreAppId && v.State == "PENDINGPUBLICATION" && v.VersionString == "1.0.15.0" && v.ExternalId == msProductId);
-        body.Data.Versions[0].Store.Should().Be(StoreKind.Microsoft, "the newest change comes first");
+        body.Data.Versions.Where(v => v.Store == StoreKind.Microsoft).Should().HaveCount(2, "only the submissions waiting for Publish now");
+        body.Data.Versions.Should().ContainSingle(v => v.StoreAppId == msStoreAppId)
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == msAppId && v.State == "PENDINGPUBLICATION" && v.VersionString == "1.0.15.0" && v.ExternalId == msProductId);
+        body.Data.Versions.Should().ContainSingle(v => v.StoreAppId == manualStoreAppId, "a Manual submission in Release waits for Publish now too")
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == manualAppId && v.State == "PENDINGPUBLICATION" && v.VersionString == "3.1.0.0");
+        body.Data.Versions.Single(v => v.StoreAppId == manualStoreAppId).ChangedDate.Should().BeCloseTo(now.AddHours(-4), TimeSpan.FromSeconds(1), "the Release change is when it started waiting");
+        body.Data.Versions.Should().NotContain(v => v.StoreAppId == immediateStoreAppId, "an Immediate submission in Release is being released");
+        body.Data.Versions[0].StoreAppId.Should().Be(msStoreAppId, "the newest change comes first");
         body.Data.Builds.Select(b => (b.BuildNumber, b.ProcessingState, b.AppId)).Should().Equal(("412", BuildProcessingState.Processing, appId), ("398", BuildProcessingState.Valid, appId));
         body.Data.Hours.Should().HaveCount(2);
         body.Data.Hours.Should().ContainSingle(h => h.Store == StoreKind.Apple).Which.Succeeded.Should().Be(1);

@@ -16,7 +16,7 @@ import { msKeys } from './keys'
 import { percentText, statusLabel, statusTone, targetLabel } from './labels'
 import { MsSubmitDialog, MsWorkspace, SubmitButton, submitTargetOf, type MsContext, type SubmitTarget } from './MsWorkspace'
 import { FAILED_STATUSES, isSubmittableDraft } from './rules'
-import { MsSubmissionStatus, type MsSubmissionDto } from './types'
+import { MsPublishMode, MsSubmissionStatus, type MsSubmissionDto } from './types'
 
 // Design 8.22: the submissions of a product with their status machine, errors, warnings and certification reports, and
 // sending a draft on (typed Store id, SubmitForReview).
@@ -49,12 +49,22 @@ export function SubmissionCard({
   const warnings = details?.Warnings ?? []
   const reports = details?.CertificationReports ?? []
   const name = submission.FriendlyName ?? submission.PackageVersion ?? submission.SubmissionId ?? '-'
+  // A Manual submission waiting for "Publish now" can be reported as Release by the API; the card names what Partner
+  // Center shows.
+  const shownStatus = submission.AwaitsManualPublish ? MsSubmissionStatus.PendingPublication : submission.Status
+  const scheduledDate =
+    !submission.AwaitsManualPublish &&
+    submission.PublishMode === MsPublishMode.SpecificDate &&
+    submission.PublishDate &&
+    new Date(submission.PublishDate).getTime() > Date.now()
+      ? submission.PublishDate
+      : null
   return (
     <article className="card" aria-label={name}>
       <div className="card-h flex-wrap">
         <h3 className="h3 min-w-0 flex-1 truncate">{name}</h3>
-        <Badge tone={statusTone(submission.Status)} dot>
-          {statusLabel(submission.Status, t)}
+        <Badge tone={statusTone(shownStatus)} dot>
+          {statusLabel(shownStatus, t)}
         </Badge>
       </div>
       <div className="card-b grid gap-3">
@@ -79,7 +89,7 @@ export function SubmissionCard({
             </Badge>
           ) : null}
         </div>
-        {submission.IsPending && submission.Status === MsSubmissionStatus.PendingPublication ? (
+        {submission.AwaitsManualPublish ? (
           <Callout tone="warning" title={t.submissions.pendingPublishTitle}>
             <span className="block">{t.submissions.pendingPublishBody}</span>
             <a
@@ -92,6 +102,11 @@ export function SubmissionCard({
               {t.submissions.publishNow}
             </a>
           </Callout>
+        ) : null}
+        {scheduledDate ? (
+          <p className="m-0 text-[13px] text-fg2">
+            {interpolate(t.submissions.scheduledPublish, { date: format.dateTime(scheduledDate) })}
+          </p>
         ) : null}
         {history.length > 0 ? (
           <section aria-label={t.submissions.history}>
