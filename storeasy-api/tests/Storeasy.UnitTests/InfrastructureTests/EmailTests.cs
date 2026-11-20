@@ -79,6 +79,36 @@ public class EmailTests
         (await act.Should().ThrowAsync<HttpRequestException>()).Which.Message.Should().NotContain("secret-key").And.Contain("401");
     }
 
+    [Fact]
+    public async Task Notifike_WhenTheEnvelopeSaysItRefused_ShouldThrowSoTheOutboxRetries()
+    {
+        // Arrange: HTTP 200 whose envelope refuses the message.
+        var handler = new FakeHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{\"isSuccess\":false,\"statusCode\":400,\"messages\":[{\"key\":\"NoRoute\",\"message\":\"No route for Email\",\"type\":1}]}"),
+        });
+        var sender = new NotifikeEmailSender(CreateFactory(handler, NotifikeEmailSender.HttpClientName), new EmailOptions
+        {
+            Notifike = new NotifikeEmailOptions { BaseUrl = "https://notifike.example.com", ApiKey = "secret-key" },
+        });
+
+        // Act
+        var act = () => sender.SendAsync(_message, TestContext.Current.CancellationToken);
+
+        // Assert
+        (await act.Should().ThrowAsync<HttpRequestException>()).Which.Message.Should().Contain("No route for Email").And.NotContain("secret-key");
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("not json", null)]
+    [InlineData("{\"isSuccess\":true,\"data\":[]}", null)]
+    [InlineData("{\"IsSuccess\":false,\"Messages\":[{\"Key\":\"Invalid\"}]}", "Invalid")]
+    [InlineData("{\"isSuccess\":false}", "no reason given")]
+    public void ReadRefusal_ShouldReadOnlyARefusingEnvelope(string body, string expected)
+        => NotifikeEmailSender.ReadRefusal(body).Should().Be(expected);
+
     [Theory]
     [InlineData("Development", true)]
     [InlineData("Production", false)]
