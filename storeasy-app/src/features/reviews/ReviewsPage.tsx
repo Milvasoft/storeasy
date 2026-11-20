@@ -39,6 +39,7 @@ import { ReviewReplyState, type ReviewFilter, type ReviewListDto, type SavedRepl
 const ALL = 'all'
 const LIVE_TYPES = [RecordEventType.ReviewReceived]
 const DEFAULT_PAGE_SIZE = 20
+const SENDING_POLL_MS = 3_000
 const RATINGS = ['1-2', '3', '4-5', '1', '5'] as const
 
 /** The address filters as the API's query; `fixedAppId` is the app of a per app inbox. */
@@ -317,6 +318,10 @@ function ReviewDetail({ review }: { review: ReviewListDto }) {
         </Callout>
       </>
     )
+  } else if (review.ReplyState === ReviewReplyState.Sending) {
+    // The reply is on its way as a store job: the text sent (kept as the draft until the store takes it) with a
+    // "sending" badge, no editor, so it cannot be sent twice. The inbox refetches until the job settles.
+    reply = <PublishedReply review={review} body={review.DraftBody ?? review.ReplyBody} />
   } else if (review.ReplyState === ReviewReplyState.Failed) {
     reply = (
       <>
@@ -369,7 +374,7 @@ function ReviewDetail({ review }: { review: ReviewListDto }) {
   )
 }
 
-function PublishedReply({ review, action }: { review: ReviewListDto; action?: ReactNode }) {
+function PublishedReply({ review, action, body }: { review: ReviewListDto; action?: ReactNode; body?: string }) {
   const t = useReviewsText()
   const format = useFormat()
   return (
@@ -379,7 +384,7 @@ function PublishedReply({ review, action }: { review: ReviewListDto; action?: Re
         <ReplyStateBadge state={review.ReplyState} />
         <span className="ml-auto">{action}</span>
       </div>
-      <p className="whitespace-pre-wrap text-[13.5px]">{review.ReplyBody}</p>
+      <p className="whitespace-pre-wrap text-[13.5px]">{body ?? review.ReplyBody}</p>
       <span className="text-xs text-fg3">
         {[review.ReplyByUserName, review.ReplyDate ? format.dateTime(review.ReplyDate) : null].filter(Boolean).join(' · ')}
       </span>
@@ -435,6 +440,8 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
     queryKey: reviewKeys.list(organization.Id, filter, request),
     queryFn: () => reviewsApi.list(organization.Id, filter, request),
     placeholderData: keepPreviousData,
+    // A reply being sent is a store job that ends without a review event: poll until none is sending.
+    refetchInterval: (query) => (query.state.data?.Data.some((row) => row.ReplyState === ReviewReplyState.Sending) ? SENDING_POLL_MS : false),
   })
   const markRead = useMutation({
     mutationFn: (ids: number[]) => reviewsApi.markRead(organization.Id, ids, true),
