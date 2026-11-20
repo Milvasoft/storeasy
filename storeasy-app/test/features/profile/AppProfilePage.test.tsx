@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { OrgRole } from '@/lib/api/types'
 import { AppProfilePage } from '@/features/profile/AppProfilePage'
 import { setupContentApi } from '../../support/content'
-import { organization } from '../../support/factories'
+import { appDetail, organization } from '../../support/factories'
 import { renderWithProviders } from '../../support/render'
 import { lastRequestTo, testState } from '../../support/state'
 
@@ -40,6 +40,34 @@ describe('AppProfilePage', () => {
       TargetSdk: 36,
       IsLive: null,
     })
+  })
+
+  it('opens with the saved profile', async () => {
+    testState.appDetail = appDetail({
+      Profile: {
+        Platforms: ['ios'],
+        DeviceFamilies: ['iphone'],
+        Features: ['subscriptions'],
+        Regions: ['TR', 'DE'],
+        DeveloperRegion: 'TR',
+        AppType: 'game',
+        BuildSdkVersion: '26.1',
+        TargetSdk: 35,
+        IsLive: true,
+      },
+    })
+
+    render()
+    await screen.findByRole('heading', { name: 'Katalog profili' })
+
+    expect(screen.getByRole('checkbox', { name: 'ios' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'iphone' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'ipad' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'subscriptions' })).toBeChecked()
+    expect(screen.getByLabelText(/Dağıtım bölgeleri/)).toHaveValue('TR, DE')
+    expect(screen.getByLabelText(/Android hedef API seviyesi/)).toHaveValue('35')
+    expect(screen.getByRole('radio', { name: 'Oyun' })).toBeChecked()
+    expect(screen.queryByText(/henüz geri göndermiyor/)).not.toBeInTheDocument()
   })
 
   it('refuses region codes that are not two letters before sending', async () => {

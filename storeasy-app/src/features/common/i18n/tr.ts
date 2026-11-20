@@ -160,7 +160,7 @@ export const p2tr: P2Dictionary = {
   profile: {
     title: 'Katalog profili',
     subtitle: 'Kuralların bilmesi gereken ama mağazaların bildirmediği bilgiler. Boş alanlar onlara bağlı kuralları "bilinmiyor" yapar.',
-    unknownNote: 'API kayıtlı profili henüz geri göndermiyor; form boş açılır ve kaydetmek bütün profili değiştirir.',
+    unknownNote: 'Boş bırakılan alanlar bilinmiyor sayılır. Kaydetmek bütün profili formdaki haliyle değiştirir.',
     platforms: 'Platformlar',
     deviceFamilies: 'Cihaz aileleri',
     features: 'Özellikler',
