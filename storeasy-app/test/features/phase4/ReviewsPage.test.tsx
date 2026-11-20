@@ -159,6 +159,16 @@ describe('ReviewsPage', () => {
     expect(screen.queryByLabelText(/App Store sınırı/)).not.toBeInTheDocument()
   })
 
+  it('shows a reply on its way as sending, with no second send', async () => {
+    phase4State.reviews = [review({ ReplyState: ReviewReplyState.Sending, DraftBody: 'Merhaba', ReplyJobId: 48208 })]
+
+    renderInbox('/reviews?id=3001')
+
+    expect(await screen.findByText('Merhaba')).toBeInTheDocument()
+    expect(screen.getAllByText('Gönderiliyor').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Yanıtı gönder' })).not.toBeInTheDocument()
+  })
+
   it('shows the store error of a failed reply with the text kept', async () => {
     phase4State.reviews = [
       review({ ReplyState: ReviewReplyState.Failed, ReplyBody: 'Merhaba', ReplyError: '403 PERMISSION_DENIED', ReplyJobId: 48207 }),
