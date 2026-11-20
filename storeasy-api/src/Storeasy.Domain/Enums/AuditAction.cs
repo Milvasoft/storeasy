@@ -278,6 +278,10 @@ public enum AuditAction : short
     [Description("Reply draft written with AI")]
     ReviewReplyDraftGenerated = 432,
 
+    /// <summary>An AI suggestion for a listing field was written (shown to the member, never saved or sent).</summary>
+    [Description("Listing suggestion written with AI")]
+    ListingSuggestionGenerated = 433,
+
     /// <summary>An AI pre-review of a store record was started (nothing is submitted).</summary>
     [Description("AI pre-review started")]
     PreReviewStarted = 450,
@@ -379,4 +383,8 @@ public enum AuditAction : short
     /// <summary>The package intake settings (retention) changed.</summary>
     [Description("Intake settings updated")]
     IntakeSettingsUpdated = 313,
+
+    /// <summary>A member asked for a download link of a stored build package.</summary>
+    [Description("Build package downloaded")]
+    BuildPackageDownloaded = 314,
 }

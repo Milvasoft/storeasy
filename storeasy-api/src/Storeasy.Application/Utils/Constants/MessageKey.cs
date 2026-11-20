@@ -184,6 +184,7 @@ public static class MessageKey
     public const string MediaTooMany = nameof(MediaTooMany);
     public const string BuildNotFound = nameof(BuildNotFound);
     public const string BuildNotValid = nameof(BuildNotValid);
+    public const string BuildPackageNotStored = nameof(BuildPackageNotStored);
     public const string AssistedStepNotFound = nameof(AssistedStepNotFound);
     public const string TrackInvalid = nameof(TrackInvalid);
     public const string RolloutInvalid = nameof(RolloutInvalid);
@@ -343,6 +344,11 @@ public static class MessageKey
     public const string AiReplyRefused = nameof(AiReplyRefused);
     public const string AiReplyFailed = nameof(AiReplyFailed);
     public const string AiModelInvalid = nameof(AiModelInvalid);
+    public const string AiSuggestionNotSupported = nameof(AiSuggestionNotSupported);
+    public const string AiSuggestionLocaleNotFound = nameof(AiSuggestionLocaleNotFound);
+    public const string AiSuggestionRefused = nameof(AiSuggestionRefused);
+    public const string AiSuggestionFailed = nameof(AiSuggestionFailed);
+    public const string AiSuggestionNoteTooLong = nameof(AiSuggestionNoteTooLong);
     public const string PreReviewNotFound = nameof(PreReviewNotFound);
     public const string PreReviewInProgress = nameof(PreReviewInProgress);
     public const string PreReviewRefused = nameof(PreReviewRefused);

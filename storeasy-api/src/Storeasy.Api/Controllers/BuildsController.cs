@@ -5,6 +5,7 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.AppDtos;
 using Storeasy.Application.Dtos.ContentDtos;
+using Storeasy.Application.Features.Builds.GetBuildDownloadUrl;
 using Storeasy.Application.Features.Builds.GetBuildList;
 using Storeasy.Application.Features.Builds.PlanBuildLink;
 using Storeasy.Application.Features.Builds.PlanBundleUpload;
@@ -32,6 +33,17 @@ public class BuildsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPatch]
     public Task<ListResponse<BuildDto>> GetBuildsAsync(GetBuildListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Returns a short lived presigned download URL of the package storeasy keeps for a build (any member). 404 when the
+    /// package was deleted or the build reached the store without storeasy.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("download-url")]
+    [RateLimit(240, 3600, "build-download")]
+    public Task<Response<BuildDownloadDto>> GetDownloadUrlAsync([FromQuery] GetBuildDownloadUrlQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Plans attaching a VALID build (and its export compliance answer) to the App Store version.

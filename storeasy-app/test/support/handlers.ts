@@ -286,6 +286,19 @@ export const defaultHandlers: HttpHandler[] = [
     json(envelope({ AssetId: 501, UploadUrl: `${STORAGE_URL}/single`, PartSize: null, Parts: [], ExpiryDate: '2026-11-18T11:00:00Z' })),
   ),
   endpoint('post', '/Assets/asset/complete', () => json(envelope(asset()))),
+  endpoint('get', '/Builds/download-url', ({ url }) =>
+    json(
+      envelope({
+        BuildId: Number(url.searchParams.get('BuildId')),
+        SessionId: 77,
+        Url: `${STORAGE_URL}/halka-2.3.0-412.ipa`,
+        ExpiryDate: '2026-11-18T11:00:00Z',
+        FileName: 'halka-2.3.0-412.ipa',
+        Size: 1024,
+        Sha256: 'a'.repeat(64),
+      }),
+    ),
+  ),
   endpoint('get', '/Assets/asset/download-url', () =>
     json(envelope({ Url: `${STORAGE_URL}/download`, ExpiryDate: '2026-11-18T11:00:00Z' })),
   ),

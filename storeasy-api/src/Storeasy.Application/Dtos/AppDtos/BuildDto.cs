@@ -71,6 +71,12 @@ public class BuildDto
     public bool? UsesNonExemptEncryption { get; set; }
 
     /// <summary>
+    /// Upload session whose package storeasy still keeps for this build (download it with builds/download-url); null when
+    /// the package was deleted or the build reached the store without storeasy.
+    /// </summary>
+    public long? PackageSessionId { get; set; }
+
+    /// <summary>
     /// Projection from a build row.
     /// </summary>
     [JsonIgnore]

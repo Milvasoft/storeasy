@@ -1,11 +1,14 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { Sparkles } from 'lucide-react'
+import { useAiSettings } from '@/features/ai/api'
 import { Badge } from '@/components/ui/Badge'
 import { Callout } from '@/components/ui/Feedback'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { Button, CardSkeleton, Field, Input, PageHeader, Textarea } from '@/components/ui/primitives'
 import { StoreKind } from '@/lib/api/types'
+import { useCurrentOrganization } from '@/lib/org/OrganizationContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { cn } from '@/lib/utils/cn'
 import { listingsApi } from '@/features/common/api'
@@ -16,7 +19,13 @@ import { contentKeys } from '@/features/common/keys'
 import { fieldLabel } from '@/features/common/labels'
 import { PlanDialog } from '@/features/common/PlanView'
 import { byteCount, charCount, overLimit } from '@/features/common/text'
-import { ChangePlanStatus, type ChangePlanDto, type ListingChangeDto, type ListingFieldDto } from '@/features/common/types'
+import {
+  ChangePlanStatus,
+  type ChangePlanDto,
+  type ListingChangeDto,
+  type ListingFieldDto,
+  type ListingSuggestionDto,
+} from '@/features/common/types'
 
 // Design 7.1-7.3: listing texts per language with the catalog's limits counted live (characters as the stores count
 // them, Apple keywords in bytes), a draft kept across languages, and "Plan" making a change plan from the draft.
@@ -26,6 +35,12 @@ const LONG_FIELDS = ['description', 'fullDescription', 'whatsNew', 'promotionalT
 const ALWAYS_EDITABLE = ['promotionalText']
 
 export type Draft = Record<string, string>
+
+// The listing texts that get AI suggestions (the API's ListingSuggestions.Fields): links, contacts and the EULA are facts.
+export const SUGGESTABLE_FIELDS: Partial<Record<StoreKind, readonly string[]>> = {
+  [StoreKind.Apple]: ['name', 'subtitle', 'description', 'keywords', 'promotionalText', 'whatsNew'],
+  [StoreKind.Google]: ['title', 'shortDescription', 'fullDescription'],
+}
 
 export function draftKey(locale: string | null | undefined, field: string): string {
   return `${locale ?? ''}|${field}`
@@ -119,6 +134,110 @@ export function ListingField({
   )
 }
 
+/**
+ * "Suggest" under a listing text: asks the organization's AI for a value, shows it with its reason to edit, and puts it
+ * in the draft. Nothing is saved: the draft becomes a change plan as any other edit.
+ */
+export function ListingSuggestion({
+  storeAppId,
+  versionId,
+  locale,
+  field,
+  onApply,
+}: {
+  storeAppId: number
+  versionId: string | null
+  locale: string
+  field: ListingFieldDto
+  onApply: (value: string) => void
+}) {
+  const t = useP2()
+  const organization = useCurrentOrganization()
+  const [suggestion, setSuggestion] = useState<ListingSuggestionDto | null>(null)
+  const [value, setValue] = useState('')
+  const [note, setNote] = useState('')
+  const label = fieldLabel(field.Key, t)
+  const suggest = useMutation({
+    mutationFn: () => listingsApi.suggest(organization.Id, storeAppId, versionId, locale, field.Key, note),
+    onSuccess: (made) => {
+      setSuggestion(made)
+      setValue(made.Value)
+    },
+  })
+  const limits = { MaxLength: suggestion?.MaxLength ?? field.MaxLength, MaxBytes: suggestion?.MaxBytes ?? field.MaxBytes }
+  const over = overLimit(value, limits.MaxLength, limits.MaxBytes)
+
+  if (!suggestion) {
+    return (
+      <div>
+        <Button
+          size="sm"
+          variant="ghost"
+          loading={suggest.isPending}
+          aria-label={interpolate(t.listing.suggestLabel, { field: label })}
+          onClick={() => suggest.mutate()}
+        >
+          <Sparkles aria-hidden />
+          {suggest.isPending ? t.listing.suggesting : t.listing.suggest}
+        </Button>
+      </div>
+    )
+  }
+  return (
+    <section className="card" aria-label={interpolate(t.listing.suggestionTitle, { field: label })}>
+      <div className="card-b grid gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles aria-hidden className="h-4 w-4" />
+          <b className="text-[13.5px]">{interpolate(t.listing.suggestionTitle, { field: label })}</b>
+        </div>
+        {suggestion.Reason ? <p className="m-0 text-[13px]">{suggestion.Reason}</p> : null}
+        <Field
+          label={label}
+          error={over ? interpolate(t.listing.overLimit, { field: label }) : null}
+          hint={
+            <>
+              {counterText(value, limits, t)}
+              {suggestion.Shortened ? <span className="block">{t.listing.suggestionShortened}</span> : null}
+            </>
+          }
+        >
+          <Textarea value={value} rows={LONG_FIELDS.includes(field.Key) ? 5 : 2} onChange={(event) => setValue(event.target.value)} />
+        </Field>
+        <Field label={t.listing.suggestionNote}>
+          <Input
+            value={note}
+            maxLength={500}
+            placeholder={t.listing.suggestionNotePlaceholder}
+            onChange={(event) => setNote(event.target.value)}
+          />
+        </Field>
+        <p className="m-0 text-xs text-fg3">
+          {t.listing.suggestionHint} {interpolate(t.listing.suggestionModel, { model: suggestion.Model })}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={over || value.trim().length === 0}
+            onClick={() => {
+              onApply(value.trim())
+              setSuggestion(null)
+            }}
+          >
+            {t.listing.useSuggestion}
+          </Button>
+          <Button size="sm" loading={suggest.isPending} onClick={() => suggest.mutate()}>
+            {t.listing.suggestAgain}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSuggestion(null)}>
+            {t.listing.closeSuggestion}
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Texts({ context }: { context: WorkspaceContext }) {
   const t = useP2()
   const { record, organizationId, editor } = context
@@ -126,6 +245,10 @@ function Texts({ context }: { context: WorkspaceContext }) {
   const requested = search.get('locale')
   const [draft, setDraft] = useState<Draft>({})
   const [plan, setPlan] = useState<ChangePlanDto | null>(null)
+  const aiSettings = useAiSettings(organizationId)
+  // Suggestions need the organization's AI key; without it the button is not shown.
+  const canSuggest = editor && aiSettings.data?.HasApiKey === true
+  const suggestable = SUGGESTABLE_FIELDS[context.store] ?? []
 
   const listing = useQuery({
     queryKey: contentKeys.listing(organizationId, record.StoreAppId, requested),
@@ -213,21 +336,31 @@ function Texts({ context }: { context: WorkspaceContext }) {
                     const value = draft[key] ?? field.Value ?? ''
                     const locked = !data.VersionEditable && field.Group === 'Version' && !ALWAYS_EDITABLE.includes(field.Key)
                     return (
-                      <ListingField
-                        key={key}
-                        field={field}
-                        value={value}
-                        changed={key in draft && draft[key] !== (field.Value ?? '')}
-                        disabled={!editor || locked}
-                        onChange={(next) => setDraft((current) => ({ ...current, [key]: next }))}
-                        onRevert={() =>
-                          setDraft((current) => {
-                            const rest = { ...current }
-                            delete rest[key]
-                            return rest
-                          })
-                        }
-                      />
+                      <div key={key} className="grid gap-2">
+                        <ListingField
+                          field={field}
+                          value={value}
+                          changed={key in draft && draft[key] !== (field.Value ?? '')}
+                          disabled={!editor || locked}
+                          onChange={(next) => setDraft((current) => ({ ...current, [key]: next }))}
+                          onRevert={() =>
+                            setDraft((current) => {
+                              const rest = { ...current }
+                              delete rest[key]
+                              return rest
+                            })
+                          }
+                        />
+                        {canSuggest && !locked && field.Locale && suggestable.includes(field.Key) ? (
+                          <ListingSuggestion
+                            storeAppId={record.StoreAppId}
+                            versionId={data.VersionId ?? null}
+                            locale={field.Locale}
+                            field={field}
+                            onApply={(next) => setDraft((current) => ({ ...current, [key]: next }))}
+                          />
+                        ) : null}
+                      </div>
                     )
                   })}
               </div>

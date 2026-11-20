@@ -76,6 +76,7 @@ public static class InfraServiceCollectionExtensions
         services.AddHttpClient(AnthropicCalls.HttpClientName);
         services.AddHttpClient(PreReviewImageLoader.HttpClientName);
         services.AddScoped<IReplyDraftWriter, AnthropicReplyDraftWriter>();
+        services.AddScoped<IListingSuggestionWriter, AnthropicListingSuggestionWriter>();
         services.AddScoped<IPreReviewer, AnthropicPreReviewer>();
         services.AddScoped<IPreReviewImageLoader, PreReviewImageLoader>();
         services.AddScoped<IStoreJobHandler, PreReviewJobHandler>();

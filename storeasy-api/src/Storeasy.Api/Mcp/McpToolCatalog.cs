@@ -20,6 +20,7 @@ using Storeasy.Application.Features.AssistedSteps.CompleteAssistedStep;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepDetail;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepList;
 using Storeasy.Application.Features.AssistedSteps.HandOffAssistedStep;
+using Storeasy.Application.Features.Builds.GetBuildDownloadUrl;
 using Storeasy.Application.Features.Builds.GetBuildList;
 using Storeasy.Application.Features.Builds.PlanBuildLink;
 using Storeasy.Application.Features.Builds.PlanBundleUpload;
@@ -47,6 +48,7 @@ using Storeasy.Application.Features.Listings.PlanCategories;
 using Storeasy.Application.Features.Listings.PlanListing;
 using Storeasy.Application.Features.Listings.PlanPricing;
 using Storeasy.Application.Features.Listings.PlanReviewInfo;
+using Storeasy.Application.Features.Listings.SuggestListingField;
 using Storeasy.Application.Features.Media.GetMediaSets;
 using Storeasy.Application.Features.Media.PlanMediaSet;
 using Storeasy.Application.Features.Mockups.CreateMockupTemplate;
@@ -193,6 +195,7 @@ public static class McpToolCatalog
         Read<GetListingQuery>("listings_get", "Reads the store listing texts of a store record, per locale."),
         Read<GetListingByFieldQuery>("listings_get_by_field", "Reads one listing field across every locale."),
         Read<GetListingDetailsQuery>("listings_details_get", "Reads the app level details (contact, privacy URL, Play details)."),
+        Write<SuggestListingFieldCommand>("listings_suggest", "Suggests one listing text (App Store name, subtitle, description, keywords, promotionalText, whatsNew; Play title, shortDescription, fullDescription) with the organization's AI key, within the catalog limits. Nothing is saved: review it and plan it with listings_plan. Audited with tokens and cost."),
         Plan<PlanListingCommand>("listings_plan", "Plans listing text changes (per locale and field), checked against the catalog limits."),
         Read<GetMediaSetsQuery>("screenshots_sets", "Lists the screenshot and preview sets of a store record with the catalog's required classes.", ("Kind", MediaKind.Screenshot)),
         Plan<PlanMediaSetCommand>("screenshots_plan", "Plans one screenshot set (locale and class): uploads, deletes and order. Files are checked against the catalog.",
@@ -212,6 +215,7 @@ public static class McpToolCatalog
 
         // Builds and releases
         Read<GetBuildListQuery>("builds_list", "Lists the builds of a store record (processing state, version, Play tracks, TestFlight expiry)."),
+        Read<GetBuildDownloadUrlQuery>("builds_download_url", "Returns a short lived (30 minute) download URL of the package (IPA, AAB, APK, MSIX) storeasy keeps for a build; builds_list shows which builds have one (PackageSessionId). Audited."),
         Plan<PlanBuildLinkCommand>("builds_link", "Plans attaching a VALID build to the App Store version."),
         Plan<PlanExportComplianceCommand>("builds_export_compliance", "Plans the export compliance answer of a build."),
         Plan<PlanBundleUploadCommand>("bundle_upload_plan", "Plans uploading an Android App Bundle (an uploaded asset) to Google Play, optionally onto a track. Production needs ReleaseProduction and the typed confirmation on approval.",

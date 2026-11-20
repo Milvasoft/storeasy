@@ -136,6 +136,7 @@ export const AuditAction = {
   ArtifactHeld: 311,
   ArtifactDeleted: 312,
   IntakeSettingsUpdated: 313,
+  BuildPackageDownloaded: 314,
   WebhookEndpointAdded: 400,
   WebhookSecretRotated: 401,
   WebhookEndpointRemoved: 402,
@@ -151,6 +152,7 @@ export const AuditAction = {
   ReviewReplied: 430,
   SavedReplyChanged: 431,
   ReviewReplyDraftGenerated: 432,
+  ListingSuggestionGenerated: 433,
   BetaGroupChanged: 440,
   BetaTestersChanged: 441,
   BetaTextChanged: 442,
@@ -629,6 +631,19 @@ export interface BuildDto {
   UploadedDate?: IsoDateTime | null
   /** TestFlight expiry. */
   ExpiryDate?: IsoDateTime | null
+  /** Upload session whose package storeasy still keeps; null when it was deleted or the build reached the store without storeasy. */
+  PackageSessionId?: number | null
+}
+
+/** A short lived presigned download URL of the package storeasy keeps for a build (BuildDownloadDto). */
+export interface BuildDownloadDto {
+  BuildId: number
+  SessionId: number
+  Url: string
+  ExpiryDate: IsoDateTime
+  FileName: string
+  Size: number
+  Sha256: string
 }
 
 /** What the rules need to know that the stores do not report (UpdateAppProfileCommand); null until it is saved. */

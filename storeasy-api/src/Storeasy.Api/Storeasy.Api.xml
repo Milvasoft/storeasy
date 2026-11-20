@@ -1103,6 +1103,15 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.BuildsController.GetDownloadUrlAsync(Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery,System.Threading.CancellationToken)">
+            <summary>
+            Returns a short lived presigned download URL of the package storeasy keeps for a build (any member). 404 when the
+            package was deleted or the build reached the store without storeasy.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.BuildsController.PlanBuildLinkAsync(Storeasy.Application.Features.Builds.PlanBuildLink.PlanBuildLinkCommand,System.Threading.CancellationToken)">
             <summary>
             Plans attaching a VALID build (and its export compliance answer) to the App Store version.
@@ -1487,6 +1496,15 @@
         <member name="M:Storeasy.Api.Controllers.ListingsController.PlanListingAsync(Storeasy.Application.Features.Listings.PlanListing.PlanListingCommand,System.Threading.CancellationToken)">
             <summary>
             Plans listing text changes (texts and Play app details) and returns the change plan.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ListingsController.SuggestAsync(Storeasy.Application.Features.Listings.SuggestListingField.SuggestListingFieldCommand,System.Threading.CancellationToken)">
+            <summary>
+            Suggests one listing text with the organization's AI key (editors and above). Nothing is saved or sent: the member
+            edits the suggestion and plans it. 409 AiKeyNotSet when the organization has no key.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>

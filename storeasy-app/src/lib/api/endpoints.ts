@@ -10,6 +10,7 @@ import type {
   AppDetailDto,
   AppListDto,
   AssetDownloadDto,
+  BuildDownloadDto,
   AssetDto,
   AssetPurpose,
   AssetUploadDto,
@@ -330,6 +331,11 @@ export const appsApi = {
   // Store narrows the list on the server to the apps with a record in that store.
   list: (organizationId: number, request: AppListRequest, store?: StoreKind | null) =>
     apiPatchList<AppListDto>('/Apps', { OrganizationId: organizationId, ...request, ...(store ? { Store: store } : {}) }),
+
+  // A short lived download URL of the package storeasy keeps for a build (BuildDto.PackageSessionId set); audited.
+  // 404 BuildPackageNotStored when the package was deleted or never came through storeasy.
+  buildDownloadUrl: (organizationId: number, buildId: number) =>
+    apiGet<BuildDownloadDto>('/Builds/download-url', { OrganizationId: organizationId, BuildId: buildId }),
 
   // The app with its store records and its newest 100 builds. 404 AppNotFound.
   detail: (organizationId: number, appId: number) => apiGet<AppDetailDto>('/Apps/app', { OrganizationId: organizationId, AppId: appId }),

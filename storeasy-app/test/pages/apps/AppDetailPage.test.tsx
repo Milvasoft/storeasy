@@ -1,9 +1,9 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ActivityEventType, createManualSource } from '@/lib/activity/events'
 import { OrgRole, StepDirection, StoreJobKind, StoreJobStatus, StoreJobStepStatus, StoreKind } from '@/lib/api/types'
 import { AppDetailPage, type AppTab } from '@/pages/apps/AppDetailPage'
-import { activityEvent, app, appDetail, connection, organization, storeRecord } from '../../support/factories'
+import { activityEvent, app, appDetail, build, connection, organization, storeRecord } from '../../support/factories'
 import { renderWithProviders } from '../../support/render'
 import { lastRequestTo, requestsTo, testState } from '../../support/state'
 
@@ -166,6 +166,33 @@ describe('AppDetailPage', () => {
     await user.click(screen.getByRole('button', { name: 'İşleniyor · 1' }))
 
     expect(within(screen.getByRole('table', { name: 'Derlemeler' })).getAllByRole('row')).toHaveLength(2)
+  })
+
+  it('downloads a package storeasy keeps and links the other builds to their store', async () => {
+    testState.appDetail = appDetail({
+      Builds: [
+        build({ PackageSessionId: 77 }),
+        build({ Id: 9003, StoreAppId: 202, Store: StoreKind.Google, ExternalId: '42', Version: '1.0.0', BuildNumber: '42', Tracks: 'internal' }),
+        build({ Id: 9004, ExternalId: 'b-9004', BuildNumber: '400' }),
+      ],
+    })
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const { user } = render('builds')
+    const table = await screen.findByRole('table', { name: 'Derlemeler' })
+
+    await user.click(within(table).getByRole('button', { name: '2.3.0 (412) paketini indir' }))
+
+    await waitFor(() => expect(open).toHaveBeenCalledWith('https://storage.test/bucket/halka-2.3.0-412.ipa', '_blank', 'noopener'))
+    expect(lastRequestTo('/Builds/download-url')?.query).toEqual({ OrganizationId: '7', BuildId: '9001' })
+    expect(within(table).getAllByRole('button', { name: /paketini indir/ })).toHaveLength(1)
+    expect(within(table).getByRole('link', { name: "2.3.0 (400) build'ini App Store içinde yeni sekmede aç" })).toHaveAttribute(
+      'href',
+      'https://appstoreconnect.apple.com/apps/6740056789/testflight/ios/b-9004',
+    )
+    expect(within(table).getByRole('link', { name: "1.0.0 (42) build'ini Google Play içinde yeni sekmede aç" })).toHaveAttribute(
+      'href',
+      'https://play.google.com/console',
+    )
   })
 
   it('says when an app has no builds yet', async () => {
