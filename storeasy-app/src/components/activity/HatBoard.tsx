@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, CircleX, Clock3, TriangleExclamationPoint } from 'lucide-react'
+import { ArrowRight, CircleCheck, CircleX, Clock3, ExternalLink, TriangleExclamationPoint } from 'lucide-react'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { StoreTag } from '@/components/ui/Badge'
 import { storeLabel, upcomingWhen as whenText } from '@/components/activity/Hat'
 import { useActivity } from '@/lib/activity/ActivityContext'
-import { MAX_ATTENTION, type AttentionItem, type UpcomingItem } from '@/lib/activity/board'
+import { isExternalHref, MAX_ATTENTION, type AttentionItem, type UpcomingItem } from '@/lib/activity/board'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import type { Dictionary } from '@/lib/i18n/en'
@@ -27,6 +27,8 @@ function attentionText(item: AttentionItem, t: Dictionary, app: string): string 
       return interpolate(line.connection, { subject })
     case 'pendingRelease':
       return interpolate(line.pendingRelease, { app, subject }).trim()
+    case 'pendingPublish':
+      return interpolate(line.pendingPublish, { app, subject }).trim()
     case 'expiry':
       return interpolate(line.expiry, { app, subject, days: Math.max(0, item.daysLeft ?? 0) })
     case 'deadline': {
@@ -54,10 +56,17 @@ function AttentionCard({ item }: { item: AttentionItem }) {
         <b className="att-t">{attentionText(item, t, name)}</b>
         {item.detail ? <span className="att-d">{item.detail}</span> : null}
       </div>
-      <Link className="att-a" to={item.href}>
-        {t.activity.line.attentionAction[item.kind]}
-        <ArrowRight aria-hidden />
-      </Link>
+      {isExternalHref(item.href) ? (
+        <a className="att-a" href={item.href} target="_blank" rel="noopener noreferrer">
+          {t.activity.line.attentionAction[item.kind]}
+          <ExternalLink aria-hidden />
+        </a>
+      ) : (
+        <Link className="att-a" to={item.href}>
+          {t.activity.line.attentionAction[item.kind]}
+          <ArrowRight aria-hidden />
+        </Link>
+      )}
     </li>
   )
 }

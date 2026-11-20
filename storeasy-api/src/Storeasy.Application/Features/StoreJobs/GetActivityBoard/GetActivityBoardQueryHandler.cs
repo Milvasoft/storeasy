@@ -4,6 +4,7 @@ using Milvasoft.Core.Abstractions;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Events;
+using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 
 namespace Storeasy.Application.Features.StoreJobs.GetActivityBoard;
@@ -17,6 +18,7 @@ namespace Storeasy.Application.Features.StoreJobs.GetActivityBoard;
 /// <param name="jobRepository"></param>
 /// <param name="eventRepository"></param>
 /// <param name="endpointRepository"></param>
+/// <param name="msSubmissionRepository"></param>
 /// <param name="timeProvider"></param>
 public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionState> versionStateRepository,
                                           IStoreasyRepositoryBase<Build> buildRepository,
@@ -24,6 +26,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                           IStoreasyRepositoryBase<StoreJob> jobRepository,
                                           IStoreasyRepositoryBase<WebhookEvent> eventRepository,
                                           IStoreasyRepositoryBase<WebhookEndpoint> endpointRepository,
+                                          IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
                                           TimeProvider timeProvider) : IInterceptable, IQueryHandler<GetActivityBoardQuery, ActivityBoardDto>
 {
     /// <summary>
@@ -41,6 +44,12 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
     /// </summary>
     public const int RecentVersionDays = 30;
 
+    /// <summary>
+    /// <see cref="ActivityBoardVersionDto.State"/> of a Microsoft Store submission that passed certification and waits for
+    /// "Publish now" in Partner Center (the API's own status name).
+    /// </summary>
+    public const string MsPendingPublicationState = "PENDINGPUBLICATION";
+
     private static readonly List<string> _withReview = ["WAITING_FOR_REVIEW", "IN_REVIEW"];
 
     private readonly IStoreasyRepositoryBase<AppVersionState> _versionStateRepository = versionStateRepository;
@@ -49,6 +58,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
     private readonly IStoreasyRepositoryBase<StoreJob> _jobRepository = jobRepository;
     private readonly IStoreasyRepositoryBase<WebhookEvent> _eventRepository = eventRepository;
     private readonly IStoreasyRepositoryBase<WebhookEndpoint> _endpointRepository = endpointRepository;
+    private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
     private readonly TimeProvider _timeProvider = timeProvider;
 
     /// <inheritdoc/>
@@ -91,8 +101,23 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                                         cancellationToken: cancellationToken);
 
         var storeApps = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == organizationId,
-                                                              projection: s => new StoreApp { Id = s.Id, AppId = s.AppId },
+                                                              projection: s => new StoreApp { Id = s.Id, AppId = s.AppId, ExternalId = s.ExternalId },
                                                               cancellationToken: cancellationToken);
+
+        // Microsoft Store submissions have no review states; one that passed certification and waits for "Publish now" in
+        // Partner Center (the API cannot publish it) is named like a version waiting for its release.
+        var awaitingPublish = await _msSubmissionRepository.GetAllAsync(s => s.OrganizationId == organizationId && s.IsPending && s.Status == MsSubmissionStatus.PendingPublication,
+                                                                        projection: s => new MsSubmission
+                                                                        {
+                                                                            StoreAppId = s.StoreAppId,
+                                                                            Target = s.Target,
+                                                                            FriendlyName = s.FriendlyName,
+                                                                            PackageVersion = s.PackageVersion,
+                                                                            StatusHistory = s.StatusHistory,
+                                                                            SyncedDate = s.SyncedDate,
+                                                                            CreationDate = s.CreationDate,
+                                                                        },
+                                                                        cancellationToken: cancellationToken);
 
         var jobs = await _jobRepository.GetAllAsync(j => j.OrganizationId == organizationId && j.Store != null && j.EndDate >= hoursStart,
                                                     projection: j => new StoreJob { Store = j.Store, Status = j.Status, EndDate = j.EndDate },
@@ -107,6 +132,7 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                                               cancellationToken: cancellationToken);
 
         var appOf = storeApps.ToDictionary(s => s.Id, s => s.AppId);
+        var externalIdOf = storeApps.ToDictionary(s => s.Id, s => s.ExternalId);
         var storeOfEndpoint = endpoints.ToDictionary(e => e.Id, e => StoreOf(e.Source));
 
         var versions = states.GroupBy(s => s.StoreAppId)
@@ -124,7 +150,27 @@ public class GetActivityBoardQueryHandler(IStoreasyRepositoryBase<AppVersionStat
                                  PreviousState = s.PreviousState,
                                  ChangedDate = s.ChangedDate,
                                  SubmittedDate = s.SubmittedDate,
+                                 ExternalId = externalIdOf.GetValueOrDefault(s.StoreAppId),
                              })
+                             // One per product (the app submission before a flight's): the place to act on is the same.
+                             .Concat(awaitingPublish.Where(s => appOf.ContainsKey(s.StoreAppId))
+                                                    .GroupBy(s => s.StoreAppId)
+                                                    .Select(g => g.OrderBy(s => s.Target == MsSubmissionTarget.App ? 0 : 1).First())
+                                                    .Select(s => new ActivityBoardVersionDto
+                                                    {
+                                                        AppId = appOf[s.StoreAppId],
+                                                        StoreAppId = s.StoreAppId,
+                                                        Store = StoreKind.Microsoft,
+                                                        VersionString = s.PackageVersion ?? s.FriendlyName,
+                                                        State = MsPendingPublicationState,
+                                                        ChangedDate = s.StatusHistory?.LastOrDefault(c => c.Status == MsSubmissionStatus.PendingPublication)?.Date
+                                                                      ?? s.SyncedDate
+                                                                      ?? s.CreationDate
+                                                                      ?? now,
+                                                        ExternalId = externalIdOf.GetValueOrDefault(s.StoreAppId),
+                                                    }))
+                             .OrderByDescending(s => s.ChangedDate)
+                             .Take(MaxRows)
                              .ToList();
 
         var boardBuilds = builds.Where(b => appOf.ContainsKey(b.StoreAppId))

@@ -31,7 +31,8 @@ public class ActivityBoardVersionDto
     public string BuildNumber { get; set; }
 
     /// <summary>
-    /// State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>, <c>REJECTED</c>).
+    /// State as the store names it (e.g. <c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>, <c>REJECTED</c>; for a Microsoft Store
+    /// submission waiting for "Publish now" in Partner Center, <c>PENDINGPUBLICATION</c>).
     /// </summary>
     public string State { get; set; }
 
@@ -49,4 +50,9 @@ public class ActivityBoardVersionDto
     /// UTC instant the version was first seen in a submitted state.
     /// </summary>
     public DateTime? SubmittedDate { get; set; }
+
+    /// <summary>
+    /// The store's id of the record (App Store app id, Microsoft Store product id), to link to the store's own console.
+    /// </summary>
+    public string ExternalId { get; set; }
 }

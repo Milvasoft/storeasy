@@ -12,6 +12,7 @@ import {
   type IsoDateTime,
   type StoreConnectionDto,
 } from '@/lib/api/types'
+import { storeLinksOf } from '@/lib/apps/storeLinks'
 import { isActive, type JobView } from './hatState'
 
 // The calm half of the live page (pure, unit tested): what each store's gate says right now, what is coming up, and the
@@ -41,9 +42,11 @@ export const EXPIRY_ATTENTION_DAYS = 3
 export const DEADLINE_ATTENTION_DAYS = 7
 export const UPCOMING_DAYS = 45
 
-// ---- Version states (App Store Connect names) ----
+// ---- Version states (App Store Connect names, and the one Microsoft Store state the board names) ----
 
-export type ReviewPhase = 'waiting' | 'inReview' | 'pendingRelease' | 'rejected' | 'live' | 'other'
+// pendingPublish: a Microsoft Store submission passed certification and waits for "Publish now" in Partner Center; the
+// API has no call that publishes it, so the person acts there.
+export type ReviewPhase = 'waiting' | 'inReview' | 'pendingRelease' | 'pendingPublish' | 'rejected' | 'live' | 'other'
 
 export function reviewPhase(state: string | null | undefined): ReviewPhase {
   switch ((state ?? '').toUpperCase()) {
@@ -54,6 +57,8 @@ export function reviewPhase(state: string | null | undefined): ReviewPhase {
     case 'PENDING_DEVELOPER_RELEASE':
     case 'PENDING_APPLE_RELEASE':
       return 'pendingRelease'
+    case 'PENDINGPUBLICATION':
+      return 'pendingPublish'
     case 'REJECTED':
     case 'METADATA_REJECTED':
     case 'INVALID_BINARY':
@@ -70,7 +75,16 @@ export function reviewPhase(state: string | null | undefined): ReviewPhase {
 
 // ---- Gates ----
 
-export type GateItemKind = 'inReview' | 'waiting' | 'pendingRelease' | 'rejected' | 'live' | 'processing' | 'connection' | 'lastFailed'
+export type GateItemKind =
+  | 'inReview'
+  | 'waiting'
+  | 'pendingRelease'
+  | 'pendingPublish'
+  | 'rejected'
+  | 'live'
+  | 'processing'
+  | 'connection'
+  | 'lastFailed'
 
 export interface GateItem {
   key: string
@@ -105,9 +119,27 @@ const VERSION_TONE: Record<ReviewPhase, Tone> = {
   inReview: 'accent',
   waiting: 'neutral',
   pendingRelease: 'warning',
+  pendingPublish: 'warning',
   rejected: 'danger',
   live: 'success',
   other: 'neutral',
+}
+
+/** An address outside storeasy (the store's own console), opened in a new tab instead of routed. */
+export function isExternalHref(href: string): boolean {
+  return /^https?:\/\//i.test(href)
+}
+
+/** Where a version is acted on: Partner Center for a submission waiting for "Publish now", storeasy's pages otherwise. */
+function versionHref(version: ActivityBoardVersionDto, phase: ReviewPhase): string {
+  switch (phase) {
+    case 'pendingPublish':
+      return storeLinksOf({ Store: version.Store, ExternalId: version.ExternalId ?? null, BundleId: null }).consoleUrl
+    case 'rejected':
+      return `/apps/${version.AppId}/rejections`
+    default:
+      return `/apps/${version.AppId}/release/versions`
+  }
 }
 
 export function isRateLimit(message: string | null | undefined): boolean {
@@ -185,7 +217,7 @@ export function gateItemsOf(store: StoreKind, inputs: BoardInputs, now: number):
       since: phase === 'waiting' ? (version.SubmittedDate ?? version.ChangedDate) : version.ChangedDate,
       detail: version.State ?? null,
       rateLimited: false,
-      href: phase === 'rejected' ? `/apps/${version.AppId}/rejections` : `/apps/${version.AppId}/release/versions`,
+      href: versionHref(version, phase),
       jobId: null,
     })
   }
@@ -360,7 +392,15 @@ export function upcomingOf(inputs: BoardInputs, now: number): UpcomingItem[] {
 
 // ---- Needs attention ----
 
-export type AttentionKind = 'rejection' | 'jobFailed' | 'connection' | 'pendingRelease' | 'expiry' | 'deadline' | 'unverified'
+export type AttentionKind =
+  | 'rejection'
+  | 'jobFailed'
+  | 'connection'
+  | 'pendingRelease'
+  | 'pendingPublish'
+  | 'expiry'
+  | 'deadline'
+  | 'unverified'
 
 export interface AttentionItem {
   key: string
@@ -480,10 +520,10 @@ export function attentionOf(inputs: BoardInputs, now: number): AttentionItem[] {
         href: `/apps/${version.AppId}/rejections`,
       })
     }
-    if (phase === 'pendingRelease') {
+    if (phase === 'pendingRelease' || phase === 'pendingPublish') {
       items.push({
         key: `pr${version.StoreAppId}`,
-        kind: 'pendingRelease',
+        kind: phase,
         tone: 'warning',
         store: version.Store,
         appId: version.AppId,
@@ -492,7 +532,7 @@ export function attentionOf(inputs: BoardInputs, now: number): AttentionItem[] {
         detail: null,
         date: version.ChangedDate,
         daysLeft: null,
-        href: `/apps/${version.AppId}/release/versions`,
+        href: versionHref(version, phase),
       })
     }
   }
@@ -537,6 +577,15 @@ export function attentionOf(inputs: BoardInputs, now: number): AttentionItem[] {
     }
   }
   items.push(...deadlineAttentionOf(inputs.compliance, now))
-  const kindRank: Record<AttentionKind, number> = { rejection: 0, jobFailed: 1, connection: 2, deadline: 3, expiry: 4, pendingRelease: 5, unverified: 6 }
+  const kindRank: Record<AttentionKind, number> = {
+    rejection: 0,
+    jobFailed: 1,
+    connection: 2,
+    deadline: 3,
+    expiry: 4,
+    pendingRelease: 5,
+    pendingPublish: 5,
+    unverified: 6,
+  }
   return items.sort((a, b) => TONE_RANK[a.tone] - TONE_RANK[b.tone] || kindRank[a.kind] - kindRank[b.kind])
 }

@@ -5,6 +5,8 @@ using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Events;
+using Storeasy.Domain.JsonModels;
+using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 using Storeasy.IntegrationTests.TestBase;
 using Storeasy.IntegrationTests.TestBase.Fakes;
@@ -243,6 +245,7 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         var stranger = await _factory.NewOrgAsync();
         var (appId, storeAppId, externalId) = await _factory.AddAppAsync(org, name: "Pusula");
         var (otherAppId, otherStoreAppId, _) = await _factory.AddAppAsync(org, name: "Mola");
+        var (msAppId, msStoreAppId, msProductId) = await _factory.AddAppAsync(org, StoreKind.Microsoft, name: "Kabuk");
         var now = DateTime.UtcNow;
 
         await _factory.DbAsync(async db =>
@@ -256,6 +259,11 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
                 new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Apple, Status = StoreJobStatus.Succeeded, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddMinutes(-5) },
                 new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Google, Status = StoreJobStatus.Failed, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddMinutes(-5) },
                 new StoreJob { OrganizationId = org.OrganizationId, Kind = FakeStoreJobHandler.TestKind, Store = StoreKind.Apple, Status = StoreJobStatus.Succeeded, Payload = "{}", MaxAttempts = 1, NextAttemptDate = now, RequestedByUserName = "test", CreationDate = now, EndDate = now.AddDays(-3) });
+
+            // A certified Microsoft Store submission waiting for "Publish now", and one still in certification.
+            db.MsSubmissions.AddRange(
+                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = msStoreAppId, Target = MsSubmissionTarget.App, ExternalId = $"5{org.Suffix}", PackageVersion = "1.0.15.0", Status = MsSubmissionStatus.PendingPublication, IsPending = true, CreationDate = now, StatusHistory = [new MsStatusChange { Status = MsSubmissionStatus.Certification, Date = now.AddHours(-30) }, new MsStatusChange { Status = MsSubmissionStatus.PendingPublication, Date = now.AddHours(-2) }] },
+                new MsSubmission { OrganizationId = org.OrganizationId, StoreAppId = msStoreAppId, Target = MsSubmissionTarget.Flight, ExternalId = $"6{org.Suffix}", FlightId = "f1", PackageVersion = "1.0.16.0", Status = MsSubmissionStatus.Certification, IsPending = true, CreationDate = now });
 
             await db.SaveChangesAsync();
         });
@@ -271,8 +279,11 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         // Assert
         http.StatusCode.Should().Be(HttpStatusCode.OK);
         strangerHttp.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        body.Data.Versions.Should().ContainSingle("the latest state of each record, and only recent or in review ones");
-        body.Data.Versions[0].Should().Match<ActivityBoardVersionDto>(v => v.AppId == appId && v.State == "IN_REVIEW" && v.VersionString == "2.3.1" && v.SubmittedDate != null);
+        body.Data.Versions.Where(v => v.Store == StoreKind.Apple).Should().ContainSingle("the latest state of each record, and only recent or in review ones")
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == appId && v.State == "IN_REVIEW" && v.VersionString == "2.3.1" && v.SubmittedDate != null && v.ExternalId == externalId);
+        body.Data.Versions.Where(v => v.Store == StoreKind.Microsoft).Should().ContainSingle("only the submission waiting for Publish now")
+            .Which.Should().Match<ActivityBoardVersionDto>(v => v.AppId == msAppId && v.StoreAppId == msStoreAppId && v.State == "PENDINGPUBLICATION" && v.VersionString == "1.0.15.0" && v.ExternalId == msProductId);
+        body.Data.Versions[0].Store.Should().Be(StoreKind.Microsoft, "the newest change comes first");
         body.Data.Builds.Select(b => (b.BuildNumber, b.ProcessingState, b.AppId)).Should().Equal(("412", BuildProcessingState.Processing, appId), ("398", BuildProcessingState.Valid, appId));
         body.Data.Hours.Should().HaveCount(2);
         body.Data.Hours.Should().ContainSingle(h => h.Store == StoreKind.Apple).Which.Succeeded.Should().Be(1);

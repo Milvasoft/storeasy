@@ -298,6 +298,10 @@ export const msEn = {
     createdElsewhere: 'Partner Center',
     rollout: 'Rollout {percent}',
     submit: 'Send to certification',
+    pendingPublishTitle: 'Certified, waiting for Publish now',
+    pendingPublishBody:
+      'This submission passed certification but publishes only when someone selects Publish now in Partner Center; the submission API cannot publish it.',
+    publishNow: 'Publish now in Partner Center',
   },
   submit: {
     title: 'Send {name} to certification?',

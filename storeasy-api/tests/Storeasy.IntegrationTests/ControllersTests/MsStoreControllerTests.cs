@@ -224,6 +224,11 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
     {
         // Arrange
         var setup = await NewSetupAsync();
+        var publishedId = Microsoft.Apps[setup.AppId].PublishedId;
+
+        // The new draft is cloned from the published submission and would inherit its manual publish mode.
+        Microsoft.Submissions[publishedId]["targetPublishMode"] = "Manual";
+        Microsoft.Submissions[publishedId]["targetPublishDate"] = "2026-12-01T00:00:00Z";
 
         await SyncAsync(setup);
 
@@ -247,6 +252,9 @@ public class MsStoreControllerTests(StoreasyApiFactory factory) : IntegrationTes
         draftId.Should().NotBeNull();
         Microsoft.Submissions[draftId]["listings"]!["en-us"]!["baseListing"]!["description"]!.GetValue<string>().Should().Be("New description");
         Microsoft.Submissions[draftId]["status"]!.GetValue<string>().Should().Be("PendingCommit", "nothing is sent to certification without submit");
+        Microsoft.Submissions[draftId]["targetPublishMode"]!.GetValue<string>().Should().Be("Immediate", "storeasy's draft publishes once certified");
+        Microsoft.Submissions[draftId].ContainsKey("targetPublishDate").Should().BeFalse();
+        Microsoft.Submissions[publishedId]["targetPublishMode"]!.GetValue<string>().Should().Be("Manual", "only the new draft is changed");
 
         var row = await _factory.DbAsync(db => db.MsSubmissions.SingleAsync(s => s.StoreAppId == storeAppId && s.ExternalId == draftId));
 

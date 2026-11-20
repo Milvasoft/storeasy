@@ -6303,6 +6303,17 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MsSyncReader.PackageState(System.Boolean,Storeasy.Domain.Enums.MsSubmissionStatus)">
+            <summary>
+            State of the packages of a submission: the published one's are valid, and so are a pending one's once it passed
+            certification (<see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.PendingPublication"/>, <see cref="F:Storeasy.Domain.Enums.MsSubmissionStatus.Publishing"/>):
+            nothing is processed any more, the submission only waits for "Publish now" in Partner Center or is being published.
+            Every other pending submission's packages are still processing.
+            </summary>
+            <param name="pending"></param>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Infrastructure.Stores.Monetization.AppleMonetizationGateway">
             <summary>
             App Store Connect monetization engine (App Store Connect API 4.4.1 paths):

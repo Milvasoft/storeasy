@@ -18,7 +18,7 @@ public class ActivityBoardDto
 
     /// <summary>
     /// The latest known state of each store record whose version is with App Review or changed state in the last 30 days,
-    /// newest change first.
+    /// and each Microsoft Store product whose submission waits for "Publish now" in Partner Center, newest change first.
     /// </summary>
     public List<ActivityBoardVersionDto> Versions { get; set; } = [];
 

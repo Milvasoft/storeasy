@@ -442,6 +442,29 @@ public static class MsSubmissionJson
     }
 
     /// <summary>
+    /// Makes a new app, flight or add-on submission publish as soon as it passes certification: sets
+    /// <c>targetPublishMode</c> to <c>Immediate</c> and removes <c>targetPublishDate</c>. Partner Center clones a new
+    /// submission from the last published one, so it inherits that one's publish mode; a <c>Manual</c> mode would leave the
+    /// certified submission waiting in <c>PendingPublication</c>, and the submission API has no call that publishes it
+    /// (only "Publish now" in Partner Center does). Documents without a <c>targetPublishMode</c> field are left as they are.
+    /// Returns whether the document changed.
+    /// </summary>
+    /// <param name="submission"></param>
+    /// <returns></returns>
+    public static bool WritePublishImmediately(JsonObject submission)
+    {
+        if (submission == null || !submission.ContainsKey("targetPublishMode"))
+            return false;
+
+        var changed = !string.Equals(String(submission, "targetPublishMode"), "Immediate", StringComparison.Ordinal) || submission.ContainsKey("targetPublishDate");
+
+        submission["targetPublishMode"] = "Immediate";
+        submission.Remove("targetPublishDate");
+
+        return changed;
+    }
+
+    /// <summary>
     /// Whether the submission makes its packages a mandatory update (the API refuses such apps).
     /// </summary>
     /// <param name="submission"></param>
