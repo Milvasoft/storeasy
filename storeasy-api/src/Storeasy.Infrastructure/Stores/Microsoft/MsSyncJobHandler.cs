@@ -407,10 +407,7 @@ public sealed class MsSyncJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppR
 
             MsSubmissionRows.Observe(row, snapshot.Status, snapshot.Details, now);
 
-            // Partner Center rule: a submission storeasy created whose content changed since storeasy wrote it can no longer be
-            // changed or committed through the API.
-            if (row.CreatedByStoreasy && snapshot.IsPending && row.ContentHash != null && snapshot.ContentHash != null && row.ContentHash != snapshot.ContentHash)
-                row.ModifiedOutsideApi = true;
+            MsSubmissionRows.ObserveContent(row, snapshot.Status, snapshot.IsPending, snapshot.ContentHash);
 
             if (row.ModifiedOutsideApi && snapshot.IsPending)
                 _modifiedOutsideApi.Add(storeAppId);
@@ -712,6 +709,28 @@ public static class MsSubmissionRows
 
         row.Status = status;
         row.StatusDetails = details ?? row.StatusDetails ?? new MsStatusDetails();
+    }
+
+    /// <summary>
+    /// Partner Center rule: a draft storeasy created whose content changed since storeasy wrote it can no longer be changed
+    /// or committed through the API. Only a draft (<see cref="MsSubmissionStatus.PendingCommit"/>) is compared: once
+    /// committed, Microsoft fills in the submission itself (package details, processing fields), which is no edit, and
+    /// nothing can change it through the API anyway, so the flag is cleared.
+    /// </summary>
+    /// <param name="row"></param>
+    /// <param name="status"></param>
+    /// <param name="isPending"></param>
+    /// <param name="contentHash"></param>
+    public static void ObserveContent(MsSubmission row, MsSubmissionStatus status, bool isPending, string contentHash)
+    {
+        if (!isPending || status != MsSubmissionStatus.PendingCommit)
+        {
+            row.ModifiedOutsideApi = false;
+            return;
+        }
+
+        if (row.CreatedByStoreasy && row.ContentHash != null && contentHash != null && row.ContentHash != contentHash)
+            row.ModifiedOutsideApi = true;
     }
 }
 

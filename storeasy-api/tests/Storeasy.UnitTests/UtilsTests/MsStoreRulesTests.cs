@@ -229,6 +229,21 @@ public class MsStoreRulesTests
         MsSyncReader.PackageState(pending, status).Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(MsSubmissionStatus.PendingCommit, true, "changed", true)]
+    [InlineData(MsSubmissionStatus.PendingCommit, true, "written", false)]
+    [InlineData(MsSubmissionStatus.Certification, true, "changed", false)]
+    [InlineData(MsSubmissionStatus.Release, true, "changed", false)]
+    [InlineData(MsSubmissionStatus.Published, false, "changed", false)]
+    public void ObserveContent_ShouldFlagOnlyADraftChangedOutsideTheApi(MsSubmissionStatus status, bool pending, string hash, bool expected)
+    {
+        var row = new MsSubmission { CreatedByStoreasy = true, ContentHash = "written", ModifiedOutsideApi = status != MsSubmissionStatus.PendingCommit };
+
+        MsSubmissionRows.ObserveContent(row, status, pending, hash);
+
+        row.ModifiedOutsideApi.Should().Be(expected);
+    }
+
     [Fact]
     public void WriteListing_ShouldKeepEveryOtherField_AndAddNewLanguages()
     {
