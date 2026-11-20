@@ -20,6 +20,7 @@ using Storeasy.Application.Features.AssistedSteps.CompleteAssistedStep;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepDetail;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepList;
 using Storeasy.Application.Features.AssistedSteps.HandOffAssistedStep;
+using Storeasy.Application.Features.Builds.GetBuildDownloadUrl;
 using Storeasy.Application.Features.Builds.GetBuildList;
 using Storeasy.Application.Features.Builds.PlanBuildLink;
 using Storeasy.Application.Features.Builds.PlanBundleUpload;
@@ -212,6 +213,7 @@ public static class McpToolCatalog
 
         // Builds and releases
         Read<GetBuildListQuery>("builds_list", "Lists the builds of a store record (processing state, version, Play tracks, TestFlight expiry)."),
+        Read<GetBuildDownloadUrlQuery>("builds_download_url", "Returns a short lived (30 minute) download URL of the package (IPA, AAB, APK, MSIX) storeasy keeps for a build; builds_list shows which builds have one (PackageSessionId). Audited."),
         Plan<PlanBuildLinkCommand>("builds_link", "Plans attaching a VALID build to the App Store version."),
         Plan<PlanExportComplianceCommand>("builds_export_compliance", "Plans the export compliance answer of a build."),
         Plan<PlanBundleUploadCommand>("bundle_upload_plan", "Plans uploading an Android App Bundle (an uploaded asset) to Google Play, optionally onto a track. Production needs ReleaseProduction and the typed confirmation on approval.",

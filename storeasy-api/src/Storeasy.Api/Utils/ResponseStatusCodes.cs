@@ -51,6 +51,7 @@ public static class ResponseStatusCodes
         [MessageKey.VersionNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.SavedAnswerNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.BuildNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.BuildPackageNotStored] = StatusCodes.Status404NotFound,
         [MessageKey.AssistedStepNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.UserNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.RoleNotFound] = StatusCodes.Status404NotFound,

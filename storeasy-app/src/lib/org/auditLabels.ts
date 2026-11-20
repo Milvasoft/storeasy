@@ -62,6 +62,8 @@ export function auditActionLabel(action: AuditAction, t: Dictionary): string {
       return t.enums.auditAction.preReviewStarted
     case AuditAction.PreReviewCompleted:
       return t.enums.auditAction.preReviewCompleted
+    case AuditAction.BuildPackageDownloaded:
+      return t.enums.auditAction.buildPackageDownloaded
     default:
       return String(action)
   }

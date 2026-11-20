@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Bell, BellOff, Boxes, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, Boxes, Download, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { useSetAppAlertsMuted } from '@/components/apps/useSetAppAlertsMuted'
@@ -54,8 +54,65 @@ function BuildStateBadge({ state }: { state: BuildProcessingState }) {
   )
 }
 
+// Where a build lives in its store's console: the TestFlight page of an App Store build, the console of the others
+// (Play Console and Partner Center have no build address storeasy can build without the developer account id).
+export function buildConsoleUrl(build: BuildDto, record: AppStoreRecordDto | undefined): string | null {
+  if (!record) {
+    return null
+  }
+  if (record.Store === StoreKind.Apple && record.ExternalId && build.ExternalId) {
+    return `https://appstoreconnect.apple.com/apps/${encodeURIComponent(record.ExternalId)}/testflight/ios/${encodeURIComponent(build.ExternalId)}`
+  }
+  return storeLinksOf(record).consoleUrl || null
+}
+
+/**
+ * The package of a build: a download of the file storeasy keeps (a short lived link, asked for on click and audited),
+ * otherwise a link to the build in its store.
+ */
+function BuildPackageCell({ build, record }: { build: BuildDto; record: AppStoreRecordDto | undefined }) {
+  const t = useT()
+  const organization = useCurrentOrganization()
+  const labels = { version: build.Version ?? '-', build: build.BuildNumber ?? '-' }
+  const download = useMutation({
+    mutationFn: () => appsApi.buildDownloadUrl(organization.Id, build.Id),
+    // The signed URL answers with Content-Disposition: attachment (as the studio's zip download).
+    onSuccess: (result) => window.open(result.Url, '_blank', 'noopener'),
+  })
+  if (build.PackageSessionId) {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={interpolate(t.builds.downloadLabel, labels)}
+        loading={download.isPending}
+        onClick={() => download.mutate()}
+      >
+        <Download aria-hidden className="h-3.5 w-3.5" />
+        {t.builds.download}
+      </Button>
+    )
+  }
+  const href = buildConsoleUrl(build, record)
+  if (!href) {
+    return <span className="text-fg3">-</span>
+  }
+  return (
+    <a
+      className="lnk inline-flex items-center gap-1 whitespace-nowrap text-[13px]"
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label={interpolate(t.builds.inStoreLabel, { ...labels, store: storeName(build.Store, t.enums.store) })}
+    >
+      {t.builds.inStore}
+      <ExternalLink aria-hidden className="h-3 w-3" />
+    </a>
+  )
+}
+
 /** The builds of all the app's records, newest first (design 8.1): a state filter, then the table. */
-export function BuildsTable({ builds, compact }: { builds: BuildDto[]; compact?: boolean }) {
+export function BuildsTable({ builds, records = [], compact }: { builds: BuildDto[]; records?: AppStoreRecordDto[]; compact?: boolean }) {
   const t = useT()
   const format = useFormat()
   const columns: Column<BuildDto>[] = [
@@ -75,6 +132,11 @@ export function BuildsTable({ builds, compact }: { builds: BuildDto[]; compact?:
       key: 'uploaded',
       header: t.builds.uploaded,
       cell: (build) => <span className="whitespace-nowrap tabular-nums">{format.dateTime(build.UploadedDate)}</span>,
+    },
+    {
+      key: 'package',
+      header: t.builds.package,
+      cell: (build) => <BuildPackageCell build={build} record={records.find((record) => record.StoreAppId === build.StoreAppId)} />,
     },
   ]
   if (!compact) {
@@ -122,7 +184,7 @@ function BuildsTab({ app }: { app: AppDetailDto }) {
         ))}
         <span className="ml-auto text-xs text-fg3">{t.builds.limitNote}</span>
       </div>
-      {shown.length === 0 ? <p className="text-[13px] text-fg3">{t.builds.noMatch}</p> : <BuildsTable builds={shown} />}
+      {shown.length === 0 ? <p className="text-[13px] text-fg3">{t.builds.noMatch}</p> : <BuildsTable builds={shown} records={app.Stores ?? []} />}
     </>
   )
 }
@@ -321,7 +383,7 @@ function Overview({ app, connections, started }: { app: AppDetailDto; connection
           {builds.length === 0 ? (
             <p className="card-b m-0 text-[13px] text-fg3">{t.app.noBuilds}</p>
           ) : (
-            <BuildsTable builds={builds} compact />
+            <BuildsTable builds={builds} records={app.Stores ?? []} compact />
           )}
         </section>
         <aside className="grid content-start gap-4">

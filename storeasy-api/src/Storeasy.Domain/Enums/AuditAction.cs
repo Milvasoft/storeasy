@@ -379,4 +379,8 @@ public enum AuditAction : short
     /// <summary>The package intake settings (retention) changed.</summary>
     [Description("Intake settings updated")]
     IntakeSettingsUpdated = 313,
+
+    /// <summary>A member asked for a download link of a stored build package.</summary>
+    [Description("Build package downloaded")]
+    BuildPackageDownloaded = 314,
 }

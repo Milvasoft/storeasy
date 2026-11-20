@@ -991,6 +991,46 @@
             UTC instant of the last successful sync; null until the first sync confirmed the record.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto">
+            <summary>
+            A short lived presigned download URL of the package storeasy keeps for a build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.BuildId">
+            <summary>
+            Build id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.SessionId">
+            <summary>
+            Upload session the package came with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.Url">
+            <summary>
+            Presigned GET URL; it saves the file under <see cref="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.FileName"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.ExpiryDate">
+            <summary>
+            UTC instant the URL stops working.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.FileName">
+            <summary>
+            File name of the package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.Size">
+            <summary>
+            Size in bytes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto.Sha256">
+            <summary>
+            Lower case hex SHA-256 of the file.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AppDtos.BuildDto">
             <summary>
             A build of one of the app's store records.
@@ -1054,6 +1094,12 @@
         <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.UsesNonExemptEncryption">
             <summary>
             Export compliance answer (App Store); null while unanswered.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.PackageSessionId">
+            <summary>
+            Upload session whose package storeasy still keeps for this build (download it with builds/download-url); null when
+            the package was deleted or the build reached the store without storeasy.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Dtos.AppDtos.BuildDto.Projection">
@@ -11983,15 +12029,19 @@
         </member>
         <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found. Each build carries
+            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
             </summary>
             <param name="appRepository"></param>
+            <param name="sessionRepository"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession})">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found.
+            Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found. Each build carries
+            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
             </summary>
             <param name="appRepository"></param>
+            <param name="sessionRepository"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.Handle(Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -13622,6 +13672,57 @@
         <member name="M:Storeasy.Application.Features.AssistedSteps.HandOffAssistedStep.HandOffAssistedStepCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.AssistedSteps.HandOffAssistedStep.HandOffAssistedStepCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery">
+            <summary>
+            Returns a short lived presigned download URL of the package (IPA, AAB, APK, MSIX) storeasy keeps for a build. Only a
+            build that came through the package intake and whose file was not deleted yet has one. Every call is audited.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery.BuildId">
+            <summary>
+            Build id (BuildDto.Id).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery"/>: finds the session that keeps the build's package
+            (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>), presigns a GET of its object for <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.PresignedUrlLifetimeMinutes"/>
+            and writes an audit entry (never the URL: it is a bearer link). A build of another organization is reported as not found.
+            </summary>
+            <param name="buildRepository"></param>
+            <param name="sessionRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="auditTrail"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Utils.Models.StorageOptions,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery"/>: finds the session that keeps the build's package
+            (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>), presigns a GET of its object for <see cref="P:Storeasy.Application.Utils.Models.StorageOptions.PresignedUrlLifetimeMinutes"/>
+            and writes an audit entry (never the URL: it is a bearer link). A build of another organization is reported as not found.
+            </summary>
+            <param name="buildRepository"></param>
+            <param name="sessionRepository"></param>
+            <param name="fileStorage"></param>
+            <param name="storageOptions"></param>
+            <param name="auditTrail"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryHandler.Handle(Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Builds.GetBuildDownloadUrl.GetBuildDownloadUrlQueryValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery">
             <summary>
             Pages through the synced builds of a store record (App Store builds with their processing state and export compliance; Play bundles with their tracks), newest first.
@@ -13637,15 +13738,19 @@
         </member>
         <member name="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQueryHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery"/>. Each build carries the upload session whose package storeasy still keeps
+            (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
             </summary>
             <param name="buildRepository"></param>
+            <param name="sessionRepository"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build})">
+        <member name="M:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession})">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery"/>.
+            Handles <see cref="T:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery"/>. Each build carries the upload session whose package storeasy still keeps
+            (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
             </summary>
             <param name="buildRepository"></param>
+            <param name="sessionRepository"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQueryHandler.Handle(Storeasy.Application.Features.Builds.GetBuildList.GetBuildListQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -32849,6 +32954,49 @@
             <summary>
             Normalizes an event type name: the aliases of the version state event become <see cref="F:Storeasy.Application.Utils.Helpers.AppStoreVersionStates.StateUpdatedEvent"/>.
             </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Helpers.BuildPackages">
+            <summary>
+            Finds the package storeasy keeps for a synced build. A build has no key of its own to an upload session: the session
+            names the store record it was matched to (<see cref="P:Storeasy.Domain.Intake.ArtifactSession.StoreAppId"/>) and, once delivered, the store's id of
+            the build (<see cref="P:Storeasy.Domain.Intake.ArtifactSession.StoreBuildId"/>: App Store Connect build id, Play version code). A build the store
+            got another way (the CI uploaded it itself while storeasy held the same file) is matched by its version and build number.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Helpers.BuildPackages.UsableStatuses">
+            <summary>
+            Session states whose package may be the build in the store: delivered, or held while the same file reached the store another way.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.BuildPackages.Matches(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,Storeasy.Domain.Intake.ArtifactSession)">
+            <summary>
+            Whether <paramref name="session"/> holds the package of the build. Both must belong to the same store record.
+            </summary>
+            <param name="store">Store of the build.</param>
+            <param name="externalId">Store's id of the build.</param>
+            <param name="version">Version of the build.</param>
+            <param name="buildNumber">Build number or version code of the build.</param>
+            <param name="session"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.BuildPackages.FillAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},System.Int32,System.Collections.Generic.IReadOnlyCollection{Storeasy.Application.Dtos.AppDtos.BuildDto},System.Threading.CancellationToken)">
+            <summary>
+            Sets <see cref="P:Storeasy.Application.Dtos.AppDtos.BuildDto.PackageSessionId"/> of every build whose package storeasy still keeps (the newest matching session).
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="organizationId"></param>
+            <param name="builds"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.BuildPackages.FindAsync(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Domain.Apps.Build,System.Threading.CancellationToken)">
+            <summary>
+            The newest session that keeps the package of <paramref name="build"/>, or null.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="build"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Helpers.CacheKeys">
             <summary>

@@ -90,6 +90,7 @@ export const AuditAction = {
   AppAlertsUnmuted: 48,
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
+  BuildPackageDownloaded: 314,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -562,6 +563,19 @@ export interface BuildDto {
   UploadedDate?: IsoDateTime | null
   /** TestFlight expiry. */
   ExpiryDate?: IsoDateTime | null
+  /** Upload session whose package storeasy still keeps; null when it was deleted or the build reached the store without storeasy. */
+  PackageSessionId?: number | null
+}
+
+/** A short lived presigned download URL of the package storeasy keeps for a build (BuildDownloadDto). */
+export interface BuildDownloadDto {
+  BuildId: number
+  SessionId: number
+  Url: string
+  ExpiryDate: IsoDateTime
+  FileName: string
+  Size: number
+  Sha256: string
 }
 
 /** What the rules need to know that the stores do not report (UpdateAppProfileCommand); null until it is saved. */

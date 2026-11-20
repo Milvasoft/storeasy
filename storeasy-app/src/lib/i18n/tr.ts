@@ -987,6 +987,11 @@ export const tr: Dictionary = {
     emptyBody: "Mağazalara yüklenen build'ler senkrondan sonra burada görünür; Xcode Cloud ve Transporter yüklemeleri de.",
     noMatch: 'Bu durumda build yok.',
     limitNote: 'Mağazalardaki en yeni 100 build.',
+    package: 'Paket',
+    download: 'İndir',
+    downloadLabel: '{version} ({build}) paketini indir',
+    inStore: 'Mağazada',
+    inStoreLabel: "{version} ({build}) build'ini {store} içinde yeni sekmede aç",
   },
   addGoogle: {
     title: 'Google Play uygulaması ekle',
@@ -1161,6 +1166,7 @@ export const tr: Dictionary = {
       appsReordered: 'Uygulamalar yeniden sıralandı',
       preReviewStarted: 'Yapay zeka ön incelemesi başladı',
       preReviewCompleted: 'Yapay zeka ön incelemesi bitti',
+      buildPackageDownloaded: 'Build paketi indirildi',
     },
   },
 }
