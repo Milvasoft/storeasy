@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { AppCompliancePage, OrgCompliancePage } from '@/features/compliance/CompliancePages'
+import { ComplianceStatus } from '@/features/common/types'
 import { complianceItem, contentState, setupContentApi } from '../../support/content'
 import { renderWithProviders } from '../../support/render'
 import { lastRequestTo } from '../../support/state'
@@ -39,6 +40,20 @@ describe('AppCompliancePage', () => {
     expect(screen.getByText('Kaynaklar çelişiyor')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Kaynak' })).toHaveAttribute('href', 'https://developer.apple.com/news/')
     expect(screen.getByRole('link', { name: 'Asistanlı adımı aç' })).toHaveAttribute('href', '/apps/101/assisted/5521')
+  })
+
+  it('shows a passed date as in effect, not late, while the state is unknown, and a missing item as Eksik', async () => {
+    contentState.appCompliance = [
+      complianceItem({ RuleId: 'a.unknown', DaysLeft: -206, Status: ComplianceStatus.Unknown }),
+      complianceItem({ RuleId: 'b.missing', DaysLeft: -128 }),
+    ]
+
+    renderWithProviders(<AppCompliancePage />, { route: '/apps/101/compliance', path: '/apps/:appId/compliance' })
+
+    expect(await screen.findByText('206 gündür yürürlükte')).toBeInTheDocument()
+    expect(screen.queryByText('206 gün geçti')).not.toBeInTheDocument()
+    expect(screen.getByText('128 gün geçti')).toBeInTheDocument()
+    expect(screen.getByText('Eksik')).toBeInTheDocument()
   })
 
   it('says so when no deadline applies', async () => {

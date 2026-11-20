@@ -148,6 +148,7 @@ export const p2en = {
     emptyBody: 'The catalog has no dated rule that matches these apps.',
     daysLeft: '{days} days',
     overdue: '{days} days late',
+    inEffect: 'In effect for {days} days',
     today: 'today',
     noDate: 'No date yet',
     source: 'Source',
@@ -555,7 +556,7 @@ export const p2en = {
       notApplicable: 'Not applicable',
       unknown: 'Unknown',
     },
-    complianceStatus: { done: 'Done', missing: 'Open', unknown: 'Unknown', notApplicable: 'Not applicable' },
+    complianceStatus: { done: 'Done', missing: 'Missing', unknown: 'Unknown', notApplicable: 'Not applicable' },
     ruleStatus: { inForce: 'In force', upcoming: 'Upcoming', deprecated: 'Deprecated' },
     applicability: { applies: 'Applies', doesNotApply: 'Does not apply', unknown: 'Unknown' },
     planStatus: {
