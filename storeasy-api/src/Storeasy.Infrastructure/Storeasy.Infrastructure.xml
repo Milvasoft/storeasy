@@ -732,6 +732,11 @@
             Queues a TestFlight sync for every App Store record with a connection.
             </summary>
         </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueStoreMetricSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a store page metrics sync for every store record (all three stores) with a verified connection.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Events.SyncVersionStatesJobHandler">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncVersionStates"/> job: reads the newest App Store versions of every App Store record of
@@ -1973,6 +1978,46 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.SqlCleanupJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.StoreMetricCleanerJob">
+            <summary>
+            Deletes the daily store page metric rows older than 25 months (<c>storeMetric_cleanup.sql</c>; the same limit as
+            <c>StoreMetricRules.RetentionMonths</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.StoreMetricCleanerJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Deletes the daily store page metric rows older than 25 months (<c>storeMetric_cleanup.sql</c>; the same limit as
+            <c>StoreMetricRules.RetentionMonths</c>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Jobs.StoreMetricCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.StoreMetricsSyncJob">
+            <summary>
+            Every day at 05:30 UTC: queues the store page metrics syncs (the stores publish the previous day's reports during the
+            night, US time).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.StoreMetricsSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every day at 05:30 UTC: queues the store page metrics syncs (the stores publish the previous day's reports during the
+            night, US time).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.StoreMetricsSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.TestFlightSyncJob">
@@ -4500,9 +4545,10 @@
             A short lived App Store Connect token for the stored secret.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.GoogleTokenAsync(System.String,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.GoogleTokenAsync(System.String,System.Threading.CancellationToken,System.String)">
             <summary>
-            A Google access token for the stored service account.
+            A Google access token for the stored service account, for <paramref name="scope"/> (the Play Developer API when
+            null).
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.JsonAsync(System.Net.Http.HttpMethod,System.String,System.String,System.Object,System.Threading.CancellationToken)">
@@ -4519,6 +4565,12 @@
             <summary>
             Reads an App Store Connect list following its <c>links.next</c>, at most <paramref name="maxPages"/> pages.
             Returns the <c>data</c> items and the <c>included</c> items of every page.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.BytesOrNotFoundAsync(System.String,System.String,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Downloads a file (a report) as bytes; null when the answer is 404. <paramref name="token"/> is sent as a bearer
+            token when given (presigned addresses need none). At most <paramref name="maxBytes"/> are read.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreClients.StoreApiClient.Items(System.Text.Json.JsonElement,System.String)">
@@ -4868,6 +4920,257 @@
             <param name="timeProvider"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreJobs.StoreJobRunner.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.EnableAppleAnalyticsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job: asks App Store Connect for the ONGOING analytics reports of
+            one app (or adopts the request that already exists), saves the request id and queues a first metrics sync. Apple needs
+            one or two days for the first reports, so the feed waits until then. A refused key (the step needs the Admin role) is
+            saved as <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.AccessDenied"/> and fails the job.
+            </summary>
+            <param name="feeds"></param>
+            <param name="gateway"></param>
+            <param name="storeJobQueue"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.EnableAppleAnalyticsJobHandler.#ctor(Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds,Storeasy.Application.Interfaces.IStoreMetricsGateway,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job: asks App Store Connect for the ONGOING analytics reports of
+            one app (or adopts the request that already exists), saves the request id and queues a first metrics sync. Apple needs
+            one or two days for the first reports, so the feed waits until then. A refused key (the step needs the Admin role) is
+            saved as <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.AccessDenied"/> and fails the job.
+            </summary>
+            <param name="feeds"></param>
+            <param name="gateway"></param>
+            <param name="storeJobQueue"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreMetrics.EnableAppleAnalyticsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.EnableAppleAnalyticsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds">
+            <summary>
+            Loads and saves the <see cref="T:Storeasy.Domain.Analytics.StoreMetricFeed"/> row of a store record for the metrics jobs.
+            </summary>
+            <param name="feedRepository"></param>
+            <param name="storeAppRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Analytics.StoreMetricFeed},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp})">
+            <summary>
+            Loads and saves the <see cref="T:Storeasy.Domain.Analytics.StoreMetricFeed"/> row of a store record for the metrics jobs.
+            </summary>
+            <param name="feedRepository"></param>
+            <param name="storeAppRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds.RecordAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            The store record of a job (id, app, store, external id, connection), or a permanent job failure when it is gone.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="storeAppId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds.LoadAsync(Storeasy.Domain.Apps.StoreApp,System.Threading.CancellationToken)">
+            <summary>
+            The feed of a record, or a new unsaved one.
+            </summary>
+            <param name="record"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds.SaveAsync(Storeasy.Domain.Analytics.StoreMetricFeed,System.Threading.CancellationToken)">
+            <summary>
+            Inserts a new feed or writes every field of an existing one. The error is redacted and cut to the column.
+            </summary>
+            <param name="feed"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStoreMetricsGateway"/> over <see cref="T:Storeasy.Infrastructure.StoreClients.StoreApiClient"/> (App Store Connect, Google Cloud Storage) and
+            <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/> (Partner Center analytics).
+            </summary>
+            <param name="client"></param>
+            <param name="microsoftClient"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.#ctor(Storeasy.Infrastructure.StoreClients.StoreApiClient,Storeasy.Application.Interfaces.IMicrosoftStoreClient)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStoreMetricsGateway"/> over <see cref="T:Storeasy.Infrastructure.StoreClients.StoreApiClient"/> (App Store Connect, Google Cloud Storage) and
+            <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/> (Partner Center analytics).
+            </summary>
+            <param name="client"></param>
+            <param name="microsoftClient"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.StorageScope">
+            <summary>
+            Read only scope of Google Cloud Storage, for the Play statistics bucket.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.StorageBaseUrl">
+            <summary>
+            Google Cloud Storage JSON API base address.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.MaxAppleInstances">
+            <summary>
+            Most report instances read per report and run (the newest ones; later runs continue from the marker).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.MaxFileBytes">
+            <summary>
+            Largest report file read, compressed or not.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.FindAppleReportRequestAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.CreateAppleReportRequestAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.ReadAppleMetricsAsync(System.String,System.String,System.Nullable{System.DateOnly},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.ReadPlayMetricsAsync(System.String,System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.ReadMicrosoftMetricsAsync(System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsGateway.Inflate(System.Byte[])">
+            <summary>
+            Inflates a report segment when it is gzip compressed (Apple serves <c>.gz</c> files); plain text is returned as is.
+            </summary>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStoreMetricsQuery"/> over the <c>StoreMetrics</c> table: every read is one grouped SQL query over one
+            slice. A metric is null in a group when none of its rows reports it (SQL sums would read 0). Rows of removed apps are
+            left out.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IStoreMetricsQuery"/> over the <c>StoreMetrics</c> table: every read is one grouped SQL query over one
+            slice. A metric is null in a group when none of its rows reports it (SQL sums would read 0). Rows of removed apps are
+            left out.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetMetricSeriesAsync(Storeasy.Application.Interfaces.StoreMetricScope,Storeasy.Domain.Enums.StoreMetricKind,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetDailyAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetTotalsAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetBySourceAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetByCountryAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetByStoreAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.GetByAppAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricsQuery.MetricSums`1">
+            <summary>
+            Sums of one group as SQL returns them, with the number of rows that report each metric.
+            </summary>
+            <typeparam name="TKey"></typeparam>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricsServiceCollectionExtensions">
+            <summary>
+            Registrations of the store page metrics (ASO conversion analytics): the store reads, the daily rows, the query service
+            other features reuse and the daily sync.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricsServiceCollectionExtensions.AddStoreMetricServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds the store page metrics services. The store HTTP client (<see cref="T:Storeasy.Infrastructure.StoreClients.StoreApiClient"/>) comes from
+            the events phase and the Microsoft Store client from the Microsoft phase.
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter">
+            <summary>
+            Writes daily metric rows with one <c>INSERT ... ON CONFLICT DO UPDATE</c> over <c>unnest</c> arrays, so a read of the
+            same days again (every sync re-reads the last week) updates the rows instead of adding to them. A metric the new row
+            does not report keeps its stored value (the App Store's two reports arrive separately).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext,System.TimeProvider)">
+            <summary>
+            Writes daily metric rows with one <c>INSERT ... ON CONFLICT DO UPDATE</c> over <c>unnest</c> arrays, so a read of the
+            same days again (every sync re-reads the last week) updates the rows instead of adding to them. A metric the new row
+            does not report keeps its stored value (the App Store's two reports arrive separately).
+            </summary>
+            <param name="dbContext"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter.UpsertAsync(System.Int32,System.Int32,Storeasy.Domain.Enums.StoreKind,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreMetricRow},System.Threading.CancellationToken)">
+            <summary>
+            Upserts the rows of one store record and returns how many rows were written.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="storeAppId"></param>
+            <param name="store"></param>
+            <param name="rows"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics"/> job: reads the store page metrics of one store record and upserts the
+            daily rows. The first read goes back as far as the source allows (App Store: every report instance since the reports
+            were enabled; Google Play: <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.PlayBackfillMonths"/> monthly files; Microsoft Store:
+            <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.MicrosoftBackfillDays"/> days); later reads repeat the last
+            <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.RefreshDays"/> days, which the stores complete late. Only reads: an App Store record without
+            analytics reports adopts a request made elsewhere or stays "not enabled". A refused credential (401, 403) is saved as
+            <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.AccessDenied"/> and ends the job without retries; other failures are saved and rethrown.
+            </summary>
+            <param name="feeds"></param>
+            <param name="connectionRepository"></param>
+            <param name="gateway"></param>
+            <param name="writer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.#ctor(Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreMetricsGateway,Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter,System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics"/> job: reads the store page metrics of one store record and upserts the
+            daily rows. The first read goes back as far as the source allows (App Store: every report instance since the reports
+            were enabled; Google Play: <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.PlayBackfillMonths"/> monthly files; Microsoft Store:
+            <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.MicrosoftBackfillDays"/> days); later reads repeat the last
+            <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.RefreshDays"/> days, which the stores complete late. Only reads: an App Store record without
+            analytics reports adopts a request made elsewhere or stays "not enabled". A refused credential (401, 403) is saved as
+            <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.AccessDenied"/> and ends the job without retries; other failures are saved and rethrown.
+            </summary>
+            <param name="feeds"></param>
+            <param name="connectionRepository"></param>
+            <param name="gateway"></param>
+            <param name="writer"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Content.AppleContentGateway">
@@ -5722,6 +6025,9 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.DownloadAsync``1(System.String,System.Boolean,System.Func{System.IO.Stream,System.Nullable{System.Int64},System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetAnalyticsAsync(System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Microsoft.MicrosoftStoreClient.GetProductStatusAsync(System.String,System.String,System.Threading.CancellationToken)">

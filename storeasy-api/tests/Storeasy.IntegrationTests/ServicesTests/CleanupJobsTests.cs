@@ -138,6 +138,31 @@ public class CleanupJobsTests(StoreasyApiFactory factory) : IntegrationTestBase(
         remaining.Where(a => a.OrganizationId == longRetention.Data).Select(a => a.Summary).Should().BeEquivalentTo(["old", "recent"]);
     }
 
+    [Fact]
+    public async Task StoreMetricCleanerJob_ShouldDeleteOnlyTheRowsOlderThanTwentyFiveMonths()
+    {
+        // Arrange: one row past the retention, one inside it, on a store record of a new organization.
+        var org = await _factory.NewOrgAsync();
+        var (_, storeAppId, _) = await _factory.AddAppAsync(org);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        await _factory.DbAsync(async db =>
+        {
+            db.StoreMetrics.AddRange(new Domain.Analytics.StoreMetric { OrganizationId = org.OrganizationId, StoreAppId = storeAppId, Store = StoreKind.Apple, Date = today.AddMonths(-26), Country = "", Source = TrafficSource.All, Downloads = 1, UpdatedDate = DateTime.UtcNow },
+                                     new Domain.Analytics.StoreMetric { OrganizationId = org.OrganizationId, StoreAppId = storeAppId, Store = StoreKind.Apple, Date = today.AddMonths(-24), Country = "", Source = TrafficSource.All, Downloads = 2, UpdatedDate = DateTime.UtcNow });
+
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        });
+
+        // Act
+        await RunJobAsync<StoreMetricCleanerJob>();
+
+        // Assert
+        var remaining = await _factory.DbAsync(db => db.StoreMetrics.Where(m => m.StoreAppId == storeAppId).Select(m => m.Downloads).ToListAsync(TestContext.Current.CancellationToken));
+
+        remaining.Should().Equal(2L);
+    }
+
     /// <summary>
     /// Runs a cleanup job now instead of waiting for its schedule (AddInternalJobs registers it as a hosted service).
     /// </summary>

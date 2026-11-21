@@ -160,6 +160,8 @@ export const AuditAction = {
   BetaReviewSubmitted: 443,
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
+  AppleAnalyticsEnabled: 480,
+  ReportBucketUpdated: 481,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -174,6 +176,8 @@ export const StoreJobKind = {
   MockupExport: 60,
   SyncMonetization: 70,
   PreReview: 90,
+  SyncStoreMetrics: 120,
+  EnableAppleAnalytics: 121,
   ProcessWebhookEvent: 400,
   RegisterWebhooks: 401,
   SyncVersionStates: 402,

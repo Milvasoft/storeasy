@@ -15,6 +15,8 @@ const KIND_KEY: Record<StoreJobKind, keyof Dictionary['jobs']['kind']> = {
   [StoreJobKind.MockupExport]: 'mockupExport',
   [StoreJobKind.SyncMonetization]: 'syncMonetization',
   [StoreJobKind.PreReview]: 'preReview',
+  [StoreJobKind.SyncStoreMetrics]: 'syncStoreMetrics',
+  [StoreJobKind.EnableAppleAnalytics]: 'enableAppleAnalytics',
   [StoreJobKind.ProcessWebhookEvent]: 'processWebhookEvent',
   [StoreJobKind.RegisterWebhooks]: 'registerWebhooks',
   [StoreJobKind.SyncVersionStates]: 'syncVersionStates',

@@ -198,6 +198,7 @@ public static class ResponseStatusCodes
         [MessageKey.AiSuggestionFailed] = StatusCodes.Status502BadGateway,
         [MessageKey.PreReviewNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.PreReviewInProgress] = StatusCodes.Status409Conflict,
+        [MessageKey.AppleAnalyticsAlreadyEnabled] = StatusCodes.Status409Conflict,
         [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
         [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
         [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,

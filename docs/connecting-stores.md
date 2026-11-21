@@ -140,6 +140,24 @@ Writes go through change plans like the other stores (`ms/change`), and sending 
 marketplace webhooks are a different product); it e-mails the account. storeasy reads submission states with the
 periodic Microsoft sync instead.
 
+## Store page performance
+
+The app's **Store performance** tab shows impressions, page views, downloads and the conversion rate (downloads divided
+by page views) per day, store, country and traffic source. storeasy reads them once a day (05:30 UTC) and on **Fetch
+now**; reads never change anything in a store. The first read goes back as far as each source allows, later reads repeat
+the last 7 days because the stores complete recent days late. Daily rows are kept for 25 months.
+
+| Store | Source | What the owner sets up |
+|---|---|---|
+| App Store | Analytics Reports API: "App Store Discovery and Engagement" (impressions, product page views) and "App Downloads" (first-time downloads, redownloads), standard reports, daily | Press **Enable analytics reports** once per app (Manage connections permission, a confirmation, audited). This is the one store write: it creates an ONGOING report request at Apple. Creating it needs an API key with the **Admin** role; reading the reports needs **Admin** or **Sales and Reports**. Apple delivers the first data one or two days later and every day after that with a delay of one to two days. Apple stops a request nobody reads for a long time; storeasy then shows it as not enabled again. |
+| Google Play | Play Console statistics exported to Cloud Storage: `stats/store_performance/store_performance_<package>_<yyyyMM>_country.csv` and `..._traffic_source.csv` (store listing visitors, acquisitions) | Enter the reports bucket on the tab (Play Console, **Download reports**, **Copy Cloud Storage URI**, e.g. `gs://pubsite_prod_rev_01234567890987654321`). The service account must be a Play Console user with **View app information and download bulk reports** set for the whole account (global). storeasy reads it with the `devstorage.read_only` scope; a refusal shows as "No access" on the tab. The first read takes the last 6 monthly files. Play reports no impressions. |
+| Microsoft Store | Partner Center analytics API: `analytics/appacquisitions` (daily acquisitions by market and store client) and `analytics/funnel` (page views, one call per day) | Nothing new: the existing Entra app is used. It needs a Partner Center role that can read analytics (Manager or Developer); a 401 or 403 shows as "No access". The first read takes the last 90 days. Microsoft reports no impressions and counts funnel page views as users. |
+
+Conversion is computed only over the rows that report both page views and downloads, so one store's downloads are
+never divided by another store's page views. The country filter and the source breakdown are separate slices of the
+same data; Google Play reports countries and traffic sources in separate files, so a country filter with a source
+breakdown shows only the stores that report both together.
+
 ## Troubleshooting
 
 | Symptom | Check |

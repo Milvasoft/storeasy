@@ -391,4 +391,12 @@ public enum AuditAction : short
     /// <summary>A member asked for a download link of a stored build package.</summary>
     [Description("Build package downloaded")]
     BuildPackageDownloaded = 314,
+
+    /// <summary>A member asked App Store Connect to start the analytics reports of an app.</summary>
+    [Description("App Store analytics enabled")]
+    AppleAnalyticsEnabled = 480,
+
+    /// <summary>The Cloud Storage bucket of a Google Play connection's reports was set or cleared.</summary>
+    [Description("Play reports bucket updated")]
+    ReportBucketUpdated = 481,
 }
