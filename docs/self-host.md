@@ -389,7 +389,7 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Encryption:KeyVersion` | `STOREASY_MASTER_KEY_VERSION` | `1` | Version of the current master key. Raise it when rotating. |
 | `Storeasy:Encryption:RetiredKeys:<version>` | | none | **Secret.** Older master keys by version, so records sealed before a rotation still open. |
 | `Storeasy:Jobs:Enabled` | `STOREASY_JOBS_ENABLED` | `true` | Whether this instance runs store jobs. Every instance can queue them. |
-| `Storeasy:Jobs:Workers` | `STOREASY_JOBS_WORKERS` | `2` | Jobs one instance runs at the same time. |
+| `Storeasy:Jobs:Workers` | `STOREASY_JOBS_WORKERS` | `4` | Jobs one instance runs at the same time. |
 | `Storeasy:Jobs:PollIntervalMilliseconds` | | `2000` | Pause of an idle worker. |
 | `Storeasy:Jobs:LeaseSeconds` | | `300` | Lease of a running attempt, renewed on every step; an expired lease lets another worker reclaim the job. |
 | `Storeasy:Jobs:DefaultMaxAttempts` | | `3` | Attempts of a job. |

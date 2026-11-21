@@ -20,7 +20,7 @@ public class StoreJobOptions
     /// <summary>
     /// Jobs one instance runs at the same time.
     /// </summary>
-    public int Workers { get; set; } = 2;
+    public int Workers { get; set; } = 4;
 
     /// <summary>
     /// Pause of an idle worker before it looks for a job again, in milliseconds.
