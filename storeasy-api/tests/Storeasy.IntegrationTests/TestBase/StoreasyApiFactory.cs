@@ -141,6 +141,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// The Microsoft every test host talks to (Entra, both Microsoft Store APIs, blob uploads, installer downloads).
     /// </summary>
     public FakeMicrosoftStore MicrosoftStore { get; } = new();
+
+    /// <summary>
+    /// The GitHub the winget channel talks to (winget-pkgs, forks, pull requests, installer downloads).
+    /// </summary>
+    public FakeGitHub GitHub { get; } = new();
     /// The CI providers' OIDC issuers (discovery documents and key sets of locally generated keys).
     /// </summary>
     public FakeOidcIssuers OidcIssuers { get; } = new();
@@ -238,8 +243,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             // controllers on its own (the OpenAPI document comes back with no paths). Register the part explicitly.
             services.AddControllers().AddApplicationPart(typeof(IApiMarker).Assembly);
 
+            // The fake gateway answers for the first three stores; a registered channel (winget) runs its real engine
+            // over its own fake.
             services.RemoveAll<IStoreGateway>();
-            services.AddSingleton<IStoreGateway>(StoreGateway);
+            services.AddSingleton<IStoreGateway>(provider => StoreGateway.WithChannels(provider.GetServices<IStoreChannel>()));
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
@@ -255,6 +262,12 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.AddHttpClient(MicrosoftStoreClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => MicrosoftStore);
             services.RemoveAll<MicrosoftStoreOptions>();
             services.AddSingleton(new MicrosoftStoreOptions { RetryBaseDelayMilliseconds = 0, MaxRetryDelaySeconds = 0, StatusPollIntervalMilliseconds = 0, StatusPollAttempts = 3, BlockPrivateDownloadAddresses = false });
+
+            // winget: real client over a fake GitHub; the fake download host resolves nowhere, so the address guard is off.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.Winget.WingetClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => GitHub);
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.Winget.WingetClient.DownloadClientName).ConfigurePrimaryHttpMessageHandler(() => GitHub);
+            services.RemoveAll<WingetOptions>();
+            services.AddSingleton(new WingetOptions { ApiBaseUrl = FakeGitHub.ApiBaseUrl, BlockPrivateDownloadAddresses = false });
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();

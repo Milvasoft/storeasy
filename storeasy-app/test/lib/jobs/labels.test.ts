@@ -120,7 +120,12 @@ describe('app helpers', () => {
     expect(primaryIdentifier(app({ Stores: [] }))).toBeNull()
     expect(lastSyncOf([app(), halka])).toBe('2026-11-18T10:00:00Z')
     expect(lastSyncOf([app({ Stores: [storeRecord({ SyncedDate: null })] })])).toBeNull()
-    expect(storeCounts([app(), halka])).toEqual({ [StoreKind.Apple]: 1, [StoreKind.Google]: 2, [StoreKind.Microsoft]: 0 })
+    expect(storeCounts([app(), halka])).toEqual({
+      [StoreKind.Apple]: 1,
+      [StoreKind.Google]: 2,
+      [StoreKind.Microsoft]: 0,
+      [StoreKind.Winget]: 0,
+    })
     expect(connectionIdsOf(app())).toEqual([11, 12])
   })
 

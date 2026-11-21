@@ -27,23 +27,32 @@ import {
   SecretExpiryBadge,
   secretExpiring,
 } from '@/features/microsoft/connections'
+import { ALL_STORES, channelOf } from '@/lib/stores/channels'
+import { useWinget } from '@/features/winget/i18n/useWinget'
 
 function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   const t = useT()
+  const tw = useWinget()
   if (connection.Store === StoreKind.Microsoft) {
     return <MsFingerprint connection={connection} />
   }
   const fingerprint = connection.Fingerprint ?? {}
   const rows: Array<[string, string | null | undefined]> =
-    connection.Store === StoreKind.Apple
+    connection.Store === StoreKind.Winget
       ? [
-          [t.connections.keyId, fingerprint.KeyId],
-          [t.connections.issuerId, fingerprint.IssuerIdSuffix ? `…${fingerprint.IssuerIdSuffix}` : null],
+          [tw.connection.fork, fingerprint.Repository],
+          [tw.connection.tokenKind, fingerprint.TokenKind],
+          [tw.connection.expiry, connection.CredentialExpiryDate ? connection.CredentialExpiryDate.slice(0, 10) : null],
         ]
-      : [
-          [t.connections.serviceAccount, fingerprint.ServiceAccountEmail],
-          [t.connections.project, fingerprint.ProjectId],
-        ]
+      : connection.Store === StoreKind.Apple
+        ? [
+            [t.connections.keyId, fingerprint.KeyId],
+            [t.connections.issuerId, fingerprint.IssuerIdSuffix ? `…${fingerprint.IssuerIdSuffix}` : null],
+          ]
+        : [
+            [t.connections.serviceAccount, fingerprint.ServiceAccountEmail],
+            [t.connections.project, fingerprint.ProjectId],
+          ]
   return (
     <dl className="kv">
       {rows.map(([label, value]) => (
@@ -159,14 +168,9 @@ function ConnectionCard({
 function StoreNeeds() {
   const t = useT()
   return (
-    <div className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-3">
-      {([StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft] as const).map((store) => {
-        const copy =
-          store === StoreKind.Apple
-            ? t.connections.stores.apple
-            : store === StoreKind.Google
-              ? t.connections.stores.google
-              : t.connections.stores.microsoft
+    <div className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
+      {ALL_STORES.map((store) => {
+        const copy = t.connections.stores[channelOf(store).key]
         return (
           <div key={store} className="card grid gap-1.5 p-3.5">
             <StoreTag store={store} />

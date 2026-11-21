@@ -26,7 +26,21 @@ public sealed class FakeStoreGateway : IStoreGateway
     public ConcurrentQueue<string> VerifiedSecrets { get; } = new();
 
     /// <inheritdoc/>
-    public StoreSecretInspection Inspect(StoreKind store, string secretJson) => _offline.Inspect(store, secretJson);
+    private IReadOnlyList<IStoreChannel> _channels = [];
+
+    /// <summary>
+    /// Hands the calls of the registered channels (winget) to their real engines; returns this gateway.
+    /// </summary>
+    public FakeStoreGateway WithChannels(IEnumerable<IStoreChannel> channels)
+    {
+        _channels = [.. channels];
+
+        return this;
+    }
+
+    private IStoreChannel ChannelOf(StoreKind store) => _channels.LastOrDefault(c => c.Store == store);
+
+    public StoreSecretInspection Inspect(StoreKind store, string secretJson) => ChannelOf(store)?.Inspect(secretJson) ?? _offline.Inspect(store, secretJson);
 
     /// <summary>
     /// App Store Connect apps by the key id of the API key that sees them (each test uses its own key id).
@@ -51,6 +65,9 @@ public sealed class FakeStoreGateway : IStoreGateway
     /// <inheritdoc/>
     public Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.ListAppsAsync(secretJson, cancellationToken);
+
         if (store != StoreKind.Apple)
             throw new StoreCallException($"{store} cannot list apps.", null, false);
 
@@ -62,6 +79,9 @@ public sealed class FakeStoreGateway : IStoreGateway
     /// <inheritdoc/>
     public Task<StoreAppRecord> GetAppAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.GetAppAsync(secretJson, externalId, cancellationToken);
+
         if (Failures.TryGetValue(externalId, out var failure))
             throw failure;
 
@@ -74,6 +94,9 @@ public sealed class FakeStoreGateway : IStoreGateway
     /// <inheritdoc/>
     public Task<IReadOnlyList<StoreBuildRecord>> ListBuildsAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.ListBuildsAsync(secretJson, externalId, cancellationToken);
+
         if (Failures.TryGetValue(externalId, out var failure))
             throw failure;
 
@@ -93,6 +116,9 @@ public sealed class FakeStoreGateway : IStoreGateway
     /// <inheritdoc/>
     public Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.GetIconUrlAsync(secretJson, externalId, cancellationToken);
+
         if (IconFailures.TryGetValue(externalId, out var failure))
             throw failure;
 
@@ -102,6 +128,9 @@ public sealed class FakeStoreGateway : IStoreGateway
     /// <inheritdoc/>
     public Task<StoreVerification> VerifyAsync(StoreKind store, string secretJson, string packageName, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.VerifyAsync(secretJson, packageName, cancellationToken);
+
         VerifiedSecrets.Enqueue(secretJson);
 
         return Task.FromResult(NextVerification);

@@ -99,11 +99,18 @@ and MCP do not care which store they talk to:
 - **Microsoft Store**: an Entra client credentials token for two APIs (MSIX submissions with flights and add-ons, and
   the MSI/EXE API); writes go into storeasy's own draft submission, and a content fingerprint detects drafts edited in
   Partner Center.
+- **winget**: the GitHub REST API with the owner's token. Manifests are read from microsoft/winget-pkgs; the approved
+  write pushes a branch with generated manifests to the owner's fork and opens a pull request, whose labels and checks
+  are the review state and whose merge is the publication.
+
+Channels after the first three plug in through `IStoreChannel` (connections, sync, store reads), a content gateway, a
+change plan extension, a readiness contributor and their own jobs, with one row in `StoreChannels`; see
+[adding-a-store.md](adding-a-store.md).
 
 Work a store has no API for is an **assisted step**: a checklist, prepared answers and a hand-off prompt for a browser
 agent in the member's own session. storeasy never stores a store password.
 
-The engines are covered by integration tests against fake App Store Connect, Google Play and Microsoft Store servers;
+The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store and GitHub servers;
 real store calls are not yet exercised end to end.
 
 ## Live activity

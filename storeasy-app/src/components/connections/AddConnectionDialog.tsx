@@ -18,6 +18,9 @@ import { cn } from '@/lib/utils/cn'
 import { EMPTY_CREDENTIALS, MsCredentialForm, msFieldErrors } from '@/features/microsoft/connections'
 import { useMs } from '@/features/microsoft/i18n/useMs'
 import { defaultExpiry, expiryInstant, msSecret, type MsCredentialFields } from '@/features/microsoft/rules'
+import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
+import { useWinget } from '@/features/winget/i18n/useWinget'
+import { EMPTY_WINGET_CREDENTIALS, wingetSecret, type WingetCredentialFields } from '@/features/winget/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
 import { StoreIconPicker } from './StoreIconPicker'
@@ -75,6 +78,7 @@ export function AddConnectionDialog({
 }) {
   const t = useT()
   const tm = useMs()
+  const tw = useWinget()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<Step>('pick')
   const [store, setStore] = useState<StoreKind>(StoreKind.Apple)
@@ -86,6 +90,9 @@ export function AddConnectionDialog({
   const [key, setKey] = useState<KeyText>(EMPTY_KEY)
   const [ms, setMs] = useState<MsCredentialFields>(EMPTY_CREDENTIALS)
   const [expiry, setExpiry] = useState<DateOnly | null>(defaultExpiry)
+  const [winget, setWinget] = useState<WingetCredentialFields>(EMPTY_WINGET_CREDENTIALS)
+  // A GitHub token may have no expiry; the owner gives it when it has one.
+  const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
   // Only a rejected file's message is kept here; field errors are computed from the values once the form was submitted,
   // so they clear as soon as a value becomes valid.
   const [errors, setErrors] = useState<Record<string, string | null>>({})
@@ -103,6 +110,8 @@ export function AddConnectionDialog({
     setKey(EMPTY_KEY)
     setMs(EMPTY_CREDENTIALS)
     setExpiry(defaultExpiry())
+    setWinget(EMPTY_WINGET_CREDENTIALS)
+    setWingetExpiry(null)
     setErrors({})
     setSubmitted(false)
     setServer(null)
@@ -118,12 +127,21 @@ export function AddConnectionDialog({
   const save = useMutation({
     mutationFn: async () => {
       const microsoft = store === StoreKind.Microsoft
-      const secret = store === StoreKind.Apple ? appleSecret(issuerId, keyId, key.text) : microsoft ? msSecret(ms) : key.text.trim()
+      const isWinget = store === StoreKind.Winget
+      const secret =
+        store === StoreKind.Apple
+          ? appleSecret(issuerId, keyId, key.text)
+          : microsoft
+            ? msSecret(ms)
+            : isWinget
+              ? wingetSecret(winget)
+              : key.text.trim()
+      const credentialExpiry = microsoft ? expiry : isWinget ? wingetExpiry : null
       const id = await connectionsApi.create(organizationId, {
         Store: store,
         Name: name.trim(),
         Secret: secret,
-        CredentialExpiryDate: microsoft && expiry ? expiryInstant(expiry) : null,
+        CredentialExpiryDate: credentialExpiry ? expiryInstant(credentialExpiry) : null,
         Icon: icon,
       })
       // Saved as NotVerified; the check runs at once and its answer is shown here (design 14.10).
@@ -151,6 +169,7 @@ export function AddConnectionDialog({
       // Only the secret is chosen again after a refusal; the other values stay (design 18.17).
       setKey(EMPTY_KEY)
       setMs((current) => ({ ...current, clientSecret: '' }))
+      setWinget((current) => ({ ...current, token: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -180,6 +199,8 @@ export function AddConnectionDialog({
       next.secret = !key.text ? t.connections.keyRequired : p8 ? t.connections.p8Invalid : null
     } else if (store === StoreKind.Microsoft) {
       Object.assign(next, msFieldErrors(ms, expiry, tm))
+    } else if (store === StoreKind.Winget) {
+      Object.assign(next, wingetFieldErrors(winget, wingetExpiry, tw))
     } else {
       const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
       next.secret = !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null
@@ -215,7 +236,9 @@ export function AddConnectionDialog({
           ? t.connections.appleTitle
           : store === StoreKind.Microsoft
             ? tm.connection.title
-            : t.connections.googleTitle
+            : store === StoreKind.Winget
+              ? tw.connection.title
+              : t.connections.googleTitle
 
   return (
     <Modal
@@ -284,6 +307,14 @@ export function AddConnectionDialog({
             selected={store === StoreKind.Microsoft}
             onSelect={() => pickStore(StoreKind.Microsoft)}
           />
+          <StoreCard
+            store={StoreKind.Winget}
+            title={t.connections.stores.winget.title}
+            body={t.connections.stores.winget.body}
+            time={t.connections.stores.winget.time}
+            selected={store === StoreKind.Winget}
+            onSelect={() => pickStore(StoreKind.Winget)}
+          />
           <Callout>{t.connections.encryptedNote}</Callout>
         </div>
       ) : null}
@@ -311,6 +342,8 @@ export function AddConnectionDialog({
               <MsCredentialForm fields={ms} onChange={setMs} expiry={expiry} onExpiry={setExpiry} errors={shown} />
               <Callout tone="info">{tm.connection.roleNote}</Callout>
             </>
+          ) : store === StoreKind.Winget ? (
+            <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
           ) : (
             <ConnectionKeyInput
               store={store}

@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
-import { StoreKind } from '@/lib/api/types'
+import { type StoreKind } from '@/lib/api/types'
 import { useStoreIcons } from '@/lib/connections/storeIcons'
 import { useT } from '@/lib/i18n/I18nContext'
+import { byStore, channelOf } from '@/lib/stores/channels'
 import { cn } from '@/lib/utils/cn'
 import { StoreIcon } from './StoreIcons'
 
@@ -39,7 +40,8 @@ export function Badge({
   )
 }
 
-const STORE_CODE: Record<StoreKind, string> = { [StoreKind.Apple]: 'AS', [StoreKind.Google]: 'GP', [StoreKind.Microsoft]: 'MS' }
+// storeasy's own text code of each store, from the channel table (lib/stores/channels.ts).
+const STORE_CODE: Record<StoreKind, string> = byStore((channel) => channel.code)
 
 // Stores are named with neutral text and a mark in front: the icon a member picked for the connection (its own store
 // logo or a generic icon, StoreIcons.tsx), else storeasy's own AS / GP / MS code. Store logos were left out at first
@@ -81,15 +83,10 @@ export function storeCode(store: StoreKind): string {
   return STORE_CODE[store]
 }
 
-export function storeName(store: StoreKind, names: { apple: string; google: string; microsoft: string }): string {
-  switch (store) {
-    case StoreKind.Apple:
-      return names.apple
-    case StoreKind.Google:
-      return names.google
-    default:
-      return names.microsoft
-  }
+export function storeName(store: StoreKind, names: { apple: string; google: string; microsoft: string; winget?: string }): string {
+  // A dictionary written before a channel existed names it by its key ("winget"), never as another store.
+  const key = channelOf(store).key
+  return names[key] ?? key
 }
 
 export function Tag({ children }: { children: ReactNode }) {

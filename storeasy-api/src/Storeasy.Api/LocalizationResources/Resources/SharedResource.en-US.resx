@@ -4828,4 +4828,184 @@ Maximum file size:
   <data name="ImpactEventKind.ExperimentWinnerApplied" xml:space="preserve">
     <value>Experiment winner applied</value>
   </data>
+  <data name="WingetSecretInvalid" xml:space="preserve">
+    <value>The winget connection needs a GitHub token and the fork of winget-pkgs (owner/name).</value>
+  </data>
+  <data name="WingetTokenInvalid" xml:space="preserve">
+    <value>The token is not a GitHub personal access token (classic tokens start with ghp_, fine-grained tokens with github_pat_).</value>
+  </data>
+  <data name="WingetForkInvalid" xml:space="preserve">
+    <value>The fork must be given as owner/name (for example octocat/winget-pkgs).</value>
+  </data>
+  <data name="WingetPackageIdentifierInvalid" xml:space="preserve">
+    <value>The package identifier must look like Publisher.Package: 2 to 8 parts separated by dots, without spaces.</value>
+  </data>
+  <data name="WingetManifestUnreadable" xml:space="preserve">
+    <value>{0} could not be read: {1}</value>
+  </data>
+  <data name="WingetFieldRequired" xml:space="preserve">
+    <value>{0} is required in the {1} manifest.</value>
+  </data>
+  <data name="WingetFieldInvalid" xml:space="preserve">
+    <value>{0} is not valid: {1}</value>
+  </data>
+  <data name="WingetFieldMismatch" xml:space="preserve">
+    <value>{0} of the {1} manifest differs from the version manifest.</value>
+  </data>
+  <data name="WingetFieldTooLong" xml:space="preserve">
+    <value>{0} can be at most {1} characters.</value>
+  </data>
+  <data name="WingetFieldTooShort" xml:space="preserve">
+    <value>{0} must be at least {1} characters.</value>
+  </data>
+  <data name="WingetTooManyTags" xml:space="preserve">
+    <value>At most {0} tags are allowed.</value>
+  </data>
+  <data name="WingetNoInstallers" xml:space="preserve">
+    <value>The installer manifest has no installers.</value>
+  </data>
+  <data name="WingetInstallerTypeNotAllowed" xml:space="preserve">
+    <value>Installer type {0} is not accepted in the manifests folder of winget-pkgs.</value>
+  </data>
+  <data name="WingetInstallerHttp" xml:space="preserve">
+    <value>{0} is not https; the winget-pkgs moderators ask for https download addresses.</value>
+  </data>
+  <data name="WingetInstallerDomain" xml:space="preserve">
+    <value>The installer is on {0}, not on the publisher's site ({1}). Installer addresses must be the publisher's own distribution.</value>
+  </data>
+  <data name="WingetInstallerNotSilent" xml:space="preserve">
+    <value>The {0} EXE installer has no silent switches; winget installs must run unattended.</value>
+  </data>
+  <data name="WingetInstallerDuplicate" xml:space="preserve">
+    <value>Two installers have the same architecture ({0}), scope ({1}), type and locale.</value>
+  </data>
+  <data name="WingetManifestVersionOld" xml:space="preserve">
+    <value>The manifests use schema {0}; storeasy writes {1}.</value>
+  </data>
+  <data name="WingetVersionExists" xml:space="preserve">
+    <value>Version {0} is already in winget-pkgs; a version is never submitted twice.</value>
+  </data>
+  <data name="WingetVersionPullRequestOpen" xml:space="preserve">
+    <value>Pull request #{1} for version {0} is still open; winget-pkgs refuses duplicate pull requests.</value>
+  </data>
+  <data name="WingetInstallersRequired" xml:space="preserve">
+    <value>A new version needs its installers: give them or take them from the Microsoft Store MSI/EXE product.</value>
+  </data>
+  <data name="WingetVersionMissing" xml:space="preserve">
+    <value>Version {0} is not in winget-pkgs.</value>
+  </data>
+  <data name="WingetNoChanges" xml:space="preserve">
+    <value>The texts are the same as in winget-pkgs.</value>
+  </data>
+  <data name="WingetFieldNotEditable" xml:space="preserve">
+    <value>{0} cannot be edited here.</value>
+  </data>
+  <data name="WingetNoMicrosoftInstallers" xml:space="preserve">
+    <value>The app's Microsoft Store product has no MSI/EXE installers yet; sync it or give the installers.</value>
+  </data>
+  <data name="WingetSha256OnApply" xml:space="preserve">
+    <value>storeasy downloads the installers and computes their SHA256 when the plan is applied; a hash given in the plan must match the download.</value>
+  </data>
+  <data name="StoreKeyAccountMismatch" xml:space="preserve">
+    <value>The new credential must be for the same account as the connection.</value>
+  </data>
+  <data name="Notification.WingetReviewState" xml:space="preserve">
+    <value>{0} {1} (winget #{2}): {3} -&gt; {4}.</value>
+  </data>
+  <data name="StoreKind.Winget" xml:space="preserve">
+    <value>winget</value>
+  </data>
+  <data name="WingetPullRequestState" xml:space="preserve">
+    <value>winget review state</value>
+  </data>
+  <data name="WingetPullRequestState.Validating" xml:space="preserve">
+    <value>Validating</value>
+  </data>
+  <data name="WingetPullRequestState.ValidationFailed" xml:space="preserve">
+    <value>Validation failed</value>
+  </data>
+  <data name="WingetPullRequestState.NeedsAuthorFeedback" xml:space="preserve">
+    <value>Needs author feedback</value>
+  </data>
+  <data name="WingetPullRequestState.ValidationCompleted" xml:space="preserve">
+    <value>Validation completed</value>
+  </data>
+  <data name="WingetPullRequestState.Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="WingetPullRequestState.Merged" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="WingetPullRequestState.Closed" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="WingetPullRequestState.Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="WingetChangeKind" xml:space="preserve">
+    <value>winget change</value>
+  </data>
+  <data name="WingetChangeKind.NewVersion" xml:space="preserve">
+    <value>New version</value>
+  </data>
+  <data name="WingetChangeKind.Listing" xml:space="preserve">
+    <value>Locale texts</value>
+  </data>
+  <data name="AuditAction.WingetPackageAdded" xml:space="preserve">
+    <value>winget package added</value>
+  </data>
+  <data name="AuditAction.WingetPullRequestOpened" xml:space="preserve">
+    <value>winget pull request opened</value>
+  </data>
+  <data name="AuditAction.WingetReviewStateChanged" xml:space="preserve">
+    <value>winget review state changed</value>
+  </data>
+  <data name="AuditAction.WingetPublished" xml:space="preserve">
+    <value>winget version published</value>
+  </data>
+  <data name="AuditAction.WingetPullRequestClosed" xml:space="preserve">
+    <value>winget pull request closed</value>
+  </data>
+  <data name="StoreJobKind.WingetSync" xml:space="preserve">
+    <value>Sync winget</value>
+  </data>
+  <data name="ChangePlanKind.WingetChange" xml:space="preserve">
+    <value>winget pull request</value>
+  </data>
+  <data name="Global.WingetPackage" xml:space="preserve">
+    <value>winget package</value>
+  </data>
+  <data name="Global.WingetPullRequest" xml:space="preserve">
+    <value>winget pull request</value>
+  </data>
+  <data name="Readiness.WingetVersion" xml:space="preserve">
+    <value>Version in winget-pkgs</value>
+  </data>
+  <data name="Readiness.WingetNoVersion" xml:space="preserve">
+    <value>The package has no version in winget-pkgs yet; its first pull request adds it as a new package.</value>
+  </data>
+  <data name="Readiness.WingetManifests" xml:space="preserve">
+    <value>Manifests (schema and policies)</value>
+  </data>
+  <data name="Readiness.WingetPullRequest" xml:space="preserve">
+    <value>Pull requests</value>
+  </data>
+  <data name="Readiness.WingetPullRequestAction" xml:space="preserve">
+    <value>Waiting for you: {0}.</value>
+  </data>
+  <data name="Readiness.WingetPullRequestOpen" xml:space="preserve">
+    <value>Open: {0}. A new version of the same package waits until it is merged or closed.</value>
+  </data>
+  <data name="CredentialExpiry" xml:space="preserve">
+    <value>Credential expiry</value>
+  </data>
+  <data name="CredentialExpiry.None" xml:space="preserve">
+    <value>Not tracked</value>
+  </data>
+  <data name="CredentialExpiry.Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="CredentialExpiry.Required" xml:space="preserve">
+    <value>Required</value>
+  </data>
 </root>

@@ -1,6 +1,6 @@
 # storeasy
 
-Manage App Store Connect, Google Play and Microsoft Store from one place, through the official APIs: listings,
+Manage App Store Connect, Google Play, Microsoft Store and winget from one place, through the official APIs: listings,
 screenshots, builds, releases, reviews. Every write is diffed and dry-run first, checked against your role, audited, and
 you can watch it reach the store live. An MCP endpoint lets Claude (or any MCP client) do what the web app does, with
 the same checks.
@@ -47,6 +47,7 @@ integration tests against fake store servers but have not run against the real s
 | App and build sync, readiness check, rules catalog, compliance deadlines, rule watcher | Built; store calls fakes only |
 | Change plans: listings, screenshots, previews, categories, age rating, pricing, review info, builds, releases, rollouts, submission | Built; store calls fakes only |
 | Microsoft Store: MSIX and MSI/EXE products, submissions, packages and flights, add-ons, installer checks | Built; fakes only |
+| winget: packages and manifests from microsoft/winget-pkgs, new version and locale text pull requests from the fork, review state of the pull requests | Built; fakes only |
 | Subscriptions, offers and in-app purchases (both stores), purchase settings | Built; fakes only |
 | Reviews, rejections, TestFlight, App Store Connect webhooks, outgoing webhooks, notifications | Built; store calls fakes only |
 | Mockup studio: templates, device frames, captions per language, exports to screenshot plans | Built (caption translation suggestions need a provider; none ships) |
@@ -126,7 +127,7 @@ browser, MCP clients, CI
         |            \
   PostgreSQL 17    Redis 7        S3 (SeaweedFS or AWS), presigned URLs only
         |
-  App Store Connect API, Google Play Developer API, Microsoft Store submission API
+  App Store Connect API, Google Play Developer API, Microsoft Store submission API, GitHub API (winget)
 ```
 
 | Folder | What |

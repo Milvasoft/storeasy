@@ -11,14 +11,17 @@ using System.Text.Json;
 namespace Storeasy.Infrastructure.Stores;
 
 /// <summary>
-/// Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
+/// Credential inspection and verification against App Store Connect, Google Play, Microsoft Store and the registered
+/// channels. Uses the named HTTP client
 /// <see cref="HttpClientName"/>; tests replace its handler.
 /// </summary>
 /// <param name="HttpClientFactory"></param>
 /// <param name="TimeProvider"></param>
 /// <param name="Logger"></param>
 /// <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
-public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger, IMicrosoftStoreClient MicrosoftStore = null) : IStoreGateway
+/// <param name="Channels">Engines of the channels after the first three stores (<see cref="IStoreChannel"/>); every call for their
+/// store goes to them.</param>
+public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, TimeProvider TimeProvider, IMilvaLogger Logger, IMicrosoftStoreClient MicrosoftStore = null, IEnumerable<IStoreChannel> Channels = null) : IStoreGateway
 {
     /// <summary>
     /// Name of the HTTP client used for store calls.
@@ -46,10 +49,21 @@ public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, T
     private readonly TimeProvider _timeProvider = TimeProvider;
     private readonly IMilvaLogger _logger = Logger;
     private readonly IMicrosoftStoreClient _microsoftStore = MicrosoftStore;
+    private readonly IReadOnlyList<IStoreChannel> _channels = [.. Channels ?? []];
+
+    /// <summary>
+    /// The registered engine of <paramref name="store"/>, or null for the first three stores.
+    /// </summary>
+    /// <param name="store"></param>
+    /// <returns></returns>
+    private IStoreChannel ChannelOf(StoreKind store) => _channels.LastOrDefault(c => c.Store == store);
 
     /// <inheritdoc/>
     public StoreSecretInspection Inspect(StoreKind store, string secretJson)
     {
+        if (ChannelOf(store) is { } channel)
+            return channel.Inspect(secretJson);
+
         if (store == StoreKind.Microsoft)
             return InspectMicrosoft(secretJson);
 
@@ -97,6 +111,9 @@ public sealed partial class StoreGateway(IHttpClientFactory HttpClientFactory, T
     {
         try
         {
+            if (ChannelOf(store) is { } channel)
+                return await channel.VerifyAsync(secretJson, packageName, cancellationToken);
+
             return store switch
             {
                 StoreKind.Apple => await VerifyAppleAsync(secretJson, cancellationToken),

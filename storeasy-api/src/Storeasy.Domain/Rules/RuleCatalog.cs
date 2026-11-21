@@ -637,27 +637,21 @@ public static class RuleStores
     public const string Microsoft = "microsoft";
 
     /// <summary>
-    /// Store kind of a catalog key; null for an unknown key.
+    /// Catalog key of winget.
+    /// </summary>
+    public const string Winget = "winget";
+
+    /// <summary>
+    /// Store kind of a catalog key (the <see cref="Stores.StoreChannels"/> key); null for an unknown key.
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Enums.StoreKind? Parse(string key) => key switch
-    {
-        Apple => Enums.StoreKind.Apple,
-        Google => Enums.StoreKind.Google,
-        Microsoft => Enums.StoreKind.Microsoft,
-        _ => null,
-    };
+    public static Enums.StoreKind? Parse(string key) => Stores.StoreChannels.OfKey(key)?.Store;
 
     /// <summary>
     /// Catalog key of a store kind.
     /// </summary>
     /// <param name="store"></param>
     /// <returns></returns>
-    public static string Key(Enums.StoreKind store) => store switch
-    {
-        Enums.StoreKind.Apple => Apple,
-        Enums.StoreKind.Google => Google,
-        _ => Microsoft,
-    };
+    public static string Key(Enums.StoreKind store) => Stores.StoreChannels.Of(store)?.Key;
 }

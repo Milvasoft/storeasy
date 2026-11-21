@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261121171104_AddAsoExperiments";
+    public override string LastMigrationId => "20261121223920_AddWingetChannel";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -4729,6 +4729,180 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("WebPushSubscriptions");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Winget.WingetPackage", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DefaultLocale")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<bool>("IsPublished")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("LatestVersion")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.PrimitiveCollection<string>("Locales")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("ManifestVersion")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PackageIdentifier")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<string>("PackageName")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<string>("Publisher")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("SyncError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.PrimitiveCollection<string>("Versions")
+                    .HasColumnType("jsonb");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId")
+                    .IsUnique();
+
+                b.ToTable("WingetPackages");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Winget.WingetPullRequest", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<byte?>("ChangeKind")
+                    .HasColumnType("smallint");
+
+                b.Property<List<WingetCheck>>("Checks")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("ClosedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<List<WingetComment>>("Comments")
+                    .HasColumnType("jsonb");
+
+                b.Property<bool>("CreatedByStoreasy")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("HeadBranch")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<string>("HeadSha")
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
+
+                b.Property<bool>("IsOpen")
+                    .HasColumnType("boolean");
+
+                b.PrimitiveCollection<string>("Labels")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("MergedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("Number")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("OpenedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PackageVersion")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<long?>("PlanId")
+                    .HasColumnType("bigint");
+
+                b.Property<byte>("State")
+                    .HasColumnType("smallint");
+
+                b.Property<List<WingetStateChange>>("StatusHistory")
+                    .HasColumnType("jsonb");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Title")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<string>("Url")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "IsOpen");
+
+                b.HasIndex("StoreAppId", "Number")
+                    .IsUnique();
+
+                b.ToTable("WingetPullRequests");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.AccountToken", b =>
             {
                 b.HasOne("Storeasy.Domain.User", "User")
@@ -5314,6 +5488,28 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsRequired();
 
                 b.Navigation("User");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Winget.WingetPackage", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Winget.WingetPullRequest", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Apps.App", b =>

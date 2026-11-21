@@ -5,7 +5,7 @@ namespace Storeasy.Application.Utils.Helpers;
 /// <summary>
 /// Removes anything that looks like a credential from text before it is logged, stored or returned: bearer tokens,
 /// JWTs, PEM private keys, Google access tokens, Apple webhook signatures, signed URL query strings and
-/// <c>access_token</c> query values (the SignalR websocket token).
+/// <c>access_token</c> query values (the SignalR websocket token), storeasy, GitHub and Anthropic tokens.
 /// Ported from store-ops <c>redact()</c>.
 /// </summary>
 public static partial class SecretRedactor
@@ -34,6 +34,11 @@ public static partial class SecretRedactor
     [GeneratedRegex(@"\b(?<kind>sea|sci|sut|whsec)_[A-Za-z0-9_-]{8,}")]
     private static partial Regex StoreasyTokenRegex();
 
+    // GitHub tokens: classic and OAuth (ghp_, gho_, ghu_, ghs_, ghr_) and fine-grained (github_pat_), used by the winget
+    // connection.
+    [GeneratedRegex(@"(?<kind>gh[pousr]|github_pat)_[A-Za-z0-9_]{8,}")]
+    private static partial Regex GitHubTokenRegex();
+
     // Anthropic API keys (sk-ant-api03-..., sk-ant-admin01-...).
     [GeneratedRegex(@"\bsk-ant-[A-Za-z0-9_-]{8,}")]
     private static partial Regex AnthropicKeyRegex();
@@ -56,6 +61,7 @@ public static partial class SecretRedactor
         output = SignedUrlRegex().Replace(output, "$1?[redacted-query]");
         output = AccessTokenQueryRegex().Replace(output, "access_token=[redacted]");
         output = StoreasyTokenRegex().Replace(output, match => match.Groups["kind"].Value + "_[redacted]");
+        output = GitHubTokenRegex().Replace(output, match => match.Groups["kind"].Value + "_[redacted]");
         output = AnthropicKeyRegex().Replace(output, "sk-ant-[redacted]");
 
         return output;

@@ -1,6 +1,7 @@
 import type { ComponentType, CSSProperties, SVGProps } from 'react'
 import { AppWindow, Gamepad2, Globe, Package, Rocket, ShoppingBag, Smartphone, Tablet } from 'lucide-react'
-import { StoreKind } from '@/lib/api/types'
+import { type StoreKind } from '@/lib/api/types'
+import { byStore } from '@/lib/stores/channels'
 import { cn } from '@/lib/utils/cn'
 
 // The icons a member can pick for a store connection (StoreConnectionIcons on the API keeps the same keys). A fixed list,
@@ -8,7 +9,8 @@ import { cn } from '@/lib/utils/cn'
 //
 // Store logos: the App Store and Google Play marks are the paths of Simple Icons 13.21.0 (https://simpleicons.org,
 // CC0-1.0), drawn on a tile of our own. Simple Icons has no Microsoft Store icon (Microsoft asked for its removal), so
-// the Microsoft Store mark is storeasy's own simplified drawing. "App Store" is a trademark of Apple Inc., "Google Play"
+// the Microsoft Store mark is storeasy's own simplified drawing. winget has no logo of its own on Simple Icons either; its
+// mark is storeasy's own drawing of a package with a download arrow. "App Store" is a trademark of Apple Inc., "Google Play"
 // of Google LLC and "Microsoft Store" of Microsoft Corporation; the logos are used only to identify the store a
 // connection belongs to, and each is offered only on a connection of its own store. Generic icons are lucide-react
 // glyphs on a colored tile.
@@ -19,15 +21,13 @@ const APP_STORE_PATH =
 const GOOGLE_PLAY_PATH =
   'M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z'
 
-export const STORE_LOGO_ICON = {
-  [StoreKind.Apple]: 'appstore',
-  [StoreKind.Google]: 'googleplay',
-  [StoreKind.Microsoft]: 'msstore',
-} as const
+export type StoreLogoIcon = 'appstore' | 'googleplay' | 'msstore' | 'winget'
+
+// The logo of each store, from the channel table (lib/stores/channels.ts).
+export const STORE_LOGO_ICON: Record<StoreKind, StoreLogoIcon> = byStore((channel) => channel.logo as StoreLogoIcon)
 
 export const GENERIC_ICONS = ['phone', 'tablet', 'bag', 'window', 'globe', 'box', 'game', 'rocket'] as const
 
-export type StoreLogoIcon = (typeof STORE_LOGO_ICON)[StoreKind]
 export type GenericIcon = (typeof GENERIC_ICONS)[number]
 export type StoreIconKey = StoreLogoIcon | GenericIcon
 
@@ -85,19 +85,45 @@ function MsStoreMark() {
   )
 }
 
+function WingetMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+      <rect width="24" height="24" rx="6" fill="#0b5cad" />
+      <path d="M5.5 9.2 12 6l6.5 3.2v6.6L12 19l-6.5-3.2z" fill="#e8f1fb" />
+      <path d="M5.5 9.2 12 12.4l6.5-3.2M12 12.4V19" fill="none" stroke="#0b5cad" strokeWidth="1.1" strokeLinejoin="round" />
+      <path
+        d="M12 2.6v5.6m-2.1-2.1L12 8.2l2.1-2.1"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 /**
  * One store connection icon as a small square tile (decorative: the caller keeps the store or connection name as text).
  * Sized by the surrounding CSS (`.sti`), 18 px by default.
  */
+const MARKS: Record<StoreLogoIcon, () => JSX.Element> = {
+  appstore: AppStoreMark,
+  googleplay: GooglePlayMark,
+  msstore: MsStoreMark,
+  winget: WingetMark,
+}
+
 export function StoreIcon({ icon, className, title }: { icon: StoreIconKey; className?: string; title?: string }) {
-  if (icon === 'appstore' || icon === 'googleplay' || icon === 'msstore') {
+  if (LOGOS.has(icon)) {
+    const Mark = MARKS[icon as StoreLogoIcon]
     return (
       <span className={cn('sti logo', className)} data-icon={icon} title={title} aria-hidden>
-        {icon === 'appstore' ? <AppStoreMark /> : icon === 'googleplay' ? <GooglePlayMark /> : <MsStoreMark />}
+        <Mark />
       </span>
     )
   }
-  const { glyph: Glyph, color } = GENERIC[icon]
+  const { glyph: Glyph, color } = GENERIC[icon as GenericIcon]
   return (
     <span className={cn('sti', className)} data-icon={icon} title={title} style={{ '--sti': color } as CSSProperties} aria-hidden>
       <Glyph aria-hidden focusable="false" />

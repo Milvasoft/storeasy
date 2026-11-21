@@ -560,13 +560,7 @@ public static class PreReviewSnapshotBuilder
     /// </summary>
     /// <param name="store"></param>
     /// <returns></returns>
-    public static string StoreName(StoreKind store) => store switch
-    {
-        StoreKind.Apple => "App Store",
-        StoreKind.Google => "Google Play",
-        StoreKind.Microsoft => "Microsoft Store",
-        _ => store.ToString(),
-    };
+    public static string StoreName(StoreKind store) => Domain.Stores.StoreChannels.DisplayName(store);
 
     private static string Hash(string text, IEnumerable<string> checksums)
     {

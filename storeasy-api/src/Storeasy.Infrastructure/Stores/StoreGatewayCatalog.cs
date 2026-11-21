@@ -45,6 +45,9 @@ public sealed partial class StoreGateway
     /// <inheritdoc/>
     public async Task<IReadOnlyList<StoreAppRecord>> ListAppsAsync(StoreKind store, string secretJson, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return await channel.ListAppsAsync(secretJson, cancellationToken);
+
         if (store == StoreKind.Microsoft && _microsoftStore != null)
             return [.. (await _microsoftStore.ListApplicationsAsync(secretJson, cancellationToken)).Select(a => new StoreAppRecord(a.Id, a.PackageFamilyName, a.PrimaryName))];
 
@@ -70,6 +73,9 @@ public sealed partial class StoreGateway
     /// <inheritdoc/>
     public async Task<StoreAppRecord> GetAppAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return await channel.GetAppAsync(secretJson, externalId, cancellationToken);
+
         switch (store)
         {
             case StoreKind.Apple:
@@ -103,6 +109,9 @@ public sealed partial class StoreGateway
     /// <inheritdoc/>
     public async Task<IReadOnlyList<StoreBuildRecord>> ListBuildsAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return await channel.ListBuildsAsync(secretJson, externalId, cancellationToken);
+
         switch (store)
         {
             case StoreKind.Apple:
@@ -129,6 +138,9 @@ public sealed partial class StoreGateway
     /// <inheritdoc/>
     public async Task<string> GetIconUrlAsync(StoreKind store, string secretJson, string externalId, CancellationToken cancellationToken)
     {
+        if (ChannelOf(store) is { } channel)
+            return await channel.GetIconUrlAsync(secretJson, externalId, cancellationToken);
+
         switch (store)
         {
             case StoreKind.Apple:

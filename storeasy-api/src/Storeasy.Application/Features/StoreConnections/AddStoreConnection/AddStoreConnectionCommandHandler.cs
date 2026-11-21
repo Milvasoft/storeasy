@@ -34,7 +34,7 @@ public record AddStoreConnectionCommandHandler(IStoreasyRepositoryBase<StoreConn
         if (!inspection.IsValid)
             return Response<int>.Error(0, inspection.ErrorKey);
 
-        var expiryDate = request.Store == StoreKind.Microsoft ? request.CredentialExpiryDate : null;
+        var expiryDate = StoreChannels.CredentialExpires(request.Store) ? request.CredentialExpiryDate : null;
 
         inspection.Fingerprint.SecretExpiryDate = expiryDate;
 

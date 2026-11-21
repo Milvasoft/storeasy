@@ -7,7 +7,7 @@ several connections per store (for example two Apple developer accounts).
 
 Each connection can have an optional icon, picked when it is added and changed later with **Edit** (with its name): the
 store's own logo or a colored generic icon. Records that come from that connection show the icon in place of the
-`AS` / `GP` / `MS` code; places that know only the store (filters, counts, store columns) use the icon of the store's
+`AS` / `GP` / `MS` / `WG` code; places that know only the store (filters, counts, store columns) use the icon of the store's
 oldest connection that has one. Without an icon the code stays. Store logos are trademarks of their owners and only
 identify the store; each is offered only for its own store.
 
@@ -16,7 +16,7 @@ identify the store; each is offered only for its own store.
 | Kept | Never |
 |---|---|
 | The credential, sealed with AES-256-GCM envelope encryption (a data key per connection, wrapped by the instance master key) | Returned by any endpoint, MCP tool, export or log |
-| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date | Your Apple ID, Google account or Partner Center password |
+| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date; winget fork, its owner and the token kind (and the expiry you entered) | Your Apple ID, Google account, Partner Center or GitHub password |
 | Last verification time and result | Copies of the credential in jobs, plans or audit entries |
 
 Only the store job runner, the verify command and replacing a key open a credential, in memory, for the duration of the
@@ -24,7 +24,7 @@ call. See [self-host.md](self-host.md#7-master-key-backup-and-rotation) for the 
 
 ## Replacing a key
 
-An Apple or Google key is replaced in place with **Replace key** on the connection's card (`PUT
+An Apple, Google or winget key is replaced in place with **Replace key** on the connection's card (`PUT
 storeconnections/connection/key`, Manage store connections permission and a verified e-mail address). The connection
 keeps its id, so its apps, store records, jobs, plans and history stay. Typical case: the connection uses an App Manager
 key and the App Store analytics reports need an Admin key; Apple does not change a key's role, so create a new Admin key
@@ -33,6 +33,8 @@ and replace the old one with it.
 - **Apple:** the new key must belong to the same App Store Connect team: storeasy compares its issuer id with the one
   sealed in the connection and refuses another team's key (`StoreKeyIssuerMismatch`). The key id may change.
 - **Google:** any service account JSON key is taken; it may be another service account or another Cloud project.
+- **winget:** a new GitHub token for the same fork; another fork is refused (`StoreKeyAccountMismatch`). Enter the new
+  token's expiry date with it.
 
 storeasy runs the same offline checks as when adding a connection, then verifies the new key against the store. Only
 when the store accepts it is it sealed in place of the old one, with the new fingerprint and the connection marked
@@ -157,6 +159,75 @@ Writes go through change plans like the other stores (`ms/change`), and sending 
 marketplace webhooks are a different product); it e-mails the account. storeasy reads submission states with the
 periodic Microsoft sync instead.
 
+## winget
+
+winget (Windows Package Manager) has no store account or submission API: packages are YAML manifests in the community
+repository [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) on GitHub, and a new version goes in as a
+pull request that the validation pipeline checks and community moderators merge. storeasy works on your behalf with a
+GitHub token and **your fork** of winget-pkgs: it reads manifests, plans the pull request, and after the plan is approved
+pushes a branch to the fork and opens the pull request.
+
+1. Fork [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) with the **Fork** button (on your user or on
+   an organization).
+2. Create a token: **GitHub > Settings > Developer settings > Personal access tokens > Tokens (classic) > Generate new
+   token**, scope **public_repo**, with an expiry date you note. A fine-grained token (`github_pat_...`) can push the
+   branch to the fork, but GitHub does not let it open a pull request in a repository its owner does not own; storeasy
+   then stops after pushing the branch and gives you the compare page to open the pull request yourself. A GitHub App is
+   not supported: its installation token cannot open a pull request in microsoft/winget-pkgs either.
+3. In storeasy, add a **winget** connection: the token and the fork as `owner/name` (the web app has a form; the secret
+   is `{"token": "...", "fork": "owner/winget-pkgs"}`), optionally the token's expiry date.
+4. Verify it. storeasy reads `GET /user` (and, for a classic token, checks that its scopes include `public_repo` or
+   `repo`) and the fork (it must be a fork of microsoft/winget-pkgs that the token can push to).
+5. Add each package by its identifier (`Publisher.Package`, **Apps > Add a winget package** or `winget/package`): winget
+   has no API that lists a publisher's packages. Attach it to the app of the same program (usually its Microsoft Store
+   MSI/EXE product) or to a new app. A package that is not in winget-pkgs yet can be added too; its first pull request is
+   a "New package".
+
+The fingerprint is the fork, its owner and the token kind (classic or fine-grained); the token is sealed like every
+store secret and never shown. **Replace key** takes a new token for the same fork (another fork is refused with
+`StoreKeyAccountMismatch`) and checks it with GitHub first.
+
+**What storeasy reads.** The version folders of the package (`manifests/<letter>/<Publisher>/<Package>/<version>`), the
+manifests of a version (names, descriptions, release notes and tags per locale: the winget "listing"; the installers with
+their addresses, hashes, scopes and switches), and the fork owner's pull requests for the package with their labels,
+check runs and the bot's and moderators' comments. Reads use the token for GitHub's higher rate limit; winget-pkgs is
+public.
+
+**What storeasy writes, always as a change plan** (`winget/change`, dry run, approved under **Plans**):
+
+- **New version**: the latest version's manifests are copied, the version and the installers replaced, release notes and
+  version specific fields (release date, product codes, hashes) dropped unless given again. Installers are given in the
+  plan or taken from the app's Microsoft Store MSI/EXE product (address, MSI or EXE, architectures, silent switches;
+  one installer per architecture). The approval needs **Submit for review** and the package identifier and version typed
+  as confirmation. Applying it downloads every installer from its public address and writes its SHA-256 into the
+  installer manifest (a hash given in the plan must match the download, otherwise nothing is pushed), checks the
+  manifests again, brings the fork's default branch up to date, pushes one commit on a `storeasy/...` branch and opens
+  the pull request with the repository's checklist.
+- **Locale texts** of an existing version: only the changed locale manifests are pushed (an "Update metadata" pull
+  request).
+
+Before a plan is saved storeasy checks the manifests against the manifest schema (storeasy writes schema 1.12.0, the
+version wingetcreate writes) and the repository's policies it can check without running the installer: multi-file
+manifests only, one version per pull request, no version that already exists and no second open pull request for it,
+https installer addresses on the publisher's own site (a warning when the host differs from the publisher's), EXE
+installers with silent switches, no duplicate installer entries, allowed installer types. The same checks show on the
+package page and in **Readiness**. Running the installer, the virus scan and SmartScreen are the validation pipeline's.
+
+**Review state.** Each pull request has a state read from GitHub: *Validating*, *Validation failed* (an error label such
+as `Validation-Error`, `Error-Hash-Mismatch` or a failed check), *Needs author feedback* (`Needs-Author-Feedback`,
+`Changes-Requested`, `Needs-CLA`), *Validation completed* (`Validation-Completed`, `Azure-Pipeline-Passed`),
+*Approved* (`Moderator-Approved`), *Published* (merged) and *Closed*. A waived label (`Waived-X`) cancels `X`; pipeline
+internal errors are retried by the moderators and do not count as a failure. The schedule reads open pull requests every
+15 minutes (`winget/sync` reads one package at once); a state change is audited and notified like a store version
+state (in-app, e-mail, web push, the `version.state_changed` webhook), and a merge reads the package again. The first
+pull request of a GitHub account asks for the Microsoft Contributor License Agreement; sign it on the pull request
+(an assisted step reminds you).
+
+**Not in winget.** There is no store page, no ratings or reviews, no install statistics and no pricing: storeasy shows
+none of them for winget. Manifests have no screenshots. Removing a version and changing an existing version's installers
+are not offered (moderators handle removals). Expiry reminders cover Microsoft client secrets only; a winget token's
+expiry date is shown on the connection.
+
 ## Store page performance
 
 The app's **Store performance** tab shows impressions, page views, downloads and the conversion rate (downloads divided
@@ -184,4 +255,7 @@ breakdown shows only the stores that report both together.
 | A Play app disappears after sync | Play refused the service account for that package: grant it access to the app. |
 | Verify fails for Microsoft | The application is not associated with Partner Center or lacks the Manager role, the secret value (not its id) is wrong or expired, or the tenant id belongs to another directory. |
 | `MsSecretExpiryInvalid` when adding a Microsoft connection | The expiry date is in the past or more than 24 months away. |
+| Verify fails for winget | The token was revoked or expired, a classic token lacks the `public_repo` scope, the fork name is wrong, the repository is not a fork of microsoft/winget-pkgs, or the token cannot push to it. |
+| A winget plan fails with "refused the pull request" | A fine-grained token: open the pull request from the compare page in the error, or replace the token with a classic one. The next sync finds the pull request. |
+| A winget plan fails with a SHA256 mismatch | The file at the installer address changed after you took its hash; leave the hash empty to let storeasy compute it, or fix the address. |
 | `EmailNotVerified` when adding a connection | Verify your e-mail address first. |

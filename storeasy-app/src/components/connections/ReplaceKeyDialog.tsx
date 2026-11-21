@@ -6,17 +6,21 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/primitives'
 import { connectionsApi } from '@/lib/api/endpoints'
 import { ApiError, apiErrorMessage } from '@/lib/api/http'
-import { StoreKind, type StoreConnectionDto } from '@/lib/api/types'
+import { StoreKind, type DateOnly, type StoreConnectionDto } from '@/lib/api/types'
 import { appleSecret, checkP8, ISSUER_ID, KEY_ID, keyIdFromFileName, readServiceAccount } from '@/lib/connections/secrets'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
+import { expiryInstant } from '@/features/microsoft/rules'
+import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
+import { useWinget } from '@/features/winget/i18n/useWinget'
+import { wingetSecret } from '@/features/winget/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
 
 /** Whether a connection's key can be replaced in place (Microsoft secrets are renewed with "Renew secret"). */
 export function canReplaceKey(connection: StoreConnectionDto): boolean {
-  return connection.Store === StoreKind.Apple || connection.Store === StoreKind.Google
+  return connection.Store === StoreKind.Apple || connection.Store === StoreKind.Google || connection.Store === StoreKind.Winget
 }
 
 /** The "Replace key" button of an App Store Connect or Google Play connection card. */
@@ -46,12 +50,16 @@ export function ReplaceKeyDialog({
   onClose: () => void
 }) {
   const t = useT()
+  const tw = useWinget()
   const queryClient = useQueryClient()
   const store = connection?.Store ?? StoreKind.Apple
   const suffix = connection?.Fingerprint?.IssuerIdSuffix ?? null
   const [issuerId, setIssuerId] = useState('')
   const [keyId, setKeyId] = useState('')
   const [key, setKey] = useState<KeyText>(EMPTY_KEY)
+  // winget: a new token for the same fork (the API refuses another fork).
+  const [winget, setWinget] = useState({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
+  const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
@@ -62,6 +70,8 @@ export function ReplaceKeyDialog({
     setIssuerId('')
     setKeyId('')
     setKey(EMPTY_KEY)
+    setWinget({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
+    setWingetExpiry(null)
     setFileError(null)
     setSubmitted(false)
     setServer(null)
@@ -73,7 +83,12 @@ export function ReplaceKeyDialog({
       connectionsApi.replaceKey(
         organizationId,
         connection?.Id ?? 0,
-        store === StoreKind.Apple ? appleSecret(issuerId, keyId, key.text) : key.text.trim(),
+        store === StoreKind.Apple
+          ? appleSecret(issuerId, keyId, key.text)
+          : store === StoreKind.Winget
+            ? wingetSecret(winget)
+            : key.text.trim(),
+        store === StoreKind.Winget && wingetExpiry ? expiryInstant(wingetExpiry) : null,
       ),
     meta: { silentError: true },
     onSuccess: (updated) => {
@@ -92,6 +107,7 @@ export function ReplaceKeyDialog({
       })
       // Only the key is chosen again after a refusal; the ids stay.
       setKey(EMPTY_KEY)
+      setWinget((current) => ({ ...current, token: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -110,6 +126,9 @@ export function ReplaceKeyDialog({
         keyId: KEY_ID.test(keyId.trim().toUpperCase()) ? null : t.connections.keyIdInvalid,
         secret: !key.text ? t.connections.keyRequired : p8 ? t.connections.p8Invalid : null,
       }
+    }
+    if (store === StoreKind.Winget) {
+      return wingetFieldErrors(winget, wingetExpiry, tw)
     }
     const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
     return { secret: !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null }
@@ -142,7 +161,13 @@ export function ReplaceKeyDialog({
       onClose={close}
       size="lg"
       title={interpolate(t.connections.replaceTitle, { name: connection?.Name ?? '' })}
-      description={store === StoreKind.Apple ? t.connections.replaceAppleBody : t.connections.replaceGoogleBody}
+      description={
+        store === StoreKind.Apple
+          ? t.connections.replaceAppleBody
+          : store === StoreKind.Winget
+            ? tw.connection.replaceBody
+            : t.connections.replaceGoogleBody
+      }
       footer={
         <>
           <Button variant="ghost" onClick={close}>
@@ -167,19 +192,23 @@ export function ReplaceKeyDialog({
               issuerHint={suffix ? interpolate(t.connections.replaceIssuerHint, { suffix }) : undefined}
             />
           ) : null}
-          <ConnectionKeyInput
-            store={store}
-            value={key}
-            onChange={(next) => {
-              setKey(next)
-              if (next.fileName) {
-                setFileError(null)
-              }
-            }}
-            onFile={takeFileName}
-            onFileRejected={setFileError}
-            error={shown.secret}
-          />
+          {store === StoreKind.Winget ? (
+            <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
+          ) : (
+            <ConnectionKeyInput
+              store={store}
+              value={key}
+              onChange={(next) => {
+                setKey(next)
+                if (next.fileName) {
+                  setFileError(null)
+                }
+              }}
+              onFile={takeFileName}
+              onFileRejected={setFileError}
+              error={shown.secret}
+            />
+          )}
           <Callout tone="info">{t.connections.replaceNote}</Callout>
           <p className="m-0 text-xs text-fg3">{t.connections.neverShown}</p>
         </form>

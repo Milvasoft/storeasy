@@ -141,6 +141,7 @@ public static class AssistedStepCatalog
     {
         StoreKind.Apple => _appStoreConnect + "/info",
         StoreKind.Microsoft => _partnerCenter,
-        _ => _playConsole,
+        StoreKind.Google => _playConsole,
+        _ => Domain.Stores.StoreChannels.Of(store)?.ConsoleUrl,
     };
 }

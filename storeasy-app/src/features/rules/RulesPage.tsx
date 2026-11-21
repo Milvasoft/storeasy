@@ -9,7 +9,6 @@ import { Modal } from '@/components/ui/Modal'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
 import { Button, Chip, EmptyState, Input, PageHeader, SpinnerCenter, TableSkeleton } from '@/components/ui/primitives'
-import { StoreKind } from '@/lib/api/types'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { useCurrentOrganization } from '@/lib/org/OrganizationContext'
@@ -18,6 +17,7 @@ import { useP2 } from '@/features/common/i18n/useP2'
 import { contentKeys } from '@/features/common/keys'
 import { applicabilityLabel, ruleStatusView } from '@/features/common/labels'
 import { RuleApplicability, RuleStatus, type RuleDetailDto, type RuleListDto } from '@/features/common/types'
+import { ALL_STORES } from '@/lib/stores/channels'
 
 // Design 17.1-17.2: the loaded rules catalog with its version, filters by store, category and status, a search, and a
 // rule's detail in a drawer (/rules/:ruleId) with its sources, conflicts and this organization's matching apps.
@@ -293,7 +293,7 @@ export function RulesPage() {
           <Chip selected={!filter.Store} onClick={() => setFilter((current) => ({ ...current, Store: null }))}>
             {base.common.all}
           </Chip>
-          {[StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft].map((store) => (
+          {ALL_STORES.map((store) => (
             <Chip key={store} selected={filter.Store === store} onClick={() => setFilter((current) => ({ ...current, Store: store }))}>
               <StoreTag store={store} small />
             </Chip>

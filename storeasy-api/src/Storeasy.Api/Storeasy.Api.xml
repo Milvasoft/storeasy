@@ -3568,6 +3568,68 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.WingetController">
+            <summary>
+            winget (Windows Package Manager community repository): packages, their manifests in winget-pkgs, pull request plans
+            and the review state of the pull requests. Connections are added like every store's (<c>POST connections</c>).
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.#ctor(MediatR.IMediator)">
+            <summary>
+            winget (Windows Package Manager community repository): packages, their manifests in winget-pkgs, pull request plans
+            and the review state of the pull requests. Connections are added like every store's (<c>POST connections</c>).
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.AddPackageAsync(Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds a package by its identifier to a new or an existing app and queues its sync.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.GetPackageAsync(Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery,System.Threading.CancellationToken)">
+            <summary>
+            The package as the last sync read it, with its pull requests and the installers storeasy knows for the app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.GetManifestAsync(Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery,System.Threading.CancellationToken)">
+            <summary>
+            The manifests of one version, read live from winget-pkgs, with storeasy's checks.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.GetPullRequestsAsync(Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The pull requests of a package and their review state.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.PlanChangeAsync(Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a pull request (new version or locale texts); approving the plan opens it.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.WingetController.SyncAsync(Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of one package.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Hubs.ActivityHub">
             <summary>
             Live activity of organizations (docs/urun-plani.md K5), at <see cref="F:Storeasy.Api.Hubs.ActivityHub.Path"/>. Clients authenticate with the same
@@ -4427,6 +4489,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261121171104_AddAsoExperiments.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261121223920_AddWingetChannel">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121223920_AddWingetChannel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121223920_AddWingetChannel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121223920_AddWingetChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

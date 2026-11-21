@@ -111,6 +111,13 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Check Microsoft Store installers")]
     MsCheckInstaller = 53,
+
+    /// <summary>
+    /// Reads the winget packages of a connection from winget-pkgs and the review state of their pull requests.
+    /// </summary>
+    [Description("Sync winget")]
+    WingetSync = 130,
+
     /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
     /// Numbered in the analytics band.

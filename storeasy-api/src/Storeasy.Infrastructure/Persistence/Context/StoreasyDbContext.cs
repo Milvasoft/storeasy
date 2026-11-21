@@ -20,6 +20,7 @@ using Storeasy.Domain.Rules;
 using Storeasy.Domain.TestFlight;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Tokens;
+using Storeasy.Domain.Winget;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
 
@@ -93,6 +94,8 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<MsFlightGroup> MsFlightGroups { get; set; }
     public DbSet<MsAddon> MsAddons { get; set; }
     public DbSet<MsInstallerPackage> MsInstallerPackages { get; set; }
+    public DbSet<WingetPackage> WingetPackages { get; set; }
+    public DbSet<WingetPullRequest> WingetPullRequests { get; set; }
     public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; }
     public DbSet<CiToken> CiTokens { get; set; }
     public DbSet<UploadToken> UploadTokens { get; set; }

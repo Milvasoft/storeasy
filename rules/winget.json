@@ -1,0 +1,636 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.2.0",
+  "store": "winget",
+  "generatedAt": "2026-11-22T12:00:00Z",
+  "rules": [
+    {
+      "id": "winget.packages.manifest-schema",
+      "store": "winget",
+      "category": "packages",
+      "title": {
+        "en": "Manifests follow the manifest schema",
+        "tr": "Manifestler manifest şemasına uyar"
+      },
+      "description": {
+        "en": "Every version is a set of YAML manifests (version, default locale, installer, optional locales) that validates against the manifest schema: the required fields, the identifier and version patterns and the same PackageIdentifier, PackageVersion and ManifestVersion in every file. storeasy writes schema 1.12.0, the version wingetcreate writes."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.manifests"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/tree/master/doc/manifest/schema",
+          "title": "winget-pkgs: manifest schema",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.installer.1.12.0.json",
+          "title": "winget-cli: installer manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.packages.multi-file-manifests",
+      "store": "winget",
+      "category": "packages",
+      "title": {
+        "en": "Multi-file manifests only, no singleton",
+        "tr": "Yalnız çok dosyalı manifest, tek dosya değil"
+      },
+      "description": {
+        "en": "Singleton manifests are prohibited in the community repository; a version needs at least a version, a default locale and an installer manifest."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.manifests"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Policies.md",
+          "title": "winget-pkgs: Policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Authoring.md",
+          "title": "winget-pkgs: Authoring manifests",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.one-version-per-pr",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "One package version per pull request",
+        "tr": "Her pull request tek paket sürümü"
+      },
+      "description": {
+        "en": "A pull request changes the manifests of one package version and no other file. storeasy opens one pull request per plan."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.pullRequest"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/.github/PULL_REQUEST_TEMPLATE.md",
+          "title": "winget-pkgs: pull request template",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.no-duplicates",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "No duplicate version or pull request",
+        "tr": "Aynı sürüm ya da pull request ikinci kez açılmaz"
+      },
+      "description": {
+        "en": "Check that no other open pull request changes the same manifest, and do not submit a version that is already in the repository."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.versions",
+          "winget.pullRequests"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/.github/PULL_REQUEST_TEMPLATE.md",
+          "title": "winget-pkgs: pull request template",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.installer-url-publisher",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "Installer addresses are the publisher's own distribution",
+        "tr": "Yükleyici adresi yayıncının kendi dağıtımıdır"
+      },
+      "description": {
+        "en": "Installer URLs come from official sources or the publisher and must be discoverable on the publisher's website. Prefer stable addresses specific to the version: a vanity URL whose binary is replaced breaks the hash."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.installers"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Policies.md",
+          "title": "winget-pkgs: Policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Authoring.md",
+          "title": "winget-pkgs: Authoring manifests",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.unattended-install",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "Installers run without user interaction",
+        "tr": "Yükleyiciler kullanıcı müdahalesi olmadan çalışır"
+      },
+      "description": {
+        "en": "Packages must install silently; the default silent with progress mode may show a window but must not need the user. EXE installers give their silent switches in InstallerSwitches."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.installers"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Policies.md",
+          "title": "winget-pkgs: Policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.installer-types",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "Allowed installer types",
+        "tr": "İzin verilen yükleyici türleri"
+      },
+      "description": {
+        "en": "MSIX, APPX, MSI and EXE based installers (also inside a zip) are accepted under manifests/; script installers are banned, font installers go under fonts/ only."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.installers"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Policies.md",
+          "title": "winget-pkgs: Policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.installer.1.12.0.json",
+          "title": "winget-cli: installer manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.packages.installer-hash",
+      "store": "winget",
+      "category": "packages",
+      "title": {
+        "en": "InstallerSha256 matches the download",
+        "tr": "InstallerSha256 indirilen dosyayla eşleşir"
+      },
+      "description": {
+        "en": "Each installer carries the SHA256 of the file at its address. The validation pipeline downloads it again and labels a mismatch Error-Hash-Mismatch. storeasy computes the hash from the download when the plan is applied."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.installers"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.installer.1.12.0.json",
+          "title": "winget-cli: installer manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Validation.md",
+          "title": "winget-pkgs: Validation",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.packages.package-version",
+      "store": "winget",
+      "category": "packages",
+      "title": {
+        "en": "PackageVersion matches the installed version",
+        "tr": "PackageVersion kurulu sürümle eşleşir"
+      },
+      "description": {
+        "en": "Use the version Apps and Features shows; when it differs or does not sort, add AppsAndFeaturesEntries with the DisplayVersion."
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Authoring.md",
+          "title": "winget-pkgs: Authoring manifests",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.policy.cla",
+      "store": "winget",
+      "category": "policy",
+      "title": {
+        "en": "Sign the Contributor License Agreement",
+        "tr": "Katkıda Bulunan Lisans Sözleşmesini imzala"
+      },
+      "description": {
+        "en": "The first pull request of a GitHub account asks for the Microsoft Contributor License Agreement; the bot labels it Needs-CLA until the account signs on the pull request."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/.github/PULL_REQUEST_TEMPLATE.md",
+          "title": "winget-pkgs: pull request template",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.review.validation-pipeline",
+      "store": "winget",
+      "category": "review",
+      "title": {
+        "en": "Validation pipeline and moderator approval",
+        "tr": "Doğrulama hattı ve moderatör onayı"
+      },
+      "description": {
+        "en": "Each pull request goes through the validation pipeline (manifest checks, installation, security scans) and is labelled with the result (Validation-Completed or an error label); community moderators approve it (Moderator-Approved) and the merge publishes the version."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/doc/Validation.md",
+          "title": "winget-pkgs: Validation",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.review.author-feedback",
+      "store": "winget",
+      "category": "review",
+      "title": {
+        "en": "Answer requests for information",
+        "tr": "Bilgi isteklerini yanıtla"
+      },
+      "description": {
+        "en": "When a moderator or the bot asks for a change (Needs-Author-Feedback, Changes-Requested), answer on the pull request; issues and pull requests whose requests stay unanswered may be closed automatically."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.pullRequests"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-pkgs/blob/master/CONTRIBUTING.md",
+          "title": "winget-pkgs: Contributing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true,
+      "notes": "The contributing guide gives no day count for the automatic close."
+    },
+    {
+      "id": "winget.listing-limits.short-description",
+      "store": "winget",
+      "category": "listing-limits",
+      "title": {
+        "en": "ShortDescription: 3 to 256 characters (required)",
+        "tr": "ShortDescription: 3 ile 256 karakter (zorunlu)"
+      },
+      "description": {
+        "en": "Required in the default locale manifest, 3 to 256 characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minChars": 3,
+        "maxChars": 256
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.locales"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.listing-limits.description",
+      "store": "winget",
+      "category": "listing-limits",
+      "title": {
+        "en": "Description: up to 10000 characters",
+        "tr": "Description: en fazla 10.000 karakter"
+      },
+      "description": {
+        "en": "Optional, 3 to 10000 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minChars": 3,
+        "maxChars": 10000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.locales"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.listing-limits.names",
+      "store": "winget",
+      "category": "listing-limits",
+      "title": {
+        "en": "Publisher, PackageName and License are required",
+        "tr": "Publisher, PackageName ve License zorunlu"
+      },
+      "description": {
+        "en": "Required in the default locale manifest: Publisher and PackageName 2 to 256 characters, License 3 to 512 characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minChars": 2,
+        "maxChars": 256
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.locales"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.listing-limits.tags",
+      "store": "winget",
+      "category": "listing-limits",
+      "title": {
+        "en": "Tags: at most 16, 40 characters each",
+        "tr": "Etiketler: en fazla 16, her biri 40 karakter"
+      },
+      "description": {
+        "en": "At most 16 unique tags of up to 40 characters."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxItems": 16,
+        "maxCharsPerItem": 40
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.locales"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.listing-limits.release-notes",
+      "store": "winget",
+      "category": "listing-limits",
+      "title": {
+        "en": "ReleaseNotes: up to 10000 characters",
+        "tr": "ReleaseNotes: en fazla 10.000 karakter"
+      },
+      "description": {
+        "en": "Optional, 1 to 10000 characters; release notes describe one version and are not copied to the next."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "minChars": 1,
+        "maxChars": 10000
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "winget.locales"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/winget-cli/blob/master/schemas/JSON/manifests/v1.12.0/manifest.defaultLocale.1.12.0.json",
+          "title": "winget-cli: default locale manifest JSON schema 1.12.0",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "winget.api-access.github-token",
+      "store": "winget",
+      "category": "api-access",
+      "title": {
+        "en": "A GitHub token that can push to the fork and open pull requests",
+        "tr": "Fork'a gönderip pull request açabilen bir GitHub token'ı"
+      },
+      "description": {
+        "en": "storeasy pushes a branch to the owner fork of winget-pkgs and opens the pull request with the owner GitHub token. A classic personal access token with the public_repo scope does both; a fine-grained token can push to the fork, but GitHub refuses it a pull request in a repository its owner does not own, so storeasy then gives the compare page to open it by hand."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "connection.verify"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+          "title": "GitHub Docs: Managing your personal access tokens",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": false,
+      "notes": "The fine-grained token limit is reported by GitHub users (community discussions) and seen as a 403 from the pull request API; GitHub documentation does not state it outright."
+    }
+  ]
+}
