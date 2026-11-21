@@ -100,6 +100,11 @@ using Storeasy.Application.Features.Releases.PlanPlayTesters;
 using Storeasy.Application.Features.Releases.PlanRelease;
 using Storeasy.Application.Features.Releases.PlanRollout;
 using Storeasy.Application.Features.Reviews.CreateSavedReply;
+using Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetrics;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary;
+using Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics;
 using Storeasy.Application.Features.Reviews.DeleteSavedReply;
 using Storeasy.Application.Features.Reviews.GetReviewList;
 using Storeasy.Application.Features.Reviews.GetSavedReplyList;
@@ -272,6 +277,13 @@ public static class McpToolCatalog
         Write<CreateSavedReplyCommand>("reviews_saved_reply_create", "Adds a saved reply."),
         Write<UpdateSavedReplyCommand>("reviews_saved_reply_update", "Changes a saved reply."),
         Write<DeleteSavedReplyCommand>("reviews_saved_reply_delete", "Removes a saved reply."),
+
+        // Store page performance (ASO conversion analytics)
+        Read<GetStoreMetricsQuery>("aso_metrics_get", "Store page performance of one app from storeasy's daily rows: impressions (App Store), page views, downloads, redownloads (App Store) and conversion rate (downloads / page views), totals with the change against the previous period, daily series and breakdowns by traffic source, country and store. Filters: store, country, source; range: from/to or days (default the last 30 days ending yesterday)."),
+        Read<GetStoreMetricsSummaryQuery>("aso_metrics_summary", "Store page performance of every app of the organization over a date range, with the change against the previous period."),
+        Read<GetStoreMetricFeedsQuery>("aso_metrics_feeds", "Per store record of an app: whether metrics arrive, the last read, how far the data goes and what to set up (App Store analytics reports, Play reports bucket, a missing role)."),
+        Write<SyncStoreMetricsCommand>("aso_metrics_sync", "Reads the store page metrics now (a read only store job per store record; they are also read daily)."),
+        Write<EnableAppleAnalyticsCommand>("aso_analytics_enable", "Asks App Store Connect to start the ONGOING analytics reports of an App Store record (ManageConnections permission; the API key needs the Admin role). A one time store write: needs confirm: true. The first data arrives one or two days later."),
 
         // Rejections
         Read<GetRejectionCaseListQuery>("rejections_list", "Pages through the rejection cases, newest first."),

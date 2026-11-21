@@ -108,6 +108,14 @@ public interface IMicrosoftStoreClient
     Task<T> DownloadAsync<T>(string url, bool guardAddress, Func<Stream, long?, Task<T>> read, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Reads the Microsoft Store analytics API (<c>{DevCenter}/analytics/...</c>, e.g.
+    /// <c>analytics/appacquisitions?applicationId=...</c>) with the MSIX API's token; an absolute address (a
+    /// <c>@nextLink</c>) is read as is. Returns the parsed answer. 401 and 403 mean the Entra app lacks a Partner Center
+    /// role that can read analytics.
+    /// </summary>
+    Task<JsonNode> GetAnalyticsAsync(string secretJson, string pathAndQuery, CancellationToken cancellationToken);
+
+    /// <summary>
     /// MSI/EXE: reads the readiness of the product's draft.
     /// </summary>
     Task<MsProductStatusRecord> GetProductStatusAsync(string secretJson, string productId, CancellationToken cancellationToken);

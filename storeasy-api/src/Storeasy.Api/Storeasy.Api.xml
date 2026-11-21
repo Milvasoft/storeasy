@@ -2751,6 +2751,70 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.StoreMetricsController">
+            <summary>
+            Store page performance (ASO conversion analytics): impressions, page views, downloads and conversion rate per day,
+            read daily from the App Store Connect analytics reports, the Google Play statistics bucket and the Microsoft Store
+            analytics API. Reads come from storeasy's rows; the only store write is enabling the App Store reports.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Store page performance (ASO conversion analytics): impressions, page views, downloads and conversion rate per day,
+            read daily from the App Store Connect analytics reports, the Google Play statistics bucket and the Microsoft Store
+            analytics API. Reads come from storeasy's rows; the only store write is enabling the App Store reports.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.GetStoreMetricsAsync(Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Metrics of one app over a date range: totals and change against the previous period, daily series, breakdowns by
+            source, country and store.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.GetSummaryAsync(Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery,System.Threading.CancellationToken)">
+            <summary>
+            Metrics of every app of the organization over a date range.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.GetFeedsAsync(Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery,System.Threading.CancellationToken)">
+            <summary>
+            The metrics feed of every store record of an app (state, last read, what to set up).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.SyncAsync(Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Reads the metrics now (one job per store record). Returns the job ids.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.EnableAppleAnalyticsAsync(Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Asks App Store Connect to start the analytics reports of an App Store record (needs <c>Confirm: true</c>). Returns
+            the job id.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.StoreMetricsController.SetReportBucketAsync(Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand,System.Threading.CancellationToken)">
+            <summary>
+            Sets or clears the reports bucket of a Google Play connection. Returns the stored bucket name.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.SubscriptionsController">
             <summary>
             Subscriptions: App Store subscription groups, subscriptions, prices and offers; Play subscriptions, base plans and
@@ -4101,6 +4165,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261121012037_AddUserTourPromptSeenDate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261121162406_AddStoreMetrics">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121162406_AddStoreMetrics.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121162406_AddStoreMetrics.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121162406_AddStoreMetrics.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

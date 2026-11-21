@@ -24,6 +24,11 @@ public class StoreConnection : FullAuditableEntity<int>
     public const int NameMaxLength = 100;
 
     /// <summary>
+    /// Column length of <see cref="ReportBucket"/> (a Cloud Storage bucket name has at most 222 characters).
+    /// </summary>
+    public const int ReportBucketMaxLength = 222;
+
+    /// <summary>
     /// Owning organization.
     /// </summary>
     public int OrganizationId { get; set; }
@@ -88,6 +93,13 @@ public class StoreConnection : FullAuditableEntity<int>
     /// months). Entered by the user; the expiry reminders read it.
     /// </summary>
     public DateTime? SecretExpiryDate { get; set; }
+
+    /// <summary>
+    /// Google Play: the Cloud Storage bucket Play Console exports the statistics reports to (e.g.
+    /// <c>pubsite_prod_rev_01234567890987654321</c>), read for the store page metrics. Null when not set. Not a secret.
+    /// </summary>
+    [MaxLength(ReportBucketMaxLength)]
+    public string ReportBucket { get; set; }
 
     /// <summary>
     /// Navigation property of the organization.

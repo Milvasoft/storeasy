@@ -9918,6 +9918,360 @@
         <member name="P:Storeasy.Application.Dtos.StoreJobDtos.SyncMonetizationPayload.StoreAppId">
             <summary>Store record whose products are read.</summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricBreakdownDto">
+            <summary>
+            Totals of one group of a breakdown: a traffic source, a country or a store (exactly one of the keys is set).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricBreakdownDto.Source">
+            <summary>
+            Traffic source of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricBreakdownDto.Country">
+            <summary>
+            Country code of the group (<c>ZZ</c> when the store did not name it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricBreakdownDto.Store">
+            <summary>
+            Store of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricBreakdownDto.Totals">
+            <summary>
+            Totals.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto">
+            <summary>
+            Change of each metric against the previous period of the same length, as a fraction (0.25 is 25 percent more, -0.1 is
+            10 percent less). Null when the previous period has no value to compare with. The conversion rate change is the
+            relative change of the rate, not a difference in points.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.Impressions">
+            <summary>
+            Impressions change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.PageViews">
+            <summary>
+            Page views change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.Downloads">
+            <summary>
+            Downloads change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.Redownloads">
+            <summary>
+            Redownloads change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.ConversionRate">
+            <summary>
+            Conversion rate change.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricChangesDto.From(Storeasy.Application.Interfaces.StoreMetricValues,Storeasy.Application.Interfaces.StoreMetricValues)">
+            <summary>
+            Compares two periods.
+            </summary>
+            <param name="current"></param>
+            <param name="previous"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricDayDto">
+            <summary>
+            One day of the chart.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricDayDto.Date">
+            <summary>
+            Day.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricDayDto.From(Storeasy.Application.Interfaces.StoreMetricDay)">
+            <summary>
+            Maps a summed day.
+            </summary>
+            <param name="day"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto">
+            <summary>
+            The metrics feed of one store record of an app: whether data arrives, the last read and what is missing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.ConnectionId">
+            <summary>
+            The record's store connection; null when it has none (nothing can be read).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.ConnectionName">
+            <summary>
+            Name of the connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.Status">
+            <summary>
+            State of the feed. A record never synced reads <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.NotEnabled"/> on the App Store,
+            <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.NeedsSetup"/> on Google Play without a bucket and <see cref="F:Storeasy.Domain.Enums.MetricFeedStatus.Waiting"/>
+            otherwise.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.CanEnable">
+            <summary>
+            App Store: whether the analytics reports can be enabled (a connection and no request yet).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.ReportBucket">
+            <summary>
+            Google Play: the reports bucket of the connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.EnabledDate">
+            <summary>
+            When the reports were enabled.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.EnabledByUserName">
+            <summary>
+            Who enabled them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.LastFetchedDate">
+            <summary>
+            Last read, successful or not.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.LastSucceededDate">
+            <summary>
+            Last successful read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.EarliestDataDate">
+            <summary>
+            First day with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.LatestDataDate">
+            <summary>
+            Last day with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.LastError">
+            <summary>
+            Why the last read failed or what is missing; null after a successful read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricFeedDto.LastJobId">
+            <summary>
+            The last sync job.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.SyncStoreMetricsPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics"/> job.
+            </summary>
+            <param name="StoreAppId">Store record.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreMetricDtos.SyncStoreMetricsPayload.#ctor(System.Int32)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics"/> job.
+            </summary>
+            <param name="StoreAppId">Store record.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.SyncStoreMetricsPayload.StoreAppId">
+            <summary>Store record.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.EnableAppleAnalyticsPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job.
+            </summary>
+            <param name="StoreAppId">App Store record.</param>
+            <param name="UserName">Member who confirmed it.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreMetricDtos.EnableAppleAnalyticsPayload.#ctor(System.Int32,System.String)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job.
+            </summary>
+            <param name="StoreAppId">App Store record.</param>
+            <param name="UserName">Member who confirmed it.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.EnableAppleAnalyticsPayload.StoreAppId">
+            <summary>App Store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.EnableAppleAnalyticsPayload.UserName">
+            <summary>Member who confirmed it.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto">
+            <summary>
+            Store page performance of an app over a date range: totals with the change against the previous period, the daily
+            series and the breakdowns by source, country and store. Every number is one slice of the stored rows (the chosen
+            country or every country, the chosen source or every source), so totals and breakdowns never count a download twice.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.From">
+            <summary>
+            First day of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.To">
+            <summary>
+            Last day of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.PreviousFrom">
+            <summary>
+            First day of the previous period (same length, right before <see cref="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.From"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.PreviousTo">
+            <summary>
+            Last day of the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Totals">
+            <summary>
+            Totals of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.PreviousTotals">
+            <summary>
+            Totals of the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Changes">
+            <summary>
+            Change against the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Days">
+            <summary>
+            Days with data, oldest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Sources">
+            <summary>
+            Totals per traffic source, most page views first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Countries">
+            <summary>
+            Totals per country, most downloads first (at most 50).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsReportDto.Stores">
+            <summary>
+            Totals per store.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto">
+            <summary>
+            Store page performance of every app of the organization over a date range, with the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto.From">
+            <summary>
+            First day of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto.To">
+            <summary>
+            Last day of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto.Totals">
+            <summary>
+            Totals of every app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto.Changes">
+            <summary>
+            Change of the totals against the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto.Apps">
+            <summary>
+            Apps with data in either period, most downloads first.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.AppStoreMetricsDto">
+            <summary>
+            One app of <see cref="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricsSummaryDto"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.AppStoreMetricsDto.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.AppStoreMetricsDto.AppName">
+            <summary>
+            App name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.AppStoreMetricsDto.Totals">
+            <summary>
+            Totals of the range.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.AppStoreMetricsDto.Changes">
+            <summary>
+            Change against the previous period.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto">
+            <summary>
+            Summed store page metrics. A metric no store in the selection reports is null (Google Play and Microsoft Store report
+            no impressions; only the App Store reports redownloads).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.Impressions">
+            <summary>
+            Times the app was shown in a list.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.PageViews">
+            <summary>
+            Store page views.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.Downloads">
+            <summary>
+            First time downloads.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.Redownloads">
+            <summary>
+            Redownloads.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.ConversionRate">
+            <summary>
+            Downloads divided by page views (0.05 is 5 percent), over the stores that report both.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.StoreMetricDtos.StoreMetricValuesDto.From(Storeasy.Application.Interfaces.StoreMetricValues)">
+            <summary>
+            Maps summed values.
+            </summary>
+            <param name="values"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Dtos.TestFlightDtos.BetaBuildDto">
             <summary>
             A TestFlight build with its 90 day expiry.
@@ -22444,6 +22798,364 @@
         <member name="M:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.StoreJobs.GetStoreJobList.GetStoreJobListQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand">
+            <summary>
+            Asks App Store Connect to generate the ONGOING analytics reports of one App Store record (an analytics report request,
+            the only store write of the metrics feature). It is never done automatically: <see cref="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand.Confirm"/> must be true. The
+            API key needs the Admin role for this step; reading the reports later needs Admin or Sales and Reports. Apple delivers
+            the first data one or two days later. Audited; returns the job id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand.StoreAppId">
+            <summary>
+            App Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand.Confirm">
+            <summary>
+            The member confirmed the request to Apple.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand"/>: checks the confirmation and the record, writes the audit entry and
+            queues the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job (which reuses a request that already exists at Apple).
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="FeedRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Analytics.StoreMetricFeed},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.ICurrentUser)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand"/>: checks the confirmation and the record, writes the audit entry and
+            queues the <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics"/> job (which reuses a request that already exists at Apple).
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="FeedRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+            <param name="CurrentUser"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.FeedRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.CurrentUser">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommandHandler.Handle(Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics.EnableAppleAnalyticsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery">
+            <summary>
+            The metrics feed of every store record of an app: whether data arrives, when it was last read, how far it goes and
+            what the owner must set up (App Store: enable the analytics reports; Google Play: the reports bucket; any store: a
+            missing role or scope).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery"/>. A record that was never synced gets the state it would start in. An
+            app of another organization answers 404.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="FeedRepository"></param>
+            <param name="AppRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Analytics.StoreMetricFeed},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery"/>. A record that was never synced gets the state it would start in. An
+            app of another organization answers 404.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="FeedRepository"></param>
+            <param name="AppRepository"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler.FeedRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQueryHandler.Handle(Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds.GetStoreMetricFeedsQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery">
+            <summary>
+            Store page performance of every app of the organization over a date range, with the change against the previous
+            period, from storeasy's stored daily rows. The range works like <c>GetStoreMetricsQuery</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.Store">
+            <summary>
+            Only this store; null for every store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.From">
+            <summary>
+            First day; null for <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.Days"/> days before <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.To"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.To">
+            <summary>
+            Last day; null for yesterday (UTC).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.Days">
+            <summary>
+            Range length in days when <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery.From"/> is null.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery"/>. Removed apps are left out.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="MetricsQuery"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreMetricsQuery,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery"/>. Removed apps are left out.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="MetricsQuery"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler.MetricsQuery">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryHandler.Handle(Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary.GetStoreMetricsSummaryQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery">
+            <summary>
+            Store page performance of one app (impressions, page views, downloads, conversion rate) over a date range, from
+            storeasy's stored daily rows; nothing is read from a store. The range is <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.From"/> to <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.To"/>, or the
+            last <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Days"/> days ending yesterday (30 by default), at most 400 days.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Store">
+            <summary>
+            Only this store; null for every store of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Country">
+            <summary>
+            Only this country (ISO 3166 code, e.g. <c>TR</c>); null for every country.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Source">
+            <summary>
+            Only this traffic source; null for every source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.From">
+            <summary>
+            First day; null for <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Days"/> days before <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.To"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.To">
+            <summary>
+            Last day; null for yesterday (UTC).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.Days">
+            <summary>
+            Range length in days when <see cref="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery.From"/> is null (7, 30, 90...).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery"/>. An app of another organization answers 404.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="MetricsQuery"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreMetricsQuery,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery"/>. An app of another organization answers 404.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="MetricsQuery"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.MetricsQuery">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.CountryLimit">
+            <summary>
+            Most countries in the country breakdown.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryHandler.Handle(Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreMetrics.GetStoreMetrics.GetStoreMetricsQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand">
+            <summary>
+            Sets or clears the Cloud Storage bucket a Google Play connection's statistics reports are exported to (Play Console,
+            Download reports, "Cloud Storage URI", e.g. <c>gs://pubsite_prod_rev_01234567890987654321</c>). The service account
+            must be a Play Console user with "View app information and download bulk reports". Not a secret. Audited; when set, the
+            metrics of the connection's apps are read right away. Answers the stored bucket name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand.ConnectionId">
+            <summary>
+            Google Play connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand.Bucket">
+            <summary>
+            Bucket name or <c>gs://</c> URI; empty clears it.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand"/>. A change is written and audited; a request that changes nothing writes
+            nothing. A set bucket queues a metrics sync of every Google Play record of the connection.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand"/>. A change is written and audited; a request that changes nothing writes
+            nothing. A set bucket queues a metrics sync of every Google Play record of the connection.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandHandler.Handle(Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreMetrics.SetReportBucket.SetReportBucketCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand">
+            <summary>
+            Reads the store page metrics now: one job per store record with a connection, of the app or of every app. They are
+            also read once a day. Only reads; returns the job ids.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand.AppId">
+            <summary>
+            Only this app.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand"/>. Without a record to read it answers 404.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand"/>. Without a record to read it answers 404.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommandHandler.Handle(Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics.SyncStoreMetricsCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Application.Features.Subscriptions.ApplySubscriptionPlan.ApplySubscriptionPlanCommand">
             <summary>
             Approves a pending subscription or In-App Purchase plan and queues its apply job; the plan's own permission and typed confirmation are checked.
@@ -26936,6 +27648,14 @@
             pass false.
             </summary>
         </member>
+        <member name="M:Storeasy.Application.Interfaces.IMicrosoftStoreClient.GetAnalyticsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads the Microsoft Store analytics API (<c>{DevCenter}/analytics/...</c>, e.g.
+            <c>analytics/appacquisitions?applicationId=...</c>) with the MSIX API's token; an absolute address (a
+            <c>@nextLink</c>) is read as is. Returns the parsed answer. 401 and 403 mean the Entra app lacks a Partner Center
+            role that can read analytics.
+            </summary>
+        </member>
         <member name="M:Storeasy.Application.Interfaces.IMicrosoftStoreClient.GetProductStatusAsync(System.String,System.String,System.Threading.CancellationToken)">
             <summary>
             MSI/EXE: reads the readiness of the product's draft.
@@ -29973,6 +30693,355 @@
         <member name="P:Storeasy.Application.Interfaces.StoreJobRequest.MaxAttempts">
             <summary>Attempts allowed; null for the configured default.</summary>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreMetricsGateway">
+            <summary>
+            Reads the store page performance reports of the three stores: the App Store Connect Analytics Reports API, the Google
+            Play statistics exported to the developer's Cloud Storage bucket and the Microsoft Store analytics API. Every read
+            returns daily rows already cut into slices (<see cref="T:Storeasy.Application.Interfaces.StoreMetricRow"/>). Only
+            <see cref="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.CreateAppleReportRequestAsync(System.String,System.String,System.Threading.CancellationToken)"/> writes to a store. Failures surface as <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>;
+            401 and 403 mean the credentials lack a role, scope or bucket access.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.FindAppleReportRequestAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            The app's ONGOING analytics report request, or null when there is none. A request Apple stopped for inactivity is
+            returned with <see cref="P:Storeasy.Application.Interfaces.AppleReportRequest.Stopped"/> set, only when no active one exists.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.CreateAppleReportRequestAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Asks App Store Connect for the ONGOING analytics reports of an app (the only write of the metrics feature). When
+            one already exists, that one is returned.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.ReadAppleMetricsAsync(System.String,System.String,System.Nullable{System.DateOnly},System.Threading.CancellationToken)">
+            <summary>
+            Reads the daily instances of the "App Store Discovery and Engagement" and "App Downloads" standard reports of a
+            request whose processing date is on or after <paramref name="processedFrom"/> (all when null).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.ReadPlayMetricsAsync(System.String,System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Reads the monthly store performance files (by country and by traffic source) of a Play app from the reports
+            bucket, for every month from <paramref name="from"/> to <paramref name="to"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsGateway.ReadMicrosoftMetricsAsync(System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Reads the daily acquisitions (by market and store client) and the page views of the acquisition funnel of a
+            Microsoft Store product, from <paramref name="from"/> to <paramref name="to"/>.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.AppleReportRequest">
+            <summary>
+            An App Store Connect analytics report request.
+            </summary>
+            <param name="Id">Request id.</param>
+            <param name="Stopped">Apple stopped it because nobody read the reports for a long time; a new request is needed.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.AppleReportRequest.#ctor(System.String,System.Boolean)">
+            <summary>
+            An App Store Connect analytics report request.
+            </summary>
+            <param name="Id">Request id.</param>
+            <param name="Stopped">Apple stopped it because nobody read the reports for a long time; a new request is needed.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AppleReportRequest.Id">
+            <summary>Request id.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.AppleReportRequest.Stopped">
+            <summary>Apple stopped it because nobody read the reports for a long time; a new request is needed.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricRow">
+            <summary>
+            One day of one slice of a store record's metrics, as read from the store.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Country">Country code, empty for every country.</param>
+            <param name="Source">Traffic source, <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.</param>
+            <param name="Impressions">Impressions, null when not reported.</param>
+            <param name="PageViews">Page views, null when not reported.</param>
+            <param name="Downloads">First time downloads, null when not reported.</param>
+            <param name="Redownloads">Redownloads, null when not reported.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricRow.#ctor(System.DateOnly,System.String,Storeasy.Domain.Enums.TrafficSource,System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>
+            One day of one slice of a store record's metrics, as read from the store.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Country">Country code, empty for every country.</param>
+            <param name="Source">Traffic source, <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.</param>
+            <param name="Impressions">Impressions, null when not reported.</param>
+            <param name="PageViews">Page views, null when not reported.</param>
+            <param name="Downloads">First time downloads, null when not reported.</param>
+            <param name="Redownloads">Redownloads, null when not reported.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Date">
+            <summary>Day.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Country">
+            <summary>Country code, empty for every country.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Source">
+            <summary>Traffic source, <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Impressions">
+            <summary>Impressions, null when not reported.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.PageViews">
+            <summary>Page views, null when not reported.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Downloads">
+            <summary>First time downloads, null when not reported.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricRow.Redownloads">
+            <summary>Redownloads, null when not reported.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricBatch">
+            <summary>
+            The result of one read.
+            </summary>
+            <param name="Rows">Daily rows.</param>
+            <param name="Marker">App Store: processing date of the newest report instance read; null elsewhere or when none.</param>
+            <param name="ReportsReady">App Store: whether Apple has generated the reports yet (false in the first day or two).</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricBatch.#ctor(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreMetricRow},System.Nullable{System.DateOnly},System.Boolean)">
+            <summary>
+            The result of one read.
+            </summary>
+            <param name="Rows">Daily rows.</param>
+            <param name="Marker">App Store: processing date of the newest report instance read; null elsewhere or when none.</param>
+            <param name="ReportsReady">App Store: whether Apple has generated the reports yet (false in the first day or two).</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricBatch.Rows">
+            <summary>Daily rows.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricBatch.Marker">
+            <summary>App Store: processing date of the newest report instance read; null elsewhere or when none.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricBatch.ReportsReady">
+            <summary>App Store: whether Apple has generated the reports yet (false in the first day or two).</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreMetricsQuery">
+            <summary>
+            Reads the stored daily store page metrics for any feature (the metrics page, MCP tools, a before and after impact
+            report). Every method reads exactly one slice of the rows (see <see cref="T:Storeasy.Domain.Analytics.StoreMetric"/>): the
+            scope's country (or every country) and source (or every source), summed over the store records the scope selects.
+            Nothing calls a store. Dates are the stores' reporting days; ranges include both ends.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetMetricSeriesAsync(Storeasy.Application.Interfaces.StoreMetricScope,Storeasy.Domain.Enums.StoreMetricKind,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            One value per day with data for <paramref name="metric"/>: <c>GetMetricSeries(appId, metric, from, to, filters)</c>.
+            Days without rows are left out; <see cref="F:Storeasy.Domain.Enums.StoreMetricKind.ConversionRate"/> is computed per day.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetDailyAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Every metric per day with data, oldest first.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetTotalsAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Every metric summed over the range.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetBySourceAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Totals per traffic source (the scope's source is ignored), largest page views first.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetByCountryAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Totals per country (the scope's country is ignored), most downloads first, at most <paramref name="limit"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetByStoreAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Totals per store (the scope's store is ignored).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreMetricsQuery.GetByAppAsync(Storeasy.Application.Interfaces.StoreMetricScope,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <summary>
+            Totals per storeasy app of the organization (the scope's app and record are ignored).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricScope">
+            <summary>
+            Which rows a metrics read sums.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricScope.#ctor(System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{Storeasy.Domain.Enums.StoreKind},System.String,System.Nullable{Storeasy.Domain.Enums.TrafficSource})">
+            <summary>
+            A scope.
+            </summary>
+            <param name="organizationId">Organization (always checked).</param>
+            <param name="appId">Only the records of this app; null for every app of the organization.</param>
+            <param name="storeAppId">Only this store record.</param>
+            <param name="store">Only this store.</param>
+            <param name="country">Only this country (ISO code); null or empty for every country.</param>
+            <param name="source">Only this traffic source; null or <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.OrganizationId">
+            <summary>
+            Organization (always checked).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.AppId">
+            <summary>
+            Only the records of this app; null for every app of the organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.StoreAppId">
+            <summary>
+            Only this store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.Store">
+            <summary>
+            Only this store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.Country">
+            <summary>
+            Only this country (ISO code); null or empty for every country.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.Source">
+            <summary>
+            Only this traffic source; null or <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.CountrySlice">
+            <summary>
+            The country slice the scope reads.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricScope.SourceSlice">
+            <summary>
+            The source slice the scope reads.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricValues">
+            <summary>
+            Summed metrics. <see cref="P:Storeasy.Application.Interfaces.StoreMetricValues.ConvertingDownloads"/> are the downloads of the rows that also report page views, so the
+            conversion rate never divides one store's downloads by another store's page views.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricValues.#ctor(System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>
+            Summed metrics.
+            </summary>
+            <param name="impressions">Impressions, null when no row reports them.</param>
+            <param name="pageViews">Page views, null when no row reports them.</param>
+            <param name="downloads">First time downloads, null when no row reports them.</param>
+            <param name="redownloads">Redownloads, null when no row reports them.</param>
+            <param name="convertingDownloads">Downloads of the rows that report page views.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.Impressions">
+            <summary>
+            Impressions, null when no row reports them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.PageViews">
+            <summary>
+            Page views, null when no row reports them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.Downloads">
+            <summary>
+            First time downloads, null when no row reports them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.Redownloads">
+            <summary>
+            Redownloads, null when no row reports them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.ConvertingDownloads">
+            <summary>
+            Downloads of the rows that report page views.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.Empty">
+            <summary>
+            Nothing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricValues.ConversionRate">
+            <summary>
+            Downloads divided by page views, or null.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricValues.Value(Storeasy.Domain.Enums.StoreMetricKind)">
+            <summary>
+            The value of one metric.
+            </summary>
+            <param name="metric"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricDay">
+            <summary>
+            One day of summed metrics.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Values">Metrics.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricDay.#ctor(System.DateOnly,Storeasy.Application.Interfaces.StoreMetricValues)">
+            <summary>
+            One day of summed metrics.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Values">Metrics.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricDay.Date">
+            <summary>Day.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricDay.Values">
+            <summary>Metrics.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricPoint">
+            <summary>
+            One day of one metric.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Value">Value, null when no row of the day reports the metric.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricPoint.#ctor(System.DateOnly,System.Nullable{System.Double})">
+            <summary>
+            One day of one metric.
+            </summary>
+            <param name="Date">Day.</param>
+            <param name="Value">Value, null when no row of the day reports the metric.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricPoint.Date">
+            <summary>Day.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricPoint.Value">
+            <summary>Value, null when no row of the day reports the metric.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.StoreMetricGroup`1">
+            <summary>
+            Summed metrics of one group (source, country, store or app).
+            </summary>
+            <typeparam name="TKey"></typeparam>
+            <param name="Key">Group.</param>
+            <param name="Values">Metrics.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.StoreMetricGroup`1.#ctor(`0,Storeasy.Application.Interfaces.StoreMetricValues)">
+            <summary>
+            Summed metrics of one group (source, country, store or app).
+            </summary>
+            <typeparam name="TKey"></typeparam>
+            <param name="Key">Group.</param>
+            <param name="Values">Metrics.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricGroup`1.Key">
+            <summary>Group.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.StoreMetricGroup`1.Values">
+            <summary>Metrics.</summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IStoreReviewGateway">
             <summary>
             Customer reviews and developer replies: App Store Connect customer reviews and responses, Google Play reviews (the
@@ -31361,6 +32430,372 @@
             </summary>
             <param name="value"></param>
             <param name="maxLength">0 for no limit.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports">
+            <summary>
+            The App Store Connect analytics reports storeasy reads (Analytics Reports API, standard content level, daily
+            granularity) and their parsers. Files are tab separated with a header row.
+            <list type="bullet">
+            <item>"App Store Discovery and Engagement Standard" (category <c>APP_STORE_ENGAGEMENT</c>): <c>Event</c> Impression
+            counts as impressions, <c>Event</c> Page view on a product page or store sheet as page views; by <c>Source Type</c>
+            and <c>Territory</c>, summing <c>Counts</c>.</item>
+            <item>"App Downloads Standard" (category <c>COMMERCE</c>): <c>Download Type</c> First-time download counts as downloads,
+            Redownload as redownloads (updates and restores are left out); by <c>Source Type</c> and <c>Territory</c>.</item>
+            </list>
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports.EngagementReportName">
+            <summary>
+            Name of the discovery and engagement report.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports.DownloadsReportName">
+            <summary>
+            Name of the downloads report.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports.Source(System.String)">
+            <summary>
+            Maps an App Store <c>Source Type</c>.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports.ParseEngagement(System.String)">
+            <summary>
+            Parses a discovery and engagement report file into slices.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.AppleAnalyticsReports.ParseDownloads(System.String)">
+            <summary>
+            Parses a downloads report file into slices.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.DelimitedText">
+            <summary>
+            Reads the report files of the stores: decodes the bytes (UTF-16 with a byte order mark, as Google Play writes them, or
+            UTF-8) and splits comma or tab separated lines with RFC 4180 quoting. Columns are found by header name, ignoring case
+            and spaces, so a reordered or renamed column fails loudly instead of being read as another one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.DelimitedText.Header">
+            <summary>
+            Header cells as written.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.DelimitedText.Rows">
+            <summary>
+            Data rows (empty lines skipped).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Decode(System.Byte[])">
+            <summary>
+            Decodes report bytes: UTF-16 LE or BE when a byte order mark says so, UTF-8 otherwise (a UTF-8 mark is dropped).
+            </summary>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Parse(System.String)">
+            <summary>
+            Parses a file whose first line is the header. The separator is a tab when the header has one, a comma otherwise.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Column(System.String[])">
+            <summary>
+            Index of the first column whose name (ignoring case, spaces and punctuation) equals one of
+            <paramref name="names"/>, or -1.
+            </summary>
+            <param name="names"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.ColumnContaining(System.String)">
+            <summary>
+            Index of the first column whose name contains <paramref name="part"/> (ignoring case, spaces and punctuation), or -1.
+            </summary>
+            <param name="part"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Cell(System.Collections.Generic.List{System.String},System.Int32)">
+            <summary>
+            A trimmed cell, or null when the row is shorter or the column is missing.
+            </summary>
+            <param name="row"></param>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Count(System.Collections.Generic.List{System.String},System.Int32)">
+            <summary>
+            A count cell (digits with optional grouping commas or a decimal part, which is rounded), or null.
+            </summary>
+            <param name="row"></param>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.DelimitedText.Date(System.Collections.Generic.List{System.String},System.Int32)">
+            <summary>
+            A date cell (<c>yyyy-MM-dd</c>, <c>yyyyMMdd</c> or <c>MM/dd/yyyy</c>), or null.
+            </summary>
+            <param name="row"></param>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.MicrosoftAnalyticsReports">
+            <summary>
+            The Microsoft Store analytics API answers storeasy reads (<c>manage.devcenter.microsoft.com/v1.0/my/analytics</c>):
+            <list type="bullet">
+            <item><c>appacquisitions</c> with <c>aggregationLevel=day</c> and <c>groupby=date,market,storeClient</c>:
+            <c>Value[]</c> of <c>date</c>, <c>market</c>, <c>storeClient</c>, <c>acquisitionQuantity</c>; downloads by country
+            and store client.</item>
+            <item><c>funnel</c> for one day (<c>startDate</c> = <c>endDate</c>): <c>Value[]</c> of <c>MetricType</c> (PageView,
+            Acquisition, Install, Usage) and <c>UserCount</c>; the PageView count is the day's page views (users), reported only
+            for every country and source together.</item>
+            </list>
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.MicrosoftAnalyticsReports.Source(System.String)">
+            <summary>
+            Maps a Microsoft <c>storeClient</c>.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.MicrosoftAnalyticsReports.AddAcquisitions(System.Text.Json.JsonElement,Storeasy.Application.Utils.Analytics.StoreMetricAccumulator)">
+            <summary>
+            Adds one page of an <c>appacquisitions</c> answer.
+            </summary>
+            <param name="root"></param>
+            <param name="accumulator"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.MicrosoftAnalyticsReports.AddFunnelDay(System.Text.Json.JsonElement,System.DateOnly,Storeasy.Application.Utils.Analytics.StoreMetricAccumulator)">
+            <summary>
+            Adds the page views of a one day <c>funnel</c> answer for <paramref name="day"/>.
+            </summary>
+            <param name="root"></param>
+            <param name="day"></param>
+            <param name="accumulator"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.MicrosoftAnalyticsReports.NextLink(System.Text.Json.JsonElement)">
+            <summary>
+            The <c>@nextLink</c> of an answer, or null.
+            </summary>
+            <param name="root"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.PlayStatsReports">
+            <summary>
+            The Google Play Console statistics files storeasy reads from the developer's Cloud Storage bucket
+            (<c>gs://pubsite_prod_rev_...</c>), one file per month and breakdown, UTF-16 comma separated with a header row:
+            <list type="bullet">
+            <item><c>stats/store_performance/store_performance_{package}_{yyyyMM}_country.csv</c>: Date, Package name, Country,
+            Store listing acquisitions, Store listing visitors, Store listing conversion rate. The totals come from here.</item>
+            <item><c>stats/store_performance/store_performance_{package}_{yyyyMM}_traffic_source.csv</c>: Date, Package name,
+            Traffic source, Search term, UTM source, UTM campaign and the same metrics. Rows are summed per day and source and
+            only fill the source slices.</item>
+            </list>
+            Store listing visitors are page views, store listing acquisitions are downloads; Play reports no impressions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Analytics.PlayStatsReports.Folder">
+            <summary>
+            Folder of the store performance files in the bucket.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.CountryFile(System.String,System.DateOnly)">
+            <summary>
+            Object name of the country file of a month.
+            </summary>
+            <param name="packageName"></param>
+            <param name="month">Any day of the month.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.TrafficSourceFile(System.String,System.DateOnly)">
+            <summary>
+            Object name of the traffic source file of a month.
+            </summary>
+            <param name="packageName"></param>
+            <param name="month">Any day of the month.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.Months(System.DateOnly,System.DateOnly)">
+            <summary>
+            The first day of every month from <paramref name="from"/> to <paramref name="to"/>.
+            </summary>
+            <param name="from"></param>
+            <param name="to"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.Source(System.String)">
+            <summary>
+            Maps a Play traffic source.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.AddCountryFile(System.String,Storeasy.Application.Utils.Analytics.StoreMetricAccumulator)">
+            <summary>
+            Adds a country file to <paramref name="accumulator"/> (country slices and the totals).
+            </summary>
+            <param name="text"></param>
+            <param name="accumulator"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.PlayStatsReports.AddTrafficSourceFile(System.String,Storeasy.Application.Utils.Analytics.StoreMetricAccumulator)">
+            <summary>
+            Adds a traffic source file to <paramref name="accumulator"/> (source slices only).
+            </summary>
+            <param name="text"></param>
+            <param name="accumulator"></param>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.ReportBuckets">
+            <summary>
+            The Cloud Storage bucket of a Google Play developer account's reports. Play Console shows it as a URI under Download
+            reports (e.g. <c>gs://pubsite_prod_rev_01234567890987654321/</c>); the bucket name, the URI or the URI with a folder
+            are all accepted and stored as the bare bucket name.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.ReportBuckets.BucketRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9a-z].<br/>
+            ○ Match a character in the set [\-.0-9_a-z] greedily at least 1 and at most 220 times.<br/>
+            ○ Match a character in the set [0-9a-z].<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.ReportBuckets.Normalize(System.String)">
+            <summary>
+            The bucket name of <paramref name="value"/>, empty for an empty value, or null when it is not a bucket name.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.StoreMetricAccumulator">
+            <summary>
+            Sums store report facts into the daily slices of <see cref="T:Storeasy.Domain.Analytics.StoreMetric"/>. A fact names its country and source when
+            the report has that dimension (null when it does not); it is added to its own slice and to every coarser one: a fact
+            of (TR, search) counts for (TR, search), (TR, all), (all, search) and (all, all). A fact that only a breakdown file
+            carries (Google Play's traffic source file, while the country file holds the totals) is added with
+            <c>includeInTotal: false</c>, so the total is not counted twice.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricAccumulator.Count">
+            <summary>
+            Number of slices so far.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricAccumulator.Add(System.DateOnly,System.String,System.Nullable{Storeasy.Domain.Enums.TrafficSource},Storeasy.Domain.Enums.StoreMetricKind,System.Int64,System.Boolean)">
+            <summary>
+            Adds a fact.
+            </summary>
+            <param name="date">Day.</param>
+            <param name="country">Country code; null when the report has no country dimension.</param>
+            <param name="source">Traffic source; null when the report has no source dimension.</param>
+            <param name="metric">One of the stored metrics (not <see cref="F:Storeasy.Domain.Enums.StoreMetricKind.ConversionRate"/>).</param>
+            <param name="value">Count.</param>
+            <param name="includeInTotal">Whether the fact also counts for the (all countries, all sources) slice.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricAccumulator.Touch(System.DateOnly,System.String,System.Nullable{Storeasy.Domain.Enums.TrafficSource},Storeasy.Domain.Enums.StoreMetricKind,System.Boolean)">
+            <summary>
+            Marks a metric as reported (zero) for a slice without adding to it, so a day the store reported as empty reads 0
+            instead of "not reported".
+            </summary>
+            <param name="date"></param>
+            <param name="country"></param>
+            <param name="source"></param>
+            <param name="metric"></param>
+            <param name="includeInTotal"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricAccumulator.ToRows">
+            <summary>
+            The slices as rows, ordered by day, country and source.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.StoreMetricRange">
+            <summary>
+            The date range of a metrics read and its previous period of the same length.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricRange.#ctor(System.DateOnly,System.DateOnly)">
+            <summary>
+            A range.
+            </summary>
+            <param name="from">First day.</param>
+            <param name="to">Last day.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricRange.From">
+            <summary>
+            First day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricRange.To">
+            <summary>
+            Last day.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Analytics.StoreMetricRange.DefaultDays">
+            <summary>
+            Range length used when a request names neither <c>From</c> nor <c>Days</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricRange.Days">
+            <summary>
+            Days in the range (both ends included).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricRange.PreviousFrom">
+            <summary>
+            First day of the previous period.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Analytics.StoreMetricRange.PreviousTo">
+            <summary>
+            Last day of the previous period.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricRange.Resolve(System.Nullable{System.DateOnly},System.Nullable{System.DateOnly},System.Nullable{System.Int32},System.DateTimeOffset)">
+            <summary>
+            Resolves a request's range: <paramref name="to"/> defaults to yesterday (UTC; the stores report a day late at the
+            earliest), <paramref name="from"/> to <paramref name="days"/> days ending at <paramref name="to"/>. Null when the
+            range is reversed or longer than <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.MaxRangeDays"/>.
+            </summary>
+            <param name="from"></param>
+            <param name="to"></param>
+            <param name="days"></param>
+            <param name="now"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Analytics.StoreMetricRows">
+            <summary>
+            Combines rows read from several reports or report instances.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricRows.Merge(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.StoreMetricRow})">
+            <summary>
+            Merges rows of the same day, country and source: a metric one row reports fills the gap of another, and a later
+            row's reported value wins (two reports of one store each carry their own metrics, e.g. the App Store's discovery
+            and downloads reports).
+            </summary>
+            <param name="rows"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Analytics.StoreMetricRows.LatestPerDay(System.Collections.Generic.IEnumerable{System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreMetricRow}})">
+            <summary>
+            Keeps, for every day, the rows of the last batch that contains the day. Report instances of the App Store carry
+            complete data for the days they hold, so a later instance replaces a day instead of adding to it.
+            </summary>
+            <param name="batches">Batches in delivery order (oldest first).</param>
             <returns></returns>
         </member>
         <member name="T:Storeasy.Application.Utils.Aspects.UserActivityLogAspect.UserActivityLogInterceptor">
@@ -37625,514 +39060,546 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_1">
+        <member name="T:System.Text.RegularExpressions.Generated.BucketRegex_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BucketRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BucketRegex_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BucketRegex_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BucketRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_2">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DataUriRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DataUriRegex_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DataUriRegex_2.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_2.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DataUriRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2">
+        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ReplaceAndToLowerRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ReplaceAndToLowerRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_3">
+        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_4">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the UrlRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.UrlRegex_3.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.UrlRegex_4.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_3.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_4.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UrlRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_4">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_5">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GuidelineRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.GuidelineRegex_4.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.GuidelineRegex_5.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_4.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_5.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidelineRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_5">
+        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_6">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the VariableRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.VariableRegex_5.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.VariableRegex_6.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_5.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_6.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VariableRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_6">
+        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_7">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BearerRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.BearerRegex_6.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.BearerRegex_7.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_6.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_7.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BearerRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_7">
+        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_8">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the JwtRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.JwtRegex_7.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.JwtRegex_8.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_7.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_8.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.JwtRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_8">
+        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_9">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PemRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PemRegex_8.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PemRegex_9.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_8.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_9.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PemRegex_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9">
+        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GoogleTokenRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GoogleTokenRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10">
+        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AppleSignatureRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AppleSignatureRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11">
+        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AccessTokenQueryRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AccessTokenQueryRegex_12.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_12">
+        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_13">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SignedUrlRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_12.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SignedUrlRegex_13.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13">
+        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the StoreasyTokenRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_13.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.StoreasyTokenRegex_14.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AnthropicKeyRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_14.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_15.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_16">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlanIdPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_15.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_16.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_16.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_15.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_16.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IsoPeriodPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_16.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_17.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -38186,6 +39653,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndKelvinSign">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzK".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersLowerAndDigits">
+            <summary>Supports searching for characters in or not in "0123456789abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_1000000FEFFFF0700000000">
             <summary>Supports searching for characters in or not in " ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>

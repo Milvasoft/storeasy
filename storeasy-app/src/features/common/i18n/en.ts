@@ -10,6 +10,7 @@ export const p2en = {
     release: 'Release',
     money: 'Money',
     reviews: 'Reviews',
+    storePerformance: 'Store performance',
     rejections: 'Rejections',
     answers: 'Saved answers',
     assisted: 'Assisted steps',

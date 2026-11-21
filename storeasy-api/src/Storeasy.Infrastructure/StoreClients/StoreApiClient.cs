@@ -40,12 +40,13 @@ public sealed class StoreApiClient(IHttpClientFactory httpClientFactory, TimePro
     }
 
     /// <summary>
-    /// A Google access token for the stored service account.
+    /// A Google access token for the stored service account, for <paramref name="scope"/> (the Play Developer API when
+    /// null).
     /// </summary>
-    public async Task<string> GoogleTokenAsync(string secretJson, CancellationToken cancellationToken)
+    public async Task<string> GoogleTokenAsync(string secretJson, CancellationToken cancellationToken, string scope = null)
     {
         var credentials = StoreCredentialParser.ParseGoogle(secretJson, out var errorKey) ?? throw new StoreCallException(errorKey, null, false);
-        var assertion = StoreJwt.CreateGoogleAssertion(credentials, StoreGateway.GoogleScope, _timeProvider.GetUtcNow());
+        var assertion = StoreJwt.CreateGoogleAssertion(credentials, scope ?? StoreGateway.GoogleScope, _timeProvider.GetUtcNow());
 
         var form = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -99,6 +100,66 @@ public sealed class StoreApiClient(IHttpClientFactory httpClientFactory, TimePro
         }
 
         return (data, included);
+    }
+
+    /// <summary>
+    /// Downloads a file (a report) as bytes; null when the answer is 404. <paramref name="token"/> is sent as a bearer
+    /// token when given (presigned addresses need none). At most <paramref name="maxBytes"/> are read.
+    /// </summary>
+    public async Task<byte[]> BytesOrNotFoundAsync(string url, string token, long maxBytes, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        if (token != null)
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        HttpResponseMessage response;
+
+        try
+        {
+            response = await _httpClientFactory.CreateClient(StoreGateway.HttpClientName).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new StoreCallException(SecretRedactor.RedactAndTrim($"Store unreachable: {ex.Message}", _errorMaxLength), null, true);
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new StoreCallException("The store did not answer in time.", null, true);
+        }
+
+        using (response)
+        {
+            var status = (int)response.StatusCode;
+
+            if (status == (int)HttpStatusCode.NotFound)
+                return null;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                throw new StoreCallException(SecretRedactor.RedactAndTrim($"{status}: {StoreGateway.DescribeError(text)}", _errorMaxLength), status, status == 429 || status >= 500);
+            }
+
+            if (response.Content.Headers.ContentLength > maxBytes)
+                throw new StoreCallException($"The file is larger than {maxBytes} bytes.", null, false);
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var buffer = new MemoryStream();
+            var chunk = new byte[81920];
+            int read;
+
+            while ((read = await stream.ReadAsync(chunk, cancellationToken)) > 0)
+            {
+                if (buffer.Length + read > maxBytes)
+                    throw new StoreCallException($"The file is larger than {maxBytes} bytes.", null, false);
+
+                buffer.Write(chunk, 0, read);
+            }
+
+            return buffer.ToArray();
+        }
     }
 
     /// <summary>

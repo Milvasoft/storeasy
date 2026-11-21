@@ -118,6 +118,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeStoreEventGateway StoreEvents { get; } = new();
 
     /// <summary>
+    /// The store page metrics reads (App Store analytics reports, Play statistics bucket, Microsoft analytics).
+    /// </summary>
+    public FakeStoreMetricsGateway StoreMetrics { get; } = new();
+
+    /// <summary>
     /// The official pages the rule watcher reads.
     /// </summary>
     public FakeRuleSourceFetcher RulePages { get; } = new();
@@ -256,6 +261,8 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.AddSingleton<IStoreReviewGateway>(StoreEvents);
             services.RemoveAll<ITestFlightGateway>();
             services.AddSingleton<ITestFlightGateway>(StoreEvents);
+            services.RemoveAll<IStoreMetricsGateway>();
+            services.AddSingleton<IStoreMetricsGateway>(StoreMetrics);
             services.RemoveAll<IRuleSourceFetcher>();
             services.AddSingleton<IRuleSourceFetcher>(RulePages);
             services.RemoveAll<IHostResolver>();

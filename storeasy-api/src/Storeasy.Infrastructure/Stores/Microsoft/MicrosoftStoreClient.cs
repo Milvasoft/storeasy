@@ -253,6 +253,10 @@ public sealed partial class MicrosoftStoreClient(IHttpClientFactory HttpClientFa
     #region MSI/EXE products
 
     /// <inheritdoc/>
+    public Task<JsonNode> GetAnalyticsAsync(string secretJson, string pathAndQuery, CancellationToken cancellationToken)
+        => SendAsync(Api.DevCenter, Credentials(secretJson), HttpMethod.Get, pathAndQuery, null, cancellationToken);
+
+    /// <inheritdoc/>
     public async Task<MsProductStatusRecord> GetProductStatusAsync(string secretJson, string productId, CancellationToken cancellationToken)
     {
         var envelope = await SendAsync(Api.StoreApi, Credentials(secretJson), HttpMethod.Get, ProductPath(productId, "status"), null, cancellationToken, unwrap: false);
