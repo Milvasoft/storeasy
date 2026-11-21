@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Milvasoft.JobScheduling;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Models;
+using Storeasy.Infrastructure.Aso.Impact;
 using Storeasy.Infrastructure.Jobs;
 
 namespace Storeasy.Infrastructure.Aso;
@@ -14,7 +15,8 @@ namespace Storeasy.Infrastructure.Aso;
 public static class AsoServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the store sources, the researcher, the rank recorder, the rank series reader and the hourly rank job.
+    /// Adds the store sources, the researcher, the rank recorder, the rank series reader, the hourly rank job and the before
+    /// and after impact analyzer with its event sources.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configurationManager"></param>
@@ -42,6 +44,12 @@ public static class AsoServiceCollectionExtensions
         services.AddScoped<IAsoKeywordResearcher>(provider => provider.GetRequiredService<AsoKeywordResearcher>());
         services.AddScoped<IAsoRankRecorder, AsoRankRecorder>();
         services.AddScoped<IAsoRankSeries, AsoRankSeriesReader>();
+
+        // Before and after impact: every IImpactEventSource is read and merged, so a new kind of change (store listing
+        // experiments) plugs in with one more registration here.
+        services.AddScoped<IImpactEventSource, ChangePlanImpactSource>();
+        services.AddScoped<IImpactEventSource, ReleaseImpactSource>();
+        services.AddScoped<IAsoImpactAnalyzer, AsoImpactAnalyzer>();
 
         // Hourly: a day's checks are spread over the runs (each checks what is not yet checked today, up to its limit), and
         // a check that failed is tried again an hour later.

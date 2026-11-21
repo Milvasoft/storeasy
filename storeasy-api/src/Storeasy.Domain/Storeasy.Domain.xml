@@ -3238,6 +3238,96 @@
             A member (web, personal access token).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ImpactDateSource">
+            <summary>
+            Where the effect day of a change event comes from. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactDateSource.StoreLive">
+            <summary>The day the store made it live (version ready for sale, submission published).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactDateSource.Applied">
+            <summary>The day the store accepted storeasy's write (a change that is live at once, or whose live day is not known).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactDateSource.AwaitingRelease">
+            <summary>Written to a version that is not live yet: no effect can be measured until it is released.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactDateSource.Experiment">
+            <summary>The day an experiment started or ended.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ImpactEventKind">
+            <summary>
+            What a change event of the before and after impact report is. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Listing">
+            <summary>Store listing texts (name, subtitle, description, keywords, promotional text...).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Screenshots">
+            <summary>Screenshots or graphics.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Icon">
+            <summary>App icon (a Google Play graphic).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Previews">
+            <summary>App preview videos.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Price">
+            <summary>Base price or availability.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.Category">
+            <summary>Categories.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.VersionReleased">
+            <summary>A version went live (App Store ready for sale, a Google Play production release, a published Microsoft Store submission).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.MsChange">
+            <summary>Another Microsoft Store change.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.ExperimentStarted">
+            <summary>A store listing experiment started (App Store product page optimization, Google Play store listing experiment).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactEventKind.ExperimentEnded">
+            <summary>A store listing experiment ended.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ImpactSignal">
+            <summary>
+            How sure the conversion rate change of a before and after report is (two proportion z-test). Values are explicit and
+            never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactSignal.InsufficientData">
+            <summary>Too few page views or downloads in a window to tell.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactSignal.NotSignificant">
+            <summary>The change is within what chance explains (p at least 0.10).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactSignal.Suggestive">
+            <summary>Probably a real change (p below 0.10).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactSignal.Significant">
+            <summary>A real change with 95 percent confidence (p below 0.05).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactSignal.NotApplicable">
+            <summary>The rate is not a proportion (more downloads than page views), so the test does not apply.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ImpactStatus">
+            <summary>
+            Whether a before and after report can be read yet. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactStatus.Ready">
+            <summary>Both windows are over; the report is final (later store corrections aside).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactStatus.Collecting">
+            <summary>The after window has not ended yet; the numbers so far are shown.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactStatus.AwaitingRelease">
+            <summary>The change is not live yet (written to a version still in review or waiting for release).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ImpactStatus.NoData">
+            <summary>No store page metrics in either window (metrics not enabled, or older than the data).</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.InvitationStatus">
             <summary>
             State of an organization invitation as its preview reports it.

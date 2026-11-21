@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowLeft, ArrowUp, Minus, Search, Sparkles, Tags } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
@@ -15,6 +15,11 @@ import { showToast } from '@/lib/toast/toast'
 import { cn } from '@/lib/utils/cn'
 import { useAiSettings } from '@/features/ai/api'
 import { AppWorkspace, type WorkspaceContext } from '@/features/common/AppWorkspace'
+import { useImpactEvents } from '@/features/aso-impact/api'
+import { ChartMarkers, type ChartMarker } from '@/features/aso-impact/ChartMarkers'
+import { useImpactText } from '@/features/aso-impact/i18n'
+import { eventTitle, impactLink } from '@/features/aso-impact/labels'
+import { ImpactDateSource } from '@/features/aso-impact/types'
 import { asoApi, asoKeys, parseKeywords, useKeywordCoverage, useKeywordRanks, useTrackedKeywords } from './api'
 import { useAsoText, type AsoDictionary } from './i18n'
 import type {
@@ -596,11 +601,16 @@ function RankChart({
   competitors,
   depth,
   t,
+  markers = [],
+  onMarker,
 }: {
   points: AsoRankPointDto[]
   competitors: Array<{ name: string; points: AsoRankPointDto[] }>
   depth: number
   t: AsoDictionary
+  // Store page changes and releases of the record (vertical markers that open the change's impact).
+  markers?: ChartMarker[]
+  onMarker?: (id: string) => void
 }) {
   const format = useFormat()
   const width = 640
@@ -633,6 +643,14 @@ function RankChart({
           />
         ))}
         <path d={line(points)} fill="none" stroke="currentColor" strokeWidth="2.5" className="text-accent" />
+        <ChartMarkers
+          markers={markers}
+          dates={points.map((point) => point.Date)}
+          x={(index) => (points.length > 1 ? (index * width) / (points.length - 1) : width / 2)}
+          top={0}
+          bottom={height}
+          onOpen={onMarker}
+        />
       </svg>
       <figcaption className="flex flex-wrap justify-between gap-2 text-xs text-fg3">
         <span>{points.length > 0 ? format.date(points[0].Date) : ''}</span>
@@ -664,6 +682,20 @@ function KeywordDetail({ context }: { context: WorkspaceContext }) {
     () => (data?.Competitors ?? []).map((series) => ({ name: series.Name ?? series.Id, points: series.Points })),
     [data?.Competitors],
   )
+  const impactText = useImpactText()
+  const navigate = useNavigate()
+  const events = useImpactEvents(
+    context.organizationId,
+    context.app.Id,
+    { StoreAppId: data?.Keyword.StoreAppId, From: data?.From, To: data?.To },
+    data != null,
+  )
+  const markers: ChartMarker[] = (events.data ?? []).map((event) => ({
+    id: event.Id,
+    date: event.Date,
+    label: `${format.date(event.Date)}: ${eventTitle(event, impactText)}`,
+    pending: event.DateSource === ImpactDateSource.AwaitingRelease,
+  }))
 
   return (
     <>
@@ -703,7 +735,14 @@ function KeywordDetail({ context }: { context: WorkspaceContext }) {
             <div className="card-b grid gap-2">
               <span className="text-xs text-fg3">{t.detail.chartHint}</span>
               {data.Points.some((point) => point.Checked) ? (
-                <RankChart points={data.Points} competitors={competitors} depth={data.Keyword.Depth} t={t} />
+                <RankChart
+                  points={data.Points}
+                  competitors={competitors}
+                  depth={data.Keyword.Depth}
+                  t={t}
+                  markers={markers}
+                  onMarker={(id) => navigate(impactLink({ AppId: context.app.Id, Id: id }))}
+                />
               ) : (
                 <p className="m-0 text-[13px] text-fg2">{t.detail.noData}</p>
               )}

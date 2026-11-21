@@ -499,5 +499,7 @@ public static class MessageKey
     public const string AsoKeywordsInvalid = nameof(AsoKeywordsInvalid);
     public const string AsoCompetitorsInvalid = nameof(AsoCompetitorsInvalid);
     public const string GlobalAsoTrackedKeyword = "Global.AsoTrackedKeyword";
+    public const string AsoImpactEventNotFound = nameof(AsoImpactEventNotFound);
+    public const string AsoImpactWindowInvalid = nameof(AsoImpactWindowInvalid);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

@@ -7,12 +7,14 @@ import { formatChange, formatMetric } from '@/features/store-metrics/labels'
 import { MetricFeedStatus, TrafficSource } from '@/features/store-metrics/types'
 import { setupContentApi } from '../../support/content'
 import { organization } from '../../support/factories'
+import { setupImpactApi } from '../../support/asoImpact'
 import { renderWithProviders } from '../../support/render'
 import { lastRequestTo, testState } from '../../support/state'
 import { metricFeed, metricsReport, metricsState, setupStoreMetricsApi } from '../../support/storeMetrics'
 
 setupContentApi()
 setupStoreMetricsApi()
+setupImpactApi()
 
 function render() {
   return renderWithProviders(<StoreMetricsPage />, { route: '/apps/101/store-performance', path: '/apps/:appId/store-performance' })
@@ -141,6 +143,19 @@ describe('StoreMetricsPage', () => {
   })
 })
 
+describe('StoreMetricsPage change markers', () => {
+  it('marks the changes on the chart and opens a change in the impact view', async () => {
+    const { user } = render()
+
+    const marker = await screen.findByRole('button', { name: /Mağaza metinleri \(tr\)/, hidden: false })
+    expect(screen.getByRole('button', { name: /Ekran görüntüleri \(tr-TR\)/ })).toBeInTheDocument()
+    expect(lastRequestTo('/aso-impact/events')?.query).toMatchObject({ AppId: '101', From: '2026-10-22', To: '2026-11-20' })
+
+    await user.click(marker)
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps/101/store-performance/impact?event=plan'))
+  })
+})
+
 describe('OrgStoreMetricsPage', () => {
   it('lists every app with its totals and links to the app tab', async () => {
     renderWithProviders(<OrgStoreMetricsPage />, { route: '/store-performance', path: '/store-performance' })
@@ -150,6 +165,18 @@ describe('OrgStoreMetricsPage', () => {
     expect(screen.getByRole('link', { name: 'Defter uygulamasını aç' })).toBeInTheDocument()
     expect(screen.getByText('Önceki döneme göre %30 az')).toBeInTheDocument()
     expect(lastRequestTo('/store-metrics/summary')?.query).toMatchObject({ OrganizationId: '7', Days: '30' })
+  })
+
+  it('lists the impact of recent changes with their signal and a link to each', async () => {
+    renderWithProviders(<OrgStoreMetricsPage />, { route: '/store-performance', path: '/store-performance' })
+
+    const recent = await screen.findByRole('region', { name: 'Son değişikliklerin etkisi' })
+    const link = await within(recent).findByRole('link', { name: 'Pusula Mağaza metinleri (tr) değişikliğinin etkisini aç' })
+    expect(link).toHaveAttribute('href', '/apps/101/store-performance/impact?event=plan-71')
+    expect(within(recent).getByText('Anlamlı (%95)')).toBeInTheDocument()
+    expect(within(recent).getByText('Yeterli veri yok')).toBeInTheDocument()
+    expect(within(recent).getByText('Başka bir değişiklikle çakışıyor')).toBeInTheDocument()
+    expect(within(recent).getByText('Veri toplanıyor')).toBeInTheDocument()
   })
 })
 

@@ -611,7 +611,8 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Aso.AsoServiceCollectionExtensions.AddAsoServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
             <summary>
-            Adds the store sources, the researcher, the rank recorder, the rank series reader and the hourly rank job.
+            Adds the store sources, the researcher, the rank recorder, the rank series reader, the hourly rank job and the before
+            and after impact analyzer with its event sources.
             </summary>
             <param name="services"></param>
             <param name="configurationManager"></param>
@@ -706,6 +707,81 @@
             </summary>
             <param name="term"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.Impact.AsoImpactAnalyzer">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoImpactAnalyzer"/>: merges every registered <see cref="T:Storeasy.Application.Interfaces.IImpactEventSource"/> and computes a report with
+            one daily metrics read over both windows (<see cref="T:Storeasy.Application.Interfaces.IStoreMetricsQuery"/>) and the tracked keywords' rank series
+            (<see cref="T:Storeasy.Application.Interfaces.IAsoRankSeries"/>); the arithmetic is <see cref="T:Storeasy.Application.Utils.Aso.ImpactMath"/>. Nothing calls a store.
+            </summary>
+            <param name="sources"></param>
+            <param name="metricsQuery"></param>
+            <param name="rankSeries"></param>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.AsoImpactAnalyzer.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IImpactEventSource},Storeasy.Application.Interfaces.IStoreMetricsQuery,Storeasy.Application.Interfaces.IAsoRankSeries,Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoImpactAnalyzer"/>: merges every registered <see cref="T:Storeasy.Application.Interfaces.IImpactEventSource"/> and computes a report with
+            one daily metrics read over both windows (<see cref="T:Storeasy.Application.Interfaces.IStoreMetricsQuery"/>) and the tracked keywords' rank series
+            (<see cref="T:Storeasy.Application.Interfaces.IAsoRankSeries"/>); the arithmetic is <see cref="T:Storeasy.Application.Utils.Aso.ImpactMath"/>. Nothing calls a store.
+            </summary>
+            <param name="sources"></param>
+            <param name="metricsQuery"></param>
+            <param name="rankSeries"></param>
+            <param name="dbContext"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.Impact.AsoImpactAnalyzer.MaxKeywords">
+            <summary>
+            Most tracked keywords compared in one report.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.AsoImpactAnalyzer.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.AsoImpactAnalyzer.AnalyzeAsync(Storeasy.Application.Interfaces.ImpactEvent,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.ImpactEvent},Storeasy.Application.Interfaces.ImpactOptions,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource">
+            <summary>
+            Impact events from applied change plans that change the store page (listing texts, screenshots, icon, previews, price,
+            category) and Google Play production releases. The effect day prefers the store's live day: an App Store change
+            written to a version counts from the day the version went live (and waits while it is not live); a Microsoft Store
+            change from the day the next app submission was published. Rules in <see cref="T:Storeasy.Application.Utils.Aso.ImpactEventRules"/>.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            Impact events from applied change plans that change the store page (listing texts, screenshots, icon, previews, price,
+            category) and Google Play production releases. The effect day prefers the store's live day: an App Store change
+            written to a version counts from the day the version went live (and waits while it is not live); a Microsoft Store
+            change from the day the next app submission was published. Rules in <see cref="T:Storeasy.Application.Utils.Aso.ImpactEventRules"/>.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.Impact.ReleaseImpactSource">
+            <summary>
+            Impact events of versions that went live: App Store versions whose last known state is ready for sale (the day they
+            reached it) and Microsoft Store app submissions that were published (the first day storeasy saw them published).
+            Google Play production releases are change plans (<see cref="T:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource"/>). An App Store version that was
+            replaced before storeasy saw it live has no known live day and is left out.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ReleaseImpactSource.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            Impact events of versions that went live: App Store versions whose last known state is ready for sale (the day they
+            reached it) and Microsoft Store app submissions that were published (the first day storeasy saw them published).
+            Google Play production releases are change plans (<see cref="T:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource"/>). An App Store version that was
+            replaced before storeasy saw it live has no known live day and is left out.
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ReleaseImpactSource.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Aso.ITunesSearchSource">
             <summary>

@@ -6,11 +6,13 @@ import { parseKeywords } from '@/features/aso/api'
 import { asoState, setupAsoApi } from '../../support/aso'
 import { setupContentApi } from '../../support/content'
 import { organization } from '../../support/factories'
+import { setupImpactApi } from '../../support/asoImpact'
 import { renderWithProviders } from '../../support/render'
 import { lastRequestTo, testState } from '../../support/state'
 
 setupContentApi()
 setupAsoApi()
+setupImpactApi()
 
 function render(query = '?store=apple') {
   return renderWithProviders(<AsoKeywordsPage />, { route: `/apps/101/keywords${query}`, path: '/apps/:appId/keywords' })
@@ -172,6 +174,19 @@ describe('AsoKeywordDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: '90 gün' }))
     await waitFor(() => expect(lastRequestTo('/aso-keywords/ranks')?.query).toMatchObject({ Days: '90' }))
+  })
+
+  it('marks the store page changes of the record on the rank chart and opens one', async () => {
+    const { user } = renderWithProviders(<AsoKeywordDetailPage />, {
+      route: '/apps/101/keywords/501?store=apple',
+      path: '/apps/:appId/keywords/:keywordId',
+    })
+
+    const marker = await screen.findByRole('button', { name: /Mağaza metinleri \(tr\)/ })
+    expect(lastRequestTo('/aso-impact/events')?.query).toMatchObject({ AppId: '101', StoreAppId: '201', From: '2026-11-15', To: '2026-11-21' })
+
+    await user.click(marker)
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps/101/store-performance/impact?event=plan-'))
   })
 })
 

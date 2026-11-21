@@ -1,9 +1,10 @@
 import { useId, useMemo, useState } from 'react'
 import type { DateOnly } from '@/lib/api/types'
+import { ChartMarkers, type ChartMarker } from '@/features/aso-impact/ChartMarkers'
 
 // A small dependency free line chart of one metric per day: a line over the days with data (a gap where a day has no
 // value), three horizontal guides, the first, middle and last day on the axis and a hover read out. The numbers are also
-// in a visually hidden table for screen readers.
+// in a visually hidden table for screen readers. Optional change markers (vertical dashed lines) open the change's impact.
 
 export interface ChartPoint {
   date: DateOnly
@@ -16,6 +17,9 @@ interface MetricChartProps {
   formatValue: (value: number) => string
   formatDate: (date: DateOnly) => string
   height?: number
+  // Changes to mark on the chart (store page changes, releases).
+  markers?: ChartMarker[]
+  onMarker?: (id: string) => void
 }
 
 const WIDTH = 720
@@ -51,7 +55,7 @@ export function niceMax(value: number): number {
   return step * power
 }
 
-export function MetricChart({ points, label, formatValue, formatDate, height = 220 }: MetricChartProps) {
+export function MetricChart({ points, label, formatValue, formatDate, height = 220, markers = [], onMarker }: MetricChartProps) {
   const titleId = useId()
   const [hover, setHover] = useState<number | null>(null)
 
@@ -117,6 +121,14 @@ export function MetricChart({ points, label, formatValue, formatDate, height = 2
             {formatDate(points[index].date)}
           </text>
         ))}
+        <ChartMarkers
+          markers={markers}
+          dates={points.map((point) => point.date)}
+          x={layout.x}
+          top={PAD.top}
+          bottom={PAD.top + layout.innerHeight}
+          onOpen={onMarker}
+        />
         {layout.paths.map((path) => (
           <path key={path} d={path} fill="none" className="stroke-accent" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         ))}
