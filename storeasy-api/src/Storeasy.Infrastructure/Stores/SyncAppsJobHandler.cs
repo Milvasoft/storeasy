@@ -8,6 +8,7 @@ using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Events;
+using Storeasy.Domain.Experiments;
 
 namespace Storeasy.Infrastructure.Stores;
 
@@ -26,12 +27,15 @@ namespace Storeasy.Infrastructure.Stores;
 /// App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
 /// writes are set based or bulk; the loops only call the store. App Store
 /// records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
-/// through the API is registered again (a <see cref="StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
+/// through the API is registered again (a <see cref="StoreJobKind.RegisterWebhooks"/> job, which upserts per app). App
+/// Store records with an experiment or custom product page that has not ended get a
+/// <see cref="StoreJobKind.SyncAsoExperiments"/> job, so their states follow App Store Connect.
 /// </summary>
 /// <param name="storeAppRepository"></param>
 /// <param name="appRepository"></param>
 /// <param name="buildRepository"></param>
 /// <param name="endpointRepository"></param>
+/// <param name="experimentRepository"></param>
 /// <param name="storeGateway"></param>
 /// <param name="activityPublisher"></param>
 /// <param name="storeJobQueue"></param>
@@ -41,6 +45,7 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
                                        IStoreasyRepositoryBase<App> appRepository,
                                        IStoreasyRepositoryBase<Build> buildRepository,
                                        IStoreasyRepositoryBase<WebhookEndpoint> endpointRepository,
+                                       IStoreasyRepositoryBase<AsoExperiment> experimentRepository,
                                        IStoreGateway storeGateway,
                                        IActivityPublisher activityPublisher,
                                        IStoreJobQueue storeJobQueue,
@@ -52,6 +57,7 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
     private readonly IStoreasyRepositoryBase<WebhookEndpoint> _endpointRepository = endpointRepository;
+    private readonly IStoreasyRepositoryBase<AsoExperiment> _experimentRepository = experimentRepository;
     private readonly IStoreGateway _storeGateway = storeGateway;
     private readonly IActivityPublisher _activityPublisher = activityPublisher;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
@@ -139,6 +145,9 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
 
         await context.EndStepAsync(iconStep, StoreJobStepStatus.Succeeded, iconFailures == 0 ? $"{iconsChanged} icons updated." : $"{iconsChanged} icons updated; {iconFailures} could not be read.", cancellationToken);
 
+        if (connection.Store == StoreKind.Apple)
+            await QueueExperimentSyncAsync(context.OrganizationId, synced, cancellationToken);
+
         foreach (var appId in synced.Select(s => s.AppId).Distinct())
         {
             await _activityPublisher.PublishAsync(new ActivityEventDto
@@ -155,6 +164,30 @@ public sealed class SyncAppsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAp
 
         return new StoreJobOutcome($"{synced.Count} apps and {builds.Count} builds synced from {connection.Store} ({added} new builds).",
                                    new { Apps = synced.Count, Builds = builds.Count, NewBuilds = added, Icons = iconsChanged, Refused = refused.Select(r => r.ExternalId).ToList() });
+    }
+
+    /// <summary>
+    /// Queues an experiment sync for every synced App Store record that has an experiment or custom product page in the
+    /// store that has not ended.
+    /// </summary>
+    private async Task QueueExperimentSyncAsync(int organizationId, List<StoreApp> synced, CancellationToken cancellationToken)
+    {
+        var recordIds = synced.Select(s => s.Id).ToList();
+        var active = await _experimentRepository.GetAllAsync(e => e.OrganizationId == organizationId
+                                                                  && recordIds.Contains(e.StoreAppId)
+                                                                  && e.ExternalId != null
+                                                                  && e.Status != AsoExperimentStatus.Completed
+                                                                  && e.Status != AsoExperimentStatus.Stopped,
+                                                             projection: e => new AsoExperiment { StoreAppId = e.StoreAppId },
+                                                             cancellationToken: cancellationToken);
+
+        var requests = active.Select(e => e.StoreAppId)
+                             .Distinct()
+                             .Select(id => new StoreJobRequest(organizationId, StoreJobKind.SyncAsoExperiments, new SyncAsoExperimentsPayload(id), StoreKind.Apple, synced.First(s => s.Id == id).AppId))
+                             .ToList();
+
+        if (requests.Count > 0)
+            await _storeJobQueue.EnqueueAsync(requests, cancellationToken);
     }
 
     /// <summary>

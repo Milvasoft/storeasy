@@ -98,7 +98,7 @@ public sealed partial class FakeAppStoreConnect
             return Ok(new JsonObject { ["data"] = Resource("appStoreReviewDetails", m.Groups[1].Value, Without(detail, "id")) });
         }
 
-        if (method == "GET" && (m = Path("^/v1/appStoreVersionLocalizations/([^/]+)/appScreenshotSets$", path)).Success)
+        if (method == "GET" && (m = Path("^/v1/(?:appStoreVersionLocalizations|appStoreVersionExperimentTreatmentLocalizations|appCustomProductPageLocalizations)/([^/]+)/appScreenshotSets$", path)).Success)
         {
             var sets = ScreenshotSets.Where(s => (string)s.Value["locId"] == m.Groups[1].Value).ToList();
 
@@ -112,7 +112,7 @@ public sealed partial class FakeAppStoreConnect
             });
         }
 
-        if (method == "GET" && Path("^/v1/appStoreVersionLocalizations/[^/]+/appPreviewSets$", path).Success)
+        if (method == "GET" && Path("^/v1/(?:appStoreVersionLocalizations|appStoreVersionExperimentTreatmentLocalizations|appCustomProductPageLocalizations)/[^/]+/appPreviewSets$", path).Success)
             return Ok(new JsonObject { ["data"] = new JsonArray() });
 
         if (method == "POST" && path == "/v1/appScreenshotSets")
@@ -121,7 +121,7 @@ public sealed partial class FakeAppStoreConnect
 
             ScreenshotSets[id] = new JsonObject
             {
-                ["locId"] = body["data"]["relationships"]["appStoreVersionLocalization"]["data"]["id"].GetValue<string>(),
+                ["locId"] = ScreenshotSetParent(body["data"]["relationships"].AsObject()),
                 ["screenshotDisplayType"] = body["data"]["attributes"]["screenshotDisplayType"].GetValue<string>(),
                 ["items"] = new JsonArray(),
             };
@@ -202,6 +202,9 @@ public sealed partial class FakeAppStoreConnect
 
         if (method == "POST" && path == "/v1/reviewSubmissionItems")
         {
+            if (AddExperimentSubmissionItem(body["data"]["relationships"].AsObject()))
+                return Ok(new JsonObject { ["data"] = new JsonObject { ["type"] = "reviewSubmissionItems", ["id"] = NewId("item") } }, HttpStatusCode.Created);
+
             SubmittedVersions.Add(body["data"]["relationships"]["appStoreVersion"]["data"]["id"].GetValue<string>());
 
             return Ok(new JsonObject { ["data"] = new JsonObject { ["type"] = "reviewSubmissionItems", ["id"] = NewId("item") } }, HttpStatusCode.Created);
@@ -212,10 +215,13 @@ public sealed partial class FakeAppStoreConnect
             foreach (var versionId in SubmittedVersions)
                 Versions[versionId]["appVersionState"] = "WAITING_FOR_REVIEW";
 
+            SubmitExperimentItems();
+
             return Ok(new JsonObject { ["data"] = new JsonObject { ["type"] = "reviewSubmissions", ["id"] = m.Groups[1].Value, ["attributes"] = new JsonObject { ["state"] = "WAITING_FOR_REVIEW" } } });
         }
 
-        return RouteMonetization(method, path, query, body)
+        return RouteExperiments(method, path, body)
+               ?? RouteMonetization(method, path, query, body)
                ?? new HttpResponseMessage(HttpStatusCode.NotImplemented) { Content = new StringContent($"Fake App Store Connect has no route for {method} {path}") };
     }
 

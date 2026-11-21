@@ -2341,6 +2341,130 @@
             Not run.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.AsoExperimentKind">
+            <summary>
+            What a store listing experiment record is.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentKind.ProductPageOptimization">
+            <summary>
+            App Store product page optimization: an A/B test of up to three treatments against the product page (App Store
+            Connect API v2 experiments).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentKind.CustomProductPage">
+            <summary>
+            App Store custom product page: an extra product page with its own screenshots, previews and promotional text,
+            reached through its own address (<c>ppid</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentKind.PlayListingExperiment">
+            <summary>
+            Google Play store listing experiment. The Android Publisher API has none, so storeasy prepares the variants and the
+            member runs it in Play Console (assisted step) and records start, end and result.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentKind.PlayCustomListing">
+            <summary>
+            Google Play custom store listing, prepared in storeasy and set up in Play Console (no API).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AsoExperimentOperation">
+            <summary>
+            A store write of a store listing experiment, always made as a change plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentOperation.Push">
+            <summary>
+            Creates or updates the experiment (or custom product page) in the store with its treatments, localizations,
+            screenshots and previews.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentOperation.Submit">
+            <summary>
+            Submits it for App Review, alone or together with the app version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentOperation.Start">
+            <summary>
+            Starts an approved experiment.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentOperation.Stop">
+            <summary>
+            Stops a running experiment.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentOperation.ApplyWinner">
+            <summary>
+            Writes the winning treatment's screenshots and previews to the editable app version.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AsoExperimentStatus">
+            <summary>
+            State of a store listing experiment record (App Store states are mapped onto it, the raw state is kept as well).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Draft">
+            <summary>
+            Only in storeasy; nothing written to the store yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Prepared">
+            <summary>
+            Written to the store and still editable there (App Store: PREPARE_FOR_SUBMISSION).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.InReview">
+            <summary>
+            Waiting for or in App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Approved">
+            <summary>
+            Approved by App Review and not running yet (an experiment that can be started, a custom product page that is live).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Running">
+            <summary>
+            Running: the experiment gets traffic.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Rejected">
+            <summary>
+            Rejected by App Review.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Stopped">
+            <summary>
+            Stopped before it ended on its own.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoExperimentStatus.Completed">
+            <summary>
+            Finished.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.AsoStoreSupport">
+            <summary>
+            How storeasy supports a kind of store listing experiment in a store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoStoreSupport.Api">
+            <summary>
+            Through the store's API, every write as a change plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoStoreSupport.Assisted">
+            <summary>
+            The store has no API: storeasy prepares it and guides the member through the store console (assisted step).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AsoStoreSupport.NotSupported">
+            <summary>
+            Not supported.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.AssetPurpose">
             <summary>
             What a stored file is for; decides its folder and size limit. Values are explicit and never reused.
@@ -2733,6 +2857,51 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.ReportBucketUpdated">
             <summary>The Cloud Storage bucket of a Google Play connection's reports was set or cleared.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentCreated">
+            <summary>
+            A store listing experiment record was created.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentUpdated">
+            <summary>
+            A store listing experiment record was edited (variants, checklist).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentDeleted">
+            <summary>
+            A store listing experiment record was deleted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentWritten">
+            <summary>
+            An approved plan wrote an experiment or custom product page to the store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentStarted">
+            <summary>
+            An approved plan started an experiment.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentStopped">
+            <summary>
+            An approved plan stopped an experiment.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentWinnerApplied">
+            <summary>
+            An approved plan wrote the winning treatment to the app version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentResultRecorded">
+            <summary>
+            A member recorded the start, end or result of an experiment.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoExperimentSubmitted">
+            <summary>
+            An approved plan submitted an experiment or custom product page for App Review.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -2943,6 +3112,12 @@
         <member name="F:Storeasy.Domain.Enums.ChangePlanKind.SandboxTesters">
             <summary>
             Sandbox tester settings.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.AsoExperiment">
+            <summary>
+            A store listing experiment or custom product page (App Store); what it writes is in the plan's experiment change
+            set.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ChangePlanStatus">
@@ -4720,6 +4895,11 @@
             Reads the subscriptions and In-App Purchases of a store record into storeasy.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncAsoExperiments">
+            <summary>
+            Reads the App Store experiments and custom product pages of a store record into storeasy.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.MockupExport">
             <summary>
             Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
@@ -5450,6 +5630,311 @@
             <summary>
             Id of that record.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Experiments.AsoExperiment">
+            <summary>
+            A store listing experiment or custom page of an app in one store, kept in storeasy so a before/after impact report can
+            lay experiments over the metric charts. App Store experiments and custom product pages are written through change
+            plans and their state is read back by the sync; Play experiments and custom listings have no API, so the member runs
+            them in Play Console and records start, end and result here.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperiment.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Experiments.AsoExperiment.Name"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperiment.TextMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Experiments.AsoExperiment.ResultSummary"/> and <see cref="P:Storeasy.Domain.Experiments.AsoExperiment.Note"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperiment.UrlMaxLength">
+            <summary>
+            Column length of the addresses.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Kind">
+            <summary>
+            What it is.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Name">
+            <summary>
+            Name (the store's reference name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.StoreState">
+            <summary>
+            The store's own state, as read (App Store experiment or custom product page version state).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ExternalId">
+            <summary>
+            The store's id (App Store experiment or custom product page id), once written.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ExternalVersionId">
+            <summary>
+            App Store custom product page version being edited or live.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.TrafficProportion">
+            <summary>
+            Share of the traffic the treatments get, in percent (product page optimization, Play experiments).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ReviewRequired">
+            <summary>
+            Whether App Review must approve the experiment before it can start (App Store; null until read).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Variants">
+            <summary>
+            Variants and what they change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.StartDate">
+            <summary>
+            UTC instant it started getting traffic.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.EndDate">
+            <summary>
+            UTC instant it ended.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Url">
+            <summary>
+            Address of the page (custom product page address with its <c>ppid</c>, Play custom listing address).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ResultSummary">
+            <summary>
+            Result in the member's words (App Store results are only shown in App Store Connect).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ResultUrl">
+            <summary>
+            Link to the results (store console page, report).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.WinnerVariantKey">
+            <summary>
+            Key of the winning variant, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.Note">
+            <summary>
+            Free note.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.ChecklistDone">
+            <summary>
+            Done items of the assisted checklist (Play).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.PlanIds">
+            <summary>
+            Change plans made for it, oldest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.SubmittedDate">
+            <summary>
+            UTC instant it was submitted for App Review.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.SyncedDate">
+            <summary>
+            UTC instant the store state was last read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Experiments.AsoExperiment.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Experiments.AsoExperimentRules">
+            <summary>
+            Pure rules of store listing experiments: what each store supports and how, the limits of each kind, how App Store
+            states map onto <see cref="T:Storeasy.Domain.Enums.AsoExperimentStatus"/>, which writes can be planned in which state, and the permission and
+            typed confirmation each write needs. No database, no store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.MaxAppleTreatments">
+            <summary>
+            Most treatments of an App Store product page optimization (Apple's limit).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.MaxPlayVariants">
+            <summary>
+            Most variants of a Play store listing experiment (Play Console's limit).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.PromotionalTextMaxLength">
+            <summary>
+            Longest promotional text of a custom product page.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.ShortDescriptionMaxLength">
+            <summary>
+            Longest Play short description.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.FullDescriptionMaxLength">
+            <summary>
+            Longest Play full description.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.IconNameMaxLength">
+            <summary>
+            Longest alternate icon name.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Experiments.AsoExperimentRules.VariantNameMaxLength">
+            <summary>
+            Longest variant name.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.KindsOf(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Kinds of each store, in the order they are offered.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.Support(Storeasy.Domain.Enums.StoreKind,Storeasy.Domain.Enums.AsoExperimentKind)">
+            <summary>
+            How <paramref name="store"/> supports <paramref name="kind"/>: App Store through the API, Play as an assisted step
+            (the Android Publisher API has no experiments or custom store listings), Microsoft Store not at all (Partner Center
+            has no listing experiments API).
+            </summary>
+            <param name="store"></param>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.IsApple(Storeasy.Domain.Enums.AsoExperimentKind)">
+            <summary>
+            Whether records of <paramref name="kind"/> are written through the store's API (and so through change plans).
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.MaxVariants(Storeasy.Domain.Enums.AsoExperimentKind)">
+            <summary>
+            Most variants of <paramref name="kind"/>.
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.HasTraffic(Storeasy.Domain.Enums.AsoExperimentKind)">
+            <summary>
+            Whether <paramref name="kind"/> splits traffic (and so has a traffic proportion).
+            </summary>
+            <param name="kind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.Editable(Storeasy.Domain.Enums.AsoExperimentKind,Storeasy.Domain.Enums.AsoExperimentStatus)">
+            <summary>
+            Whether a record in <paramref name="status"/> can still be edited in storeasy: drafts, records the store still lets
+            edit, and rejected ones (fixed and submitted again). Play records stay editable until they end.
+            </summary>
+            <param name="kind"></param>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.StatusOfExperiment(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Status of an App Store experiment from its state and dates. A started experiment keeps its review state at Apple
+            (ACCEPTED or APPROVED) with a start date, so a start date without an end date reads as running.
+            </summary>
+            <param name="state"></param>
+            <param name="startDate"></param>
+            <param name="endDate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.StatusOfCustomPage(System.String,System.Nullable{System.Boolean})">
+            <summary>
+            Status of an App Store custom product page from its latest version's state and whether the page is visible: an
+            approved, visible page is live (<see cref="F:Storeasy.Domain.Enums.AsoExperimentStatus.Running"/>).
+            </summary>
+            <param name="versionState"></param>
+            <param name="visible"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.Operations(Storeasy.Domain.Enums.AsoExperimentKind,Storeasy.Domain.Enums.AsoExperimentStatus,System.Boolean,System.Nullable{System.Boolean},System.Boolean)">
+            <summary>
+            Writes that can be planned for a record now. Play records have none: they are run in Play Console.
+            </summary>
+            <param name="kind"></param>
+            <param name="status"></param>
+            <param name="written">Whether the record exists in the store.</param>
+            <param name="reviewRequired"></param>
+            <param name="hasWinner"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.PermissionOf(Storeasy.Domain.Enums.AsoExperimentOperation)">
+            <summary>
+            Permission needed to approve a plan of <paramref name="operation"/>: writing a draft is content editing, a
+            submission needs the submit permission, and whatever changes the live product page (start, stop, applying the
+            winner) needs the production release permission.
+            </summary>
+            <param name="operation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.NeedsConfirmation(Storeasy.Domain.Enums.AsoExperimentOperation)">
+            <summary>
+            Whether the approver must type the confirmation text: every write but writing a draft.
+            </summary>
+            <param name="operation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.ConfirmationText(System.String,System.String)">
+            <summary>
+            The confirmation text: the app name and the experiment name, e.g. "Pusula Icon test".
+            </summary>
+            <param name="appName"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.AuditActionOf(Storeasy.Domain.Enums.AsoExperimentOperation)">
+            <summary>
+            Audit action of a plan of <paramref name="operation"/>.
+            </summary>
+            <param name="operation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Experiments.AsoExperimentRules.IsFinal(Storeasy.Domain.Enums.AsoExperimentStatus)">
+            <summary>
+            Whether <paramref name="status"/> is final (the record will not change in the store any more).
+            </summary>
+            <param name="status"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Domain.FeatureFlag">
             <summary>
@@ -7298,6 +7783,87 @@
         <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.IconUrl">
             <summary>
             Icon URL, when known.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.AsoExperimentVariant">
+            <summary>
+            One variant of a store listing experiment: an App Store treatment, the page of a custom product page, or a Play
+            experiment variant. Only what the variant changes is set; the rest stays as the store's current page.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoExperimentVariant.Key">
+            <summary>
+            Short key inside the experiment ("A", "B", "C").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoExperimentVariant.Name">
+            <summary>
+            Name shown in the store console.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoExperimentVariant.AppIconName">
+            <summary>
+            App Store treatments: alternate icon name from the build (asset catalog), null when the icon does not change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoExperimentVariant.ExternalId">
+            <summary>
+            The store's id (App Store treatment id), once written.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoExperimentVariant.Locales">
+            <summary>
+            What changes per locale.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.AsoVariantLocale">
+            <summary>
+            What a variant changes in one locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantLocale.Locale">
+            <summary>
+            Locale (store code, e.g. en-US).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantLocale.PromotionalText">
+            <summary>
+            App Store custom product page promotional text.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantLocale.ShortDescription">
+            <summary>
+            Play short description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantLocale.FullDescription">
+            <summary>
+            Play full description.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantLocale.Media">
+            <summary>
+            Screenshot and preview sets (or Play graphics) of the variant, from uploaded assets or mockup exports.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.AsoVariantMedia">
+            <summary>
+            One media set of a variant.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantMedia.Kind">
+            <summary>
+            Screenshot or preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantMedia.ClassKey">
+            <summary>
+            Store class key (App Store display type, Play image type).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoVariantMedia.AssetIds">
+            <summary>
+            Assets in order.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.ConnectionFingerprint">

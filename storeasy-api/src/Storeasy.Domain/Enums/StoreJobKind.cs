@@ -26,6 +26,12 @@ public enum StoreJobKind : short
     SyncMonetization = 70,
 
     /// <summary>
+    /// Reads the App Store experiments and custom product pages of a store record into storeasy.
+    /// </summary>
+    [Description("Sync store listing experiments")]
+    SyncAsoExperiments = 80,
+
+    /// <summary>
     /// Renders a mockup template into every selected screenshot class and locale (studio export, phase 6). Numbered in the
     /// studio's own band.
     /// </summary>

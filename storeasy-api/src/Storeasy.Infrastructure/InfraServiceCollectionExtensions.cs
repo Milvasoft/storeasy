@@ -24,6 +24,7 @@ using Storeasy.Infrastructure.Ai;
 using Storeasy.Infrastructure.Aso;
 using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Events;
+using Storeasy.Infrastructure.Stores.Experiments;
 using Storeasy.Infrastructure.Jobs;
 using Storeasy.Infrastructure.LazyImpl;
 using Storeasy.Infrastructure.Logging;
@@ -101,6 +102,9 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IMonetizationService, MonetizationService>();
         services.AddScoped<IChangePlanExtension, MonetizationPlanExtension>();
         services.AddScoped<IReadinessContributor, MonetizationReadiness>();
+        services.AddScoped<IAsoExperimentGateway, AppleExperimentGateway>();
+        services.AddScoped<IAsoExperimentStore, AsoExperimentStore>();
+        services.AddScoped<IChangePlanExtension, AsoExperimentPlanExtension>();
         services.AddSingleton(TimeProvider.System);
 
         // Store secrets are sealed with the master key from Storeasy__Encryption__MasterKey (user secrets locally). The
@@ -274,6 +278,7 @@ public static class InfraServiceCollectionExtensions
         services.AddScoped<IStoreJobHandler, SyncAppsJobHandler>();
         services.AddScoped<IStoreJobHandler, ApplyChangePlanJobHandler>();
         services.AddScoped<IStoreJobHandler, SyncMonetizationJobHandler>();
+        services.AddScoped<IStoreJobHandler, SyncAsoExperimentsJobHandler>();
 
         // After MigrationHostedService (registered by the API before the infrastructure), so the tables exist.
         services.AddHostedService<StoreJobRunner>();

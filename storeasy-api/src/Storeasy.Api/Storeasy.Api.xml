@@ -1013,6 +1013,93 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AsoExperimentsController">
+            <summary>
+            Store listing experiments and custom pages ("Deneyler"): App Store product page optimization and custom product pages
+            through the API (every store write a change plan), Play store listing experiments and custom store listings as an
+            assisted step with manual result entry; the Microsoft Store has none.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.#ctor(MediatR.IMediator)">
+            <summary>
+            Store listing experiments and custom pages ("Deneyler"): App Store product page optimization and custom product pages
+            through the API (every store write a change plan), Play store listing experiments and custom store listings as an
+            assisted step with manual result entry; the Microsoft Store has none.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.GetOverviewAsync(Storeasy.Application.Features.AsoExperiments.GetAsoExperimentOverview.GetAsoExperimentOverviewQuery,System.Threading.CancellationToken)">
+            <summary>
+            The records of an app and what each of its stores supports. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.GetDetailAsync(Storeasy.Application.Features.AsoExperiments.GetAsoExperimentDetail.GetAsoExperimentDetailQuery,System.Threading.CancellationToken)">
+            <summary>
+            One record with its timeline and possible writes. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.SaveAsync(Storeasy.Application.Features.AsoExperiments.SaveAsoExperiment.SaveAsoExperimentCommand,System.Threading.CancellationToken)">
+            <summary>
+            Creates or edits a draft record (nothing goes to a store). Editors and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.DeleteAsync(Storeasy.Application.Features.AsoExperiments.DeleteAsoExperiment.DeleteAsoExperimentCommand,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a record never written to a store, or a Play record. Editors and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.PlanAsync(Storeasy.Application.Features.AsoExperiments.PlanAsoExperiment.PlanAsoExperimentCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a store write of an App Store record (dry run by default). Editors make it; the approval needs the
+            operation's permission and, except for writing a draft, the typed confirmation.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.RecordResultAsync(Storeasy.Application.Features.AsoExperiments.RecordAsoExperimentResult.RecordAsoExperimentResultCommand,System.Threading.CancellationToken)">
+            <summary>
+            Records the result (and, for Play, the state and dates) of a record. Editors and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.UpdateChecklistAsync(Storeasy.Application.Features.AsoExperiments.UpdateAsoExperimentChecklist.UpdateAsoExperimentChecklistCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the done items of a Play record's checklist. Editors and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.ExportAsync(Storeasy.Application.Features.AsoExperiments.GetAsoExperimentExport.GetAsoExperimentExportQuery,System.Threading.CancellationToken)">
+            <summary>
+            Download links of a record's files and its texts. Members (View).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoExperimentsController.SyncAsync(Storeasy.Application.Features.AsoExperiments.SyncAsoExperiments.SyncAsoExperimentsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a read of an App Store record's experiments and custom product pages; returns the job id. Editors and above.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.AsoKeywordsController">
             <summary>
             ASO keywords: research from the stores' public data (estimated popularity, difficulty, competitors, current rank), keyword
@@ -4270,6 +4357,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261121164524_AddAsoKeywords.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261121171104_AddAsoExperiments">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121171104_AddAsoExperiments.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121171104_AddAsoExperiments.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121171104_AddAsoExperiments.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

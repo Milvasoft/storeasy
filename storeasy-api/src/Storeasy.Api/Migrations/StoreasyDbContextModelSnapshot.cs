@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261121164524_AddAsoKeywords";
+    public override string LastMigrationId => "20261121171104_AddAsoExperiments";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -1314,6 +1314,116 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("WebhookEvents");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Experiments.AsoExperiment", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.PrimitiveCollection<string>("ChecklistDone")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("EndDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ExternalId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("ExternalVersionId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Note")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.PrimitiveCollection<string>("PlanIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("ResultSummary")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<string>("ResultUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<bool?>("ReviewRequired")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("StartDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("StoreState")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<DateTime?>("SubmittedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int?>("TrafficProportion")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Url")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<List<AsoExperimentVariant>>("Variants")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("WinnerVariantKey")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "AppId");
+
+                b.HasIndex("StoreAppId", "ExternalId");
+
+                b.ToTable("AsoExperiments");
             });
 
         modelBuilder.Entity("Storeasy.Domain.FeatureFlag", b =>
@@ -4764,6 +4874,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .HasForeignKey("StoreConnectionId");
 
                 b.Navigation("StoreConnection");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Experiments.AsoExperiment", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Feedback.RejectionCase", b =>

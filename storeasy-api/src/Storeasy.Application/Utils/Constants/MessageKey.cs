@@ -499,5 +499,26 @@ public static class MessageKey
     public const string AsoKeywordsInvalid = nameof(AsoKeywordsInvalid);
     public const string AsoCompetitorsInvalid = nameof(AsoCompetitorsInvalid);
     public const string GlobalAsoTrackedKeyword = "Global.AsoTrackedKeyword";
+    public const string AsoExperimentNotFound = nameof(AsoExperimentNotFound);
+    public const string AsoExperimentNotEditable = nameof(AsoExperimentNotEditable);
+    public const string AsoExperimentNotDeletable = nameof(AsoExperimentNotDeletable);
+    public const string AsoKindNotSupported = nameof(AsoKindNotSupported);
+    public const string AsoExperimentNoApi = nameof(AsoExperimentNoApi);
+    public const string AsoExperimentOperationNotAllowed = nameof(AsoExperimentOperationNotAllowed);
+    public const string AsoExperimentNotInStore = nameof(AsoExperimentNotInStore);
+    public const string AsoVariantsRequired = nameof(AsoVariantsRequired);
+    public const string AsoTooManyVariants = nameof(AsoTooManyVariants);
+    public const string AsoTrafficInvalid = nameof(AsoTrafficInvalid);
+    public const string AsoVariantKeyInvalid = nameof(AsoVariantKeyInvalid);
+    public const string AsoVariantNameInvalid = nameof(AsoVariantNameInvalid);
+    public const string AsoLocaleInvalid = nameof(AsoLocaleInvalid);
+    public const string AsoTextTooLong = nameof(AsoTextTooLong);
+    public const string AsoVariantEmpty = nameof(AsoVariantEmpty);
+    public const string AsoWinnerUnknown = nameof(AsoWinnerUnknown);
+    public const string AsoWinnerIconInBuild = nameof(AsoWinnerIconInBuild);
+    public const string AsoWinnerNothingToApply = nameof(AsoWinnerNothingToApply);
+    public const string AsoResultStatusInvalid = nameof(AsoResultStatusInvalid);
+    public const string AsoChecklistInvalid = nameof(AsoChecklistInvalid);
+    public const string GlobalAsoExperiment = "Global.AsoExperiment";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

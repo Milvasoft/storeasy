@@ -69,6 +69,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Microsoft Store | `ms/product`, `ms/submissions`, `ms/flights`, `ms/addons`, `ms/packages`, `ms/content`, `ms/change`, `ms/submission/submit`, `ms/packages/verify`, `ms/flight-group`, `ms/connection/secret`, `ms/connections/expiring` | Reads `View`; changes `EditContent`; submit `SubmitForReview` with the Store id typed; secret replacement `ManageConnections` |
 | AI pre-review | `pre-reviews` (GET), `pre-reviews/pre-review` (GET, POST) | History and report `View`; start `EditContent`, 20 an hour per user, one at a time per app and store ([AI pre-review](#ai-pre-review)) |
 | ASO keywords | `aso-keywords` (GET), `aso-keywords/research`, `seeds`, `seeds/suggest`, `track`, `untrack`, `ranks`, `coverage` | Reads, research and seeds `View` (research and seeds 60 an hour per user); `track`, `untrack` and the AI ideas `seeds/suggest` `EditContent` ([ASO keywords](aso-keywords.md)) |
+| Store listing experiments | `aso-experiments` (GET), `aso-experiments/experiment` (GET, POST, DELETE), `experiment/plan`, `experiment/result`, `experiment/checklist`, `experiment/export`, `aso-experiments/sync` | Reads `View`; drafts, results, checklist and sync `EditContent`; plans are approved with the operation's permission ([Store listing experiments](#store-listing-experiments)) |
 | Assisted steps | `assisted-steps`, `assisted-steps/step`, `step/handoff`, `step/complete` | Read `View`; hand off and complete `EditContent` |
 | Store page performance | `store-metrics` (GET), `store-metrics/summary` (GET), `store-metrics/feeds` (GET), `store-metrics/sync` (POST), `store-metrics/apple/enable` (POST), `store-metrics/google/bucket` (PUT) | Reads `View`; sync `EditContent` (30 an hour); enabling the App Store analytics reports (`Confirm: true`, audited, the one store write) and the Play reports bucket `ManageConnections` ([Store page performance](connecting-stores.md#store-page-performance)) |
 | Reviews and rejections | `reviews/*`, `rejections/*` | Reads `View`; replies `ReplyReviews`; rejection cases `EditContent` |
@@ -204,7 +205,37 @@ Outgoing webhooks send these events, signed like the signed receiver (`X-Storeas
 `<timestamp>.<body>`): `rejection.opened`, `rejection.closed`, `version.state_changed`, `review.received`,
 `review.replied`, `testflight.build.expiring`, `compliance.deadline`, `connection.secret_expiring`, `webhook.test`.
 
+## Store listing experiments
+
+The app's "Deneyler" tab keeps one record per experiment or custom page (`AsoExperiment`: store, kind, name, variants
+with what each changes per locale, status, store state, start and end, traffic, result, winner, links), so a later
+impact report can lay them over the metric charts.
+
+- **App Store, through the API.** Product page optimization (App Store Connect experiments v2: up to 3 treatments, an
+  alternate icon name from the build and screenshot or preview sets per locale) and custom product pages (name,
+  promotional text, screenshot and preview sets; the page's URL carries its `ppid`). `POST aso-experiments/experiment`
+  saves a draft in storeasy only. `POST aso-experiments/experiment/plan` `{OrganizationId, Id, Operation, WithVersion,
+  WinnerVariantKey, DryRun}` makes a change plan from a live read: `Push` (create or update in the store) needs
+  `EditContent`; `Submit` (alone, or added to the open review submission so it goes with the app version) needs
+  `SubmitForReview`; `Start`, `Stop` and `ApplyWinner` (writes the winner's screenshots and previews to the editable app
+  version) need `ReleaseProduction`. Every operation but `Push` needs the typed confirmation "app name experiment name".
+  The approval reads the experiment again and refuses with `Plan.Conflict` when it changed in App Store Connect.
+  Results are only shown in App Store Connect: record the summary and the winner with `experiment/result`.
+- **Sync.** `POST aso-experiments/sync` queues a `SyncAsoExperiments` job (also queued by the app sync for records that
+  have not ended); experiments and pages made in App Store Connect get a record.
+- **Google Play, assisted.** The Android Publisher API has no store listing experiments and no custom store listings,
+  so storeasy prepares the variants (`experiment/export`: short lived file links and the localized texts), the detail
+  carries the Play Console checklist (`experiment/checklist`) and the member records state, start, end and result
+  (`experiment/result`).
+- **Microsoft Store.** Partner Center has no listing experiments API: the tab shows it as not supported.
+
+Audited as `AsoExperimentCreated`, `AsoExperimentUpdated`, `AsoExperimentDeleted`, `AsoExperimentResultRecorded` and,
+per applied plan item, `AsoExperimentWritten`, `AsoExperimentSubmitted`, `AsoExperimentStarted`,
+`AsoExperimentStopped`, `AsoExperimentWinnerApplied`. MCP: `aso_experiments_list`, `aso_experiment_get`,
+`aso_experiment_save`, `aso_experiment_plan`, `aso_experiment_result`, `aso_experiment_checklist`,
+`aso_experiment_export`, `aso_experiments_sync`.
+
 ## MCP
 
-`/mcp` is not REST: it is the remote MCP server, with 144 tools that send the same requests as the endpoints above. See
+`/mcp` is not REST: it is the remote MCP server, with 152 tools that send the same requests as the endpoints above. See
 [mcp.md](mcp.md).

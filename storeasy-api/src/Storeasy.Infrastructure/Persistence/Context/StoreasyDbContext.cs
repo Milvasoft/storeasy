@@ -13,6 +13,7 @@ using Storeasy.Domain.Organizations;
 using Storeasy.Domain.Stores;
 using Storeasy.Domain.Studio;
 using Storeasy.Domain.Events;
+using Storeasy.Domain.Experiments;
 using Storeasy.Domain.Feedback;
 using Storeasy.Domain.Notifications;
 using Storeasy.Domain.Rules;
@@ -113,6 +114,7 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<AsoKeywordMetric> AsoKeywordMetrics { get; set; }
     public DbSet<StoreMetric> StoreMetrics { get; set; }
     public DbSet<StoreMetricFeed> StoreMetricFeeds { get; set; }
+    public DbSet<AsoExperiment> AsoExperiments { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
