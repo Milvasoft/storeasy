@@ -396,53 +396,53 @@ public enum AuditAction : short
     /// A store listing experiment record was created.
     /// </summary>
     [Description("Experiment created")]
-    AsoExperimentCreated = 470,
+    AsoExperimentCreated = 490,
 
     /// <summary>
     /// A store listing experiment record was edited (variants, checklist).
     /// </summary>
     [Description("Experiment updated")]
-    AsoExperimentUpdated = 471,
+    AsoExperimentUpdated = 491,
 
     /// <summary>
     /// A store listing experiment record was deleted.
     /// </summary>
     [Description("Experiment deleted")]
-    AsoExperimentDeleted = 472,
+    AsoExperimentDeleted = 492,
 
     /// <summary>
     /// An approved plan wrote an experiment or custom product page to the store.
     /// </summary>
     [Description("Experiment written to the store")]
-    AsoExperimentWritten = 473,
+    AsoExperimentWritten = 493,
 
     /// <summary>
     /// An approved plan started an experiment.
     /// </summary>
     [Description("Experiment started")]
-    AsoExperimentStarted = 474,
+    AsoExperimentStarted = 494,
 
     /// <summary>
     /// An approved plan stopped an experiment.
     /// </summary>
     [Description("Experiment stopped")]
-    AsoExperimentStopped = 475,
+    AsoExperimentStopped = 495,
 
     /// <summary>
     /// An approved plan wrote the winning treatment to the app version.
     /// </summary>
     [Description("Experiment winner applied")]
-    AsoExperimentWinnerApplied = 476,
+    AsoExperimentWinnerApplied = 496,
 
     /// <summary>
     /// A member recorded the start, end or result of an experiment.
     /// </summary>
     [Description("Experiment result recorded")]
-    AsoExperimentResultRecorded = 477,
+    AsoExperimentResultRecorded = 497,
 
     /// <summary>
     /// An approved plan submitted an experiment or custom product page for App Review.
     /// </summary>
     [Description("Experiment submitted for review")]
-    AsoExperimentSubmitted = 478,
+    AsoExperimentSubmitted = 498,
 }
