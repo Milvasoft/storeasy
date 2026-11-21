@@ -29,7 +29,7 @@ import {
 } from '@/lib/activity/hatState'
 import { connectionsApi, jobsApi } from '@/lib/api/endpoints'
 import { SortType, type ListRequest } from '@/lib/api/list'
-import { StoreKind } from '@/lib/api/types'
+import { type StoreKind } from '@/lib/api/types'
 import { useFeature } from '@/lib/features/FeatureFlagsContext'
 import { usePrefersReducedMotion } from '@/lib/hooks/usePrefersReducedMotion'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
@@ -40,8 +40,10 @@ import { channelLabel } from '@/lib/org/auditLabels'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
 import { cn } from '@/lib/utils/cn'
+import { STORE_CHANNELS } from '@/lib/stores/channels'
 
-const STORE_PARAM: Record<string, StoreKind> = { apple: StoreKind.Apple, google: StoreKind.Google, microsoft: StoreKind.Microsoft }
+// The ?store= keys of the channel table (lib/stores/channels.ts).
+const STORE_PARAM: Record<string, StoreKind> = Object.fromEntries(STORE_CHANNELS.map((channel) => [channel.key, channel.store]))
 
 export function ActivityTabs() {
   const t = useT()
@@ -397,7 +399,7 @@ export function ActivityPage() {
         <Chip selected={!storeFilter} onClick={() => setStore(null)}>
           {t.activity.allStores}
         </Chip>
-        {(['apple', 'google', 'microsoft'] as const).map((key) => (
+        {STORE_CHANNELS.map((channel) => channel.key).map((key) => (
           <Chip key={key} selected={storeFilter === STORE_PARAM[key]} onClick={() => setStore(key)}>
             <StoreTag store={STORE_PARAM[key]} small />
           </Chip>

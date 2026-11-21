@@ -24,12 +24,14 @@ namespace Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionK
 /// <param name="SecretProtector"></param>
 /// <param name="AuditTrail"></param>
 /// <param name="TimeProvider"></param>
+/// <param name="Channels"></param>
 [Log]
 public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<StoreConnection> ConnectionRepository,
                                                       IStoreGateway StoreGateway,
                                                       ISecretProtector SecretProtector,
                                                       IAuditTrail AuditTrail,
-                                                      TimeProvider TimeProvider) : IInterceptable, ICommandHandler<ReplaceStoreConnectionKeyCommand, StoreConnectionDto>
+                                                      TimeProvider TimeProvider,
+                                                      IEnumerable<IStoreChannel> Channels) : IInterceptable, ICommandHandler<ReplaceStoreConnectionKeyCommand, StoreConnectionDto>
 {
     private const int _errorMaxLength = 500;
 
@@ -38,6 +40,7 @@ public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<St
     private readonly ISecretProtector _secretProtector = SecretProtector;
     private readonly IAuditTrail _auditTrail = AuditTrail;
     private readonly TimeProvider _timeProvider = TimeProvider;
+    private readonly IEnumerable<IStoreChannel> _channels = Channels;
 
     /// <inheritdoc/>
     public async Task<Response<StoreConnectionDto>> Handle(ReplaceStoreConnectionKeyCommand request, CancellationToken cancellationToken)
@@ -58,7 +61,9 @@ public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<St
         if (connection == null)
             return Response<StoreConnectionDto>.Error(null, MessageKey.StoreConnectionNotFound);
 
-        if (connection.Store is not (StoreKind.Apple or StoreKind.Google))
+        var channel = _channels.LastOrDefault(c => c.Store == connection.Store);
+
+        if (channel == null && connection.Store is not (StoreKind.Apple or StoreKind.Google))
             return Response<StoreConnectionDto>.Error(null, MessageKey.StoreKeyReplaceNotSupported);
 
         var inspection = _storeGateway.Inspect(connection.Store, request.Secret);
@@ -68,6 +73,9 @@ public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<St
 
         var current = connection.Fingerprint;
         var next = inspection.Fingerprint;
+
+        if (channel != null && !channel.SameAccount(current, next))
+            return Response<StoreConnectionDto>.Error(null, MessageKey.StoreKeyAccountMismatch);
 
         if (connection.Store == StoreKind.Apple && !SameAppleTeam(request.OrganizationId, connection, inspection.NormalizedSecret))
             return Response<StoreConnectionDto>.Error(null, MessageKey.StoreKeyIssuerMismatch);
@@ -88,6 +96,12 @@ public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<St
         var sealedSecret = _secretProtector.Protect(Encoding.UTF8.GetBytes(inspection.NormalizedSecret), StoreSecretContext.Connection(request.OrganizationId, connection.Store));
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
+        // The old credential's expiry does not carry over to the new one.
+        var recordsExpiry = StoreChannels.CredentialExpires(connection.Store) && !StoreChannels.CredentialExpiryRequired(connection.Store);
+
+        if (recordsExpiry)
+            next.SecretExpiryDate = request.CredentialExpiryDate;
+
         var builder = new SetPropertyBuilder<StoreConnection>().SetPropertyValue(c => c.EncryptedSecret, sealedSecret.EncryptedSecret)
                                                                .SetPropertyValue(c => c.EncryptedDataKey, sealedSecret.EncryptedDataKey)
                                                                .SetPropertyValue(c => c.KeyVersion, sealedSecret.KeyVersion)
@@ -96,10 +110,13 @@ public record ReplaceStoreConnectionKeyCommandHandler(IStoreasyRepositoryBase<St
                                                                .SetPropertyValue(c => c.LastVerifiedDate, (DateTime?)now)
                                                                .SetPropertyValue(c => c.LastVerifyError, (string)null);
 
+        if (recordsExpiry)
+            builder = builder.SetPropertyValue(c => c.SecretExpiryDate, request.CredentialExpiryDate);
+
         await _connectionRepository.ExecuteUpdateAsync(connection.Id, builder, cancellationToken);
 
-        var previous = connection.Store == StoreKind.Apple ? current?.KeyId : current?.ServiceAccountEmail;
-        var replacement = connection.Store == StoreKind.Apple ? next.KeyId : next.ServiceAccountEmail;
+        var previous = channel != null ? channel.CredentialLabel(current) : connection.Store == StoreKind.Apple ? current?.KeyId : current?.ServiceAccountEmail;
+        var replacement = channel != null ? channel.CredentialLabel(next) : connection.Store == StoreKind.Apple ? next.KeyId : next.ServiceAccountEmail;
 
         await _auditTrail.WriteAsync(request.OrganizationId,
                                      AuditAction.ConnectionKeyReplaced,

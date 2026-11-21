@@ -3,11 +3,13 @@ using Storeasy.Application.Dtos.FeedbackDtos;
 using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Dtos.StoreMetricDtos;
 using Storeasy.Application.Dtos.TestFlightDtos;
+using Storeasy.Application.Dtos.WingetDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
+using Storeasy.Domain.Winget;
 using System.Text.Json;
 
 namespace Storeasy.Infrastructure.Events;
@@ -19,12 +21,14 @@ namespace Storeasy.Infrastructure.Events;
 /// <param name="connectionRepository"></param>
 /// <param name="storeAppRepository"></param>
 /// <param name="msSubmissionRepository"></param>
+/// <param name="wingetPullRequestRepository"></param>
 /// <param name="jobRepository"></param>
 /// <param name="storeJobQueue"></param>
 /// <param name="auditTrail"></param>
 public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection> connectionRepository,
                                         IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                         IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
+                                        IStoreasyRepositoryBase<WingetPullRequest> wingetPullRequestRepository,
                                         IStoreasyRepositoryBase<StoreJob> jobRepository,
                                         IStoreJobQueue storeJobQueue,
                                         IAuditTrail auditTrail)
@@ -32,6 +36,7 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
     private readonly IStoreasyRepositoryBase<StoreConnection> _connectionRepository = connectionRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
+    private readonly IStoreasyRepositoryBase<WingetPullRequest> _wingetPullRequestRepository = wingetPullRequestRepository;
     private readonly IStoreasyRepositoryBase<StoreJob> _jobRepository = jobRepository;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
     private readonly IAuditTrail _auditTrail = auditTrail;
@@ -67,6 +72,25 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
     }
 
     /// <summary>
+    /// Queues a winget sync (open pull requests only) for every verified winget connection with an open pull request.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>Number of jobs queued.</returns>
+    public async Task<int> QueueWingetSyncsAsync(CancellationToken cancellationToken)
+    {
+        var connectionIds = (await _wingetPullRequestRepository.GetAllAsync(p => p.IsOpen
+                                                                                && p.StoreApp.StoreConnectionId != null
+                                                                                && !p.StoreApp.App.IsDeleted
+                                                                                && p.StoreApp.StoreConnection.Status == ConnectionStatus.Verified,
+                                                                           projection: p => new WingetPullRequest { OrganizationId = p.OrganizationId, StoreApp = new StoreApp { StoreConnectionId = p.StoreApp.StoreConnectionId } },
+                                                                           cancellationToken: cancellationToken)).Select(p => (p.OrganizationId, ConnectionId: p.StoreApp.StoreConnectionId.Value))
+                                                                                                                 .Distinct()
+                                                                                                                 .ToList();
+
+        return await QueueAsync(StoreJobKind.WingetSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.WingetSync, new WingetSyncPayload(c.ConnectionId, null, true), StoreKind.Winget))], cancellationToken);
+    }
+
+    /// <summary>
     /// Queues a review sync for every App Store and Google Play record with a connection.
     /// </summary>
     public async Task<int> QueueReviewSyncsAsync(CancellationToken cancellationToken)
@@ -97,7 +121,8 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                                              projection: s => new StoreApp { Id = s.Id, OrganizationId = s.OrganizationId, AppId = s.AppId, Store = s.Store },
                                                              cancellationToken: cancellationToken);
 
-        return await QueueAsync(StoreJobKind.SyncStoreMetrics, [.. records.Select(r => new StoreJobRequest(r.OrganizationId, StoreJobKind.SyncStoreMetrics, new SyncStoreMetricsPayload(r.Id), r.Store, r.AppId))], cancellationToken);
+        // Channels without store page metrics (winget) are left out (StoreChannels.HasMetrics).
+        return await QueueAsync(StoreJobKind.SyncStoreMetrics, [.. records.Where(r => StoreChannels.HasMetrics(r.Store)).Select(r => new StoreJobRequest(r.OrganizationId, StoreJobKind.SyncStoreMetrics, new SyncStoreMetricsPayload(r.Id), r.Store, r.AppId))], cancellationToken);
     }
 
     private Task<List<StoreApp>> RecordsAsync(bool appleOnly, CancellationToken cancellationToken)

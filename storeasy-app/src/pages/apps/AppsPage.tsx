@@ -20,17 +20,20 @@ import { FilterType, type ListRequest } from '@/lib/api/list'
 import { OrgPermission, StoreKind, type AppListDto } from '@/lib/api/types'
 import { lastSyncOf, moveBy, moveTo, primaryIdentifier, recordFor, recordsOf, STORE_ORDER, storeCounts } from '@/lib/apps/apps'
 import { useSyncApps } from '@/lib/apps/useSyncApps'
+import { byStore } from '@/lib/stores/channels'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { queryKeys } from '@/lib/query/keys'
 import { AddMsProductDialog } from '@/features/microsoft/AddMsProductDialog'
+import { AddWingetPackageDialog } from '@/features/winget/AddWingetPackageDialog'
+import { useWinget } from '@/features/winget/i18n/useWinget'
 import { useMs } from '@/features/microsoft/i18n/useMs'
 
 const DEFAULT_PAGE_SIZE = 20
 const SEARCH_DELAY_MS = 400
 const STORE_PARAM: Record<string, StoreKind> = { apple: StoreKind.Apple, google: StoreKind.Google, microsoft: StoreKind.Microsoft }
-const PARAM_OF: Record<StoreKind, string> = { [StoreKind.Apple]: 'apple', [StoreKind.Google]: 'google', [StoreKind.Microsoft]: 'microsoft' }
+const PARAM_OF: Record<StoreKind, string> = byStore((channel) => channel.key)
 // One row is enough: the hidden apps link needs only the total.
 const HIDDEN_COUNT_REQUEST: AppListRequest = { PageNumber: 1, RowCount: 1, Hidden: true }
 
@@ -175,6 +178,8 @@ export function AppsPage() {
   const [search, setSearch] = useState(params.get('q') ?? '')
   const [adding, setAdding] = useState(false)
   const [addingMs, setAddingMs] = useState(false)
+  const [addingWinget, setAddingWinget] = useState(false)
+  const tw = useWinget()
   const running = useRunningApps()
   const sync = useSyncApps()
   const editor = can(OrgPermission.EditContent)
@@ -425,6 +430,10 @@ export function AppsPage() {
                 <Plus aria-hidden />
                 {tm.addProduct.open}
               </Button>
+              <Button onClick={() => setAddingWinget(true)}>
+                <Plus aria-hidden />
+                {tw.add.title}
+              </Button>
               <Button variant="primary" loading={sync.isPending} disabled={noConnections} onClick={() => sync.mutate(null)}>
                 <RefreshCw aria-hidden />
                 {t.apps.sync}
@@ -515,6 +524,7 @@ export function AppsPage() {
               </Button>
               <Button onClick={() => setAdding(true)}>{t.apps.addGoogle}</Button>
               <Button onClick={() => setAddingMs(true)}>{tm.addProduct.open}</Button>
+              <Button onClick={() => setAddingWinget(true)}>{tw.add.title}</Button>
             </>
           ) : undefined
         }
@@ -632,6 +642,11 @@ export function AppsPage() {
         <>
           <AddGoogleAppDialog open={adding} onClose={() => setAdding(false)} onAdded={(appId) => navigate(`/apps/${appId}`)} />
           <AddMsProductDialog open={addingMs} onClose={() => setAddingMs(false)} onAdded={(appId) => navigate(`/apps/${appId}`)} />
+          <AddWingetPackageDialog
+            open={addingWinget}
+            onClose={() => setAddingWinget(false)}
+            onAdded={(appId) => navigate(`/apps/${appId}/winget`)}
+          />
         </>
       ) : null}
     </>

@@ -4,7 +4,7 @@ namespace Storeasy.Domain.Stores;
 
 /// <summary>
 /// The icons a member can pick for a store connection, so its records are told apart at a glance (the web draws them;
-/// the API stores only the key). A fixed list, no uploads. The three store logos only identify their own store, so each
+/// the API stores only the key). A fixed list, no uploads. The store logos only identify their own store, so each
 /// is allowed only on a connection of that store; the generic icons fit any store.
 /// </summary>
 public static class StoreConnectionIcons
@@ -23,23 +23,20 @@ public static class StoreConnectionIcons
     /// <summary>Microsoft Store logo (Microsoft connections only).</summary>
     public const string MsStore = "msstore";
 
+    /// <summary>winget logo (winget connections only).</summary>
+    public const string Winget = "winget";
+
     /// <summary>
     /// The generic icons, in the order the web shows them.
     /// </summary>
     public static IReadOnlyList<string> Generic { get; } = ["phone", "tablet", "bag", "window", "globe", "box", "game", "rocket"];
 
     /// <summary>
-    /// The store logo of <paramref name="store"/>.
+    /// The store logo of <paramref name="store"/> (<see cref="StoreChannels"/>).
     /// </summary>
     /// <param name="store"></param>
     /// <returns></returns>
-    public static string LogoOf(StoreKind store) => store switch
-    {
-        StoreKind.Apple => AppStore,
-        StoreKind.Google => GooglePlay,
-        StoreKind.Microsoft => MsStore,
-        _ => null,
-    };
+    public static string LogoOf(StoreKind store) => StoreChannels.Of(store)?.LogoIcon;
 
     /// <summary>
     /// Whether <paramref name="icon"/> may be stored on a connection of <paramref name="store"/>. Null or empty (no
@@ -64,7 +61,7 @@ public static class StoreConnectionIcons
     /// </summary>
     /// <param name="icon"></param>
     /// <returns></returns>
-    public static bool IsKnown(string icon) => string.IsNullOrEmpty(icon) || icon is AppStore or GooglePlay or MsStore || Generic.Contains(icon);
+    public static bool IsKnown(string icon) => string.IsNullOrEmpty(icon) || StoreChannels.All.Any(c => c.LogoIcon == icon) || Generic.Contains(icon);
 
     /// <summary>
     /// The value to store: null for an empty choice, the key otherwise.

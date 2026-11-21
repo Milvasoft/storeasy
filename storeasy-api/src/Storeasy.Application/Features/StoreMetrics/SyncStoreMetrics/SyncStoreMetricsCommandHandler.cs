@@ -3,6 +3,7 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions;
 using Storeasy.Application.Dtos.StoreMetricDtos;
 using Storeasy.Domain.Apps;
+using Storeasy.Domain.Stores;
 
 namespace Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics;
 
@@ -19,12 +20,12 @@ public record SyncStoreMetricsCommandHandler(IStoreasyRepositoryBase<StoreApp> S
     /// <inheritdoc/>
     public async Task<Response<List<long>>> Handle(SyncStoreMetricsCommand request, CancellationToken cancellationToken)
     {
-        var records = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == request.OrganizationId
+        var records = (await _storeAppRepository.GetAllAsync(s => s.OrganizationId == request.OrganizationId
                                                                   && (request.AppId == null || s.AppId == request.AppId)
                                                                   && s.StoreConnectionId != null
                                                                   && !s.App.IsDeleted,
                                                              projection: s => new StoreApp { Id = s.Id, AppId = s.AppId, Store = s.Store },
-                                                             cancellationToken: cancellationToken);
+                                                             cancellationToken: cancellationToken)).Where(r => StoreChannels.HasMetrics(r.Store)).ToList();
 
         if (records.Count == 0)
             return Response<List<long>>.Error(null, MessageKey.StoreAppNotFound);

@@ -188,10 +188,5 @@ public static class ListingSuggestionPrompt
         builder.Append("</").Append(tag).Append('>').Append(_lineFeed);
     }
 
-    private static string StoreName(StoreKind store) => store switch
-    {
-        StoreKind.Apple => "App Store",
-        StoreKind.Google => "Google Play",
-        _ => store.ToString(),
-    };
+    private static string StoreName(StoreKind store) => Domain.Stores.StoreChannels.DisplayName(store);
 }

@@ -407,6 +407,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:MicrosoftStore:MaxAttempts`, `RetryBaseDelayMilliseconds`, `MaxRetryDelaySeconds` | | `4`, `1000`, `60` | Attempts of one Microsoft call on 429, 5xx or a network error, and their backoff. |
 | `Storeasy:MicrosoftStore:StatusPollIntervalMilliseconds`, `StatusPollAttempts` | | `5000`, `24` | Status reads after a commit before the job leaves the rest to the sync. |
 | `Storeasy:MicrosoftStore:InstallerCheckMaxBytes`, `BlockPrivateDownloadAddresses` | | 4 GiB, `true` | Largest MSI/EXE installer the Authenticode check downloads, and the guard that refuses installer hosts on private addresses. |
+| `Storeasy:Winget:ApiBaseUrl`, `Upstream`, `UpstreamBranch` | | `https://api.github.com`, `microsoft/winget-pkgs`, `master` | GitHub REST API and the repository winget pull requests go to. |
+| `Storeasy:Winget:InstallerMaxBytes`, `BlockPrivateDownloadAddresses` | | 4 GiB, `true` | Largest installer downloaded for its SHA-256 when a winget plan is applied, and the guard that refuses installer hosts (and redirects) on private addresses. |
+| `Storeasy:Winget:SearchLimit` | | `30` | Most pull requests a winget sync looks up per package. |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
 
 #### Package intake
@@ -487,7 +490,7 @@ answers 503 from the next request on; a missing flag reads as on.
 
 ## 7. Master key: backup and rotation
 
-The master key seals every store credential (App Store Connect keys, Play service accounts, Microsoft Entra secrets),
+The master key seals every store credential (App Store Connect keys, Play service accounts, Microsoft Entra secrets, GitHub tokens),
 saved demo passwords, the secrets of inbound webhook endpoints, outgoing webhook subscriptions and pull sources, and
 queued e-mails. Each record gets its own data key; the master key wraps the data keys. A database dump alone does not
 reveal any of them, and the key alone is useless without the database.
@@ -607,6 +610,7 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 | Work | When | What |
 |---|---|---|
 | Version state sync | Every 15 minutes | App Store version states; a rejection opens a rejection case. |
+| winget sync | Every 15 minutes (minute 10) | Review state of open winget pull requests (labels, checks, comments); a merge reads the package again. |
 | Review sync | Every 30 minutes | New App Store and Google Play reviews. |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |

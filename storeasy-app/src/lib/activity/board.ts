@@ -5,7 +5,7 @@ import {
   BuildProcessingState,
   ConnectionStatus,
   StoreJobStatus,
-  StoreKind,
+  type StoreKind,
   type ActivityBoardBuildDto,
   type ActivityBoardDto,
   type ActivityBoardVersionDto,
@@ -13,6 +13,7 @@ import {
   type StoreConnectionDto,
 } from '@/lib/api/types'
 import { storeLinksOf } from '@/lib/apps/storeLinks'
+import { ALL_STORES } from '@/lib/stores/channels'
 import { isActive, type JobView } from './hatState'
 
 // The calm half of the live page (pure, unit tested): what each store's gate says right now, what is coming up, and the
@@ -584,7 +585,7 @@ export function attentionOf(inputs: BoardInputs, now: number): AttentionItem[] {
       })
     }
   }
-  for (const store of [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]) {
+  for (const store of ALL_STORES) {
     const failed = lastFailedJob(inputs.jobs, store, now)
     if (failed) {
       items.push({

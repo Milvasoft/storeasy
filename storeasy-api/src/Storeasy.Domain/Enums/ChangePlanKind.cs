@@ -117,6 +117,12 @@ public enum ChangePlanKind : byte
     MsChange = 50,
 
     /// <summary>
+    /// A winget manifest pull request (new version or locale texts); applying it opens the pull request.
+    /// </summary>
+    [Description("winget pull request")]
+    WingetChange = 100,
+
+    /// <summary>
     /// Subscriptions, offers, In-App Purchases and Play products (phase 7).
     /// </summary>
     [Description("Monetization")]

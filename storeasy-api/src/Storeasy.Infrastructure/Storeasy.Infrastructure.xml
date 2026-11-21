@@ -1261,11 +1261,12 @@
             <param name="connectionRepository"></param>
             <param name="storeAppRepository"></param>
             <param name="msSubmissionRepository"></param>
+            <param name="wingetPullRequestRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
             <summary>
             Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
             and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
@@ -1273,6 +1274,7 @@
             <param name="connectionRepository"></param>
             <param name="storeAppRepository"></param>
             <param name="msSubmissionRepository"></param>
+            <param name="wingetPullRequestRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
@@ -1287,6 +1289,13 @@
             Queues a Microsoft Store sync for every verified Partner Center connection with a pending submission. Partner Center
             sends no notifications, so certification, publishing and a manual "Publish now" are only seen by reading again.
             </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueWingetSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a winget sync (open pull requests only) for every verified winget connection with an open pull request.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns>Number of jobs queued.</returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueReviewSyncsAsync(System.Threading.CancellationToken)">
             <summary>
@@ -2641,6 +2650,25 @@
             <param name="options"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.VersionStateSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.WingetSyncJob">
+            <summary>
+            Every 15 minutes: queues the winget syncs of connections with an open pull request (review state only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.WingetSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 15 minutes: queues the winget syncs of connections with an open pull request (review state only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.WingetSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.LazyImpl.StoreasyLazy`1">
@@ -8071,13 +8099,16 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.StoreGateway">
             <summary>
-            Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
+            Credential inspection and verification against App Store Connect, Google Play, Microsoft Store and the registered
+            channels. Uses the named HTTP client
             <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/>; tests replace its handler.
             </summary>
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
             <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
+            <param name="Channels">Engines of the channels after the first three stores (<see cref="T:Storeasy.Application.Interfaces.IStoreChannel"/>); every call for their
+            store goes to them.</param>
             <summary>
             App, build and icon reads of the store engine (the sync job): App Store Connect <c>/v1/apps</c> and <c>/v1/builds</c>,
             Google Play edits (Play has no list-apps API, so an app is read by package name inside a short lived edit that is
@@ -8089,15 +8120,18 @@
             <see cref="T:Storeasy.Application.Interfaces.IMicrosoftStoreClient"/>.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Interfaces.IMicrosoftStoreClient)">
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.#ctor(System.Net.Http.IHttpClientFactory,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger,Storeasy.Application.Interfaces.IMicrosoftStoreClient,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannel})">
             <summary>
-            Credential inspection and verification against App Store Connect and Google Play. Uses the named HTTP client
+            Credential inspection and verification against App Store Connect, Google Play, Microsoft Store and the registered
+            channels. Uses the named HTTP client
             <see cref="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName"/>; tests replace its handler.
             </summary>
             <param name="HttpClientFactory"></param>
             <param name="TimeProvider"></param>
             <param name="Logger"></param>
             <param name="MicrosoftStore">Microsoft Store client; null where only the offline inspection is used.</param>
+            <param name="Channels">Engines of the channels after the first three stores (<see cref="T:Storeasy.Application.Interfaces.IStoreChannel"/>); every call for their
+            store goes to them.</param>
         </member>
         <member name="F:Storeasy.Infrastructure.Stores.StoreGateway.HttpClientName">
             <summary>
@@ -8118,6 +8152,13 @@
             <summary>
             OAuth scope of the Google Play Developer API.
             </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.ChannelOf(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            The registered engine of <paramref name="store"/>, or null for the first three stores.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.StoreGateway.Inspect(Storeasy.Domain.Enums.StoreKind,System.String)">
             <inheritdoc/>
@@ -8365,6 +8406,362 @@
             Adds the new records: each joins the storeasy app whose record in another store has the same platform identifier
             (and no record in this store yet), otherwise a new storeasy app named after it.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetChannel">
+            <summary>
+            The winget engine as a store channel: the credential is a GitHub token with the owner's fork of winget-pkgs, a product
+            is a package identifier, its builds are the version folders in winget-pkgs. winget has no API that lists a publisher's
+            packages, so packages are added by identifier.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.#ctor(Storeasy.Application.Interfaces.IWingetClient)">
+            <summary>
+            The winget engine as a store channel: the credential is a GitHub token with the owner's fork of winget-pkgs, a product
+            is a package identifier, its builds are the version folders in winget-pkgs. winget has no API that lists a publisher's
+            packages, so packages are added by identifier.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Winget.WingetChannel.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.Inspect(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.InspectSecret(System.String)">
+            <summary>
+            The offline check of a winget secret (also used without a client, by the tests' gateway).
+            </summary>
+            <param name="secretJson"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.VerifyAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.ListAppsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.GetAppAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.ListBuildsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.GetIconUrlAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.IconOf(Storeasy.Application.Utils.Winget.WingetManifestSet)">
+            <summary>
+            The first https <c>IconUrl</c> of the default locale's <c>Icons</c> (winget-pkgs manifests rarely carry one).
+            </summary>
+            <param name="set"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.SyncJob(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.SameAccount(Storeasy.Domain.JsonModels.ConnectionFingerprint,Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetChannel.CredentialLabel(Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IWingetClient"/> over the GitHub REST API (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.HttpClientName"/>) and installer
+            downloads (<see cref="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.DownloadClientName"/>, redirects followed by hand so every hop is checked against private
+            addresses; the GitHub token never goes to an installer host). Endpoints: <c>GET /user</c>, <c>GET /repos/{fork}</c>,
+            contents of winget-pkgs, <c>GET /search/issues</c>, pulls, check runs and issue comments; the write is
+            <c>POST /repos/{fork}/merge-upstream</c>, git trees, commits and refs on the fork, then <c>POST /repos/{upstream}/pulls</c>.
+            Tests replace both handlers with a fake GitHub.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.WingetOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IWingetClient"/> over the GitHub REST API (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.HttpClientName"/>) and installer
+            downloads (<see cref="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.DownloadClientName"/>, redirects followed by hand so every hop is checked against private
+            addresses; the GitHub token never goes to an installer host). Endpoints: <c>GET /user</c>, <c>GET /repos/{fork}</c>,
+            contents of winget-pkgs, <c>GET /search/issues</c>, pulls, check runs and issue comments; the write is
+            <c>POST /repos/{fork}/merge-upstream</c>, git trees, commits and refs on the fork, then <c>POST /repos/{upstream}/pulls</c>.
+            Tests replace both handlers with a fake GitHub.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.HttpClientName">
+            <summary>
+            Name of the HTTP client of GitHub calls.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.DownloadClientName">
+            <summary>
+            Name of the HTTP client of installer downloads.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Winget.WingetClient.MaxRedirects">
+            <summary>
+            Most redirects followed for one installer download.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.HtmlCommentRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;!--[\s\S]*?--&gt;</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match the string "&lt;!--".<br/>
+            ○ Match any character lazily any number of times.<br/>
+            ○ Match the string "--&gt;".<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.BadgeRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)|!\[[^\]]*\]\([^)]*\)</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match with 2 alternative expressions, atomically.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match the string "[![".<br/>
+                    ○ Match a character other than ']' atomically any number of times.<br/>
+                    ○ Match the string "](".<br/>
+                    ○ Match a character other than ')' atomically any number of times.<br/>
+                    ○ Match the string ")](".<br/>
+                    ○ Match a character other than ')' atomically any number of times.<br/>
+                    ○ Match ')'.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match the string "![".<br/>
+                    ○ Match a character other than ']' atomically any number of times.<br/>
+                    ○ Match the string "](".<br/>
+                    ○ Match a character other than ')' atomically any number of times.<br/>
+                    ○ Match ')'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.WhiteSpaceRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\s+</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a whitespace character atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.VerifyAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.ListVersionsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.IsVersionFolder(System.String)">
+            <summary>
+            Whether a folder name of a package folder is a version (starts with a digit, or <c>v</c> and a digit).
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.ReadManifestFilesAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.FindPullRequestsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.GetPullRequestAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.Comment(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            A comment shortened for storage: HTML comments and badges removed, white space collapsed, cut to
+            <see cref="F:Storeasy.Domain.JsonModels.WingetComment.ExcerptMaxLength"/>.
+            </summary>
+            <param name="comment"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.HashInstallerAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.HashAsync(System.IO.Stream,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            SHA-256 (upper case hex) and size of a stream, refusing more than <paramref name="maxBytes"/>.
+            </summary>
+            <param name="stream"></param>
+            <param name="maxBytes"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetClient.OpenPullRequestAsync(System.String,Storeasy.Application.Interfaces.WingetPullRequestDraft,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway">
+            <summary>
+            The content read of a winget package (<see cref="T:Storeasy.Application.Utils.Winget.WingetContent"/>): the version list and the manifests of one version
+            from winget-pkgs. Writes do not go through here: a winget plan is applied by <see cref="T:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension"/>, which
+            opens a pull request.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway.#ctor(Storeasy.Application.Interfaces.IWingetClient)">
+            <summary>
+            The content read of a winget package (<see cref="T:Storeasy.Application.Utils.Winget.WingetContent"/>): the version list and the manifests of one version
+            from winget-pkgs. Writes do not go through here: a winget plan is applied by <see cref="T:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension"/>, which
+            opens a pull request.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension">
+            <summary>
+            Applies an approved winget plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.WingetChange"/>): downloads the installers and puts their
+            SHA-256 into the installer manifest (a hash given in the plan must match), checks the manifests once more, pushes a
+            branch to the owner's fork and opens the pull request to winget-pkgs. The pull request is then tracked by the sync;
+            its merge is the publication. When GitHub refuses the pull request itself the job fails with the compare page of the
+            pushed branch, so the owner can open it by hand.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.#ctor(Storeasy.Application.Interfaces.IWingetClient,Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},System.TimeProvider)">
+            <summary>
+            Applies an approved winget plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.WingetChange"/>): downloads the installers and puts their
+            SHA-256 into the installer manifest (a hash given in the plan must match), checks the manifests once more, pushes a
+            branch to the owner's fork and opens the pull request to winget-pkgs. The pull request is then tracked by the sync;
+            its merge is the publication. When GitHub refuses the pull request itself the job fails with the compare page of the
+            pushed branch, so the owner can open it by hand.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetPlanExtension.WithHashes(System.Collections.Generic.List{Storeasy.Application.Utils.Winget.WingetManifestFile},System.Collections.Generic.IReadOnlyDictionary{System.Int32,System.String})">
+            <summary>
+            The files with the computed hashes written into the installer manifest's entries.
+            </summary>
+            <param name="files"></param>
+            <param name="hashes">Installer index to SHA-256.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetReadiness">
+            <summary>
+            Readiness of a winget package: the latest manifests pass the schema and policy checks storeasy can run, the package has
+            a version in winget-pkgs, and no pull request waits for the author. The checks the validation pipeline runs on the
+            installer itself (install, scan, uninstall) are not repeated here.
+            </summary>
+            <param name="pullRequestRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetReadiness.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Readiness of a winget package: the latest manifests pass the schema and policy checks storeasy can run, the package has
+            a version in winget-pkgs, and no pull request waits for the author. The checks the validation pipeline runs on the
+            installer itself (install, scan, uninstall) are not repeated here.
+            </summary>
+            <param name="pullRequestRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetReadiness.EvaluateAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetServiceCollectionExtensions">
+            <summary>
+            Registers the winget channel: the GitHub client, the store channel (gateway calls, sync job, key replacement), the
+            content read, the plan extension that opens pull requests, readiness and the sync job. The pattern every new channel
+            follows (docs/adding-a-store.md).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetServiceCollectionExtensions.AddWingetServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the winget services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync"/>: reads the winget packages of a connection from winget-pkgs (versions, the latest
+            version's names, locales and schema version; a version folder becomes a build), finds the fork owner's pull requests
+            for each package, and refreshes the review state of the open ones from their labels, check runs and bot comments. A
+            state change is audited and notified like a store version state change; a merge is the publication. The schedule runs
+            it every 15 minutes for connections with an open pull request, refreshing only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IWingetClient,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync"/>: reads the winget packages of a connection from winget-pkgs (versions, the latest
+            version's names, locales and schema version; a version folder becomes a build), finds the fork owner's pull requests
+            for each package, and refreshes the review state of the open ones from their labels, check runs and bot comments. A
+            state change is audited and notified like a store version state change; a merge is the publication. The schedule runs
+            it every 15 minutes for connections with an open pull request, refreshing only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler.Merge(Storeasy.Domain.Winget.WingetPullRequest,Storeasy.Application.Interfaces.WingetPullRequestRead,System.DateTime)">
+            <summary>
+            Copies what GitHub reports into the row and derives the review state.
+            </summary>
+            <param name="pull"></param>
+            <param name="github"></param>
+            <param name="now"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Winget.WingetSyncJobHandler.VersionFromTitle(System.String)">
+            <summary>
+            The version of a winget-pkgs pull request title ("New version: Id version 1.2.3", "Id 1.2.3"): the last word that
+            starts with a digit.
+            </summary>
+            <param name="title"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Studio.MockupExportJobHandler">
             <summary>
@@ -9441,6 +9838,70 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
+        <member name="T:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the HtmlCommentRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.HtmlCommentRegex_13.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BadgeRegex_14">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BadgeRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BadgeRegex_14.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BadgeRegex_14.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BadgeRegex_14.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
         <member name="T:System.Text.RegularExpressions.Generated.Utilities">
             <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
         </member>
@@ -9478,6 +9939,12 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiWordChars">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfAnyStrings_OrdinalIgnoreCase_38A52A10EBD249781E6B5E00F233A2EED0761D4C25A974749109446C9BF6F2DC">
+            <summary>Supports searching for the specified strings.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_6ECE9690B7BA832900C5EFE4220A6D95DBCEEE949801DC526EC42EDB8EECFA64">
+            <summary>Supports searching for the string "&lt;!--".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_9DE370380232F361994B960D1F67E76A541126AC22B46E7171EBFD290AA6666E">
             <summary>Supports searching for the string "/store/apps/details?id=".</summary>

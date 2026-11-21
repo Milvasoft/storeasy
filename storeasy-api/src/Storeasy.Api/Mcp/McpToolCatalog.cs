@@ -94,6 +94,12 @@ using Storeasy.Application.Features.MsStore.GetMsInstallerPackageList;
 using Storeasy.Application.Features.MsStore.GetMsProductDetail;
 using Storeasy.Application.Features.MsStore.GetMsSubmissionList;
 using Storeasy.Application.Features.MsStore.SaveMsFlightGroup;
+using Storeasy.Application.Features.Winget.AddWingetPackage;
+using Storeasy.Application.Features.Winget.GetWingetManifest;
+using Storeasy.Application.Features.Winget.GetWingetPackage;
+using Storeasy.Application.Features.Winget.GetWingetPullRequestList;
+using Storeasy.Application.Features.Winget.PlanWingetChange;
+using Storeasy.Application.Features.Winget.SyncWinget;
 using Storeasy.Application.Features.Organizations.GetMemberList;
 using Storeasy.Application.Features.PurchaseSettings.GetSandboxTesterList;
 using Storeasy.Application.Features.PurchaseSettings.GetServerNotifications;
@@ -357,6 +363,13 @@ public static class McpToolCatalog
         Read<GetMsAddonListQuery>("ms_addons_list", "Lists the add-ons of an MSIX app."),
         Read<GetMsInstallerPackageListQuery>("ms_installer_packages", "Lists the installer packages of an MSI/EXE product with the Authenticode check result."),
         Write<CheckMsInstallerCommand>("ms_installer_check", "Queues the Authenticode check of an MSI/EXE product's installers."),
+        // winget (microsoft/winget-pkgs pull requests)
+        Write<AddWingetPackageCommand>("winget_package_add", "Adds a winget package by its package identifier (Publisher.Package) to a new or an existing app (appId) and queues its sync; winget has no API that lists a publisher's packages."),
+        Read<GetWingetPackageQuery>("winget_package_get", "Reads a winget package as the last sync saw it: versions in winget-pkgs, names, locales, schema version, pull requests with their review state, and the app's Microsoft Store MSI/EXE installers a new version can start from."),
+        Read<GetWingetManifestQuery>("winget_manifest_get", "Reads the manifests of one version (default the latest) live from winget-pkgs: listing texts per locale, installers, the YAML files and storeasy's schema and policy checks."),
+        Plan<PlanWingetChangeCommand>("winget_change_plan", "Plans a winget pull request: a new version (installers given or fromMicrosoftStore, release notes in locales) or locale text edits of an existing version. The manifests are built from the latest version's, checked against the schema and the winget-pkgs policies, and shown in full; approving the plan downloads the installers for their SHA256, pushes a branch to the fork and opens the pull request. The merge by the winget moderators publishes the version."),
+        Read<GetWingetPullRequestListQuery>("winget_pull_requests", "Lists the pull requests of a winget package with their review state (validating, validation failed, needs author feedback, validation completed, approved, published, closed), labels, check runs and bot comments."),
+        Write<SyncWingetCommand>("winget_sync", "Queues a sync of one winget package: versions, manifests and the review state of its pull requests."),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),

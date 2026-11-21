@@ -3,7 +3,9 @@
 namespace Storeasy.Domain.Enums;
 
 /// <summary>
-/// A store storeasy talks to. Shared models never assume a fixed set: an app may live in one, two or all three stores.
+/// A store or distribution channel storeasy talks to. Shared models never assume a fixed set: an app may live in any
+/// number of them. What each one supports (credential expiry, reviews, metrics, its console) is in
+/// <see cref="Stores.StoreChannels"/>; docs/adding-a-store.md lists every place a new value is wired in.
 /// </summary>
 public enum StoreKind : byte
 {
@@ -20,9 +22,15 @@ public enum StoreKind : byte
     Google = 2,
 
     /// <summary>
-    /// Microsoft Store (Partner Center submission APIs, Microsoft Entra app). Connections and sync arrive in phase 5;
-    /// until then the store engine answers "not supported yet".
+    /// Microsoft Store (Partner Center submission APIs, Microsoft Entra app).
     /// </summary>
     [Description("Microsoft Store")]
     Microsoft = 3,
+
+    /// <summary>
+    /// Windows Package Manager community repository (<c>microsoft/winget-pkgs</c> on GitHub). Manifests go in as pull
+    /// requests from the owner's fork, opened with the owner's GitHub token; a merged pull request is a published version.
+    /// </summary>
+    [Description("winget")]
+    Winget = 4,
 }

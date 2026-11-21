@@ -40,6 +40,6 @@ public sealed class AddStoreConnectionCommandValidator : AbstractValidator<AddSt
         RuleFor(command => command.CredentialExpiryDate)
             .Must(date => MsSecretRules.IsValidExpiry(date, timeProvider.GetUtcNow().UtcDateTime))
             .WithMessage(localizer[MessageKey.MsSecretExpiryInvalid])
-            .When(command => command.Store == StoreKind.Microsoft);
+            .When(command => StoreChannels.CredentialExpiryRequired(command.Store) || (StoreChannels.CredentialExpires(command.Store) && command.CredentialExpiryDate.HasValue));
     }
 }

@@ -86,6 +86,7 @@ public static class EventsServiceCollectionExtensions
         // Schedules (UTC).
         services.AddMilvaCronJob<VersionStateSyncJob>(c => Schedule(c, "*/15 * * * *"));
         services.AddMilvaCronJob<MsSyncJob>(c => Schedule(c, "5-59/15 * * * *"));
+        services.AddMilvaCronJob<WingetSyncJob>(c => Schedule(c, "10-59/15 * * * *"));
         services.AddMilvaCronJob<ReviewSyncJob>(c => Schedule(c, "*/30 * * * *"));
         services.AddMilvaCronJob<TestFlightSyncJob>(c => Schedule(c, "0 */6 * * *"));
         services.AddMilvaCronJob<DeadlineReminderJob>(c => Schedule(c, "0 8 * * *"));

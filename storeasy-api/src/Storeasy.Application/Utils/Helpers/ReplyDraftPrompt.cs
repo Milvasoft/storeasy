@@ -85,10 +85,5 @@ public static class ReplyDraftPrompt
 
     private static void Tag(StringBuilder builder, string name, string value) => PromptTags.Tag(builder, name, value);
 
-    private static string StoreName(StoreKind store) => store switch
-    {
-        StoreKind.Apple => "App Store",
-        StoreKind.Google => "Google Play",
-        _ => store.ToString(),
-    };
+    private static string StoreName(StoreKind store) => Domain.Stores.StoreChannels.DisplayName(store);
 }

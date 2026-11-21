@@ -41,7 +41,13 @@ public static class ReadinessEvaluator
     /// <returns></returns>
     public static List<ReadinessItemDto> Evaluate(ReadinessInput input)
     {
-        var items = input.App.Store == StoreKind.Apple ? Apple(input) : Google(input);
+        // Store specific items of the channels after the first three come from their IReadinessContributor.
+        var items = input.App.Store switch
+        {
+            StoreKind.Apple => Apple(input),
+            StoreKind.Google or StoreKind.Microsoft => Google(input),
+            _ => [],
+        };
 
         items.AddRange(Assisted(input));
         items.AddRange(Deadlines(input, items));

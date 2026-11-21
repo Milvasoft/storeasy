@@ -1,13 +1,10 @@
 import { StoreKind } from '@/lib/api/types'
+import { byStore, channelOfKey, type StoreKey } from '@/lib/stores/channels'
 
 // The ?store= value of the app screens (design: /apps/:appId/readiness?store=apple).
-export type StoreSlug = 'apple' | 'google' | 'microsoft'
+export type StoreSlug = StoreKey
 
-const SLUGS: Record<StoreKind, StoreSlug> = {
-  [StoreKind.Apple]: 'apple',
-  [StoreKind.Google]: 'google',
-  [StoreKind.Microsoft]: 'microsoft',
-}
+const SLUGS: Record<StoreKind, StoreSlug> = byStore((channel) => channel.key)
 
 export function storeSlug(store: StoreKind): StoreSlug {
   return SLUGS[store]
@@ -23,7 +20,7 @@ export function storeFromSlug(slug: string | null): StoreKind | null {
     case 'ms':
       return StoreKind.Microsoft
     default:
-      return null
+      return channelOfKey(slug)?.store ?? null
   }
 }
 
