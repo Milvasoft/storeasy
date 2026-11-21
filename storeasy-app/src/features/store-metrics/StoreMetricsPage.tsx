@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { BarChart3, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
 import { Badge, StoreTag, storeName } from '@/components/ui/Badge'
@@ -19,6 +19,11 @@ import { cn } from '@/lib/utils/cn'
 import { addDays, todayDateOnly } from '@/lib/utils/date'
 import { AppWorkspace, type WorkspaceContext } from '@/features/common/AppWorkspace'
 import { useLiveRefresh } from '@/features/notifications/live'
+import { useImpactEvents } from '@/features/aso-impact/api'
+import { useImpactText } from '@/features/aso-impact/i18n'
+import { eventTitle, impactLink } from '@/features/aso-impact/labels'
+import { RecentImpact } from '@/features/aso-impact/RecentImpact'
+import { ImpactDateSource } from '@/features/aso-impact/types'
 import { storeMetricsApi, storeMetricsKeys, useMetricFeeds, useMetricsSummary, useStoreMetrics } from './api'
 import { useStoreMetricsText, type StoreMetricsDictionary } from './i18n'
 import {
@@ -430,6 +435,15 @@ function StoreMetrics({ context }: { context: WorkspaceContext }) {
   }, [data?.Countries, country, lang, t])
 
   const chartPoints = (data?.Days ?? []).map((day) => ({ date: day.Date, value: metricValue(day, chartMetric) }))
+  const impactText = useImpactText()
+  const navigate = useNavigate()
+  const events = useImpactEvents(organizationId, app.Id, { Store: store, From: data?.From, To: data?.To }, data != null)
+  const markers = (events.data ?? []).map((event) => ({
+    id: event.Id,
+    date: event.Date,
+    label: `${format.date(event.Date)}: ${eventTitle(event, impactText)}`,
+    pending: event.DateSource === ImpactDateSource.AwaitingRelease,
+  }))
 
   return (
     <>
@@ -543,6 +557,8 @@ function StoreMetrics({ context }: { context: WorkspaceContext }) {
                       })}
                       formatValue={(value) => formatMetric(chartMetric, value, lang)}
                       formatDate={(date: DateOnly) => format.date(date)}
+                      markers={markers}
+                      onMarker={(id) => navigate(impactLink({ AppId: app.Id, Id: id }))}
                     />
                   ) : (
                     <p className="m-0 text-[13px] text-fg2">{t.chart.empty}</p>
@@ -586,7 +602,7 @@ function StoreMetrics({ context }: { context: WorkspaceContext }) {
 /** The app's Store performance tab. */
 export function StoreMetricsPage() {
   return (
-    <AppWorkspace section="storePerformance" appWide>
+    <AppWorkspace section="storePerformance" sub="performance" appWide>
       {(context) => <StoreMetrics context={context} />}
     </AppWorkspace>
   )
@@ -685,6 +701,9 @@ export function OrgStoreMetricsPage() {
           </section>
         </div>
       )}
+      <div className="mt-4">
+        <RecentImpact organizationId={organization.Id} />
+      </div>
     </>
   )
 }

@@ -40,6 +40,8 @@ export const p2tr: P2Dictionary = {
     subscriptions: 'Abonelikler',
     iap: 'Uygulama içi ürünler',
     purchaseSettings: 'Satın alma ayarları',
+    performance: 'Genel bakış',
+    impact: 'Etki',
   },
   plan: {
     title: 'Değişiklik planı',

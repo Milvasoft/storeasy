@@ -1100,6 +1100,44 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AsoImpactController">
+            <summary>
+            Before and after impact of store changes (docs/aso-impact.md): the changes of an app with the day each took effect,
+            the report of one change (store page metrics, conversion significance, keyword ranks, confounding changes) and the
+            organization's recent changes. Read only; computed from storeasy's rows on every call.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoImpactController.#ctor(MediatR.IMediator)">
+            <summary>
+            Before and after impact of store changes (docs/aso-impact.md): the changes of an app with the day each took effect,
+            the report of one change (store page metrics, conversion significance, keyword ranks, confounding changes) and the
+            organization's recent changes. Read only; computed from storeasy's rows on every call.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoImpactController.GetEventsAsync(Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery,System.Threading.CancellationToken)">
+            <summary>
+            The changes of one app (applied store page plans, versions that went live), newest first.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoImpactController.GetImpactAsync(Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery,System.Threading.CancellationToken)">
+            <summary>
+            The before and after report of one change.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoImpactController.GetRecentAsync(Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery,System.Threading.CancellationToken)">
+            <summary>
+            The impact of the organization's recent changes.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.AsoKeywordsController">
             <summary>
             ASO keywords: research from the stores' public data (estimated popularity, difficulty, competitors, current rank), keyword

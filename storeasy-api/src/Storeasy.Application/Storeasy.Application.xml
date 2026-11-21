@@ -1178,6 +1178,496 @@
             One point per day, oldest first.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto">
+            <summary>
+            Two proportion z-test of the conversion rate (downloads over page views) of the two windows.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.Signal">
+            <summary>
+            How sure the change is.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.ZScore">
+            <summary>
+            z score (positive: the rate went up); null without a test.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.PValue">
+            <summary>
+            Two sided p-value; null without a test.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.BeforeDownloads">
+            <summary>
+            Downloads of the before window (of the days that report page views).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.BeforePageViews">
+            <summary>
+            Page views of the before window.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.AfterDownloads">
+            <summary>
+            Downloads of the after window.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactConversionTestDto.AfterPageViews">
+            <summary>
+            Page views of the after window.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto">
+            <summary>
+            One day of a window, for the paired chart (day <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.Offset"/> of the before window next to the same offset of
+            the after window).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.Offset">
+            <summary>
+            Day of the window, 0 based.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.Date">
+            <summary>
+            Day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.Impressions">
+            <summary>
+            Impressions; null when not reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.PageViews">
+            <summary>
+            Page views; null when not reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.Downloads">
+            <summary>
+            Downloads; null when not reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactDayDto.ConversionRate">
+            <summary>
+            Conversion rate; null when not reported.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto">
+            <summary>
+            A change that may have moved the store page metrics (see <see cref="T:Storeasy.Application.Interfaces.ImpactEvent"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Id">
+            <summary>
+            Stable id (<c>plan-12</c>, <c>version-34</c>, <c>ms-56</c>); pass it to the impact report.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Kind">
+            <summary>
+            What changed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Date">
+            <summary>
+            UTC day the change took effect.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.At">
+            <summary>
+            UTC instant the change took effect, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.DateSource">
+            <summary>
+            Where <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Date"/> comes from (live in the store, applied, awaiting release).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.AppName">
+            <summary>
+            Name of the app (organization lists).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Title">
+            <summary>
+            One line title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Locales">
+            <summary>
+            Locales the change touched.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.Fields">
+            <summary>
+            Fields the change touched.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.PlanId">
+            <summary>
+            The change plan, for a plan event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.VersionString">
+            <summary>
+            User facing version, when the event belongs to one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.ExternalId">
+            <summary>
+            The source's own id of the record (Microsoft submission id, experiment id), when there is one.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.AsoDtos.AsoImpactEventDto.From(Storeasy.Application.Interfaces.ImpactEvent,System.String)">
+            <summary>
+            Maps an event.
+            </summary>
+            <param name="impactEvent"></param>
+            <param name="appName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto">
+            <summary>
+            One tracked keyword's rank before and after a change: the average position over the checked days on which the app was
+            in the results (lower is better).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.Keyword">
+            <summary>
+            Keyword (normalized).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.Country">
+            <summary>
+            Country (ISO code, lower case).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.Before">
+            <summary>
+            Average rank of the before window; null when not ranked on any checked day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.After">
+            <summary>
+            Average rank of the after window; null when not ranked on any checked day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.Change">
+            <summary>
+            <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.After"/> minus <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.Before"/>: negative is an improvement (closer to the top).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.BeforeCheckedDays">
+            <summary>
+            Days of the before window the rank was checked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.BeforeRankedDays">
+            <summary>
+            Days of the before window the app was in the results.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.AfterCheckedDays">
+            <summary>
+            Days of the after window the rank was checked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactKeywordDto.AfterRankedDays">
+            <summary>
+            Days of the after window the app was in the results.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto">
+            <summary>
+            One metric before and after a change. Counts (impressions, page views, downloads) are compared as daily averages over
+            the same weekdays, so a window with a missing day is not penalized; the conversion rate is total downloads over total
+            page views of each window.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.Metric">
+            <summary>
+            Metric.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.Before">
+            <summary>
+            Daily average (or the rate) in the before window; null when not reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.After">
+            <summary>
+            Daily average (or the rate) in the after window; null when not reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.BeforeTotal">
+            <summary>
+            Total of the before window (counts only).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.AfterTotal">
+            <summary>
+            Total of the after window (counts only).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.AbsoluteChange">
+            <summary>
+            <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.After"/> minus <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.Before"/> (per day for counts, rate points for the conversion rate).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactMetricDto.RelativeChange">
+            <summary>
+            Relative change (0.1 is 10 percent up); null when the before value is 0 or missing.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto">
+            <summary>
+            Tracked keyword ranks of the store record before and after a change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.KeywordCount">
+            <summary>
+            Keywords with a checked day in the windows.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.Compared">
+            <summary>
+            Keywords ranked in both windows (the averages below are over these).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.BeforeAverage">
+            <summary>
+            Average of the compared keywords' before averages.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.AfterAverage">
+            <summary>
+            Average of the compared keywords' after averages.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.BeforeTop10">
+            <summary>
+            Keywords whose before average is in the top 10.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.AfterTop10">
+            <summary>
+            Keywords whose after average is in the top 10.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.Improved">
+            <summary>
+            Keywords at least one position higher after (or newly ranked).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.Declined">
+            <summary>
+            Keywords at least one position lower after (or no longer ranked).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRanksDto.Keywords">
+            <summary>
+            Every keyword, the largest moves first.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactRecentDto">
+            <summary>
+            The impact of the organization's recent changes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRecentDto.From">
+            <summary>
+            First effect day listed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRecentDto.To">
+            <summary>
+            Last effect day listed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRecentDto.WindowDays">
+            <summary>
+            Window length used.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactRecentDto.Items">
+            <summary>
+            Changes, newest first.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto">
+            <summary>
+            Before and after report of one change: equal windows before the effect day and after a gap, store page metrics with
+            absolute and relative change, a significance signal for the conversion rate, tracked keyword ranks and the other
+            changes inside the windows.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Event">
+            <summary>
+            The change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Status">
+            <summary>
+            Whether the report can be read yet.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.WindowDays">
+            <summary>
+            Length of each window in days.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.GapDays">
+            <summary>
+            Days skipped from the effect day on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.WholeWeeks">
+            <summary>
+            Whether the windows are whole weeks (every weekday counted equally often).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.WeekdayMatched">
+            <summary>
+            Whether the daily averages were taken over only the weekdays both windows have data for (the windows are not
+            whole weeks, or a window misses days).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Before">
+            <summary>
+            The window before the change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.After">
+            <summary>
+            The window after the gap.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.ReadyDate">
+            <summary>
+            First day the report is final (the day after the after window).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Country">
+            <summary>
+            Country filter, if any.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Source">
+            <summary>
+            Traffic source filter, if any.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Metrics">
+            <summary>
+            Impressions, page views, downloads and conversion rate.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Conversion">
+            <summary>
+            Significance of the conversion rate change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.BeforeDays">
+            <summary>
+            Days of the before window (one per day, values null when not reported).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.AfterDays">
+            <summary>
+            Days of the after window.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Ranks">
+            <summary>
+            Tracked keyword ranks; null when not asked for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Confounders">
+            <summary>
+            Other changes of the same store record inside the windows or the gap: the difference may be theirs too.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactReportDto.Related">
+            <summary>
+            Changes that went live together with this one (the version and the listing written to it).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto">
+            <summary>
+            The headline of one change's before and after report.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.Event">
+            <summary>
+            The change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.Status">
+            <summary>
+            Whether the report can be read yet.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.PageViews">
+            <summary>
+            Page views per day before and after.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.Downloads">
+            <summary>
+            Downloads per day before and after.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.ConversionRate">
+            <summary>
+            Conversion rate before and after.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.Signal">
+            <summary>
+            Significance of the conversion rate change.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactSummaryDto.Confounded">
+            <summary>
+            Whether another change falls inside the windows.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoImpactWindowDto">
+            <summary>
+            One window of a before and after comparison.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactWindowDto.From">
+            <summary>
+            First day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactWindowDto.To">
+            <summary>
+            Last day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoImpactWindowDto.DaysWithData">
+            <summary>
+            Days of the window with store page metrics.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoKeywordCoverageDto">
             <summary>
             Apple's keywords field helper for one listing language: which tracked keywords the name, subtitle and keywords field
@@ -15166,6 +15656,267 @@
         </member>
         <member name="M:Storeasy.Application.Features.AsoExperiments.UpdateAsoExperimentChecklist.UpdateAsoExperimentChecklistCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.AsoExperiments.UpdateAsoExperimentChecklist.UpdateAsoExperimentChecklistCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery">
+            <summary>
+            The changes of one app that may have moved its store page metrics, newest first: applied change plans of the store
+            page (listing texts, screenshots, icon, previews, price, category) and versions that went live, each with the day it
+            took effect in the store. The range is <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.From"/> to <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.To"/>, or the last <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.Days"/> days
+            ending today (180 by default), at most 400 days. Read from storeasy's rows only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.DefaultDays">
+            <summary>
+            Default number of days.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.StoreAppId">
+            <summary>
+            Only this store record of the app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.Store">
+            <summary>
+            Only this store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.From">
+            <summary>
+            First effect day; null for <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.Days"/> days before <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.To"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.To">
+            <summary>
+            Last effect day; null for today (UTC).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.Days">
+            <summary>
+            Range length in days when <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery.From"/> is null (default 180).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery"/>. An app of another organization answers 404.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAsoImpactAnalyzer,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery"/>. An app of another organization answers 404.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler.Analyzer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryHandler.Handle(Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents.GetAsoImpactEventsQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery">
+            <summary>
+            The impact of the organization's recent changes ("Son değişikliklerin etkisi"): every live change of the last
+            <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.Days"/> days (default 60) of every app, newest first, at most <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.Limit"/>, each with page views,
+            downloads and conversion rate before and after (windows of <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.WindowDays"/> days, the default gap), the
+            conversion signal and whether another change confounds it. Keyword ranks are in the single report.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.DefaultDays">
+            <summary>
+            Default number of days.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.MaxDays">
+            <summary>
+            Longest range.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.DefaultLimit">
+            <summary>
+            Default number of changes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.MaxLimit">
+            <summary>
+            Most changes in one call.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.Days">
+            <summary>
+            Days up to today, 1 to 180 (default 60).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.WindowDays">
+            <summary>
+            Length of each window in days, 3 to 56 (default 14).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.Store">
+            <summary>
+            Only this store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery.Limit">
+            <summary>
+            Most changes, 1 to 50 (default 20).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery"/>. Changes still waiting for release are left out; the events read for the
+            confounding check start one window and gap before the range.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAsoImpactAnalyzer,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery"/>. Changes still waiting for release are left out; the events read for the
+            confounding check start one window and gap before the range.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler.Analyzer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryHandler.Handle(Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent.GetAsoImpactRecentQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery">
+            <summary>
+            Before and after report of one change of an app: a window of <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.WindowDays"/> days before the effect day and
+            one of the same length starting <see cref="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.GapDays"/> days after it (the default skips the effect day and the next,
+            since stores apply changes with a delay). Impressions, page views and downloads as daily averages over matching
+            weekdays, conversion rate with a two proportion z-test ("not enough data" below 100 page views a window), tracked
+            keyword ranks, and the other changes inside the windows (confounding). Read from storeasy's rows only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.AppId">
+            <summary>
+            App.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.EventId">
+            <summary>
+            Event id from the event list (<c>plan-12</c>, <c>version-34</c>, <c>ms-56</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.WindowDays">
+            <summary>
+            Length of each window in days, 3 to 56 (default 14; 7, 14 and 28 are whole weeks).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.GapDays">
+            <summary>
+            Days skipped from the effect day on, 0 to 14 (default 2: the effect day and the next).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.Country">
+            <summary>
+            Only this country (ISO 3166 code, e.g. <c>TR</c>); null for every country. Also limits the keywords compared.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.Source">
+            <summary>
+            Only this traffic source; null for every source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery.IncludeRanks">
+            <summary>
+            Whether to compare the tracked keywords' ranks too (default true).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery"/>: finds the event among the app's events of the last 400 days (404
+            AsoImpactEventNotFound otherwise) and compares the windows with <see cref="T:Storeasy.Application.Interfaces.IAsoImpactAnalyzer"/>.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IAsoImpactAnalyzer,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery"/>: finds the event among the app's events of the last 400 days (404
+            AsoImpactEventNotFound otherwise) and compares the windows with <see cref="T:Storeasy.Application.Interfaces.IAsoImpactAnalyzer"/>.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="Analyzer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler.Analyzer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryHandler.Handle(Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQuery"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryValidator.EventIdMaxLength">
+            <summary>
+            Longest event id.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AsoImpact.GetAsoImpact.GetAsoImpactQueryValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage.GetAsoKeywordCoverageQuery">
             <summary>
@@ -30020,6 +30771,227 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IImpactEventSource">
+            <summary>
+            One source of change events for the before and after impact report (applied change plans, released versions, and any
+            later source such as store listing experiments). Every implementation registered in DI is read and the results are
+            merged by <see cref="P:Storeasy.Application.Interfaces.ImpactEvent.Id"/>, so a new source only needs a class and one registration. Sources read
+            storeasy's own rows; none calls a store.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IImpactEventSource.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <summary>
+            The events of the query's organization (and app or store record) whose effect day is in the range.
+            </summary>
+            <param name="query"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IAsoImpactAnalyzer">
+            <summary>
+            Computes before and after impact reports of change events from the stored metrics and keyword ranks.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IAsoImpactAnalyzer.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <summary>
+            The events of every <see cref="T:Storeasy.Application.Interfaces.IImpactEventSource"/>, newest first, without duplicates.
+            </summary>
+            <param name="query"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IAsoImpactAnalyzer.AnalyzeAsync(Storeasy.Application.Interfaces.ImpactEvent,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.ImpactEvent},Storeasy.Application.Interfaces.ImpactOptions,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            The report of one event; <paramref name="others"/> are the other events of the app (for the confounding check).
+            </summary>
+            <param name="impactEvent"></param>
+            <param name="others"></param>
+            <param name="options"></param>
+            <param name="includeRanks">Whether to read the tracked keywords' ranks too.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ImpactEventQuery">
+            <summary>
+            Which events a source returns.
+            </summary>
+            <param name="OrganizationId">Organization (always checked).</param>
+            <param name="AppId">Only this app; null for every app of the organization.</param>
+            <param name="StoreAppId">Only this store record.</param>
+            <param name="From">First effect day.</param>
+            <param name="To">Last effect day.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ImpactEventQuery.#ctor(System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32},System.DateOnly,System.DateOnly)">
+            <summary>
+            Which events a source returns.
+            </summary>
+            <param name="OrganizationId">Organization (always checked).</param>
+            <param name="AppId">Only this app; null for every app of the organization.</param>
+            <param name="StoreAppId">Only this store record.</param>
+            <param name="From">First effect day.</param>
+            <param name="To">Last effect day.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEventQuery.OrganizationId">
+            <summary>Organization (always checked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEventQuery.AppId">
+            <summary>Only this app; null for every app of the organization.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEventQuery.StoreAppId">
+            <summary>Only this store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEventQuery.From">
+            <summary>First effect day.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEventQuery.To">
+            <summary>Last effect day.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ImpactEvent">
+            <summary>
+            A change that may have moved the store page metrics.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Id">
+            <summary>
+            Stable id: <c>plan-12</c>, <c>version-34</c>, <c>ms-56</c>, <c>experiment-7-start</c>. The prefix names the source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Kind">
+            <summary>
+            What changed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Date">
+            <summary>
+            UTC day the change took effect (see <see cref="P:Storeasy.Application.Interfaces.ImpactEvent.DateSource"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.At">
+            <summary>
+            UTC instant the change took effect, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.DateSource">
+            <summary>
+            Where <see cref="P:Storeasy.Application.Interfaces.ImpactEvent.Date"/> comes from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Title">
+            <summary>
+            One line title (the plan title, "1.4 is live").
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Locales">
+            <summary>
+            Locales the change touched (empty when not localized).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.Fields">
+            <summary>
+            Fields the change touched (subtitle, description, phoneScreenshots...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.PlanId">
+            <summary>
+            The change plan, for a plan event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.VersionString">
+            <summary>
+            User facing version, when the event belongs to one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.ReleaseKey">
+            <summary>
+            Events with the same key went live together (a version and the listing written to it); they are related, not
+            confounding. Null when the event stands alone.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactEvent.ExternalId">
+            <summary>
+            The source's own id of the record (the experiment id, the Microsoft submission id...), when there is one.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.ImpactOptions">
+            <summary>
+            Settings of a before and after comparison.
+            </summary>
+            <param name="WindowDays">Length of each window in days (7, 14 or 28 usually).</param>
+            <param name="GapDays">Days skipped from the effect day on before the after window starts (2 skips the day and the next).</param>
+            <param name="Country">Only this country (ISO code); null for every country.</param>
+            <param name="Source">Only this traffic source; null for every source.</param>
+            <param name="Today">Today (UTC); the windows are compared with it to tell whether the report is final.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.ImpactOptions.#ctor(System.Int32,System.Int32,System.String,System.Nullable{Storeasy.Domain.Enums.TrafficSource},System.DateOnly)">
+            <summary>
+            Settings of a before and after comparison.
+            </summary>
+            <param name="WindowDays">Length of each window in days (7, 14 or 28 usually).</param>
+            <param name="GapDays">Days skipped from the effect day on before the after window starts (2 skips the day and the next).</param>
+            <param name="Country">Only this country (ISO code); null for every country.</param>
+            <param name="Source">Only this traffic source; null for every source.</param>
+            <param name="Today">Today (UTC); the windows are compared with it to tell whether the report is final.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactOptions.WindowDays">
+            <summary>Length of each window in days (7, 14 or 28 usually).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactOptions.GapDays">
+            <summary>Days skipped from the effect day on before the after window starts (2 skips the day and the next).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactOptions.Country">
+            <summary>Only this country (ISO code); null for every country.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactOptions.Source">
+            <summary>Only this traffic source; null for every source.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.ImpactOptions.Today">
+            <summary>Today (UTC); the windows are compared with it to tell whether the report is final.</summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ImpactOptions.DefaultWindowDays">
+            <summary>
+            Default window length.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ImpactOptions.DefaultGapDays">
+            <summary>
+            Default gap: the effect day and the day after are skipped (stores apply changes with a delay).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ImpactOptions.MinWindowDays">
+            <summary>
+            Shortest window.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ImpactOptions.MaxWindowDays">
+            <summary>
+            Longest window.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Interfaces.ImpactOptions.MaxGapDays">
+            <summary>
+            Longest gap.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IListingSuggestionWriter">
             <summary>
             Writes a suggestion for one store listing field with the organization's own AI key (the same provider, key and model
@@ -36035,6 +37007,368 @@
             <param name="term"></param>
             <param name="length"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Aso.ImpactEventRules">
+            <summary>
+            How stored rows become impact events: which change plans count (store page changes and production releases), the
+            event kind of a plan, the effect day of an App Store change (the day its version went live, when known) and the event
+            ids. Pure, so the sources stay thin and the rules are unit tested.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactEventRules.PlanPrefix">
+            <summary>
+            Id prefix of change plan events.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactEventRules.VersionPrefix">
+            <summary>
+            Id prefix of App Store version release events.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactEventRules.MsSubmissionPrefix">
+            <summary>
+            Id prefix of Microsoft Store submission release events.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactEventRules.ExperimentPrefix">
+            <summary>
+            Id prefix of store listing experiment events (<c>experiment-7-start</c>, <c>experiment-7-end</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactEventRules.ReleaseLookbackDays">
+            <summary>
+            Days before the requested range a plan may have been applied and still go live inside it (an App Store version can
+            wait a while for review and release).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactEventRules.PlanKinds">
+            <summary>
+            Change plan kinds that can become an event.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactEventRules.ExperimentKinds">
+            <summary>
+            Experiment kinds whose start and end are events (A/B tests of the default store page; custom product pages and
+            custom store listings get their own traffic and do not split the default page's).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.IsAppleLive(System.String)">
+            <summary>
+            Whether an App Store version state means the version is live.
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.IsApplePreLive(System.String)">
+            <summary>
+            Whether an App Store version state means the version is not live yet (being prepared, in review, waiting for
+            release, rejected).
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.KindOf(Storeasy.Domain.Enums.ChangePlanKind,System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.PlanItem})">
+            <summary>
+            The event kind of an applied change plan, or null when the plan does not change the store page (review
+            information, testers, a test track release, a package only Microsoft change...).
+            </summary>
+            <param name="kind"></param>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.AppleEffect(System.DateTime,System.String,System.Nullable{System.DateTime})">
+            <summary>
+            The effect instant of an App Store change written to a version: the day the version went live when it went live
+            after the write; the write itself when the version was already live (an edit of the live version) or when its live
+            day is not known; awaiting release while the version is not live yet.
+            </summary>
+            <param name="appliedDate">When the store accepted the write.</param>
+            <param name="versionState">Last known state of the version; null when not known.</param>
+            <param name="stateChangedDate">When the version reached <paramref name="versionState"/>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.Locales(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.PlanItem})">
+            <summary>
+            Locales of the items, sorted, without empties.
+            </summary>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.Fields(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.PlanItem})">
+            <summary>
+            Fields of the items (an order change counts as its field), sorted, without empties.
+            </summary>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.MsPublishedDate(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.MsStatusChange})">
+            <summary>
+            When a Microsoft Store submission was first seen published; null when it never was.
+            </summary>
+            <param name="history"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.ExperimentEventId(System.Int32,System.Boolean)">
+            <summary>
+            Id of an experiment's start or end event.
+            </summary>
+            <param name="experimentId"></param>
+            <param name="start"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.Day(System.DateTime)">
+            <summary>
+            UTC day of an instant.
+            </summary>
+            <param name="instant"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactEventRules.Merge(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.ImpactEvent}})">
+            <summary>
+            Merges the events of every source: one per id (the first source wins), newest first.
+            </summary>
+            <param name="lists"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Aso.ImpactMath">
+            <summary>
+            The arithmetic of the before and after impact report, without any I/O (docs/aso-impact.md):
+            <list type="bullet">
+            <item>Windows: the before window is the <c>W</c> days ending the day before the effect day; the after window is the
+            <c>W</c> days starting <c>gap</c> days after the effect day (the default gap of 2 skips the effect day and the next,
+            because stores apply changes with a delay).</item>
+            <item>Counts are compared as daily averages over the weekdays both windows have data for. With whole week windows
+            (<c>W</c> a multiple of 7) and no missing day this is the plain daily average; otherwise a weekday present in one window
+            only is left out of both, so a window with more weekend days does not look better or worse.</item>
+            <item>The conversion rate is total downloads over total page views of each window; its change is checked with a two
+            proportion z-test. Below <see cref="F:Storeasy.Application.Utils.Aso.ImpactMath.MinPageViews"/> page views in a window or <see cref="F:Storeasy.Application.Utils.Aso.ImpactMath.MinDownloads"/> downloads in
+            both, the signal is "not enough data".</item>
+            <item>Ranks are averaged over the checked days the app was in the results; a keyword ranked in one window only counts
+            as improved (newly ranked) or declined (dropped out).</item>
+            </list>
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.MinPageViews">
+            <summary>
+            Fewest page views per window for the conversion test.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.MinDownloads">
+            <summary>
+            Fewest downloads of both windows together for the conversion test.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.SignificantP">
+            <summary>
+            p-value below which a change is significant.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.SuggestiveP">
+            <summary>
+            p-value below which a change is suggestive.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.TopRank">
+            <summary>
+            A keyword whose average rank is at most this is in the top 10.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Aso.ImpactMath.RankMove">
+            <summary>
+            Smallest average rank move counted as improved or declined.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.Windows(System.DateOnly,System.Int32,System.Int32)">
+            <summary>
+            The two windows around an effect day.
+            </summary>
+            <param name="effectDay">Day the change took effect.</param>
+            <param name="windowDays">Length of each window (at least 1).</param>
+            <param name="gapDays">Days skipped from the effect day on (0 starts the after window on the effect day).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.CompareMetrics(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.StoreMetricDay},Storeasy.Application.Utils.Aso.ImpactWindows)">
+            <summary>
+            Compares the store page metrics of the two windows. <paramref name="days"/> may hold days outside the windows; they
+            are ignored.
+            </summary>
+            <param name="days"></param>
+            <param name="windows"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.ConversionTest(System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Two proportion z-test of <paramref name="afterDownloads"/> / <paramref name="afterViews"/> against
+            <paramref name="beforeDownloads"/> / <paramref name="beforeViews"/>, with the pooled standard error.
+            </summary>
+            <param name="beforeDownloads"></param>
+            <param name="beforeViews"></param>
+            <param name="afterDownloads"></param>
+            <param name="afterViews"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.NormalCdf(System.Double)">
+            <summary>
+            Standard normal cumulative distribution (Abramowitz and Stegun 7.1.26, absolute error below 1.5e-7).
+            </summary>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.Overlapping(Storeasy.Application.Interfaces.ImpactEvent,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.ImpactEvent},Storeasy.Application.Utils.Aso.ImpactWindows)">
+            <summary>
+            The other live events of the same store record from the first day of the before window to the last day of the after
+            window (the gap included): confounders, unless they went live together with <paramref name="target"/> (same
+            <see cref="P:Storeasy.Application.Interfaces.ImpactEvent.ReleaseKey"/>), then related.
+            </summary>
+            <param name="target"></param>
+            <param name="others"></param>
+            <param name="windows"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.Status(Storeasy.Domain.Enums.ImpactDateSource,Storeasy.Application.Utils.Aso.ImpactWindows,Storeasy.Application.Utils.Aso.ImpactMetricsComparison,System.DateOnly)">
+            <summary>
+            Whether a report can be read: not before the change is live, not without data, final once the after window is over.
+            </summary>
+            <param name="dateSource"></param>
+            <param name="windows"></param>
+            <param name="comparison"></param>
+            <param name="today">Today (UTC); the stores report a day late at the earliest.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.CompareRanks(System.Collections.Generic.IEnumerable{Storeasy.Application.Utils.Aso.ImpactKeywordSeries},Storeasy.Application.Utils.Aso.ImpactWindows)">
+            <summary>
+            Compares tracked keyword ranks. Every series may cover more days than the windows.
+            </summary>
+            <param name="series"></param>
+            <param name="windows"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.Relative(System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>
+            Relative change of <paramref name="after"/> against <paramref name="before"/>; null when before is 0 or missing.
+            </summary>
+            <param name="before"></param>
+            <param name="after"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactMath.WeekdayMeans(System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.DateOnly,System.Double}},System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.DateOnly,System.Double}})">
+            <summary>
+            Daily averages of the two windows over the weekdays both have values for. <c>Matched</c> is true when a weekday was
+            left out (or the counts per weekday differ), so the averages are not the plain ones.
+            </summary>
+            <param name="before"></param>
+            <param name="after"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Aso.ImpactWindows">
+            <summary>
+            The before and after windows of an effect day.
+            </summary>
+            <param name="BeforeFrom">First day of the before window.</param>
+            <param name="BeforeTo">Last day of the before window (the day before the effect day).</param>
+            <param name="AfterFrom">First day of the after window.</param>
+            <param name="AfterTo">Last day of the after window.</param>
+            <param name="WindowDays">Length of each window.</param>
+            <param name="GapDays">Days skipped from the effect day on.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactWindows.#ctor(System.DateOnly,System.DateOnly,System.DateOnly,System.DateOnly,System.Int32,System.Int32)">
+            <summary>
+            The before and after windows of an effect day.
+            </summary>
+            <param name="BeforeFrom">First day of the before window.</param>
+            <param name="BeforeTo">Last day of the before window (the day before the effect day).</param>
+            <param name="AfterFrom">First day of the after window.</param>
+            <param name="AfterTo">Last day of the after window.</param>
+            <param name="WindowDays">Length of each window.</param>
+            <param name="GapDays">Days skipped from the effect day on.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.BeforeFrom">
+            <summary>First day of the before window.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.BeforeTo">
+            <summary>Last day of the before window (the day before the effect day).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.AfterFrom">
+            <summary>First day of the after window.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.AfterTo">
+            <summary>Last day of the after window.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.WindowDays">
+            <summary>Length of each window.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.GapDays">
+            <summary>Days skipped from the effect day on.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactWindows.WholeWeeks">
+            <summary>
+            Whether each window is whole weeks (every weekday equally often).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Aso.ImpactMetricsComparison">
+            <summary>
+            The metrics part of a before and after report.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.Metrics">
+            <summary>
+            Impressions, page views, downloads and conversion rate.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.Conversion">
+            <summary>
+            The conversion rate test.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.BeforeDaysWithData">
+            <summary>
+            Days of the before window with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.AfterDaysWithData">
+            <summary>
+            Days of the after window with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.WeekdayMatched">
+            <summary>
+            Whether a count was averaged over matched weekdays only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.BeforeDays">
+            <summary>
+            Every day of the before window.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactMetricsComparison.AfterDays">
+            <summary>
+            Every day of the after window.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Aso.ImpactKeywordSeries">
+            <summary>
+            The daily rank series of one tracked keyword.
+            </summary>
+            <param name="Keyword">Keyword.</param>
+            <param name="Country">Country.</param>
+            <param name="Points">Days (checked or not).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Aso.ImpactKeywordSeries.#ctor(System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.AsoRankPoint})">
+            <summary>
+            The daily rank series of one tracked keyword.
+            </summary>
+            <param name="Keyword">Keyword.</param>
+            <param name="Country">Country.</param>
+            <param name="Points">Days (checked or not).</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactKeywordSeries.Keyword">
+            <summary>Keyword.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactKeywordSeries.Country">
+            <summary>Country.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Aso.ImpactKeywordSeries.Points">
+            <summary>Days (checked or not).</summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Aso.KeywordCoverage">
             <summary>

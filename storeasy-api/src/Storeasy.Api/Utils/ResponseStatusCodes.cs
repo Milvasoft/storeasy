@@ -199,6 +199,7 @@ public static class ResponseStatusCodes
         [MessageKey.PreReviewNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.PreReviewInProgress] = StatusCodes.Status409Conflict,
         [MessageKey.AsoTrackedKeywordNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.AsoImpactEventNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.AsoKeywordLimitReached] = StatusCodes.Status409Conflict,
         [MessageKey.AsoGooglePlayRanksDisabled] = StatusCodes.Status409Conflict,
         [MessageKey.AsoSourceUnavailable] = StatusCodes.Status503ServiceUnavailable,

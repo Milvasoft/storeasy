@@ -520,5 +520,7 @@ public static class MessageKey
     public const string AsoResultStatusInvalid = nameof(AsoResultStatusInvalid);
     public const string AsoChecklistInvalid = nameof(AsoChecklistInvalid);
     public const string GlobalAsoExperiment = "Global.AsoExperiment";
+    public const string AsoImpactEventNotFound = nameof(AsoImpactEventNotFound);
+    public const string AsoImpactWindowInvalid = nameof(AsoImpactWindowInvalid);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

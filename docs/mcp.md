@@ -115,6 +115,7 @@ store. The full list with input schemas comes from the server (`tools/list`); th
 | Package intake | 5 | `artifacts_summary`, `artifacts_sessions`, `artifacts_session_get`, `artifacts_deliver_held`, `delivery_rules_get` |
 | Reviews | 9 | `reviews_list`, `reviews_sync`, `reviews_reply_draft`, `reviews_reply`, `reviews_saved_replies` |
 | Store page performance | 5 | `aso_metrics_get`, `aso_metrics_summary`, `aso_metrics_feeds`, `aso_metrics_sync`, `aso_analytics_enable` |
+| Impact of changes (before and after) | 3 | `aso_impact_events`, `aso_impact_get`, `aso_impact_recent` |
 | Rejections | 9 | `rejections_list`, `rejections_get`, `rejections_paste_text`, `rejections_checklist_update`, `rejections_reply_draft`, `rejections_close` |
 | TestFlight | 12 | `testflight_groups`, `testflight_testers_update`, `testflight_add_build`, `testflight_what_to_test`, `testflight_beta_review` |
 | Microsoft Store | 11 | `ms_product_add`, `ms_product_get`, `ms_content_get`, `ms_change_plan`, `ms_submissions_list`, `ms_flights_list`, `ms_installer_check`, `ms_submit` |

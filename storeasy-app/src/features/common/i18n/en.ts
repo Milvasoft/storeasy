@@ -40,6 +40,8 @@ export const p2en = {
     subscriptions: 'Subscriptions',
     iap: 'In-App Purchases',
     purchaseSettings: 'Purchase settings',
+    performance: 'Overview',
+    impact: 'Impact',
   },
   plan: {
     title: 'Change plan',

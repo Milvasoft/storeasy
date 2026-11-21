@@ -55,6 +55,8 @@ export type WorkspaceSub =
   | 'iap'
   | 'purchaseSettings'
   | 'testflight'
+  | 'performance'
+  | 'impact'
 
 interface SubItem {
   key: WorkspaceSub
@@ -65,6 +67,7 @@ interface SubItem {
 const BOTH = [StoreKind.Apple, StoreKind.Google]
 const APPLE = [StoreKind.Apple]
 const GOOGLE = [StoreKind.Google]
+const ALL = [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]
 
 // What each sub part supports; a sub part is offered only for the stores its API covers.
 const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
@@ -84,6 +87,10 @@ const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
     { key: 'testers', path: 'release/testers', stores: GOOGLE },
     { key: 'testflight', path: 'release/testflight', stores: APPLE },
     { key: 'reviewInfo', path: 'release/review-info', stores: APPLE },
+  ],
+  storePerformance: [
+    { key: 'performance', path: 'store-performance', stores: ALL },
+    { key: 'impact', path: 'store-performance/impact', stores: ALL },
   ],
   money: [
     { key: 'subscriptions', path: 'money/subscriptions', stores: BOTH },

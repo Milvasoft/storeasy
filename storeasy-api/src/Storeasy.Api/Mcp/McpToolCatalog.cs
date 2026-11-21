@@ -44,6 +44,9 @@ using Storeasy.Application.Features.Iap.GetIapPricePoints;
 using Storeasy.Application.Features.Iap.GetIapPrices;
 using Storeasy.Application.Features.Iap.PlanIapChanges;
 using Storeasy.Application.Features.Listings.GetAgeRating;
+using Storeasy.Application.Features.AsoImpact.GetAsoImpact;
+using Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents;
+using Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds;
@@ -335,6 +338,11 @@ public static class McpToolCatalog
         Read<GetAsoTrackedKeywordsQuery>("aso_keywords_tracked", "Tracked keywords of one app in one store: current rank, change over 1, 7 and 30 days, the last 30 days and the latest popularity and difficulty."),
         Read<GetAsoKeywordRanksQuery>("aso_keywords_ranks", "Daily rank history of one tracked keyword (null rank means not in the results read; unchecked days are marked), followed competitors' histories and the latest top ten."),
         Read<GetAsoKeywordCoverageQuery>("aso_keywords_coverage", "Apple keywords field helper per listing language: which tracked keywords the name, subtitle and keywords field cover, missing and repeated words, characters left of 100."),
+
+        // Before and after impact of store changes
+        Read<GetAsoImpactEventsQuery>("aso_impact_events", "Changes of one app that may have moved its store page metrics, newest first: applied change plans of the store page (listing texts with locales and fields, screenshots, icon, previews, price, category) and versions that went live, each with the UTC day it took effect (the store's live day when known; plans written to a version not live yet are marked awaiting release). Range: from/to or days (default 180)."),
+        Read<GetAsoImpactQuery>("aso_impact_get", "Before and after report of one change (eventId from aso_impact_events): equal windows (windowDays 7, 14 or 28, default 14) before the effect day and after a gap (gapDays, default 2: the effect day and the next are skipped). Impressions, page views and downloads as daily averages over matching weekdays, conversion rate with a two proportion z-test (signal InsufficientData below 100 page views a window), tracked keyword ranks (average, top 10, per keyword change) and other changes inside the windows (confounders). Filters: country, source."),
+        Read<GetAsoImpactRecentQuery>("aso_impact_recent", "The impact of the organization's recent changes (default the last 60 days, at most 50): page views, downloads and conversion rate before and after, the conversion signal and whether another change confounds it."),
 
         // Microsoft Store
         Write<AddMsProductCommand>("ms_product_add", "Adds an MSI/EXE product by its Store id (MSIX apps come with the sync)."),
