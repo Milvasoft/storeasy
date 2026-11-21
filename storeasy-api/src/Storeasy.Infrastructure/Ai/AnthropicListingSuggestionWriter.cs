@@ -63,6 +63,24 @@ public sealed class AnthropicListingSuggestionWriter(IHttpClientFactory httpClie
         return new CategorySuggestionResult(ReplyDraftOutcome.Written, parsed.Primary, parsed.Secondary, parsed.Reason, call.Model, call.InputTokens, call.OutputTokens);
     }
 
+    /// <inheritdoc/>
+    public async Task<KeywordSeedResult> SuggestKeywordSeedsAsync(KeywordSeedRequest request, CancellationToken cancellationToken = default)
+    {
+        var call = await CompleteAsync(request.ApiKey, request.Model, KeywordSeedPrompt.SystemPrompt, KeywordSeedPrompt.UserMessage(request), "keyword ideas", cancellationToken);
+
+        if (call.Outcome != ReplyDraftOutcome.Written)
+            return new KeywordSeedResult(call.Outcome, [], call.Model, call.InputTokens, call.OutputTokens);
+
+        if (KeywordSeedPrompt.Parse(call.Text) is not { } clusters)
+        {
+            _logger.LogWarning("Anthropic keyword ideas were not the expected JSON object.");
+
+            return new KeywordSeedResult(ReplyDraftOutcome.Failed, [], call.Model, call.InputTokens, call.OutputTokens);
+        }
+
+        return new KeywordSeedResult(ReplyDraftOutcome.Written, clusters, call.Model, call.InputTokens, call.OutputTokens);
+    }
+
     private async Task<(ReplyDraftOutcome Outcome, string Text, string Model, long InputTokens, long OutputTokens)> CompleteAsync(string apiKey,
                                                                                                                               string model,
                                                                                                                               string system,

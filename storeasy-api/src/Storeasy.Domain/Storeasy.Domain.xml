@@ -1059,6 +1059,270 @@
             Builds of the record.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Aso.AsoCompetitorRank">
+            <summary>
+            One day of a competitor's rank for a tracked keyword, recorded in the same check as <see cref="T:Storeasy.Domain.Aso.AsoKeywordRank"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoCompetitorRank.CompetitorIdMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Aso.AsoCompetitorRank.CompetitorId"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoCompetitorRank.NameMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Aso.AsoCompetitorRank.CompetitorName"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.TrackedKeywordId">
+            <summary>
+            Tracking row.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.Date">
+            <summary>
+            UTC day of the check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.CompetitorId">
+            <summary>
+            Store id of the competitor (App Store track id, Play package name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.CompetitorName">
+            <summary>
+            Name the store showed that day, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoCompetitorRank.Rank">
+            <summary>
+            Position, 1 based; null when not in the results read.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Aso.AsoKeywordMetric">
+            <summary>
+            The latest measurement of a keyword in one store and country, computed from public store data (search suggestions and
+            search results). It belongs to no organization: the store's public answer is the same for everyone, so one measurement
+            serves every research and is refreshed when it is older than the configured freshness. Scores are estimates; see
+            <c>docs/aso-keywords.md</c> for how each one is computed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoKeywordMetric.SourceMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Aso.AsoKeywordMetric.PopularitySource"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.Country">
+            <summary>
+            Country, ISO 3166-1 alpha-2 lower case.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.Keyword">
+            <summary>
+            Normalized keyword.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.Popularity">
+            <summary>
+            Estimated popularity, 0 to 100; null when no suggestion source answered.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.PopularitySource">
+            <summary>
+            Where the popularity came from (<c>apple-search-hints</c>, <c>google-play-suggest</c>, <c>apple-search-ads</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.Difficulty">
+            <summary>
+            Estimated difficulty, 0 to 100; null when the search results could not be read with ratings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.CompetingApps">
+            <summary>
+            Number of apps the search returned (capped by the depth read).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.TopCompetitors">
+            <summary>
+            The first ten results.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.RelatedTerms">
+            <summary>
+            Related search terms the suggestions returned.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.PopularityDate">
+            <summary>
+            UTC instant the popularity was measured.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordMetric.ResultsDate">
+            <summary>
+            UTC instant the search results were read.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Aso.AsoKeywordRank">
+            <summary>
+            One day of a tracked keyword's rank: at most one row per keyword and UTC day. A day without a row was not checked; a row
+            with a null <see cref="P:Storeasy.Domain.Aso.AsoKeywordRank.Rank"/> was checked and the app was not in the first <see cref="P:Storeasy.Domain.Aso.AsoKeywordRank.Depth"/> results. The store record,
+            keyword and country are kept on the row so the series is read without the tracking row.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.TrackedKeywordId">
+            <summary>
+            Tracking row.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Keyword">
+            <summary>
+            Normalized keyword.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Country">
+            <summary>
+            Country, ISO 3166-1 alpha-2 lower case.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Date">
+            <summary>
+            UTC day of the check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Rank">
+            <summary>
+            Position in the search results, 1 based; null when not in the first <see cref="P:Storeasy.Domain.Aso.AsoKeywordRank.Depth"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.Depth">
+            <summary>
+            How many results were read (the store may return fewer than asked).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoKeywordRank.CheckedDate">
+            <summary>
+            UTC instant of the check.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Aso.AsoTrackedKeyword">
+            <summary>
+            A search keyword an organization tracks for one store record in one country. The daily rank check records one
+            <see cref="T:Storeasy.Domain.Aso.AsoKeywordRank"/> per day while <see cref="P:Storeasy.Domain.Aso.AsoTrackedKeyword.IsActive"/>; untracking only stops the checks, so the rank history
+            stays (a later before/after report reads it) and tracking the same keyword again continues the same series.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoTrackedKeyword.KeywordMaxLength">
+            <summary>
+            Longest keyword (Apple's whole keywords field is 100 characters).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoTrackedKeyword.CountryLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Aso.AsoTrackedKeyword.Country"/> (ISO 3166-1 alpha-2, lower case).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Aso.AsoTrackedKeyword.MaxCompetitors">
+            <summary>
+            Most competitors followed per keyword.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.StoreAppId">
+            <summary>
+            Store record whose rank is checked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.Keyword">
+            <summary>
+            The keyword, normalized (trimmed, single spaces, lower case in the country's language).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.Country">
+            <summary>
+            Storefront country, ISO 3166-1 alpha-2 in lower case (e.g. <c>tr</c>, <c>us</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.TrackCompetitors">
+            <summary>
+            Whether the ranks of <see cref="P:Storeasy.Domain.Aso.AsoTrackedKeyword.CompetitorIds"/> are recorded too.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.CompetitorIds">
+            <summary>
+            Store ids of the competitors followed (App Store track ids, Play package names). When competitors are tracked and
+            none were chosen, the first check fills it with the top five results other than the app itself, so each competitor
+            keeps one continuous series.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.IsActive">
+            <summary>
+            Whether the daily check runs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.TrackedDate">
+            <summary>
+            UTC instant it was (last) started to be tracked.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.UntrackedDate">
+            <summary>
+            UTC instant it was untracked; null while active.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.LastCheckedDate">
+            <summary>
+            UTC instant of the last successful rank check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.LastRank">
+            <summary>
+            Rank of the last check (1 based); null when the app was not in the results read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Aso.AsoTrackedKeyword.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Assets.Asset">
             <summary>
             A file of an organization in the private bucket (screenshots, graphics, mockup outputs, build artifacts). The row is
@@ -2378,6 +2642,15 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.PreReviewCompleted">
             <summary>An AI pre-review finished with a report.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoKeywordsTracked">
+            <summary>Keywords were added to (or put back on) the daily rank tracking of a store record.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoKeywordsUntracked">
+            <summary>Keywords were taken off the daily rank tracking; their rank history is kept.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AsoKeywordSeedsGenerated">
+            <summary>The organization's AI proposed and grouped keyword seeds (the call's tokens and cost are in the details).</summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.BetaGroupChanged">
             <summary>TestFlight group created or changed.</summary>
@@ -6985,6 +7258,46 @@
         <member name="P:Storeasy.Domain.JsonModels.AppProfile.IsLive">
             <summary>
             Whether the app is already live in the stores (update) or not yet (new app); null to derive it from the store.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.AsoCompetitor">
+            <summary>
+            An app in a store's search results for a keyword.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.Rank">
+            <summary>
+            Position in the results, 1 based.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.Id">
+            <summary>
+            Store id (App Store track id, Play package name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.Name">
+            <summary>
+            App name, when the store returned it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.Developer">
+            <summary>
+            Developer, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.Rating">
+            <summary>
+            Average rating, 0 to 5, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.RatingCount">
+            <summary>
+            Number of ratings, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.AsoCompetitor.IconUrl">
+            <summary>
+            Icon URL, when known.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.ConnectionFingerprint">

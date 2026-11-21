@@ -1013,6 +1013,87 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.AsoKeywordsController">
+            <summary>
+            ASO keywords: research from the stores' public data (estimated popularity, difficulty, competitors, current rank), keyword
+            candidates, daily rank tracking with history, and Apple's keywords field helper. Reads need View; tracking changes and AI
+            ideas need EditContent.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.#ctor(MediatR.IMediator)">
+            <summary>
+            ASO keywords: research from the stores' public data (estimated popularity, difficulty, competitors, current rank), keyword
+            candidates, daily rank tracking with history, and Apple's keywords field helper. Reads need View; tracking changes and AI
+            ideas need EditContent.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.GetTrackedAsync(Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords.GetAsoTrackedKeywordsQuery,System.Threading.CancellationToken)">
+            <summary>
+            The tracked keywords of an app in one store with current rank, 1, 7 and 30 day change and the last 30 days.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.ResearchAsync(Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Measures up to 20 keywords in one store and country: estimated popularity, difficulty, competing apps, top ten,
+            current rank and opportunity. Store calls are paced and cached, so a first research of many keywords takes a while.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.GetSeedsAsync(Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds.GetAsoKeywordSeedsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Keyword candidates from data: the listing, competitors' names and the store's suggestions.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.SuggestSeedsAsync(Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Keyword ideas grouped by theme from the organization's AI (editors and above). Candidates only: research scores
+            them from data. 409 AiKeyNotSet without a key.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.TrackAsync(Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords.TrackAsoKeywordsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts or resumes the daily rank tracking of keywords (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.UntrackAsync(Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords.UntrackAsoKeywordsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Stops the daily rank tracking of keywords; their history is kept (editors and above).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.GetRanksAsync(Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks.GetAsoKeywordRanksQuery,System.Threading.CancellationToken)">
+            <summary>
+            The daily rank history of one tracked keyword with its followed competitors and the latest top ten.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.GetCoverageAsync(Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage.GetAsoKeywordCoverageQuery,System.Threading.CancellationToken)">
+            <summary>
+            Apple's keywords field helper per listing language: covered and missing tracked keywords, repeated words and the
+            characters left of 100.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.AssetsController">
             <summary>
             File endpoints: the organization's files live in a private bucket and move only through presigned URLs, so the
@@ -4177,6 +4258,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261121162406_AddStoreMetrics.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261121164524_AddAsoKeywords">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121164524_AddAsoKeywords.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121164524_AddAsoKeywords.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261121164524_AddAsoKeywords.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

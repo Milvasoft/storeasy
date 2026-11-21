@@ -5,6 +5,7 @@ export const p2tr: P2Dictionary = {
     sections: 'Uygulama bölümleri',
     readiness: 'Hazırlık',
     preReview: 'Ön inceleme',
+    keywords: 'Anahtar kelimeler',
     listing: 'Mağaza kaydı',
     media: 'Görseller',
     release: 'Yayın',

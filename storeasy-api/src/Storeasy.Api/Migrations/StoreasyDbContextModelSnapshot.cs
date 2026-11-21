@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261121162406_AddStoreMetrics";
+    public override string LastMigrationId => "20261121164524_AddAsoKeywords";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -636,6 +636,217 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("StoreApps");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Aso.AsoCompetitorRank", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("CompetitorId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("CompetitorName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateOnly>("Date")
+                    .HasColumnType("date");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("Rank")
+                    .HasColumnType("integer");
+
+                b.Property<int>("TrackedKeywordId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TrackedKeywordId", "Date", "CompetitorId")
+                    .IsUnique();
+
+                b.ToTable("AsoCompetitorRanks");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Aso.AsoKeywordMetric", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int?>("CompetingApps")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Country")
+                    .HasMaxLength(2)
+                    .HasColumnType("character varying(2)");
+
+                b.Property<int?>("Difficulty")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Keyword")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int?>("Popularity")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("PopularityDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("PopularitySource")
+                    .HasMaxLength(40)
+                    .HasColumnType("character varying(40)");
+
+                b.PrimitiveCollection<string>("RelatedTerms")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("ResultsDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<List<AsoCompetitor>>("TopCompetitors")
+                    .HasColumnType("jsonb");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Store", "Country", "Keyword")
+                    .IsUnique();
+
+                b.ToTable("AsoKeywordMetrics");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Aso.AsoKeywordRank", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime>("CheckedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Country")
+                    .HasMaxLength(2)
+                    .HasColumnType("character varying(2)");
+
+                b.Property<DateOnly>("Date")
+                    .HasColumnType("date");
+
+                b.Property<int>("Depth")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Keyword")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("Rank")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<int>("TrackedKeywordId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TrackedKeywordId", "Date")
+                    .IsUnique();
+
+                b.HasIndex("StoreAppId", "Keyword", "Country", "Date");
+
+                b.ToTable("AsoKeywordRanks");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Aso.AsoTrackedKeyword", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.PrimitiveCollection<string>("CompetitorIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("Country")
+                    .HasMaxLength(2)
+                    .HasColumnType("character varying(2)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<bool>("IsActive")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("Keyword")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("LastCheckedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<int?>("LastRank")
+                    .HasColumnType("integer");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Store")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<bool>("TrackCompetitors")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime>("TrackedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<DateTime?>("UntrackedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("IsActive", "LastCheckedDate");
+
+                b.HasIndex("OrganizationId", "IsActive");
+
+                b.HasIndex("StoreAppId", "Keyword", "Country")
+                    .IsUnique();
+
+                b.ToTable("AsoTrackedKeywords");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Assets.Asset", b =>
@@ -4511,6 +4722,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("App");
 
                 b.Navigation("StoreConnection");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Aso.AsoTrackedKeyword", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Assets.Asset", b =>

@@ -160,6 +160,9 @@ export const AuditAction = {
   BetaReviewSubmitted: 443,
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
+  AsoKeywordsTracked: 470,
+  AsoKeywordsUntracked: 471,
+  AsoKeywordSeedsGenerated: 472,
   AppleAnalyticsEnabled: 480,
   ReportBucketUpdated: 481,
 } as const

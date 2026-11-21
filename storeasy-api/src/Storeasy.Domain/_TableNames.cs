@@ -75,6 +75,10 @@ public static class TableNames
     public const string SystemSettings = nameof(SystemSettings);
     public const string OrganizationAiSettings = nameof(OrganizationAiSettings);
     public const string PreReviews = nameof(PreReviews);
+    public const string AsoTrackedKeywords = nameof(AsoTrackedKeywords);
+    public const string AsoKeywordRanks = nameof(AsoKeywordRanks);
+    public const string AsoCompetitorRanks = nameof(AsoCompetitorRanks);
+    public const string AsoKeywordMetrics = nameof(AsoKeywordMetrics);
     public const string StoreMetrics = nameof(StoreMetrics);
     public const string StoreMetricFeeds = nameof(StoreMetricFeeds);
 }

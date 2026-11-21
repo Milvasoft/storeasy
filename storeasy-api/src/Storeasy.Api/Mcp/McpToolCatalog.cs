@@ -36,6 +36,14 @@ using Storeasy.Application.Features.Iap.GetIapPricePoints;
 using Storeasy.Application.Features.Iap.GetIapPrices;
 using Storeasy.Application.Features.Iap.PlanIapChanges;
 using Storeasy.Application.Features.Listings.GetAgeRating;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds;
+using Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords;
+using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
+using Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds;
+using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
+using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
 using Storeasy.Application.Features.Listings.GetCategories;
 using Storeasy.Application.Features.Listings.GetListing;
 using Storeasy.Application.Features.Listings.GetListingByField;
@@ -309,6 +317,16 @@ public static class McpToolCatalog
         Write<UpdateWhatToTestCommand>("testflight_what_to_test", "Writes the What to Test text of a build in one language."),
         Write<UpdateBetaLocalizationCommand>("testflight_localization_update", "Writes the beta app description, feedback e-mail and links of one language."),
         Write<SubmitBetaReviewCommand>("testflight_beta_review", "Submits a build to TestFlight beta app review. Needs confirm: true and confirmVersion equal to the build's \"version (build)\" text."),
+
+        // ASO keywords
+        Read<ResearchAsoKeywordsQuery>("aso_keywords_research", "Measures up to 20 search keywords for one app in one store and country (ISO code): estimated popularity 0 to 100 from the store's autocomplete, difficulty 0 to 100 from the top ten results' ratings, competing apps, top ten competitors, the app's current rank and an opportunity score. Scores are data based estimates, not AI. App Store and Google Play; not Microsoft Store."),
+        Read<GetAsoKeywordSeedsQuery>("aso_keywords_seeds", "Keyword candidates for research from data: the app's listing (name, subtitle, keywords field, description terms), words shared by competitors' names and the store's search suggestions. Measure them with aso_keywords_research."),
+        Write<SuggestAsoKeywordSeedsCommand>("aso_keywords_ideas", "Keyword ideas grouped by theme from the organization's AI key, as candidates only (no scores). Measure them with aso_keywords_research. Audited with tokens and cost."),
+        Write<TrackAsoKeywordsCommand>("aso_keywords_track", "Starts or resumes daily rank tracking of keywords for one app, store and country, optionally with competitors' ranks. A keyword tracked before keeps its history. Limited per organization; Google Play only when the server enabled it."),
+        Write<UntrackAsoKeywordsCommand>("aso_keywords_untrack", "Stops daily rank tracking of keywords by tracking id; their rank history is kept."),
+        Read<GetAsoTrackedKeywordsQuery>("aso_keywords_tracked", "Tracked keywords of one app in one store: current rank, change over 1, 7 and 30 days, the last 30 days and the latest popularity and difficulty."),
+        Read<GetAsoKeywordRanksQuery>("aso_keywords_ranks", "Daily rank history of one tracked keyword (null rank means not in the results read; unchecked days are marked), followed competitors' histories and the latest top ten."),
+        Read<GetAsoKeywordCoverageQuery>("aso_keywords_coverage", "Apple keywords field helper per listing language: which tracked keywords the name, subtitle and keywords field cover, missing and repeated words, characters left of 100."),
 
         // Microsoft Store
         Write<AddMsProductCommand>("ms_product_add", "Adds an MSI/EXE product by its Store id (MSIX apps come with the sync)."),

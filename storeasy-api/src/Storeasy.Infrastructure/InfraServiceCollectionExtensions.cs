@@ -21,6 +21,7 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Ai;
+using Storeasy.Infrastructure.Aso;
 using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Jobs;
@@ -117,7 +118,12 @@ public static class InfraServiceCollectionExtensions
         services.AddStoreJobServices(configurationManager);
 
         services.AddEventServices(configurationManager);
+
+        // ASO keyword research and daily rank tracking from the stores' public search data.
+        services.AddAsoServices(configurationManager);
+
         services.AddStoreMetricServices();
+
         // Microsoft Store (phase 5): client, token cache and job handlers.
         services.AddMicrosoftStoreServices(configurationManager);
 

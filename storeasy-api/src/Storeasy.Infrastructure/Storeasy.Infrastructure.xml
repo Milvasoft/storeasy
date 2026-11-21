@@ -84,6 +84,9 @@
         <member name="M:Storeasy.Infrastructure.Ai.AnthropicListingSuggestionWriter.SuggestCategoriesAsync(Storeasy.Application.Interfaces.CategorySuggestionRequest,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Ai.AnthropicListingSuggestionWriter.SuggestKeywordSeedsAsync(Storeasy.Application.Interfaces.KeywordSeedRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Ai.AnthropicPreReviewer">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IPreReviewer"/> on the Anthropic Messages API (beta path, for the server-side refusal fallback) with the
@@ -327,6 +330,444 @@
             <summary>
             Tokens billed before it failed.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AppleSearchHintsSource">
+            <summary>
+            App Store search hints: the autocomplete the App Store shows while a term is typed, read from the public hints endpoint
+            with the country's storefront header. Countries without a known storefront id are not supported (the endpoint would
+            answer for another country).
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.#ctor(Storeasy.Infrastructure.Aso.AsoHttp)">
+            <summary>
+            App Store search hints: the autocomplete the App Store shows while a term is typed, read from the public hints endpoint
+            with the country's storefront header. Countries without a known storefront id are not supported (the endpoint would
+            answer for another country).
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.SourceName">
+            <summary>
+            Source name kept with a measurement.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.Endpoint">
+            <summary>
+            Endpoint of the hints.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.Name">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.Supports(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AppleSearchHintsSource.SuggestAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoHttp">
+            <summary>
+            The one way the ASO sources reach the stores: GET (and a form POST for the endpoints that only read with one), a timeout, a User-Agent without personal data, one request at a
+            time per host with a pause between requests, and a memory cache of the answers (bounded, for
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/>). A failure (status, timeout, network) is logged without the URL's query and
+            answers null; it never throws to the caller except for cancellation.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.AsoOptions,System.TimeProvider,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Aso.AsoHttp})">
+            <summary>
+            The one way the ASO sources reach the stores: GET (and a form POST for the endpoints that only read with one), a timeout, a User-Agent without personal data, one request at a
+            time per host with a pause between requests, and a memory cache of the answers (bounded, for
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/>). A failure (status, timeout, network) is logged without the URL's query and
+            answers null; it never throws to the caller except for cancellation.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.AsoHttp.HttpClientName">
+            <summary>
+            Name of the HTTP client (tests replace its handler).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.AsoHttp.CacheEntryLimit">
+            <summary>
+            Most answers kept in memory.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.GetStringAsync(System.Uri,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            The body of a GET, or null when the store did not answer with success. Successful answers are cached by URL and
+            headers.
+            </summary>
+            <param name="url"></param>
+            <param name="headers">Extra request headers (e.g. the App Store storefront).</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.PostFormAsync(System.Uri,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            The body of a form POST that only reads (an endpoint without a GET form), or null when the store did not answer with
+            success. Cached like <see cref="M:Storeasy.Infrastructure.Aso.AsoHttp.GetStringAsync(System.Uri,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)"/>, by URL and form.
+            </summary>
+            <param name="url"></param>
+            <param name="form">Form fields, sent as application/x-www-form-urlencoded.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoHttp.HostGate">
+            <summary>
+            One host's queue: one request at a time, and the earliest instant of the next one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.AsoHttp.HostGate.Lock">
+            <summary>
+            Held while a request to the host is made.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.AsoHttp.HostGate.NextRequest">
+            <summary>
+            Earliest instant of the next request.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoKeywordResearcher">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> over the store sources. Popularity: the configured account source when there is one,
+            else the store's autocomplete (<see cref="M:Storeasy.Application.Utils.Aso.AsoScoring.MeasurePopularityAsync(System.String,System.Int32,System.Func{System.String,System.Threading.Tasks.Task{System.Collections.Generic.IReadOnlyList{System.String}}})"/>). Difficulty, competitors and the app's
+            rank: the store's search results (<see cref="M:Storeasy.Application.Utils.Aso.AsoScoring.Difficulty(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.AsoCompetitor},System.Int32,System.String,System.Globalization.CultureInfo)"/>). A saved measurement younger than
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/> is reused; a source that fails leaves the older value in place.
+            </summary>
+            <param name="suggestionSources"></param>
+            <param name="searchSources"></param>
+            <param name="popularityProvider"></param>
+            <param name="metricRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IAsoSuggestionSource},System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IAsoSearchSource},Storeasy.Application.Interfaces.IAsoPopularityProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoKeywordMetric},Storeasy.Application.Utils.Models.AsoOptions,System.TimeProvider,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Aso.AsoKeywordResearcher})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> over the store sources. Popularity: the configured account source when there is one,
+            else the store's autocomplete (<see cref="M:Storeasy.Application.Utils.Aso.AsoScoring.MeasurePopularityAsync(System.String,System.Int32,System.Func{System.String,System.Threading.Tasks.Task{System.Collections.Generic.IReadOnlyList{System.String}}})"/>). Difficulty, competitors and the app's
+            rank: the store's search results (<see cref="M:Storeasy.Application.Utils.Aso.AsoScoring.Difficulty(System.Collections.Generic.IReadOnlyList{Storeasy.Domain.JsonModels.AsoCompetitor},System.Int32,System.String,System.Globalization.CultureInfo)"/>). A saved measurement younger than
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/> is reused; a source that fails leaves the older value in place.
+            </summary>
+            <param name="suggestionSources"></param>
+            <param name="searchSources"></param>
+            <param name="popularityProvider"></param>
+            <param name="metricRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.Supports(Storeasy.Domain.Enums.StoreKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.ResearchAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.SearchAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.SuggestAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearcher.SaveResultsAsync(System.Collections.Generic.IReadOnlyList{System.ValueTuple{Storeasy.Domain.Enums.StoreKind,System.String,System.String,Storeasy.Application.Interfaces.AsoSearchResult}},System.Threading.CancellationToken)">
+            <summary>
+            Saves the measurements of search results read elsewhere (the rank job reads the same results): competing apps,
+            difficulty and the top ten of each keyword. Popularity is left as it is.
+            </summary>
+            <param name="results">Results by store, country and normalized keyword.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoRankRecorder">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoRankRecorder"/>: one store search per store, country and keyword shared by every organization tracking
+            it, one rank row per tracked keyword and UTC day, and the followed competitors' rows of the same search. A keyword whose
+            search failed is not marked checked, so a later run of the same day tries it again. The same searches refresh the
+            keyword's difficulty and top results.
+            </summary>
+            <param name="trackedRepository"></param>
+            <param name="rankRepository"></param>
+            <param name="competitorRankRepository"></param>
+            <param name="researcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoRankRecorder.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoTrackedKeyword},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoKeywordRank},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoCompetitorRank},Storeasy.Infrastructure.Aso.AsoKeywordResearcher,Storeasy.Application.Utils.Models.AsoOptions,System.TimeProvider,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Aso.AsoRankRecorder})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoRankRecorder"/>: one store search per store, country and keyword shared by every organization tracking
+            it, one rank row per tracked keyword and UTC day, and the followed competitors' rows of the same search. A keyword whose
+            search failed is not marked checked, so a later run of the same day tries it again. The same searches refresh the
+            keyword's difficulty and top results.
+            </summary>
+            <param name="trackedRepository"></param>
+            <param name="rankRepository"></param>
+            <param name="competitorRankRepository"></param>
+            <param name="researcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.AsoRankRecorder.DefaultCompetitorCount">
+            <summary>
+            Competitors followed by default (the top results of the first check, other than the app itself).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoRankRecorder.RecordDueAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoRankSeriesReader">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoRankSeries"/> over the saved daily ranks. The rows are found by store record, keyword and country (not by
+            tracking row), so a keyword untracked and tracked again reads as one series.
+            </summary>
+            <param name="rankRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoRankSeriesReader.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoKeywordRank})">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAsoRankSeries"/> over the saved daily ranks. The rows are found by store record, keyword and country (not by
+            tracking row), so a keyword untracked and tracked again reads as one series.
+            </summary>
+            <param name="rankRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoRankSeriesReader.GetRankSeriesAsync(System.Int32,System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoResponseParsers">
+            <summary>
+            Readers of the stores' public answers. Each one is tolerant: an answer it does not understand reads as empty (or null
+            for a search), never as an exception, because these endpoints are undocumented and change without notice.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.ParseAppleHints(System.String)">
+            <summary>
+            The terms of an App Store search hints answer: the property list (XML) the endpoint has long answered with
+            (<c>hints</c> array of dicts with a <c>term</c> string), or a JSON object with a <c>hints</c> array of objects with
+            a <c>term</c>.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.ParseITunesSearch(System.String)">
+            <summary>
+            An iTunes Search API answer (<c>resultCount</c>, <c>results</c>): the software results in order, with id (trackId),
+            name, developer, average rating, rating count and icon. Null when the body is not that JSON.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.ParseGooglePlaySuggest(System.String)">
+            <summary>
+            A Google Play web search box suggestion answer (batchexecute, rpc <c>IJ4APc</c>): the anti-JSON prefix <c>)]}'</c>,
+            then an envelope array whose <c>wrb.fr</c> entry carries the payload as a JSON string; the payload's first list holds
+            one entry per suggestion with the term first. Empty for any other shape.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.ParseGooglePlaySearch(System.String)">
+            <summary>
+            The apps of a Google Play search results page, in order: every distinct package of a <c>/store/apps/details?id=</c>
+            link. Names are not read (the page's markup is generated and changes often). Null when the page has no app link at
+            all, which is more likely a changed page or a consent wall than a search without results.
+            </summary>
+            <param name="html"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.PlayDetailsLink">
+            <remarks>
+            Pattern:<br/>
+            <code>/store/apps/details\?id=(?&lt;id&gt;[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match the string "/store/apps/details?id=".<br/>
+            ○ "id" capture group.<br/>
+                ○ Match an ASCII letter.<br/>
+                ○ Match a character in the set [0-9A-Z_a-z] atomically any number of times.<br/>
+                ○ Loop atomically at least once.<br/>
+                    ○ Match '.'.<br/>
+                    ○ Match a character in the set [0-9A-Z_a-z] atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoServiceCollectionExtensions">
+            <summary>
+            Registrations of ASO keyword research and rank tracking (configuration section <see cref="F:Storeasy.Application.Utils.Models.AsoOptions.SectionName"/>).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoServiceCollectionExtensions.AddAsoServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the store sources, the researcher, the rank recorder, the rank series reader and the hourly rank job.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.GooglePlaySearchSource">
+            <summary>
+            Google Play search results read from the public search page (Google Play has no search API). Off unless
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlayRanksEnabled"/>: automated reading of the page may be against the terms of service of
+            Google Play, and the page changes without notice, so the operator turns it on knowingly. Only the order of the apps
+            (package names) is read; no ratings, so no difficulty.
+            </summary>
+            <param name="http"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySearchSource.#ctor(Storeasy.Infrastructure.Aso.AsoHttp,Storeasy.Application.Utils.Models.AsoOptions)">
+            <summary>
+            Google Play search results read from the public search page (Google Play has no search API). Off unless
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlayRanksEnabled"/>: automated reading of the page may be against the terms of service of
+            Google Play, and the page changes without notice, so the operator turns it on knowingly. Only the order of the apps
+            (package names) is read; no ratings, so no difficulty.
+            </summary>
+            <param name="http"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.GooglePlaySearchSource.Endpoint">
+            <summary>
+            Endpoint of the search page.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.GooglePlaySearchSource.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.GooglePlaySearchSource.IsEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySearchSource.SearchAsync(System.String,System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource">
+            <summary>
+            Google Play search suggestions: the autocomplete the Play Store web search box uses, read from its batchexecute endpoint
+            (rpc <see cref="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId"/>, a form POST that only reads), per language and country. The old
+            <c>market.android.com/suggest</c> endpoint is gone (404). The rpc is undocumented and may change; a changed answer reads
+            as unavailable and research degrades to no Google Play popularity. Turned off with
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
+            </summary>
+            <param name="http"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.#ctor(Storeasy.Infrastructure.Aso.AsoHttp,Storeasy.Application.Utils.Models.AsoOptions)">
+            <summary>
+            Google Play search suggestions: the autocomplete the Play Store web search box uses, read from its batchexecute endpoint
+            (rpc <see cref="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId"/>, a form POST that only reads), per language and country. The old
+            <c>market.android.com/suggest</c> endpoint is gone (404). The rpc is undocumented and may change; a changed answer reads
+            as unavailable and research degrades to no Google Play popularity. Turned off with
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
+            </summary>
+            <param name="http"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.SourceName">
+            <summary>
+            Source name kept with a measurement.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Endpoint">
+            <summary>
+            Endpoint of the suggestions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId">
+            <summary>
+            Rpc id of the search box suggestions.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Name">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Supports(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.SuggestAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Request(System.String)">
+            <summary>
+            The <c>f.req</c> form field of a suggestion request for <paramref name="term"/>.
+            </summary>
+            <param name="term"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.ITunesSearchSource">
+            <summary>
+            App Store search results from the public iTunes Search API (software only, up to 200 results). Its order is close to,
+            but not exactly, the order the App Store app shows; ranks are read from it the same way every day.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.ITunesSearchSource.#ctor(Storeasy.Infrastructure.Aso.AsoHttp)">
+            <summary>
+            App Store search results from the public iTunes Search API (software only, up to 200 results). Its order is close to,
+            but not exactly, the order the App Store app shows; ranks are read from it the same way every day.
+            </summary>
+            <param name="http"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.ITunesSearchSource.Endpoint">
+            <summary>
+            Endpoint of the search.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Aso.ITunesSearchSource.MaxResults">
+            <summary>
+            Most results the API returns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.ITunesSearchSource.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.ITunesSearchSource.IsEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.ITunesSearchSource.SearchAsync(System.String,System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider">
+            <summary>
+            The account based popularity source while none is available. Apple Search Ads popularity needs the operator's Search Ads
+            credentials (<see cref="P:Storeasy.Application.Utils.Models.AsoOptions.SearchAds"/>) and a client of its Campaign Management API, which this build does not
+            include yet; popularity then comes from the public search suggestions. When credentials are set anyway, this says so
+            once in the log.
+            </summary>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider.#ctor(Storeasy.Application.Utils.Models.AsoOptions,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Aso.NullAsoPopularityProvider})">
+            <summary>
+            The account based popularity source while none is available. Apple Search Ads popularity needs the operator's Search Ads
+            credentials (<see cref="P:Storeasy.Application.Utils.Models.AsoOptions.SearchAds"/>) and a client of its Campaign Management API, which this build does not
+            include yet; popularity then comes from the public search suggestions. When credentials are set anyway, this says so
+            once in the log.
+            </summary>
+            <param name="options"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider.IsConfigured">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider.Name">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider.GetPopularityAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Email.EmailOutbox">
             <summary>
@@ -1766,6 +2207,25 @@
             <param name="scopeFactory"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Jobs.ActivityLogCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.AsoRankJob">
+            <summary>
+            Every hour: records today's ranks of the tracked keywords not yet checked today (<see cref="T:Storeasy.Application.Interfaces.IAsoRankRecorder"/>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.AsoRankJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every hour: records today's ranks of the tracked keywords not yet checked today (<see cref="T:Storeasy.Application.Interfaces.IAsoRankRecorder"/>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.AsoRankJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.AuditLogCleanerJob">
@@ -8070,361 +8530,393 @@
         <member name="M:Storeasy.Infrastructure.Utils.OpenApi.NullableEnumSchemaTransformer.TransformAsync(Microsoft.OpenApi.OpenApiSchema,Microsoft.AspNetCore.OpenApi.OpenApiSchemaTransformerContext,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0">
+        <member name="T:System.Text.RegularExpressions.Generated.PlayDetailsLink_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlayDetailsLink method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PlayDetailsLink_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the UnsafeFileNameCharacters method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.UnsafeFileNameCharacters_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1">
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_2">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the InfoPlistRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.InfoPlistRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2">
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_3">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ProvisionRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.ProvisionRegex_2.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.ProvisionRegex_3.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_3.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ProvisionRegex_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DroppedRegex_3">
+        <member name="T:System.Text.RegularExpressions.Generated.DroppedRegex_4">
             <summary>Caches a <see cref="T:System.Text.RegularExpressions.Regex"/> instance for the DroppedRegex method.</summary>
             <remarks>A custom Regex-derived type could not be generated because the expression contains case-insensitive backreferences which are not supported by the source generator.</remarks>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DroppedRegex_3.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DroppedRegex_4.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_5">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BlockRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.BlockRegex_4.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.BlockRegex_5.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_5.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.BlockRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_6">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TagRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.TagRegex_5.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.TagRegex_6.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_6.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TagRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_7">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SpaceRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.SpaceRegex_6.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SpaceRegex_7.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_7.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SpaceRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DisplayFormatRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.DisplayFormatRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_9">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the VersionPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.VersionPattern_8.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.VersionPattern_9.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_9.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.VersionPattern_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_10">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GuidRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.GuidRegex_9.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.GuidRegex_10.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_10.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.GuidRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_11">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SellerIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.SellerIdRegex_10.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.SellerIdRegex_11.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_11.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.SellerIdRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_12">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KeyIdRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_11.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.KeyIdRegex_12.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_12.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.KeyIdRegex_12.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -8446,6 +8938,9 @@
             <summary>Determines whether the specified index is a boundary.</summary>
             <remarks>This variant is only employed when the previous character has already been validated as a word character.</remarks>
         </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
+            <summary>Pushes 2 values onto the backtracking stack.</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.WordCategoriesMask">
             <summary>Provides a mask of Unicode categories that combine to form [\w].</summary>
         </member>
@@ -8460,6 +8955,12 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersUpperAndDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiWordChars">
+            <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_9DE370380232F361994B960D1F67E76A541126AC22B46E7171EBFD290AA6666E">
+            <summary>Supports searching for the string "/store/apps/details?id=".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_whitespace">
             <summary>Supports searching for characters in or not in "\t\n\v\f\r \u0085             \u2028\u2029  　".</summary>
