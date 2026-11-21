@@ -163,6 +163,8 @@ export const AuditAction = {
   AsoKeywordsTracked: 470,
   AsoKeywordsUntracked: 471,
   AsoKeywordSeedsGenerated: 472,
+  AppleAnalyticsEnabled: 480,
+  ReportBucketUpdated: 481,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -177,6 +179,8 @@ export const StoreJobKind = {
   MockupExport: 60,
   SyncMonetization: 70,
   PreReview: 90,
+  SyncStoreMetrics: 120,
+  EnableAppleAnalytics: 121,
   ProcessWebhookEvent: 400,
   RegisterWebhooks: 401,
   SyncVersionStates: 402,
@@ -256,6 +260,8 @@ export interface AccountDetailDto {
   UserType?: UserType | null
   /** The interface language the user picked ("tr-TR"); null until one is saved. */
   PreferredLanguage?: string | null
+  /** When the user answered the guided tour invitation (started it or closed it); null until then. */
+  TourPromptSeenDate?: IsoDateTime | null
   CreationDate?: IsoDateTime | null
   /** Platform roles (Manager users), not organization roles. */
   Roles?: NameIntNavigationDto[] | null

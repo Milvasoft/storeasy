@@ -47,6 +47,9 @@ const PlatformPage = lazyPage(() => import('@/pages/SectionPages'), 'PlatformPag
 const ReviewsPage = lazyPage(() => import('@/features/reviews/ReviewsPage'), 'ReviewsPage')
 const AppReviewsPage = lazyPage(() => import('@/features/reviews/ReviewsPage'), 'AppReviewsPage')
 const SavedRepliesPage = lazyPage(() => import('@/features/reviews/SavedRepliesPage'), 'SavedRepliesPage')
+// ASO conversion analytics: store page performance per app and for the organization.
+const StoreMetricsPage = lazyPage(() => import('@/features/store-metrics/StoreMetricsPage'), 'StoreMetricsPage')
+const OrgStoreMetricsPage = lazyPage(() => import('@/features/store-metrics/StoreMetricsPage'), 'OrgStoreMetricsPage')
 const RejectionsPage = lazyPage(() => import('@/features/rejections/RejectionsPages'), 'RejectionsPage')
 const RejectionCasePage = lazyPage(() => import('@/features/rejections/RejectionsPages'), 'RejectionCasePage')
 const TestFlightPage = lazyPage(() => import('@/features/testflight/TestFlightPages'), 'TestFlightPage')
@@ -147,6 +150,8 @@ export function contentRoutes() {
         }
       />
       <Route path="/apps/:appId/reviews" element={<AppReviewsPage />} />
+      <Route path="/apps/:appId/store-performance" element={<StoreMetricsPage />} />
+      <Route path="/store-performance" element={<OrgStoreMetricsPage />} />
       <Route path="/apps/:appId/rejections" element={<RejectionsPage />} />
       <Route path="/apps/:appId/rejections/:caseId" element={<RejectionCasePage />} />
       <Route path="/apps/:appId/release/testflight" element={<TestFlightPage />} />

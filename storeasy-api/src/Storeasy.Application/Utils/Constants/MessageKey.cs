@@ -460,6 +460,13 @@ public static class MessageKey
     public const string WebhookPayloadInvalid = nameof(WebhookPayloadInvalid);
     public const string DownloadHostNotAllowed = nameof(DownloadHostNotAllowed);
     public const string McpConfirmRequired = nameof(McpConfirmRequired);
+    public const string StoreMetricsRangeInvalid = nameof(StoreMetricsRangeInvalid);
+    public const string StoreMetricsNoConnection = nameof(StoreMetricsNoConnection);
+    public const string AppleAnalyticsAppleOnly = nameof(AppleAnalyticsAppleOnly);
+    public const string AppleAnalyticsConfirmRequired = nameof(AppleAnalyticsConfirmRequired);
+    public const string AppleAnalyticsAlreadyEnabled = nameof(AppleAnalyticsAlreadyEnabled);
+    public const string ReportBucketGoogleOnly = nameof(ReportBucketGoogleOnly);
+    public const string ReportBucketInvalid = nameof(ReportBucketInvalid);
     public const string GlobalPersonalAccessToken = "Global.PersonalAccessToken";
     public const string GlobalCiToken = "Global.CiToken";
     public const string GlobalUploadToken = "Global.UploadToken";

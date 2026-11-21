@@ -34,7 +34,7 @@ function NavEntry({ item, onNavigate, liveCount }: { item: NavItem; onNavigate?:
   const t = useT()
   const Icon = item.icon
   return (
-    <NavLink to={item.path} onClick={onNavigate} className={({ isActive }) => cn('nav-i', isActive && 'on')}>
+    <NavLink to={item.path} onClick={onNavigate} className={({ isActive }) => cn('nav-i', isActive && 'on')} data-tour={`nav-${item.key}`}>
       <Icon aria-hidden />
       <span className="min-w-0 truncate">{navLabel(item.key, t)}</span>
       {item.key === 'activity' && liveCount > 0 ? (
@@ -64,7 +64,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Brand className="!p-0" />
       </Link>
       <OrgSwitcher onNavigate={onNavigate} />
-      <nav aria-label={t.nav.label} className="grid gap-0.5">
+      <nav aria-label={t.nav.label} className="grid gap-0.5" data-tour="sidebar-nav">
         {navGroups(singleTeam)
           .filter((group) => !group.managerOnly || isManager)
           .map((group) => {

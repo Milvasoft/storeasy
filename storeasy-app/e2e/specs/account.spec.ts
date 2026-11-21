@@ -3,7 +3,7 @@ import { uniqueIdentity } from '../support/api'
 import { linkIn, waitForMail } from '../support/mailpit'
 
 // The first journey of a new user, in Turkish: sign up, read the verification e-mail, verify, sign in, create the
-// organization in the setup flow and sign out.
+// organization in the setup flow, answer the tour invitation and sign out.
 test('registers, verifies the e-mail from the inbox, signs in and creates an organization', async ({ page }) => {
   const user = uniqueIdentity('reg')
 
@@ -30,6 +30,12 @@ test('registers, verifies the e-mail from the inbox, signs in and creates an org
   await page.getByText('Sonra yap', { exact: true }).click()
   await expect(page).toHaveURL(/\/apps/)
 
+  // The first visit asks whether to take the guided tour; "not now" is final for the account.
+  const invitation = page.getByRole('dialog', { name: "storeasy'yi 2 dakikada tanıyalım mı?" })
+  await expect(invitation).toBeVisible()
+  await invitation.getByRole('button', { name: 'Şimdi değil' }).click()
+  await expect(invitation).toBeHidden()
+
   await page.getByRole('complementary', { name: 'Ana menü' }).getByRole('button', { name: 'Hesap menüsü' }).click()
   await page.getByRole('menuitem', { name: 'Çıkış yap' }).click()
   await expect(page.getByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
@@ -40,4 +46,6 @@ test('registers, verifies the e-mail from the inbox, signs in and creates an org
   await page.getByRole('button', { name: 'Giriş yap' }).click()
   await expect(page).toHaveURL(/\/apps/)
   await expect(page.getByRole('button', { name: new RegExp(`Org ${user.id}`) }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Uygulamalar' })).toBeVisible()
+  await expect(invitation).toBeHidden()
 })

@@ -403,7 +403,7 @@ export function ActivityPage() {
           </Chip>
         ))}
       </div>
-      <div className="hat">
+      <div className="hat" data-tour="activity-board">
         <section className="stage" aria-label={t.activity.sceneLabel}>
           <div className="stage-h">
             <AttentionBar items={attention} mutedAppIds={mutedAppIdsOf(inputs)} />

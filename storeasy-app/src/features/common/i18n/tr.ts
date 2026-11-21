@@ -11,6 +11,7 @@ export const p2tr: P2Dictionary = {
     release: 'Yayın',
     money: 'Para',
     reviews: 'Yorumlar',
+    storePerformance: 'Mağaza performansı',
     rejections: 'Red kayıtları',
     answers: 'Kayıtlı cevaplar',
     assisted: 'Asistanlı adımlar',

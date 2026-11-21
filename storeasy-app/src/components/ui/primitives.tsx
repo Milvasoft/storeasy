@@ -404,14 +404,17 @@ export function PageHeader({
   subtitle,
   actions,
   badge,
+  tour,
 }: {
   title: string
   subtitle?: ReactNode
   actions?: ReactNode
   badge?: ReactNode
+  // The guided tour's anchor (data-tour) for this page.
+  tour?: string
 }) {
   return (
-    <div className="pg-h">
+    <div className="pg-h" data-tour={tour}>
       <div>
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="pg-t">{title}</h1>

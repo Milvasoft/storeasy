@@ -166,7 +166,7 @@ export function AuditPage() {
 
   return (
     <>
-      <PageHeader title={t.audit.title} subtitle={t.audit.subtitle} />
+      <PageHeader tour="audit" title={t.audit.title} subtitle={t.audit.subtitle} />
       <div className="toolbar">
         <span className="w-full sm:w-56">
           <form

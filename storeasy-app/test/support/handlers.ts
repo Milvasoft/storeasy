@@ -102,6 +102,10 @@ export const defaultHandlers: HttpHandler[] = [
     return json(envelope(loginResponse()))
   }),
   endpoint('put', '/Account/profile', () => json(envelope(testState.account.Id))),
+  endpoint('put', '/Account/tour-prompt-seen', () => {
+    testState.account = { ...testState.account, TourPromptSeenDate: testState.account.TourPromptSeenDate ?? '2026-11-21T09:00:00Z' }
+    return json(envelope(testState.account.Id))
+  }),
   endpoint('get', '/Account/sessions', () => json(envelope(testState.sessions))),
   endpoint('delete', '/Account/session', ({ body }) => json(envelope((body as { Id: number }).Id))),
   endpoint('delete', '/Account/sessions/others', () => json(envelope(testState.sessions.filter((session) => !session.IsCurrent).length))),

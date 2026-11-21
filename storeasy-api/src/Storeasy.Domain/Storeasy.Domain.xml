@@ -88,6 +88,240 @@
             Optional related detail in JSON format (extra routing/display context for the related record).
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Analytics.StoreMetric">
+            <summary>
+            One day of store page performance of one store record, for one slice: every country and source
+            (<see cref="P:Storeasy.Domain.Analytics.StoreMetric.Country"/> empty, <see cref="P:Storeasy.Domain.Analytics.StoreMetric.Source"/> <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/>), one country, one source, or one
+            country and source where the store reports both together. Slices overlap on purpose: a reader picks exactly one slice
+            per question, so nothing is counted twice even where a store reports countries and sources in separate files (Google
+            Play). A metric the store does not report stays null. Rows are upserted on <c>(StoreAppId, Date, Country, Source)</c>,
+            so reading a day again replaces it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.StoreAppId">
+            <summary>
+            Store record. Its app is the record's current app, so a record moved to another app takes its history along.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Date">
+            <summary>
+            Day of the events (the store's reporting day).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Country">
+            <summary>
+            ISO 3166 country code, <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.UnknownCountry"/> when the store did not name it, empty for
+            every country.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Source">
+            <summary>
+            Traffic source, <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> for every source.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Impressions">
+            <summary>
+            Times the app was shown in a list. Null when the store does not report it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.PageViews">
+            <summary>
+            Store page views (visitors on Google Play and Microsoft Store). Null when the store does not report it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Downloads">
+            <summary>
+            First time downloads (acquisitions). Null when the store does not report it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.Redownloads">
+            <summary>
+            Redownloads. Null when the store does not report it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.UpdatedDate">
+            <summary>
+            UTC instant the row was last written.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetric.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Analytics.StoreMetricFeed">
+            <summary>
+            The metrics feed of one store record: whether the store sends data, the last read and how far the data goes. The App
+            Store's analytics report request id lives here once the reports are enabled.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricFeed.ErrorMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Analytics.StoreMetricFeed.LastError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.StoreAppId">
+            <summary>
+            Store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.Status">
+            <summary>
+            State of the feed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.ExternalRequestId">
+            <summary>
+            App Store: id of the ONGOING analytics report request. Null elsewhere and before enabling.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.EnabledDate">
+            <summary>
+            UTC instant the reports were enabled (App Store) or first read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.EnabledByUserName">
+            <summary>
+            Who enabled the reports (App Store); null when storeasy found a request made elsewhere.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.LastFetchedDate">
+            <summary>
+            UTC instant of the last read, successful or not.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.LastSucceededDate">
+            <summary>
+            UTC instant of the last successful read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.EarliestDataDate">
+            <summary>
+            First day with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.LatestDataDate">
+            <summary>
+            Last day with data.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.Marker">
+            <summary>
+            App Store: processing date of the newest report instance read, so later reads start near it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.LastError">
+            <summary>
+            Redacted reason of the last failed read or of the missing setup. Null after a successful read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.LastJobId">
+            <summary>
+            The last sync job.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Analytics.StoreMetricFeed.StoreApp">
+            <summary>
+            Navigation property of the store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Analytics.StoreMetricRules">
+            <summary>
+            Shared rules of the store page metrics.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.AllCountries">
+            <summary>
+            <see cref="P:Storeasy.Domain.Analytics.StoreMetric.Country"/> of a row that is not split by country (the total of every country).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.UnknownCountry">
+            <summary>
+            Country code used when the store does not name the country of an event.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.CountryMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Analytics.StoreMetric.Country"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.MaxRangeDays">
+            <summary>
+            Longest date range one query reads, in days.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.RetentionMonths">
+            <summary>
+            Months of daily rows kept; <c>storeMetric_cleanup.sql</c> deletes older ones.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.PlayBackfillMonths">
+            <summary>
+            Months of Google Play report files read the first time a record is synced (the current month included).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.MicrosoftBackfillDays">
+            <summary>
+            Days the Microsoft Store analytics API is read back the first time a record is synced.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Analytics.StoreMetricRules.RefreshDays">
+            <summary>
+            Days read again on every later sync, because the stores complete and correct recent days late.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Analytics.StoreMetricRules.NormalizeCountry(System.String)">
+            <summary>
+            Normalizes a store's country or territory code: upper case, trimmed, <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.UnknownCountry"/> when empty or too long.
+            </summary>
+            <param name="country"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Analytics.StoreMetricRules.NormalizeSlice(System.String)">
+            <summary>
+            Normalizes the country of a stored row: empty (or null) stays <see cref="F:Storeasy.Domain.Analytics.StoreMetricRules.AllCountries"/>, anything else goes
+            through <see cref="M:Storeasy.Domain.Analytics.StoreMetricRules.NormalizeCountry(System.String)"/>.
+            </summary>
+            <param name="country"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Analytics.StoreMetricRules.ConversionRate(System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>
+            Downloads divided by page views, or null when there were no page views.
+            </summary>
+            <param name="downloads">Downloads counted where page views are known.</param>
+            <param name="pageViews"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Analytics.StoreMetricRules.Change(System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>
+            Change from <paramref name="previous"/> to <paramref name="current"/> as a fraction (0.25 is 25 percent more), or
+            null when there is nothing to compare with.
+            </summary>
+            <param name="current"></param>
+            <param name="previous"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Domain.Apps.App">
             <summary>
             A storeasy app: one product that lives in one, two or all three stores. Its store records (<see cref="P:Storeasy.Domain.Apps.App.StoreApps"/>,
@@ -2493,6 +2727,12 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.BuildPackageDownloaded">
             <summary>A member asked for a download link of a stored build package.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.AppleAnalyticsEnabled">
+            <summary>A member asked App Store Connect to start the analytics reports of an app.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ReportBucketUpdated">
+            <summary>The Cloud Storage bucket of a Google Play connection's reports was set or cleared.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -3057,6 +3297,29 @@
             <summary>
             Neither own items nor a fallback.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.MetricFeedStatus">
+            <summary>
+            State of the metrics feed of one store record. Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.NotEnabled">
+            <summary>The store sends no reports for this record yet (App Store: analytics reports are not enabled).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.Waiting">
+            <summary>Enabled; the store has not delivered the first data yet (App Store needs one to two days).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.Active">
+            <summary>Data arrives.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.NeedsSetup">
+            <summary>A setting is missing (Google Play: the Cloud Storage bucket of the reports).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.AccessDenied">
+            <summary>The store refused the credentials (missing role, scope or bucket access).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.MetricFeedStatus.Failed">
+            <summary>The last read failed for another reason; it is tried again.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.MockupDeviceFamily">
             <summary>
@@ -4521,6 +4784,17 @@
             Downloads MSI/EXE installers and checks their Authenticode signature.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
+            <summary>
+            Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
+            Numbered in the analytics band.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.EnableAppleAnalytics">
+            <summary>
+            Asks App Store Connect for the ONGOING analytics reports of one app (a one time write a member confirmed).
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact">
             <summary>Reads, checks and delivers an uploaded package (build intake).</summary>
         </member>
@@ -4601,6 +4875,27 @@
             until then the store engine answers "not supported yet".
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.StoreMetricKind">
+            <summary>
+            A store page performance metric. The first four are stored per day; <see cref="F:Storeasy.Domain.Enums.StoreMetricKind.ConversionRate"/> is computed on read
+            (downloads divided by page views). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreMetricKind.Impressions">
+            <summary>The app was shown in a list (App Store only; Google Play and Microsoft Store do not report it).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreMetricKind.PageViews">
+            <summary>The store page was opened (App Store product page views, Play store listing visitors, Microsoft page views).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreMetricKind.Downloads">
+            <summary>First time downloads (App Store first-time downloads, Play store listing acquisitions, Microsoft acquisitions).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreMetricKind.Redownloads">
+            <summary>Downloads by people who had the app before (App Store only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreMetricKind.ConversionRate">
+            <summary>Downloads divided by page views, computed on read over the rows that report both.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.StoreProductKind">
             <summary>
             What a store product sold inside an app is, store neutral (App Store subscriptions and In-App Purchases, Play
@@ -4677,6 +4972,48 @@
             <summary>
             A 15 minute upload token (sut_) issued by the OIDC exchange for one app.
             </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.TrafficSource">
+            <summary>
+            Where a store visitor came from, normalized over the three stores. <see cref="F:Storeasy.Domain.Enums.TrafficSource.All"/> marks a row that is not split by
+            source (the total of every source). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.All">
+            <summary>Every source together (a row that is not split by source).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Search">
+            <summary>Store search (App Store search, Google Play search).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Browse">
+            <summary>Browsing the store (App Store browse, Google Play explore).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.AppReferrer">
+            <summary>Another app sent the visitor (App Store app referrer).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.WebReferrer">
+            <summary>A web page sent the visitor (App Store web referrer).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Referral">
+            <summary>A third party sent the visitor, app or web (Google Play third-party referrals).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.AppClip">
+            <summary>An App Clip.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Notification">
+            <summary>A store notification.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.StoreClient">
+            <summary>The Microsoft Store app on the device.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.StoreWeb">
+            <summary>The store's web site (Microsoft Store web).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Other">
+            <summary>A source the store names but storeasy does not group (institutional purchases, small sources).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.TrafficSource.Unavailable">
+            <summary>The store does not know the source.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.UserActivity">
             <summary>
@@ -11146,6 +11483,11 @@
             Column length of <see cref="P:Storeasy.Domain.Stores.StoreConnection.Name"/>; the validators use the same limit.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnection.ReportBucketMaxLength">
+            <summary>
+            Column length of <see cref="P:Storeasy.Domain.Stores.StoreConnection.ReportBucket"/> (a Cloud Storage bucket name has at most 222 characters).
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnection.OrganizationId">
             <summary>
             Owning organization.
@@ -11206,6 +11548,12 @@
             <summary>
             UTC instant the secret stops working, when the store's secrets expire (Microsoft Entra client secrets, at most 24
             months). Entered by the user; the expiry reminders read it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreConnection.ReportBucket">
+            <summary>
+            Google Play: the Cloud Storage bucket Play Console exports the statistics reports to (e.g.
+            <c>pubsite_prod_rev_01234567890987654321</c>), read for the store page metrics. Null when not set. Not a secret.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnection.Organization">
@@ -12841,6 +13189,13 @@
         <member name="P:Storeasy.Domain.User.PreferredLanguage">
             <summary>
             Interface language the user chose (tr-TR, en-US); null for the browser's.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.User.TourPromptSeenDate">
+            <summary>
+            UTC instant the web app first showed the user its guided tour invitation and the user answered it (started the
+            tour or closed the invitation); null until then. The invitation shows once per user on any device; the tour itself
+            stays available from the account page.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.User.LastModificationDate">

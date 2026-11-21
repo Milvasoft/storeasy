@@ -79,5 +79,7 @@ public static class TableNames
     public const string AsoKeywordRanks = nameof(AsoKeywordRanks);
     public const string AsoCompetitorRanks = nameof(AsoCompetitorRanks);
     public const string AsoKeywordMetrics = nameof(AsoKeywordMetrics);
+    public const string StoreMetrics = nameof(StoreMetrics);
+    public const string StoreMetricFeeds = nameof(StoreMetricFeeds);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

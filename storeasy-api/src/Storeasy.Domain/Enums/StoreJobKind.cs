@@ -105,6 +105,19 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Check Microsoft Store installers")]
     MsCheckInstaller = 53,
+    /// <summary>
+    /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
+    /// Numbered in the analytics band.
+    /// </summary>
+    [Description("Sync store metrics")]
+    SyncStoreMetrics = 120,
+
+    /// <summary>
+    /// Asks App Store Connect for the ONGOING analytics reports of one app (a one time write a member confirmed).
+    /// </summary>
+    [Description("Enable App Store analytics reports")]
+    EnableAppleAnalytics = 121,
+
     /// <summary>Reads, checks and delivers an uploaded package (build intake).</summary>
     [Description("Process a package")]
     ProcessArtifact = 30,

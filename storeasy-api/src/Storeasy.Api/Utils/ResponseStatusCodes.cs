@@ -202,6 +202,7 @@ public static class ResponseStatusCodes
         [MessageKey.AsoKeywordLimitReached] = StatusCodes.Status409Conflict,
         [MessageKey.AsoGooglePlayRanksDisabled] = StatusCodes.Status409Conflict,
         [MessageKey.AsoSourceUnavailable] = StatusCodes.Status503ServiceUnavailable,
+        [MessageKey.AppleAnalyticsAlreadyEnabled] = StatusCodes.Status409Conflict,
         [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
         [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
         [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,
