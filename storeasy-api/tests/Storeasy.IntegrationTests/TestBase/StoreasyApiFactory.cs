@@ -161,6 +161,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeAnthropic Anthropic { get; } = new();
 
     /// <summary>
+    /// The stores' public search endpoints of ASO keyword research and rank tracking.
+    /// </summary>
+    public FakeAsoStores AsoStores { get; } = new();
+
+    /// <summary>
     /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
     /// </summary>
     public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
@@ -275,6 +280,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             // AI reply drafts: the SDK's HTTP client answers from the fake.
             services.AddHttpClient(Storeasy.Infrastructure.Ai.AnthropicReplyDraftWriter.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Anthropic);
+
+            // ASO keywords: the stores' public search endpoints answer from the fake.
+            services.AddHttpClient(Storeasy.Infrastructure.Aso.AsoHttp.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => AsoStores);
         });
     }
 
@@ -414,6 +422,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
         ["Storeasy:Stores:AssetPollIntervalMilliseconds"] = "10",
         ["Storeasy:Stores:UploadChunkBytes"] = "262144",
         ["Storeasy:Events:SchedulesEnabled"] = "false",
+        ["Storeasy:Aso:MinRequestIntervalMilliseconds"] = "0",
         ["Storeasy:OrgWebhooks:PollIntervalMilliseconds"] = "100",
         ["Storeasy:OrgWebhooks:RetryBaseDelaySeconds"] = "0",
         ["Storeasy:OrgWebhooks:MaxAttempts"] = "3",

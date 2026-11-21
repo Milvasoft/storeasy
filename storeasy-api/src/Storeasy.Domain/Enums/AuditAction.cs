@@ -294,6 +294,18 @@ public enum AuditAction : short
     [Description("AI pre-review completed")]
     PreReviewCompleted = 451,
 
+    /// <summary>Keywords were added to (or put back on) the daily rank tracking of a store record.</summary>
+    [Description("ASO keywords tracked")]
+    AsoKeywordsTracked = 470,
+
+    /// <summary>Keywords were taken off the daily rank tracking; their rank history is kept.</summary>
+    [Description("ASO keywords untracked")]
+    AsoKeywordsUntracked = 471,
+
+    /// <summary>The organization's AI proposed and grouped keyword seeds (the call's tokens and cost are in the details).</summary>
+    [Description("ASO keyword ideas written with AI")]
+    AsoKeywordSeedsGenerated = 472,
+
     /// <summary>TestFlight group created or changed.</summary>
     [Description("Beta group changed")]
     BetaGroupChanged = 440,

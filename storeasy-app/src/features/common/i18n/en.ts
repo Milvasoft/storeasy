@@ -6,6 +6,7 @@ export const p2en = {
     readiness: 'Readiness',
     preReview: 'Pre-review',
     listing: 'Store listing',
+    keywords: 'Keywords',
     media: 'Media',
     release: 'Release',
     money: 'Money',

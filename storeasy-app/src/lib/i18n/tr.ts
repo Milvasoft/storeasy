@@ -1236,6 +1236,9 @@ export const tr: Dictionary = {
       betaReviewSubmitted: 'Beta incelemesine gönderildi',
       preReviewStarted: 'Yapay zeka ön incelemesi başladı',
       preReviewCompleted: 'Yapay zeka ön incelemesi bitti',
+      asoKeywordsTracked: 'Anahtar kelimeler takibe alındı',
+      asoKeywordsUntracked: 'Anahtar kelimelerin takibi bırakıldı',
+      asoKeywordSeedsGenerated: 'Anahtar kelime fikirleri yapay zeka ile yazıldı',
     },
   },
 }

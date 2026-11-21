@@ -1236,6 +1236,9 @@ export const en = {
       betaReviewSubmitted: 'Submitted for beta review',
       preReviewStarted: 'AI pre-review started',
       preReviewCompleted: 'AI pre-review finished',
+      asoKeywordsTracked: 'ASO keywords tracked',
+      asoKeywordsUntracked: 'ASO keywords untracked',
+      asoKeywordSeedsGenerated: 'ASO keyword ideas written with AI',
     },
   },
 }

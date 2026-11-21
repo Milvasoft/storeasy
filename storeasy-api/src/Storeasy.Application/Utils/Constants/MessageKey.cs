@@ -482,5 +482,15 @@ public static class MessageKey
     public const string GlobalRetention = "Global.Retention";
     public const string GlobalDeliveryTarget = "Global.DeliveryTarget";
     public const string GlobalPlatform = "Global.Platform";
+    public const string AsoStoreNotSupported = nameof(AsoStoreNotSupported);
+    public const string AsoGooglePlayRanksDisabled = nameof(AsoGooglePlayRanksDisabled);
+    public const string AsoKeywordLimitReached = nameof(AsoKeywordLimitReached);
+    public const string AsoTrackedKeywordNotFound = nameof(AsoTrackedKeywordNotFound);
+    public const string AsoSourceUnavailable = nameof(AsoSourceUnavailable);
+    public const string AsoListingUnavailable = nameof(AsoListingUnavailable);
+    public const string AsoCountryInvalid = nameof(AsoCountryInvalid);
+    public const string AsoKeywordsInvalid = nameof(AsoKeywordsInvalid);
+    public const string AsoCompetitorsInvalid = nameof(AsoCompetitorsInvalid);
+    public const string GlobalAsoTrackedKeyword = "Global.AsoTrackedKeyword";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
