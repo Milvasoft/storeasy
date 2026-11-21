@@ -133,4 +133,11 @@ public enum ChangePlanKind : byte
     /// </summary>
     [Description("Sandbox testers")]
     SandboxTesters = 72,
+
+    /// <summary>
+    /// A store listing experiment or custom product page (App Store); what it writes is in the plan's experiment change
+    /// set.
+    /// </summary>
+    [Description("Store listing experiment")]
+    AsoExperiment = 80,
 }

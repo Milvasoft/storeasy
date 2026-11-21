@@ -75,5 +75,6 @@ public static class TableNames
     public const string SystemSettings = nameof(SystemSettings);
     public const string OrganizationAiSettings = nameof(OrganizationAiSettings);
     public const string PreReviews = nameof(PreReviews);
+    public const string AsoExperiments = nameof(AsoExperiments);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

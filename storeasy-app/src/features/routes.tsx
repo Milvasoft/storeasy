@@ -9,6 +9,9 @@ import type { SectionKey } from '@/pages/SectionPages'
 
 const ReadinessPage = lazyPage(() => import('@/features/readiness/ReadinessPage'), 'ReadinessPage')
 const PreReviewPage = lazyPage(() => import('@/features/pre-review/PreReviewPage'), 'PreReviewPage')
+const ExperimentsPage = lazyPage(() => import('@/features/experiments/ExperimentsPage'), 'ExperimentsPage')
+const ExperimentWizardPage = lazyPage(() => import('@/features/experiments/ExperimentWizardPage'), 'ExperimentWizardPage')
+const ExperimentDetailPage = lazyPage(() => import('@/features/experiments/ExperimentDetailPage'), 'ExperimentDetailPage')
 const ReadinessOverviewPage = lazyPage(() => import('@/features/readiness/ReadinessPage'), 'ReadinessOverviewPage')
 const AppCompliancePage = lazyPage(() => import('@/features/compliance/CompliancePages'), 'AppCompliancePage')
 const OrgCompliancePage = lazyPage(() => import('@/features/compliance/CompliancePages'), 'OrgCompliancePage')
@@ -95,6 +98,10 @@ export function contentRoutes() {
       <Route path="/apps/readiness" element={<ReadinessOverviewPage />} />
       <Route path="/apps/:appId/readiness" element={<ReadinessPage />} />
       <Route path="/apps/:appId/pre-review" element={<PreReviewPage />} />
+      <Route path="/apps/:appId/experiments" element={<ExperimentsPage />} />
+      <Route path="/apps/:appId/experiments/new" element={<ExperimentWizardPage />} />
+      <Route path="/apps/:appId/experiments/:experimentId" element={<ExperimentDetailPage />} />
+      <Route path="/apps/:appId/experiments/:experimentId/edit" element={<ExperimentWizardPage />} />
       <Route path="/apps/:appId/compliance" element={<AppCompliancePage />} />
       <Route path="/apps/:appId/settings/profile" element={<AppProfilePage />} />
       <Route path="/apps/:appId/listing/texts" element={<ListingsPage />} />

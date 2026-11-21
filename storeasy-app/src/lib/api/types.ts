@@ -160,6 +160,15 @@ export const AuditAction = {
   BetaReviewSubmitted: 443,
   PreReviewStarted: 450,
   PreReviewCompleted: 451,
+  AsoExperimentCreated: 470,
+  AsoExperimentUpdated: 471,
+  AsoExperimentDeleted: 472,
+  AsoExperimentWritten: 473,
+  AsoExperimentStarted: 474,
+  AsoExperimentStopped: 475,
+  AsoExperimentWinnerApplied: 476,
+  AsoExperimentResultRecorded: 477,
+  AsoExperimentSubmitted: 478,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -173,6 +182,7 @@ export const StoreJobKind = {
   MsCheckInstaller: 53,
   MockupExport: 60,
   SyncMonetization: 70,
+  SyncAsoExperiments: 80,
   PreReview: 90,
   ProcessWebhookEvent: 400,
   RegisterWebhooks: 401,

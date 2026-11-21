@@ -5,6 +5,7 @@ export const p2en = {
     sections: 'App sections',
     readiness: 'Readiness',
     preReview: 'Pre-review',
+    experiments: 'Experiments',
     listing: 'Store listing',
     media: 'Media',
     release: 'Release',
@@ -608,6 +609,7 @@ export const p2en = {
       monetization: 'Subscriptions and products',
       serverNotifications: 'Server notifications',
       sandboxTesters: 'Sandbox testers',
+      asoExperiment: 'Store listing experiment',
     },
     assistedStatus: { todo: 'To do', inProgress: 'In progress', handedOff: 'Handed off', done: 'Done', skipped: 'Not needed' },
     permission: {

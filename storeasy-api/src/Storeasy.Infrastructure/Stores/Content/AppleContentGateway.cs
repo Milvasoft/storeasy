@@ -332,7 +332,7 @@ public sealed partial class AppleContentGateway(StoreHttp http, IFileStorage fil
         {
             var locale = JsonRead.Attr(localization, "locale");
 
-            foreach (var set in await ListSetsAsync(api, JsonRead.Str(localization, "id"), kind, cancellationToken))
+            foreach (var set in await ListSetsAsync(api, AppleMediaParent.VersionLocalization(JsonRead.Str(localization, "id")), kind, cancellationToken))
             {
                 set.Locale = locale;
                 snapshot.Media.Add(set);
@@ -340,13 +340,21 @@ public sealed partial class AppleContentGateway(StoreHttp http, IFileStorage fil
         }
     }
 
-    private static async Task<List<MediaSetState>> ListSetsAsync(AppStoreConnectApi api, string localizationId, MediaKind kind, CancellationToken cancellationToken)
+    /// <summary>
+    /// The screenshot or preview sets under <paramref name="parent"/> with their items.
+    /// </summary>
+    /// <param name="api"></param>
+    /// <param name="parent"></param>
+    /// <param name="kind"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<List<MediaSetState>> ListSetsAsync(AppStoreConnectApi api, AppleMediaParent parent, MediaKind kind, CancellationToken cancellationToken)
     {
         var (setsPath, itemsRelation, typeAttribute, itemType) = kind == MediaKind.Screenshot
             ? ("appScreenshotSets", "appScreenshots", "screenshotDisplayType", "appScreenshots")
             : ("appPreviewSets", "appPreviews", "previewType", "appPreviews");
 
-        var (sets, included) = await api.GetAllAsync($"/v1/appStoreVersionLocalizations/{localizationId}/{setsPath}?include={itemsRelation}&limit=50", cancellationToken);
+        var (sets, included) = await api.GetAllAsync($"/v1/{parent.Type}/{parent.Id}/{setsPath}?include={itemsRelation}&limit=50", cancellationToken);
         var items = included.Where(i => JsonRead.Str(i, "type") == itemType).GroupBy(i => JsonRead.Str(i, "id")).ToDictionary(g => g.Key, g => g.First());
 
         return [.. sets.Select(set => new MediaSetState

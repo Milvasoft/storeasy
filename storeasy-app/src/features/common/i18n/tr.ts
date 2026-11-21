@@ -5,6 +5,7 @@ export const p2tr: P2Dictionary = {
     sections: 'Uygulama bölümleri',
     readiness: 'Hazırlık',
     preReview: 'Ön inceleme',
+    experiments: 'Deneyler',
     listing: 'Mağaza kaydı',
     media: 'Görseller',
     release: 'Yayın',
@@ -608,6 +609,7 @@ export const p2tr: P2Dictionary = {
       monetization: 'Abonelikler ve ürünler',
       serverNotifications: 'Sunucu bildirimleri',
       sandboxTesters: 'Sandbox test kullanıcıları',
+      asoExperiment: 'Mağaza sayfası deneyi',
     },
     assistedStatus: {
       todo: 'Yapılacak',

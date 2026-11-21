@@ -14,6 +14,7 @@ const KIND_KEY: Record<StoreJobKind, keyof Dictionary['jobs']['kind']> = {
   [StoreJobKind.MsCheckInstaller]: 'msCheckInstaller',
   [StoreJobKind.MockupExport]: 'mockupExport',
   [StoreJobKind.SyncMonetization]: 'syncMonetization',
+  [StoreJobKind.SyncAsoExperiments]: 'syncAsoExperiments',
   [StoreJobKind.PreReview]: 'preReview',
   [StoreJobKind.ProcessWebhookEvent]: 'processWebhookEvent',
   [StoreJobKind.RegisterWebhooks]: 'registerWebhooks',

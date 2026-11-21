@@ -17,15 +17,31 @@ public sealed partial class AppleContentGateway
     /// </summary>
     private async Task<string> SyncMediaSetAsync(AppStoreConnectApi api, string versionId, MediaSetChange change, IStoreJobContext context, CancellationToken cancellationToken)
     {
+        var localizationId = await ContentSteps.RunAsync(context, "versionLocalization.ensure", change.Locale, () => EnsureVersionLocalizationAsync(api, versionId, change.Locale, cancellationToken), cancellationToken);
+
+        return await SyncMediaSetAsync(api, AppleMediaParent.VersionLocalization(localizationId), change, context, cancellationToken);
+    }
+
+    /// <summary>
+    /// Makes the media set of <paramref name="change"/> under <paramref name="parent"/> (a version localization, an
+    /// experiment treatment localization or a custom product page localization) hold the desired items in order (see the
+    /// version overload).
+    /// </summary>
+    /// <param name="api"></param>
+    /// <param name="parent"></param>
+    /// <param name="change"></param>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<string> SyncMediaSetAsync(AppStoreConnectApi api, AppleMediaParent parent, MediaSetChange change, IStoreJobContext context, CancellationToken cancellationToken)
+    {
         var screenshot = change.Kind == MediaKind.Screenshot;
         var (setType, itemType, setsRelation, typeAttribute) = screenshot
             ? ("appScreenshotSets", "appScreenshots", "appScreenshotSets", "screenshotDisplayType")
             : ("appPreviewSets", "appPreviews", "appPreviewSets", "previewType");
         var label = $"{change.Locale} {change.ClassKey}";
 
-        var localizationId = await ContentSteps.RunAsync(context, "versionLocalization.ensure", change.Locale, () => EnsureVersionLocalizationAsync(api, versionId, change.Locale, cancellationToken), cancellationToken);
-
-        var set = (await ListSetsAsync(api, localizationId, change.Kind, cancellationToken)).FirstOrDefault(s => s.ClassKey == change.ClassKey);
+        var set = (await ListSetsAsync(api, parent, change.Kind, cancellationToken)).FirstOrDefault(s => s.ClassKey == change.ClassKey);
 
         if (change.Items.Count == 0)
         {
@@ -41,7 +57,7 @@ public sealed partial class AppleContentGateway
 
         if (set == null)
         {
-            var setId = await ContentSteps.RunAsync(context, "set.create", label, () => CreateSetAsync(api, localizationId, change, setType, setsRelation, typeAttribute, cancellationToken), cancellationToken);
+            var setId = await ContentSteps.RunAsync(context, "set.create", label, () => CreateSetAsync(api, parent, change, setType, setsRelation, typeAttribute, cancellationToken), cancellationToken);
 
             set = new MediaSetState { Kind = change.Kind, ClassKey = change.ClassKey, Locale = change.Locale, Id = setId };
         }
@@ -78,7 +94,7 @@ public sealed partial class AppleContentGateway
     }
 
     private static async Task<string> CreateSetAsync(AppStoreConnectApi api,
-                                                     string localizationId,
+                                                     AppleMediaParent parent,
                                                      MediaSetChange change,
                                                      string setType,
                                                      string setsRelation,
@@ -91,7 +107,7 @@ public sealed partial class AppleContentGateway
             {
                 ["type"] = setType,
                 ["attributes"] = new JsonObject { [typeAttribute] = change.ClassKey },
-                ["relationships"] = new JsonObject { ["appStoreVersionLocalization"] = RelationNode("appStoreVersionLocalizations", localizationId) },
+                ["relationships"] = new JsonObject { [parent.Relation] = RelationNode(parent.Type, parent.Id) },
             },
         };
 
@@ -104,7 +120,7 @@ public sealed partial class AppleContentGateway
         }
         catch (StoreCallException ex) when (ex.Transient || ex.StatusCode == 409)
         {
-            var again = (await ListSetsAsync(api, localizationId, change.Kind, cancellationToken)).FirstOrDefault(s => s.ClassKey == change.ClassKey);
+            var again = (await ListSetsAsync(api, parent, change.Kind, cancellationToken)).FirstOrDefault(s => s.ClassKey == change.ClassKey);
 
             if (again == null)
                 throw;
@@ -243,4 +259,34 @@ public sealed partial class AppleContentGateway
             await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(10, _http.Options.AssetPollIntervalMilliseconds)), _http.Clock, cancellationToken);
         }
     }
+}
+
+/// <summary>
+/// The resource screenshot and preview sets hang under: its relationship name on the set, its type and its id.
+/// </summary>
+/// <param name="Relation">Relationship name on the set (e.g. appStoreVersionLocalization).</param>
+/// <param name="Type">Resource type (e.g. appStoreVersionLocalizations).</param>
+/// <param name="Id">Resource id.</param>
+public sealed record AppleMediaParent(string Relation, string Type, string Id)
+{
+    /// <summary>
+    /// An App Store version localization.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public static AppleMediaParent VersionLocalization(string id) => new("appStoreVersionLocalization", "appStoreVersionLocalizations", id);
+
+    /// <summary>
+    /// A product page optimization treatment localization.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public static AppleMediaParent TreatmentLocalization(string id) => new("appStoreVersionExperimentTreatmentLocalization", "appStoreVersionExperimentTreatmentLocalizations", id);
+
+    /// <summary>
+    /// A custom product page localization.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public static AppleMediaParent CustomPageLocalization(string id) => new("appCustomProductPageLocalization", "appCustomProductPageLocalizations", id);
 }

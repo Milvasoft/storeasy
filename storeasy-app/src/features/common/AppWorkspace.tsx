@@ -26,6 +26,7 @@ export type WorkspaceSection =
   | 'readiness'
   | 'preReview'
   | 'listing'
+  | 'experiments'
   | 'media'
   | 'release'
   | 'reviews'
@@ -94,6 +95,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   preReview: 'pre-review',
   listing: 'listing/texts',
   media: 'listing/screenshots',
+  experiments: 'experiments',
   release: 'release/versions',
   money: 'money/subscriptions',
   reviews: 'reviews',
@@ -121,6 +123,7 @@ const SECTIONS: WorkspaceSection[] = [
   'preReview',
   'listing',
   'media',
+  'experiments',
   'release',
   'money',
   'reviews',
