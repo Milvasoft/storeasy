@@ -124,6 +124,7 @@ export const tr: Dictionary = {
       { name: 'Oturum', description: "Giriş ve yenileme token'ı. Çıkışta silinir." },
       { name: 'Cihaz kimliği', description: 'Oturumlarını cihaz bazında listelemek için.' },
       { name: 'Tema, dil, son organizasyon', description: 'Tercihlerin; yalnız bu tarayıcıda.' },
+      { name: 'Tur daveti', description: 'Tanıtım turu davetine cevap verdiğin; davet bir daha çıkmasın diye.' },
     ],
     noTracking: 'İzleme, analitik ve reklam çerezi yok; bu yüzden onay bandı da yok.',
   },

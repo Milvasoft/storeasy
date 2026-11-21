@@ -17,6 +17,7 @@ import { navItemFor, navLabel } from '@/lib/nav/nav'
 import { useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
 import { useDeployment } from '@/features/access/publicSettings'
+import { TourProvider } from '@/features/tour/TourProvider'
 import { NotificationBell } from './NotificationBell'
 import { Sidebar } from './Sidebar'
 
@@ -91,7 +92,8 @@ function OfflineBanner() {
 
 /**
  * The app shell (design 19 section 7): a 248 px menu on the left from 1024 px, a drawer below; a 60 px top bar with the
- * breadcrumb, the live pill, the theme menu and the bell. The page owns everything under the bar.
+ * breadcrumb, the live pill, the theme menu and the bell. The page owns everything under the bar. The guided tour (its
+ * first visit invitation included) runs inside the shell.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const t = useT()
@@ -103,40 +105,42 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [pathname])
 
   return (
-    <div className="flex min-h-full">
-      <aside className="side sticky top-0 h-screen max-lg:!hidden" aria-label={t.nav.label}>
-        <Sidebar />
-      </aside>
-      <Modal
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        variant="drawer"
-        side="left"
-        bare
-        label={t.nav.label}
-        panelClassName="side !w-[300px] max-w-[85vw]"
-      >
-        <Sidebar onNavigate={() => setDrawerOpen(false)} />
-      </Modal>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="bar">
-          <IconButton label={t.nav.openMenu} ghost className="lg:!hidden" onClick={() => setDrawerOpen(true)}>
-            <MenuIcon aria-hidden />
-          </IconButton>
-          <Breadcrumb />
-          <span className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
-            <LivePill />
-            <ThemeMenuButton />
-            <NotificationBell />
-          </span>
-        </header>
-        <OfflineBanner />
-        <EmailVerificationBanner />
-        <main id="main" className="content relative">
-          <TopProgress />
-          {children}
-        </main>
+    <TourProvider>
+      <div className="flex min-h-full">
+        <aside className="side sticky top-0 h-screen max-lg:!hidden" aria-label={t.nav.label}>
+          <Sidebar />
+        </aside>
+        <Modal
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          variant="drawer"
+          side="left"
+          bare
+          label={t.nav.label}
+          panelClassName="side !w-[300px] max-w-[85vw]"
+        >
+          <Sidebar onNavigate={() => setDrawerOpen(false)} />
+        </Modal>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="bar" data-tour="topbar">
+            <IconButton label={t.nav.openMenu} ghost className="lg:!hidden" onClick={() => setDrawerOpen(true)} data-tour="menu-button">
+              <MenuIcon aria-hidden />
+            </IconButton>
+            <Breadcrumb />
+            <span className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
+              <LivePill />
+              <ThemeMenuButton />
+              <NotificationBell />
+            </span>
+          </header>
+          <OfflineBanner />
+          <EmailVerificationBanner />
+          <main id="main" className="content relative">
+            <TopProgress />
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </TourProvider>
   )
 }

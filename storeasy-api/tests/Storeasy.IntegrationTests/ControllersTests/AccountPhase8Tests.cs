@@ -56,6 +56,32 @@ public class AccountPhase8Tests(StoreasyApiFactory factory) : IntegrationTestBas
     }
 
     [Fact]
+    public async Task TourPromptSeen_ShouldBeStoredOnceAndKeepTheFirstDate()
+    {
+        // Arrange
+        var user = await _factory.CreateAndLoginUserAsync();
+        var other = await _factory.CreateAndLoginUserAsync();
+        var (_, before) = await user.Client.GetAsync<AccountDetailDto>("account/detail");
+
+        // Act
+        var (first, _) = await user.Client.PutAsync<int>("account/tour-prompt-seen", new { });
+        var (_, afterFirst) = await user.Client.GetAsync<AccountDetailDto>("account/detail");
+        var (second, _) = await user.Client.PutAsync<int>("account/tour-prompt-seen", new { });
+        var (_, afterSecond) = await user.Client.GetAsync<AccountDetailDto>("account/detail");
+        var (_, otherDetail) = await other.Client.GetAsync<AccountDetailDto>("account/detail");
+        var (anonymous, _) = await _factory.CreateClientWithAddress().PutAsync<int>("account/tour-prompt-seen", new { });
+
+        // Assert
+        before.Data.TourPromptSeenDate.Should().BeNull();
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+        second.StatusCode.Should().Be(HttpStatusCode.OK);
+        afterFirst.Data.TourPromptSeenDate.Should().NotBeNull();
+        afterSecond.Data.TourPromptSeenDate.Should().Be(afterFirst.Data.TourPromptSeenDate);
+        otherDetail.Data.TourPromptSeenDate.Should().BeNull();
+        anonymous.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task AccountDetail_ShouldListThePlatformPermissions()
     {
         var root = await _factory.LoginAsRootAsync();

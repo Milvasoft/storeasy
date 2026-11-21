@@ -184,7 +184,11 @@ function BuildsTab({ app }: { app: AppDetailDto }) {
         ))}
         <span className="ml-auto text-xs text-fg3">{t.builds.limitNote}</span>
       </div>
-      {shown.length === 0 ? <p className="text-[13px] text-fg3">{t.builds.noMatch}</p> : <BuildsTable builds={shown} records={app.Stores ?? []} />}
+      {shown.length === 0 ? (
+        <p className="text-[13px] text-fg3">{t.builds.noMatch}</p>
+      ) : (
+        <BuildsTable builds={shown} records={app.Stores ?? []} />
+      )}
     </>
   )
 }
@@ -451,7 +455,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
         <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
         {t.app.back}
       </Link>
-      <div className="mb-1 flex items-start gap-4">
+      <div className="mb-1 flex items-start gap-4" data-tour="app-header">
         <AppAvatar app={data} size="l" />
         <div className="min-w-0 flex-1">
           <PageHeader
@@ -483,6 +487,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
                     {data.HiddenDate ? t.apps.unhide : t.apps.hide}
                   </Button>
                   <Button
+                    data-tour="app-mute"
                     loading={setMuted.isPending}
                     aria-pressed={!!data.AlertsMutedDate}
                     onClick={() => setMuted.mutate({ app: data, muted: !data.AlertsMutedDate })}
@@ -507,19 +512,21 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
           />
         </div>
       </div>
-      <Tabs
-        label={t.app.sections}
-        items={[
-          { value: 'overview', label: t.app.overview, to: `/apps/${data.Id}` },
-          { value: 'builds', label: t.app.builds, to: `/apps/${data.Id}/builds`, count: (data.Builds ?? []).length },
-          { value: 'jobs', label: t.app.jobs, to: `/apps/${data.Id}/jobs` },
-          ...workspaceTabs(
-            data.Id,
-            p2,
-            (data.Stores ?? []).map((record) => record.Store),
-          ),
-        ]}
-      />
+      <div data-tour="app-tabs">
+        <Tabs
+          label={t.app.sections}
+          items={[
+            { value: 'overview', label: t.app.overview, to: `/apps/${data.Id}` },
+            { value: 'builds', label: t.app.builds, to: `/apps/${data.Id}/builds`, count: (data.Builds ?? []).length },
+            { value: 'jobs', label: t.app.jobs, to: `/apps/${data.Id}/jobs` },
+            ...workspaceTabs(
+              data.Id,
+              p2,
+              (data.Stores ?? []).map((record) => record.Store),
+            ),
+          ]}
+        />
+      </div>
       {tab === 'overview' ? <Overview app={data} connections={connections.data ?? []} started={started} /> : null}
       {tab === 'builds' ? <BuildsTab app={data} /> : null}
       {tab === 'jobs' ? <JobsPage appId={data.Id} /> : null}

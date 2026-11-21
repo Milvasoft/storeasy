@@ -126,6 +126,9 @@ Differences from `02-frontend-standartlari.md`, with the reason:
   section switches (all off) and pages behind them render the designed first-use state with a "coming" mark.
 - **Language and theme live in the browser.** `PUT account/profile` (name, surname, interface language) and
   `account/preferences` (notification channels) are on the API and used by the account pages.
+- **Guided tour without a library.** `features/tour` dims the page and spotlights `data-tour` anchors step by step. The
+  first visit invitation shows once per account: `PUT account/tour-prompt-seen` stores the answer
+  (`TourPromptSeenDate` in `account/detail`) and this browser remembers it too. The Account page starts the tour again.
 - **`@floating-ui/react-dom`** positions every panel (02 section 9.4 names Floating UI).
 - **`@microsoft/signalr`** for the live hub (plan K5).
 - **No terms checkbox and no 6-digit code on sign-up / verification.** The legal documents and the code path are not in
