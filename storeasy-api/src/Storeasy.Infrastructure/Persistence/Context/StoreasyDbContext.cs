@@ -2,7 +2,9 @@
 using Milvasoft.DataAccess.EfCore.Bulk.DbContextBase;
 using Milvasoft.DataAccess.EfCore.Configuration;
 using Storeasy.Domain;
+using Storeasy.Domain.Analytics;
 using Storeasy.Domain.Apps;
+using Storeasy.Domain.Aso;
 using Storeasy.Domain.Assets;
 using Storeasy.Domain.Content;
 using Storeasy.Domain.Monetization;
@@ -106,6 +108,12 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<SystemSetting> SystemSettings { get; set; }
     public DbSet<OrganizationAiSetting> OrganizationAiSettings { get; set; }
     public DbSet<PreReview> PreReviews { get; set; }
+    public DbSet<AsoTrackedKeyword> AsoTrackedKeywords { get; set; }
+    public DbSet<AsoKeywordRank> AsoKeywordRanks { get; set; }
+    public DbSet<AsoCompetitorRank> AsoCompetitorRanks { get; set; }
+    public DbSet<AsoKeywordMetric> AsoKeywordMetrics { get; set; }
+    public DbSet<StoreMetric> StoreMetrics { get; set; }
+    public DbSet<StoreMetricFeed> StoreMetricFeeds { get; set; }
     public DbSet<AsoExperiment> AsoExperiments { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 

@@ -44,6 +44,14 @@ using Storeasy.Application.Features.Iap.GetIapPricePoints;
 using Storeasy.Application.Features.Iap.GetIapPrices;
 using Storeasy.Application.Features.Iap.PlanIapChanges;
 using Storeasy.Application.Features.Listings.GetAgeRating;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds;
+using Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords;
+using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
+using Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds;
+using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
+using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
 using Storeasy.Application.Features.Listings.GetCategories;
 using Storeasy.Application.Features.Listings.GetListing;
 using Storeasy.Application.Features.Listings.GetListingByField;
@@ -108,6 +116,11 @@ using Storeasy.Application.Features.Releases.PlanPlayTesters;
 using Storeasy.Application.Features.Releases.PlanRelease;
 using Storeasy.Application.Features.Releases.PlanRollout;
 using Storeasy.Application.Features.Reviews.CreateSavedReply;
+using Storeasy.Application.Features.StoreMetrics.EnableAppleAnalytics;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetricFeeds;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetrics;
+using Storeasy.Application.Features.StoreMetrics.GetStoreMetricsSummary;
+using Storeasy.Application.Features.StoreMetrics.SyncStoreMetrics;
 using Storeasy.Application.Features.Reviews.DeleteSavedReply;
 using Storeasy.Application.Features.Reviews.GetReviewList;
 using Storeasy.Application.Features.Reviews.GetSavedReplyList;
@@ -281,6 +294,13 @@ public static class McpToolCatalog
         Write<UpdateSavedReplyCommand>("reviews_saved_reply_update", "Changes a saved reply."),
         Write<DeleteSavedReplyCommand>("reviews_saved_reply_delete", "Removes a saved reply."),
 
+        // Store page performance (ASO conversion analytics)
+        Read<GetStoreMetricsQuery>("aso_metrics_get", "Store page performance of one app from storeasy's daily rows: impressions (App Store), page views, downloads, redownloads (App Store) and conversion rate (downloads / page views), totals with the change against the previous period, daily series and breakdowns by traffic source, country and store. Filters: store, country, source; range: from/to or days (default the last 30 days ending yesterday)."),
+        Read<GetStoreMetricsSummaryQuery>("aso_metrics_summary", "Store page performance of every app of the organization over a date range, with the change against the previous period."),
+        Read<GetStoreMetricFeedsQuery>("aso_metrics_feeds", "Per store record of an app: whether metrics arrive, the last read, how far the data goes and what to set up (App Store analytics reports, Play reports bucket, a missing role)."),
+        Write<SyncStoreMetricsCommand>("aso_metrics_sync", "Reads the store page metrics now (a read only store job per store record; they are also read daily)."),
+        Write<EnableAppleAnalyticsCommand>("aso_analytics_enable", "Asks App Store Connect to start the ONGOING analytics reports of an App Store record (ManageConnections permission; the API key needs the Admin role). A one time store write: needs confirm: true. The first data arrives one or two days later."),
+
         // Rejections
         Read<GetRejectionCaseListQuery>("rejections_list", "Pages through the rejection cases, newest first."),
         Read<GetRejectionCaseDetailQuery>("rejections_get", "Reads one rejection case: text, checklist, reply draft and timeline."),
@@ -305,6 +325,16 @@ public static class McpToolCatalog
         Write<UpdateWhatToTestCommand>("testflight_what_to_test", "Writes the What to Test text of a build in one language."),
         Write<UpdateBetaLocalizationCommand>("testflight_localization_update", "Writes the beta app description, feedback e-mail and links of one language."),
         Write<SubmitBetaReviewCommand>("testflight_beta_review", "Submits a build to TestFlight beta app review. Needs confirm: true and confirmVersion equal to the build's \"version (build)\" text."),
+
+        // ASO keywords
+        Read<ResearchAsoKeywordsQuery>("aso_keywords_research", "Measures up to 20 search keywords for one app in one store and country (ISO code): estimated popularity 0 to 100 from the store's autocomplete, difficulty 0 to 100 from the top ten results' ratings, competing apps, top ten competitors, the app's current rank and an opportunity score. Scores are data based estimates, not AI. App Store and Google Play; not Microsoft Store."),
+        Read<GetAsoKeywordSeedsQuery>("aso_keywords_seeds", "Keyword candidates for research from data: the app's listing (name, subtitle, keywords field, description terms), words shared by competitors' names and the store's search suggestions. Measure them with aso_keywords_research."),
+        Write<SuggestAsoKeywordSeedsCommand>("aso_keywords_ideas", "Keyword ideas grouped by theme from the organization's AI key, as candidates only (no scores). Measure them with aso_keywords_research. Audited with tokens and cost."),
+        Write<TrackAsoKeywordsCommand>("aso_keywords_track", "Starts or resumes daily rank tracking of keywords for one app, store and country, optionally with competitors' ranks. A keyword tracked before keeps its history. Limited per organization; Google Play only when the server enabled it."),
+        Write<UntrackAsoKeywordsCommand>("aso_keywords_untrack", "Stops daily rank tracking of keywords by tracking id; their rank history is kept."),
+        Read<GetAsoTrackedKeywordsQuery>("aso_keywords_tracked", "Tracked keywords of one app in one store: current rank, change over 1, 7 and 30 days, the last 30 days and the latest popularity and difficulty."),
+        Read<GetAsoKeywordRanksQuery>("aso_keywords_ranks", "Daily rank history of one tracked keyword (null rank means not in the results read; unchecked days are marked), followed competitors' histories and the latest top ten."),
+        Read<GetAsoKeywordCoverageQuery>("aso_keywords_coverage", "Apple keywords field helper per listing language: which tracked keywords the name, subtitle and keywords field cover, missing and repeated words, characters left of 100."),
 
         // Microsoft Store
         Write<AddMsProductCommand>("ms_product_add", "Adds an MSI/EXE product by its Store id (MSIX apps come with the sync)."),

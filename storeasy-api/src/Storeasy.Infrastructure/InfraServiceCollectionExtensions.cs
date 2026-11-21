@@ -21,6 +21,7 @@ using Storeasy.Application.Utils.Models;
 using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Infrastructure.Ai;
+using Storeasy.Infrastructure.Aso;
 using Storeasy.Infrastructure.Email;
 using Storeasy.Infrastructure.Events;
 using Storeasy.Infrastructure.Stores.Experiments;
@@ -35,6 +36,7 @@ using Storeasy.Infrastructure.Security;
 using Storeasy.Infrastructure.Services;
 using Storeasy.Infrastructure.Storage;
 using Storeasy.Infrastructure.StoreJobs;
+using Storeasy.Infrastructure.StoreMetrics;
 using Storeasy.Infrastructure.Stores;
 using Storeasy.Infrastructure.Stores.Content;
 using Storeasy.Infrastructure.Stores.Monetization;
@@ -120,6 +122,12 @@ public static class InfraServiceCollectionExtensions
         services.AddStoreJobServices(configurationManager);
 
         services.AddEventServices(configurationManager);
+
+        // ASO keyword research and daily rank tracking from the stores' public search data.
+        services.AddAsoServices(configurationManager);
+
+        services.AddStoreMetricServices();
+
         // Microsoft Store (phase 5): client, token cache and job handlers.
         services.AddMicrosoftStoreServices(configurationManager);
 
@@ -339,6 +347,13 @@ public static class InfraServiceCollectionExtensions
         {
             c.TimeZoneInfo = TimeZoneInfo.Utc;
             c.CronExpression = @"30 3 * * *"; // At 03:30 AM, every day
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        services.AddMilvaCronJob<StoreMetricCleanerJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = @"45 3 * * 0"; // At 03:45 AM, every Sunday
             c.CronFormat = CronFormat.Standard;
         });
 

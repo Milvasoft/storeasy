@@ -9,7 +9,7 @@ using Storeasy.Domain.JsonModels;
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261121161355_AddAsoExperiments : Migration
+public partial class _20261121171104_AddAsoExperiments : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

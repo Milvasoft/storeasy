@@ -16,6 +16,7 @@ import {
   Settings,
   Shield,
   Terminal,
+  TrendingUp,
   User,
   Users,
   Webhook,
@@ -32,6 +33,7 @@ export type NavKey =
   | 'apps'
   | 'activity'
   | 'reviews'
+  | 'storePerformance'
   | 'compliance'
   | 'studio'
   | 'intake'
@@ -77,6 +79,7 @@ export const NAV: NavGroup[] = [
       { key: 'apps', path: '/apps', icon: LayoutGrid },
       { key: 'activity', path: '/activity', icon: Activity },
       { key: 'reviews', path: '/reviews', icon: MessageSquare, feature: 'Reviews' },
+      { key: 'storePerformance', path: '/store-performance', icon: TrendingUp },
       { key: 'compliance', path: '/compliance', icon: CalendarClock, feature: 'Compliance' },
       { key: 'studio', path: '/studio', icon: Images, feature: 'Studio' },
     ],

@@ -95,7 +95,9 @@ export function PlansPage() {
     <>
       <PageHeader title={base.activity.title} subtitle={base.activity.subtitle} />
       <ActivityTabs />
-      <p className="my-3 text-[13px] text-fg2">{t.plans.subtitle}</p>
+      <p className="my-3 text-[13px] text-fg2" data-tour="plans">
+        {t.plans.subtitle}
+      </p>
       <div className="toolbar mb-3" role="group" aria-label={t.plans.status}>
         <Chip
           selected={pendingOnly}

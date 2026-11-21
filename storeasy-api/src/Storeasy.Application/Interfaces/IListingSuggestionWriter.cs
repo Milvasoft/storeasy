@@ -21,6 +21,15 @@ public interface IListingSuggestionWriter
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<CategorySuggestionResult> SuggestCategoriesAsync(CategorySuggestionRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asks the model for search keyword ideas grouped by theme. The ideas are only candidates: their scores come from
+    /// the stores' data when they are researched.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<KeywordSeedResult> SuggestKeywordSeedsAsync(KeywordSeedRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -118,3 +127,44 @@ public sealed record CategorySuggestionRequest(string ApiKey,
 /// <param name="InputTokens"></param>
 /// <param name="OutputTokens"></param>
 public sealed record CategorySuggestionResult(ReplyDraftOutcome Outcome, string Primary, string Secondary, string Reason, string Model, long InputTokens = 0, long OutputTokens = 0);
+
+/// <summary>
+/// What the model is given for keyword ideas. Every text is data for the prompt, never instructions.
+/// </summary>
+/// <param name="ApiKey">The organization's Anthropic key.</param>
+/// <param name="AppName">storeasy's name of the app.</param>
+/// <param name="Store">Store the keywords are for.</param>
+/// <param name="Country">Storefront country (lower case).</param>
+/// <param name="Language">Language the keywords are searched in (two letters).</param>
+/// <param name="Texts">Listing texts of that language (name, subtitle, keywords, description).</param>
+/// <param name="Seeds">Candidates already found in the data (listing, competitors, suggestions).</param>
+/// <param name="Profile">The app's catalog profile as short lines.</param>
+/// <param name="Instruction">The member's own note, or null.</param>
+/// <param name="Model">Model to use; null for the instance default.</param>
+public sealed record KeywordSeedRequest(string ApiKey,
+                                        string AppName,
+                                        StoreKind Store,
+                                        string Country,
+                                        string Language,
+                                        IReadOnlyDictionary<string, string> Texts,
+                                        IReadOnlyList<string> Seeds,
+                                        IReadOnlyList<string> Profile,
+                                        string Instruction,
+                                        string Model = null);
+
+/// <summary>
+/// A theme of keyword ideas.
+/// </summary>
+/// <param name="Name">Short theme name.</param>
+/// <param name="Terms">Search terms of the theme.</param>
+public sealed record KeywordSeedCluster(string Name, IReadOnlyList<string> Terms);
+
+/// <summary>
+/// Result of <see cref="IListingSuggestionWriter.SuggestKeywordSeedsAsync"/>.
+/// </summary>
+/// <param name="Outcome"></param>
+/// <param name="Clusters">Themes with their terms (when written).</param>
+/// <param name="Model">Model that answered (or was asked).</param>
+/// <param name="InputTokens"></param>
+/// <param name="OutputTokens"></param>
+public sealed record KeywordSeedResult(ReplyDraftOutcome Outcome, IReadOnlyList<KeywordSeedCluster> Clusters, string Model, long InputTokens = 0, long OutputTokens = 0);

@@ -26,10 +26,12 @@ export type WorkspaceSection =
   | 'readiness'
   | 'preReview'
   | 'listing'
+  | 'keywords'
   | 'experiments'
   | 'media'
   | 'release'
   | 'reviews'
+  | 'storePerformance'
   | 'rejections'
   | 'money'
   | 'answers'
@@ -94,11 +96,13 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   readiness: 'readiness',
   preReview: 'pre-review',
   listing: 'listing/texts',
+  keywords: 'keywords',
   media: 'listing/screenshots',
   experiments: 'experiments',
   release: 'release/versions',
   money: 'money/subscriptions',
   reviews: 'reviews',
+  storePerformance: 'store-performance',
   rejections: 'rejections',
   answers: 'answers',
   assisted: 'assisted',
@@ -111,6 +115,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
 const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = {
   microsoft: [StoreKind.Microsoft],
   money: [StoreKind.Apple, StoreKind.Google],
+  keywords: [StoreKind.Apple, StoreKind.Google],
 }
 
 function sectionShown(section: WorkspaceSection, stores: StoreKind[]): boolean {
@@ -122,11 +127,13 @@ const SECTIONS: WorkspaceSection[] = [
   'readiness',
   'preReview',
   'listing',
+  'keywords',
   'media',
   'experiments',
   'release',
   'money',
   'reviews',
+  'storePerformance',
   'rejections',
   'answers',
   'assisted',

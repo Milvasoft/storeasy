@@ -107,12 +107,14 @@ store. The full list with input schemas comes from the server (`tools/list`); th
 | Apps and overview | 13 | `apps_summary`, `apps_list`, `apps_get`, `apps_sync`, `apps_add_google`, `apps_link_store_record`, `apps_profile_update`, `apps_hide`, `apps_unhide`, `apps_mute_alerts`, `apps_unmute_alerts`, `apps_reorder` |
 | Readiness, compliance and AI pre-review | 5 | `readiness_check`, `compliance_app`, `compliance_list`, `pre_reviews_list`, `pre_reviews_get` |
 | Listings, media, categories, age rating, pricing, review info | 20 | `listings_get`, `listings_suggest`, `listings_plan`, `categories_suggest`, `screenshots_sets`, `screenshots_plan`, `screenshots_upload_dir`, `previews_plan`, `categories_plan`, `age_rating_plan`, `pricing_plan`, `review_info_plan` |
+| ASO keywords | 8 | `aso_keywords_research`, `aso_keywords_seeds`, `aso_keywords_ideas`, `aso_keywords_track`, `aso_keywords_untrack`, `aso_keywords_tracked`, `aso_keywords_ranks`, `aso_keywords_coverage` |
 | Builds and releases | 11 | `builds_list`, `builds_download_url`, `builds_link`, `builds_export_compliance`, `bundle_upload_plan`, `releases_plan`, `rollout_plan`, `testers_plan`, `submit_for_review` |
 | Saved answers and assisted steps | 8 | `answers_get`, `answers_update`, `data_safety_plan`, `assisted_steps_list`, `assisted_step_handoff`, `assisted_step_complete` |
 | Change plans and jobs | 8 | `plans_list`, `plans_get`, `plans_approve`, `plans_reject`, `plans_discard`, `jobs_list`, `jobs_get`, `jobs_cancel` |
 | Rules, connections, audit, members (read only) | 6 | `rules_catalog`, `rules_list`, `rules_get`, `connections_list`, `audit_list`, `members_list` |
 | Package intake | 5 | `artifacts_summary`, `artifacts_sessions`, `artifacts_session_get`, `artifacts_deliver_held`, `delivery_rules_get` |
 | Reviews | 9 | `reviews_list`, `reviews_sync`, `reviews_reply_draft`, `reviews_reply`, `reviews_saved_replies` |
+| Store page performance | 5 | `aso_metrics_get`, `aso_metrics_summary`, `aso_metrics_feeds`, `aso_metrics_sync`, `aso_analytics_enable` |
 | Rejections | 9 | `rejections_list`, `rejections_get`, `rejections_paste_text`, `rejections_checklist_update`, `rejections_reply_draft`, `rejections_close` |
 | TestFlight | 12 | `testflight_groups`, `testflight_testers_update`, `testflight_add_build`, `testflight_what_to_test`, `testflight_beta_review` |
 | Microsoft Store | 11 | `ms_product_add`, `ms_product_get`, `ms_content_get`, `ms_change_plan`, `ms_submissions_list`, `ms_flights_list`, `ms_installer_check`, `ms_submit` |

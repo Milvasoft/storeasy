@@ -48,6 +48,12 @@ public class AccountDetailDto : StoreasyBaseDto<int>
     public string PreferredLanguage { get; set; }
 
     /// <summary>
+    /// UTC instant the user answered the web app's guided tour invitation; null while it has not been shown, so the web
+    /// shows it on the first visit.
+    /// </summary>
+    public DateTime? TourPromptSeenDate { get; set; }
+
+    /// <summary>
     /// UTC instant the account was created.
     /// </summary>
     public DateTime? CreationDate { get; set; }
@@ -84,6 +90,7 @@ public class AccountDetailDto : StoreasyBaseDto<int>
         Surname = u.Surname,
         UserType = u.UserType,
         PreferredLanguage = u.PreferredLanguage,
+        TourPromptSeenDate = u.TourPromptSeenDate,
         CreationDate = u.CreationDate,
         Roles = u.RoleRelations.Select(rr => new NameIntNavigationDto { Id = rr.Role.Id, Name = rr.Role.Name }).ToList(),
         Permissions = u.RoleRelations.SelectMany(rr => rr.Role.RolePermissionRelations.Select(rp => rp.Permission.PermissionGroup + "." + rp.Permission.Name)).ToList(),

@@ -20,6 +20,8 @@ export interface CurrentUser {
   permissions: string[] | null
   // The saved interface language ("tr-TR"); null until one is saved.
   preferredLanguage: string | null
+  // Whether the guided tour invitation was answered (account/detail TourPromptSeenDate); null when unknown.
+  tourPromptSeen: boolean | null
   externalLogins: ExternalLoginProvider[]
 }
 
@@ -82,6 +84,7 @@ async function hydrate(tokens: AuthTokens): Promise<CurrentUser> {
       emailConfirmed: tokens.userType === UserType.Manager ? true : (detail.EmailConfirmed ?? null),
       permissions: detail.Permissions ?? null,
       preferredLanguage: detail.PreferredLanguage ?? null,
+      tourPromptSeen: !!detail.TourPromptSeenDate,
       externalLogins: detail.ExternalLogins ?? [],
     }
   } catch {
@@ -93,6 +96,7 @@ async function hydrate(tokens: AuthTokens): Promise<CurrentUser> {
       emailConfirmed: null,
       permissions: null,
       preferredLanguage: null,
+      tourPromptSeen: null,
       externalLogins: [],
     }
   }

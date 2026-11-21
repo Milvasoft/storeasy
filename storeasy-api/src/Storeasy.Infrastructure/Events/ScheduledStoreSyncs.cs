@@ -1,6 +1,7 @@
 ﻿using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.FeedbackDtos;
 using Storeasy.Application.Dtos.MsStoreDtos;
+using Storeasy.Application.Dtos.StoreMetricDtos;
 using Storeasy.Application.Dtos.TestFlightDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Apps;
@@ -83,6 +84,20 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
         var records = await RecordsAsync(true, cancellationToken);
 
         return await QueueAsync(StoreJobKind.SyncTestFlight, [.. records.Select(r => new StoreJobRequest(r.OrganizationId, StoreJobKind.SyncTestFlight, new SyncTestFlightPayload(r.Id), StoreKind.Apple, r.AppId))], cancellationToken);
+    }
+
+    /// <summary>
+    /// Queues a store page metrics sync for every store record (all three stores) with a verified connection.
+    /// </summary>
+    public async Task<int> QueueStoreMetricSyncsAsync(CancellationToken cancellationToken)
+    {
+        var records = await _storeAppRepository.GetAllAsync(s => s.StoreConnectionId != null
+                                                                  && !s.App.IsDeleted
+                                                                  && s.StoreConnection.Status == ConnectionStatus.Verified,
+                                                             projection: s => new StoreApp { Id = s.Id, OrganizationId = s.OrganizationId, AppId = s.AppId, Store = s.Store },
+                                                             cancellationToken: cancellationToken);
+
+        return await QueueAsync(StoreJobKind.SyncStoreMetrics, [.. records.Select(r => new StoreJobRequest(r.OrganizationId, StoreJobKind.SyncStoreMetrics, new SyncStoreMetricsPayload(r.Id), r.Store, r.AppId))], cancellationToken);
     }
 
     private Task<List<StoreApp>> RecordsAsync(bool appleOnly, CancellationToken cancellationToken)

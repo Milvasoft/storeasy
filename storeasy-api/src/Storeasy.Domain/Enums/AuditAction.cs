@@ -294,6 +294,18 @@ public enum AuditAction : short
     [Description("AI pre-review completed")]
     PreReviewCompleted = 451,
 
+    /// <summary>Keywords were added to (or put back on) the daily rank tracking of a store record.</summary>
+    [Description("ASO keywords tracked")]
+    AsoKeywordsTracked = 470,
+
+    /// <summary>Keywords were taken off the daily rank tracking; their rank history is kept.</summary>
+    [Description("ASO keywords untracked")]
+    AsoKeywordsUntracked = 471,
+
+    /// <summary>The organization's AI proposed and grouped keyword seeds (the call's tokens and cost are in the details).</summary>
+    [Description("ASO keyword ideas written with AI")]
+    AsoKeywordSeedsGenerated = 472,
+
     /// <summary>TestFlight group created or changed.</summary>
     [Description("Beta group changed")]
     BetaGroupChanged = 440,
@@ -391,6 +403,14 @@ public enum AuditAction : short
     /// <summary>A member asked for a download link of a stored build package.</summary>
     [Description("Build package downloaded")]
     BuildPackageDownloaded = 314,
+
+    /// <summary>A member asked App Store Connect to start the analytics reports of an app.</summary>
+    [Description("App Store analytics enabled")]
+    AppleAnalyticsEnabled = 480,
+
+    /// <summary>The Cloud Storage bucket of a Google Play connection's reports was set or cleared.</summary>
+    [Description("Play reports bucket updated")]
+    ReportBucketUpdated = 481,
 
     /// <summary>
     /// A store listing experiment record was created.
