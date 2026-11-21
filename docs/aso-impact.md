@@ -14,13 +14,14 @@ Each event has the UTC day it took effect, the store record, a kind, a title and
 | Applied change plans | Listing texts, screenshots, icon (a Google Play graphic), app previews, price, category; Google Play production releases | App Store change written to a version: the day the version went live (ready for sale). Written to the live version: the day it was applied. Version not live yet: listed as *awaiting release*, not measured. Microsoft Store change: the day the next app submission was published. Google Play: the day it was applied. |
 | App Store versions | A version reached ready for sale | That day |
 | Microsoft Store submissions | An app submission was published | The first day storeasy saw it published |
+| Store listing experiments | An App Store product page optimization test or a Google Play store listing experiment started or ended; applying a winner (an experiment change plan writing media) | The experiment's start and end; the winner like any App Store change (its version's live day when it is written to a version) |
 
 A version and the listing written to it go live together: they are shown as related, not as confounding each other.
 
 Sources implement `IImpactEventSource` (Application) and are registered in `AsoServiceCollectionExtensions`; every
-registered source is read and merged by event id. A new kind of change (store listing experiments) is one more class and
-one registration; the event kinds `ExperimentStarted` and `ExperimentEnded` and the id prefix `experiment-` are reserved
-for it.
+registered source is read and merged by event id, so a new kind of change is one more class and one registration.
+Custom product pages and custom store listings are not events: they get their own traffic and do not split the default
+page's.
 
 ## The comparison
 

@@ -411,4 +411,58 @@ public enum AuditAction : short
     /// <summary>The Cloud Storage bucket of a Google Play connection's reports was set or cleared.</summary>
     [Description("Play reports bucket updated")]
     ReportBucketUpdated = 481,
+
+    /// <summary>
+    /// A store listing experiment record was created.
+    /// </summary>
+    [Description("Experiment created")]
+    AsoExperimentCreated = 490,
+
+    /// <summary>
+    /// A store listing experiment record was edited (variants, checklist).
+    /// </summary>
+    [Description("Experiment updated")]
+    AsoExperimentUpdated = 491,
+
+    /// <summary>
+    /// A store listing experiment record was deleted.
+    /// </summary>
+    [Description("Experiment deleted")]
+    AsoExperimentDeleted = 492,
+
+    /// <summary>
+    /// An approved plan wrote an experiment or custom product page to the store.
+    /// </summary>
+    [Description("Experiment written to the store")]
+    AsoExperimentWritten = 493,
+
+    /// <summary>
+    /// An approved plan started an experiment.
+    /// </summary>
+    [Description("Experiment started")]
+    AsoExperimentStarted = 494,
+
+    /// <summary>
+    /// An approved plan stopped an experiment.
+    /// </summary>
+    [Description("Experiment stopped")]
+    AsoExperimentStopped = 495,
+
+    /// <summary>
+    /// An approved plan wrote the winning treatment to the app version.
+    /// </summary>
+    [Description("Experiment winner applied")]
+    AsoExperimentWinnerApplied = 496,
+
+    /// <summary>
+    /// A member recorded the start, end or result of an experiment.
+    /// </summary>
+    [Description("Experiment result recorded")]
+    AsoExperimentResultRecorded = 497,
+
+    /// <summary>
+    /// An approved plan submitted an experiment or custom product page for App Review.
+    /// </summary>
+    [Description("Experiment submitted for review")]
+    AsoExperimentSubmitted = 498,
 }

@@ -195,5 +195,6 @@ describe('chart markers', () => {
     expect(eventLink(impactEvent())).toBe('/apps/101/listing/plans/71')
     expect(eventLink(impactEvent({ Id: 'version-9', PlanId: null }))).toBe('/apps/101/release/versions?store=apple')
     expect(impactLink(impactEvent())).toBe('/apps/101/store-performance/impact?event=plan-71')
+    expect(eventLink(impactEvent({ Id: 'experiment-4-start', PlanId: null }))).toBe('/apps/101/experiments/4')
   })
 })

@@ -15,6 +15,7 @@ export const ImpactEventKind = {
   MsChange: 11,
   ExperimentStarted: 20,
   ExperimentEnded: 21,
+  ExperimentWinnerApplied: 22,
 } as const
 export type ImpactEventKind = (typeof ImpactEventKind)[keyof typeof ImpactEventKind]
 

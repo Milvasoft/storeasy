@@ -120,6 +120,7 @@ store. The full list with input schemas comes from the server (`tools/list`); th
 | TestFlight | 12 | `testflight_groups`, `testflight_testers_update`, `testflight_add_build`, `testflight_what_to_test`, `testflight_beta_review` |
 | Microsoft Store | 11 | `ms_product_add`, `ms_product_get`, `ms_content_get`, `ms_change_plan`, `ms_submissions_list`, `ms_flights_list`, `ms_installer_check`, `ms_submit` |
 | Subscriptions, in-app purchases, purchase settings | 19 | `subscriptions_groups`, `subscriptions_prices_convert`, `subscriptions_plan`, `subscriptions_apply`, `iap_list`, `iap_plan`, `iap_apply`, `products_sync`, `sandbox_testers_plan`, `server_notifications_plan` |
+| Store listing experiments | 8 | `aso_experiments_list`, `aso_experiment_get`, `aso_experiment_save`, `aso_experiment_plan`, `aso_experiment_result`, `aso_experiment_checklist`, `aso_experiment_export`, `aso_experiments_sync` |
 | Studio | 13 | `mockups_templates_list`, `mockups_template_create`, `mockups_captions_save`, `mockups_preview`, `mockups_export`, `mockups_export_manifest`, `mockups_export_to_screenshot_plans` |
 
 Not in MCP on purpose: adding, verifying or deleting store connections, creating or revoking tokens (personal, CI,

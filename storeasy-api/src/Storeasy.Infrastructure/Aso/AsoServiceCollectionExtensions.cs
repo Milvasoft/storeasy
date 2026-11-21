@@ -45,10 +45,11 @@ public static class AsoServiceCollectionExtensions
         services.AddScoped<IAsoRankRecorder, AsoRankRecorder>();
         services.AddScoped<IAsoRankSeries, AsoRankSeriesReader>();
 
-        // Before and after impact: every IImpactEventSource is read and merged, so a new kind of change (store listing
-        // experiments) plugs in with one more registration here.
+        // Before and after impact: every IImpactEventSource is read and merged, so a new kind of change plugs in with one
+        // more registration here.
         services.AddScoped<IImpactEventSource, ChangePlanImpactSource>();
         services.AddScoped<IImpactEventSource, ReleaseImpactSource>();
+        services.AddScoped<IImpactEventSource, ExperimentImpactSource>();
         services.AddScoped<IAsoImpactAnalyzer, AsoImpactAnalyzer>();
 
         // Hourly: a day's checks are spread over the runs (each checks what is not yet checked today, up to its limit), and

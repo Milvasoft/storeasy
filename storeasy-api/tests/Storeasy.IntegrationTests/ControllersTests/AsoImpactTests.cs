@@ -6,6 +6,7 @@ using Storeasy.Domain.Aso;
 using Storeasy.Domain.Content;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Events;
+using Storeasy.Domain.Experiments;
 using Storeasy.Domain.JsonModels;
 using Storeasy.Domain.MsStore;
 using Storeasy.IntegrationTests.TestBase;
@@ -24,7 +25,7 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
 
     private static DateTime At(DateOnly day, int hour = 10) => day.ToDateTime(new TimeOnly(hour, 0), DateTimeKind.Utc);
 
-    private sealed record Seeded(EventOrg Org, int AppId, int AppleRecordId, int PlayRecordId, int MsRecordId, long LivePlanId, long AwaitingPlanId, long PlayListingPlanId, long PlayIconPlanId, long MsPlanId, long VersionStateId, long MsSubmissionId, long DiscardedPlanId, long ReviewPlanId);
+    private sealed record Seeded(EventOrg Org, int AppId, int AppleRecordId, int PlayRecordId, int MsRecordId, long LivePlanId, long AwaitingPlanId, long PlayListingPlanId, long PlayIconPlanId, long MsPlanId, long VersionStateId, long MsSubmissionId, long DiscardedPlanId, long ReviewPlanId, int ExperimentId, long WinnerPlanId);
 
     private static ChangePlan Plan(EventOrg org, int appId, int storeAppId, StoreKind store, ChangePlanKind kind, DateTime applied, List<PlanItem> items, string versionId = null, ChangePlanStatus status = ChangePlanStatus.Applied) => new()
     {
@@ -95,6 +96,12 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
         // Microsoft Store: a listing change applied two days before the submission was published.
         var msPlan = Plan(org, app.Id, microsoft.Id, StoreKind.Microsoft, ChangePlanKind.MsChange, At(_effect.AddDays(-22)), [new PlanItem { Group = "listing", Locale = "tr-tr", Field = "description", After = "Yeni", Action = ChangeAction.Update }]);
 
+        // A product page optimization test that ran and ended before the windows, its winner applied the day after; a custom
+        // product page (its own traffic) is no event.
+        var experiment = new AsoExperiment { OrganizationId = org.OrganizationId, AppId = app.Id, StoreAppId = apple.Id, Store = StoreKind.Apple, Kind = AsoExperimentKind.ProductPageOptimization, Name = "Yeni ikon testi", Status = AsoExperimentStatus.Completed, StartDate = At(_effect.AddDays(-35)), EndDate = At(_effect.AddDays(-26)), CreationDate = At(_effect.AddDays(-36)) };
+        var customPage = new AsoExperiment { OrganizationId = org.OrganizationId, AppId = app.Id, StoreAppId = apple.Id, Store = StoreKind.Apple, Kind = AsoExperimentKind.CustomProductPage, Name = "Kampanya sayfası", Status = AsoExperimentStatus.Running, StartDate = At(_effect.AddDays(-30)), CreationDate = At(_effect.AddDays(-31)) };
+        var winnerPlan = Plan(org, app.Id, apple.Id, StoreKind.Apple, ChangePlanKind.AsoExperiment, At(_effect.AddDays(-25)), [new PlanItem { Group = ContentGroups.Media, Locale = "tr", Field = "APP_IPHONE_67", After = "treatment-b.png", Action = ChangeAction.Create }]);
+
         var versionState = new AppVersionState { OrganizationId = org.OrganizationId, AppId = app.Id, StoreAppId = apple.Id, Store = StoreKind.Apple, ExternalVersionId = liveVersion, VersionString = "2.0", State = "READY_FOR_SALE", PreviousState = "PENDING_DEVELOPER_RELEASE", ChangedDate = At(_effect, 16), SubmittedDate = At(_effect.AddDays(-2)) };
         var pendingState = new AppVersionState { OrganizationId = org.OrganizationId, AppId = app.Id, StoreAppId = apple.Id, Store = StoreKind.Apple, ExternalVersionId = pendingVersion, VersionString = "2.1", State = "IN_REVIEW", ChangedDate = At(_today.AddDays(-1)) };
         var submission = new MsSubmission
@@ -111,7 +118,8 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
 
         await _factory.DbAsync(async db =>
         {
-            db.ChangePlans.AddRange(livePlan, awaitingPlan, discardedPlan, reviewPlan, playListing, playIcon, msPlan);
+            db.ChangePlans.AddRange(livePlan, awaitingPlan, discardedPlan, reviewPlan, playListing, playIcon, msPlan, winnerPlan);
+            db.AsoExperiments.AddRange(experiment, customPage);
             db.AppVersionStates.AddRange(versionState, pendingState);
             db.MsSubmissions.Add(submission);
 
@@ -136,7 +144,7 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
             await db.SaveChangesAsync();
         });
 
-        return new Seeded(org, app.Id, apple.Id, play.Id, microsoft.Id, livePlan.Id, awaitingPlan.Id, playListing.Id, playIcon.Id, msPlan.Id, versionState.Id, submission.Id, discardedPlan.Id, reviewPlan.Id);
+        return new Seeded(org, app.Id, apple.Id, play.Id, microsoft.Id, livePlan.Id, awaitingPlan.Id, playListing.Id, playIcon.Id, msPlan.Id, versionState.Id, submission.Id, discardedPlan.Id, reviewPlan.Id, experiment.Id, winnerPlan.Id);
     }
 
     private static string Url(Seeded s, string path, string query = "") => $"aso-impact{path}?organizationId={s.Org.OrganizationId}&appId={s.AppId}{query}";
@@ -154,7 +162,8 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
         // Assert
         http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
         var events = body.Data;
-        events.Select(e => e.Id).Should().BeEquivalentTo([$"plan-{s.LivePlanId}", $"plan-{s.AwaitingPlanId}", $"plan-{s.PlayListingPlanId}", $"plan-{s.PlayIconPlanId}", $"plan-{s.MsPlanId}", $"version-{s.VersionStateId}", $"ms-{s.MsSubmissionId}"],
+        events.Select(e => e.Id).Should().BeEquivalentTo([$"plan-{s.LivePlanId}", $"plan-{s.AwaitingPlanId}", $"plan-{s.PlayListingPlanId}", $"plan-{s.PlayIconPlanId}", $"plan-{s.MsPlanId}", $"version-{s.VersionStateId}", $"ms-{s.MsSubmissionId}",
+                                                          $"experiment-{s.ExperimentId}-start", $"experiment-{s.ExperimentId}-end", $"plan-{s.WinnerPlanId}"],
                                                          "discarded plans and plans that do not change the store page are left out");
         events.Select(e => e.Date).Should().BeInDescendingOrder();
 
@@ -174,6 +183,14 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
         var ms = events.Single(e => e.Id == $"plan-{s.MsPlanId}");
         ms.Date.Should().Be(_effect.AddDays(-20), "a Microsoft Store change is live when the next submission is published");
         ms.DateSource.Should().Be(ImpactDateSource.StoreLive);
+
+        var started = events.Single(e => e.Id == $"experiment-{s.ExperimentId}-start");
+        started.Kind.Should().Be(ImpactEventKind.ExperimentStarted);
+        started.Date.Should().Be(_effect.AddDays(-35));
+        started.DateSource.Should().Be(ImpactDateSource.Experiment);
+        started.Title.Should().Be("Yeni ikon testi");
+        events.Single(e => e.Id == $"experiment-{s.ExperimentId}-end").Date.Should().Be(_effect.AddDays(-26));
+        events.Single(e => e.Id == $"plan-{s.WinnerPlanId}").Kind.Should().Be(ImpactEventKind.ExperimentWinnerApplied);
 
         playOnly.StatusCode.Should().Be(HttpStatusCode.OK);
         playBody.Data.Should().OnlyContain(e => e.Store == StoreKind.Google).And.HaveCount(2);
@@ -239,7 +256,10 @@ public class AsoImpactTests(StoreasyApiFactory factory) : IntegrationTestBase(fa
         var (_, play) = await s.Org.Owner.Client.GetAsync<AsoImpactReportDto>(Url(s, "", $"&eventId=plan-{s.PlayListingPlanId}"));
         var (_, awaiting) = await s.Org.Owner.Client.GetAsync<AsoImpactReportDto>(Url(s, "", $"&eventId=plan-{s.AwaitingPlanId}"));
 
+        var (_, winner) = await s.Org.Owner.Client.GetAsync<AsoImpactReportDto>(Url(s, "", $"&eventId=plan-{s.WinnerPlanId}"));
+
         play.Data.Confounders.Select(e => e.Id).Should().Equal($"plan-{s.PlayIconPlanId}");
+        winner.Data.Confounders.Select(e => e.Id).Should().Equal([$"experiment-{s.ExperimentId}-start", $"experiment-{s.ExperimentId}-end"], "a test running in the before window splits the page's traffic");
         play.Data.Metrics.Single(m => m.Metric == StoreMetricKind.Impressions).Before.Should().BeNull("Google Play reports no impressions");
         play.Data.Conversion.Signal.Should().Be(ImpactSignal.NotSignificant);
         awaiting.Data.Status.Should().Be(ImpactStatus.AwaitingRelease);

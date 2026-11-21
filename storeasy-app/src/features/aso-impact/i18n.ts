@@ -28,6 +28,7 @@ export const impactEn = {
     msChange: 'Microsoft Store change',
     experimentStarted: 'Experiment started',
     experimentEnded: 'Experiment ended',
+    experimentWinnerApplied: 'Experiment winner applied',
   },
   options: {
     window: 'Window',
@@ -107,6 +108,7 @@ export const impactEn = {
   links: {
     plan: 'Open the plan',
     version: 'Open versions',
+    experiment: 'Open the experiment',
   },
   empty: {
     metricsTitle: 'No store performance data yet',
@@ -159,6 +161,7 @@ export const impactTr: ImpactDictionary = {
     msChange: 'Microsoft Store değişikliği',
     experimentStarted: 'Deney başladı',
     experimentEnded: 'Deney bitti',
+    experimentWinnerApplied: 'Deneyin kazananı uygulandı',
   },
   options: {
     window: 'Pencere',
@@ -237,6 +240,7 @@ export const impactTr: ImpactDictionary = {
   links: {
     plan: 'Planı aç',
     version: 'Sürümleri aç',
+    experiment: 'Deneyi aç',
   },
   empty: {
     metricsTitle: 'Henüz mağaza performansı verisi yok',

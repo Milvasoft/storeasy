@@ -19,6 +19,7 @@ const KIND_KEYS: Record<ImpactEventKind, keyof ImpactDictionary['kind']> = {
   [ImpactEventKind.MsChange]: 'msChange',
   [ImpactEventKind.ExperimentStarted]: 'experimentStarted',
   [ImpactEventKind.ExperimentEnded]: 'experimentEnded',
+  [ImpactEventKind.ExperimentWinnerApplied]: 'experimentWinnerApplied',
 }
 
 export function kindLabel(kind: ImpactEventKind, t: ImpactDictionary): string {
@@ -30,6 +31,9 @@ export function eventTitle(event: AsoImpactEventDto, t: ImpactDictionary): strin
   const kind = kindLabel(event.Kind, t)
   if (event.Kind === ImpactEventKind.VersionReleased && event.VersionString) {
     return `${kind}: ${event.VersionString}`
+  }
+  if ((event.Kind === ImpactEventKind.ExperimentStarted || event.Kind === ImpactEventKind.ExperimentEnded) && event.Title) {
+    return `${kind}: ${event.Title}`
   }
   return event.Locales.length > 0 ? `${kind} (${event.Locales.join(', ')})` : kind
 }
@@ -73,6 +77,10 @@ export const IMPACT_METRICS: Array<{ metric: ImpactMetric; key: MetricKey }> = [
 export function eventLink(event: AsoImpactEventDto): string | null {
   if (event.PlanId != null) {
     return `/apps/${event.AppId}/listing/plans/${event.PlanId}`
+  }
+  const experiment = /^experiment-(\d+)-/.exec(event.Id)
+  if (experiment) {
+    return `/apps/${event.AppId}/experiments/${experiment[1]}`
   }
   if (event.Id.startsWith('version-') || event.Id.startsWith('ms-')) {
     return `/apps/${event.AppId}/release/versions?store=${storeSlug(event.Store)}`

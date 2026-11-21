@@ -16,6 +16,14 @@ using Storeasy.Application.Features.Artifacts.DeliverArtifactSession;
 using Storeasy.Application.Features.Artifacts.GetArtifactSessionDetail;
 using Storeasy.Application.Features.Artifacts.GetArtifactSessionList;
 using Storeasy.Application.Features.Artifacts.GetArtifactSummary;
+using Storeasy.Application.Features.AsoExperiments.GetAsoExperimentDetail;
+using Storeasy.Application.Features.AsoExperiments.GetAsoExperimentExport;
+using Storeasy.Application.Features.AsoExperiments.GetAsoExperimentOverview;
+using Storeasy.Application.Features.AsoExperiments.PlanAsoExperiment;
+using Storeasy.Application.Features.AsoExperiments.RecordAsoExperimentResult;
+using Storeasy.Application.Features.AsoExperiments.SaveAsoExperiment;
+using Storeasy.Application.Features.AsoExperiments.SyncAsoExperiments;
+using Storeasy.Application.Features.AsoExperiments.UpdateAsoExperimentChecklist;
 using Storeasy.Application.Features.AssistedSteps.CompleteAssistedStep;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepDetail;
 using Storeasy.Application.Features.AssistedSteps.GetAssistedStepList;
@@ -366,6 +374,16 @@ public static class McpToolCatalog
         Plan<PlanSandboxTestersCommand>("sandbox_testers_plan", "Plans sandbox tester changes."),
         Read<GetServerNotificationsQuery>("server_notifications_get", "Reads the App Store server notification URLs and version."),
         Plan<PlanServerNotificationsCommand>("server_notifications_plan", "Plans the App Store server notification URLs (ManageWebhooks permission to apply)."),
+
+        // Store listing experiments and custom product pages
+        Read<GetAsoExperimentOverviewQuery>("aso_experiments_list", "Lists the store listing experiments and custom pages of an app (App Store product page optimization and custom product pages, Play experiments and custom listings) with their state, and what each store supports: App Store through the API, Play as an assisted step (the Play API has none), Microsoft Store not at all."),
+        Read<GetAsoExperimentDetailQuery>("aso_experiment_get", "Reads one experiment or custom page record: variants (what each changes per locale), store state, dates, links (custom product page URL with ppid), timeline, the writes that can be planned now and, for Play, the Play Console checklist."),
+        Write<SaveAsoExperimentCommand>("aso_experiment_save", "Creates (Id null) or edits a draft record: kind, name, traffic proportion, up to 3 treatments with an alternate icon name and screenshot/preview asset ids per locale (from uploads or mockups_export_manifest), or a custom page's promotional texts. Nothing is written to a store."),
+        Plan<PlanAsoExperimentCommand>("aso_experiment_plan", "Plans an App Store experiment or custom product page write: Push (create or update with treatments and media), Submit (for App Review, alone or WithVersion), Start, Stop, ApplyWinner (writes the winner's media to the editable app version). Start, Stop and ApplyWinner need the production release permission, Submit the submit permission; all but Push need the typed confirmation (app name and experiment name)."),
+        Write<RecordAsoExperimentResultCommand>("aso_experiment_result", "Records the result of an experiment (summary, winner, results link) and, for Play records run in Play Console, their state, start and end."),
+        Write<UpdateAsoExperimentChecklistCommand>("aso_experiment_checklist", "Saves the done items of a Play record's Play Console checklist."),
+        Read<GetAsoExperimentExportQuery>("aso_experiment_export", "Download links of a record's variant files and its localized texts, to set a Play experiment or custom listing up in Play Console."),
+        Write<SyncAsoExperimentsCommand>("aso_experiments_sync", "Reads an App Store record's experiments and custom product pages now (a store job); ones made in App Store Connect get a record."),
 
         // Studio
         Read<GetMockupTemplateListQuery>("mockups_templates_list", "Lists the mockup templates of the organization."),

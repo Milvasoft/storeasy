@@ -286,6 +286,8 @@ public class AsoImpactTests
     [InlineData(ChangePlanKind.MsChange, "image", "Screenshot", ImpactEventKind.Screenshots)]
     [InlineData(ChangePlanKind.MsChange, "pricing", "priceId", ImpactEventKind.Price)]
     [InlineData(ChangePlanKind.MsChange, "package", "package", null)]
+    [InlineData(ChangePlanKind.AsoExperiment, "Media", "APP_IPHONE_67", ImpactEventKind.ExperimentWinnerApplied)]
+    [InlineData(ChangePlanKind.AsoExperiment, "Experiment", "started", null)]
     public void KindOf_ShouldMapStorePageChangesOnly(ChangePlanKind kind, string group, string field, ImpactEventKind? expected)
     {
         var items = group == null ? new List<PlanItem>() : [new PlanItem { Group = group, Field = field }];

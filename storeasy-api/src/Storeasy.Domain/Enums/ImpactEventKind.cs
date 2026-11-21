@@ -46,4 +46,8 @@ public enum ImpactEventKind : byte
     /// <summary>A store listing experiment ended.</summary>
     [Description("Experiment ended")]
     ExperimentEnded = 21,
+
+    /// <summary>The winning treatment of an experiment was applied to the store page.</summary>
+    [Description("Experiment winner applied")]
+    ExperimentWinnerApplied = 22,
 }

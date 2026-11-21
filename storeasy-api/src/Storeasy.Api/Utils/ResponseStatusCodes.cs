@@ -207,6 +207,14 @@ public static class ResponseStatusCodes
         [MessageKey.BuildExpired] = StatusCodes.Status409Conflict,
         [MessageKey.BetaReviewAlreadySubmitted] = StatusCodes.Status409Conflict,
         [MessageKey.RuleProposalDecided] = StatusCodes.Status409Conflict,
+        [MessageKey.AsoExperimentNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.AsoExperimentNotEditable] = StatusCodes.Status409Conflict,
+        [MessageKey.AsoExperimentNotDeletable] = StatusCodes.Status409Conflict,
+        [MessageKey.AsoExperimentOperationNotAllowed] = StatusCodes.Status409Conflict,
+        [MessageKey.AsoExperimentNotInStore] = StatusCodes.Status409Conflict,
+        [MessageKey.AsoExperimentNoApi] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.AsoKindNotSupported] = StatusCodes.Status422UnprocessableEntity,
+        [MessageKey.AsoWinnerNothingToApply] = StatusCodes.Status422UnprocessableEntity,
     }.ToFrozenDictionary();
 
     /// <summary>

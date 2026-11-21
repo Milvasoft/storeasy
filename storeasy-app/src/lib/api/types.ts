@@ -165,6 +165,15 @@ export const AuditAction = {
   AsoKeywordSeedsGenerated: 472,
   AppleAnalyticsEnabled: 480,
   ReportBucketUpdated: 481,
+  AsoExperimentCreated: 490,
+  AsoExperimentUpdated: 491,
+  AsoExperimentDeleted: 492,
+  AsoExperimentWritten: 493,
+  AsoExperimentStarted: 494,
+  AsoExperimentStopped: 495,
+  AsoExperimentWinnerApplied: 496,
+  AsoExperimentResultRecorded: 497,
+  AsoExperimentSubmitted: 498,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -178,6 +187,7 @@ export const StoreJobKind = {
   MsCheckInstaller: 53,
   MockupExport: 60,
   SyncMonetization: 70,
+  SyncAsoExperiments: 80,
   PreReview: 90,
   SyncStoreMetrics: 120,
   EnableAppleAnalytics: 121,

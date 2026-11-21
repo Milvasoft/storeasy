@@ -762,6 +762,27 @@
         <member name="M:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Aso.Impact.ExperimentImpactSource">
+            <summary>
+            Impact events of store listing experiments (App Store product page optimization, Google Play store listing
+            experiments): the day an experiment started getting traffic and the day it ended, from the experiment records. A test
+            splits the default page's traffic, so it confounds other changes in its windows. Applying the winner is a change plan
+            (<see cref="T:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource"/>, <see cref="F:Storeasy.Domain.Enums.ImpactEventKind.ExperimentWinnerApplied"/>).
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ExperimentImpactSource.#ctor(Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            Impact events of store listing experiments (App Store product page optimization, Google Play store listing
+            experiments): the day an experiment started getting traffic and the day it ended, from the experiment records. A test
+            splits the default page's traffic, so it confounds other changes in its windows. Applying the winner is a change plan
+            (<see cref="T:Storeasy.Infrastructure.Aso.Impact.ChangePlanImpactSource"/>, <see cref="F:Storeasy.Domain.Enums.ImpactEventKind.ExperimentWinnerApplied"/>).
+            </summary>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.Impact.ExperimentImpactSource.GetEventsAsync(Storeasy.Application.Interfaces.ImpactEventQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Aso.Impact.ReleaseImpactSource">
             <summary>
             Impact events of versions that went live: App Store versions whose last known state is ready for sale (the day they
@@ -3783,6 +3804,31 @@
         <member name="M:Storeasy.Infrastructure.Services.ApiTokenAuthenticator.AuthenticateAsync(System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Services.AsoExperimentStore">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentStore"/>: opens the record's connection secret for one read (the decrypted bytes are
+            cleared at once) and reads through the store's <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentGateway"/>. Store failures are logged
+            (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>.
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AsoExperimentStore.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IAsoExperimentGateway},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.ISecretProtector,Milvasoft.Core.Abstractions.IMilvaLogger)">
+            <summary>
+            Default <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentStore"/>: opens the record's connection secret for one read (the decrypted bytes are
+            cleared at once) and reads through the store's <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentGateway"/>. Store failures are logged
+            (redacted) and returned as <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreUnreachable"/> (transient) or <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.StoreRejected"/>.
+            </summary>
+            <param name="gateways"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="logger"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Services.AsoExperimentStore.ReadAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Services.AuditTrail">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IAuditTrail"/>.
@@ -5781,12 +5827,35 @@
         <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.ListSetsAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Content.AppleMediaParent,Storeasy.Domain.Enums.MediaKind,System.Threading.CancellationToken)">
+            <summary>
+            The screenshot or preview sets under <paramref name="parent"/> with their items.
+            </summary>
+            <param name="api"></param>
+            <param name="parent"></param>
+            <param name="kind"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.SyncMediaSetAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,System.String,Storeasy.Application.Interfaces.MediaSetChange,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <summary>
             Makes the set of (version, locale, class) hold the desired items in order: items whose MD5 is already in the set are
             kept, the others are deleted, the missing ones uploaded, then the set is reordered. An empty desired list deletes the
             set.
             </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.SyncMediaSetAsync(Storeasy.Infrastructure.Stores.Content.AppStoreConnectApi,Storeasy.Infrastructure.Stores.Content.AppleMediaParent,Storeasy.Application.Interfaces.MediaSetChange,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <summary>
+            Makes the media set of <paramref name="change"/> under <paramref name="parent"/> (a version localization, an
+            experiment treatment localization or a custom product page localization) hold the desired items in order (see the
+            version overload).
+            </summary>
+            <param name="api"></param>
+            <param name="parent"></param>
+            <param name="change"></param>
+            <param name="context"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Content.AppleContentGateway.PlanSet(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MediaItemState},System.Collections.Generic.IReadOnlyList{Storeasy.Application.Interfaces.MediaItemChange})">
             <summary>
@@ -5802,6 +5871,52 @@
             Reserves, uploads and commits one item; a failure after the reservation deletes it so no half reserved item stays
             in the set. Waits for processing up to the configured time and reports the state reached.
             </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Content.AppleMediaParent">
+            <summary>
+            The resource screenshot and preview sets hang under: its relationship name on the set, its type and its id.
+            </summary>
+            <param name="Relation">Relationship name on the set (e.g. appStoreVersionLocalization).</param>
+            <param name="Type">Resource type (e.g. appStoreVersionLocalizations).</param>
+            <param name="Id">Resource id.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.#ctor(System.String,System.String,System.String)">
+            <summary>
+            The resource screenshot and preview sets hang under: its relationship name on the set, its type and its id.
+            </summary>
+            <param name="Relation">Relationship name on the set (e.g. appStoreVersionLocalization).</param>
+            <param name="Type">Resource type (e.g. appStoreVersionLocalizations).</param>
+            <param name="Id">Resource id.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.Relation">
+            <summary>Relationship name on the set (e.g. appStoreVersionLocalization).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.Type">
+            <summary>Resource type (e.g. appStoreVersionLocalizations).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.Id">
+            <summary>Resource id.</summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.VersionLocalization(System.String)">
+            <summary>
+            An App Store version localization.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.TreatmentLocalization(System.String)">
+            <summary>
+            A product page optimization treatment localization.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Content.AppleMediaParent.CustomPageLocalization(System.String)">
+            <summary>
+            A custom product page localization.
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Content.ApplyChangePlanJobHandler">
             <summary>
@@ -6306,6 +6421,295 @@
         </member>
         <member name="P:Storeasy.Infrastructure.Stores.Content.StoreHttpResponse.Range">
             <summary><c>Range</c> header (resumable upload progress).</summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentGateway">
+            <summary>
+            App Store Connect product page optimization (experiments v2) and custom product pages:
+            <list type="bullet">
+            <item>Writing an experiment creates or updates it, its treatments (name, alternate icon) and their localizations, and
+            makes each localization's screenshot and preview sets match the plan through the same reserve, upload and commit
+            protocol as the version's sets. A treatment the plan no longer has is deleted. A create retried after a lost answer
+            finds the experiment or treatment by name instead of making a second one.</item>
+            <item>Writing a custom product page creates it with its first version and localization inline, or makes a new version
+            when the latest one can no longer be edited, then writes the localizations' promotional texts and media.</item>
+            <item>Submitting adds the experiment (or page version) to the open review submission and submits it, unless it goes
+            with the app version; starting and stopping set the experiment's <c>started</c> attribute.</item>
+            <item>Applying a winner writes its media to the app version through the content engine.</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentGateway.#ctor(Storeasy.Infrastructure.Stores.Content.StoreHttp,Storeasy.Application.Interfaces.IFileStorage)">
+            <summary>
+            App Store Connect product page optimization (experiments v2) and custom product pages:
+            <list type="bullet">
+            <item>Writing an experiment creates or updates it, its treatments (name, alternate icon) and their localizations, and
+            makes each localization's screenshot and preview sets match the plan through the same reserve, upload and commit
+            protocol as the version's sets. A treatment the plan no longer has is deleted. A create retried after a lost answer
+            finds the experiment or treatment by name instead of making a second one.</item>
+            <item>Writing a custom product page creates it with its first version and localization inline, or makes a new version
+            when the latest one can no longer be edited, then writes the localizations' promotional texts and media.</item>
+            <item>Submitting adds the experiment (or page version) to the open review submission and submits it, unless it goes
+            with the app version; starting and stopping set the experiment's <c>started</c> attribute.</item>
+            <item>Applying a winner writes its media to the app version through the content engine.</item>
+            </list>
+            </summary>
+            <param name="http"></param>
+            <param name="fileStorage"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.AsoExperimentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads">
+            <summary>
+            JSON:API bodies and parsing of App Store Connect experiments (v2), treatments, treatment localizations and custom
+            product pages. Pure, so the shapes are tested against recorded answers. Resource types and relationship names follow
+            the App Store Connect API reference: a v2 experiment is created with the <c>app</c> relationship and its
+            <c>name</c>, <c>platform</c> and <c>trafficProportion</c>, started and stopped through its <c>started</c> attribute; a
+            treatment hangs under <c>appStoreVersionExperimentV2</c>; a custom product page is created with its first version and
+            localization inline (<c>included</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.ExperimentType">
+            <summary>
+            Resource type of v2 experiments (the same type name as v1, served under /v2).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.TreatmentType">
+            <summary>
+            Resource type of treatments.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.TreatmentLocalizationType">
+            <summary>
+            Resource type of treatment localizations.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.PageType">
+            <summary>
+            Resource type of custom product pages.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.PageVersionType">
+            <summary>
+            Resource type of custom product page versions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.PageLocalizationType">
+            <summary>
+            Resource type of custom product page localizations.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.EditablePageStates">
+            <summary>
+            Custom product page version states that can still be edited.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreateExperiment(System.String,System.String,System.String,System.Int32)">
+            <summary>
+            Body creating a v2 experiment.
+            </summary>
+            <param name="appId"></param>
+            <param name="name"></param>
+            <param name="platform"></param>
+            <param name="trafficProportion"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.UpdateExperiment(System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Boolean})">
+            <summary>
+            Body updating a v2 experiment (name, traffic proportion, started); null values are left out.
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <param name="trafficProportion"></param>
+            <param name="started"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreateTreatment(System.String,System.String,System.String)">
+            <summary>
+            Body creating a treatment of a v2 experiment.
+            </summary>
+            <param name="experimentId"></param>
+            <param name="name"></param>
+            <param name="appIconName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.UpdateTreatment(System.String,System.String,System.String)">
+            <summary>
+            Body updating a treatment's name and icon.
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <param name="appIconName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreateTreatmentLocalization(System.String,System.String)">
+            <summary>
+            Body creating a treatment localization.
+            </summary>
+            <param name="treatmentId"></param>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreatePage(System.String,System.String,System.String,System.String)">
+            <summary>
+            Body creating a custom product page with its first version and one localization inline.
+            </summary>
+            <param name="appId"></param>
+            <param name="name"></param>
+            <param name="locale"></param>
+            <param name="promotionalText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.UpdatePage(System.String,System.String)">
+            <summary>
+            Body renaming a custom product page.
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreatePageVersion(System.String)">
+            <summary>
+            Body creating a new version of a custom product page (to edit a page whose version is in review or live).
+            </summary>
+            <param name="pageId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.CreatePageLocalization(System.String,System.String,System.String)">
+            <summary>
+            Body creating a custom product page localization.
+            </summary>
+            <param name="versionId"></param>
+            <param name="locale"></param>
+            <param name="promotionalText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.UpdatePageLocalization(System.String,System.String)">
+            <summary>
+            Body updating a custom product page localization's promotional text.
+            </summary>
+            <param name="id"></param>
+            <param name="promotionalText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.SubmissionItem(System.String,Storeasy.Domain.Enums.AsoExperimentKind,System.String)">
+            <summary>
+            Body adding an experiment or custom product page version to a review submission.
+            </summary>
+            <param name="submissionId"></param>
+            <param name="kind"></param>
+            <param name="itemId">Experiment id, or custom product page version id.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.ParseExperiment(System.Text.Json.JsonElement)">
+            <summary>
+            An experiment resource as read (treatments are added by the caller).
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.ParseTreatment(System.Text.Json.JsonElement)">
+            <summary>
+            A treatment resource as read.
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.ParsePage(System.Text.Json.JsonElement)">
+            <summary>
+            A custom product page resource as read (version and localizations are added by the caller).
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.LatestVersion(System.Collections.Generic.IReadOnlyList{System.Text.Json.JsonElement})">
+            <summary>
+            The version of a custom product page storeasy works with: the one still being edited or reviewed, otherwise the
+            highest version (Apple numbers them "1", "2", ...).
+            </summary>
+            <param name="versions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AppleExperimentPayloads.ParsePageLocalization(System.Text.Json.JsonElement)">
+            <summary>
+            A custom product page localization resource as read.
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension">
+            <summary>
+            Change plans of App Store experiments and custom product pages (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.AsoExperiment"/>): on
+            approval the experiments are read again for the fingerprint (applying a winner reads the app version's media); the
+            apply job writes through <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentGateway"/>, saves the store ids it got onto the record, then reads the
+            store again so the record shows the new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="experimentStore"></param>
+            <param name="contentService"></param>
+            <param name="experimentRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension.#ctor(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IAsoExperimentGateway},Storeasy.Application.Interfaces.IAsoExperimentStore,Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Experiments.AsoExperiment},System.TimeProvider)">
+            <summary>
+            Change plans of App Store experiments and custom product pages (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.AsoExperiment"/>): on
+            approval the experiments are read again for the fingerprint (applying a winner reads the app version's media); the
+            apply job writes through <see cref="T:Storeasy.Application.Interfaces.IAsoExperimentGateway"/>, saves the store ids it got onto the record, then reads the
+            store again so the record shows the new state.
+            </summary>
+            <param name="gateways"></param>
+            <param name="experimentStore"></param>
+            <param name="contentService"></param>
+            <param name="experimentRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.AsoExperimentPlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Experiments.SyncAsoExperimentsJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncAsoExperiments"/> job: reads the experiments and custom product pages of an App Store
+            record and saves their state into storeasy's records (<see cref="T:Storeasy.Application.Utils.Experiments.AsoExperimentStoreSync"/>); ones made in App Store
+            Connect get a record. A store that cannot be reached fails the step transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="experimentStore"></param>
+            <param name="experimentRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.SyncAsoExperimentsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IAsoExperimentStore,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Experiments.AsoExperiment},System.TimeProvider)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncAsoExperiments"/> job: reads the experiments and custom product pages of an App Store
+            record and saves their state into storeasy's records (<see cref="T:Storeasy.Application.Utils.Experiments.AsoExperimentStoreSync"/>); ones made in App Store
+            Connect get a record. A store that cannot be reached fails the step transiently and the runner retries.
+            </summary>
+            <param name="contentService"></param>
+            <param name="experimentStore"></param>
+            <param name="experimentRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Experiments.SyncAsoExperimentsJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Experiments.SyncAsoExperimentsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.AuthenticodeProbe">
             <summary>
@@ -7845,19 +8249,22 @@
             App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
             writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
-            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
+            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app). App
+            Store records with an experiment or custom product page that has not ended get a
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncAsoExperiments"/> job, so their states follow App Store Connect.
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
             <param name="buildRepository"></param>
             <param name="endpointRepository"></param>
+            <param name="experimentRepository"></param>
             <param name="storeGateway"></param>
             <param name="activityPublisher"></param>
             <param name="storeJobQueue"></param>
             <param name="timeProvider"></param>
             <param name="logger"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.WebhookEndpoint},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Experiments.AsoExperiment},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.IActivityPublisher,Storeasy.Application.Interfaces.IStoreJobQueue,System.TimeProvider,Milvasoft.Core.Abstractions.IMilvaLogger)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncApps"/> job: reads the apps and builds of one store connection and saves them.
             <list type="bullet">
@@ -7873,12 +8280,15 @@
             App Store or Google Play icon always replaces the one the app has, so it wins over a Microsoft Store icon. All
             writes are set based or bulk; the loops only call the store. App Store
             records that arrive on this connection get the connection's App Store Connect webhooks: every endpoint registered
-            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app).
+            through the API is registered again (a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks"/> job, which upserts per app). App
+            Store records with an experiment or custom product page that has not ended get a
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncAsoExperiments"/> job, so their states follow App Store Connect.
             </summary>
             <param name="storeAppRepository"></param>
             <param name="appRepository"></param>
             <param name="buildRepository"></param>
             <param name="endpointRepository"></param>
+            <param name="experimentRepository"></param>
             <param name="storeGateway"></param>
             <param name="activityPublisher"></param>
             <param name="storeJobQueue"></param>
@@ -7890,6 +8300,12 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.QueueExperimentSyncAsync(System.Int32,System.Collections.Generic.List{Storeasy.Domain.Apps.StoreApp},System.Threading.CancellationToken)">
+            <summary>
+            Queues an experiment sync for every synced App Store record that has an experiment or custom product page in the
+            store that has not ended.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.SyncAppsJobHandler.ReadIconAsync(Storeasy.Application.Interfaces.OpenedStoreConnection,System.String,System.Threading.CancellationToken)">
             <summary>

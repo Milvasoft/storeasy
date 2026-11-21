@@ -402,7 +402,11 @@ function Report({
             </Badge>
             {link ? (
               <Link className="lnk ml-auto text-xs" to={link}>
-                {report.Event.PlanId != null ? t.links.plan : t.links.version}
+                {report.Event.PlanId != null
+                  ? t.links.plan
+                  : report.Event.Id.startsWith('experiment-')
+                    ? t.links.experiment
+                    : t.links.version}
               </Link>
             ) : null}
           </div>

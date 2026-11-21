@@ -48,7 +48,14 @@ public static class ImpactEventRules
         ChangePlanKind.TrackRelease,
         ChangePlanKind.BundleUpload,
         ChangePlanKind.MsChange,
+        ChangePlanKind.AsoExperiment,
     ];
+
+    /// <summary>
+    /// Experiment kinds whose start and end are events (A/B tests of the default store page; custom product pages and
+    /// custom store listings get their own traffic and do not split the default page's).
+    /// </summary>
+    public static IReadOnlyList<AsoExperimentKind> ExperimentKinds { get; } = [AsoExperimentKind.ProductPageOptimization, AsoExperimentKind.PlayListingExperiment];
 
     // App Store version states (appVersionState and the older appStoreState names).
     private static readonly HashSet<string> _appleLive = new(StringComparer.OrdinalIgnoreCase) { "READY_FOR_SALE", "READY_FOR_DISTRIBUTION" };
@@ -93,6 +100,7 @@ public static class ImpactEventRules
             ChangePlanKind.Screenshots => items.Count > 0 && items.All(i => IsIcon(i.Field)) ? ImpactEventKind.Icon : ImpactEventKind.Screenshots,
             ChangePlanKind.TrackRelease or ChangePlanKind.BundleUpload => items.Any(i => i.Group == ContentGroups.Track && ChangePlanRules.IsProduction(i.Field)) ? ImpactEventKind.VersionReleased : null,
             ChangePlanKind.MsChange => MsKindOf(items),
+            ChangePlanKind.AsoExperiment => items.Any(i => i.Group == ContentGroups.Media) ? ImpactEventKind.ExperimentWinnerApplied : null,
             _ => null,
         };
     }
@@ -141,6 +149,14 @@ public static class ImpactEventRules
     /// <returns></returns>
     public static DateTime? MsPublishedDate(IReadOnlyList<MsStatusChange> history)
         => history?.Where(h => h.Status == MsSubmissionStatus.Published).OrderBy(h => h.Date).Select(h => (DateTime?)h.Date).FirstOrDefault();
+
+    /// <summary>
+    /// Id of an experiment's start or end event.
+    /// </summary>
+    /// <param name="experimentId"></param>
+    /// <param name="start"></param>
+    /// <returns></returns>
+    public static string ExperimentEventId(int experimentId, bool start) => $"{ExperimentPrefix}{experimentId}-{(start ? "start" : "end")}";
 
     /// <summary>
     /// UTC day of an instant.
