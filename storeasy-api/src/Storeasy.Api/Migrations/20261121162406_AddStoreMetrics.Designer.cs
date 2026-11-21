@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261121155904_AddStoreMetrics")]
-partial class _20261121155904_AddStoreMetrics
+[Migration("20261121162406_AddStoreMetrics")]
+partial class _20261121162406_AddStoreMetrics
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -4168,6 +4168,9 @@ partial class _20261121155904_AddStoreMetrics
                 b.Property<string>("Surname")
                     .HasMaxLength(100)
                     .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("TourPromptSeenDate")
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<bool>("TwoFactorEnabled")
                     .HasColumnType("boolean");

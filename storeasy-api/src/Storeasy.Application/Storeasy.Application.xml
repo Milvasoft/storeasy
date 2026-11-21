@@ -443,6 +443,12 @@
             Interface language the user chose; null for the browser's.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto.TourPromptSeenDate">
+            <summary>
+            UTC instant the user answered the web app's guided tour invitation; null while it has not been shown, so the web
+            shows it on the first visit.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.AccountDtos.AccountDetailDto.CreationDate">
             <summary>
             UTC instant the account was created.
@@ -11290,6 +11296,42 @@
         </member>
         <member name="M:Storeasy.Application.Features.Account.MarkNotificationsAsSeen.MarkNotificationsAsSeenCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Account.MarkNotificationsAsSeen.MarkNotificationsAsSeenCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommand">
+            <summary>
+            Records that the caller answered the web app's guided tour invitation (started the tour or closed it), so the
+            invitation does not show again on any device. The account is always the caller's (from the token). Returns the user id.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommand"/> with one conditional update of the caller's row. Repeating it keeps
+            the first date.
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="CurrentUser"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.User},Storeasy.Application.Interfaces.ICurrentUser,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommand"/> with one conditional update of the caller's row. Repeating it keeps
+            the first date.
+            </summary>
+            <param name="UserRepository"></param>
+            <param name="CurrentUser"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler.UserRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler.CurrentUser">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommandHandler.Handle(Storeasy.Application.Features.Account.MarkTourPromptSeen.MarkTourPromptSeenCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Application.Features.Account.RefreshLogin.RefreshLoginCommand">
             <summary>

@@ -10,6 +10,8 @@ export const StorageKey = {
   CurrentOrganization: 'org.current',
   // The e-mail of the last sign-in, so the "session ended" screen can fill the field.
   LastEmail: 'auth.last-email',
+  // User ids that answered the guided tour invitation in this browser (the API keeps it per account too).
+  TourPromptSeen: 'tour.prompt-seen',
 } as const
 
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]

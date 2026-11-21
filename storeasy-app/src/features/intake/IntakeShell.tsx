@@ -223,6 +223,7 @@ export function IntakeShell({ children, actions }: { children: ReactNode; action
   return (
     <div className="grid gap-4">
       <PageHeader
+        tour="intake"
         title={t.title}
         subtitle={t.subtitle}
         actions={

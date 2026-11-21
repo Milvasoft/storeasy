@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261121155904_AddStoreMetrics : Migration
+public partial class _20261121162406_AddStoreMetrics : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

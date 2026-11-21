@@ -124,6 +124,7 @@ export const en = {
       { name: 'Session', description: 'Your sign-in and refresh token. Removed when you sign out.' },
       { name: 'Device id', description: 'So your sessions can be listed per device.' },
       { name: 'Theme, language, last organization', description: 'Your preferences, in this browser only.' },
+      { name: 'Tour invitation', description: 'That you answered the guided tour invitation, so it does not show again.' },
     ],
     noTracking: 'No tracking, analytics or advertising cookies, so there is no consent banner either.',
   },

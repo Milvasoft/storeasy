@@ -257,6 +257,8 @@ export interface AccountDetailDto {
   UserType?: UserType | null
   /** The interface language the user picked ("tr-TR"); null until one is saved. */
   PreferredLanguage?: string | null
+  /** When the user answered the guided tour invitation (started it or closed it); null until then. */
+  TourPromptSeenDate?: IsoDateTime | null
   CreationDate?: IsoDateTime | null
   /** Platform roles (Manager users), not organization roles. */
   Roles?: NameIntNavigationDto[] | null

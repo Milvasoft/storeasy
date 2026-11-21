@@ -283,6 +283,7 @@ function CaseList({ context }: { context: WorkspaceContext }) {
   return (
     <>
       <PageHeader
+        tour="rejections"
         title={t.title}
         subtitle={t.subtitle}
         actions={

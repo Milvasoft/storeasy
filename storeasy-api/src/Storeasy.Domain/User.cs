@@ -68,6 +68,13 @@ public class User : MilvaUser<int>, IFullAuditable<int>
     [MaxLength(10)]
     public string PreferredLanguage { get; set; }
 
+    /// <summary>
+    /// UTC instant the web app first showed the user its guided tour invitation and the user answered it (started the
+    /// tour or closed the invitation); null until then. The invitation shows once per user on any device; the tour itself
+    /// stays available from the account page.
+    /// </summary>
+    public DateTime? TourPromptSeenDate { get; set; }
+
     #region Auditing
 
     /// <inheritdoc/>

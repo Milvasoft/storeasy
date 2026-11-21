@@ -175,6 +175,7 @@ export function OrgCompliancePage() {
   return (
     <>
       <PageHeader
+        tour="compliance"
         title={t.compliance.orgTitle}
         subtitle={t.compliance.orgSubtitle}
         actions={
