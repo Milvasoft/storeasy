@@ -15,8 +15,9 @@ import { showToast } from '@/lib/toast/toast'
 import { StoreIconPicker } from './StoreIconPicker'
 
 /**
- * Renames a store connection and changes its icon. The key is not part of this form (a Microsoft secret is replaced with
- * "Renew secret"). Mount it with a key per connection so the fields start from that connection.
+ * Renames a store connection and changes its icon. The key is not part of this form (an Apple or Google key is replaced
+ * with "Replace key", a Microsoft secret with "Renew secret"). Mount it with a key per connection so the fields start
+ * from that connection.
  */
 export function EditConnectionDialog({
   connection,

@@ -730,6 +730,18 @@ export const tr: Dictionary = {
     editTitle: '{name} bağlantısını düzenle',
     editBody: 'Yalnız ad ve simge; anahtar olduğu gibi kalır.',
     updated: 'Bağlantı güncellendi',
+    replaceKey: 'Anahtarı değiştir',
+    replaceTitle: '{name} anahtarını değiştir',
+    replaceAppleBody:
+      'Aynı App Store Connect ekibinden yeni bir anahtar kullan, örneğin Admin rolünde olanı. Bağlantı, uygulamaları, işleri ve geçmişi olduğu gibi kalır.',
+    replaceGoogleBody:
+      'Play Console hesabına davet edilmiş bir servis hesabının JSON anahtarını kullan. Bağlantı, uygulamaları, işleri ve geçmişi olduğu gibi kalır.',
+    replaceNote: 'Önce yeni anahtar mağazada denenir. Çalışırsa eski anahtarın yerine geçer; çalışmazsa hiçbir şey değişmez.',
+    replaceIssuerHint: 'Bu bağlantının Issuer ID değeri …{suffix} ile biter.',
+    replaceIssuerMismatch: 'Bu bağlantı Issuer ID değeri …{suffix} ile biten ekibe ait; başka bir ekibin anahtarı kullanılamaz.',
+    replaceSubmit: 'Doğrula ve değiştir',
+    replaceFailed: 'Anahtar değiştirilemedi',
+    replaced: 'Anahtar değiştirildi',
   },
   members: {
     title: 'Üyeler',
@@ -1163,6 +1175,7 @@ export const tr: Dictionary = {
       aiKeySet: 'Yapay zeka anahtarı girildi',
       aiKeyRemoved: 'Yapay zeka anahtarı kaldırıldı',
       aiModelsChanged: 'Yapay zeka modelleri değişti',
+      connectionKeyReplaced: 'Mağaza bağlantısının anahtarı değiştirildi',
       jobCancelled: 'İş iptal edildi',
       appAdded: 'Uygulama eklendi',
       storeAppLinked: 'Mağaza kaydı eşlendi',

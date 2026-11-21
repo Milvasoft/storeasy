@@ -25343,6 +25343,91 @@
         <member name="M:Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQueryHandler.Handle(Storeasy.Application.Features.StoreConnections.GetStoreConnectionList.GetStoreConnectionListQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand">
+            <summary>
+            Replaces the key of an existing App Store Connect or Google Play connection in place, so the connection id and
+            everything linked to it (apps, jobs, history) stay. An Apple key must belong to the same team (the same issuer id);
+            a Google service account may be another one. The new key is checked offline, verified against the store and only then
+            sealed in place of the old one; when verification fails the old key stays. A Microsoft secret is replaced with
+            <c>RotateMsConnectionSecretCommand</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.ConnectionId">
+            <summary>
+            Apple or Google connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.Secret">
+            <summary>
+            The new secret JSON, in the shape the connection was added with. Apple: <c>{"issuerId","keyId","privateKey"}</c>.
+            Google: the service account JSON key file content. Masked in logs.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand"/>. The secret property is <c>[LogMasked]</c>. The new key is
+            parsed with the same offline checks as adding a connection; an Apple key's issuer id is compared with the one sealed in
+            the connection (opened in memory only for that); the key is verified against the store and only then sealed. The update
+            writes the sealed secret, the fingerprint and the verification result in one statement, so a failure anywhere before it
+            leaves the old key, fingerprint and status as they were.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreGateway"></param>
+            <param name="SecretProtector"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand"/>. The secret property is <c>[LogMasked]</c>. The new key is
+            parsed with the same offline checks as adding a connection; an Apple key's issuer id is compared with the one sealed in
+            the connection (opened in memory only for that); the key is verified against the store and only then sealed. The update
+            writes the sealed secret, the fingerprint and the verification result in one statement, so a failure anywhere before it
+            leaves the old key, fingerprint and status as they were.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="StoreGateway"></param>
+            <param name="SecretProtector"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.StoreGateway">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.SecretProtector">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.Handle(Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.SameAppleTeam(System.Int32,Storeasy.Domain.Stores.StoreConnection,System.String)">
+            <summary>
+            Whether the new Apple key has the issuer id of the sealed one (the same App Store Connect team). The stored secret
+            is opened in memory for the comparison and cleared; when it cannot be read as JSON the fingerprint's issuer suffix
+            decides.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand"/>. The secret's shape depends on the connection's store, so
+            the handler parses it; here it only has to be present and not too long.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand">
             <summary>
             Renames a store connection and sets or clears its icon. The secret is not touched (a Microsoft secret is replaced with

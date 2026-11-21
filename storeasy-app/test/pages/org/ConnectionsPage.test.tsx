@@ -228,4 +228,86 @@ describe('ConnectionsPage', () => {
     const updated = await screen.findByRole('article', { name: 'Yayın anahtarı' })
     await waitFor(() => expect(updated.querySelector('.sti')).toHaveAttribute('data-icon', 'rocket'))
   })
+
+  it('replaces the key of an Apple connection in place, with the Key ID read from the file name', async () => {
+    const { user } = renderWithProviders(<ConnectionsPage />)
+
+    const card = await screen.findByRole('article', { name: 'Kuzey Lab ASC' })
+    await user.click(within(card).getByRole('button', { name: 'Anahtarı değiştir' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Kuzey Lab ASC anahtarını değiştir' })
+    expect(within(dialog).getByText('Bu bağlantının Issuer ID değeri …a91f ile biter.')).toBeInTheDocument()
+    await user.type(within(dialog).getByLabelText('Issuer ID'), SAMPLE_ISSUER)
+    await user.upload(within(dialog).getByLabelText('.p8 anahtarı'), new File([SAMPLE_P8], 'AuthKey_ADM1N2KEY3.p8'))
+    expect(await within(dialog).findByText('AuthKey_ADM1N2KEY3.p8')).toBeInTheDocument()
+    testState.connections = [connection({ Fingerprint: { KeyId: 'ADM1N2KEY3', IssuerIdSuffix: 'a91f' } })]
+    await user.click(within(dialog).getByRole('button', { name: 'Doğrula ve değiştir' }))
+
+    expect(await screen.findByText('Anahtar değiştirildi')).toBeInTheDocument()
+    const sent = lastRequestTo('/StoreConnections/connection/key')?.body as { OrganizationId: number; ConnectionId: number; Secret: string }
+    expect(lastRequestTo('/StoreConnections/connection/key')?.method).toBe('PUT')
+    expect(sent.OrganizationId).toBe(TEST_ORG_ID)
+    expect(sent.ConnectionId).toBe(11)
+    expect(JSON.parse(sent.Secret)).toEqual({ issuerId: SAMPLE_ISSUER, keyId: 'ADM1N2KEY3', privateKey: SAMPLE_P8 })
+    await waitFor(() => expect(within(screen.getByRole('article', { name: 'Kuzey Lab ASC' })).getByText('ADM1N2KEY3')).toBeInTheDocument())
+    expect(screen.queryByRole('dialog', { name: 'Kuzey Lab ASC anahtarını değiştir' })).not.toBeInTheDocument()
+  })
+
+  it('refuses an Apple key of another team before sending it', async () => {
+    const { user } = renderWithProviders(<ConnectionsPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Anahtarı değiştir' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Kuzey Lab ASC anahtarını değiştir' })
+    await user.type(within(dialog).getByLabelText('Issuer ID'), '69a6de7e-1234-4abc-9def-0123456a0000')
+    await user.type(within(dialog).getByLabelText('Key ID'), 'ADM1N2KEY3')
+    await user.click(within(dialog).getByRole('radio', { name: 'Yapıştır' }))
+    await user.click(within(dialog).getByLabelText('.p8 anahtarı'))
+    await user.paste(SAMPLE_P8)
+    await user.click(within(dialog).getByRole('button', { name: 'Doğrula ve değiştir' }))
+
+    expect(
+      within(dialog).getByText('Bu bağlantı Issuer ID değeri …a91f ile biten ekibe ait; başka bir ekibin anahtarı kullanılamaz.'),
+    ).toBeInTheDocument()
+    expect(requestsTo('/StoreConnections/connection/key')).toHaveLength(0)
+  })
+
+  it('shows the store refusal inline, keeps the dialog open and asks for the key again', async () => {
+    server.use(
+      endpoint('put', '/StoreConnections/connection/key', () =>
+        errorResponse('StoreKeyRejected', 'Mağaza yeni anahtarı kabul etmedi; eski anahtar yerinde kaldı.', 400),
+      ),
+    )
+    testState.connections = [
+      connection({
+        Id: 12,
+        Store: StoreKind.Google,
+        Name: 'Play',
+        Fingerprint: { ServiceAccountEmail: 'old@p.iam.gserviceaccount.com', ProjectId: 'p' },
+      }),
+    ]
+    const { user } = renderWithProviders(<ConnectionsPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Anahtarı değiştir' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Play anahtarını değiştir' })
+    expect(within(dialog).queryByLabelText('Issuer ID')).not.toBeInTheDocument()
+    await user.upload(
+      within(dialog).getByLabelText("Servis hesabı JSON'u"),
+      new File([SAMPLE_SERVICE_ACCOUNT], 'play.json', { type: 'application/json' }),
+    )
+    expect(await within(dialog).findByText('storeasy@kuzeylab-play.iam.gserviceaccount.com')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Doğrula ve değiştir' }))
+
+    expect(await within(dialog).findByText('Mağaza yeni anahtarı kabul etmedi; eski anahtar yerinde kaldı.')).toBeInTheDocument()
+    expect(lastRequestTo('/StoreConnections/connection/key')?.body).toMatchObject({ ConnectionId: 12, Secret: SAMPLE_SERVICE_ACCOUNT })
+    expect(within(dialog).queryByText('play.json')).not.toBeInTheDocument()
+  })
+
+  it('offers no key replacement for a Microsoft connection', async () => {
+    testState.connections = [
+      connection({ Id: 13, Store: StoreKind.Microsoft, Name: 'Partner Center', Fingerprint: { SellerId: '40291187' } }),
+    ]
+    renderWithProviders(<ConnectionsPage />)
+
+    const card = await screen.findByRole('article', { name: 'Partner Center' })
+    expect(within(card).queryByRole('button', { name: 'Anahtarı değiştir' })).not.toBeInTheDocument()
+  })
 })

@@ -83,6 +83,10 @@ public enum AuditAction : short
     [Description("AI models changed")]
     AiModelsChanged = 26,
 
+    /// <summary>The key of an App Store Connect or Google Play connection was replaced in place (same connection).</summary>
+    [Description("Store connection key replaced")]
+    ConnectionKeyReplaced = 27,
+
     /// <summary>Store job cancelled.</summary>
     [Description("Store job cancelled")]
     JobCancelled = 30,

@@ -5,6 +5,7 @@ import { Pencil, Plug, Plus, ShieldAlert, Trash2, RefreshCw } from 'lucide-react
 import { AddConnectionDialog } from '@/components/connections/AddConnectionDialog'
 import { ConnectionStatusBadge } from '@/components/connections/ConnectionStatusBadge'
 import { EditConnectionDialog } from '@/components/connections/EditConnectionDialog'
+import { canReplaceKey, ReplaceKeyButton, ReplaceKeyDialog } from '@/components/connections/ReplaceKeyDialog'
 import { StoreTag } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { ScreenState, StateView } from '@/components/ui/ScreenState'
@@ -60,11 +61,13 @@ function ConnectionCard({
   organizationId,
   onRenew,
   onEdit,
+  onReplaceKey,
 }: {
   connection: StoreConnectionDto
   organizationId: number
   onRenew: (connection: StoreConnectionDto) => void
   onEdit: (connection: StoreConnectionDto) => void
+  onReplaceKey: (connection: StoreConnectionDto) => void
 }) {
   const t = useT()
   const format = useFormat()
@@ -143,6 +146,7 @@ function ConnectionCard({
           {t.connections.edit}
         </Button>
         {connection.Store === StoreKind.Microsoft ? <RenewSecretButton onClick={() => onRenew(connection)} /> : null}
+        {canReplaceKey(connection) ? <ReplaceKeyButton onClick={() => onReplaceKey(connection)} /> : null}
         <Button size="sm" variant="danger-outline" className="ml-auto" loading={remove.isPending} onClick={() => void askRemove()}>
           <Trash2 aria-hidden />
           {t.connections.remove}
@@ -174,7 +178,10 @@ function StoreNeeds() {
   )
 }
 
-/** Store connections (design 14.1-14.12): fingerprints only, add by file or paste, verify, delete by typing the name. */
+/**
+ * Store connections (design 14.1-14.12): fingerprints only, add by file or paste, verify, replace an Apple or Google key in
+ * place, delete by typing the name.
+ */
 export function ConnectionsPage() {
   const t = useT()
   const organization = useCurrentOrganization()
@@ -182,6 +189,7 @@ export function ConnectionsPage() {
   const [adding, setAdding] = useState(false)
   const [renewing, setRenewing] = useState<StoreConnectionDto | null>(null)
   const [editing, setEditing] = useState<StoreConnectionDto | null>(null)
+  const [replacing, setReplacing] = useState<StoreConnectionDto | null>(null)
   const allowed = can(OrgPermission.ManageConnections)
 
   const connections = useQuery({
@@ -239,6 +247,7 @@ export function ConnectionsPage() {
               organizationId={organization.Id}
               onRenew={setRenewing}
               onEdit={setEditing}
+              onReplaceKey={setReplacing}
             />
           ))}
         </div>
@@ -249,6 +258,12 @@ export function ConnectionsPage() {
         connection={editing}
         organizationId={organization.Id}
         onClose={() => setEditing(null)}
+      />
+      <ReplaceKeyDialog
+        key={`replace-${replacing?.Id ?? 0}`}
+        connection={replacing}
+        organizationId={organization.Id}
+        onClose={() => setReplacing(null)}
       />
       <RenewSecretDialog key={renewing?.Id ?? 0} connection={renewing} organizationId={organization.Id} onClose={() => setRenewing(null)} />
     </>

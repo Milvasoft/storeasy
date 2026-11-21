@@ -82,6 +82,7 @@ export const AuditAction = {
   AiKeySet: 24,
   AiKeyRemoved: 25,
   AiModelsChanged: 26,
+  ConnectionKeyReplaced: 27,
   JobCancelled: 30,
   AppAdded: 40,
   StoreAppLinked: 41,
