@@ -33,8 +33,29 @@ public class AsoSourcesTests
     public void ITunesSearch_ShouldNotReadAnUnexpectedAnswer(string body) => AsoResponseParsers.ParseITunesSearch(body).Should().BeNull();
 
     [Fact]
-    public void AppleHints_ShouldReadThePropertyListWithoutResolvingItsDoctype()
-        => AsoResponseParsers.ParseAppleHints(Fixture("aso-apple-hints.xml")).Should().Equal("compass", "compass app", "Compass Pro");
+    public void AppleHints_ShouldReadARecordedPropertyListWithoutResolvingItsDoctype()
+    {
+        // Recorded on 21 Nov 2026 from the TR storefront (143480-1,29) for "pusula".
+        var hints = AsoResponseParsers.ParseAppleHints(Fixture("aso-apple-hints.xml"));
+
+        hints.Should().HaveCount(10);
+        hints.Take(4).Should().Equal("pusula", "pusula indir", "pusula kıble bulma", "pusula yön bulma");
+    }
+
+    [Fact]
+    public void AppleHints_ShouldKeepPunctuationAndSkipEntriesWithoutATerm()
+    {
+        var body = """
+            <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+            <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0">
+              <dict><key>title</key><string>Suggestions</string><key>hints</key><array>
+                <dict><key>term</key><string>split &#8211; window manager</string><key>url</key><string>https://example.invalid?a=1&amp;b=2</string></dict>
+                <dict><key>url</key><string>https://example.invalid</string></dict>
+              </array></dict></plist>
+            """;
+
+        AsoResponseParsers.ParseAppleHints(body).Should().Equal($"split {(char)0x2013} window manager");
+    }
 
     [Fact]
     public void AppleHints_ShouldReadTheJsonForm()
@@ -47,12 +68,42 @@ public class AsoSourcesTests
     public void AppleHints_ShouldBeEmptyForAnUnexpectedAnswer(string body) => AsoResponseParsers.ParseAppleHints(body).Should().BeEmpty();
 
     [Fact]
-    public void GooglePlaySuggest_ShouldKeepTheQuerySuggestionsOnly()
-        => AsoResponseParsers.ParseGooglePlaySuggest(Fixture("aso-google-suggest.json")).Should().Equal("compass", "compass app", "compass for android");
+    public void GooglePlaySuggest_ShouldReadARecordedBatchexecuteAnswer()
+        // Recorded on 21 Nov 2026: play.google.com batchexecute, rpc IJ4APc, "compass", hl=en, gl=US.
+        => AsoResponseParsers.ParseGooglePlaySuggest(Fixture("aso-google-suggest.txt")).Should().Equal("compass", "compass time", "compass pa", "compass group employee app", "compass cloud");
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("<html>404</html>")]
+    [InlineData(")]}'\n\n[[\"er\",null,null,null,null,400]]")]
+    [InlineData(")]}'\n\n[[\"wrb.fr\",\"IJ4APc\",\"not json\"]]")]
+    public void GooglePlaySuggest_ShouldBeEmptyForAnUnexpectedAnswer(string body) => AsoResponseParsers.ParseGooglePlaySuggest(body).Should().BeEmpty();
 
     [Fact]
-    public void GooglePlaySuggest_ShouldReadTheQueryAndTermsForm()
-        => AsoResponseParsers.ParseGooglePlaySuggest("[\"comp\", [\"compass\", \"compass app\"]]").Should().Equal("compass", "compass app");
+    public async Task GooglePlaySuggest_ShouldPostTheSearchBoxRpc()
+    {
+        HttpRequestMessage sent = null;
+        string form = null;
+        var options = new AsoOptions { MinRequestIntervalMilliseconds = 0 };
+        var source = new GooglePlaySuggestSource(Http(options, TimeProvider.System, request =>
+        {
+            sent = request;
+            form = request.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(Fixture("aso-google-suggest.txt")) };
+        }), options);
+
+        var hints = await source.SuggestAsync("compass", "us", "en", TestContext.Current.CancellationToken);
+
+        hints.Should().HaveCount(5);
+        sent.Method.Should().Be(HttpMethod.Post);
+        sent.RequestUri.ToString().Should().Be("https://play.google.com/_/PlayStoreUi/data/batchexecute?rpcids=IJ4APc&hl=en&gl=US");
+        using var request = System.Text.Json.JsonDocument.Parse(System.Web.HttpUtility.ParseQueryString(form)["f.req"]);
+        using var inner = System.Text.Json.JsonDocument.Parse(request.RootElement[0][0][1].GetString());
+
+        request.RootElement[0][0][0].GetString().Should().Be("IJ4APc");
+        inner.RootElement[0][1][0].GetString().Should().Be("compass");
+    }
 
     [Fact]
     public void GooglePlaySearch_ShouldListTheDistinctPackagesInOrder()

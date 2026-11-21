@@ -9,7 +9,7 @@ namespace Storeasy.IntegrationTests.TestBase.Fakes;
 
 /// <summary>
 /// The stores' public search endpoints as the ASO sources see them: App Store search hints (property list), the iTunes
-/// Search API, Google Play suggest and the Google Play search page. No test reaches a store. A term containing
+/// Search API, the Google Play search box suggestions (batchexecute) and the Google Play search page. No test reaches a store. A term containing
 /// <see cref="OfflineMarker"/> answers 503. Tests use unique terms, because the answers are cached for the whole process.
 /// </summary>
 public sealed class FakeAsoStores : HttpMessageHandler
@@ -27,28 +27,46 @@ public sealed class FakeAsoStores : HttpMessageHandler
     public ConcurrentQueue<(string Host, string Path, Dictionary<string, string> Query, string UserAgent, string Storefront)> Requests { get; } = new();
 
     /// <inheritdoc/>
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var uri = request.RequestUri!;
         var parsed = HttpUtility.ParseQueryString(uri.Query);
+        var form = request.Content == null ? null : HttpUtility.ParseQueryString(await request.Content.ReadAsStringAsync(cancellationToken));
+        var playTerm = form?["f.req"] is { } freq ? PlayTerm(freq) : null;
         var query = parsed.AllKeys.Where(k => k != null).ToDictionary(k => k, k => parsed[k], StringComparer.Ordinal);
         var storefront = request.Headers.TryGetValues("X-Apple-Store-Front", out var values) ? values.FirstOrDefault() : null;
 
         Requests.Enqueue((uri.Host, uri.AbsolutePath, query, request.Headers.UserAgent.ToString(), storefront));
 
-        var term = (query.GetValueOrDefault("term") ?? query.GetValueOrDefault("query") ?? query.GetValueOrDefault("q") ?? string.Empty).ToLowerInvariant();
+        var term = (playTerm ?? query.GetValueOrDefault("term") ?? query.GetValueOrDefault("q") ?? string.Empty).ToLowerInvariant();
 
         if (term.Contains(OfflineMarker, StringComparison.Ordinal))
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+            return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
 
-        return Task.FromResult(uri.Host switch
+        return uri.Host switch
         {
             "search.itunes.apple.com" => Text(Plist(HintsOf(term)), "text/xml"),
             "itunes.apple.com" => Text(ITunes(ResultsOf(term)), "application/json"),
-            "market.android.com" => Text(JsonSerializer.Serialize(HintsOf(term).Select(h => new { s = h, t = "q" })), "application/json"),
+            "play.google.com" when uri.AbsolutePath.EndsWith("/batchexecute", StringComparison.Ordinal) && request.Method == HttpMethod.Post => Text(PlaySuggest(HintsOf(term)), "application/json"),
             "play.google.com" => Text(PlayPage(ResultsOf(term)), "text/html"),
             _ => new HttpResponseMessage(HttpStatusCode.NotFound),
-        });
+        };
+    }
+
+    // f.req is [[["IJ4APc", "[[null,[\"term\"],[10],[2],4]]", null, "generic"]]].
+    private static string PlayTerm(string freq)
+    {
+        using var outer = JsonDocument.Parse(freq);
+        using var inner = JsonDocument.Parse(outer.RootElement[0][0][1].GetString()!);
+
+        return inner.RootElement[0][1][0].GetString();
+    }
+
+    private static string PlaySuggest(string[] hints)
+    {
+        var payload = JsonSerializer.Serialize(new object[] { new object[] { hints.Select(h => new object[] { h, null, null }).ToArray(), new[] { "CAhKAggD" } } });
+
+        return ")]}'\n\n" + JsonSerializer.Serialize(new object[] { new object[] { "wrb.fr", "IJ4APc", payload, null, null, null, "generic" }, new object[] { "di", 36 } });
     }
 
     // By default a term of three or more letters is offered first for its own prefixes of three or more letters.

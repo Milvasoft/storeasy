@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 namespace Storeasy.Infrastructure.Aso;
 
 /// <summary>
-/// The one way the ASO sources reach the stores: GET only, a timeout, a User-Agent without personal data, one request at a
+/// The one way the ASO sources reach the stores: GET (and a form POST for the endpoints that only read with one), a timeout, a User-Agent without personal data, one request at a
 /// time per host with a pause between requests, and a memory cache of the answers (bounded, for
 /// <see cref="AsoOptions.FreshnessHours"/>). A failure (status, timeout, network) is logged without the URL's query and
 /// answers null; it never throws to the caller except for cancellation.
@@ -46,9 +46,29 @@ public sealed class AsoHttp(IHttpClientFactory httpClientFactory, AsoOptions opt
     /// <param name="headers">Extra request headers (e.g. the App Store storefront).</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<string> GetStringAsync(Uri url, IReadOnlyDictionary<string, string> headers, CancellationToken cancellationToken)
+    public Task<string> GetStringAsync(Uri url, IReadOnlyDictionary<string, string> headers, CancellationToken cancellationToken)
+        => SendCachedAsync(url, headers, null, cancellationToken);
+
+    /// <summary>
+    /// The body of a form POST that only reads (an endpoint without a GET form), or null when the store did not answer with
+    /// success. Cached like <see cref="GetStringAsync"/>, by URL and form.
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="form">Form fields, sent as application/x-www-form-urlencoded.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task<string> PostFormAsync(Uri url, IReadOnlyDictionary<string, string> form, CancellationToken cancellationToken)
+        => SendCachedAsync(url, null, form ?? new Dictionary<string, string>(), cancellationToken);
+
+    private async Task<string> SendCachedAsync(Uri url, IReadOnlyDictionary<string, string> headers, IReadOnlyDictionary<string, string> form, CancellationToken cancellationToken)
     {
-        var key = headers == null || headers.Count == 0 ? url.AbsoluteUri : $"{url.AbsoluteUri}|{string.Join('|', headers.OrderBy(h => h.Key).Select(h => $"{h.Key}={h.Value}"))}";
+        var key = url.AbsoluteUri;
+
+        if (headers is { Count: > 0 })
+            key += $"|{string.Join('|', headers.OrderBy(h => h.Key).Select(h => $"{h.Key}={h.Value}"))}";
+
+        if (form != null)
+            key += $"|POST|{string.Join('&', form.OrderBy(f => f.Key).Select(f => $"{f.Key}={f.Value}"))}";
 
         if (_cache.TryGetValue(key, out string cached))
             return cached;
@@ -68,7 +88,7 @@ public sealed class AsoHttp(IHttpClientFactory httpClientFactory, AsoOptions opt
             if (wait > TimeSpan.Zero)
                 await Task.Delay(wait, _timeProvider, cancellationToken);
 
-            var body = await SendAsync(url, headers, cancellationToken);
+            var body = await SendAsync(url, headers, form, cancellationToken);
 
             gate.NextRequest = _timeProvider.GetUtcNow().AddMilliseconds(Math.Max(0, _options.MinRequestIntervalMilliseconds));
 
@@ -98,7 +118,7 @@ public sealed class AsoHttp(IHttpClientFactory httpClientFactory, AsoOptions opt
             gate.Lock.Dispose();
     }
 
-    private async Task<string> SendAsync(Uri url, IReadOnlyDictionary<string, string> headers, CancellationToken cancellationToken)
+    private async Task<string> SendAsync(Uri url, IReadOnlyDictionary<string, string> headers, IReadOnlyDictionary<string, string> form, CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -106,7 +126,10 @@ public sealed class AsoHttp(IHttpClientFactory httpClientFactory, AsoOptions opt
 
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(form == null ? HttpMethod.Get : HttpMethod.Post, url);
+
+            if (form != null)
+                request.Content = new FormUrlEncodedContent(form);
 
             request.Headers.UserAgent.Clear();
             request.Headers.TryAddWithoutValidation("User-Agent", string.IsNullOrWhiteSpace(_options.UserAgent) ? AsoOptions.DefaultUserAgent : _options.UserAgent);

@@ -63,6 +63,22 @@ public class AsoKeywordsTests(StoreasyApiFactory factory) : ContentTestBase(fact
     }
 
     [Fact]
+    public async Task Research_OnGooglePlay_ShouldScorePopularityFromTheSearchBoxSuggestions_WithoutReadingSearchPages()
+    {
+        var org = await NewOrgAsync();
+        var (_, google) = await NewAppAsync(org, null, package: $"com.{org.Suffix}.pusula");
+        var keyword = $"qibla {org.Suffix}";
+        Stores.Hints[keyword] = [keyword, $"{keyword} app"];
+
+        var (http, body) = await org.Owner.Client.PostAsync<List<AsoKeywordResearchDto>>("aso-keywords/research", new { organizationId = org.OrganizationId, appId = google.AppId, store = StoreKind.Google, country = "us", keywords = new[] { keyword } });
+
+        http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
+        body.Data.Should().ContainSingle().Which.Should().Match<AsoKeywordResearchDto>(k => k.Popularity >= 10 && k.PopularitySource == "google-play-suggest" && !k.RankChecked && k.Difficulty == null);
+        Stores.Requests.Should().Contain(r => r.Host == "play.google.com" && r.Path == "/_/PlayStoreUi/data/batchexecute" && r.Query["rpcids"] == "IJ4APc" && r.Query["gl"] == "US");
+        Stores.Requests.Should().NotContain(r => r.Host == "play.google.com" && r.Path == "/store/search", "reading Play search pages is off");
+    }
+
+    [Fact]
     public async Task Research_WhenTheStoreIsDown_ShouldBe503_AndMicrosoftIsNotSupported()
     {
         var (org, record, _) = await AppleAppAsync();

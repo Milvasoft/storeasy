@@ -371,7 +371,7 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Aso.AsoHttp">
             <summary>
-            The one way the ASO sources reach the stores: GET only, a timeout, a User-Agent without personal data, one request at a
+            The one way the ASO sources reach the stores: GET (and a form POST for the endpoints that only read with one), a timeout, a User-Agent without personal data, one request at a
             time per host with a pause between requests, and a memory cache of the answers (bounded, for
             <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/>). A failure (status, timeout, network) is logged without the URL's query and
             answers null; it never throws to the caller except for cancellation.
@@ -383,7 +383,7 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.AsoOptions,System.TimeProvider,Microsoft.Extensions.Logging.ILogger{Storeasy.Infrastructure.Aso.AsoHttp})">
             <summary>
-            The one way the ASO sources reach the stores: GET only, a timeout, a User-Agent without personal data, one request at a
+            The one way the ASO sources reach the stores: GET (and a form POST for the endpoints that only read with one), a timeout, a User-Agent without personal data, one request at a
             time per host with a pause between requests, and a memory cache of the answers (bounded, for
             <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.FreshnessHours"/>). A failure (status, timeout, network) is logged without the URL's query and
             answers null; it never throws to the caller except for cancellation.
@@ -410,6 +410,16 @@
             </summary>
             <param name="url"></param>
             <param name="headers">Extra request headers (e.g. the App Store storefront).</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoHttp.PostFormAsync(System.Uri,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <summary>
+            The body of a form POST that only reads (an endpoint without a GET form), or null when the store did not answer with
+            success. Cached like <see cref="M:Storeasy.Infrastructure.Aso.AsoHttp.GetStringAsync(System.Uri,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)"/>, by URL and form.
+            </summary>
+            <param name="url"></param>
+            <param name="form">Form fields, sent as application/x-www-form-urlencoded.</param>
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
@@ -562,8 +572,9 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Aso.AsoResponseParsers.ParseGooglePlaySuggest(System.String)">
             <summary>
-            A Google Play suggest answer: a JSON array of <c>{"s": term, "t": type}</c> objects (query suggestions have type
-            <c>q</c>; app suggestions are left out), or the <c>[query, [terms]]</c> form of the generic suggest endpoints.
+            A Google Play web search box suggestion answer (batchexecute, rpc <c>IJ4APc</c>): the anti-JSON prefix <c>)]}'</c>,
+            then an envelope array whose <c>wrb.fr</c> entry carries the payload as a JSON string; the payload's first list holds
+            one entry per suggestion with the term first. Empty for any other shape.
             </summary>
             <param name="body"></param>
             <returns></returns>
@@ -642,16 +653,22 @@
         </member>
         <member name="T:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource">
             <summary>
-            Google Play search suggestions from the public suggest endpoint (the autocomplete of the Play Store search box), per
-            language and country. Turned off with <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
+            Google Play search suggestions: the autocomplete the Play Store web search box uses, read from its batchexecute endpoint
+            (rpc <see cref="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId"/>, a form POST that only reads), per language and country. The old
+            <c>market.android.com/suggest</c> endpoint is gone (404). The rpc is undocumented and may change; a changed answer reads
+            as unavailable and research degrades to no Google Play popularity. Turned off with
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
             </summary>
             <param name="http"></param>
             <param name="options"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.#ctor(Storeasy.Infrastructure.Aso.AsoHttp,Storeasy.Application.Utils.Models.AsoOptions)">
             <summary>
-            Google Play search suggestions from the public suggest endpoint (the autocomplete of the Play Store search box), per
-            language and country. Turned off with <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
+            Google Play search suggestions: the autocomplete the Play Store web search box uses, read from its batchexecute endpoint
+            (rpc <see cref="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId"/>, a form POST that only reads), per language and country. The old
+            <c>market.android.com/suggest</c> endpoint is gone (404). The rpc is undocumented and may change; a changed answer reads
+            as unavailable and research degrades to no Google Play popularity. Turned off with
+            <see cref="P:Storeasy.Application.Utils.Models.AsoOptions.GooglePlaySuggestionsEnabled"/>.
             </summary>
             <param name="http"></param>
             <param name="options"></param>
@@ -666,6 +683,11 @@
             Endpoint of the suggestions.
             </summary>
         </member>
+        <member name="F:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.RpcId">
+            <summary>
+            Rpc id of the search box suggestions.
+            </summary>
+        </member>
         <member name="P:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Store">
             <inheritdoc/>
         </member>
@@ -677,6 +699,13 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.SuggestAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.GooglePlaySuggestSource.Request(System.String)">
+            <summary>
+            The <c>f.req</c> form field of a suggestion request for <paramref name="term"/>.
+            </summary>
+            <param name="term"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Aso.ITunesSearchSource">
             <summary>

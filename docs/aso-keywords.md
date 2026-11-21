@@ -15,7 +15,7 @@ organization data. A failing source answers nothing and the rest of the research
 |---|---|---|---|
 | App Store | Autocomplete (popularity, related terms) | `search.itunes.apple.com/WebObjects/MZSearchHints.woa/wa/hints` with the country's `X-Apple-Store-Front` storefront id | always; countries without a known storefront id get no popularity |
 | App Store | Search results (difficulty, competitors, rank, up to 200) | iTunes Search API `itunes.apple.com/search?entity=software&limit=200&country=..` | always |
-| Google Play | Autocomplete (popularity, related terms) | `market.android.com/suggest/SuggRequest?json=1&c=3` | `GooglePlaySuggestionsEnabled` (on) |
+| Google Play | Autocomplete (popularity, related terms) | the Play Store web search box: form POST to `play.google.com/_/PlayStoreUi/data/batchexecute?rpcids=IJ4APc&hl=..&gl=..` | `GooglePlaySuggestionsEnabled` (on) |
 | Google Play | Search results (competitor ids, rank) | the public search page `play.google.com/store/search?c=apps` | `GooglePlayRanksEnabled` (**off**) |
 | Microsoft Store | none | not supported: there is no public search whose order can be read | |
 | App Store (optional) | Popularity from Apple Search Ads | `IAsoPopularityProvider`; credentials in `Storeasy:Aso:SearchAds` | not included in this build |
@@ -25,6 +25,11 @@ search web page. Automated reading of that page may be against Google Play's ter
 without notice, so the operator turns `Storeasy:Aso:GooglePlayRanksEnabled` on knowingly. While it is off, Google Play
 research gives popularity and related terms only, and tracking a Google Play keyword answers 409
 `AsoGooglePlayRanksDisabled`.
+
+The App Store storefront ids (`AsoCountries`) were checked on 21 Nov 2026 against a public storefront list and with live
+hint calls for TR and DE. The Google Play suggestions endpoint is the one the Play Store web page itself uses; it is
+undocumented (the older `market.android.com/suggest` endpoint now answers 404), so if Google changes it the answer reads
+as unavailable and Google Play research shows no popularity until the reader is updated.
 
 The iTunes Search API's order is close to, but not exactly, what the App Store app shows; ranks are read from it the same
 way every day, so changes are comparable.

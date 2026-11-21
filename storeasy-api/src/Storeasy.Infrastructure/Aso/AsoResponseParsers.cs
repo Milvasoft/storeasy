@@ -85,8 +85,9 @@ public static partial class AsoResponseParsers
     }
 
     /// <summary>
-    /// A Google Play suggest answer: a JSON array of <c>{"s": term, "t": type}</c> objects (query suggestions have type
-    /// <c>q</c>; app suggestions are left out), or the <c>[query, [terms]]</c> form of the generic suggest endpoints.
+    /// A Google Play web search box suggestion answer (batchexecute, rpc <c>IJ4APc</c>): the anti-JSON prefix <c>)]}'</c>,
+    /// then an envelope array whose <c>wrb.fr</c> entry carries the payload as a JSON string; the payload's first list holds
+    /// one entry per suggestion with the term first. Empty for any other shape.
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
@@ -95,22 +96,36 @@ public static partial class AsoResponseParsers
         if (string.IsNullOrWhiteSpace(body))
             return [];
 
+        var start = body.IndexOf("[[", StringComparison.Ordinal);
+
+        if (start < 0)
+            return [];
+
         try
         {
-            using var document = JsonDocument.Parse(body);
-            var root = document.RootElement;
+            // The envelope is one JSON array; reading stops at its end, the length lines around it are ignored.
+            var reader = new Utf8JsonReader(System.Text.Encoding.UTF8.GetBytes(body[start..]), new JsonReaderOptions { AllowTrailingCommas = true });
 
-            if (root.ValueKind != JsonValueKind.Array)
-                return [];
+            using var envelope = JsonDocument.ParseValue(ref reader);
 
-            var items = root.EnumerateArray().ToList();
+            foreach (var entry in envelope.RootElement.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.Array && e.GetArrayLength() > 2))
+            {
+                if (entry[0].ValueKind != JsonValueKind.String || entry[0].GetString() != "wrb.fr" || entry[2].ValueKind != JsonValueKind.String)
+                    continue;
 
-            if (items.Count >= 2 && items[0].ValueKind == JsonValueKind.String && items[1].ValueKind == JsonValueKind.Array)
-                return [.. items[1].EnumerateArray().Where(t => t.ValueKind == JsonValueKind.String).Select(t => t.GetString()).Where(t => !string.IsNullOrWhiteSpace(t))];
+                using var payload = JsonDocument.Parse(entry[2].GetString());
+                var root = payload.RootElement;
 
-            return [.. items.Where(i => i.ValueKind == JsonValueKind.Object && (Text(i, "t") ?? "q") == "q")
-                            .Select(i => Text(i, "s"))
-                            .Where(t => !string.IsNullOrWhiteSpace(t))];
+                if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0 || root[0].ValueKind != JsonValueKind.Array || root[0].GetArrayLength() == 0 || root[0][0].ValueKind != JsonValueKind.Array)
+                    return [];
+
+                return [.. root[0][0].EnumerateArray()
+                                     .Where(s => s.ValueKind == JsonValueKind.Array && s.GetArrayLength() > 0 && s[0].ValueKind == JsonValueKind.String)
+                                     .Select(s => s[0].GetString())
+                                     .Where(t => !string.IsNullOrWhiteSpace(t))];
+            }
+
+            return [];
         }
         catch (JsonException)
         {
