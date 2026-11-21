@@ -56,6 +56,39 @@ way every day, so changes are comparable.
 Measurements are saved per store, country and keyword (`AsoKeywordMetrics`, shared by every organization because the
 store's public answer is the same for everyone) and reused while younger than `FreshnessHours`.
 
+## Research runs as a job
+
+Measuring is slow on purpose: every store host gets one request at a time with `MinRequestIntervalMilliseconds` (3
+seconds) between them, and a new keyword needs up to `MaxPrefixQueries` autocomplete calls plus one search. Twenty new
+keywords take a few minutes, longer than the reverse proxy waits for a request (about 100 seconds), so research never
+runs inside the request.
+
+- `POST aso-keywords/research` (app, store, country, 1 to 20 keywords; `View`, 60 an hour per user) checks the input,
+  normalizes the keywords and queues a store job of kind `AsoKeywordResearch` (110) for the app's store record. It
+  answers the job id at once. The same request while an identical job (same store record, country, language and
+  keywords) is still queued or running answers that job's id instead of queuing a second one. The job has two attempts:
+  the second one only runs when the runner stopped during the first; a store that did not answer is not retried.
+- The job (`AsoKeywordResearchJobHandler`) measures the keywords one by one with `IAsoKeywordResearcher`, so the pacing,
+  the per host gate, the answer cache and the saved measurements (`AsoKeywordMetrics`, reused while younger than
+  `FreshnessHours`) are the same as before. Its one step, `keywords.measure`, reports "measured / total" after each
+  keyword; the live stream carries it as job step events. A cancel request (`StoreJobs/job/cancel`, `EditContent`) is
+  seen at the next progress report, so the job stops after the keyword it is measuring. When no store source answered
+  for any keyword the job fails with the reason that `GET research` shows as the localized `AsoSourceUnavailable`
+  message. On success the measurements (the same fields as before, in the order asked) are saved as the job's result.
+- `GET aso-keywords/research` (app and store, optional job id; `View`) answers the job's status, `Measured` and `Total`,
+  the error of a failed job and, once it succeeded, the measured keywords with whether each is tracked now. Without a
+  job id it answers the app's latest research in that store, or no data when there was none. No store is called.
+
+The "Keywords" tab starts the job with "Measure" ("Ölç"), shows "Measuring 5 of 20" ("Ölçülüyor 5/20") with a progress
+bar and a "Stop" button for editors, and reads the job again on its live events and every three seconds while it runs.
+The job is watched, so its end is announced with a toast on any page. When the tab is opened again it shows the app's
+latest research: still running, its result, why it failed, or that it was stopped. Keywords selected from a result are
+tracked in the country they were measured in.
+
+The other calls of the tab stay synchronous and fit the proxy's limit: seeds make three paced store calls and one
+listing read (about 15 seconds), tracking calls no store (the hourly rank job reads the ranks), and the AI ideas call
+waits at most 75 seconds for the AI's answer, then answers `AiUnavailable`.
+
 ## Seeds
 
 `GET aso-keywords/seeds` gives candidates from data: the listing of the country's language (name and subtitle parts and
@@ -114,5 +147,9 @@ and how many of the 100 characters are left.
 
 ## MCP
 
-`aso_keywords_research`, `aso_keywords_seeds`, `aso_keywords_ideas`, `aso_keywords_track`, `aso_keywords_untrack`,
-`aso_keywords_tracked`, `aso_keywords_ranks`, `aso_keywords_coverage`.
+`aso_keywords_research`, `aso_keywords_research_result`, `aso_keywords_seeds`, `aso_keywords_ideas`,
+`aso_keywords_track`, `aso_keywords_untrack`, `aso_keywords_tracked`, `aso_keywords_ranks`, `aso_keywords_coverage`.
+
+`aso_keywords_research` queues the research job and returns its id; `aso_keywords_research_result` reads its progress
+and, once it succeeded, the measurements (call it again while the job is queued or running; `jobs_get` and
+`jobs_cancel` work on it too).

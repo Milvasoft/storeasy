@@ -124,6 +124,13 @@ public enum StoreJobKind : short
     [Description("Enable App Store analytics reports")]
     EnableAppleAnalytics = 121,
 
+    /// <summary>
+    /// Measures up to 20 search keywords of one store record from the stores' public data (ASO keyword research) and keeps
+    /// the measurements as the job's result. Store requests are paced, so it runs as a job. Numbered in the ASO keywords band.
+    /// </summary>
+    [Description("ASO keyword research")]
+    AsoKeywordResearch = 110,
+
     /// <summary>Reads, checks and delivers an uploaded package (build intake).</summary>
     [Description("Process a package")]
     ProcessArtifact = 30,

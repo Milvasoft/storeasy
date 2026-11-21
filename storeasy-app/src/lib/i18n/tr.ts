@@ -1047,6 +1047,7 @@ export const tr: Dictionary = {
       syncMonetization: 'Ürün senkronu',
       syncAsoExperiments: 'Deney senkronu',
       preReview: 'Yapay zeka ön incelemesi',
+      asoKeywordResearch: 'Anahtar kelime ölçümü',
       syncStoreMetrics: 'Mağaza performansı senkronu',
       enableAppleAnalytics: 'App Store analitik raporlarını etkinleştirme',
       processWebhookEvent: 'Mağaza bildirimi işleme',

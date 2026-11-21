@@ -49,6 +49,7 @@ using Storeasy.Application.Features.AsoImpact.GetAsoImpactEvents;
 using Storeasy.Application.Features.AsoImpact.GetAsoImpactRecent;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds;
 using Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords;
 using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
@@ -330,7 +331,8 @@ public static class McpToolCatalog
         Write<SubmitBetaReviewCommand>("testflight_beta_review", "Submits a build to TestFlight beta app review. Needs confirm: true and confirmVersion equal to the build's \"version (build)\" text."),
 
         // ASO keywords
-        Read<ResearchAsoKeywordsQuery>("aso_keywords_research", "Measures up to 20 search keywords for one app in one store and country (ISO code): estimated popularity 0 to 100 from the store's autocomplete, difficulty 0 to 100 from the top ten results' ratings, competing apps, top ten competitors, the app's current rank and an opportunity score. Scores are data based estimates, not AI. App Store and Google Play; not Microsoft Store."),
+        Write<ResearchAsoKeywordsCommand>("aso_keywords_research", "Queues the measurement of up to 20 search keywords for one app in one store and country (ISO code) as a store job and returns the job id at once (store requests are paced: about 15 seconds per new keyword, measurements younger than a day are reused). Read the result with aso_keywords_research_result. It gives estimated popularity 0 to 100 from the store's autocomplete, difficulty 0 to 100 from the top ten results' ratings, competing apps, top ten competitors, the app's current rank and an opportunity score. Scores are data based estimates, not AI. App Store and Google Play; not Microsoft Store."),
+        Read<GetAsoKeywordResearchQuery>("aso_keywords_research_result", "Reads a keyword research job of an app in one store (jobId from aso_keywords_research; the app's latest research when empty): status, keywords measured so far of the total, the error when it failed and, once it succeeded, every keyword's popularity, difficulty, opportunity, competing apps, current rank, top competitors and whether it is tracked. Call again while the job is queued or running."),
         Read<GetAsoKeywordSeedsQuery>("aso_keywords_seeds", "Keyword candidates for research from data: the app's listing (name, subtitle, keywords field, description terms), words shared by competitors' names and the store's search suggestions. Measure them with aso_keywords_research."),
         Write<SuggestAsoKeywordSeedsCommand>("aso_keywords_ideas", "Keyword ideas grouped by theme from the organization's AI key, as candidates only (no scores). Measure them with aso_keywords_research. Audited with tokens and cost."),
         Write<TrackAsoKeywordsCommand>("aso_keywords_track", "Starts or resumes daily rank tracking of keywords for one app, store and country, optionally with competitors' ranks. A keyword tracked before keeps its history. Limited per organization; Google Play only when the server enabled it."),

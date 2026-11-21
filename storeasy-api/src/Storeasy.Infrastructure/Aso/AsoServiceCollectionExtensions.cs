@@ -44,6 +44,7 @@ public static class AsoServiceCollectionExtensions
         services.AddScoped<IAsoKeywordResearcher>(provider => provider.GetRequiredService<AsoKeywordResearcher>());
         services.AddScoped<IAsoRankRecorder, AsoRankRecorder>();
         services.AddScoped<IAsoRankSeries, AsoRankSeriesReader>();
+        services.AddScoped<IStoreJobHandler, AsoKeywordResearchJobHandler>();
 
         // Before and after impact: every IImpactEventSource is read and merged, so a new kind of change plugs in with one
         // more registration here.

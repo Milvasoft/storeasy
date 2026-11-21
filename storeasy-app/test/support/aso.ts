@@ -1,10 +1,11 @@
 import { HttpResponse, type HttpHandler } from 'msw'
 import { beforeEach } from 'vitest'
-import { StoreKind } from '@/lib/api/types'
+import { StoreJobStatus, StoreKind } from '@/lib/api/types'
 import type {
   AsoKeywordCoverageDto,
   AsoKeywordRanksDto,
   AsoKeywordResearchDto,
+  AsoKeywordResearchJobDto,
   AsoKeywordSeedsDto,
   AsoTrackedKeywordDto,
 } from '@/features/aso/types'
@@ -68,6 +69,27 @@ export function researchItem(overrides: Partial<AsoKeywordResearchDto> = {}): As
   )
 }
 
+export function researchJob(overrides: Partial<AsoKeywordResearchJobDto> = {}): AsoKeywordResearchJobDto {
+  return make<AsoKeywordResearchJobDto>(
+    {
+      JobId: 9001,
+      Status: StoreJobStatus.Succeeded,
+      CancelRequested: false,
+      AppId: 101,
+      Store: StoreKind.Apple,
+      Country: 'tr',
+      Keywords: ['kıble pusulası'],
+      Measured: 1,
+      Total: 1,
+      Error: null,
+      CreationDate: '2026-11-21T10:00:00Z',
+      EndDate: '2026-11-21T10:00:20Z',
+      Items: [researchItem()],
+    },
+    overrides,
+  )
+}
+
 export function keywordRanks(overrides: Partial<AsoKeywordRanksDto> = {}): AsoKeywordRanksDto {
   return make<AsoKeywordRanksDto>(
     {
@@ -118,6 +140,10 @@ export function coverage(overrides: Partial<AsoKeywordCoverageDto> = {}): AsoKey
 interface AsoState {
   tracked: AsoTrackedKeywordDto[]
   research: AsoKeywordResearchDto[]
+  // What GET aso-keywords/research answers: the latest (or the asked) research job; null before the first one.
+  researchJob: AsoKeywordResearchJobDto | null
+  // A research POST leaves its job running (the test moves it on) instead of finishing it at once.
+  researchRuns: boolean
   seeds: AsoKeywordSeedsDto
   ideas: AsoKeywordSeedsDto
   ranks: AsoKeywordRanksDto
@@ -128,6 +154,8 @@ function initialAso(): AsoState {
   return {
     tracked: [trackedKeyword()],
     research: [researchItem()],
+    researchJob: null,
+    researchRuns: false,
     seeds: {
       Store: StoreKind.Apple,
       Country: 'tr',
@@ -159,11 +187,32 @@ const json = (data: unknown) => HttpResponse.json(data as Record<string, unknown
 export const asoHandlers: HttpHandler[] = [
   endpoint('get', '/aso-keywords', () => json(envelope(asoState.tracked))),
   endpoint('post', '/aso-keywords/research', ({ body }) => {
-    const input = body as { Keywords: string[] }
-    return json(
-      envelope(asoState.research.filter((item) => input.Keywords.some((keyword) => keyword.toLocaleLowerCase('tr') === item.Keyword))),
-    )
+    const input = body as { Keywords: string[]; Country: string }
+    const keywords = input.Keywords.map((keyword) => keyword.toLocaleLowerCase('tr'))
+    const items = asoState.research.filter((item) => keywords.includes(item.Keyword))
+    const jobId = (asoState.researchJob?.JobId ?? 9000) + 1
+    asoState.researchJob = asoState.researchRuns
+      ? researchJob({
+          JobId: jobId,
+          Status: StoreJobStatus.Running,
+          Country: input.Country.toLowerCase(),
+          Keywords: keywords,
+          Measured: 0,
+          Total: keywords.length,
+          EndDate: null,
+          Items: [],
+        })
+      : researchJob({
+          JobId: jobId,
+          Country: input.Country.toLowerCase(),
+          Keywords: keywords,
+          Measured: keywords.length,
+          Total: keywords.length,
+          Items: items,
+        })
+    return json(envelope(jobId))
   }),
+  endpoint('get', '/aso-keywords/research', () => json(envelope(asoState.researchJob))),
   endpoint('get', '/aso-keywords/seeds', () => json(envelope(asoState.seeds))),
   endpoint('post', '/aso-keywords/seeds/suggest', () => json(envelope(asoState.ideas))),
   endpoint('post', '/aso-keywords/track', ({ body }) => {
@@ -184,6 +233,13 @@ export const asoHandlers: HttpHandler[] = [
         }),
       ),
     ]
+    const job = asoState.researchJob
+    if (job) {
+      asoState.researchJob = {
+        ...job,
+        Items: job.Items.map((item) => (input.Keywords.includes(item.Keyword) ? { ...item, Tracked: true } : item)),
+      }
+    }
     return json(envelope(asoState.tracked))
   }),
   endpoint('post', '/aso-keywords/untrack', ({ body }) => {

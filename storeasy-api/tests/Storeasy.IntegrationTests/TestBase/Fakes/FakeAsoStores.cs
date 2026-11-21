@@ -23,6 +23,9 @@ public sealed class FakeAsoStores : HttpMessageHandler
     /// <summary>Search results by term (lower case): the apps in order with id, name, rating count and rating.</summary>
     public ConcurrentDictionary<string, (string Id, string Name, long RatingCount, double Rating)[]> Results { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Terms whose answers wait until their gate is opened (a long store call).</summary>
+    public ConcurrentDictionary<string, TaskCompletionSource> Gates { get; } = new(StringComparer.Ordinal);
+
     /// <summary>Requests received: host, path and the decoded query.</summary>
     public ConcurrentQueue<(string Host, string Path, Dictionary<string, string> Query, string UserAgent, string Storefront)> Requests { get; } = new();
 
@@ -39,6 +42,9 @@ public sealed class FakeAsoStores : HttpMessageHandler
         Requests.Enqueue((uri.Host, uri.AbsolutePath, query, request.Headers.UserAgent.ToString(), storefront));
 
         var term = (playTerm ?? query.GetValueOrDefault("term") ?? query.GetValueOrDefault("q") ?? string.Empty).ToLowerInvariant();
+
+        if (Gates.TryGetValue(term, out var gate))
+            await gate.Task.WaitAsync(cancellationToken);
 
         if (term.Contains(OfflineMarker, StringComparison.Ordinal))
             return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);

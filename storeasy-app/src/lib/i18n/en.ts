@@ -1047,6 +1047,7 @@ export const en = {
       syncMonetization: 'Sync store products',
       syncAsoExperiments: 'Sync store listing experiments',
       preReview: 'AI pre-review',
+      asoKeywordResearch: 'ASO keyword research',
       syncStoreMetrics: 'Sync store performance',
       enableAppleAnalytics: 'Enable App Store analytics reports',
       processWebhookEvent: 'Process a store event',

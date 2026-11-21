@@ -1874,6 +1874,129 @@
             UTC instant the search results were read.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto">
+            <summary>
+            A keyword research job of an app in one store: its state, how many keywords are measured so far and, once it
+            succeeded, the measurements.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.JobId">
+            <summary>
+            Job id (see <c>StoreJobs/job</c> for its steps).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Status">
+            <summary>
+            Job status.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.CancelRequested">
+            <summary>
+            Whether a member asked a running job to stop.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Country">
+            <summary>
+            Country (lower case).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Keywords">
+            <summary>
+            The normalized keywords asked for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Measured">
+            <summary>
+            Keywords measured so far.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Total">
+            <summary>
+            Keywords to measure.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Error">
+            <summary>
+            Why the job failed, in the request's language when it is a known reason.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.CreationDate">
+            <summary>
+            UTC instant the job was queued.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.EndDate">
+            <summary>
+            UTC instant the job ended.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchJobDto.Items">
+            <summary>
+            The measurements once the job succeeded (with the current tracking state); empty before.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job.
+            </summary>
+            <param name="StoreAppId">Store record whose rank is looked for in the results.</param>
+            <param name="Country">Storefront country (lower case).</param>
+            <param name="Language">Search language.</param>
+            <param name="Keywords">Normalized keywords, 1 to 20, in the order they are measured.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload.#ctor(System.Int32,System.String,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job.
+            </summary>
+            <param name="StoreAppId">Store record whose rank is looked for in the results.</param>
+            <param name="Country">Storefront country (lower case).</param>
+            <param name="Language">Search language.</param>
+            <param name="Keywords">Normalized keywords, 1 to 20, in the order they are measured.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload.StoreAppId">
+            <summary>Store record whose rank is looked for in the results.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload.Country">
+            <summary>Storefront country (lower case).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload.Language">
+            <summary>Search language.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchPayload.Keywords">
+            <summary>Normalized keywords, 1 to 20, in the order they are measured.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult">
+            <summary>
+            Result of a finished <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job, saved as the job's result.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.SourceUnavailableError">
+            <summary>
+            The error of a job in which no store source answered for any keyword. The research endpoint shows it as the localized
+            <c>AsoSourceUnavailable</c> message.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.MeasureStep">
+            <summary>
+            Name of the step that measures the keywords; its progress is the number of keywords measured.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.Items">
+            <summary>
+            The measured keywords in the order they were asked for. <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchDto.Tracked"/> is set when the
+            result is read.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AsoDtos.AsoKeywordSeedDto">
             <summary>
             A keyword candidate.
@@ -16066,6 +16189,77 @@
         <member name="M:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks.GetAsoKeywordRanksQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks.GetAsoKeywordRanksQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery">
+            <summary>
+            A keyword research job of an app in one store (<c>POST aso-keywords/research</c>): its state, the keywords measured so
+            far and, once it succeeded, the measurements with the current tracking state. Without a job id, the app's latest
+            research in that store, so a page opened again shows the research still running or its result; no data when there was
+            none. Nothing is asked of a store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery.AppId">
+            <summary>
+            App id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery.Store">
+            <summary>
+            Store.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery.JobId">
+            <summary>
+            Research job id; the latest research of the app in the store when empty.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery"/>: reads the research job of the app and store from storeasy's records,
+            its measuring step's progress and, when it succeeded, its saved result with the keywords tracked now. 404
+            StoreJobNotFound for a job id that is not a research of this app and store.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="JobRepository"></param>
+            <param name="TrackedRepository"></param>
+            <param name="Localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoTrackedKeyword},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery"/>: reads the research job of the app and store from storeasy's records,
+            its measuring step's progress and, when it succeeded, its saved result with the keywords tracked now. 404
+            StoreJobNotFound for a job id that is not a research of this app and store.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="JobRepository"></param>
+            <param name="TrackedRepository"></param>
+            <param name="Localizer"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.JobRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.TrackedRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.Localizer">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryHandler.Handle(Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQueryValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds.GetAsoKeywordSeedsQuery">
             <summary>
             Keyword candidates for research, from data only: the app's own listing in the store (name, subtitle, App Store keywords
@@ -16225,87 +16419,101 @@
         <member name="M:Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords.GetAsoTrackedKeywordsQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords.GetAsoTrackedKeywordsQueryValidator"/>
         </member>
-        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery">
+        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand">
             <summary>
-            Measures keywords for one app in one store and country from the store's public data: estimated popularity (the store's
+            Queues the measurement of keywords for one app in one store and country from the store's public data (a
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job) and returns the job id at once: estimated popularity (the store's
             search autocomplete), difficulty (the strength of the first ten results), the number of competing apps, the top ten
-            competitors, whether the app itself ranks, and an opportunity score. Scores are estimates, never AI guesses. App Store
-            and Google Play (competitors and rank on Play only when the operator enabled Play search pages); Microsoft Store is not
-            supported. Nothing is saved for the organization; the public measurements are cached for every organization.
+            competitors, whether the app itself ranks, and an opportunity score. Store requests are paced, so measuring 20 new
+            keywords takes a few minutes; read the progress and the result with <c>GET aso-keywords/research</c>. The same request
+            while an identical job is still queued or running answers that job's id. Scores are estimates, never AI guesses. App
+            Store and Google Play (competitors and rank on Play only when the operator enabled Play search pages); Microsoft Store
+            is not supported. The public measurements are cached for every organization.
             </summary>
         </member>
-        <member name="F:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.MaxKeywords">
+        <member name="F:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.MaxKeywords">
             <summary>
             Most keywords per call.
             </summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.OrganizationId">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.OrganizationId">
             <inheritdoc/>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.AppId">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.AppId">
             <summary>
             App id.
             </summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.Store">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.Store">
             <summary>
             Store.
             </summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.Country">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.Country">
             <summary>
             Storefront country, ISO 3166-1 alpha-2 (e.g. TR, US).
             </summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.Language">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.Language">
             <summary>
             Search language (e.g. tr, en); the country's usual language when empty.
             </summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery.Keywords">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand.Keywords">
             <summary>
             Keywords to measure, 1 to 20.
             </summary>
         </member>
-        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler">
+        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery"/>: resolves the store record, measures the keywords with
-            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> and marks the ones already tracked. 503 AsoSourceUnavailable when no store source
-            answered for any keyword.
+            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand"/>: resolves the store record, normalizes the keywords and queues an
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job (or answers the identical one still on the way). The job measures the
+            keywords one by one with <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/>, so the request never waits for the paced store calls.
             </summary>
             <param name="ContentService"></param>
             <param name="Researcher"></param>
-            <param name="TrackedRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="StoreJobQueue"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IAsoKeywordResearcher,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Aso.AsoTrackedKeyword})">
+        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IAsoKeywordResearcher,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue)">
             <summary>
-            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery"/>: resolves the store record, measures the keywords with
-            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> and marks the ones already tracked. 503 AsoSourceUnavailable when no store source
-            answered for any keyword.
+            Handles <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand"/>: resolves the store record, normalizes the keywords and queues an
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job (or answers the identical one still on the way). The job measures the
+            keywords one by one with <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/>, so the request never waits for the paced store calls.
             </summary>
             <param name="ContentService"></param>
             <param name="Researcher"></param>
-            <param name="TrackedRepository"></param>
+            <param name="JobRepository"></param>
+            <param name="StoreJobQueue"></param>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler.ContentService">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.ContentService">
             <summary></summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler.Researcher">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.Researcher">
             <summary></summary>
         </member>
-        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler.TrackedRepository">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.JobRepository">
             <summary></summary>
         </member>
-        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryHandler.Handle(Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery,System.Threading.CancellationToken)">
+        <member name="P:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.MaxAttempts">
+            <summary>
+            Attempts of a research job: a second one only when the runner stopped during the first (measurements already made
+            are reused from the cache).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandHandler.Handle(Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryValidator">
+        <member name="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandValidator">
             <summary>
-            Validations of <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery"/>.
+            Validations of <see cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand"/>.
             </summary>
         </member>
-        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
-            <inheritdoc cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQueryValidator"/>
+        <member name="M:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommand">
             <summary>
@@ -16412,6 +16620,11 @@
         </member>
         <member name="P:Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommandHandler.Options">
             <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommandHandler.AiBudget">
+            <summary>
+            Longest wait for the AI's answer.
+            </summary>
         </member>
         <member name="M:Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommandHandler.Handle(Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds.SuggestAsoKeywordSeedsCommand,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -39209,6 +39422,16 @@
             A search result as a DTO.
             </summary>
             <param name="competitor"></param>
+            <param name="ownAppId">Store id of the app itself.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Extensions.AsoExtensions.ToResearchDto(Storeasy.Application.Interfaces.AsoResearchItem,Storeasy.Domain.Enums.StoreKind,System.String,System.String)">
+            <summary>
+            A researched keyword as a DTO; <see cref="P:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchDto.Tracked"/> is left for the reader to set.
+            </summary>
+            <param name="item"></param>
+            <param name="store"></param>
+            <param name="country">Lower case country code.</param>
             <param name="ownAppId">Store id of the app itself.</param>
             <returns></returns>
         </member>
