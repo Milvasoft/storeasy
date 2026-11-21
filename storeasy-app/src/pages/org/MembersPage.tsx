@@ -305,6 +305,7 @@ export function MembersPage() {
   return (
     <>
       <PageHeader
+        tour="members"
         title={t.members.title}
         subtitle={
           members.data ? interpolate(t.members.summary, { members: all.length, invitations: invitations?.length ?? 0 }) : t.members.subtitle

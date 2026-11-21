@@ -492,6 +492,7 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
   return (
     <>
       <PageHeader
+        tour="reviews"
         title={t.title}
         subtitle={reviews.data ? interpolate(t.subtitle, { total: reviews.data.TotalDataCount ?? rows.length, unread }) : t.subtitleEmpty}
         actions={

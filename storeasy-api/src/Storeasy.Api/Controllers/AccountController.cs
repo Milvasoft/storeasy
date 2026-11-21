@@ -17,6 +17,7 @@ using Storeasy.Application.Features.Account.GoogleSignIn;
 using Storeasy.Application.Features.Account.Login;
 using Storeasy.Application.Features.Account.Logout;
 using Storeasy.Application.Features.Account.MarkNotificationsAsSeen;
+using Storeasy.Application.Features.Account.MarkTourPromptSeen;
 using Storeasy.Application.Features.Account.RefreshLogin;
 using Storeasy.Application.Features.Account.Register;
 using Storeasy.Application.Features.Account.ResendEmailVerification;
@@ -202,6 +203,17 @@ public class AccountController(IMediator mediator) : ControllerBase
     [HttpPut("profile")]
     [UserTypeAuth(UserType.Manager | UserType.AppUser)]
     public Task<Response<int>> UpdateProfileAsync(UpdateProfileCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Records that the caller answered the guided tour invitation of the web app (started the tour or closed it), so it
+    /// does not show again on any device. Repeating it keeps the first date.
+    /// </summary>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [Auth]
+    [HttpPut("tour-prompt-seen")]
+    [UserTypeAuth(UserType.Manager | UserType.AppUser)]
+    public Task<Response<int>> MarkTourPromptSeenAsync(CancellationToken cancellation) => _mediator.Send(new MarkTourPromptSeenCommand(), cancellation);
 
     /// <summary>
     /// Lists the caller's active sessions (signed in devices) with the last seen time.

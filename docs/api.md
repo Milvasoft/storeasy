@@ -57,7 +57,7 @@ Creating an organization or a store connection also needs a verified e-mail addr
 | Area | Routes (under `/api/v1.0/`) | Auth and permission |
 |---|---|---|
 | Account | `account/login`, `login/google/start`, `login/google`, `login/refresh`, `register`, `email/verify`, `password/forgot`, `password/reset` | Anonymous, rate limited |
-| | `account/detail`, `profile`, `password/change`, `logout`, `sessions`, `session`, `sessions/others`, `push/subscription(s)`, `push/test`, `notifications`, `account/preferences` | Signed in user, own data only |
+| | `account/detail`, `profile`, `password/change`, `logout`, `sessions`, `session`, `sessions/others`, `tour-prompt-seen`, `push/subscription(s)`, `push/test`, `notifications`, `account/preferences` | Signed in user, own data only |
 | Organizations and members | `organizations/mine`, `organization`, `settings`, `members`, `member/role`, `member`, `invitation`, `invitation/accept`, `roles`, `role`, `audit-logs` | `View`; members and invitations `ManageMembers`; custom roles `ManageMembers` within your own permissions; rename, delete and owners `ManageOrganization`; `invitation/preview` anonymous |
 | | `organizations/ai-settings`, `ai-settings/key` (PUT, DELETE), `ai-settings/models` (PUT) | Read `View` (whether a key is set, its last four characters, the model of each AI feature and the models to choose from with their prices; never the key); save and remove the Anthropic API key and choose the models `ManageConnections` |
 | Store connections | `storeconnections`, `connection`, `connection/verify` | List `View`; add, rename and icon (`PUT connection`), verify, delete `ManageConnections` |

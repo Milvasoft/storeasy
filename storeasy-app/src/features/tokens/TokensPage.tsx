@@ -35,6 +35,7 @@ export function DeveloperHeader({ count }: { count?: number }) {
   return (
     <>
       <PageHeader
+        tour="developer"
         title={t.title}
         subtitle={t.subtitle}
         actions={

@@ -168,6 +168,9 @@ async function body<T>(request: Request): Promise<T> {
   return (await request.json().catch(() => ({}))) as T
 }
 
+// The mock shows the guided tour invitation on the first visit (this browser remembers the answer too).
+let tourPromptSeenDate: string | null = null
+
 const loginToken = { accessToken: 'mock-access', refreshToken: 'mock-refresh', expiresIn: 3600, refreshTokenExpiresIn: 86_400 }
 
 export const mockHandlers: HttpHandler[] = [
@@ -192,9 +195,14 @@ export const mockHandlers: HttpHandler[] = [
       emailConfirmed: true,
       name: 'Deniz',
       surname: 'Arslan',
+      tourPromptSeenDate: tourPromptSeenDate,
       roles: [],
     }),
   ),
+  http.put(`${BASE}/Account/tour-prompt-seen`, () => {
+    tourPromptSeenDate ??= new Date().toISOString()
+    return envelope(7)
+  }),
   http.put(`${BASE}/Account/password/change`, async () => {
     await delay(300)
     return envelope(null)

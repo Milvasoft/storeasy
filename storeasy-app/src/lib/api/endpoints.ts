@@ -73,6 +73,9 @@ export const authApi = {
 
   updateProfile: (input: UpdateProfileInput) => apiPut<number>('/Account/profile', input),
 
+  // The guided tour invitation was answered: it does not show again on any device. Repeating it keeps the first date.
+  markTourPromptSeen: () => apiPut<number>('/Account/tour-prompt-seen', {}),
+
   // The caller's signed in devices; IsCurrent marks this one.
   sessions: () => apiGet<AccountSessionDto[]>('/Account/sessions'),
 
