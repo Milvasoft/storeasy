@@ -319,6 +319,16 @@ export const connectionsApi = {
   update: (organizationId: number, connectionId: number, input: { Name: string; Icon: string | null }) =>
     apiPut<StoreConnectionDto>('/StoreConnections/connection', { OrganizationId: organizationId, ConnectionId: connectionId, ...input }),
 
+  // Replaces the key of an Apple or Google connection in place (same id, apps and history stay). The new key is verified
+  // with the store first; 400 StoreKeyRejected (plus the store's answer) keeps the old key, StoreKeyIssuerMismatch when an
+  // Apple key is of another team. Answers the updated connection.
+  replaceKey: (organizationId: number, connectionId: number, secret: string) =>
+    apiPut<StoreConnectionDto>('/StoreConnections/connection/key', {
+      OrganizationId: organizationId,
+      ConnectionId: connectionId,
+      Secret: secret,
+    }),
+
   // Wipes the encrypted secret; cannot be undone.
   remove: (organizationId: number, connectionId: number) =>
     apiDelete<number>('/StoreConnections/connection', undefined, { OrganizationId: organizationId, ConnectionId: connectionId }),

@@ -7,6 +7,7 @@ using Storeasy.Application.Dtos.StoreDtos;
 using Storeasy.Application.Features.StoreConnections.AddStoreConnection;
 using Storeasy.Application.Features.StoreConnections.DeleteStoreConnection;
 using Storeasy.Application.Features.StoreConnections.GetStoreConnectionList;
+using Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey;
 using Storeasy.Application.Features.StoreConnections.UpdateStoreConnection;
 using Storeasy.Application.Features.StoreConnections.VerifyStoreConnection;
 using Storeasy.Application.Utils.Constants;
@@ -53,6 +54,18 @@ public class StoreConnectionsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPut("connection")]
     public Task<Response<StoreConnectionDto>> UpdateConnectionAsync(UpdateStoreConnectionCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Replaces the key of an App Store Connect or Google Play connection in place (same connection id, so linked apps,
+    /// jobs and history stay). An Apple key must have the connection's issuer id. The new key is verified against the
+    /// store first; when that fails the old key stays. Answers the updated connection, never the secret.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("connection/key")]
+    [RateLimit(20, 600, "store-key")]
+    public Task<Response<StoreConnectionDto>> ReplaceKeyAsync(ReplaceStoreConnectionKeyCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Checks a connection against its store and stores the verdict.

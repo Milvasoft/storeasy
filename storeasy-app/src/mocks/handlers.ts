@@ -359,6 +359,43 @@ export const mockHandlers: HttpHandler[] = [
     audit(AuditAction.ConnectionUpdated, `${Name} updated.`, connection.Store)
     return envelope(db.connections.find((item) => item.Id === ConnectionId))
   }),
+  http.put(`${BASE}/StoreConnections/connection/key`, async ({ request }) => {
+    await delay(900)
+    const { ConnectionId, Secret } = await body<{ ConnectionId: number; Secret: string }>(request)
+    const connection = db.connections.find((item) => item.Id === ConnectionId)
+    if (!connection) {
+      return refuse('StoreConnectionNotFound', 'Bağlantı bulunamadı.', 404)
+    }
+    if (connection.Store !== StoreKind.Apple && connection.Store !== StoreKind.Google) {
+      return refuse('StoreKeyReplaceNotSupported', 'Burada yalnızca App Store Connect ya da Google Play anahtarı değiştirilir.', 400)
+    }
+    let parsed: Record<string, string>
+    try {
+      parsed = JSON.parse(Secret) as Record<string, string>
+    } catch {
+      return refuse(connection.Store === StoreKind.Apple ? 'AppleSecretInvalid' : 'GoogleSecretInvalid', 'Anahtar okunamadı.', 400)
+    }
+    const apple = connection.Store === StoreKind.Apple
+    if (apple && parsed.issuerId?.slice(-4) !== connection.Fingerprint?.IssuerIdSuffix) {
+      return refuse('StoreKeyIssuerMismatch', 'Yeni anahtar bağlantıyla aynı App Store Connect ekibine ait olmalı.', 400)
+    }
+    const fingerprint = apple
+      ? { KeyId: parsed.keyId, IssuerIdSuffix: parsed.issuerId?.slice(-4) }
+      : { ServiceAccountEmail: parsed.client_email, ProjectId: parsed.project_id }
+    db.connections = db.connections.map((item) =>
+      item.Id === ConnectionId
+        ? {
+            ...item,
+            Fingerprint: fingerprint,
+            Status: ConnectionStatus.Verified,
+            LastVerifiedDate: new Date().toISOString(),
+            LastVerifyError: null,
+          }
+        : item,
+    )
+    audit(AuditAction.ConnectionKeyReplaced, `${connection.Name} key replaced.`, connection.Store)
+    return envelope(db.connections.find((item) => item.Id === ConnectionId))
+  }),
   http.post(`${BASE}/StoreConnections/connection/verify`, async ({ request }) => {
     await delay(900)
     const { ConnectionId } = await body<{ ConnectionId: number }>(request)

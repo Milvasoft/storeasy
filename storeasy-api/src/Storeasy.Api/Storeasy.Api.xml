@@ -2895,6 +2895,16 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.ReplaceKeyAsync(Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand,System.Threading.CancellationToken)">
+            <summary>
+            Replaces the key of an App Store Connect or Google Play connection in place (same connection id, so linked apps,
+            jobs and history stay). An Apple key must have the connection's issuer id. The new key is verified against the
+            store first; when that fails the old key stays. Answers the updated connection, never the secret.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="M:Storeasy.Api.Controllers.StoreConnectionsController.VerifyConnectionAsync(Storeasy.Application.Features.StoreConnections.VerifyStoreConnection.VerifyStoreConnectionCommand,System.Threading.CancellationToken)">
             <summary>
             Checks a connection against its store and stores the verdict.

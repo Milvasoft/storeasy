@@ -132,6 +132,9 @@ public static class MessageKey
     public const string AppStoreAlreadyLinked = nameof(AppStoreAlreadyLinked);
     public const string StoreConnectionStoreMismatch = nameof(StoreConnectionStoreMismatch);
     public const string StoreConnectionIconInvalid = nameof(StoreConnectionIconInvalid);
+    public const string StoreKeyReplaceNotSupported = nameof(StoreKeyReplaceNotSupported);
+    public const string StoreKeyIssuerMismatch = nameof(StoreKeyIssuerMismatch);
+    public const string StoreKeyRejected = nameof(StoreKeyRejected);
     public const string GlobalStoreApp = "Global.StoreApp";
     public const string GlobalStoreConnection = "Global.StoreConnection";
     public const string RegistrationClosed = nameof(RegistrationClosed);

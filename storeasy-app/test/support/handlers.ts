@@ -244,6 +244,18 @@ export const defaultHandlers: HttpHandler[] = [
     }
     return json(envelope({ ...known, Name: input.Name, Icon: input.Icon }))
   }),
+  endpoint('put', '/StoreConnections/connection/key', ({ body }) => {
+    const input = body as { ConnectionId: number; Secret: string }
+    const known = testState.connections.find((item) => item.Id === input.ConnectionId) ?? {
+      ...testState.connections[0],
+      Id: input.ConnectionId,
+    }
+    const secret = JSON.parse(input.Secret) as Record<string, string>
+    const fingerprint = secret.keyId
+      ? { KeyId: secret.keyId, IssuerIdSuffix: secret.issuerId.slice(-4) }
+      : { ServiceAccountEmail: secret.client_email, ProjectId: secret.project_id }
+    return json(envelope({ ...known, Fingerprint: fingerprint, Status: 2, LastVerifiedDate: '2026-11-18T10:00:00Z' }))
+  }),
   endpoint('delete', '/StoreConnections/connection', () => json(envelope(11))),
 
   // ---- apps and builds ----------------------------------------------------

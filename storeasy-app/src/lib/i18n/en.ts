@@ -730,6 +730,18 @@ export const en = {
     editTitle: 'Edit {name}',
     editBody: 'The name and the icon only; the key stays as it is.',
     updated: 'Connection updated',
+    replaceKey: 'Replace key',
+    replaceTitle: 'Replace the key of {name}',
+    replaceAppleBody:
+      'Use a new key of the same App Store Connect team, for example one with the Admin role. The connection, its apps, jobs and history stay.',
+    replaceGoogleBody:
+      'Use the JSON key of a service account invited to your Play Console account. The connection, its apps, jobs and history stay.',
+    replaceNote: 'The new key is tried with the store first. If it works it replaces the old one; if not, nothing changes.',
+    replaceIssuerHint: 'The Issuer ID of this connection ends with …{suffix}.',
+    replaceIssuerMismatch: 'This connection belongs to the team whose Issuer ID ends with …{suffix}; a key of another team cannot be used.',
+    replaceSubmit: 'Verify and replace',
+    replaceFailed: 'The key was not replaced',
+    replaced: 'Key replaced',
   },
   members: {
     title: 'Members',
@@ -1163,6 +1175,7 @@ export const en = {
       aiKeySet: 'AI key set',
       aiKeyRemoved: 'AI key removed',
       aiModelsChanged: 'AI models changed',
+      connectionKeyReplaced: 'Store connection key replaced',
       jobCancelled: 'Job cancelled',
       appAdded: 'App added',
       storeAppLinked: 'Store record paired',

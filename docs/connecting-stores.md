@@ -19,10 +19,27 @@ identify the store; each is offered only for its own store.
 | A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date | Your Apple ID, Google account or Partner Center password |
 | Last verification time and result | Copies of the credential in jobs, plans or audit entries |
 
-Only the store job runner and the verify command open a credential, in memory, for the duration of the call. To replace
-an Apple or Google credential, delete the connection and add it again; a Microsoft client secret is replaced in place
-(see below). See [self-host.md](self-host.md#7-master-key-backup-and-rotation)
-for the master key.
+Only the store job runner, the verify command and replacing a key open a credential, in memory, for the duration of the
+call. See [self-host.md](self-host.md#7-master-key-backup-and-rotation) for the master key.
+
+## Replacing a key
+
+An Apple or Google key is replaced in place with **Replace key** on the connection's card (`PUT
+storeconnections/connection/key`, Manage store connections permission and a verified e-mail address). The connection
+keeps its id, so its apps, store records, jobs, plans and history stay. Typical case: the connection uses an App Manager
+key and the App Store analytics reports need an Admin key; Apple does not change a key's role, so create a new Admin key
+and replace the old one with it.
+
+- **Apple:** the new key must belong to the same App Store Connect team: storeasy compares its issuer id with the one
+  sealed in the connection and refuses another team's key (`StoreKeyIssuerMismatch`). The key id may change.
+- **Google:** any service account JSON key is taken; it may be another service account or another Cloud project.
+
+storeasy runs the same offline checks as when adding a connection, then verifies the new key against the store. Only
+when the store accepts it is it sealed in place of the old one, with the new fingerprint and the connection marked
+verified. When the store refuses it (`StoreKeyRejected`, followed by the store's answer) nothing changes: the old key,
+fingerprint and status stay. The change is audited as *Store connection key replaced* with the old and new fingerprint,
+never the key. Revoke the old key in App Store Connect or Google Cloud afterwards. A Microsoft client secret is renewed
+in place the same way with **Renew secret** (see below).
 
 ## App Store Connect
 
