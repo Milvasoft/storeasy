@@ -81,6 +81,8 @@ export function accountDetail(overrides: Partial<AccountDetailDto> = {}): Accoun
       EmailConfirmed: true,
       Name: 'Deniz',
       Surname: 'Arslan',
+      // The guided tour invitation was answered, so it does not cover the screens under test (tour tests clear it).
+      TourPromptSeenDate: '2026-01-01T09:00:00Z',
       Roles: [],
     },
     overrides,

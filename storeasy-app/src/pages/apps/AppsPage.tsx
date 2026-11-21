@@ -374,6 +374,7 @@ export function AppsPage() {
 
   const header = (
     <PageHeader
+      tour="apps"
       title={showHidden ? t.apps.hiddenTitle : t.apps.title}
       subtitle={showHidden ? t.apps.hiddenSubtitle : t.apps.subtitle}
       actions={

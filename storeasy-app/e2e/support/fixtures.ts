@@ -49,6 +49,14 @@ export async function signIn(page: Page, user: Identity, lang: 'tr' | 'en' = 'tr
 }
 
 export const test = base.extend<{ user: TestUser; organization: TestOrganization }>({
+  // A new account's first visit covers the screen with the guided tour invitation; these specs answer "not now" whenever
+  // it shows (account.spec.ts checks the invitation itself).
+  page: async ({ page }, provide) => {
+    await page.addLocatorHandler(page.getByRole('dialog', { name: /storeasy'yi 2 dakikada|get to know storeasy/ }), async (dialog) => {
+      await dialog.getByRole('button', { name: /^(Şimdi değil|Not now)$/ }).click()
+    })
+    await provide(page)
+  },
   // eslint-disable-next-line no-empty-pattern
   user: async ({}, provide) => {
     await provide(await registerVerifiedUser())

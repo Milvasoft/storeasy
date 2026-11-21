@@ -1454,6 +1454,101 @@ body {
     overflow-wrap: anywhere;
   }
 
+  /* ---------- Guided tour: the first visit invitation, the dim, the spotlight and the step card ---------- */
+  .tour {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+  }
+  .tour-block {
+    position: absolute;
+    inset: 0;
+  }
+  .tour-dim {
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--overlay) / 0.55);
+  }
+  .tour-spot {
+    position: fixed;
+    border-radius: var(--r-md);
+    pointer-events: none;
+    box-shadow:
+      0 0 0 2px rgb(var(--accent)),
+      0 0 0 6px rgb(var(--accent) / 0.25),
+      0 0 0 200vmax rgb(var(--overlay) / 0.55);
+    transition:
+      top var(--dur-3) var(--ease),
+      left var(--dur-3) var(--ease),
+      width var(--dur-3) var(--ease),
+      height var(--dur-3) var(--ease);
+  }
+  .tour-card {
+    position: fixed;
+    width: min(380px, calc(100vw - 32px));
+    padding: 16px 18px;
+    border-radius: var(--r-lg);
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
+    box-shadow: var(--sh-float);
+    transition:
+      top var(--dur-3) var(--ease),
+      left var(--dur-3) var(--ease);
+  }
+  @media (max-width: 639px) {
+    .tour-card:not(.centered) {
+      width: auto;
+    }
+  }
+  .tour-progress {
+    margin-top: 10px;
+    height: 3px;
+    border-radius: var(--r-pill);
+    background: rgb(var(--fg) / 0.08);
+    overflow: hidden;
+  }
+  .tour-progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: rgb(var(--accent));
+    transition: width var(--dur-3) var(--ease);
+  }
+  .tour-invite {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    overflow-y: auto;
+    background:
+      radial-gradient(60rem 36rem at 88% -12%, rgb(var(--accent) / 0.2), transparent 62%),
+      radial-gradient(44rem 30rem at -8% 108%, rgb(var(--accent) / 0.14), transparent 60%), rgb(var(--bg));
+  }
+  .tour-invite .mk-bg {
+    position: absolute;
+    right: -120px;
+    bottom: -140px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  .tour-invite-in > * {
+    animation: tour-rise 560ms var(--ease) both;
+  }
+  .tour-invite-in > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .tour-invite-in > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .tour-invite-in > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .tour-invite-in > :nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .tour-invite-in > :nth-child(n + 6) {
+    animation-delay: 300ms;
+  }
+
   /* ---------- Floating: menu, modal, drawer, toast ---------- */
   .ovl {
     position: fixed;
@@ -2110,6 +2205,16 @@ body {
 }
 
 /* ---------- Motion ---------- */
+@keyframes tour-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @keyframes kit-spin {
   to {
     transform: rotate(360deg);

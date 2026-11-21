@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { MonitorSmartphone } from 'lucide-react'
+import { Compass, MonitorSmartphone } from 'lucide-react'
 import { PasswordPolicy } from '@/components/auth/PasswordPolicy'
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 import { OrgAvatar } from '@/components/org/OrgAvatar'
@@ -25,11 +25,38 @@ import { passwordError } from '@/lib/validation'
 import { accountTabItems } from '@/features/account-preferences/NotificationPreferencesPage'
 import { useNotificationsText } from '@/features/notifications/i18n'
 import { LinkedAccountsCard, ProfileForm, SessionsCard } from '@/features/access/AccountCards'
+import { useTourText } from '@/features/tour/i18n'
+import { useTour } from '@/features/tour/TourProvider'
 
 function AccountTabs() {
   const { t } = useI18n()
   const notifications = useNotificationsText()
   return <Tabs label={t.account.title} items={accountTabItems(t.account, notifications.prefs.tab)} />
+}
+
+// Starts the guided tour again, any time (the first visit invitation points here).
+function TourCard() {
+  const tour = useTour()
+  const t = useTourText()
+  if (!tour) {
+    return null
+  }
+  return (
+    <section className="card">
+      <div className="card-b flex flex-wrap items-center gap-3">
+        <span className="grid h-9 w-9 flex-none place-items-center rounded-sm bg-accent/10 text-accent-text">
+          <Compass className="h-[18px] w-[18px]" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="h3">{t.settings.title}</h2>
+          <p className="m-0 mt-0.5 text-[13px] text-fg2">{t.settings.body}</p>
+        </div>
+        <Button data-tour="account-tour" onClick={tour.start}>
+          {t.settings.start}
+        </Button>
+      </div>
+    </section>
+  )
 }
 
 /** Profile (design 16.3): read from account/detail, saved with PUT account/profile (name, surname, language). */
@@ -86,6 +113,7 @@ export function AccountPage() {
               <p className="m-0 text-xs text-fg3">{t.account.preferencesLocal}</p>
             </div>
           </section>
+          <TourCard />
           <section className="card">
             <div className="card-h">
               <h2 className="h3">{t.account.organizations}</h2>
