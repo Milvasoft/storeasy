@@ -20,7 +20,7 @@ const stubbed = new Set(
 
 describe('aso keywords api contract', () => {
   it('finds the endpoints the keywords tab calls', () => {
-    expect(calledEndpoints().size).toBe(8)
+    expect(calledEndpoints().size).toBe(9)
   })
 
   it('answers every endpoint the tab calls and nothing else', () => {

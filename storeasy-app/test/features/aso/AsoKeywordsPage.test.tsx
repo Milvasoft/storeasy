@@ -1,21 +1,36 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { OrgRole, StoreKind } from '@/lib/api/types'
+import { ActivityEventType, createManualSource } from '@/lib/activity/events'
+import { OrgRole, StoreJobStatus, StoreKind, type StoreJobKind } from '@/lib/api/types'
 import { AsoKeywordDetailPage, AsoKeywordsPage, rankPath } from '@/features/aso/AsoKeywordsPage'
 import { parseKeywords } from '@/features/aso/api'
-import { asoState, setupAsoApi } from '../../support/aso'
+import { asoState, researchItem, researchJob, setupAsoApi } from '../../support/aso'
 import { setupContentApi } from '../../support/content'
-import { organization } from '../../support/factories'
+import { activityEvent, organization } from '../../support/factories'
 import { setupImpactApi } from '../../support/asoImpact'
 import { renderWithProviders } from '../../support/render'
-import { lastRequestTo, testState } from '../../support/state'
+import { lastRequestTo, requestsTo, testState } from '../../support/state'
 
 setupContentApi()
 setupAsoApi()
 setupImpactApi()
 
+const RESEARCH_KIND = 110 as StoreJobKind
+
 function render(query = '?store=apple') {
-  return renderWithProviders(<AsoKeywordsPage />, { route: `/apps/101/keywords${query}`, path: '/apps/:appId/keywords' })
+  const source = createManualSource()
+  const view = renderWithProviders(<AsoKeywordsPage />, {
+    route: `/apps/101/keywords${query}`,
+    path: '/apps/:appId/keywords',
+    activity: source,
+  })
+  return { ...view, source }
+}
+
+function lastPost(path: string) {
+  return requestsTo(path)
+    .filter((request) => request.method === 'POST')
+    .at(-1)
 }
 
 describe('AsoKeywordsPage', () => {
@@ -55,7 +70,7 @@ describe('AsoKeywordsPage', () => {
     expect(within(row).getByText('184')).toBeInTheDocument()
     expect(within(row).getByText('İlk 200 içinde değil')).toBeInTheDocument()
     expect(within(row).getByText('Kıble Bul')).toBeInTheDocument()
-    expect(lastRequestTo('/aso-keywords/research')?.body).toEqual({
+    expect(lastPost('/aso-keywords/research')?.body).toEqual({
       OrganizationId: 7,
       AppId: 101,
       Store: StoreKind.Apple,
@@ -78,6 +93,110 @@ describe('AsoKeywordsPage', () => {
     const tracked = screen.getByRole('region', { name: 'Takip edilen anahtar kelimeler' })
     expect(await within(tracked).findByRole('link', { name: 'kıble pusulası' })).toBeInTheDocument()
     expect(within(research).getByText('Takipte')).toBeInTheDocument()
+  })
+
+  it('runs the measuring as a job: shows the progress live, lets an editor stop it and shows the result when it is done', async () => {
+    asoState.researchRuns = true
+    const { user, source } = render()
+
+    await user.type(await screen.findByLabelText('Anahtar kelimeler'), 'kıble pusulası\npusula')
+    await user.click(screen.getByRole('button', { name: 'Ölç' }))
+
+    const research = screen.getByRole('region', { name: 'Araştırma' })
+    expect(await within(research).findByText(/Ölçülüyor 0\/2/)).toBeInTheDocument()
+    expect(within(research).getByText(/Sayfadan ayrılabilirsin/)).toBeInTheDocument()
+    expect(within(research).getByRole('button', { name: 'Ölç' })).toBeDisabled()
+    expect(within(research).getByRole('button', { name: 'Durdur' })).toBeInTheDocument()
+
+    const jobId = asoState.researchJob!.JobId
+    asoState.researchJob = { ...asoState.researchJob!, Measured: 1 }
+    act(() =>
+      source.push(
+        activityEvent({
+          Type: ActivityEventType.JobStep,
+          JobId: jobId,
+          JobKind: RESEARCH_KIND,
+          JobStatus: StoreJobStatus.Running,
+          Progress: 1,
+          Total: 2,
+        }),
+      ),
+    )
+    expect(await within(research).findByText(/Ölçülüyor 1\/2/)).toBeInTheDocument()
+    expect(within(research).getByRole('progressbar', { name: 'Ölçülen anahtar kelimeler' })).toHaveAttribute('aria-valuenow', '1')
+
+    asoState.researchJob = { ...asoState.researchJob!, Status: StoreJobStatus.Succeeded, Measured: 2, Items: [researchItem()] }
+    act(() =>
+      source.push(
+        activityEvent({ Type: ActivityEventType.JobSucceeded, JobId: jobId, JobKind: RESEARCH_KIND, JobStatus: StoreJobStatus.Succeeded }),
+      ),
+    )
+
+    expect(await within(research).findByText('kıble pusulası', { selector: 'b' })).toBeInTheDocument()
+    expect(within(research).queryByText(/Ölçülüyor/)).not.toBeInTheDocument()
+    expect(within(research).getByRole('button', { name: 'Ölç' })).toBeEnabled()
+    expect(lastRequestTo('/aso-keywords/research')?.query).toMatchObject({
+      AppId: '101',
+      Store: String(StoreKind.Apple),
+      JobId: String(jobId),
+    })
+  })
+
+  it('stops a running research after a confirmation', async () => {
+    asoState.researchJob = researchJob({ Status: StoreJobStatus.Running, Measured: 3, Total: 20, Items: [] })
+    const { user } = render()
+
+    await user.click(await screen.findByRole('button', { name: 'Durdur' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getAllByRole('button').at(-1)!)
+
+    await waitFor(() => expect(lastRequestTo('/StoreJobs/job/cancel')?.body).toEqual({ OrganizationId: 7, JobId: 9001 }))
+  })
+
+  it('shows the latest research of the app when the page is opened again, still running or done', async () => {
+    asoState.researchJob = researchJob({ Status: StoreJobStatus.Running, Measured: 5, Total: 20, Items: [] })
+    const first = render()
+    expect(await screen.findByText(/Ölçülüyor 5\/20/)).toBeInTheDocument()
+    expect(lastRequestTo('/aso-keywords/research')?.query).not.toHaveProperty('JobId')
+    first.unmount()
+
+    asoState.researchJob = researchJob({ Country: 'de' })
+    render()
+    const research = await screen.findByRole('region', { name: 'Araştırma' })
+    expect(await within(research).findByText('kıble pusulası', { selector: 'b' })).toBeInTheDocument()
+    expect(within(research).getByText('Ölçülen ülke: DE')).toBeInTheDocument()
+  })
+
+  it('tracks the measured keywords in the country they were measured in', async () => {
+    asoState.researchJob = researchJob({ Country: 'de' })
+    const { user } = render()
+
+    const research = await screen.findByRole('region', { name: 'Araştırma' })
+    await within(research).findByText('kıble pusulası', { selector: 'b' })
+    await user.click(within(research).getByRole('button', { name: 'Seçilenleri takibe al' }))
+
+    await waitFor(() => expect(lastRequestTo('/aso-keywords/track')?.body).toMatchObject({ Country: 'DE', Keywords: ['kıble pusulası'] }))
+  })
+
+  it('says why a research failed instead of a generic error', async () => {
+    asoState.researchJob = researchJob({
+      Status: StoreJobStatus.Failed,
+      Items: [],
+      Error: 'Anahtar kelime verisi için mağazaya ulaşılamadı. Birkaç dakika sonra yeniden deneyin.',
+    })
+    render()
+
+    expect(
+      await screen.findByText('Ölçüm tamamlanamadı: Anahtar kelime verisi için mağazaya ulaşılamadı. Birkaç dakika sonra yeniden deneyin.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Bir şeyler ters gitti/)).not.toBeInTheDocument()
+  })
+
+  it('says a stopped research ended without a result', async () => {
+    asoState.researchJob = researchJob({ Status: StoreJobStatus.Cancelled, Items: [] })
+    render()
+
+    expect(await screen.findByText('Ölçüm bitmeden durduruldu.')).toBeInTheDocument()
   })
 
   it('shows the organization limit as the API words it', async () => {
@@ -183,7 +302,12 @@ describe('AsoKeywordDetailPage', () => {
     })
 
     const marker = await screen.findByRole('button', { name: /Mağaza metinleri \(tr\)/ })
-    expect(lastRequestTo('/aso-impact/events')?.query).toMatchObject({ AppId: '101', StoreAppId: '201', From: '2026-11-15', To: '2026-11-21' })
+    expect(lastRequestTo('/aso-impact/events')?.query).toMatchObject({
+      AppId: '101',
+      StoreAppId: '201',
+      From: '2026-11-15',
+      To: '2026-11-21',
+    })
 
     await user.click(marker)
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/apps/101/store-performance/impact?event=plan-'))

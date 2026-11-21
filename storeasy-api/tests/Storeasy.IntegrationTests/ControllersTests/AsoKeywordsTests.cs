@@ -8,6 +8,8 @@ using Storeasy.Application.Utils.Constants;
 using Storeasy.Application.Utils.Models;
 using Storeasy.Domain.Aso;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Stores;
+using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.IntegrationTests.TestBase;
 using Storeasy.IntegrationTests.TestBase.Fakes;
 using System.Net;
@@ -30,23 +32,74 @@ public class AsoKeywordsTests(StoreasyApiFactory factory) : ContentTestBase(fact
         return (org, record, $"compass {org.Suffix}");
     }
 
+    private static object ResearchRequest(Org org, int appId, StoreKind store, string country, params string[] keywords)
+        => new { organizationId = org.OrganizationId, appId, store, country, keywords };
+
+    private async Task<long> QueueResearchAsync(TestUser user, object request)
+    {
+        var (http, body) = await user.Client.PostAsync<long>("aso-keywords/research", request);
+
+        http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
+        body.Data.Should().BePositive();
+
+        return body.Data;
+    }
+
+    private Task<(HttpResponseMessage Http, Milvasoft.Components.Rest.MilvaResponse.Response<AsoKeywordResearchJobDto> Body)> ReadResearchAsync(TestUser user, Org org, int appId, StoreKind store, long? jobId = null)
+        => user.Client.GetAsync<AsoKeywordResearchJobDto>($"aso-keywords/research?organizationId={org.OrganizationId}&appId={appId}&store={store}{(jobId == null ? string.Empty : $"&jobId={jobId}")}");
+
+    private async Task<(StoreJob Job, AsoKeywordResearchJobDto Research)> ResearchAndWaitAsync(TestUser user, Org org, int appId, StoreKind store, string country, params string[] keywords)
+    {
+        var jobId = await QueueResearchAsync(user, ResearchRequest(org, appId, store, country, keywords));
+        var job = await WaitForJobAsync(jobId);
+        var (http, body) = await ReadResearchAsync(user, org, appId, store, jobId);
+
+        http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
+
+        return (job, body.Data);
+    }
+
+    private async Task WaitForRequestAsync(string term)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+
+        while (!Stores.Requests.Any(r => r.Query.GetValueOrDefault("term") == term))
+        {
+            if (DateTime.UtcNow > deadline)
+                throw new TimeoutException($"No store request for '{term}'.");
+
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+    }
+
     [Fact]
-    public async Task Research_ShouldScoreFromTheStoreData_AndFindTheAppsRank()
+    public async Task Research_ShouldQueueAJob_ThatScoresFromTheStoreData_AndFindsTheAppsRank()
     {
         // Arrange
         var (org, record, keyword) = await AppleAppAsync();
         var viewer = await MemberAsync(org, OrgRole.Viewer);
         Stores.Hints[keyword] = [keyword, $"{keyword} app"];
         Stores.Results[keyword] = [("2001", "Compass Pro", 120000, 4.8), (record.ExternalId, "Pusula", 40, 4.0), ("2003", "Maps", 5000, 4.4)];
+        var (_, before) = await ReadResearchAsync(viewer, org, record.AppId, StoreKind.Apple);
 
         // Act
-        var (http, body) = await viewer.Client.PostAsync<List<AsoKeywordResearchDto>>("aso-keywords/research", new { organizationId = org.OrganizationId, appId = record.AppId, store = StoreKind.Apple, country = "TR", keywords = new[] { keyword.ToUpperInvariant() } });
+        var (job, research) = await ResearchAndWaitAsync(viewer, org, record.AppId, StoreKind.Apple, "TR", keyword.ToUpperInvariant(), $"{keyword} pro");
+        var (_, latest) = await ReadResearchAsync(viewer, org, record.AppId, StoreKind.Apple);
+        await org.Owner.Client.PostAsync<List<AsoTrackedKeywordDto>>("aso-keywords/track", new { organizationId = org.OrganizationId, appId = record.AppId, store = StoreKind.Apple, country = "tr", keywords = new[] { keyword } });
+        var (_, afterTracking) = await ReadResearchAsync(viewer, org, record.AppId, StoreKind.Apple, job.Id);
         var metric = await _factory.DbAsync(db => db.AsoKeywordMetrics.AsNoTracking().SingleAsync(m => m.Keyword == keyword && m.Country == "tr"));
+        var steps = await _factory.DbAsync(db => db.StoreJobSteps.AsNoTracking().Where(s => s.StoreJobId == job.Id).ToListAsync());
 
         // Assert
-        http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
-        var item = body.Data.Should().ContainSingle().Subject;
-        item.Keyword.Should().Be(keyword, "the keyword is normalized");
+        before.Data.Should().BeNull("the app had no research yet");
+        job.Status.Should().Be(StoreJobStatus.Succeeded, job.Error);
+        job.Kind.Should().Be(StoreJobKind.AsoKeywordResearch);
+        job.AppId.Should().Be(record.AppId);
+        steps.Should().ContainSingle(s => s.Name == AsoKeywordResearchResult.MeasureStep).Which.Should().Match<StoreJobStep>(s => s.Progress == 2 && s.Total == 2 && s.Status == StoreJobStepStatus.Succeeded);
+        research.Should().Match<AsoKeywordResearchJobDto>(r => r.JobId == job.Id && r.Status == StoreJobStatus.Succeeded && r.Country == "tr" && r.Measured == 2 && r.Total == 2 && r.Error == null);
+        research.Keywords.Should().Equal(keyword, $"{keyword} pro");
+        research.Items.Select(i => i.Keyword).Should().Equal(keyword, $"{keyword} pro");
+        var item = research.Items[0];
         item.Popularity.Should().BeInRange(10, 100);
         item.PopularitySource.Should().Be("apple-search-hints");
         item.Difficulty.Should().BeInRange(1, 100);
@@ -54,10 +107,13 @@ public class AsoKeywordsTests(StoreasyApiFactory factory) : ContentTestBase(fact
         item.CompetingApps.Should().Be(3);
         item.CurrentRank.Should().Be(2);
         item.RankChecked.Should().BeTrue();
+        item.Tracked.Should().BeFalse();
         item.TopCompetitors.Select(c => c.Id).Should().Equal("2001", record.ExternalId, "2003");
         item.TopCompetitors[1].IsOwnApp.Should().BeTrue();
         item.RelatedTerms.Should().Contain($"{keyword} app");
-        metric.Popularity.Should().Be(item.Popularity);
+        metric.Popularity.Should().Be(item.Popularity, "the measurement is saved for the next research");
+        latest.Data.JobId.Should().Be(job.Id, "without a job id the latest research of the app answers");
+        afterTracking.Data.Items.Single(i => i.Keyword == keyword).Tracked.Should().BeTrue("the tracking state is read with the result");
         Stores.Requests.Should().Contain(r => r.Host == "search.itunes.apple.com" && r.Query["term"] == keyword && r.Storefront == "143480-1,29" && r.UserAgent == AsoOptions.DefaultUserAgent);
         Stores.Requests.Should().Contain(r => r.Host == "itunes.apple.com" && r.Query["term"] == keyword && r.Query["country"] == "tr" && r.Query["limit"] == "200");
     }
@@ -70,24 +126,75 @@ public class AsoKeywordsTests(StoreasyApiFactory factory) : ContentTestBase(fact
         var keyword = $"qibla {org.Suffix}";
         Stores.Hints[keyword] = [keyword, $"{keyword} app"];
 
-        var (http, body) = await org.Owner.Client.PostAsync<List<AsoKeywordResearchDto>>("aso-keywords/research", new { organizationId = org.OrganizationId, appId = google.AppId, store = StoreKind.Google, country = "us", keywords = new[] { keyword } });
+        var (job, research) = await ResearchAndWaitAsync(org.Owner, org, google.AppId, StoreKind.Google, "us", keyword);
 
-        http.StatusCode.Should().Be(HttpStatusCode.OK, body?.MessagesToString());
-        body.Data.Should().ContainSingle().Which.Should().Match<AsoKeywordResearchDto>(k => k.Popularity >= 10 && k.PopularitySource == "google-play-suggest" && !k.RankChecked && k.Difficulty == null);
+        job.Status.Should().Be(StoreJobStatus.Succeeded, job.Error);
+        research.Items.Should().ContainSingle().Which.Should().Match<AsoKeywordResearchDto>(k => k.Popularity >= 10 && k.PopularitySource == "google-play-suggest" && !k.RankChecked && k.Difficulty == null);
         Stores.Requests.Should().Contain(r => r.Host == "play.google.com" && r.Path == "/_/PlayStoreUi/data/batchexecute" && r.Query["rpcids"] == "IJ4APc" && r.Query["gl"] == "US");
         Stores.Requests.Should().NotContain(r => r.Host == "play.google.com" && r.Path == "/store/search", "reading Play search pages is off");
     }
 
     [Fact]
-    public async Task Research_WhenTheStoreIsDown_ShouldBe503_AndMicrosoftIsNotSupported()
+    public async Task Research_WhenTheStoreIsDown_ShouldFailTheJobWithAClearMessage_AndBadInputIsRefusedAtOnce()
     {
         var (org, record, _) = await AppleAppAsync();
+        var other = await NewOrgAsync();
 
-        var (down, _) = await org.Owner.Client.PostAsync<List<AsoKeywordResearchDto>>("aso-keywords/research", new { organizationId = org.OrganizationId, appId = record.AppId, store = StoreKind.Apple, country = "us", keywords = new[] { $"{FakeAsoStores.OfflineMarker} {org.Suffix}" } });
-        var (badCountry, _) = await org.Owner.Client.PostAsync<List<AsoKeywordResearchDto>>("aso-keywords/research", new { organizationId = org.OrganizationId, appId = record.AppId, store = StoreKind.Apple, country = "TUR", keywords = new[] { "compass" } });
+        var (job, research) = await ResearchAndWaitAsync(org.Owner, org, record.AppId, StoreKind.Apple, "us", $"{FakeAsoStores.OfflineMarker} {org.Suffix}");
+        var (badCountry, _) = await org.Owner.Client.PostAsync<long>("aso-keywords/research", ResearchRequest(org, record.AppId, StoreKind.Apple, "TUR", "compass"));
+        var (noKeywords, _) = await org.Owner.Client.PostAsync<long>("aso-keywords/research", ResearchRequest(org, record.AppId, StoreKind.Apple, "us"));
+        var (foreign, _) = await ReadResearchAsync(other.Owner, other, record.AppId, StoreKind.Apple, job.Id);
 
-        down.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        job.Status.Should().Be(StoreJobStatus.Failed);
+        job.Attempt.Should().Be(1, "a store that did not answer is not retried in a loop");
+        research.Status.Should().Be(StoreJobStatus.Failed);
+        research.Error.Should().NotBeNullOrWhiteSpace().And.NotBe(AsoKeywordResearchResult.SourceUnavailableError, "the known reason is shown localized");
+        research.Items.Should().BeEmpty();
         badCountry.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        noKeywords.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        foreign.StatusCode.Should().NotBe(HttpStatusCode.OK, "another organization cannot read the research");
+    }
+
+    [Fact]
+    public async Task Research_WhileRunning_TheSameRequestShouldAnswerTheSameJob_AndCancelShouldStopIt()
+    {
+        // Arrange: the first keyword's store call waits, so the job stays running.
+        var (org, record, keyword) = await AppleAppAsync();
+        var slow = $"slow {keyword}";
+        var next = $"next {keyword}";
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Stores.Gates[slow] = gate;
+
+        try
+        {
+            // Act
+            var jobId = await QueueResearchAsync(org.Owner, ResearchRequest(org, record.AppId, StoreKind.Apple, "us", slow, next));
+            await WaitForRequestAsync(slow);
+            var again = await QueueResearchAsync(org.Owner, ResearchRequest(org, record.AppId, StoreKind.Apple, "US", slow.ToUpperInvariant(), next));
+            var (_, running) = await ReadResearchAsync(org.Owner, org, record.AppId, StoreKind.Apple);
+            var (cancelHttp, cancel) = await org.Owner.Client.PostAsync<StoreJobStatus>("StoreJobs/job/cancel", new { organizationId = org.OrganizationId, jobId });
+
+            // The cancel request is read at the next progress report (at most once a second).
+            await Task.Delay(StoreJobContext.CancelCheckInterval + TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
+            gate.SetResult();
+            var job = await WaitForJobAsync(jobId);
+            var (_, cancelled) = await ReadResearchAsync(org.Owner, org, record.AppId, StoreKind.Apple, jobId);
+
+            // Assert
+            again.Should().Be(jobId, "an identical research still on the way is not queued twice");
+            running.Data.Should().Match<AsoKeywordResearchJobDto>(r => r.JobId == jobId && r.Status == StoreJobStatus.Running && r.Measured == 0 && r.Total == 2);
+            cancelHttp.StatusCode.Should().Be(HttpStatusCode.OK, cancel?.MessagesToString());
+            job.Status.Should().Be(StoreJobStatus.Cancelled);
+            job.Result.Should().BeNull();
+            cancelled.Data.Status.Should().Be(StoreJobStatus.Cancelled);
+            cancelled.Data.Items.Should().BeEmpty();
+            Stores.Requests.Should().NotContain(r => r.Query.GetValueOrDefault("term") == next, "the job stopped before the next keyword");
+        }
+        finally
+        {
+            gate.TrySetResult();
+            Stores.Gates.TryRemove(slow, out _);
+        }
     }
 
     [Fact]

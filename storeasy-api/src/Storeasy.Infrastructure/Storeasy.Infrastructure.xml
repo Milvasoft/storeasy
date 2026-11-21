@@ -492,6 +492,34 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Aso.AsoKeywordResearchJobHandler">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job: measures the keywords of the payload one by one with
+            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> (paced store calls, cached measurements), reports "measured / total" on its
+            <see cref="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.MeasureStep"/> step after each keyword, which is also where a cancel request is
+            seen, and saves the measurements as the job's result. When no store source answered for any keyword the job fails with
+            <see cref="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.SourceUnavailableError"/>.
+            </summary>
+            <param name="contentService"></param>
+            <param name="researcher"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearchJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IAsoKeywordResearcher)">
+            <summary>
+            The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.AsoKeywordResearch"/> job: measures the keywords of the payload one by one with
+            <see cref="T:Storeasy.Application.Interfaces.IAsoKeywordResearcher"/> (paced store calls, cached measurements), reports "measured / total" on its
+            <see cref="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.MeasureStep"/> step after each keyword, which is also where a cancel request is
+            seen, and saves the measurements as the job's result. When no store source answered for any keyword the job fails with
+            <see cref="F:Storeasy.Application.Dtos.AsoDtos.AsoKeywordResearchResult.SourceUnavailableError"/>.
+            </summary>
+            <param name="contentService"></param>
+            <param name="researcher"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Aso.AsoKeywordResearchJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Aso.AsoKeywordResearchJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Aso.AsoRankRecorder">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IAsoRankRecorder"/>: one store search per store, country and keyword shared by every organization tracking

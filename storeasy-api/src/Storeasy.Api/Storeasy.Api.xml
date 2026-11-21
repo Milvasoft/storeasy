@@ -1160,10 +1160,20 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
-        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.ResearchAsync(Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsQuery,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.ResearchAsync(Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords.ResearchAsoKeywordsCommand,System.Threading.CancellationToken)">
             <summary>
-            Measures up to 20 keywords in one store and country: estimated popularity, difficulty, competing apps, top ten,
-            current rank and opportunity. Store calls are paced and cached, so a first research of many keywords takes a while.
+            Queues the measurement of up to 20 keywords in one store and country (estimated popularity, difficulty, competing
+            apps, top ten, current rank and opportunity) as a store job and answers its id at once. Store calls are paced, so a
+            research of many new keywords takes minutes; read it with GET research.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.AsoKeywordsController.GetResearchAsync(Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch.GetAsoKeywordResearchQuery,System.Threading.CancellationToken)">
+            <summary>
+            A research job of an app in one store: its state, keywords measured so far and, once it succeeded, the measurements.
+            Without a job id, the app's latest research in that store (no data when there was none).
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>

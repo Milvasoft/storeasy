@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/lib/api/http'
 import type { StoreKind } from '@/lib/api/types'
+import { isJobActive } from '@/lib/jobs/labels'
 import type {
   AsoKeywordCoverageDto,
   AsoKeywordRanksDto,
-  AsoKeywordResearchDto,
+  AsoKeywordResearchJobDto,
   AsoKeywordSeedsDto,
   AsoTrackedKeywordDto,
   TrackKeywordsInput,
@@ -17,15 +18,26 @@ export const asoApi = {
   tracked: (organizationId: number, appId: number, store: StoreKind) =>
     apiGet<AsoTrackedKeywordDto[]>('/aso-keywords', { OrganizationId: organizationId, AppId: appId, Store: store }),
 
-  // View. Up to 20 keywords; 503 AsoSourceUnavailable when the store did not answer, 400 AsoStoreNotSupported for
-  // Microsoft Store. Store calls are paced, so a first research can take a while.
+  // View. Queues the measuring of up to 20 keywords as a store job and answers its id at once (store requests are
+  // paced, so it takes minutes). 400 AsoStoreNotSupported for Microsoft Store; an identical research still on the way
+  // answers the same id.
   research: (organizationId: number, appId: number, store: StoreKind, country: string, keywords: string[]) =>
-    apiPost<AsoKeywordResearchDto[]>('/aso-keywords/research', {
+    apiPost<number>('/aso-keywords/research', {
       OrganizationId: organizationId,
       AppId: appId,
       Store: store,
       Country: country,
       Keywords: keywords,
+    }),
+
+  // View. A research job with its progress and, once it succeeded, the measurements; without a job id the app's latest
+  // research in the store (null when there was none).
+  researchJob: (organizationId: number, appId: number, store: StoreKind, jobId: number | null) =>
+    apiGet<AsoKeywordResearchJobDto | null>('/aso-keywords/research', {
+      OrganizationId: organizationId,
+      AppId: appId,
+      Store: store,
+      ...(jobId ? { JobId: jobId } : {}),
     }),
 
   // View. Candidates from the listing, competitors' names and the store's suggestions.
@@ -64,6 +76,8 @@ export const asoKeys = {
   tracked: (organizationId: number, appId: number, store: StoreKind) => ['aso', 'tracked', organizationId, appId, store] as const,
   ranks: (organizationId: number, id: number, days: number) => ['aso', 'ranks', organizationId, id, days] as const,
   coverage: (organizationId: number, appId: number) => ['aso', 'coverage', organizationId, appId] as const,
+  research: (organizationId: number, appId: number, store: StoreKind, jobId: number | null) =>
+    ['aso', 'research', organizationId, appId, store, jobId ?? 'latest'] as const,
 }
 
 export function useTrackedKeywords(organizationId: number, appId: number, store: StoreKind, enabled = true) {
@@ -79,6 +93,21 @@ export function useKeywordRanks(organizationId: number, id: number, days: number
     queryKey: asoKeys.ranks(organizationId, id, days),
     queryFn: () => asoApi.ranks(organizationId, id, days),
     enabled: id > 0,
+  })
+}
+
+/** How often a running research is read again (the live stream also refreshes it on the job's own events). */
+export const RESEARCH_POLL_MS = 3000
+
+/** A research job of the app in the store (the latest one without a job id), read again while it runs. */
+export function useResearchJob(organizationId: number, appId: number, store: StoreKind, jobId: number | null) {
+  return useQuery({
+    queryKey: asoKeys.research(organizationId, appId, store, jobId),
+    queryFn: () => asoApi.researchJob(organizationId, appId, store, jobId),
+    refetchInterval: (query) => {
+      const job = query.state.data
+      return job && isJobActive(job.Status) ? RESEARCH_POLL_MS : false
+    },
   })
 }
 

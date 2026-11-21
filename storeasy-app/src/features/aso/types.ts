@@ -1,4 +1,4 @@
-import type { StoreKind } from '@/lib/api/types'
+import type { StoreJobStatus, StoreKind } from '@/lib/api/types'
 
 // The ASO keyword contract (storeasy-api Dtos/AsoDtos). PascalCase like the API's JSON.
 
@@ -32,6 +32,25 @@ export interface AsoKeywordResearchDto {
   RelatedTerms: string[]
   PopularityDate: string | null
   ResultsDate: string | null
+}
+
+// A research job (GET aso-keywords/research): the measuring runs as a store job because store requests are paced.
+export interface AsoKeywordResearchJobDto {
+  JobId: number
+  Status: StoreJobStatus
+  CancelRequested: boolean
+  AppId: number
+  Store: StoreKind
+  Country: string | null
+  Keywords: string[]
+  Measured: number
+  Total: number
+  // Localized when the reason is known (the store did not answer).
+  Error: string | null
+  CreationDate: string | null
+  EndDate: string | null
+  // Filled once the job succeeded, with the tracking state of the moment.
+  Items: AsoKeywordResearchDto[]
 }
 
 export type AsoSeedSource = 'name' | 'subtitle' | 'keywords' | 'description' | 'competitors' | 'suggestions' | 'ai'

@@ -6,6 +6,7 @@ using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.AsoDtos;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordCoverage;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordRanks;
+using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordResearch;
 using Storeasy.Application.Features.AsoKeywords.GetAsoKeywordSeeds;
 using Storeasy.Application.Features.AsoKeywords.GetAsoTrackedKeywords;
 using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
@@ -39,15 +40,26 @@ public class AsoKeywordsController(IMediator mediator) : ControllerBase
     public Task<Response<List<AsoTrackedKeywordDto>>> GetTrackedAsync([FromQuery] GetAsoTrackedKeywordsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
-    /// Measures up to 20 keywords in one store and country: estimated popularity, difficulty, competing apps, top ten,
-    /// current rank and opportunity. Store calls are paced and cached, so a first research of many keywords takes a while.
+    /// Queues the measurement of up to 20 keywords in one store and country (estimated popularity, difficulty, competing
+    /// apps, top ten, current rank and opportunity) as a store job and answers its id at once. Store calls are paced, so a
+    /// research of many new keywords takes minutes; read it with GET research.
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     [HttpPost("research")]
     [RateLimit(60, 3600, "aso-research")]
-    public Task<Response<List<AsoKeywordResearchDto>>> ResearchAsync(ResearchAsoKeywordsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+    public Task<Response<long>> ResearchAsync(ResearchAsoKeywordsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// A research job of an app in one store: its state, keywords measured so far and, once it succeeded, the measurements.
+    /// Without a job id, the app's latest research in that store (no data when there was none).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("research")]
+    public Task<Response<AsoKeywordResearchJobDto>> GetResearchAsync([FromQuery] GetAsoKeywordResearchQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Keyword candidates from data: the listing, competitors' names and the store's suggestions.

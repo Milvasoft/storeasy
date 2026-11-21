@@ -34,6 +34,11 @@ public record SuggestAsoKeywordSeedsCommandHandler(IStoreContentService ContentS
                                                    IMilvaLocalizer Localizer,
                                                    AiOptions Options) : IInterceptable, ICommandHandler<SuggestAsoKeywordSeedsCommand, AsoKeywordSeedsDto>
 {
+    /// <summary>
+    /// Longest wait for the AI's answer.
+    /// </summary>
+    public static readonly TimeSpan AiBudget = TimeSpan.FromSeconds(75);
+
     private readonly IStoreContentService _contentService = ContentService;
     private readonly IStoreasyRepositoryBase<OrganizationAiSetting> _settingRepository = SettingRepository;
     private readonly IStoreasyRepositoryBase<AsoTrackedKeyword> _trackedRepository = TrackedRepository;
@@ -74,7 +79,16 @@ public record SuggestAsoKeywordSeedsCommandHandler(IStoreContentService ContentS
 
         var known = AsoExtensions.NormalizeKeywords(request.Seeds, country);
 
-        var result = await _suggestionWriter.SuggestKeywordSeedsAsync(new KeywordSeedRequest(setting.ApiKey,
+        // The AI call (with the SDK's own retry) must end before the reverse proxy gives up on the request (about 100
+        // seconds), so the member gets a clear "AI unavailable" answer instead of a gateway error.
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        budget.CancelAfter(AiBudget);
+
+        KeywordSeedResult result;
+
+        try
+        {
+            result = await _suggestionWriter.SuggestKeywordSeedsAsync(new KeywordSeedRequest(setting.ApiKey,
                                                                                             app.AppName,
                                                                                             app.Store,
                                                                                             country,
@@ -84,7 +98,12 @@ public record SuggestAsoKeywordSeedsCommandHandler(IStoreContentService ContentS
                                                                                             ListingSuggestions.ProfileLines(app.Profile),
                                                                                             string.IsNullOrWhiteSpace(request.Instruction) ? null : request.Instruction.Trim(),
                                                                                             _options.ReplyDraftModelFor(setting.ReplyDraftModel)),
-                                                                      cancellationToken);
+                                                                          budget.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return Response<AsoKeywordSeedsDto>.Error(null, ListingSuggestions.FailureKey(ReplyDraftOutcome.Unavailable));
+        }
 
         var seen = known.ToHashSet(StringComparer.Ordinal);
         var seeds = new List<AsoKeywordSeedDto>();

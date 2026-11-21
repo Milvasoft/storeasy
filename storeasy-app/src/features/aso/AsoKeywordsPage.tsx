@@ -1,16 +1,20 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowLeft, ArrowUp, Minus, Search, Sparkles, Tags } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Callout } from '@/components/ui/Feedback'
+import { Progress } from '@/components/ui/Progress'
 import { ScreenState } from '@/components/ui/ScreenState'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Button, CardSkeleton, Checkbox, EmptyState, Field, Input, PageHeader, Textarea } from '@/components/ui/primitives'
+import { useActivity } from '@/lib/activity/ActivityContext'
 import { apiErrorMessage } from '@/lib/api/http'
-import { OrgPermission, StoreKind } from '@/lib/api/types'
+import { OrgPermission, StoreJobStatus, StoreKind } from '@/lib/api/types'
 import { useFormat, useI18n, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
+import { isJobActive } from '@/lib/jobs/labels'
+import { useCancelJob } from '@/lib/jobs/useCancelJob'
 import { showToast } from '@/lib/toast/toast'
 import { cn } from '@/lib/utils/cn'
 import { useAiSettings } from '@/features/ai/api'
@@ -20,12 +24,13 @@ import { ChartMarkers, type ChartMarker } from '@/features/aso-impact/ChartMarke
 import { useImpactText } from '@/features/aso-impact/i18n'
 import { eventTitle, impactLink } from '@/features/aso-impact/labels'
 import { ImpactDateSource } from '@/features/aso-impact/types'
-import { asoApi, asoKeys, parseKeywords, useKeywordCoverage, useKeywordRanks, useTrackedKeywords } from './api'
+import { asoApi, asoKeys, parseKeywords, useKeywordCoverage, useKeywordRanks, useResearchJob, useTrackedKeywords } from './api'
 import { useAsoText, type AsoDictionary } from './i18n'
 import type {
   AsoCompetitorDto,
   AsoKeywordCoverageDto,
   AsoKeywordResearchDto,
+  AsoKeywordResearchJobDto,
   AsoKeywordSeedDto,
   AsoRankPointDto,
   AsoTrackedKeywordDto,
@@ -247,6 +252,51 @@ function Competitors({ items, t }: { items: AsoCompetitorDto[]; t: AsoDictionary
   )
 }
 
+/** Where a research job stands: waiting, "measuring 5/20" with a bar and Stop, or why it ended without a result. */
+function ResearchStatus({
+  research,
+  canStop,
+  stopping,
+  onStop,
+  t,
+}: {
+  research: AsoKeywordResearchJobDto
+  canStop: boolean
+  stopping: boolean
+  onStop: () => void
+  t: AsoDictionary
+}) {
+  if (research.Status === StoreJobStatus.Failed) {
+    return (
+      <Callout tone="danger">
+        {research.Error ? interpolate(t.research.failed, { error: research.Error }) : t.research.failedUnknown}
+      </Callout>
+    )
+  }
+  if (research.Status === StoreJobStatus.Cancelled) {
+    return <Callout tone="info">{t.research.cancelled}</Callout>
+  }
+  if (!isJobActive(research.Status)) {
+    return null
+  }
+  const total = Math.max(research.Total, research.Keywords.length)
+  const text =
+    research.Status === StoreJobStatus.Queued ? t.research.queued : interpolate(t.research.progress, { measured: research.Measured, total })
+  return (
+    <div className="grid gap-2" role="status">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="m-0 min-w-0 flex-1 text-xs text-fg2">{research.CancelRequested ? t.research.stopping : text}</p>
+        {canStop && !research.CancelRequested ? (
+          <Button size="sm" variant="ghost" loading={stopping} onClick={onStop}>
+            {t.research.stop}
+          </Button>
+        ) : null}
+      </div>
+      <Progress value={research.Measured} max={total} small label={t.research.progressLabel} />
+    </div>
+  )
+}
+
 function ResearchCard({ context, country, onCountry }: { context: WorkspaceContext; country: string; onCountry: (value: string) => void }) {
   const t = useAsoText()
   const base = useT()
@@ -258,12 +308,44 @@ function ResearchCard({ context, country, onCountry }: { context: WorkspaceConte
   const [text, setText] = useState('')
   const [seeds, setSeeds] = useState<AsoKeywordSeedDto[]>([])
   const [seedWarning, setSeedWarning] = useState<string | null>(null)
-  const [results, setResults] = useState<AsoKeywordResearchDto[]>([])
+  // The research this card started; before that, the app's latest one (so a page opened again shows it running or done).
+  const [started, setStarted] = useState<{ store: StoreKind; jobId: number } | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [withCompetitors, setWithCompetitors] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const keywords = parseKeywords(text)
   const validCountry = /^[A-Za-z]{2}$/.test(country)
+  const jobId = started?.store === store ? started.jobId : null
+  const { watchJobs, subscribe } = useActivity()
+  const cancelJob = useCancelJob()
+  const researchKey = asoKeys.research(organizationId, app.Id, store, jobId)
+  const job = useResearchJob(organizationId, app.Id, store, jobId)
+  const research = job.data ?? null
+  const active = research != null && isJobActive(research.Status)
+  const results: AsoKeywordResearchDto[] = research?.Status === StoreJobStatus.Succeeded ? research.Items : []
+  const shownJobId = research?.JobId ?? null
+
+  // The job's own live events read it again at once; the polling covers a stream that is down.
+  useEffect(() => {
+    if (shownJobId == null) {
+      return undefined
+    }
+    return subscribe((event) => {
+      if (event.JobId === shownJobId) {
+        void queryClient.invalidateQueries({ queryKey: researchKey })
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the key follows jobId, which is in the list
+  }, [shownJobId, jobId, subscribe, queryClient])
+
+  // A finished research selects its keywords that are not tracked yet, once per job.
+  const succeededJob = research?.Status === StoreJobStatus.Succeeded ? research.JobId : null
+  useEffect(() => {
+    if (succeededJob != null && research) {
+      setSelected(new Set(research.Items.filter((item) => !item.Tracked).map((item) => item.Keyword)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when another job finishes
+  }, [succeededJob])
 
   function addTerms(terms: string[]) {
     const merged = parseKeywords([...keywords, ...terms].join('\n'))
@@ -301,21 +383,26 @@ function ResearchCard({ context, country, onCountry }: { context: WorkspaceConte
   const measure = useMutation({
     mutationFn: () => asoApi.research(organizationId, app.Id, store, country, keywords.slice(0, MAX_RESEARCH)),
     meta: { silentError: true },
-    onSuccess: (data) => {
+    onSuccess: (id) => {
       setError(null)
-      setResults(data)
-      setSelected(new Set(data.filter((item) => !item.Tracked).map((item) => item.Keyword)))
+      setSelected(new Set())
+      // The end of the job is announced with a toast wherever the member is by then.
+      watchJobs([id])
+      setStarted({ store, jobId: id })
+      void queryClient.invalidateQueries({ queryKey: asoKeys.research(organizationId, app.Id, store, id) })
     },
     onError: (failure) => setError(apiErrorMessage(failure, base.common.error)),
   })
 
+  // The keywords are tracked in the country they were measured in, whatever the box says now.
+  const resultCountry = (research?.Country ?? country).toUpperCase()
+
   const track = useMutation({
     mutationFn: () =>
-      asoApi.track(organizationId, app.Id, store, { Country: country, Keywords: [...selected], TrackCompetitors: withCompetitors }),
+      asoApi.track(organizationId, app.Id, store, { Country: resultCountry, Keywords: [...selected], TrackCompetitors: withCompetitors }),
     meta: { silentError: true },
     onSuccess: () => {
       setError(null)
-      setResults((current) => current.map((item) => (selected.has(item.Keyword) ? { ...item, Tracked: true } : item)))
       setSelected(new Set())
       showToast(t.research.trackedToast, 'success')
       void queryClient.invalidateQueries({ queryKey: asoKeys.all })
@@ -358,8 +445,8 @@ function ResearchCard({ context, country, onCountry }: { context: WorkspaceConte
         <div className="flex flex-wrap gap-2">
           <Button
             variant="primary"
-            loading={measure.isPending}
-            disabled={keywords.length === 0 || !validCountry}
+            loading={measure.isPending || active}
+            disabled={keywords.length === 0 || !validCountry || active}
             onClick={() => measure.mutate()}
           >
             <Search aria-hidden />
@@ -380,7 +467,15 @@ function ResearchCard({ context, country, onCountry }: { context: WorkspaceConte
             </Button>
           ) : null}
         </div>
-        {measure.isPending ? <p className="m-0 text-xs text-fg3">{t.research.measuring}</p> : null}
+        {research ? (
+          <ResearchStatus
+            research={research}
+            canStop={editor}
+            stopping={cancelJob.pending}
+            onStop={() => void cancelJob.cancel(research.JobId)}
+            t={t}
+          />
+        ) : null}
         {error ? <Callout tone="danger">{error}</Callout> : null}
         {seedWarning ? <Callout tone="warning">{seedWarning}</Callout> : null}
         {seeds.length > 0 ? (
@@ -483,6 +578,7 @@ function ResearchCard({ context, country, onCountry }: { context: WorkspaceConte
                 </Button>
               </>
             ) : null}
+            <span className="text-xs text-fg3">{interpolate(t.research.resultFor, { country: resultCountry })}</span>
             {freshness ? (
               <span className="text-xs text-fg3">{interpolate(t.notes.freshness, { date: format.dateTime(freshness) })}</span>
             ) : null}

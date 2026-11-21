@@ -148,6 +148,33 @@ public static class AsoExtensions
     };
 
     /// <summary>
+    /// A researched keyword as a DTO; <see cref="AsoKeywordResearchDto.Tracked"/> is left for the reader to set.
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="store"></param>
+    /// <param name="country">Lower case country code.</param>
+    /// <param name="ownAppId">Store id of the app itself.</param>
+    /// <returns></returns>
+    public static AsoKeywordResearchDto ToResearchDto(this AsoResearchItem item, StoreKind store, string country, string ownAppId) => new()
+    {
+        Keyword = item.Metric.Keyword,
+        Store = store,
+        Country = country,
+        Popularity = item.Metric.Popularity,
+        PopularitySource = item.Metric.PopularitySource,
+        Difficulty = item.Metric.Difficulty,
+        Opportunity = AsoScoring.Opportunity(item.Metric.Popularity, item.Metric.Difficulty),
+        CompetingApps = item.Metric.CompetingApps,
+        CurrentRank = item.OwnRank,
+        RankChecked = item.ResultsRead,
+        Depth = item.Depth,
+        TopCompetitors = [.. (item.Metric.TopCompetitors ?? []).Select(c => c.ToDto(ownAppId))],
+        RelatedTerms = item.Metric.RelatedTerms ?? [],
+        PopularityDate = item.Metric.PopularityDate,
+        ResultsDate = item.Metric.ResultsDate,
+    };
+
+    /// <summary>
     /// The DTOs of tracked keyword rows with the last <see cref="RecentDays"/> days of ranks and the latest measurements,
     /// read in two queries.
     /// </summary>

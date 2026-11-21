@@ -190,6 +190,7 @@ export const StoreJobKind = {
   SyncMonetization: 70,
   SyncAsoExperiments: 80,
   PreReview: 90,
+  AsoKeywordResearch: 110,
   SyncStoreMetrics: 120,
   EnableAppleAnalytics: 121,
   ProcessWebhookEvent: 400,
