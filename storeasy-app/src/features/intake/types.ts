@@ -2,7 +2,7 @@
 // DeliveryRules, ArtifactSources and IntakeSettings commands, and the Storeasy.Domain.Intake enums and JSON models).
 import type { IsoDateTime, StoreKind } from '@/lib/api/types'
 
-export const ArtifactPlatform = { Ios: 1, Android: 2, Windows: 3 } as const
+export const ArtifactPlatform = { Ios: 1, Android: 2, Windows: 3, Extension: 4 } as const
 export type ArtifactPlatform = (typeof ArtifactPlatform)[keyof typeof ArtifactPlatform]
 
 export const ArtifactSource = {
@@ -37,7 +37,7 @@ export type ArtifactStepKind = (typeof ArtifactStepKind)[keyof typeof ArtifactSt
 export const ArtifactStepStatus = { Pending: 1, Running: 2, Done: 3, Failed: 4, Skipped: 5 } as const
 export type ArtifactStepStatus = (typeof ArtifactStepStatus)[keyof typeof ArtifactStepStatus]
 
-export const PackageKind = { Ipa: 1, Aab: 2, Msix: 3, Apk: 4 } as const
+export const PackageKind = { Ipa: 1, Aab: 2, Msix: 3, Apk: 4, Xpi: 6 } as const
 export type PackageKind = (typeof PackageKind)[keyof typeof PackageKind]
 
 export const IdentityKind = { Oidc: 1, CiToken: 2, User: 3 } as const

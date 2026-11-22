@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, RefreshCw, Sparkles, Star } from 'lucide-react'
-import { Badge, StoreTag, type BadgeTone } from '@/components/ui/Badge'
+import { Badge, StoreTag, storeName, type BadgeTone } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Pagination } from '@/components/ui/DataTable'
 import { Callout } from '@/components/ui/Feedback'
@@ -28,6 +28,7 @@ import { useAiText } from '@/features/ai/i18n'
 import { AppWorkspace } from '@/features/common/AppWorkspace'
 import { storeFromSlug, storeSlug } from '@/features/common/store'
 import { useLiveRefresh } from '@/features/notifications/live'
+import { storesWith } from '@/lib/stores/channels'
 import { reviewKeys, reviewsApi } from './api'
 import { useReviewsText, type ReviewsDictionary } from './i18n'
 import { fillVariables, graphemeCount, repliesFor, variantFor } from './text'
@@ -554,8 +555,7 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
             value={params.get('store') ?? ALL}
             options={[
               { value: ALL, label: interpolate(t.filters.storeAll, { all: base.common.all }) },
-              { value: storeSlug(StoreKind.Apple), label: base.enums.store.apple },
-              { value: storeSlug(StoreKind.Google), label: base.enums.store.google },
+              ...storesWith('hasReviews').map((store) => ({ value: storeSlug(store), label: storeName(store, base.enums.store) })),
             ]}
             onChange={(value) => update({ store: value })}
           />

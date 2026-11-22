@@ -21,7 +21,7 @@ export const intakeEn = {
   },
   never: 'Production and review submission are never automatic.',
   manageOnly: 'Owners and admins change this (ManageConnections).',
-  platform: { ios: 'iOS', android: 'Android', windows: 'Windows' },
+  platform: { ios: 'iOS', android: 'Android', windows: 'Windows', extension: 'Browser extension' },
   source: {
     github: 'GitHub Actions',
     azure: 'Azure DevOps',
@@ -467,7 +467,7 @@ export const intakeTr: IntakeDictionary = {
   },
   never: 'Production ve incelemeye gönderme hiçbir zaman otomatik değildir.',
   manageOnly: 'Bunu sahipler ve yöneticiler değiştirir (ManageConnections).',
-  platform: { ios: 'iOS', android: 'Android', windows: 'Windows' },
+  platform: { ios: 'iOS', android: 'Android', windows: 'Windows', extension: 'Tarayıcı uzantısı' },
   source: {
     github: 'GitHub Actions',
     azure: 'Azure DevOps',

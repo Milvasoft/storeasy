@@ -12,6 +12,7 @@ import { useDeployment } from '@/features/access/publicSettings'
 import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
 import { wingetRoutes } from '@/features/winget/routes'
+import { firefoxRoutes } from '@/features/firefox/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
 import { ServerFeatureFlags } from '@/lib/features/FeatureFlagsContext'
 import { HOME_PATH } from '@/lib/nav/nav'
@@ -267,6 +268,7 @@ export function App() {
         {contentRoutes()}
         {microsoftRoutes()}
         {wingetRoutes()}
+        {firefoxRoutes()}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

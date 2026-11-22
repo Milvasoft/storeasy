@@ -71,6 +71,7 @@ public static class IntakeRules
         [".appxbundle"] = (ArtifactPlatform.Windows, PackageKind.Msix),
         [".msixupload"] = (ArtifactPlatform.Windows, PackageKind.Msix),
         [".appxupload"] = (ArtifactPlatform.Windows, PackageKind.Msix),
+        [".xpi"] = (ArtifactPlatform.Extension, PackageKind.Xpi),
     };
 
     /// <summary>
@@ -92,6 +93,13 @@ public static class IntakeRules
         ArtifactPlatform.Android => StoreKind.Google,
         _ => StoreKind.Microsoft,
     };
+
+    /// <summary>
+    /// Store a package goes to: a Firefox extension (.xpi) goes to Firefox Add-ons, every other file to the store of its
+    /// platform.
+    /// </summary>
+    public static StoreKind StoreOf(ArtifactPlatform platform, string fileName)
+        => Classify(fileName)?.Kind == PackageKind.Xpi ? StoreKind.Firefox : StoreOf(platform);
 
     /// <summary>
     /// Part size for a file of <paramref name="size"/> bytes: <see cref="DefaultPartSize"/>, grown in whole MiB until the

@@ -27,6 +27,11 @@ public static class StoreConnectionIcons
     public const string Winget = "winget";
 
     /// <summary>
+    /// Firefox Add-ons.
+    /// </summary>
+    public const string FirefoxAddons = "firefoxaddons";
+
+    /// <summary>
     /// The generic icons, in the order the web shows them.
     /// </summary>
     public static IReadOnlyList<string> Generic { get; } = ["phone", "tablet", "bag", "window", "globe", "box", "game", "rocket"];

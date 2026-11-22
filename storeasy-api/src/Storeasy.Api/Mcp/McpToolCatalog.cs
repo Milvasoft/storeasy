@@ -94,6 +94,10 @@ using Storeasy.Application.Features.MsStore.GetMsInstallerPackageList;
 using Storeasy.Application.Features.MsStore.GetMsProductDetail;
 using Storeasy.Application.Features.MsStore.GetMsSubmissionList;
 using Storeasy.Application.Features.MsStore.SaveMsFlightGroup;
+using Storeasy.Application.Features.Firefox.AddFirefoxAddon;
+using Storeasy.Application.Features.Firefox.GetFirefoxAddon;
+using Storeasy.Application.Features.Firefox.PlanFirefoxChange;
+using Storeasy.Application.Features.Firefox.SyncFirefox;
 using Storeasy.Application.Features.Winget.AddWingetPackage;
 using Storeasy.Application.Features.Winget.GetWingetManifest;
 using Storeasy.Application.Features.Winget.GetWingetPackage;
@@ -370,6 +374,12 @@ public static class McpToolCatalog
         Plan<PlanWingetChangeCommand>("winget_change_plan", "Plans a winget pull request: a new version (installers given or fromMicrosoftStore, release notes in locales) or locale text edits of an existing version. The manifests are built from the latest version's, checked against the schema and the winget-pkgs policies, and shown in full; approving the plan downloads the installers for their SHA256, pushes a branch to the fork and opens the pull request. The merge by the winget moderators publishes the version."),
         Read<GetWingetPullRequestListQuery>("winget_pull_requests", "Lists the pull requests of a winget package with their review state (validating, validation failed, needs author feedback, validation completed, approved, published, closed), labels, check runs and bot comments."),
         Write<SyncWingetCommand>("winget_sync", "Queues a sync of one winget package: versions, manifests and the review state of its pull requests."),
+
+        // Firefox Add-ons (addons.mozilla.org API v5)
+        Write<AddFirefoxAddonCommand>("firefox_addon_add", "Adds one Firefox add-on by its AMO id, guid or slug to a new or an existing app (appId) and queues its sync; apps_sync adds every add-on of the account on its own."),
+        Read<GetFirefoxAddonQuery>("firefox_addon_get", "Reads a Firefox add-on: status (approved, awaiting review, disabled), listed and unlisted versions with their review status, rating, daily users, weekly downloads, state history, a live read of the listing per locale, categories, previews and icon, and the .xpi packages intake received for the app with their manifest checks."),
+        Plan<PlanFirefoxChangeCommand>("firefox_change_plan", "Plans a Firefox Add-ons write: kind Listing (listing values per field and locale: Name, Summary, Description, Homepage, SupportUrl, SupportEmail; categories), Version (an .xpi intake session, channel Listed or Unlisted, releaseNotes per locale, approvalNotes, license, compatibility, sourceAssetId for minified code), Previews (addPreviewAssetIds, deletePreviewIds), Icon (iconAssetId), ReleaseNotes (version, releaseNotes). The add-on is read live and the checks run first (version higher than every version, gecko id matches the add-on, Manifest V2 or V3, data collection declaration, limits)."),
+        Write<SyncFirefoxCommand>("firefox_sync", "Queues a sync of one Firefox add-on: status, versions and their review status, rating and users."),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),

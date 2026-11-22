@@ -20,6 +20,7 @@ const KIND_KEY: Record<StoreJobKind, keyof Dictionary['jobs']['kind']> = {
   [StoreJobKind.SyncStoreMetrics]: 'syncStoreMetrics',
   [StoreJobKind.EnableAppleAnalytics]: 'enableAppleAnalytics',
   [StoreJobKind.WingetSync]: 'wingetSync',
+  [StoreJobKind.FirefoxSync]: 'firefoxSync',
   [StoreJobKind.ProcessWebhookEvent]: 'processWebhookEvent',
   [StoreJobKind.RegisterWebhooks]: 'registerWebhooks',
   [StoreJobKind.SyncVersionStates]: 'syncVersionStates',

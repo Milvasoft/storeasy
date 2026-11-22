@@ -368,6 +368,46 @@ public enum AuditAction : short
     /// <summary>A winget pull request was closed without a merge.</summary>
     [Description("winget pull request closed")]
     WingetPullRequestClosed = 164,
+
+    /// <summary>A Firefox add-on was added to storeasy (from the owner's add-ons or by its id).</summary>
+    [Description("Firefox add-on added")]
+    FirefoxAddonAdded = 180,
+
+    /// <summary>A new version of a Firefox add-on was uploaded and submitted (listed or unlisted channel).</summary>
+    [Description("Firefox version submitted")]
+    FirefoxVersionSubmitted = 181,
+
+    /// <summary>The listing of a Firefox add-on (texts, links, categories) was changed.</summary>
+    [Description("Firefox listing updated")]
+    FirefoxListingUpdated = 182,
+
+    /// <summary>Previews (screenshots) of a Firefox add-on were added or removed.</summary>
+    [Description("Firefox previews changed")]
+    FirefoxPreviewsChanged = 183,
+
+    /// <summary>The icon of a Firefox add-on was replaced.</summary>
+    [Description("Firefox icon updated")]
+    FirefoxIconUpdated = 184,
+
+    /// <summary>The review state of a Firefox version changed (awaiting review, approved, disabled).</summary>
+    [Description("Firefox review state changed")]
+    FirefoxReviewStateChanged = 185,
+
+    /// <summary>A Firefox version was approved and signed (its file is public).</summary>
+    [Description("Firefox version approved")]
+    FirefoxApproved = 186,
+
+    /// <summary>A Firefox version was rejected or disabled.</summary>
+    [Description("Firefox version disabled")]
+    FirefoxRejected = 187,
+
+    /// <summary>The status of a Firefox add-on changed (approved, awaiting review, disabled by Mozilla or the developer).</summary>
+    [Description("Firefox add-on status changed")]
+    FirefoxAddonStatusChanged = 188,
+
+    /// <summary>The release notes of a Firefox version were changed.</summary>
+    [Description("Firefox release notes updated")]
+    FirefoxReleaseNotesUpdated = 189,
     /// <summary>A personal access token was created.</summary>
     [Description("Token created")]
     TokenCreated = 300,

@@ -26,7 +26,7 @@ public sealed class SaveArtifactSourceCommandValidator : AbstractValidator<SaveA
             .WithMessage(localizer[MessageKey.PleaseSendCorrect, localizer[MessageKey.GlobalDomain]]);
 
         RuleFor(x => x.Platforms)
-            .Must(platforms => platforms != null && platforms.Count > 0 && platforms.TrueForAll(p => p is ArtifactPlatform.Ios or ArtifactPlatform.Android or ArtifactPlatform.Windows))
+            .Must(platforms => platforms != null && platforms.Count > 0 && platforms.TrueForAll(p => p is ArtifactPlatform.Ios or ArtifactPlatform.Android or ArtifactPlatform.Windows or ArtifactPlatform.Extension))
             .WithMessage(localizer[MessageKey.PleaseSendCorrect, localizer[MessageKey.GlobalPlatform]]);
     }
 }

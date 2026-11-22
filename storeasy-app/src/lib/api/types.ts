@@ -53,7 +53,7 @@ export const OrgPermission = {
 } as const
 export type OrgPermission = (typeof OrgPermission)[keyof typeof OrgPermission]
 
-export const StoreKind = { Apple: 1, Google: 2, Microsoft: 3, Winget: 4 } as const
+export const StoreKind = { Apple: 1, Google: 2, Microsoft: 3, Winget: 4, Firefox: 6 } as const
 export type StoreKind = (typeof StoreKind)[keyof typeof StoreKind]
 
 export const ConnectionStatus = { NotVerified: 1, Verified: 2, Rejected: 3, Unreachable: 4 } as const
@@ -128,6 +128,16 @@ export const AuditAction = {
   WingetReviewStateChanged: 162,
   WingetPublished: 163,
   WingetPullRequestClosed: 164,
+  FirefoxAddonAdded: 180,
+  FirefoxVersionSubmitted: 181,
+  FirefoxListingUpdated: 182,
+  FirefoxPreviewsChanged: 183,
+  FirefoxIconUpdated: 184,
+  FirefoxReviewStateChanged: 185,
+  FirefoxApproved: 186,
+  FirefoxRejected: 187,
+  FirefoxAddonStatusChanged: 188,
+  FirefoxReleaseNotesUpdated: 189,
   TokenCreated: 300,
   TokenRevoked: 301,
   CiTokenCreated: 302,
@@ -199,6 +209,7 @@ export const StoreJobKind = {
   SyncStoreMetrics: 120,
   EnableAppleAnalytics: 121,
   WingetSync: 130,
+  FirefoxSync: 150,
   ProcessWebhookEvent: 400,
   RegisterWebhooks: 401,
   SyncVersionStates: 402,

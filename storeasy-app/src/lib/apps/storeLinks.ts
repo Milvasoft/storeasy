@@ -36,6 +36,12 @@ export function storeLinksOf(record: Pick<AppStoreRecordDto, 'Store' | 'External
           ? `https://github.com/microsoft/winget-pkgs/pulls?q=${encodeURIComponent(`is:pr ${record.ExternalId}`)}`
           : 'https://github.com/microsoft/winget-pkgs/pulls',
       }
+    case StoreKind.Firefox:
+      // The record keeps the numeric AMO id; the pages take it as well as the slug.
+      return {
+        publicUrl: id ? `https://addons.mozilla.org/firefox/addon/${id}/` : null,
+        consoleUrl: id ? `https://addons.mozilla.org/developers/addon/${id}/edit` : 'https://addons.mozilla.org/developers/addons',
+      }
     default:
       return { publicUrl: null, consoleUrl: '' }
   }

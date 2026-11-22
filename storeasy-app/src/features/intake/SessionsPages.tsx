@@ -355,7 +355,7 @@ export function IntakeSessionPage() {
   }
 
   const view = statusView(session.Status, t)
-  const store = storeOf(session.Platform)
+  const store = storeOf(session.Platform, session.FileName)
   const releaseTest = can(OrgPermission.ReleaseTest)
   const rule = session.AppliedRule
   const target = rule && rule.Target !== DeliveryTarget.None ? (rule.TargetName ?? rule.TargetId ?? '') : t.detail.deliverNoRule

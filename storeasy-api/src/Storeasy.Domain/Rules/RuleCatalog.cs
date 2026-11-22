@@ -642,6 +642,11 @@ public static class RuleStores
     public const string Winget = "winget";
 
     /// <summary>
+    /// Catalog key of Firefox Add-ons.
+    /// </summary>
+    public const string Firefox = "firefox";
+
+    /// <summary>
     /// Store kind of a catalog key (the <see cref="Stores.StoreChannels"/> key); null for an unknown key.
     /// </summary>
     /// <param name="key"></param>

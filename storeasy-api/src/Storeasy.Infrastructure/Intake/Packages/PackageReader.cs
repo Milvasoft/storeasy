@@ -63,6 +63,7 @@ public sealed partial class PackageReader(IArtifactStorage storage)
             PackageKind.Ipa => await ReadIpaAsync(archive, cancellationToken),
             PackageKind.Aab => await ReadAabAsync(archive, cancellationToken),
             PackageKind.Apk => await ReadApkAsync(archive, cancellationToken),
+            PackageKind.Xpi => (await Storeasy.Application.Utils.Firefox.FirefoxManifest.ReadAsync(archive, cancellationToken)).ToPackageInfo(),
             _ => await ReadMsixAsync(archive, fileName, 0, cancellationToken),
         };
     }

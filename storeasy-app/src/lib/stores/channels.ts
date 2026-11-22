@@ -5,7 +5,7 @@ import { StoreKind } from '@/lib/api/types'
 // a new channel is one row here plus its own feature folder (docs/adding-a-store.md). channels.test.ts checks that every
 // StoreKind has a row and that the keys match the API's.
 
-export type StoreKey = 'apple' | 'google' | 'microsoft' | 'winget'
+export type StoreKey = 'apple' | 'google' | 'microsoft' | 'winget' | 'firefox'
 
 export type CredentialExpiry = 'none' | 'optional' | 'required'
 
@@ -70,6 +70,17 @@ export const STORE_CHANNELS: readonly StoreChannel[] = [
     hasMetrics: false,
     hasListingScreens: false,
     listsProducts: false,
+  },
+  {
+    store: StoreKind.Firefox,
+    key: 'firefox',
+    code: 'FX',
+    logo: 'firefoxaddons',
+    credentialExpiry: 'none',
+    hasReviews: true,
+    hasMetrics: false,
+    hasListingScreens: false,
+    listsProducts: true,
   },
 ]
 

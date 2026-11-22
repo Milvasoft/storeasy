@@ -33,4 +33,11 @@ public enum StoreKind : byte
     /// </summary>
     [Description("winget")]
     Winget = 4,
+
+    /// <summary>
+    /// Firefox Add-ons (addons.mozilla.org), through the AMO API v5 with a JWT issuer and secret from the AMO Developer
+    /// Hub. The owner's add-ons are listed by the API; versions go in as uploads that Mozilla signs and reviews.
+    /// </summary>
+    [Description("Firefox Add-ons")]
+    Firefox = 6,
 }

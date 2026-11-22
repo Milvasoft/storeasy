@@ -2161,6 +2161,11 @@
             Windows (MSIX, APPX).
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.ArtifactPlatform.Extension">
+            <summary>
+            Browser extension (ZIP with manifest.json at its root).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.ArtifactPullSourceKind">
             <summary>
             Kind of a pull source (a build service that says "ready" and lets storeasy download). Values are explicit and never reused.
@@ -2824,6 +2829,36 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPullRequestClosed">
             <summary>A winget pull request was closed without a merge.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxAddonAdded">
+            <summary>A Firefox add-on was added to storeasy (from the owner's add-ons or by its id).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxVersionSubmitted">
+            <summary>A new version of a Firefox add-on was uploaded and submitted (listed or unlisted channel).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxListingUpdated">
+            <summary>The listing of a Firefox add-on (texts, links, categories) was changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxPreviewsChanged">
+            <summary>Previews (screenshots) of a Firefox add-on were added or removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxIconUpdated">
+            <summary>The icon of a Firefox add-on was replaced.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxReviewStateChanged">
+            <summary>The review state of a Firefox version changed (awaiting review, approved, disabled).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxApproved">
+            <summary>A Firefox version was approved and signed (its file is public).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxRejected">
+            <summary>A Firefox version was rejected or disabled.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxAddonStatusChanged">
+            <summary>The status of a Firefox add-on changed (approved, awaiting review, disabled by Mozilla or the developer).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxReleaseNotesUpdated">
+            <summary>The release notes of a Firefox version were changed.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.TokenCreated">
             <summary>A personal access token was created.</summary>
         </member>
@@ -3122,6 +3157,12 @@
             A winget manifest pull request (new version or locale texts); applying it opens the pull request.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.FirefoxChange">
+            <summary>
+            A Firefox Add-ons change (listing texts and links, categories, previews, icon, a new version upload with its release
+            notes and source code); what it writes is in the plan's Firefox change.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization">
             <summary>
             Subscriptions, offers, In-App Purchases and Play products (phase 7).
@@ -3414,6 +3455,126 @@
         <member name="F:Storeasy.Domain.Enums.ExternalLoginProvider.Google">
             <summary>
             Google (OpenID Connect, authorization code with PKCE).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.FirefoxAddonStatus">
+            <summary>
+            Status of a Firefox add-on on addons.mozilla.org (<c>status</c> of the add-on detail). Values are explicit and never
+            reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.None">
+            <summary>
+            Not read yet, or a status the API did not name.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Public">
+            <summary>
+            Approved: the listed add-on is public (<c>public</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Nominated">
+            <summary>
+            Awaiting review (<c>nominated</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Incomplete">
+            <summary>
+            The listing is incomplete or has no listed version (<c>incomplete</c>); add-ons with unlisted versions only show it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Disabled">
+            <summary>
+            Disabled by Mozilla (<c>disabled</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Rejected">
+            <summary>
+            Rejected (<c>rejected</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxAddonStatus.Deleted">
+            <summary>
+            Deleted (<c>deleted</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.FirefoxChangeKind">
+            <summary>
+            What a Firefox Add-ons change plan writes. Each kind is one family of AMO API v5 writes; nothing is sent before the plan
+            is approved.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxChangeKind.Listing">
+            <summary>
+            Listing texts per locale (name, summary, description), homepage, support e-mail and address, categories
+            (<c>PATCH /addons/addon/{id}/</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxChangeKind.Version">
+            <summary>
+            A new version: the package is uploaded (<c>POST /addons/upload/</c>), validated by AMO, then the version is created on
+            the listed or unlisted channel with its release notes, notes to the reviewer, license and source code.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxChangeKind.Previews">
+            <summary>
+            Previews (screenshots): add images, remove previews (<c>/addons/addon/{id}/previews/</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxChangeKind.Icon">
+            <summary>
+            Replace the icon (<c>PATCH /addons/addon/{id}/</c> with an <c>icon</c> file).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxChangeKind.ReleaseNotes">
+            <summary>
+            Release notes of an existing version (<c>PATCH /addons/addon/{id}/versions/{id}/</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.FirefoxFileStatus">
+            <summary>
+            Review status of the file of a Firefox version (<c>file.status</c> of the version detail). Values are explicit and never
+            reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxFileStatus.None">
+            <summary>
+            No file, or a status the API did not name.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxFileStatus.Unreviewed">
+            <summary>
+            Awaiting review (<c>unreviewed</c>). Unlisted versions are signed automatically and usually skip this state.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxFileStatus.Public">
+            <summary>
+            Approved and signed (<c>public</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxFileStatus.Disabled">
+            <summary>
+            Rejected or disabled by Mozilla or the developer (<c>disabled</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.FirefoxVersionChannel">
+            <summary>
+            Distribution channel of a Firefox version (<c>channel</c>). Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxVersionChannel.None">
+            <summary>
+            Not known.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxVersionChannel.Listed">
+            <summary>
+            Listed on addons.mozilla.org: reviewed by Mozilla and distributed through the add-on page (<c>listed</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.FirefoxVersionChannel.Unlisted">
+            <summary>
+            Unlisted: signed by Mozilla for self distribution, not shown on addons.mozilla.org (<c>unlisted</c>).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.IdentityKind">
@@ -4495,6 +4656,11 @@
             Android package.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.Xpi">
+            <summary>
+            Firefox extension package (.xpi: a ZIP with manifest.json at its root).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.PreReviewArea">
             <summary>
             Area of a pre-review finding. Values are explicit and never reused.
@@ -5085,6 +5251,12 @@
             Reads the winget packages of a connection from winget-pkgs and the review state of their pull requests.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.FirefoxSync">
+            <summary>
+            Reads the Firefox add-ons of a connection from addons.mozilla.org (status, listed and unlisted versions with their file
+            review status, rating, users); state changes are audited and notified.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
             <summary>
             Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
@@ -5187,6 +5359,12 @@
             <summary>
             Windows Package Manager community repository (<c>microsoft/winget-pkgs</c> on GitHub). Manifests go in as pull
             requests from the owner's fork, opened with the owner's GitHub token; a merged pull request is a published version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Firefox">
+            <summary>
+            Firefox Add-ons (addons.mozilla.org), through the AMO API v5 with a JWT issuer and secret from the AMO Developer
+            Hub. The owner's add-ons are listed by the API; versions go in as uploads that Mozilla signs and reviews.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreMetricKind">
@@ -6549,6 +6727,148 @@
             Read marks of the members.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Firefox.FirefoxAddon">
+            <summary>
+            addons.mozilla.org side of a store record (<see cref="P:Storeasy.Domain.Firefox.FirefoxAddon.StoreApp"/> with <see cref="F:Storeasy.Domain.Enums.StoreKind.Firefox"/>, whose external id
+            is the numeric AMO add-on id and whose bundle id is the add-on guid): what the last sync read from the AMO API v5.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Firefox.FirefoxAddon.GuidMaxLength">
+            <summary>
+            Maximum length of the guid (an e-mail like id or a braced UUID).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Firefox.FirefoxAddon.SlugMaxLength">
+            <summary>
+            Maximum length of the slug.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Firefox.FirefoxAddon.VersionMaxLength">
+            <summary>
+            Maximum length of a version string.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Firefox.FirefoxAddon.LocaleMaxLength">
+            <summary>
+            Maximum length of a locale code.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Firefox.FirefoxAddon.SyncErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Firefox.FirefoxAddon.SyncError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.StoreAppId">
+            <summary>
+            The store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.AddonId">
+            <summary>
+            Numeric AMO add-on id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.Guid">
+            <summary>
+            Add-on guid (<c>browser_specific_settings.gecko.id</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.Slug">
+            <summary>
+            Slug of the add-on page.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.Status">
+            <summary>
+            Add-on status.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.IsDisabled">
+            <summary>
+            Whether the developer disabled the add-on (its versions are not offered).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.DefaultLocale">
+            <summary>
+            Default locale of the listing.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.ListedVersion">
+            <summary>
+            Version shown on the add-on page (<c>current_version</c>), null without one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestVersion">
+            <summary>
+            Newest version of any channel.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestVersionId">
+            <summary>
+            AMO id of <see cref="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestVersion"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestChannel">
+            <summary>
+            Channel of <see cref="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestVersion"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestFileStatus">
+            <summary>
+            File status of <see cref="P:Storeasy.Domain.Firefox.FirefoxAddon.LatestVersion"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.Rating">
+            <summary>
+            Average rating (1 to 5); null without ratings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.RatingCount">
+            <summary>
+            Number of ratings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.AverageDailyUsers">
+            <summary>
+            Average daily users AMO reports.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.WeeklyDownloads">
+            <summary>
+            Downloads in the last seven days AMO reports.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.StatusHistory">
+            <summary>
+            Every state change of the add-on and its versions, oldest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.SyncError">
+            <summary>
+            Why the last sync could not read the add-on; null after a successful one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.IsPending">
+            <summary>
+            Whether a version waits for review: the schedule reads such add-ons every 15 minutes. Stored so the schedule can
+            filter on it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Firefox.FirefoxAddon.StoreApp">
+            <summary>
+            The store record.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.IdempotencyKey">
             <summary>
             One client-supplied idempotency key: "this user already sent this create request". A retry of the same
@@ -6773,6 +7093,26 @@
         <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.DisplayName">
             <summary>
             Display name, when the package has one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.ManifestVersion">
+            <summary>
+            Browser extension: <c>manifest_version</c> of manifest.json.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.Permissions">
+            <summary>
+            Browser extension: <c>permissions</c> and <c>optional_permissions</c> of manifest.json.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.HostPermissions">
+            <summary>
+            Browser extension: <c>host_permissions</c>, <c>optional_host_permissions</c> and content script matches.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Intake.ArtifactPackageInfo.ManifestIssues">
+            <summary>
+            Browser extension: what the offline manifest checks found (blocking problems start with "error:").
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Intake.ArtifactCheck">
@@ -7416,6 +7756,12 @@
         <member name="M:Storeasy.Domain.Intake.IntakeRules.StoreOf(Storeasy.Domain.Enums.ArtifactPlatform)">
             <summary>
             Store a platform's packages go to.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Intake.IntakeRules.StoreOf(Storeasy.Domain.Enums.ArtifactPlatform,System.String)">
+            <summary>
+            Store a package goes to: a Firefox extension (.xpi) goes to Firefox Add-ons, every other file to the store of its
+            platform.
             </summary>
         </member>
         <member name="M:Storeasy.Domain.Intake.IntakeRules.PartSizeFor(System.Int64)">
@@ -8141,6 +8487,36 @@
         <member name="P:Storeasy.Domain.JsonModels.ExternalWebhookRegistration.WebhookId">
             <summary>
             The store's id of the webhook.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.FirefoxStateChange">
+            <summary>
+            One state a Firefox add-on or one of its versions was seen in, with the first time storeasy saw it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.FirefoxStateChange.Subject">
+            <summary>
+            <c>addon</c> (the add-on status) or <c>version</c> (the file status of a version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.FirefoxStateChange.State">
+            <summary>
+            The state, as its enum name (<see cref="T:Storeasy.Domain.Enums.FirefoxAddonStatus"/> or <see cref="T:Storeasy.Domain.Enums.FirefoxFileStatus"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.FirefoxStateChange.Version">
+            <summary>
+            Version, for a version state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.FirefoxStateChange.Channel">
+            <summary>
+            Channel of the version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.FirefoxStateChange.Date">
+            <summary>
+            UTC instant storeasy first saw the state.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.LocalizedText">
@@ -11947,6 +12323,11 @@
             Catalog key of winget.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Firefox">
+            <summary>
+            Catalog key of Firefox Add-ons.
+            </summary>
+        </member>
         <member name="M:Storeasy.Domain.Rules.RuleStores.Parse(System.String)">
             <summary>
             Store kind of a catalog key (the <see cref="T:Storeasy.Domain.Stores.StoreChannels"/> key); null for an unknown key.
@@ -12581,6 +12962,11 @@
         </member>
         <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.Winget">
             <summary>winget logo (winget connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.FirefoxAddons">
+            <summary>
+            Firefox Add-ons.
+            </summary>
         </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnectionIcons.Generic">
             <summary>

@@ -17,12 +17,19 @@ public static class ReviewRules
     public const int AppStoreReplyMaxLength = 5970;
 
     /// <summary>
+    /// Longest Firefox Add-ons developer reply storeasy sends (AMO publishes no limit; replies stay readable on the add-on
+    /// page).
+    /// </summary>
+    public const int FirefoxReplyMaxLength = 3000;
+
+    /// <summary>
     /// Longest reply of <paramref name="store"/>; 0 when replies are not supported there.
     /// </summary>
     public static int ReplyMaxLength(StoreKind store) => store switch
     {
         StoreKind.Apple => AppStoreReplyMaxLength,
         StoreKind.Google => GooglePlayReplyMaxLength,
+        StoreKind.Firefox => FirefoxReplyMaxLength,
         _ => 0,
     };
 

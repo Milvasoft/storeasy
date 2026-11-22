@@ -212,7 +212,7 @@ public sealed partial class ArtifactIntakeService(IStoreasyRepositoryBase<Artifa
                                          AuditAction.ArtifactReceived,
                                          session.Id.ToString(),
                                          $"Package {session.FileName} received ({session.Size} bytes).",
-                                         IntakeRules.StoreOf(session.Platform),
+                                         IntakeRules.StoreOf(session.Platform, session.FileName),
                                          new { SessionId = session.Id, session.AppId, session.FileName, session.Sha256, session.Source, TokenPrefix = _currentToken.Prefix },
                                          cancellationToken);
         }
@@ -356,7 +356,7 @@ public sealed partial class ArtifactIntakeService(IStoreasyRepositoryBase<Artifa
                                      AuditAction.ArtifactDeleted,
                                      session.Id.ToString(),
                                      $"Package {session.FileName} deleted.",
-                                     IntakeRules.StoreOf(session.Platform),
+                                     IntakeRules.StoreOf(session.Platform, session.FileName),
                                      new { SessionId = session.Id, session.FileName },
                                      cancellationToken);
 

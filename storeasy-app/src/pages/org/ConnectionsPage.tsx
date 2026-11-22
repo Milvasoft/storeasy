@@ -29,10 +29,12 @@ import {
 } from '@/features/microsoft/connections'
 import { ALL_STORES, channelOf } from '@/lib/stores/channels'
 import { useWinget } from '@/features/winget/i18n/useWinget'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 
 function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   const t = useT()
   const tw = useWinget()
+  const tf = useFirefox()
   if (connection.Store === StoreKind.Microsoft) {
     return <MsFingerprint connection={connection} />
   }
@@ -44,7 +46,12 @@ function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
           [tw.connection.tokenKind, fingerprint.TokenKind],
           [tw.connection.expiry, connection.CredentialExpiryDate ? connection.CredentialExpiryDate.slice(0, 10) : null],
         ]
-      : connection.Store === StoreKind.Apple
+      : connection.Store === StoreKind.Firefox
+        ? [
+            [tf.connection.keyId, fingerprint.KeyId],
+            [tf.connection.account, fingerprint.AccountLogin],
+          ]
+        : connection.Store === StoreKind.Apple
         ? [
             [t.connections.keyId, fingerprint.KeyId],
             [t.connections.issuerId, fingerprint.IssuerIdSuffix ? `…${fingerprint.IssuerIdSuffix}` : null],

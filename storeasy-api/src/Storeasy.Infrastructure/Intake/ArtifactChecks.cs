@@ -32,6 +32,7 @@ public static class ArtifactChecks
     {
         PackageKind.Aab or PackageKind.Apk => Android(package, context),
         PackageKind.Ipa => Apple(package, context),
+        PackageKind.Xpi => Firefox(package, context),
         _ => [Check("windows.identity", "Identity", string.IsNullOrWhiteSpace(package.Identifier) ? ReadinessStatus.Missing : ReadinessStatus.Ok, null, "Package identity", package.Identifier)],
     };
 
@@ -129,6 +130,28 @@ public static class ArtifactChecks
     private static bool Applies(CatalogRule rule, string packageType)
         => rule.Deprecated == null && (rule.AppliesWhen?.PackageTypes == null || rule.AppliesWhen.PackageTypes.Count == 0 || rule.AppliesWhen.PackageTypes.Contains(packageType))
            && (rule.AppliesWhen?.Distribution == null || rule.AppliesWhen.Distribution.Count == 0 || rule.AppliesWhen.Distribution.Contains("update") || rule.AppliesWhen.Distribution.Contains("new-app"));
+
+    private static List<ArtifactCheck> Firefox(ArtifactPackageInfo package, Context context)
+    {
+        // The manifest checks ran when the package was read; the version is compared here with every version storeasy knows
+        // of the add-on (the plan compares it again with the live versions).
+        var checks = Storeasy.Application.Utils.Firefox.FirefoxManifest.IssuesOf(package)
+                                                                       .Where(i => i.Key != Storeasy.Application.Utils.Constants.MessageKey.FirefoxVersionNotHigher)
+                                                                       .Select((i, index) => Check($"firefox.manifest.{index}", "Manifest", i.Blocking ? ReadinessStatus.Missing : ReadinessStatus.Warning, null, i.Key, i.English))
+                                                                       .ToList();
+
+        var highest = context.KnownBuilds.Select(b => b.Version)
+                                         .Where(v => !string.IsNullOrEmpty(v))
+                                         .OrderByDescending(v => v, Comparer<string>.Create(Storeasy.Application.Utils.Firefox.FirefoxVersions.Compare))
+                                         .FirstOrDefault();
+        var valid = Storeasy.Application.Utils.Firefox.FirefoxVersions.IsValid(package.VersionName);
+        var higher = valid && (highest == null || Storeasy.Application.Utils.Firefox.FirefoxVersions.Compare(package.VersionName, highest) > 0);
+
+        checks.Add(Check("firefox.version", "Build", higher ? ReadinessStatus.Ok : ReadinessStatus.Missing, null, "version is higher than any earlier one",
+                         !valid ? $"version {package.VersionName ?? "-"} is not valid" : highest == null ? $"version {package.VersionName}, first package" : higher ? $"version {package.VersionName} > {highest}" : $"version {package.VersionName} is not above {highest}"));
+
+        return checks;
+    }
 
     private static ArtifactCheck Check(string key, string group, ReadinessStatus status, string ruleId, string title, string message)
         => new() { Key = key, Group = group, Status = status, RuleId = ruleId, Title = title, Message = message };

@@ -62,6 +62,7 @@ public static class TableNames
     public const string MsInstallerPackages = nameof(MsInstallerPackages);
     public const string WingetPackages = nameof(WingetPackages);
     public const string WingetPullRequests = nameof(WingetPullRequests);
+    public const string FirefoxAddons = nameof(FirefoxAddons);
     public const string PersonalAccessTokens = nameof(PersonalAccessTokens);
     public const string CiTokens = nameof(CiTokens);
     public const string UploadTokens = nameof(UploadTokens);

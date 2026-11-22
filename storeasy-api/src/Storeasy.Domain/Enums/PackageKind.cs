@@ -30,4 +30,10 @@ public enum PackageKind : byte
     /// </summary>
     [Description("APK")]
     Apk = 4,
+
+    /// <summary>
+    /// Firefox extension package (.xpi: a ZIP with manifest.json at its root).
+    /// </summary>
+    [Description("XPI")]
+    Xpi = 6,
 }

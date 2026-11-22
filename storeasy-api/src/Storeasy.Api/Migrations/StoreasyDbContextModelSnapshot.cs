@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261121223920_AddWingetChannel";
+    public override string LastMigrationId => "20261122012417_AddFirefoxChannel";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -1775,6 +1775,105 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("StoreReviews");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Firefox.FirefoxAddon", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<long>("AddonId")
+                    .HasColumnType("bigint");
+
+                b.Property<long?>("AverageDailyUsers")
+                    .HasColumnType("bigint");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DefaultLocale")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("Guid")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<bool>("IsDisabled")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("IsPending")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte>("LatestChannel")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("LatestFileStatus")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("LatestVersion")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<long?>("LatestVersionId")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("ListedVersion")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<double?>("Rating")
+                    .HasColumnType("double precision");
+
+                b.Property<long?>("RatingCount")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("Slug")
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<List<FirefoxStateChange>>("StatusHistory")
+                    .HasColumnType("jsonb");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("SyncError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<long?>("WeeklyDownloads")
+                    .HasColumnType("bigint");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId")
+                    .IsUnique();
+
+                b.ToTable("FirefoxAddons");
             });
 
         modelBuilder.Entity("Storeasy.Domain.IdempotencyKey", b =>
@@ -5092,6 +5191,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .IsRequired();
 
                 b.Navigation("App");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Firefox.FirefoxAddon", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Intake.ArtifactPullSource", b =>

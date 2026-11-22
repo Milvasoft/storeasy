@@ -27,6 +27,8 @@ import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationC
 import { queryKeys } from '@/lib/query/keys'
 import { AddMsProductDialog } from '@/features/microsoft/AddMsProductDialog'
 import { AddWingetPackageDialog } from '@/features/winget/AddWingetPackageDialog'
+import { AddFirefoxAddonDialog } from '@/features/firefox/AddFirefoxAddonDialog'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { useMs } from '@/features/microsoft/i18n/useMs'
 
@@ -180,6 +182,8 @@ export function AppsPage() {
   const [addingMs, setAddingMs] = useState(false)
   const [addingWinget, setAddingWinget] = useState(false)
   const tw = useWinget()
+  const [addingFirefox, setAddingFirefox] = useState(false)
+  const tf = useFirefox()
   const running = useRunningApps()
   const sync = useSyncApps()
   const editor = can(OrgPermission.EditContent)
@@ -434,6 +438,10 @@ export function AppsPage() {
                 <Plus aria-hidden />
                 {tw.add.title}
               </Button>
+              <Button onClick={() => setAddingFirefox(true)}>
+                <Plus aria-hidden />
+                {tf.add.title}
+              </Button>
               <Button variant="primary" loading={sync.isPending} disabled={noConnections} onClick={() => sync.mutate(null)}>
                 <RefreshCw aria-hidden />
                 {t.apps.sync}
@@ -525,6 +533,7 @@ export function AppsPage() {
               <Button onClick={() => setAdding(true)}>{t.apps.addGoogle}</Button>
               <Button onClick={() => setAddingMs(true)}>{tm.addProduct.open}</Button>
               <Button onClick={() => setAddingWinget(true)}>{tw.add.title}</Button>
+              <Button onClick={() => setAddingFirefox(true)}>{tf.add.title}</Button>
             </>
           ) : undefined
         }
@@ -646,6 +655,11 @@ export function AppsPage() {
             open={addingWinget}
             onClose={() => setAddingWinget(false)}
             onAdded={(appId) => navigate(`/apps/${appId}/winget`)}
+          />
+          <AddFirefoxAddonDialog
+            open={addingFirefox}
+            onClose={() => setAddingFirefox(false)}
+            onAdded={(appId) => navigate(`/apps/${appId}/firefox`)}
           />
         </>
       ) : null}
