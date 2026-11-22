@@ -28,6 +28,8 @@ import { queryKeys } from '@/lib/query/keys'
 import { AddMsProductDialog } from '@/features/microsoft/AddMsProductDialog'
 import { AddWingetPackageDialog } from '@/features/winget/AddWingetPackageDialog'
 import { useWinget } from '@/features/winget/i18n/useWinget'
+import { AddChromeItemDialog } from '@/features/chrome/AddChromeItemDialog'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
 import { useMs } from '@/features/microsoft/i18n/useMs'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -180,6 +182,8 @@ export function AppsPage() {
   const [addingMs, setAddingMs] = useState(false)
   const [addingWinget, setAddingWinget] = useState(false)
   const tw = useWinget()
+  const [addingChrome, setAddingChrome] = useState(false)
+  const tc = useChrome()
   const running = useRunningApps()
   const sync = useSyncApps()
   const editor = can(OrgPermission.EditContent)
@@ -434,6 +438,10 @@ export function AppsPage() {
                 <Plus aria-hidden />
                 {tw.add.title}
               </Button>
+              <Button onClick={() => setAddingChrome(true)}>
+                <Plus aria-hidden />
+                {tc.add.title}
+              </Button>
               <Button variant="primary" loading={sync.isPending} disabled={noConnections} onClick={() => sync.mutate(null)}>
                 <RefreshCw aria-hidden />
                 {t.apps.sync}
@@ -525,6 +533,7 @@ export function AppsPage() {
               <Button onClick={() => setAdding(true)}>{t.apps.addGoogle}</Button>
               <Button onClick={() => setAddingMs(true)}>{tm.addProduct.open}</Button>
               <Button onClick={() => setAddingWinget(true)}>{tw.add.title}</Button>
+              <Button onClick={() => setAddingChrome(true)}>{tc.add.title}</Button>
             </>
           ) : undefined
         }
@@ -646,6 +655,11 @@ export function AppsPage() {
             open={addingWinget}
             onClose={() => setAddingWinget(false)}
             onAdded={(appId) => navigate(`/apps/${appId}/winget`)}
+          />
+          <AddChromeItemDialog
+            open={addingChrome}
+            onClose={() => setAddingChrome(false)}
+            onAdded={(appId) => navigate(`/apps/${appId}/chrome`)}
           />
         </>
       ) : null}

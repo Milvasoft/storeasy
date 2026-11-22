@@ -1,0 +1,552 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.3.0",
+  "store": "chrome",
+  "generatedAt": "2026-11-22T12:00:00Z",
+  "rules": [
+    {
+      "id": "chrome.packages.manifest-v3",
+      "store": "chrome",
+      "category": "packages",
+      "title": {
+        "en": "Manifest V3 packages only",
+        "tr": "Yalnız Manifest V3 paketleri"
+      },
+      "description": {
+        "en": "The store has refused new Manifest V2 items since January 2022 and removed every remaining Manifest V2 item on 31 August 2026; Chrome 139 and later do not run Manifest V2. Every package storeasy uploads must have manifest_version 3 and a service worker instead of a background page."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": "2026-08-31",
+      "dateNote": "New Manifest V2 items refused since January 2022; remaining Manifest V2 items removed from the store on 2026-08-31.",
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.package"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline",
+          "title": "Manifest V2 support timeline",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.packages.version-higher",
+      "store": "chrome",
+      "category": "packages",
+      "title": {
+        "en": "Every upload has a higher version",
+        "tr": "Her yükleme daha yüksek sürüm taşır"
+      },
+      "description": {
+        "en": "The manifest version (one to four dot separated integers from 0 to 65535, no leading zeros) must be higher than the published one, or the upload fails."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxParts": 4,
+        "maxPartValue": 65535
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.package"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/using-api",
+          "title": "Use the Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/extensions/reference/manifest/version",
+          "title": "Manifest: version",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.packages.zip-root",
+      "store": "chrome",
+      "category": "packages",
+      "title": {
+        "en": "ZIP with manifest.json at its root, up to 2 GB",
+        "tr": "Kökünde manifest.json olan ZIP, en fazla 2 GB"
+      },
+      "description": {
+        "en": "The package is a ZIP of the extension folder contents with manifest.json at its root; the store takes packages up to 2 GB and creates no item through the API (the first version is uploaded in the developer dashboard)."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxFileSizeBytes": 2147483648
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.package"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/using-api",
+          "title": "Use the Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/api",
+          "title": "Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.listing-limits.name",
+      "store": "chrome",
+      "category": "listing-limits",
+      "title": {
+        "en": "Name: up to 75 characters",
+        "tr": "Ad: en fazla 75 karakter"
+      },
+      "description": {
+        "en": "The manifest name is the store name; it holds at most 75 characters (a __MSG_ placeholder needs default_locale and the _locales messages)."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 75
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.package"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/extensions/reference/manifest/name",
+          "title": "Manifest: name",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.listing-limits.description",
+      "store": "chrome",
+      "category": "listing-limits",
+      "title": {
+        "en": "Summary: up to 132 characters",
+        "tr": "Özet: en fazla 132 karakter"
+      },
+      "description": {
+        "en": "The manifest description is the summary of the store listing; it holds at most 132 characters."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 132
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.package"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/extensions/reference/manifest/description",
+          "title": "Manifest: description",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.graphics.listing-assets",
+      "store": "chrome",
+      "category": "graphics",
+      "title": {
+        "en": "Listing: icon, screenshots and promo tile in the dashboard",
+        "tr": "Mağaza sayfası: simge, ekran görüntüleri ve tanıtım karosu panoda"
+      },
+      "description": {
+        "en": "The store listing (detailed description, category, language, screenshots of 1280x800 or 640x400, the 440x280 small promo tile) is edited in the developer dashboard: the Chrome Web Store API has no listing calls. A blank description, a missing icon or missing screenshots get an item rejected."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/images",
+          "title": "Supplying images",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.listing-limits.metadata",
+      "store": "chrome",
+      "category": "listing-limits",
+      "title": {
+        "en": "Accurate metadata, no keyword spam",
+        "tr": "Doğru meta veri, anahtar kelime istismarı yok"
+      },
+      "description": {
+        "en": "Titles, descriptions and images must describe the item accurately; repeating the same keyword more than five times is keyword spam."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.policy.single-purpose",
+      "store": "chrome",
+      "category": "policy",
+      "title": {
+        "en": "One narrow purpose",
+        "tr": "Tek ve dar bir amaç"
+      },
+      "description": {
+        "en": "An extension has one narrow, easy to understand purpose, stated in the single purpose field of the Privacy practices tab; separate functions belong in separate extensions."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/cws-dashboard-privacy",
+          "title": "Fill out the privacy fields",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.privacy.permissions-justification",
+      "store": "chrome",
+      "category": "privacy",
+      "title": {
+        "en": "Justify every permission",
+        "tr": "Her izni gerekçelendir"
+      },
+      "description": {
+        "en": "Request the narrowest permissions the features need, none for future features, and justify each permission and the host permissions on the Privacy practices tab; broad host access makes the review longer."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/cws-dashboard-privacy",
+          "title": "Fill out the privacy fields",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.privacy.data-disclosure",
+      "store": "chrome",
+      "category": "privacy",
+      "title": {
+        "en": "Privacy practices: data use, privacy policy, Limited Use",
+        "tr": "Gizlilik uygulamaları: veri kullanımı, gizlilik politikası, Sınırlı Kullanım"
+      },
+      "description": {
+        "en": "Declare the user data the item collects on the Privacy practices tab, link an accurate privacy policy when it handles user data, certify compliance with the Limited Use requirements, and get informed consent before collecting data that is not needed for the single purpose."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/cws-dashboard-privacy",
+          "title": "Fill out the privacy fields",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/user-data-faq",
+          "title": "User data FAQ",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.policy.remote-code",
+      "store": "chrome",
+      "category": "policy",
+      "title": {
+        "en": "No remotely hosted code",
+        "tr": "Uzaktan barındırılan kod yok"
+      },
+      "description": {
+        "en": "In Manifest V3 the full functionality must be in the package: no external scripts and no eval of fetched strings (the Debugger and User Scripts APIs are the exceptions). Obfuscation is prohibited, minification is allowed."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.policy.two-step-verification",
+      "store": "chrome",
+      "category": "policy",
+      "title": {
+        "en": "2-Step Verification on the publisher account",
+        "tr": "Yayıncı hesabında 2 Adımlı Doğrulama"
+      },
+      "description": {
+        "en": "Publishing or updating an item needs 2-Step Verification on the Google account of the developer dashboard."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/program-policies/policies",
+          "title": "Chrome Web Store program policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/using-api",
+          "title": "Use the Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.policy.enforcement",
+      "store": "chrome",
+      "category": "policy",
+      "title": {
+        "en": "Fix policy warnings before the take down",
+        "tr": "Kaldırılmadan önce politika uyarılarını düzelt"
+      },
+      "description": {
+        "en": "A warned item is taken down when the violation is not fixed; the status shows warned and taken down and the developer dashboard tells the reason. storeasy reads both flags."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.status"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/troubleshooting",
+          "title": "Troubleshooting Chrome Web Store violations",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/api",
+          "title": "Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.review.process",
+      "store": "chrome",
+      "category": "review",
+      "title": {
+        "en": "Every submission is reviewed",
+        "tr": "Her gönderim incelenir"
+      },
+      "description": {
+        "en": "A submitted item waits in review (PENDING_REVIEW) and is then published, staged when submitted with STAGED_PUBLISH, or rejected with the reason in the developer dashboard. Broad permissions and large code changes make the review longer."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/docs/webstore/review-process",
+          "title": "Chrome Web Store review process",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/api",
+          "title": "Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.review.visibility",
+      "store": "chrome",
+      "category": "review",
+      "title": {
+        "en": "Visibility and trusted testers are set in the dashboard",
+        "tr": "Görünürlük ve test kullanıcıları panoda ayarlanır"
+      },
+      "description": {
+        "en": "API v2 no longer changes an item visibility (public, unlisted, private or trusted testers); the developer confirms it in the developer dashboard. A revision published to testers shows as PUBLISHED_TO_TESTERS."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/blog/cws-api-v2",
+          "title": "Introducing a new Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "chrome.api-access.credential",
+      "store": "chrome",
+      "category": "api-access",
+      "title": {
+        "en": "API v2 with a service account or an OAuth client",
+        "tr": "Hizmet hesabı veya OAuth istemcisiyle API v2"
+      },
+      "description": {
+        "en": "The Chrome Web Store API v2 takes a service account (its email added under Account in the developer dashboard, one per publisher) or an OAuth client with a refresh token for the chromewebstore scope, and the publisher id. API v1.1 was supported until 15 October 2026."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": "2026-10-15",
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "chrome.connection"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.chrome.com/blog/cws-api-v2",
+          "title": "Introducing a new Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/service-accounts",
+          "title": "Chrome Web Store API: service accounts",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://developer.chrome.com/docs/webstore/using-api",
+          "title": "Use the Chrome Web Store API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

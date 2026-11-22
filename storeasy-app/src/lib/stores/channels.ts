@@ -5,7 +5,7 @@ import { StoreKind } from '@/lib/api/types'
 // a new channel is one row here plus its own feature folder (docs/adding-a-store.md). channels.test.ts checks that every
 // StoreKind has a row and that the keys match the API's.
 
-export type StoreKey = 'apple' | 'google' | 'microsoft' | 'winget'
+export type StoreKey = 'apple' | 'google' | 'microsoft' | 'winget' | 'chrome'
 
 export type CredentialExpiry = 'none' | 'optional' | 'required'
 
@@ -68,6 +68,17 @@ export const STORE_CHANNELS: readonly StoreChannel[] = [
     credentialExpiry: 'optional',
     hasReviews: false,
     hasMetrics: false,
+    hasListingScreens: false,
+    listsProducts: false,
+  },
+  {
+    store: StoreKind.Chrome,
+    key: 'chrome',
+    code: 'CW',
+    logo: 'chromewebstore',
+    credentialExpiry: 'none',
+    hasReviews: true,
+    hasMetrics: true,
     hasListingScreens: false,
     listsProducts: false,
   },

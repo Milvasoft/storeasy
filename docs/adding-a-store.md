@@ -4,7 +4,8 @@ storeasy started with three stores (App Store Connect, Google Play, Microsoft St
 after them (winget first, then Chrome Web Store, Microsoft Edge Add-ons, Firefox Add-ons, Flathub, Snap Store,
 Homebrew; [urun-plani.md](urun-plani.md) section 7.1) plugs into the shared code through the extension points below,
 so shared code has no branch for it. winget is the reference: follow its files
-(`storeasy-api/src/Storeasy.Infrastructure/Stores/Winget/`, `storeasy-app/src/features/winget/`).
+(`storeasy-api/src/Storeasy.Infrastructure/Stores/Winget/`, `storeasy-app/src/features/winget/`). The Chrome Web Store
+(`Stores/Chrome/`, `features/chrome/`) is the reference for a store API with reviews, metrics and package intake.
 
 One channel is one pull request. "Like the existing stores" means the same depth wherever the channel has the matching
 concept; where it does not (no reviews, no store page, no metrics), leave it out and say so in
@@ -50,6 +51,19 @@ work without a branch:
 | A cron job class + `ScheduledStoreSyncs` method | Periodic status reads, for example while something is in review. | `WingetSyncJob`, every 15 minutes for open pull requests |
 | `INotificationDispatcher` | State changes notify like store version states: kind `VersionState`, webhook `version.state_changed`, activity `version.state`. | pull request state changes |
 
+Three more extension points, added with the Chrome Web Store (`Storeasy.Infrastructure/Stores/Chrome/`,
+`storeasy-app/src/features/chrome/`), plug a channel into shared features without a branch:
+
+| Extension point | What it does | Chrome Web Store |
+|---|---|---|
+| `IStoreChannelReviews` (singleton) | The shared review sync asks it for the channel's reviews before the built in review gateway. Set `HasReviews` in both channel tables. Replies stay with the stores whose `ReviewRules.ReplyMaxLength` is above zero; a channel without a reply API leaves it at zero, the reply call answers `ReviewReplyNotSupported` and the reviews page says to answer in the store's console. | `ChromeChannel` (`fetchReviews`) |
+| `IStoreChannelMetrics` (singleton) | The shared metrics sync asks it for daily rows of a channel's product (`StoreMetricAccumulator` builds the country and total slices); `BackfillDays` is the first read. Set `HasMetrics` in both channel tables. | `ChromeChannel` (`queryMetrics`) |
+| `IArtifactChannel` (scoped) | Artifact intake hands a checked package of the channel's store to it: `Match` compares the package with the store record, `DeliverAsync` uploads it (never submits). Add the file extension and platform in `IntakeRules` (`Classify`, `StoreOf`), the package reader and the format's checks in `ArtifactChecks`, and the platform in the web intake labels. | `ChromeArtifactChannel` (`.zip`, platform `Extension`) |
+
+Browser extension channels share one intake platform (`ArtifactPlatform.Extension`), which `IntakeRules.StoreOf` maps to
+the Chrome Web Store today. Microsoft Edge Add-ons and Firefox Add-ons take the same ZIP: when they come, delivery should
+pick the channel by the app's store records (or the session's `delivery.store`) instead of one store per platform.
+
 Register everything in one `Add<Channel>Services` extension (see `WingetServiceCollectionExtensions`) called from
 `InfraServiceCollectionExtensions`, with an options class bound from `Storeasy:<Channel>` whose base addresses the
 tests replace. Use your own named `HttpClient`s; downloads from user given addresses go through `DownloadGuard` and
@@ -63,11 +77,13 @@ is the publication.
 
 Enum values must not collide; take the next free block and keep a channel's values together:
 
-| Enum | Taken by the first stores | winget | Next channels |
-|---|---|---|---|
-| `AuditAction` | ..., 150-155 (Microsoft), 300+ | 160-164 | 170-179, 180-189, ... (one block of ten each) |
-| `StoreJobKind` | 1, 2, 30, 50-53, 60, 70, 80, 90, 110, 120-121, 400-407 | 130 | 140, 150, ... |
-| `ChangePlanKind` | 1-17, 50, 70-72, 80 | 100 | 110, 120, ... |
+| Enum | Taken by the first stores | winget | Chrome Web Store | Next channels |
+|---|---|---|---|---|
+| `AuditAction` | ..., 150-155 (Microsoft), 300+ | 160-164 | 170-179 | 180-189, 190-199, ... (one block of ten each) |
+| `StoreJobKind` | 1, 2, 30, 50-53, 60, 70, 80, 90, 110, 120-121, 400-407 | 130 | 140 | 150, 160, ... |
+| `ChangePlanKind` | 1-17, 50, 70-72, 80 | 100 | 110 | 120, 130, ... |
+| `StoreKind` | 1-3 | 4 | 5 | 6, 7, ... |
+| `ArtifactPlatform`, `PackageKind` | 1-3, 1-4 | | 4 (`Extension`), 5 (`ExtensionZip`) | reuse `Extension` for browser extensions |
 
 Every enum value needs `"{Enum}.{Value}"` in both resx files (`ResxTests`), every audit action a web label
 (`auditLabels.test.ts` reads the C# enum), every job kind a label in `lib/jobs/labels.ts`, every plan kind one in

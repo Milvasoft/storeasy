@@ -87,10 +87,17 @@ export function platformLabel(platform: ArtifactPlatform, t: IntakeDictionary): 
     ? t.platform.ios
     : platform === ArtifactPlatform.Android
       ? t.platform.android
-      : t.platform.windows
+      : platform === ArtifactPlatform.Extension
+        ? t.platform.extension
+        : t.platform.windows
 }
 
-export const PLATFORMS: ArtifactPlatform[] = [ArtifactPlatform.Ios, ArtifactPlatform.Android, ArtifactPlatform.Windows]
+export const PLATFORMS: ArtifactPlatform[] = [
+  ArtifactPlatform.Ios,
+  ArtifactPlatform.Android,
+  ArtifactPlatform.Windows,
+  ArtifactPlatform.Extension,
+]
 
 /** IntakeRules.StoreOf. */
 export function storeOf(platform: ArtifactPlatform): StoreKind {
@@ -98,7 +105,9 @@ export function storeOf(platform: ArtifactPlatform): StoreKind {
     ? StoreKind.Apple
     : platform === ArtifactPlatform.Android
       ? StoreKind.Google
-      : StoreKind.Microsoft
+      : platform === ArtifactPlatform.Extension
+        ? StoreKind.Chrome
+        : StoreKind.Microsoft
 }
 
 /** The target kind a platform's rule uses. */
@@ -107,7 +116,9 @@ export function targetOf(platform: ArtifactPlatform): DeliveryTarget {
     ? DeliveryTarget.TestFlightGroup
     : platform === ArtifactPlatform.Android
       ? DeliveryTarget.PlayTrack
-      : DeliveryTarget.MsFlight
+      : platform === ArtifactPlatform.Extension
+        ? DeliveryTarget.None
+        : DeliveryTarget.MsFlight
 }
 
 /** "iOS → TestFlight Kuzey içi", "Android → internal". */

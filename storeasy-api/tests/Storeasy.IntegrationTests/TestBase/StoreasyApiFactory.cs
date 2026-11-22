@@ -146,6 +146,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     /// The GitHub the winget channel talks to (winget-pkgs, forks, pull requests, installer downloads).
     /// </summary>
     public FakeGitHub GitHub { get; } = new();
+
+    /// <summary>
+    /// The Chrome Web Store API and Google token endpoint the Chrome channel talks to.
+    /// </summary>
+    public FakeChromeWebStore ChromeWebStore { get; } = new();
     /// The CI providers' OIDC issuers (discovery documents and key sets of locally generated keys).
     /// </summary>
     public FakeOidcIssuers OidcIssuers { get; } = new();
@@ -268,6 +273,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.AddHttpClient(Storeasy.Infrastructure.Stores.Winget.WingetClient.DownloadClientName).ConfigurePrimaryHttpMessageHandler(() => GitHub);
             services.RemoveAll<WingetOptions>();
             services.AddSingleton(new WingetOptions { ApiBaseUrl = FakeGitHub.ApiBaseUrl, BlockPrivateDownloadAddresses = false });
+
+            // Chrome Web Store: real client over a fake API and token endpoint; upload polls do not wait.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => ChromeWebStore);
+            services.RemoveAll<ChromeOptions>();
+            services.AddSingleton(new ChromeOptions { ApiBaseUrl = FakeChromeWebStore.ApiBaseUrl, TokenUrl = FakeChromeWebStore.TokenUrl, UploadPollIntervalMilliseconds = 0, UploadPollAttempts = 3 });
 
             // A job kind that exists only in the tests, so the queue and the runner are tested without a store.
             services.AddScoped<IStoreJobHandler, FakeStoreJobHandler>();

@@ -93,6 +93,8 @@ function RuleEditor({
       </span>
       {storeAppId === null ? (
         <span className="text-[13px] text-fg3">{interpolate(t.rules.noStore, { platform: label })}</span>
+      ) : rule.Platform === ArtifactPlatform.Extension ? (
+        <span className="text-[13px] text-fg2">{t.rules.extensionUpload}</span>
       ) : rule.Platform === ArtifactPlatform.Ios ? (
         <Field label={t.rules.group} hint={t.rules.groupHint}>
           {internalGroups.length > 0 ? (

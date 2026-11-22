@@ -642,6 +642,11 @@ public static class RuleStores
     public const string Winget = "winget";
 
     /// <summary>
+    /// Catalog key of the Chrome Web Store.
+    /// </summary>
+    public const string Chrome = "chrome";
+
+    /// <summary>
     /// Store kind of a catalog key (the <see cref="Stores.StoreChannels"/> key); null for an unknown key.
     /// </summary>
     /// <param name="key"></param>

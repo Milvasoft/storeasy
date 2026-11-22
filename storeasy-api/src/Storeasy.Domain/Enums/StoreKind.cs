@@ -33,4 +33,11 @@ public enum StoreKind : byte
     /// </summary>
     [Description("winget")]
     Winget = 4,
+
+    /// <summary>
+    /// Chrome Web Store (browser extensions), through the Chrome Web Store API v2 with a Google service account or an
+    /// OAuth client and refresh token, and the publisher id. Items are added by their extension id.
+    /// </summary>
+    [Description("Chrome Web Store")]
+    Chrome = 5,
 }

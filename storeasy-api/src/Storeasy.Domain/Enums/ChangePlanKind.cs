@@ -123,6 +123,13 @@ public enum ChangePlanKind : byte
     WingetChange = 100,
 
     /// <summary>
+    /// A Chrome Web Store change (upload a package and submit it, raise the deploy percentage, cancel a submission, roll
+    /// back); what it writes is in the plan's Chrome change.
+    /// </summary>
+    [Description("Chrome Web Store change")]
+    ChromeChange = 110,
+
+    /// <summary>
     /// Subscriptions, offers, In-App Purchases and Play products (phase 7).
     /// </summary>
     [Description("Monetization")]

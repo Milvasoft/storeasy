@@ -48,6 +48,7 @@ export const ChangePlanKind = {
   SandboxTesters: 72,
   AsoExperiment: 80,
   WingetChange: 100,
+  ChromeChange: 110,
 } as const
 export type ChangePlanKind = (typeof ChangePlanKind)[keyof typeof ChangePlanKind]
 

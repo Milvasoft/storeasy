@@ -119,6 +119,13 @@ public enum StoreJobKind : short
     WingetSync = 130,
 
     /// <summary>
+    /// Reads the Chrome Web Store items of a connection (status of the published and the submitted revision, deploy
+    /// percentage, upload state, policy flags, rating summary, weekly users); state changes are audited and notified.
+    /// </summary>
+    [Description("Chrome Web Store sync")]
+    ChromeSync = 140,
+
+    /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
     /// Numbered in the analytics band.
     /// </summary>

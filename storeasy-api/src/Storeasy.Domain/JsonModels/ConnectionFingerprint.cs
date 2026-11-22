@@ -60,4 +60,9 @@ public class ConnectionFingerprint
     /// Kind of token, told from its prefix (<c>classic</c>, <c>fine-grained</c>, <c>app</c>), never the token itself.
     /// </summary>
     public string TokenKind { get; set; }
+
+    /// <summary>
+    /// Publisher id of a channel that addresses its items under a publisher (Chrome Web Store).
+    /// </summary>
+    public string PublisherId { get; set; }
 }

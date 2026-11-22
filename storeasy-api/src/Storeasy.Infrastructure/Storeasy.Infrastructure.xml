@@ -1262,11 +1262,12 @@
             <param name="storeAppRepository"></param>
             <param name="msSubmissionRepository"></param>
             <param name="wingetPullRequestRepository"></param>
+            <param name="chromeItemRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
             <summary>
             Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
             and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
@@ -1275,6 +1276,7 @@
             <param name="storeAppRepository"></param>
             <param name="msSubmissionRepository"></param>
             <param name="wingetPullRequestRepository"></param>
+            <param name="chromeItemRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
@@ -1297,9 +1299,17 @@
             <param name="cancellationToken"></param>
             <returns>Number of jobs queued.</returns>
         </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueChromeSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a Chrome Web Store sync (pending items only) for every verified Chrome connection with an item in review or an
+            upload in progress.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns>Number of jobs queued.</returns>
+        </member>
         <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueReviewSyncsAsync(System.Threading.CancellationToken)">
             <summary>
-            Queues a review sync for every App Store and Google Play record with a connection.
+            Queues a review sync for every record with a connection in a store with reviews (StoreChannels.HasReviews).
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueTestFlightSyncsAsync(System.Threading.CancellationToken)">
@@ -1469,8 +1479,9 @@
             <param name="gateway"></param>
             <param name="notificationDispatcher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that read their own reviews (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelReviews"/>), asked before the gateway.</param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannelReviews})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncReviews"/> job: reads the recent reviews of one store record and keeps every one (Play
             returns only recent reviews with text, so older ones stay in storeasy). New reviews are announced once per run, except
@@ -1481,6 +1492,7 @@
             <param name="gateway"></param>
             <param name="notificationDispatcher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that read their own reviews (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelReviews"/>), asked before the gateway.</param>
         </member>
         <member name="P:Storeasy.Infrastructure.Feedback.SyncReviewsJobHandler.Kind">
             <inheritdoc/>
@@ -2288,8 +2300,9 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels after the first three stores that take intake packages (<see cref="T:Storeasy.Application.Interfaces.IArtifactChannel"/>).</param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IArtifactChannel})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact"/> job (docs/urun-plani.md 11.8, design 13.14): downloads a pulled package,
             verifies the SHA-256, reads the package and matches it with the app's store record, runs the catalog checks, picks the
@@ -2319,6 +2332,7 @@
             <param name="auditTrail"></param>
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels after the first three stores that take intake packages (<see cref="T:Storeasy.Application.Interfaces.IArtifactChannel"/>).</param>
         </member>
         <member name="P:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.Kind">
             <inheritdoc/>
@@ -2379,6 +2393,27 @@
             <param name="scopeFactory"></param>
         </member>
         <member name="P:Storeasy.Infrastructure.Jobs.AuditLogCleanerJob.SqlFileName">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.ChromeSyncJob">
+            <summary>
+            Every 15 minutes: queues the Chrome Web Store syncs of connections with an item in review or an upload in progress
+            (those items only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.ChromeSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 15 minutes: queues the Chrome Web Store syncs of connections with an item in review or an upload in progress
+            (those items only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.ChromeSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.DeadlineReminderJob">
@@ -5788,8 +5823,9 @@
             <param name="gateway"></param>
             <param name="writer"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that read their own metrics (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelMetrics"/>), for stores without a built in reader.</param>
         </member>
-        <member name="M:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.#ctor(Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreMetricsGateway,Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.#ctor(Storeasy.Infrastructure.StoreMetrics.StoreMetricFeeds,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreMetricsGateway,Storeasy.Infrastructure.StoreMetrics.StoreMetricWriter,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannelMetrics})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics"/> job: reads the store page metrics of one store record and upserts the
             daily rows. The first read goes back as far as the source allows (App Store: every report instance since the reports
@@ -5804,12 +5840,475 @@
             <param name="gateway"></param>
             <param name="writer"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that read their own metrics (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelMetrics"/>), for stores without a built in reader.</param>
         </member>
         <member name="P:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.Kind">
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.StoreMetrics.SyncStoreMetricsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel">
+            <summary>
+            Artifact intake for the Chrome Web Store: an extension ZIP that passed the manifest checks is uploaded to the app's item
+            as its new package. Nothing is submitted for review: the owner approves a Chrome plan for that (the uploaded package is
+            what a plan without a package submits).
+            </summary>
+            <param name="client"></param>
+            <param name="fileStorage"></param>
+            <param name="itemRepository"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel.#ctor(Storeasy.Application.Interfaces.IChromeWebStoreClient,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem})">
+            <summary>
+            Artifact intake for the Chrome Web Store: an extension ZIP that passed the manifest checks is uploaded to the app's item
+            as its new package. Nothing is submitted for review: the owner approves a Chrome plan for that (the uploaded package is
+            what a plan without a package submits).
+            </summary>
+            <param name="client"></param>
+            <param name="fileStorage"></param>
+            <param name="itemRepository"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel.Match(Storeasy.Domain.Intake.ArtifactPackageInfo,Storeasy.Application.Interfaces.StoreAppRecord)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel.DeliverAsync(Storeasy.Application.Interfaces.ArtifactDeliveryRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeArtifactChannel.RecordAsync(Storeasy.Application.Interfaces.ArtifactDeliveryRequest,Storeasy.Application.Interfaces.ChromeUploadRead,System.Threading.CancellationToken)">
+            <summary>
+            Keeps the upload on the item, so the item page shows what a plan without a package submits.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel">
+            <summary>
+            The Chrome Web Store engine as a store channel: the credential is the publisher id with a service account key or an
+            OAuth client, a product is an extension id, its builds are the versions of its published and submitted revisions. The
+            API cannot list a publisher's items, so items are added by id. It also reads the reviews (no replies: the API has none)
+            and the store metrics (installs, impressions, page views by country).
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.#ctor(Storeasy.Application.Interfaces.IChromeWebStoreClient,Storeasy.Application.Utils.Models.ChromeOptions)">
+            <summary>
+            The Chrome Web Store engine as a store channel: the credential is the publisher id with a service account key or an
+            OAuth client, a product is an extension id, its builds are the versions of its published and submitted revisions. The
+            API cannot list a publisher's items, so items are added by id. It also reads the reviews (no replies: the API has none)
+            and the store metrics (installs, impressions, page views by country).
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.Metrics">
+            <summary>
+            Metrics read into the store metrics table.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.Store">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.BackfillDays">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.Inspect(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.InspectSecret(System.String)">
+            <summary>
+            The offline check of a Chrome secret (also used without a client, by the tests' gateway).
+            </summary>
+            <param name="secretJson"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.VerifyAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ListAppsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.GetAppAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ListBuildsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.BuildsOf(Storeasy.Application.Interfaces.ChromeItemStatusRead)">
+            <summary>
+            The versions of the published and submitted revisions as builds.
+            </summary>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.GetIconUrlAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.SyncJob(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.SameAccount(Storeasy.Domain.JsonModels.ConnectionFingerprint,Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.CredentialLabel(Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ListReviewsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ReadMetricsAsync(System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ToMetricRows(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.ChromeMetricRead})">
+            <summary>
+            Store metric rows (by country and for every country) of <c>queryMetrics</c> rows sliced by country: installs are
+            downloads, impressions and page views as they are.
+            </summary>
+            <param name="rows"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway">
+            <summary>
+            The content read of a Chrome Web Store item (<see cref="T:Storeasy.Application.Utils.Chrome.ChromeContent"/>): its status. The API has no read or write of
+            the store listing, so listing plans are not possible; writes are Chrome plans applied by <see cref="T:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension"/>.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway.#ctor(Storeasy.Application.Interfaces.IChromeWebStoreClient)">
+            <summary>
+            The content read of a Chrome Web Store item (<see cref="T:Storeasy.Application.Utils.Chrome.ChromeContent"/>): its status. The API has no read or write of
+            the store listing, so listing plans are not possible; writes are Chrome plans applied by <see cref="T:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension"/>.
+            </summary>
+            <param name="client"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials">
+            <summary>
+            The credential of a Chrome Web Store connection: the publisher id and one way to get an access token for the
+            <c>chromewebstore</c> scope, either a Google service account JSON key (the service account email is added under
+            Account in the developer dashboard) or an OAuth client with a refresh token of the Google account that owns the items.
+            <see cref="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ItemId"/> is an optional extension id the verification reads, since the API has no call that reads a
+            publisher.
+            </summary>
+            <param name="PublisherId">Publisher id (developer dashboard, Account).</param>
+            <param name="ServiceAccountKey">The service account JSON key, as text; null for an OAuth client.</param>
+            <param name="ClientId">OAuth client id.</param>
+            <param name="ClientSecret">OAuth client secret.</param>
+            <param name="RefreshToken">OAuth refresh token.</param>
+            <param name="ItemId">Extension id the verification reads, optional.</param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.#ctor(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            The credential of a Chrome Web Store connection: the publisher id and one way to get an access token for the
+            <c>chromewebstore</c> scope, either a Google service account JSON key (the service account email is added under
+            Account in the developer dashboard) or an OAuth client with a refresh token of the Google account that owns the items.
+            <see cref="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ItemId"/> is an optional extension id the verification reads, since the API has no call that reads a
+            publisher.
+            </summary>
+            <param name="PublisherId">Publisher id (developer dashboard, Account).</param>
+            <param name="ServiceAccountKey">The service account JSON key, as text; null for an OAuth client.</param>
+            <param name="ClientId">OAuth client id.</param>
+            <param name="ClientSecret">OAuth client secret.</param>
+            <param name="RefreshToken">OAuth refresh token.</param>
+            <param name="ItemId">Extension id the verification reads, optional.</param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.PublisherId">
+            <summary>Publisher id (developer dashboard, Account).</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ServiceAccountKey">
+            <summary>The service account JSON key, as text; null for an OAuth client.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ClientId">
+            <summary>OAuth client id.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ClientSecret">
+            <summary>OAuth client secret.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.RefreshToken">
+            <summary>OAuth refresh token.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ItemId">
+            <summary>Extension id the verification reads, optional.</summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.IsServiceAccount">
+            <summary>
+            Whether the token comes from a service account key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials.ServiceAccount">
+            <summary>
+            The parsed service account key; null for an OAuth client.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentialParser">
+            <summary>
+            Parses <see cref="T:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentialParser.Parse(System.String,System.String@)">
+            <summary>
+            Parses and normalizes a Chrome credential. The service account key may be given as a JSON object or as its text;
+            it is kept as text. Returns null with <paramref name="errorKey"/> set when it is not valid.
+            </summary>
+            <param name="json"></param>
+            <param name="errorKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentialParser.ClientIdSuffix(System.String)">
+            <summary>
+            Last characters of an OAuth client id, for the fingerprint (client ids end in
+            <c>.apps.googleusercontent.com</c>, so the part before it is used).
+            </summary>
+            <param name="clientId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeCredentialParser.CacheKey(Storeasy.Infrastructure.Stores.Chrome.ChromeCredentials)">
+            <summary>
+            Cache key of a credential's access token (a hash, so the secret is not kept as a key).
+            </summary>
+            <param name="credentials"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension">
+            <summary>
+            Applies an approved Chrome plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ChromeChange"/>): uploads the package (its SHA-256 checked
+            again first, then the status read until the store has processed it) and submits the item, publishes a staged revision,
+            raises the deploy percentage, cancels the submission or rolls back. The status is read back into the item afterwards;
+            the sync then follows the review.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="fileStorage"></param>
+            <param name="itemRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension.#ctor(Storeasy.Application.Interfaces.IChromeWebStoreClient,Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem},Storeasy.Application.Utils.Models.ChromeOptions,System.TimeProvider)">
+            <summary>
+            Applies an approved Chrome plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.ChromeChange"/>): uploads the package (its SHA-256 checked
+            again first, then the status read until the store has processed it) and submits the item, publishes a staged revision,
+            raises the deploy percentage, cancels the submission or rolls back. The status is read back into the item afterwards;
+            the sync then follows the review.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="fileStorage"></param>
+            <param name="itemRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromePlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeReadiness">
+            <summary>
+            Readiness of a Chrome Web Store item: the policy standing (warned, taken down), the submission's review state, and an
+            extension package newer than the published version that passed the manifest checks. The listing, the privacy practices
+            and the distribution settings have no API; the rules catalog's assisted steps cover them.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeReadiness.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Readiness of a Chrome Web Store item: the policy standing (warned, taken down), the submission's review state, and an
+            extension package newer than the published version that passed the manifest checks. The listing, the privacy practices
+            and the distribution settings have no API; the rules catalog's assisted steps cover them.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeReadiness.EvaluateAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeServiceCollectionExtensions">
+            <summary>
+            Registers the Chrome Web Store channel: the API client, the store channel (gateway calls, sync job, key replacement,
+            reviews, metrics), the content read, the plan extension, readiness, artifact delivery and the sync job
+            (docs/adding-a-store.md).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeServiceCollectionExtensions.AddChromeServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the Chrome Web Store services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeSyncJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ChromeSync"/>: reads the Chrome Web Store items of a connection with <c>fetchStatus</c> (the
+            published and the submitted revision, deploy percentage, last upload, policy flags), their rating summary and seven day
+            users; the versions become builds. A state change (in review, staged, published, rejected, cancelled, warned, taken down)
+            is audited and notified like a store version state change. The schedule runs it every 15 minutes for items with a
+            submission in review or an upload in progress, reading only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="itemRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IChromeWebStoreClient,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ChromeSync"/>: reads the Chrome Web Store items of a connection with <c>fetchStatus</c> (the
+            published and the submitted revision, deploy percentage, last upload, policy flags), their rating summary and seven day
+            users; the versions become builds. A state change (in review, staged, published, rejected, cancelled, warned, taken down)
+            is audited and notified like a store version state change. The schedule runs it every 15 minutes for items with a
+            submission in review or an upload in progress, reading only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="itemRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Chrome.ChromeSyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeSyncJobHandler.ReadExtrasAsync(System.String,System.String,Storeasy.Domain.Chrome.ChromeItem,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            The rating summary and the latest seven day users; either may be missing (a new item has no metrics yet), so a refusal
+            leaves the old values.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IChromeWebStoreClient"/> over the Chrome Web Store API v2 (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.HttpClientName"/>).
+            An access token comes from the service account key (JWT bearer grant at the key's token endpoint) or from the OAuth
+            client's refresh token, and is kept until five minutes before it expires. Endpoints: <c>fetchStatus</c>,
+            <c>/upload/v2/...:upload</c>, <c>publish</c>, <c>setPublishedDeployPercentage</c>, <c>cancelSubmission</c>,
+            <c>rollback</c>, <c>fetchReviews</c>, <c>ratingSummary</c> and <c>queryMetrics</c>. Tests replace the handler with a fake
+            Chrome Web Store.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.ChromeOptions,System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IChromeWebStoreClient"/> over the Chrome Web Store API v2 (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.HttpClientName"/>).
+            An access token comes from the service account key (JWT bearer grant at the key's token endpoint) or from the OAuth
+            client's refresh token, and is kept until five minutes before it expires. Endpoints: <c>fetchStatus</c>,
+            <c>/upload/v2/...:upload</c>, <c>publish</c>, <c>setPublishedDeployPercentage</c>, <c>cancelSubmission</c>,
+            <c>rollback</c>, <c>fetchReviews</c>, <c>ratingSummary</c> and <c>queryMetrics</c>. Tests replace the handler with a fake
+            Chrome Web Store.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.HttpClientName">
+            <summary>
+            Name of the HTTP client.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.Scope">
+            <summary>
+            OAuth scope of the Chrome Web Store API (reads and writes).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.VerifyAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.FetchStatusAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.ParseStatus(System.Text.Json.Nodes.JsonNode,System.String)">
+            <summary>
+            Maps a <c>FetchItemStatusResponse</c>.
+            </summary>
+            <param name="root"></param>
+            <param name="itemId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.UploadAsync(System.String,System.String,System.IO.Stream,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.PublishAsync(System.String,System.String,Storeasy.Application.Interfaces.ChromePublishRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.SetDeployPercentageAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.CancelSubmissionAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.RollbackAsync(System.String,System.String,Storeasy.Application.Interfaces.ChromeRollbackRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.FetchReviewsAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.ParseReview(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps a <c>Review</c>; null without a name.
+            </summary>
+            <param name="review"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.GetRatingSummaryAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.QueryMetricsAsync(System.String,System.String,System.Collections.Generic.IReadOnlyList{System.String},System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.ParseMetricRow(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps a <c>MetricRow</c>; null without a full date.
+            </summary>
+            <param name="row"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.StateOf(System.String)">
+            <summary>
+            Maps an <c>ItemState</c> value.
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.UploadStateOf(System.String)">
+            <summary>
+            Maps an <c>UploadState</c> value.
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.DescribeError(System.String)">
+            <summary>
+            The message of a Google API error body (<c>{"error": {"message": ...}}</c> or an OAuth error), or the body itself.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Content.AppleContentGateway">
             <summary>

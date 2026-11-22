@@ -32,6 +32,7 @@ public static class ArtifactChecks
     {
         PackageKind.Aab or PackageKind.Apk => Android(package, context),
         PackageKind.Ipa => Apple(package, context),
+        PackageKind.ExtensionZip => Extension(package, context),
         _ => [Check("windows.identity", "Identity", string.IsNullOrWhiteSpace(package.Identifier) ? ReadinessStatus.Missing : ReadinessStatus.Ok, null, "Package identity", package.Identifier)],
     };
 
@@ -107,6 +108,30 @@ public static class ArtifactChecks
         checks.Add(Check("export-compliance", "ExportCompliance", package.UsesNonExemptEncryption == null ? ReadinessStatus.Warning : ReadinessStatus.Ok, null,
                          "Export compliance declared in Info.plist",
                          package.UsesNonExemptEncryption == null ? "ITSAppUsesNonExemptEncryption is not set; App Store Connect will ask" : $"ITSAppUsesNonExemptEncryption = {package.UsesNonExemptEncryption}"));
+
+        return checks;
+    }
+
+    private static List<ArtifactCheck> Extension(ArtifactPackageInfo package, Context context)
+    {
+        // The manifest checks ran when the package was read; the version is compared here with every version the store and
+        // intake know of the item.
+        var checks = Storeasy.Application.Utils.Chrome.ChromeManifest.IssuesOf(package)
+                                                                     .Where(i => i.Key != Storeasy.Application.Utils.Constants.MessageKey.ChromeVersionNotHigher)
+                                                                     .Select((i, index) => Check($"manifest.{index}", "Manifest", i.Blocking ? ReadinessStatus.Missing : ReadinessStatus.Warning, null, i.Key, i.Text))
+                                                                     .ToList();
+
+        checks.Insert(0, Check("manifest-v3", "Manifest", package.ManifestVersion == 3 ? ReadinessStatus.Ok : ReadinessStatus.Missing, "chrome.packages.manifest-v3", "Manifest V3", $"manifest_version {package.ManifestVersion?.ToString(CultureInfo.InvariantCulture) ?? "-"}"));
+
+        var highest = context.KnownBuilds.Select(b => b.Version)
+                                         .Where(v => Storeasy.Application.Utils.Chrome.ChromeVersions.IsValid(v))
+                                         .OrderByDescending(v => v, Comparer<string>.Create(Storeasy.Application.Utils.Chrome.ChromeVersions.Compare))
+                                         .FirstOrDefault();
+        var valid = Storeasy.Application.Utils.Chrome.ChromeVersions.IsValid(package.VersionName);
+        var higher = valid && (highest == null || Storeasy.Application.Utils.Chrome.ChromeVersions.Compare(package.VersionName, highest) > 0);
+
+        checks.Add(Check("version", "Build", higher ? ReadinessStatus.Ok : ReadinessStatus.Missing, null, "version is higher than any earlier one",
+                         !valid ? $"version {package.VersionName ?? "-"} is not valid" : highest == null ? $"version {package.VersionName}, first package" : higher ? $"version {package.VersionName} > {highest}" : $"version {package.VersionName} is not above {highest}"));
 
         return checks;
     }

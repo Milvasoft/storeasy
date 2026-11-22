@@ -21,6 +21,9 @@ import { defaultExpiry, expiryInstant, msSecret, type MsCredentialFields } from 
 import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { EMPTY_WINGET_CREDENTIALS, wingetSecret, type WingetCredentialFields } from '@/features/winget/rules'
+import { ChromeCredentialForm, chromeFieldErrors } from '@/features/chrome/connections'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
+import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
 import { StoreIconPicker } from './StoreIconPicker'
@@ -93,6 +96,8 @@ export function AddConnectionDialog({
   const [winget, setWinget] = useState<WingetCredentialFields>(EMPTY_WINGET_CREDENTIALS)
   // A GitHub token may have no expiry; the owner gives it when it has one.
   const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
+  const [chrome, setChrome] = useState<ChromeCredentialFields>(EMPTY_CHROME_CREDENTIALS)
+  const tc = useChrome()
   // Only a rejected file's message is kept here; field errors are computed from the values once the form was submitted,
   // so they clear as soon as a value becomes valid.
   const [errors, setErrors] = useState<Record<string, string | null>>({})
@@ -112,6 +117,7 @@ export function AddConnectionDialog({
     setExpiry(defaultExpiry())
     setWinget(EMPTY_WINGET_CREDENTIALS)
     setWingetExpiry(null)
+    setChrome(EMPTY_CHROME_CREDENTIALS)
     setErrors({})
     setSubmitted(false)
     setServer(null)
@@ -135,7 +141,9 @@ export function AddConnectionDialog({
             ? msSecret(ms)
             : isWinget
               ? wingetSecret(winget)
-              : key.text.trim()
+              : store === StoreKind.Chrome
+                ? chromeSecret(chrome)
+                : key.text.trim()
       const credentialExpiry = microsoft ? expiry : isWinget ? wingetExpiry : null
       const id = await connectionsApi.create(organizationId, {
         Store: store,
@@ -170,6 +178,7 @@ export function AddConnectionDialog({
       setKey(EMPTY_KEY)
       setMs((current) => ({ ...current, clientSecret: '' }))
       setWinget((current) => ({ ...current, token: '' }))
+      setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -201,6 +210,8 @@ export function AddConnectionDialog({
       Object.assign(next, msFieldErrors(ms, expiry, tm))
     } else if (store === StoreKind.Winget) {
       Object.assign(next, wingetFieldErrors(winget, wingetExpiry, tw))
+    } else if (store === StoreKind.Chrome) {
+      Object.assign(next, chromeFieldErrors(chrome, tc))
     } else {
       const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
       next.secret = !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null
@@ -315,6 +326,14 @@ export function AddConnectionDialog({
             selected={store === StoreKind.Winget}
             onSelect={() => pickStore(StoreKind.Winget)}
           />
+          <StoreCard
+            store={StoreKind.Chrome}
+            title={t.connections.stores.chrome.title}
+            body={t.connections.stores.chrome.body}
+            time={t.connections.stores.chrome.time}
+            selected={store === StoreKind.Chrome}
+            onSelect={() => pickStore(StoreKind.Chrome)}
+          />
           <Callout>{t.connections.encryptedNote}</Callout>
         </div>
       ) : null}
@@ -344,6 +363,8 @@ export function AddConnectionDialog({
             </>
           ) : store === StoreKind.Winget ? (
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
+          ) : store === StoreKind.Chrome ? (
+            <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
           ) : (
             <ConnectionKeyInput
               store={store}
