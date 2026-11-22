@@ -1507,6 +1507,133 @@
             <param name="data"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Domain.Chrome.ChromeItem">
+            <summary>
+            Chrome Web Store side of a store record (<see cref="P:Storeasy.Domain.Chrome.ChromeItem.StoreApp"/> with <see cref="F:Storeasy.Domain.Enums.StoreKind.Chrome"/>, whose external id
+            is the extension id): what the last sync read with <c>fetchStatus</c>, the rating summary and the weekly users.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Chrome.ChromeItem.ItemIdLength">
+            <summary>
+            Length of an extension id (32 letters a to p).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Chrome.ChromeItem.VersionMaxLength">
+            <summary>
+            Maximum length of a package version (four dot separated numbers up to 65535).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Chrome.ChromeItem.SyncErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Chrome.ChromeItem.SyncError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.StoreAppId">
+            <summary>
+            The store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.ItemId">
+            <summary>
+            Extension id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.PublishedState">
+            <summary>
+            State of the published revision; <see cref="F:Storeasy.Domain.Enums.ChromeItemState.None"/> when the item is not published.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.PublishedVersion">
+            <summary>
+            Package version of the published revision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.PublishedDeployPercentage">
+            <summary>
+            Deploy percentage of the published revision (0 to 100).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.SubmittedState">
+            <summary>
+            State of the revision submitted since the last publish; <see cref="F:Storeasy.Domain.Enums.ChromeItemState.None"/> when there is none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.SubmittedVersion">
+            <summary>
+            Package version of the submitted revision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.SubmittedDeployPercentage">
+            <summary>
+            Deploy percentage of the submitted revision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.LastUploadState">
+            <summary>
+            State of the last package upload (the store reports it for 24 hours).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.UploadedVersion">
+            <summary>
+            Version of the last package storeasy uploaded.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.Warned">
+            <summary>
+            The item was warned for a policy violation and is taken down unless it is fixed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.TakenDown">
+            <summary>
+            The item was taken down for a policy violation.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.Rating">
+            <summary>
+            Average rating shown on the store page (1 to 5); null without ratings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.RatingCount">
+            <summary>
+            Number of ratings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.WeeklyUsers">
+            <summary>
+            Seven day active users on the last day the store reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.StatusHistory">
+            <summary>
+            Every state change of the two revisions, oldest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.SyncError">
+            <summary>
+            Why the last sync could not read the item; null after a successful one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.IsPending">
+            <summary>
+            Whether a submission waits for review or an upload is processed: the schedule reads such items every 15 minutes.
+            Stored so the schedule can filter on it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Chrome.ChromeItem.StoreApp">
+            <summary>
+            The store record.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Content.ChangePlan">
             <summary>
             A change plan: every write to a store goes through one (docs/urun-plani.md 2.2). It is made from the store's current
@@ -2829,6 +2956,36 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPullRequestClosed">
             <summary>A winget pull request was closed without a merge.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeItemAdded">
+            <summary>A Chrome Web Store item was added by its extension id.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromePackageUploaded">
+            <summary>An extension package was uploaded to a Chrome Web Store item.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeSubmitted">
+            <summary>A Chrome Web Store item was submitted for review (or published at once when review was skipped).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeReviewStateChanged">
+            <summary>The submitted revision of a Chrome Web Store item changed state (pending review, staged, cancelled).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromePublished">
+            <summary>A new revision of a Chrome Web Store item was published.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeRejected">
+            <summary>A Chrome Web Store submission was rejected.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeDeployPercentageChanged">
+            <summary>The deploy percentage of a published Chrome Web Store revision was raised.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeSubmissionCancelled">
+            <summary>The pending submission of a Chrome Web Store item was cancelled.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromeRolledBack">
+            <summary>A Chrome Web Store item was rolled back to an earlier package.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ChromePolicyFlagChanged">
+            <summary>A Chrome Web Store item was warned or taken down for a policy violation, or the flag was cleared.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.FirefoxAddonAdded">
             <summary>A Firefox add-on was added to storeasy (from the owner's add-ons or by its id).</summary>
         </member>
@@ -3157,6 +3314,12 @@
             A winget manifest pull request (new version or locale texts); applying it opens the pull request.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.ChromeChange">
+            <summary>
+            A Chrome Web Store change (upload a package and submit it, raise the deploy percentage, cancel a submission, roll
+            back); what it writes is in the plan's Chrome change.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.ChangePlanKind.FirefoxChange">
             <summary>
             A Firefox Add-ons change (listing texts and links, categories, previews, icon, a new version upload with its release
@@ -3237,6 +3400,111 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.ChecklistItemStatus.Done">
             <summary>Done.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChromeChangeKind">
+            <summary>
+            What a Chrome Web Store change plan writes. Every write of the Chrome Web Store API v2 storeasy uses is one kind; the
+            store listing (texts and images), the visibility and the privacy practices have no API and are assisted steps.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeChangeKind.Publish">
+            <summary>
+            Upload a new package (optional: the package already uploaded is submitted otherwise) and submit the item: for review,
+            staged for a later publish, or at once when the store lets the item skip review. An initial deploy percentage may be
+            given.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeChangeKind.DeployPercentage">
+            <summary>
+            Raise the deploy percentage of the published revision (no review; items with more than 10,000 weekly users).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeChangeKind.CancelSubmission">
+            <summary>
+            Cancel the pending submission.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeChangeKind.Rollback">
+            <summary>
+            Publish an earlier package again under a new version number, to every user.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeChangeKind.PublishStaged">
+            <summary>
+            Publish a staged revision (<c>STAGED</c>) now.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChromeItemState">
+            <summary>
+            State of a Chrome Web Store item revision, as the Chrome Web Store API v2 reports it (<c>ItemRevisionStatus.state</c>).
+            Values are explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.None">
+            <summary>
+            No revision, or a state the API did not name (<c>ITEM_STATE_UNSPECIFIED</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.PendingReview">
+            <summary>
+            Submitted and waiting for review (<c>PENDING_REVIEW</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.Staged">
+            <summary>
+            Approved and staged: it is published by a later publish call (<c>STAGED</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.Published">
+            <summary>
+            Published to everyone the item's visibility allows (<c>PUBLISHED</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.PublishedToTesters">
+            <summary>
+            Published to the trusted testers only (<c>PUBLISHED_TO_TESTERS</c>); the visibility is set in the developer dashboard.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.Rejected">
+            <summary>
+            Rejected by the review (<c>REJECTED</c>); the reason is in the developer dashboard.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeItemState.Cancelled">
+            <summary>
+            The submission was cancelled (<c>CANCELLED</c>).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ChromeUploadState">
+            <summary>
+            State of a package upload to a Chrome Web Store item (<c>uploadState</c>, <c>lastAsyncUploadState</c>). Values are
+            explicit and never reused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeUploadState.None">
+            <summary>
+            No upload in the last 24 hours, or a state the API did not name.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeUploadState.Succeeded">
+            <summary>
+            The package was accepted.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeUploadState.InProgress">
+            <summary>
+            The store is still processing the package; the status is read again.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeUploadState.Failed">
+            <summary>
+            The store refused the package.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChromeUploadState.Missing">
+            <summary>
+            The store has no such upload.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ComplianceStatus">
             <summary>
@@ -4656,6 +4924,11 @@
             Android package.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.PackageKind.ExtensionZip">
+            <summary>
+            Browser extension ZIP (manifest.json at the root).
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.PackageKind.Xpi">
             <summary>
             Firefox extension package (.xpi: a ZIP with manifest.json at its root).
@@ -5194,7 +5467,11 @@
             records, asks Claude with the organization's key and saves the report; nothing is written to a store.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent" -->
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ProcessWebhookEvent">
+            <summary>
+            Processes one inbound webhook event (App Store version state change: state, rejection case, notifications).
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.RegisterWebhooks">
             <summary>
             Registers, updates or removes the App Store Connect webhooks of an inbound endpoint.
@@ -5249,6 +5526,12 @@
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync">
             <summary>
             Reads the winget packages of a connection from winget-pkgs and the review state of their pull requests.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.ChromeSync">
+            <summary>
+            Reads the Chrome Web Store items of a connection (status of the published and the submitted revision, deploy
+            percentage, upload state, policy flags, rating summary, weekly users); state changes are audited and notified.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.FirefoxSync">
@@ -5359,6 +5642,12 @@
             <summary>
             Windows Package Manager community repository (<c>microsoft/winget-pkgs</c> on GitHub). Manifests go in as pull
             requests from the owner's fork, opened with the owner's GitHub token; a merged pull request is a published version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Chrome">
+            <summary>
+            Chrome Web Store (browser extensions), through the Chrome Web Store API v2 with a Google service account or an
+            OAuth client and refresh token, and the publisher id. Items are added by their extension id.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreKind.Firefox">
@@ -8412,6 +8701,31 @@
             Assets in order.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.ChromeStateChange">
+            <summary>
+            One state a Chrome Web Store revision was seen in, with the first time storeasy saw it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ChromeStateChange.Revision">
+            <summary>
+            <c>published</c> or <c>submitted</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ChromeStateChange.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ChromeStateChange.Version">
+            <summary>
+            Package version of the revision, when known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ChromeStateChange.Date">
+            <summary>
+            UTC instant storeasy first saw the state.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.ConnectionFingerprint">
             <summary>
             Non secret identifiers of a store connection, shown in place of the secret.
@@ -8471,6 +8785,11 @@
         <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.TokenKind">
             <summary>
             Kind of token, told from its prefix (<c>classic</c>, <c>fine-grained</c>, <c>app</c>), never the token itself.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.PublisherId">
+            <summary>
+            Publisher id of a channel that addresses its items under a publisher (Chrome Web Store).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.ExternalWebhookRegistration">
@@ -12323,6 +12642,11 @@
             Catalog key of winget.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Chrome">
+            <summary>
+            Catalog key of the Chrome Web Store.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Rules.RuleStores.Firefox">
             <summary>
             Catalog key of Firefox Add-ons.
@@ -12962,6 +13286,11 @@
         </member>
         <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.Winget">
             <summary>winget logo (winget connections only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.ChromeWebStore">
+            <summary>
+            Chrome Web Store.
+            </summary>
         </member>
         <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.FirefoxAddons">
             <summary>

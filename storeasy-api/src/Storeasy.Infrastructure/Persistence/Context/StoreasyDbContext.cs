@@ -20,6 +20,7 @@ using Storeasy.Domain.Rules;
 using Storeasy.Domain.TestFlight;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Tokens;
+using Storeasy.Domain.Chrome;
 using Storeasy.Domain.Firefox;
 using Storeasy.Domain.Winget;
 
@@ -97,6 +98,7 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<MsInstallerPackage> MsInstallerPackages { get; set; }
     public DbSet<WingetPackage> WingetPackages { get; set; }
     public DbSet<WingetPullRequest> WingetPullRequests { get; set; }
+    public DbSet<ChromeItem> ChromeItems { get; set; }
     public DbSet<FirefoxAddon> FirefoxAddons { get; set; }
     public DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; }
     public DbSet<CiToken> CiTokens { get; set; }

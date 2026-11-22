@@ -92,7 +92,12 @@ export function platformLabel(platform: ArtifactPlatform, t: IntakeDictionary): 
         : t.platform.windows
 }
 
-export const PLATFORMS: ArtifactPlatform[] = [ArtifactPlatform.Ios, ArtifactPlatform.Android, ArtifactPlatform.Windows]
+export const PLATFORMS: ArtifactPlatform[] = [
+  ArtifactPlatform.Ios,
+  ArtifactPlatform.Android,
+  ArtifactPlatform.Windows,
+  ArtifactPlatform.Extension,
+]
 
 /** IntakeRules.StoreOf: a Firefox extension (.xpi) goes to Firefox Add-ons, every other file to its platform's store. */
 export function storeOf(platform: ArtifactPlatform, fileName?: string | null): StoreKind {
@@ -103,7 +108,9 @@ export function storeOf(platform: ArtifactPlatform, fileName?: string | null): S
     ? StoreKind.Apple
     : platform === ArtifactPlatform.Android
       ? StoreKind.Google
-      : StoreKind.Microsoft
+      : platform === ArtifactPlatform.Extension
+        ? StoreKind.Chrome
+        : StoreKind.Microsoft
 }
 
 /** The target kind a platform's rule uses. */
@@ -112,7 +119,9 @@ export function targetOf(platform: ArtifactPlatform): DeliveryTarget {
     ? DeliveryTarget.TestFlightGroup
     : platform === ArtifactPlatform.Android
       ? DeliveryTarget.PlayTrack
-      : DeliveryTarget.MsFlight
+      : platform === ArtifactPlatform.Extension
+        ? DeliveryTarget.None
+        : DeliveryTarget.MsFlight
 }
 
 /** "iOS → TestFlight Kuzey içi", "Android → internal". */

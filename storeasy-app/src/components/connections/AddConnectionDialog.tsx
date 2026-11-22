@@ -21,6 +21,9 @@ import { defaultExpiry, expiryInstant, msSecret, type MsCredentialFields } from 
 import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { EMPTY_WINGET_CREDENTIALS, wingetSecret, type WingetCredentialFields } from '@/features/winget/rules'
+import { ChromeCredentialForm, chromeFieldErrors } from '@/features/chrome/connections'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
+import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
 import { FirefoxCredentialForm, firefoxFieldErrors } from '@/features/firefox/connections'
 import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 import { EMPTY_FIREFOX_CREDENTIALS, firefoxSecret, type FirefoxCredentialFields } from '@/features/firefox/rules'
@@ -97,6 +100,8 @@ export function AddConnectionDialog({
   const [winget, setWinget] = useState<WingetCredentialFields>(EMPTY_WINGET_CREDENTIALS)
   // A GitHub token may have no expiry; the owner gives it when it has one.
   const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
+  const [chrome, setChrome] = useState<ChromeCredentialFields>(EMPTY_CHROME_CREDENTIALS)
+  const tc = useChrome()
   const [firefox, setFirefox] = useState<FirefoxCredentialFields>(EMPTY_FIREFOX_CREDENTIALS)
   // Only a rejected file's message is kept here; field errors are computed from the values once the form was submitted,
   // so they clear as soon as a value becomes valid.
@@ -117,6 +122,7 @@ export function AddConnectionDialog({
     setExpiry(defaultExpiry())
     setWinget(EMPTY_WINGET_CREDENTIALS)
     setWingetExpiry(null)
+    setChrome(EMPTY_CHROME_CREDENTIALS)
     setFirefox(EMPTY_FIREFOX_CREDENTIALS)
     setErrors({})
     setSubmitted(false)
@@ -141,6 +147,8 @@ export function AddConnectionDialog({
             ? msSecret(ms)
             : isWinget
               ? wingetSecret(winget)
+              : store === StoreKind.Chrome
+                ? chromeSecret(chrome)
               : store === StoreKind.Firefox
                 ? firefoxSecret(firefox)
                 : key.text.trim()
@@ -178,6 +186,7 @@ export function AddConnectionDialog({
       setKey(EMPTY_KEY)
       setMs((current) => ({ ...current, clientSecret: '' }))
       setWinget((current) => ({ ...current, token: '' }))
+      setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
       setFirefox((current) => ({ ...current, secret: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
@@ -210,6 +219,8 @@ export function AddConnectionDialog({
       Object.assign(next, msFieldErrors(ms, expiry, tm))
     } else if (store === StoreKind.Winget) {
       Object.assign(next, wingetFieldErrors(winget, wingetExpiry, tw))
+    } else if (store === StoreKind.Chrome) {
+      Object.assign(next, chromeFieldErrors(chrome, tc))
     } else if (store === StoreKind.Firefox) {
       Object.assign(next, firefoxFieldErrors(firefox, tf))
     } else {
@@ -329,6 +340,14 @@ export function AddConnectionDialog({
             onSelect={() => pickStore(StoreKind.Winget)}
           />
           <StoreCard
+            store={StoreKind.Chrome}
+            title={t.connections.stores.chrome.title}
+            body={t.connections.stores.chrome.body}
+            time={t.connections.stores.chrome.time}
+            selected={store === StoreKind.Chrome}
+            onSelect={() => pickStore(StoreKind.Chrome)}
+          />
+          <StoreCard
             store={StoreKind.Firefox}
             title={t.connections.stores.firefox.title}
             body={t.connections.stores.firefox.body}
@@ -365,6 +384,8 @@ export function AddConnectionDialog({
             </>
           ) : store === StoreKind.Winget ? (
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
+          ) : store === StoreKind.Chrome ? (
+            <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
           ) : store === StoreKind.Firefox ? (
             <FirefoxCredentialForm fields={firefox} onChange={setFirefox} errors={shown} />
           ) : (

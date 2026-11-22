@@ -21,17 +21,20 @@ namespace Storeasy.Infrastructure.StoreMetrics;
 /// <param name="gateway"></param>
 /// <param name="writer"></param>
 /// <param name="timeProvider"></param>
+/// <param name="channels">Channels that read their own metrics (<see cref="IStoreChannelMetrics"/>), for stores without a built in reader.</param>
 public sealed class SyncStoreMetricsJobHandler(StoreMetricFeeds feeds,
                                                IStoreasyRepositoryBase<StoreConnection> connectionRepository,
                                                IStoreMetricsGateway gateway,
                                                StoreMetricWriter writer,
-                                               TimeProvider timeProvider) : IStoreJobHandler
+                                               TimeProvider timeProvider,
+                                               IEnumerable<IStoreChannelMetrics> channels = null) : IStoreJobHandler
 {
     private readonly StoreMetricFeeds _feeds = feeds;
     private readonly IStoreasyRepositoryBase<StoreConnection> _connectionRepository = connectionRepository;
     private readonly IStoreMetricsGateway _gateway = gateway;
     private readonly StoreMetricWriter _writer = writer;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IReadOnlyList<IStoreChannelMetrics> _channels = [.. channels ?? []];
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.SyncStoreMetrics;
@@ -171,7 +174,17 @@ public sealed class SyncStoreMetricsJobHandler(StoreMetricFeeds feeds,
                 return batch;
             }
             default:
-                throw new StoreJobException($"{record.Store} has no metrics.", transient: false);
+            {
+                var channel = _channels.LastOrDefault(c => c.Store == record.Store) ?? throw new StoreJobException($"{record.Store} has no metrics.", transient: false);
+                var to = today.AddDays(-1);
+                var from = feed.LatestDataDate?.AddDays(-StoreMetricRules.RefreshDays) ?? today.AddDays(-channel.BackfillDays);
+                var step = await context.BeginStepAsync($"metrics.{record.Store.ToString().ToLowerInvariant()}.read", StepDirection.Outbound, record.ExternalId, cancellationToken: cancellationToken);
+                var batch = await channel.ReadMetricsAsync(secretJson, record.ExternalId, from > to ? to : from, to, cancellationToken);
+
+                await context.EndStepAsync(step, StoreJobStepStatus.Succeeded, $"{batch.Rows.Count} rows.", cancellationToken);
+
+                return batch;
+            }
         }
     }
 }

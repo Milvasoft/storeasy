@@ -94,6 +94,10 @@ using Storeasy.Application.Features.MsStore.GetMsInstallerPackageList;
 using Storeasy.Application.Features.MsStore.GetMsProductDetail;
 using Storeasy.Application.Features.MsStore.GetMsSubmissionList;
 using Storeasy.Application.Features.MsStore.SaveMsFlightGroup;
+using Storeasy.Application.Features.Chrome.AddChromeItem;
+using Storeasy.Application.Features.Chrome.GetChromeItem;
+using Storeasy.Application.Features.Chrome.PlanChromeChange;
+using Storeasy.Application.Features.Chrome.SyncChrome;
 using Storeasy.Application.Features.Firefox.AddFirefoxAddon;
 using Storeasy.Application.Features.Firefox.GetFirefoxAddon;
 using Storeasy.Application.Features.Firefox.PlanFirefoxChange;
@@ -375,6 +379,11 @@ public static class McpToolCatalog
         Read<GetWingetPullRequestListQuery>("winget_pull_requests", "Lists the pull requests of a winget package with their review state (validating, validation failed, needs author feedback, validation completed, approved, published, closed), labels, check runs and bot comments."),
         Write<SyncWingetCommand>("winget_sync", "Queues a sync of one winget package: versions, manifests and the review state of its pull requests."),
 
+        // Chrome Web Store (Chrome Web Store API v2)
+        Write<AddChromeItemCommand>("chrome_item_add", "Adds a Chrome Web Store item by its extension id (32 letters a to p) to a new or an existing app (appId) and queues its sync; the API cannot list a publisher's items or create one."),
+        Read<GetChromeItemQuery>("chrome_item_get", "Reads a Chrome Web Store item as the last sync saw it: published and submitted revision (state, version, deploy percentage), last upload, policy flags (warned, taken down), rating, weekly users, state history, and the extension ZIP packages intake received for the app with their manifest checks."),
+        Plan<PlanChromeChangeCommand>("chrome_change_plan", "Plans a Chrome Web Store write: kind Publish uploads an intake package (sessionId) and submits the item (staged, deployPercentage, skipReview), PublishStaged publishes an approved staged revision, DeployPercentage raises the published revision's rollout (items over 10,000 weekly users), CancelSubmission cancels the pending one, Rollback republishes an earlier package (targetVersion, newVersion, reason). The live status is read and the manifest checks (Manifest V3, version higher than published) run first. The store listing, visibility and privacy practices have no API: they are assisted steps."),
+        Write<SyncChromeCommand>("chrome_sync", "Queues a sync of one Chrome Web Store item: status, rating summary and weekly users."),
         // Firefox Add-ons (addons.mozilla.org API v5)
         Write<AddFirefoxAddonCommand>("firefox_addon_add", "Adds one Firefox add-on by its AMO id, guid or slug to a new or an existing app (appId) and queues its sync; apps_sync adds every add-on of the account on its own."),
         Read<GetFirefoxAddonQuery>("firefox_addon_get", "Reads a Firefox add-on: status (approved, awaiting review, disabled), listed and unlisted versions with their review status, rating, daily users, weekly downloads, state history, a live read of the listing per locale, categories, previews and icon, and the .xpi packages intake received for the app with their manifest checks."),

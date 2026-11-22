@@ -1,5 +1,6 @@
 # Store rules catalog
 
+Store rules for App Store Connect, Google Play, Microsoft Store, winget and the Chrome Web Store, kept as data rather than code.
 Store rules for App Store Connect, Google Play, Microsoft Store, winget and Firefox Add-ons, kept as data rather than code.
 The storeasy API loads the catalog, the readiness check and the per-app compliance timeline evaluate it,
 and the rule watcher proposes changes to it. See `docs/urun-plani.md` section 12 and
@@ -14,6 +15,7 @@ rules/
   google.json                  Google Play rules
   microsoft.json               Microsoft Store rules
   winget.json                  winget (microsoft/winget-pkgs) rules
+  chrome.json                  Chrome Web Store rules
   firefox.json                 Firefox Add-ons (addons.mozilla.org) rules
   schema/catalog.schema.json   JSON Schema (draft 2020-12) for the manifest and the store files
   validate.mjs                 validator, no dependencies

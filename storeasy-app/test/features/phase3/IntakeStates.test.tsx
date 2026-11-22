@@ -253,7 +253,7 @@ describe('intake states', () => {
   it('names every status, source, platform and provider', () => {
     expect(new Set(SESSION_STATUSES.map((status) => statusView(status, intakeTr).label)).size).toBe(SESSION_STATUSES.length)
     expect(new Set(SOURCES.map((source) => sourceLabel(source, intakeTr))).size).toBe(SOURCES.length)
-    expect(PLATFORMS.map((platform) => platformLabel(platform, intakeTr))).toEqual(['iOS', 'Android', 'Windows'])
+    expect(PLATFORMS.map((platform) => platformLabel(platform, intakeTr))).toEqual(['iOS', 'Android', 'Windows', 'Tarayıcı uzantısı'])
     expect(
       [OidcProvider.GitHub, OidcProvider.AzureDevOps, OidcProvider.GitLab].map((provider) => providerLabel(provider, intakeTr)),
     ).toEqual(['GitHub', 'Azure DevOps', 'GitLab'])

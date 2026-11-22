@@ -5008,11 +5008,245 @@ Maximum file size:
   <data name="CredentialExpiry.Required" xml:space="preserve">
     <value>Required</value>
   </data>
+  <data name="ChromeSecretInvalid" xml:space="preserve">
+    <value>The Chrome Web Store connection needs the publisher id and either a service account JSON key or an OAuth client id, client secret and refresh token.</value>
+  </data>
+  <data name="ChromePublisherIdInvalid" xml:space="preserve">
+    <value>The publisher id is not valid: copy it from Account in the Chrome Web Store developer dashboard.</value>
+  </data>
+  <data name="ChromeServiceAccountInvalid" xml:space="preserve">
+    <value>The service account key is not a valid Google service account JSON key.</value>
+  </data>
+  <data name="ChromeOAuthInvalid" xml:space="preserve">
+    <value>The OAuth client needs a client id, a client secret and a refresh token.</value>
+  </data>
+  <data name="ChromeItemIdInvalid" xml:space="preserve">
+    <value>An extension id has 32 letters from a to p.</value>
+  </data>
+  <data name="ChromeManifestNested" xml:space="preserve">
+    <value>manifest.json is in the folder {0}/: zip the contents of the folder, not the folder.</value>
+  </data>
+  <data name="ChromeManifestVersion" xml:space="preserve">
+    <value>manifest_version is {0}; the Chrome Web Store accepts Manifest V3 packages only.</value>
+  </data>
+  <data name="ChromeNameMissing" xml:space="preserve">
+    <value>manifest.json has no name.</value>
+  </data>
+  <data name="ChromeTextTooLong" xml:space="preserve">
+    <value>{0} has {1} characters; the store allows {2}.</value>
+  </data>
+  <data name="ChromeDefaultLocaleMissing" xml:space="preserve">
+    <value>The name or description is a __MSG_ placeholder but default_locale is missing.</value>
+  </data>
+  <data name="ChromeVersionInvalid" xml:space="preserve">
+    <value>version "{0}" is not one to four dot separated numbers from 0 to 65535.</value>
+  </data>
+  <data name="ChromeVersionNotHigher" xml:space="preserve">
+    <value>version {0} must be higher than {1} ({2}).</value>
+  </data>
+  <data name="ChromeBackgroundPage" xml:space="preserve">
+    <value>background.scripts or background.page is a Manifest V2 background page; Chrome runs a service_worker in Manifest V3.</value>
+  </data>
+  <data name="ChromeIcon128Missing" xml:space="preserve">
+    <value>icons has no 128 pixel icon; the store needs one in the package.</value>
+  </data>
+  <data name="ChromeUpdateUrl" xml:space="preserve">
+    <value>update_url points to {0}; items in the Chrome Web Store are updated by the store.</value>
+  </data>
+  <data name="ChromeBroadHostAccess" xml:space="preserve">
+    <value>Broad host access ({0}) needs a justification and may make the review longer.</value>
+  </data>
+  <data name="ChromeTakenDown" xml:space="preserve">
+    <value>The item is taken down for a policy violation; the store may refuse the submission until it is resolved in the developer dashboard.</value>
+  </data>
+  <data name="ChromeSubmissionPending" xml:space="preserve">
+    <value>Version {0} is in review; cancel that submission before submitting again.</value>
+  </data>
+  <data name="ChromePackageNotExtension" xml:space="preserve">
+    <value>Session {0} is not a browser extension package of this app.</value>
+  </data>
+  <data name="ChromePackageUnavailable" xml:space="preserve">
+    <value>The package of session {0} is no longer stored; upload it again.</value>
+  </data>
+  <data name="ChromeDraftSubmitted" xml:space="preserve">
+    <value>No package is given: the package uploaded last (in the developer dashboard or by intake) is submitted.</value>
+  </data>
+  <data name="ChromePercentageInvalid" xml:space="preserve">
+    <value>The deploy percentage {0} is not between 1 and 100.</value>
+  </data>
+  <data name="ChromePercentageUsers" xml:space="preserve">
+    <value>Partial rollout is available to items with more than 10,000 weekly users ({0} now); the store may refuse it.</value>
+  </data>
+  <data name="ChromePercentageNotHigher" xml:space="preserve">
+    <value>The deploy percentage can only go up: it is {0}% now.</value>
+  </data>
+  <data name="ChromeSkipReviewHint" xml:space="preserve">
+    <value>The store skips the review only for items that qualify; otherwise it refuses the publish call and nothing is submitted.</value>
+  </data>
+  <data name="ChromeNotStaged" xml:space="preserve">
+    <value>No approved revision is staged.</value>
+  </data>
+  <data name="ChromeNotPublished" xml:space="preserve">
+    <value>The item has no published revision.</value>
+  </data>
+  <data name="ChromeNothingToCancel" xml:space="preserve">
+    <value>No submission waits for review or publishing.</value>
+  </data>
+  <data name="ChromeRollbackReason" xml:space="preserve">
+    <value>A rollback needs a reason; the store keeps it.</value>
+  </data>
+  <data name="ChromeNoChanges" xml:space="preserve">
+    <value>The plan changes nothing.</value>
+  </data>
+  <data name="Notification.ChromeState" xml:space="preserve">
+    <value>{0} {1} (Chrome Web Store): {2} -&gt; {3}.</value>
+  </data>
+  <data name="Readiness.ChromeItem" xml:space="preserve">
+    <value>Chrome Web Store item</value>
+  </data>
+  <data name="Readiness.ChromeNotSynced" xml:space="preserve">
+    <value>The item was not read yet: sync it.</value>
+  </data>
+  <data name="Readiness.ChromePackage" xml:space="preserve">
+    <value>Extension package</value>
+  </data>
+  <data name="Readiness.ChromeNoPackage" xml:space="preserve">
+    <value>No extension package newer than {0} was received; upload the ZIP (intake) before submitting.</value>
+  </data>
+  <data name="Readiness.ChromePackageReady" xml:space="preserve">
+    <value>{0} is ready to submit.</value>
+  </data>
+  <data name="Readiness.ChromeSubmission" xml:space="preserve">
+    <value>Submission</value>
+  </data>
+  <data name="Readiness.ChromeInReview" xml:space="preserve">
+    <value>Version {0} is in review.</value>
+  </data>
+  <data name="Readiness.ChromeRejected" xml:space="preserve">
+    <value>Version {0} was rejected; the reason is in the developer dashboard.</value>
+  </data>
+  <data name="Readiness.ChromeStaged" xml:space="preserve">
+    <value>Version {0} is approved and staged: publish it when you are ready.</value>
+  </data>
+  <data name="Readiness.ChromePolicy" xml:space="preserve">
+    <value>Policy standing</value>
+  </data>
+  <data name="Readiness.ChromeWarned" xml:space="preserve">
+    <value>The item was warned for a policy violation: fix it in the developer dashboard before it is taken down.</value>
+  </data>
+  <data name="Readiness.ChromeTakenDown" xml:space="preserve">
+    <value>The item was taken down for a policy violation.</value>
+  </data>
+  <data name="StoreKind.Chrome" xml:space="preserve">
+    <value>Chrome Web Store</value>
+  </data>
   <data name="StoreKind.Firefox" xml:space="preserve">
     <value>Firefox Add-ons</value>
   </data>
   <data name="ArtifactPlatform.Extension" xml:space="preserve">
     <value>Browser extension</value>
+  </data>
+  <data name="PackageKind.ExtensionZip" xml:space="preserve">
+    <value>Extension ZIP</value>
+  </data>
+  <data name="ChromeItemState" xml:space="preserve">
+    <value>Chrome item state</value>
+  </data>
+  <data name="ChromeItemState.None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ChromeItemState.PendingReview" xml:space="preserve">
+    <value>Pending review</value>
+  </data>
+  <data name="ChromeItemState.Staged" xml:space="preserve">
+    <value>Staged</value>
+  </data>
+  <data name="ChromeItemState.Published" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="ChromeItemState.PublishedToTesters" xml:space="preserve">
+    <value>Published to testers</value>
+  </data>
+  <data name="ChromeItemState.Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="ChromeItemState.Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="ChromeUploadState" xml:space="preserve">
+    <value>Chrome upload state</value>
+  </data>
+  <data name="ChromeUploadState.None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ChromeUploadState.Succeeded" xml:space="preserve">
+    <value>Succeeded</value>
+  </data>
+  <data name="ChromeUploadState.InProgress" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="ChromeUploadState.Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="ChromeUploadState.Missing" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="ChromeChangeKind" xml:space="preserve">
+    <value>Chrome change</value>
+  </data>
+  <data name="ChromeChangeKind.Publish" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="ChromeChangeKind.DeployPercentage" xml:space="preserve">
+    <value>Deploy percentage</value>
+  </data>
+  <data name="ChromeChangeKind.CancelSubmission" xml:space="preserve">
+    <value>Cancel submission</value>
+  </data>
+  <data name="ChromeChangeKind.Rollback" xml:space="preserve">
+    <value>Roll back</value>
+  </data>
+  <data name="ChromeChangeKind.PublishStaged" xml:space="preserve">
+    <value>Publish staged</value>
+  </data>
+  <data name="AuditAction.ChromeItemAdded" xml:space="preserve">
+    <value>Chrome item added</value>
+  </data>
+  <data name="AuditAction.ChromePackageUploaded" xml:space="preserve">
+    <value>Chrome package uploaded</value>
+  </data>
+  <data name="AuditAction.ChromeSubmitted" xml:space="preserve">
+    <value>Chrome item submitted</value>
+  </data>
+  <data name="AuditAction.ChromeReviewStateChanged" xml:space="preserve">
+    <value>Chrome review state changed</value>
+  </data>
+  <data name="AuditAction.ChromePublished" xml:space="preserve">
+    <value>Chrome item published</value>
+  </data>
+  <data name="AuditAction.ChromeRejected" xml:space="preserve">
+    <value>Chrome submission rejected</value>
+  </data>
+  <data name="AuditAction.ChromeDeployPercentageChanged" xml:space="preserve">
+    <value>Chrome deploy percentage raised</value>
+  </data>
+  <data name="AuditAction.ChromeSubmissionCancelled" xml:space="preserve">
+    <value>Chrome submission cancelled</value>
+  </data>
+  <data name="AuditAction.ChromeRolledBack" xml:space="preserve">
+    <value>Chrome item rolled back</value>
+  </data>
+  <data name="AuditAction.ChromePolicyFlagChanged" xml:space="preserve">
+    <value>Chrome policy flag changed</value>
+  </data>
+  <data name="StoreJobKind.ChromeSync" xml:space="preserve">
+    <value>Chrome Web Store sync</value>
+  </data>
+  <data name="ChangePlanKind.ChromeChange" xml:space="preserve">
+    <value>Chrome Web Store change</value>
+  </data>
+  <data name="Global.ChromeItem" xml:space="preserve">
+    <value>Chrome Web Store item</value>
   </data>
   <data name="PackageKind.Xpi" xml:space="preserve">
     <value>XPI</value>

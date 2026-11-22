@@ -46,6 +46,7 @@ namespace Storeasy.Infrastructure.Intake;
 /// <param name="auditTrail"></param>
 /// <param name="activityPublisher"></param>
 /// <param name="timeProvider"></param>
+/// <param name="channels">Channels after the first three stores that take intake packages (<see cref="IArtifactChannel"/>).</param>
 public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSession> sessionRepository,
                                               IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                               IStoreasyRepositoryBase<Build> buildRepository,
@@ -64,7 +65,8 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
                                               IRulesCatalog rulesCatalog,
                                               IAuditTrail auditTrail,
                                               IActivityPublisher activityPublisher,
-                                              TimeProvider timeProvider) : IStoreJobHandler
+                                              TimeProvider timeProvider,
+                                              IEnumerable<IArtifactChannel> channels = null) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<ArtifactSession> _sessionRepository = sessionRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
@@ -85,6 +87,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
     private readonly IAuditTrail _auditTrail = auditTrail;
     private readonly IActivityPublisher _activityPublisher = activityPublisher;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IReadOnlyList<IArtifactChannel> _channels = [.. channels ?? []];
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.ProcessArtifact;
@@ -264,7 +267,21 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
             return;
         }
 
-        if (store == StoreKind.Microsoft)
+        if (_channels.LastOrDefault(c => c.Store == store) is { } channel)
+        {
+            var (matches, reason) = channel.Match(package, new StoreAppRecord(record.ExternalId, record.BundleId, null));
+
+            if (matches == false)
+            {
+                End(step, ArtifactStepStatus.Failed, reason);
+                await RejectAsync(session, reason, cancellationToken);
+                return;
+            }
+
+            if (matches == null)
+                summary = $"{summary}; {reason}";
+        }
+        else if (store == StoreKind.Microsoft)
         {
             // The record keeps the package family name (MsSync); the Store id is never a package identity. A record that was
             // never synced has nothing to compare with: the package is accepted with a warning on the step instead of a
@@ -436,7 +453,10 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
 
         var connection = await context.OpenConnectionAsync(record.StoreConnectionId.Value, cancellationToken) ?? throw new StoreJobException("The store connection was removed.", transient: false);
 
-        var result = store switch
+        var artifactChannel = _channels.LastOrDefault(c => c.Store == store);
+        var result = artifactChannel != null
+            ? await artifactChannel.DeliverAsync(new ArtifactDeliveryRequest(session.OrganizationId, session.Id, record.Id, record.ExternalId, connection.SecretJson, session.ObjectKey, session.Size, session.Package, session.StoreUploadId), context, cancellationToken)
+            : store switch
         {
             StoreKind.Google => await DeliverToPlayAsync(session, record, connection, context, cancellationToken),
             StoreKind.Microsoft => await DeliverToFlightAsync(session, record, connection, context, cancellationToken),
@@ -445,6 +465,13 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
 
         if (result == null)
         {
+            // A channel that uploaded but waits for the store's processing reads the status on the retry instead of uploading again.
+            if (artifactChannel != null)
+            {
+                session.StoreUploadId ??= "uploaded";
+                session.StatusDescription = "Waiting for the store to process the upload";
+            }
+
             await SaveAsync(session, cancellationToken);
             throw new StoreJobException(session.StatusDescription, transient: true);
         }

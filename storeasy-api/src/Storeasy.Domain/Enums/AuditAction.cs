@@ -102,6 +102,7 @@ public enum AuditAction : short
     /// <summary>A store record was split off into its own storeasy app.</summary>
     [Description("Store record unlinked")]
     StoreAppUnlinked = 42,
+
     /// <summary>A storeasy app's catalog profile (device families, regions, features) changed.</summary>
     [Description("App profile updated")]
     AppProfileUpdated = 43,
@@ -325,6 +326,7 @@ public enum AuditAction : short
     /// <summary>Build submitted to beta app review.</summary>
     [Description("Submitted for beta review")]
     BetaReviewSubmitted = 443,
+
     /// <summary>A Microsoft Store change was queued (listings, images, packages, pricing, flights, add-ons, rollout).</summary>
     [Description("Microsoft Store change queued")]
     MsChangeQueued = 150,
@@ -369,6 +371,46 @@ public enum AuditAction : short
     [Description("winget pull request closed")]
     WingetPullRequestClosed = 164,
 
+    /// <summary>A Chrome Web Store item was added by its extension id.</summary>
+    [Description("Chrome item added")]
+    ChromeItemAdded = 170,
+
+    /// <summary>An extension package was uploaded to a Chrome Web Store item.</summary>
+    [Description("Chrome package uploaded")]
+    ChromePackageUploaded = 171,
+
+    /// <summary>A Chrome Web Store item was submitted for review (or published at once when review was skipped).</summary>
+    [Description("Chrome item submitted")]
+    ChromeSubmitted = 172,
+
+    /// <summary>The submitted revision of a Chrome Web Store item changed state (pending review, staged, cancelled).</summary>
+    [Description("Chrome review state changed")]
+    ChromeReviewStateChanged = 173,
+
+    /// <summary>A new revision of a Chrome Web Store item was published.</summary>
+    [Description("Chrome item published")]
+    ChromePublished = 174,
+
+    /// <summary>A Chrome Web Store submission was rejected.</summary>
+    [Description("Chrome submission rejected")]
+    ChromeRejected = 175,
+
+    /// <summary>The deploy percentage of a published Chrome Web Store revision was raised.</summary>
+    [Description("Chrome deploy percentage raised")]
+    ChromeDeployPercentageChanged = 176,
+
+    /// <summary>The pending submission of a Chrome Web Store item was cancelled.</summary>
+    [Description("Chrome submission cancelled")]
+    ChromeSubmissionCancelled = 177,
+
+    /// <summary>A Chrome Web Store item was rolled back to an earlier package.</summary>
+    [Description("Chrome item rolled back")]
+    ChromeRolledBack = 178,
+
+    /// <summary>A Chrome Web Store item was warned or taken down for a policy violation, or the flag was cleared.</summary>
+    [Description("Chrome policy flag changed")]
+    ChromePolicyFlagChanged = 179,
+
     /// <summary>A Firefox add-on was added to storeasy (from the owner's add-ons or by its id).</summary>
     [Description("Firefox add-on added")]
     FirefoxAddonAdded = 180,
@@ -408,6 +450,7 @@ public enum AuditAction : short
     /// <summary>The release notes of a Firefox version were changed.</summary>
     [Description("Firefox release notes updated")]
     FirefoxReleaseNotesUpdated = 189,
+
     /// <summary>A personal access token was created.</summary>
     [Description("Token created")]
     TokenCreated = 300,

@@ -8,6 +8,7 @@ namespace Storeasy.Application.Features.Firefox.GetFirefoxAddon;
 /// </summary>
 public sealed class GetFirefoxAddonQueryValidator : AbstractValidator<GetFirefoxAddonQuery>
 {
+    /// <summary>
     ///<inheritdoc cref="GetFirefoxAddonQueryValidator"/>
     public GetFirefoxAddonQueryValidator(IMilvaLocalizer localizer)
     {

@@ -102,6 +102,10 @@ and MCP do not care which store they talk to:
 - **winget**: the GitHub REST API with the owner's token. Manifests are read from microsoft/winget-pkgs; the approved
   write pushes a branch with generated manifests to the owner's fork and opens a pull request, whose labels and checks
   are the review state and whose merge is the publication.
+- **Chrome Web Store**: the Chrome Web Store API v2 with a token from a service account key or an OAuth refresh token.
+  Items are read with `fetchStatus`; the approved writes upload a package and `publish`, set the deploy percentage,
+  cancel a submission or roll back. Reviews and metrics plug into the shared syncs through `IStoreChannelReviews` and
+  `IStoreChannelMetrics`, extension ZIPs into artifact intake through `IArtifactChannel`.
 - **Firefox Add-ons**: the AMO API v5 with an HS256 JWT signed per request from the account's API key. The account's
   add-ons are listed; listing edits, previews and icon are direct writes, a version is an upload that AMO validates and
   then a version on the listed or unlisted channel; the file's review status is the review state. Ratings and replies
@@ -114,6 +118,7 @@ change plan extension, a readiness contributor and their own jobs, with one row 
 Work a store has no API for is an **assisted step**: a checklist, prepared answers and a hand-off prompt for a browser
 agent in the member's own session. storeasy never stores a store password.
 
+The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store, GitHub and Chrome Web Store servers;
 The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store, GitHub and AMO servers;
 real store calls are not yet exercised end to end.
 

@@ -15,8 +15,8 @@ using Storeasy.Infrastructure.Persistence.Context;
 namespace Storeasy.Api.Migrations;
 
 [DbContext(typeof(StoreasyDbContext))]
-[Migration("20261122012417_AddFirefoxChannel")]
-partial class _20261122012417_AddFirefoxChannel
+[Migration("20261122144905_AddFirefoxChannel")]
+partial class _20261122144905_AddFirefoxChannel
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -904,6 +904,101 @@ partial class _20261122012417_AddFirefoxChannel
                 b.HasIndex("OrganizationId", "Purpose");
 
                 b.ToTable("Assets");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Chrome.ChromeItem", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<bool>("IsPending")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("ItemId")
+                    .HasMaxLength(32)
+                    .HasColumnType("character varying(32)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte>("LastUploadState")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("PublishedDeployPercentage")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("PublishedState")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("PublishedVersion")
+                    .HasMaxLength(30)
+                    .HasColumnType("character varying(30)");
+
+                b.Property<double?>("Rating")
+                    .HasColumnType("double precision");
+
+                b.Property<long?>("RatingCount")
+                    .HasColumnType("bigint");
+
+                b.Property<List<ChromeStateChange>>("StatusHistory")
+                    .HasColumnType("jsonb");
+
+                b.Property<int>("StoreAppId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("SubmittedDeployPercentage")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("SubmittedState")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("SubmittedVersion")
+                    .HasMaxLength(30)
+                    .HasColumnType("character varying(30)");
+
+                b.Property<string>("SyncError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<bool>("TakenDown")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("UploadedVersion")
+                    .HasMaxLength(30)
+                    .HasColumnType("character varying(30)");
+
+                b.Property<bool>("Warned")
+                    .HasColumnType("boolean");
+
+                b.Property<long?>("WeeklyUsers")
+                    .HasColumnType("bigint");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId");
+
+                b.HasIndex("StoreAppId")
+                    .IsUnique();
+
+                b.ToTable("ChromeItems");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Content.ChangePlan", b =>
@@ -5125,6 +5220,17 @@ partial class _20261122012417_AddFirefoxChannel
                     .IsRequired();
 
                 b.Navigation("Organization");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Chrome.ChromeItem", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.StoreApp", "StoreApp")
+                    .WithMany()
+                    .HasForeignKey("StoreAppId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("StoreApp");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Content.ChangePlan", b =>

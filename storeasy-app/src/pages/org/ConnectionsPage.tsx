@@ -29,11 +29,13 @@ import {
 } from '@/features/microsoft/connections'
 import { ALL_STORES, channelOf } from '@/lib/stores/channels'
 import { useWinget } from '@/features/winget/i18n/useWinget'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
 import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 
 function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   const t = useT()
   const tw = useWinget()
+  const tc = useChrome()
   const tf = useFirefox()
   if (connection.Store === StoreKind.Microsoft) {
     return <MsFingerprint connection={connection} />
@@ -51,15 +53,24 @@ function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
             [tf.connection.keyId, fingerprint.KeyId],
             [tf.connection.account, fingerprint.AccountLogin],
           ]
-        : connection.Store === StoreKind.Apple
+      : connection.Store === StoreKind.Chrome
         ? [
-            [t.connections.keyId, fingerprint.KeyId],
-            [t.connections.issuerId, fingerprint.IssuerIdSuffix ? `…${fingerprint.IssuerIdSuffix}` : null],
+            [tc.connection.publisherId, fingerprint.PublisherId],
+            [tc.connection.auth, fingerprint.TokenKind],
+            [
+              fingerprint.ServiceAccountEmail ? t.connections.serviceAccount : tc.connection.clientId,
+              fingerprint.ServiceAccountEmail ?? (fingerprint.ClientIdSuffix ? `…${fingerprint.ClientIdSuffix}` : null),
+            ],
           ]
-        : [
-            [t.connections.serviceAccount, fingerprint.ServiceAccountEmail],
-            [t.connections.project, fingerprint.ProjectId],
-          ]
+        : connection.Store === StoreKind.Apple
+          ? [
+              [t.connections.keyId, fingerprint.KeyId],
+              [t.connections.issuerId, fingerprint.IssuerIdSuffix ? `…${fingerprint.IssuerIdSuffix}` : null],
+            ]
+          : [
+              [t.connections.serviceAccount, fingerprint.ServiceAccountEmail],
+              [t.connections.project, fingerprint.ProjectId],
+            ]
   return (
     <dl className="kv">
       {rows.map(([label, value]) => (

@@ -642,6 +642,11 @@ public static class RuleStores
     public const string Winget = "winget";
 
     /// <summary>
+    /// Catalog key of the Chrome Web Store.
+    /// </summary>
+    public const string Chrome = "chrome";
+
+    /// <summary>
     /// Catalog key of Firefox Add-ons.
     /// </summary>
     public const string Firefox = "firefox";

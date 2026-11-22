@@ -148,9 +148,16 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeGitHub GitHub { get; } = new();
 
     /// <summary>
+    /// The Chrome Web Store API and Google token endpoint the Chrome channel talks to.
+    /// </summary>
+    public FakeChromeWebStore ChromeWebStore { get; } = new();
+
+    /// <summary>
     /// The addons.mozilla.org API the Firefox channel talks to.
     /// </summary>
     public FakeAmo Amo { get; } = new();
+
+    /// <summary>
     /// The CI providers' OIDC issuers (discovery documents and key sets of locally generated keys).
     /// </summary>
     public FakeOidcIssuers OidcIssuers { get; } = new();
@@ -274,6 +281,10 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             services.RemoveAll<WingetOptions>();
             services.AddSingleton(new WingetOptions { ApiBaseUrl = FakeGitHub.ApiBaseUrl, BlockPrivateDownloadAddresses = false });
 
+            // Chrome Web Store: real client over a fake API and token endpoint; upload polls do not wait.
+            services.AddHttpClient(Storeasy.Infrastructure.Stores.Chrome.ChromeWebStoreClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => ChromeWebStore);
+            services.RemoveAll<ChromeOptions>();
+            services.AddSingleton(new ChromeOptions { ApiBaseUrl = FakeChromeWebStore.ApiBaseUrl, TokenUrl = FakeChromeWebStore.TokenUrl, UploadPollIntervalMilliseconds = 0, UploadPollAttempts = 3 });
             // Firefox Add-ons: real client over a fake AMO; validation polls do not wait.
             services.AddHttpClient(Storeasy.Infrastructure.Stores.Firefox.AmoClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Amo);
             services.RemoveAll<FirefoxOptions>();

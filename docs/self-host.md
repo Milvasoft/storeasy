@@ -410,6 +410,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Winget:ApiBaseUrl`, `Upstream`, `UpstreamBranch` | | `https://api.github.com`, `microsoft/winget-pkgs`, `master` | GitHub REST API and the repository winget pull requests go to. |
 | `Storeasy:Winget:InstallerMaxBytes`, `BlockPrivateDownloadAddresses` | | 4 GiB, `true` | Largest installer downloaded for its SHA-256 when a winget plan is applied, and the guard that refuses installer hosts (and redirects) on private addresses. |
 | `Storeasy:Winget:SearchLimit` | | `30` | Most pull requests a winget sync looks up per package. |
+| `Storeasy:Chrome:ApiBaseUrl`, `TokenUrl` | | `https://chromewebstore.googleapis.com`, `https://oauth2.googleapis.com/token` | Chrome Web Store API and the token endpoint of OAuth client credentials (a service account key names its own). |
+| `Storeasy:Chrome:ReviewPages`, `MetricsBackfillDays` | | `5`, `90` | Pages of 200 reviews a review sync reads, and the days the first metrics read goes back. |
+| `Storeasy:Chrome:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `10`, `3000` | Status reads after an upload the store is still processing, before a plan gives up (nothing is submitted then). |
 | `Storeasy:Firefox:ApiBaseUrl`, `TokenLifetimeSeconds` | | `https://addons.mozilla.org/api/v5`, `60` | AMO API v5 and the lifetime of each signed request token (AMO allows at most 300 seconds). |
 | `Storeasy:Firefox:RatingPages`, `VersionPages` | | `5`, `2` | Pages of 50 ratings a review sync reads, and pages of 50 versions a sync reads. |
 | `Storeasy:Firefox:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `20`, `3000` | Reads of an upload's validation while a version plan is applied, before the job is retried. |
@@ -614,6 +617,8 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 |---|---|---|
 | Version state sync | Every 15 minutes | App Store version states; a rejection opens a rejection case. |
 | winget sync | Every 15 minutes (minute 10) | Review state of open winget pull requests (labels, checks, comments); a merge reads the package again. |
+| Chrome Web Store sync | Every 15 minutes (minute 12) | Status of Chrome Web Store items with a submission in review or an upload in progress. |
+| Review sync | Every 30 minutes | New App Store, Google Play and Chrome Web Store reviews. |
 | Firefox Add-ons sync | Every 15 minutes (minute 13) | Add-ons with a version awaiting review: status and the review result of their versions. |
 | Review sync | Every 30 minutes | New reviews of every store with reviews (App Store, Google Play, Firefox Add-ons). |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |

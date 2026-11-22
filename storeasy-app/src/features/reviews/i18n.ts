@@ -66,6 +66,7 @@ export const reviewsEn = {
     failedTitle: 'The reply could not be sent',
     openJob: 'Open the job',
     microsoft: 'Microsoft Store reviews are answered in Partner Center.',
+    consoleOnly: "{store} reviews are read here; its API has no replies, so they are answered in the store's own console.",
   },
   saved: {
     title: 'Saved replies',
@@ -169,6 +170,7 @@ export const reviewsTr: ReviewsDictionary = {
     failedTitle: 'Yanıt gönderilemedi',
     openJob: 'İşi aç',
     microsoft: "Microsoft Store yorumları Partner Center'da yanıtlanır.",
+    consoleOnly: '{store} yorumları burada okunur; API’sinde yanıt olmadığından mağazanın kendi konsolunda yanıtlanır.',
   },
   saved: {
     title: 'Kayıtlı yanıtlar',

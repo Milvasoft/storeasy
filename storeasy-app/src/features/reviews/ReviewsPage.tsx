@@ -310,6 +310,9 @@ function ReviewDetail({ review }: { review: ReviewListDto }) {
   let reply = null
   if (review.Store === StoreKind.Microsoft) {
     reply = <Callout tone="info">{t.reply.microsoft}</Callout>
+  } else if (review.ReplyMaxLength === 0) {
+    // A store whose API cannot reply (Chrome Web Store): answered in the store's own console.
+    reply = <Callout tone="info">{interpolate(t.reply.consoleOnly, { store: storeName(review.Store, base.enums.store) })}</Callout>
   } else if (!canReply) {
     reply = (
       <>
@@ -442,7 +445,8 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
     queryFn: () => reviewsApi.list(organization.Id, filter, request),
     placeholderData: keepPreviousData,
     // A reply being sent is a store job that ends without a review event: poll until none is sending.
-    refetchInterval: (query) => (query.state.data?.Data.some((row) => row.ReplyState === ReviewReplyState.Sending) ? SENDING_POLL_MS : false),
+    refetchInterval: (query) =>
+      query.state.data?.Data.some((row) => row.ReplyState === ReviewReplyState.Sending) ? SENDING_POLL_MS : false,
   })
   const markRead = useMutation({
     mutationFn: (ids: number[]) => reviewsApi.markRead(organization.Id, ids, true),

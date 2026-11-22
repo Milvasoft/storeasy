@@ -1,4 +1,5 @@
-﻿using Storeasy.Application.Dtos.EventDtos;
+﻿using Storeasy.Application.Dtos.ChromeDtos;
+using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.FeedbackDtos;
 using Storeasy.Application.Dtos.FirefoxDtos;
 using Storeasy.Application.Dtos.MsStoreDtos;
@@ -7,6 +8,7 @@ using Storeasy.Application.Dtos.TestFlightDtos;
 using Storeasy.Application.Dtos.WingetDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Apps;
+using Storeasy.Domain.Chrome;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.Firefox;
 using Storeasy.Domain.MsStore;
@@ -24,6 +26,7 @@ namespace Storeasy.Infrastructure.Events;
 /// <param name="storeAppRepository"></param>
 /// <param name="msSubmissionRepository"></param>
 /// <param name="wingetPullRequestRepository"></param>
+/// <param name="chromeItemRepository"></param>
 /// <param name="firefoxAddonRepository"></param>
 /// <param name="jobRepository"></param>
 /// <param name="storeJobQueue"></param>
@@ -32,6 +35,7 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                         IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                         IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
                                         IStoreasyRepositoryBase<WingetPullRequest> wingetPullRequestRepository,
+                                        IStoreasyRepositoryBase<ChromeItem> chromeItemRepository,
                                         IStoreasyRepositoryBase<FirefoxAddon> firefoxAddonRepository,
                                         IStoreasyRepositoryBase<StoreJob> jobRepository,
                                         IStoreJobQueue storeJobQueue,
@@ -41,6 +45,7 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
     private readonly IStoreasyRepositoryBase<WingetPullRequest> _wingetPullRequestRepository = wingetPullRequestRepository;
+    private readonly IStoreasyRepositoryBase<ChromeItem> _chromeItemRepository = chromeItemRepository;
     private readonly IStoreasyRepositoryBase<FirefoxAddon> _firefoxAddonRepository = firefoxAddonRepository;
     private readonly IStoreasyRepositoryBase<StoreJob> _jobRepository = jobRepository;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
@@ -93,6 +98,26 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                                                                                                  .ToList();
 
         return await QueueAsync(StoreJobKind.WingetSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.WingetSync, new WingetSyncPayload(c.ConnectionId, null, true), StoreKind.Winget))], cancellationToken);
+    }
+
+    /// <summary>
+    /// Queues a Chrome Web Store sync (pending items only) for every verified Chrome connection with an item in review or an
+    /// upload in progress.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>Number of jobs queued.</returns>
+    public async Task<int> QueueChromeSyncsAsync(CancellationToken cancellationToken)
+    {
+        var connectionIds = (await _chromeItemRepository.GetAllAsync(i => i.IsPending
+                                                                          && i.StoreApp.StoreConnectionId != null
+                                                                          && !i.StoreApp.App.IsDeleted
+                                                                          && i.StoreApp.StoreConnection.Status == ConnectionStatus.Verified,
+                                                                     projection: i => new ChromeItem { OrganizationId = i.OrganizationId, StoreApp = new StoreApp { StoreConnectionId = i.StoreApp.StoreConnectionId } },
+                                                                     cancellationToken: cancellationToken)).Select(i => (i.OrganizationId, ConnectionId: i.StoreApp.StoreConnectionId.Value))
+                                                                                                           .Distinct()
+                                                                                                           .ToList();
+
+        return await QueueAsync(StoreJobKind.ChromeSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.ChromeSync, new ChromeSyncPayload(c.ConnectionId, null, true), StoreKind.Chrome))], cancellationToken);
     }
 
     /// <summary>

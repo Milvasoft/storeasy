@@ -71,6 +71,7 @@ public static class IntakeRules
         [".appxbundle"] = (ArtifactPlatform.Windows, PackageKind.Msix),
         [".msixupload"] = (ArtifactPlatform.Windows, PackageKind.Msix),
         [".appxupload"] = (ArtifactPlatform.Windows, PackageKind.Msix),
+        [".zip"] = (ArtifactPlatform.Extension, PackageKind.ExtensionZip),
         [".xpi"] = (ArtifactPlatform.Extension, PackageKind.Xpi),
     };
 
@@ -91,6 +92,7 @@ public static class IntakeRules
     {
         ArtifactPlatform.Ios => StoreKind.Apple,
         ArtifactPlatform.Android => StoreKind.Google,
+        ArtifactPlatform.Extension => StoreKind.Chrome,
         _ => StoreKind.Microsoft,
     };
 

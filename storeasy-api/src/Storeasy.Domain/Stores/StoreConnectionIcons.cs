@@ -27,6 +27,11 @@ public static class StoreConnectionIcons
     public const string Winget = "winget";
 
     /// <summary>
+    /// Chrome Web Store.
+    /// </summary>
+    public const string ChromeWebStore = "chromewebstore";
+
+    /// <summary>
     /// Firefox Add-ons.
     /// </summary>
     public const string FirefoxAddons = "firefoxaddons";

@@ -14,6 +14,7 @@ public sealed class PlanFirefoxChangeCommandValidator : AbstractValidator<PlanFi
     /// </summary>
     public const int MaxEntries = 200;
 
+    /// <summary>
     ///<inheritdoc cref="PlanFirefoxChangeCommandValidator"/>
     public PlanFirefoxChangeCommandValidator(IMilvaLocalizer localizer)
     {

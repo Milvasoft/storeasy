@@ -14,6 +14,9 @@ import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { expiryInstant } from '@/features/microsoft/rules'
 import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
+import { ChromeCredentialForm, chromeFieldErrors } from '@/features/chrome/connections'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
+import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { wingetSecret } from '@/features/winget/rules'
 import { FirefoxCredentialForm, firefoxFieldErrors } from '@/features/firefox/connections'
@@ -69,6 +72,13 @@ export function ReplaceKeyDialog({
   // winget: a new token for the same fork (the API refuses another fork).
   const [winget, setWinget] = useState({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
   const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
+  // Chrome Web Store: a new credential for the same publisher (the API refuses another publisher).
+  const chromeStart = (): ChromeCredentialFields => ({
+    ...EMPTY_CHROME_CREDENTIALS,
+    publisherId: connection?.Fingerprint?.PublisherId ?? '',
+  })
+  const [chrome, setChrome] = useState<ChromeCredentialFields>(chromeStart)
+  const tc = useChrome()
   // Firefox: a new API key of the same AMO account (the API refuses another account).
   const [firefox, setFirefox] = useState(EMPTY_FIREFOX_CREDENTIALS)
   const [fileError, setFileError] = useState<string | null>(null)
@@ -83,6 +93,7 @@ export function ReplaceKeyDialog({
     setKey(EMPTY_KEY)
     setWinget({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
     setWingetExpiry(null)
+    setChrome(chromeStart())
     setFirefox(EMPTY_FIREFOX_CREDENTIALS)
     setFileError(null)
     setSubmitted(false)
@@ -99,6 +110,8 @@ export function ReplaceKeyDialog({
           ? appleSecret(issuerId, keyId, key.text)
           : store === StoreKind.Winget
             ? wingetSecret(winget)
+            : store === StoreKind.Chrome
+              ? chromeSecret(chrome)
             : store === StoreKind.Firefox
               ? firefoxSecret(firefox)
               : key.text.trim(),
@@ -122,6 +135,7 @@ export function ReplaceKeyDialog({
       // Only the key is chosen again after a refusal; the ids stay.
       setKey(EMPTY_KEY)
       setWinget((current) => ({ ...current, token: '' }))
+      setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
       setFirefox((current) => ({ ...current, secret: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
@@ -144,6 +158,9 @@ export function ReplaceKeyDialog({
     }
     if (store === StoreKind.Winget) {
       return wingetFieldErrors(winget, wingetExpiry, tw)
+    }
+    if (store === StoreKind.Chrome) {
+      return chromeFieldErrors(chrome, tc)
     }
     if (store === StoreKind.Firefox) {
       return firefoxFieldErrors(firefox, tf)
@@ -214,6 +231,8 @@ export function ReplaceKeyDialog({
           ) : null}
           {store === StoreKind.Winget ? (
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
+          ) : store === StoreKind.Chrome ? (
+            <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
           ) : store === StoreKind.Firefox ? (
             <FirefoxCredentialForm fields={firefox} onChange={setFirefox} errors={shown} />
           ) : (

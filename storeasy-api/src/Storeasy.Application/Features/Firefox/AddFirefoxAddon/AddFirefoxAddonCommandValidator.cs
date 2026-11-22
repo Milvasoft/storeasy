@@ -10,6 +10,7 @@ namespace Storeasy.Application.Features.Firefox.AddFirefoxAddon;
 /// </summary>
 public sealed class AddFirefoxAddonCommandValidator : AbstractValidator<AddFirefoxAddonCommand>
 {
+    /// <summary>
     ///<inheritdoc cref="AddFirefoxAddonCommandValidator"/>
     public AddFirefoxAddonCommandValidator(IMilvaLocalizer localizer)
     {

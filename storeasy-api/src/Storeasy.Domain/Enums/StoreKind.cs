@@ -35,6 +35,13 @@ public enum StoreKind : byte
     Winget = 4,
 
     /// <summary>
+    /// Chrome Web Store (browser extensions), through the Chrome Web Store API v2 with a Google service account or an
+    /// OAuth client and refresh token, and the publisher id. Items are added by their extension id.
+    /// </summary>
+    [Description("Chrome Web Store")]
+    Chrome = 5,
+
+    /// <summary>
     /// Firefox Add-ons (addons.mozilla.org), through the AMO API v5 with a JWT issuer and secret from the AMO Developer
     /// Hub. The owner's add-ons are listed by the API; versions go in as uploads that Mozilla signs and reviews.
     /// </summary>

@@ -41,6 +41,7 @@ export type WorkspaceSection =
   | 'profile'
   | 'microsoft'
   | 'winget'
+  | 'chrome'
   | 'firefox'
 
 export type WorkspaceSub =
@@ -121,6 +122,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   profile: 'settings/profile',
   microsoft: 'ms/product',
   winget: 'winget',
+  chrome: 'chrome',
   firefox: 'firefox',
 }
 
@@ -128,6 +130,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
 const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = {
   microsoft: [StoreKind.Microsoft],
   winget: [StoreKind.Winget],
+  chrome: [StoreKind.Chrome],
   firefox: [StoreKind.Firefox],
   storePerformance: storesWith('hasMetrics'),
   money: [StoreKind.Apple, StoreKind.Google],
@@ -157,6 +160,7 @@ const SECTIONS: WorkspaceSection[] = [
   'profile',
   'microsoft',
   'winget',
+  'chrome',
   'firefox',
 ]
 

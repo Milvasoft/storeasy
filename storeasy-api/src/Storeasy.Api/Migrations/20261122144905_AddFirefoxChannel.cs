@@ -9,7 +9,7 @@ using Storeasy.Domain.JsonModels;
 namespace Storeasy.Api.Migrations;
 
 /// <inheritdoc />
-public partial class _20261122012417_AddFirefoxChannel : Migration
+public partial class _20261122144905_AddFirefoxChannel : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

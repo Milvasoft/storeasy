@@ -144,7 +144,7 @@ public class ArtifactIntakeTests(StoreasyApiFactory factory) : IntakeTestBase(fa
         var aab = PackageFactory.Aab(package, 61);
         var (productionHttp, production) = await client.PostAsync<ArtifactUploadDto>($"apps/{google.AppId}/artifacts", new { fileName = "p.aab", size = aab.Length, sha256 = PackageFactory.Sha256(aab), delivery = new { store = StoreKind.Google, track = "production" } });
         var (mismatchHttp, mismatch) = await client.PostAsync<ArtifactUploadDto>($"apps/{google.AppId}/artifacts", new { fileName = "p.aab", size = aab.Length, sha256 = PackageFactory.Sha256(aab), delivery = new { store = StoreKind.Apple } });
-        var (typeHttp, _) = await client.PostAsync<ArtifactUploadDto>($"apps/{google.AppId}/artifacts", new { fileName = "p.zip", size = 10, sha256 = PackageFactory.Sha256([1]) });
+        var (typeHttp, _) = await client.PostAsync<ArtifactUploadDto>($"apps/{google.AppId}/artifacts", new { fileName = "p.tar.gz", size = 10, sha256 = PackageFactory.Sha256([1]) });
 
         var wrong = await WaitForSessionAsync(wrongId);
         var low = await WaitForSessionAsync(lowId);

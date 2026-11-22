@@ -1,4 +1,5 @@
 ﻿using Milvasoft.Core.Abstractions.Localization;
+using Storeasy.Application.Utils.Helpers;
 using Storeasy.Domain.Intake;
 using System.Globalization;
 using System.IO.Compression;
@@ -350,7 +351,7 @@ public sealed class FirefoxManifest
     /// <param name="issue"></param>
     /// <returns></returns>
     public static string Encode(FirefoxIssue issue)
-        => $"{(issue.Blocking ? "error" : "warning")}:{issue.Key}|{issue.English.Replace('|', '/')}|{string.Join(_argSeparator, issue.Args.Select(a => Convert.ToString(a, CultureInfo.InvariantCulture)?.Replace('|', '/')))}";
+        => ManifestIssueLines.Encode(issue.Blocking, issue.Key, issue.English, issue.Args);
 
     /// <summary>
     /// Localized texts of <paramref name="issues"/>.
@@ -425,10 +426,7 @@ public sealed class FirefoxManifest
 
     private static string Text(JsonElement? root, string name) => root is { } element ? Text(element, name) : null;
 
-    private static IEnumerable<string> Strings(JsonElement root, string name)
-        => root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array
-            ? value.EnumerateArray().Where(v => v.ValueKind == JsonValueKind.String).Select(v => v.GetString())
-            : [];
+    private static IEnumerable<string> Strings(JsonElement root, string name) => ManifestIssueLines.Strings(root, name);
 
     private static IEnumerable<string> Strings(JsonElement? root, string name) => root is { } element ? Strings(element, name) : [];
 }

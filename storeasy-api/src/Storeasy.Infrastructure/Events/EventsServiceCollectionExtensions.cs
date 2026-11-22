@@ -87,6 +87,7 @@ public static class EventsServiceCollectionExtensions
         services.AddMilvaCronJob<VersionStateSyncJob>(c => Schedule(c, "*/15 * * * *"));
         services.AddMilvaCronJob<MsSyncJob>(c => Schedule(c, "5-59/15 * * * *"));
         services.AddMilvaCronJob<WingetSyncJob>(c => Schedule(c, "10-59/15 * * * *"));
+        services.AddMilvaCronJob<ChromeSyncJob>(c => Schedule(c, "12-59/15 * * * *"));
         services.AddMilvaCronJob<FirefoxSyncJob>(c => Schedule(c, "13-59/15 * * * *"));
         services.AddMilvaCronJob<ReviewSyncJob>(c => Schedule(c, "*/30 * * * *"));
         services.AddMilvaCronJob<TestFlightSyncJob>(c => Schedule(c, "0 */6 * * *"));

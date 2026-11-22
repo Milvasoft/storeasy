@@ -1445,6 +1445,54 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.ChromeController">
+            <summary>
+            Chrome Web Store (Chrome Web Store API v2): items added by extension id, their status, and plans that upload a package
+            and submit it, publish a staged revision, raise the deploy percentage, cancel a submission or roll back. Connections are
+            added like every store's (<c>POST connections</c>); reviews and metrics come through the shared review and metrics pages.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChromeController.#ctor(MediatR.IMediator)">
+            <summary>
+            Chrome Web Store (Chrome Web Store API v2): items added by extension id, their status, and plans that upload a package
+            and submit it, publish a staged revision, raise the deploy percentage, cancel a submission or roll back. Connections are
+            added like every store's (<c>POST connections</c>); reviews and metrics come through the shared review and metrics pages.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChromeController.AddItemAsync(Storeasy.Application.Features.Chrome.AddChromeItem.AddChromeItemCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds an item by its extension id to a new or an existing app and queues its sync.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChromeController.GetItemAsync(Storeasy.Application.Features.Chrome.GetChromeItem.GetChromeItemQuery,System.Threading.CancellationToken)">
+            <summary>
+            The item as the last sync read it, with the extension packages intake received for the app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChromeController.PlanChangeAsync(Storeasy.Application.Features.Chrome.PlanChromeChange.PlanChromeChangeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a write (submit, publish staged, deploy percentage, cancel submission, rollback); approving the plan sends it.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.ChromeController.SyncAsync(Storeasy.Application.Features.Chrome.SyncChrome.SyncChromeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of one item.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.ComplianceController">
             <summary>
             Compliance calendar of the organization: the catalog deadlines of every app.
@@ -4554,16 +4602,28 @@
         <member name="M:Storeasy.Api.Migrations._20261121223920_AddWingetChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:Storeasy.Api.Migrations._20261122012417_AddFirefoxChannel">
+        <member name="T:Storeasy.Api.Migrations._20261122001138_AddChromeChannel">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261122012417_AddFirefoxChannel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261122001138_AddChromeChannel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261122012417_AddFirefoxChannel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261122001138_AddChromeChannel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:Storeasy.Api.Migrations._20261122012417_AddFirefoxChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:Storeasy.Api.Migrations._20261122001138_AddChromeChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

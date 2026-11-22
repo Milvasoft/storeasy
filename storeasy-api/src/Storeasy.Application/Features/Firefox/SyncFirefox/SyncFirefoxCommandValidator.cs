@@ -8,6 +8,7 @@ namespace Storeasy.Application.Features.Firefox.SyncFirefox;
 /// </summary>
 public sealed class SyncFirefoxCommandValidator : AbstractValidator<SyncFirefoxCommand>
 {
+    /// <summary>
     ///<inheritdoc cref="SyncFirefoxCommandValidator"/>
     public SyncFirefoxCommandValidator(IMilvaLocalizer localizer)
     {
