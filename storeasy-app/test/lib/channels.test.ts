@@ -29,8 +29,10 @@ describe('store channels', () => {
     }
     expect(channelOfKey('winget')?.store).toBe(StoreKind.Winget)
     expect(storeFromSlug('ms')).toBe(StoreKind.Microsoft)
-    expect(byStore(() => 0)).toEqual({ 1: 0, 2: 0, 3: 0, 4: 0 })
+    expect(channelOfKey('chrome')?.store).toBe(StoreKind.Chrome)
+    expect(byStore(() => 0)).toEqual({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 })
     expect(storesWith('hasMetrics')).not.toContain(StoreKind.Winget)
-    expect(storesWith('hasReviews')).toEqual([StoreKind.Apple, StoreKind.Google])
+    expect(storesWith('hasMetrics')).toContain(StoreKind.Chrome)
+    expect(storesWith('hasReviews')).toEqual([StoreKind.Apple, StoreKind.Google, StoreKind.Chrome])
   })
 })

@@ -14,6 +14,9 @@ import { queryKeys } from '@/lib/query/keys'
 import { showToast } from '@/lib/toast/toast'
 import { expiryInstant } from '@/features/microsoft/rules'
 import { WingetCredentialForm, wingetFieldErrors } from '@/features/winget/connections'
+import { ChromeCredentialForm, chromeFieldErrors } from '@/features/chrome/connections'
+import { useChrome } from '@/features/chrome/i18n/useChrome'
+import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { wingetSecret } from '@/features/winget/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
@@ -60,6 +63,13 @@ export function ReplaceKeyDialog({
   // winget: a new token for the same fork (the API refuses another fork).
   const [winget, setWinget] = useState({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
   const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
+  // Chrome Web Store: a new credential for the same publisher (the API refuses another publisher).
+  const chromeStart = (): ChromeCredentialFields => ({
+    ...EMPTY_CHROME_CREDENTIALS,
+    publisherId: connection?.Fingerprint?.PublisherId ?? '',
+  })
+  const [chrome, setChrome] = useState<ChromeCredentialFields>(chromeStart)
+  const tc = useChrome()
   const [fileError, setFileError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
@@ -72,6 +82,7 @@ export function ReplaceKeyDialog({
     setKey(EMPTY_KEY)
     setWinget({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
     setWingetExpiry(null)
+    setChrome(chromeStart())
     setFileError(null)
     setSubmitted(false)
     setServer(null)
@@ -87,7 +98,9 @@ export function ReplaceKeyDialog({
           ? appleSecret(issuerId, keyId, key.text)
           : store === StoreKind.Winget
             ? wingetSecret(winget)
-            : key.text.trim(),
+            : store === StoreKind.Chrome
+              ? chromeSecret(chrome)
+              : key.text.trim(),
         store === StoreKind.Winget && wingetExpiry ? expiryInstant(wingetExpiry) : null,
       ),
     meta: { silentError: true },
@@ -108,6 +121,7 @@ export function ReplaceKeyDialog({
       // Only the key is chosen again after a refusal; the ids stay.
       setKey(EMPTY_KEY)
       setWinget((current) => ({ ...current, token: '' }))
+      setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -129,6 +143,9 @@ export function ReplaceKeyDialog({
     }
     if (store === StoreKind.Winget) {
       return wingetFieldErrors(winget, wingetExpiry, tw)
+    }
+    if (store === StoreKind.Chrome) {
+      return chromeFieldErrors(chrome, tc)
     }
     const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
     return { secret: !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null }
@@ -194,6 +211,8 @@ export function ReplaceKeyDialog({
           ) : null}
           {store === StoreKind.Winget ? (
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
+          ) : store === StoreKind.Chrome ? (
+            <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
           ) : (
             <ConnectionKeyInput
               store={store}

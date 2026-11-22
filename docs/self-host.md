@@ -410,6 +410,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Winget:ApiBaseUrl`, `Upstream`, `UpstreamBranch` | | `https://api.github.com`, `microsoft/winget-pkgs`, `master` | GitHub REST API and the repository winget pull requests go to. |
 | `Storeasy:Winget:InstallerMaxBytes`, `BlockPrivateDownloadAddresses` | | 4 GiB, `true` | Largest installer downloaded for its SHA-256 when a winget plan is applied, and the guard that refuses installer hosts (and redirects) on private addresses. |
 | `Storeasy:Winget:SearchLimit` | | `30` | Most pull requests a winget sync looks up per package. |
+| `Storeasy:Chrome:ApiBaseUrl`, `TokenUrl` | | `https://chromewebstore.googleapis.com`, `https://oauth2.googleapis.com/token` | Chrome Web Store API and the token endpoint of OAuth client credentials (a service account key names its own). |
+| `Storeasy:Chrome:ReviewPages`, `MetricsBackfillDays` | | `5`, `90` | Pages of 200 reviews a review sync reads, and the days the first metrics read goes back. |
+| `Storeasy:Chrome:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `10`, `3000` | Status reads after an upload the store is still processing, before a plan gives up (nothing is submitted then). |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
 
 #### Package intake
@@ -611,7 +614,8 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 |---|---|---|
 | Version state sync | Every 15 minutes | App Store version states; a rejection opens a rejection case. |
 | winget sync | Every 15 minutes (minute 10) | Review state of open winget pull requests (labels, checks, comments); a merge reads the package again. |
-| Review sync | Every 30 minutes | New App Store and Google Play reviews. |
+| Chrome Web Store sync | Every 15 minutes (minute 12) | Status of Chrome Web Store items with a submission in review or an upload in progress. |
+| Review sync | Every 30 minutes | New App Store, Google Play and Chrome Web Store reviews. |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |
 | Rule watcher | Daily 06:00 | Reads the official store pages and files catalog proposals for the instance admin. |

@@ -30,4 +30,10 @@ public enum PackageKind : byte
     /// </summary>
     [Description("APK")]
     Apk = 4,
+
+    /// <summary>
+    /// Browser extension ZIP (manifest.json at the root).
+    /// </summary>
+    [Description("Extension ZIP")]
+    ExtensionZip = 5,
 }

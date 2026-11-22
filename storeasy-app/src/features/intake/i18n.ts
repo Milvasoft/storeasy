@@ -21,7 +21,7 @@ export const intakeEn = {
   },
   never: 'Production and review submission are never automatic.',
   manageOnly: 'Owners and admins change this (ManageConnections).',
-  platform: { ios: 'iOS', android: 'Android', windows: 'Windows' },
+  platform: { ios: 'iOS', android: 'Android', windows: 'Windows', extension: 'Browser extension' },
   source: {
     github: 'GitHub Actions',
     azure: 'Azure DevOps',
@@ -186,6 +186,8 @@ export const intakeEn = {
     rolloutHint: 'Empty: the whole track.',
     flight: 'Package flight',
     flightId: 'Flight id',
+    extensionUpload:
+      'The ZIP is uploaded to the Chrome Web Store item as its new package; submitting it for review is a Chrome plan a member approves.',
     onWarning: 'Hold when a check warns',
     onWarningHint:
       'With a warning and no blocker (new age rating questions, for example) the package is not delivered; the session waits for a member.',
@@ -467,7 +469,7 @@ export const intakeTr: IntakeDictionary = {
   },
   never: 'Production ve incelemeye gönderme hiçbir zaman otomatik değildir.',
   manageOnly: 'Bunu sahipler ve yöneticiler değiştirir (ManageConnections).',
-  platform: { ios: 'iOS', android: 'Android', windows: 'Windows' },
+  platform: { ios: 'iOS', android: 'Android', windows: 'Windows', extension: 'Tarayıcı uzantısı' },
   source: {
     github: 'GitHub Actions',
     azure: 'Azure DevOps',
@@ -631,6 +633,8 @@ export const intakeTr: IntakeDictionary = {
     rolloutHint: "Boş: track'in tamamı.",
     flight: 'Paket uçuşu',
     flightId: 'Uçuş kimliği',
+    extensionUpload:
+      'ZIP, Chrome Web Store öğesine yeni paketi olarak yüklenir; incelemeye göndermek bir üyenin onayladığı Chrome planıdır.',
     onWarning: 'Kontrolde uyarı varsa beklet',
     onWarningHint: 'Engel yoksa ama uyarı varsa (ör. yaş derecelendirmesi yeni soruları) paket teslim edilmez, oturum onay bekler.',
     noStore: 'Bu uygulamanın {platform} mağaza kaydı yok.',

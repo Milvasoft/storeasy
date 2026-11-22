@@ -53,7 +53,7 @@ export const OrgPermission = {
 } as const
 export type OrgPermission = (typeof OrgPermission)[keyof typeof OrgPermission]
 
-export const StoreKind = { Apple: 1, Google: 2, Microsoft: 3, Winget: 4 } as const
+export const StoreKind = { Apple: 1, Google: 2, Microsoft: 3, Winget: 4, Chrome: 5 } as const
 export type StoreKind = (typeof StoreKind)[keyof typeof StoreKind]
 
 export const ConnectionStatus = { NotVerified: 1, Verified: 2, Rejected: 3, Unreachable: 4 } as const
@@ -128,6 +128,16 @@ export const AuditAction = {
   WingetReviewStateChanged: 162,
   WingetPublished: 163,
   WingetPullRequestClosed: 164,
+  ChromeItemAdded: 170,
+  ChromePackageUploaded: 171,
+  ChromeSubmitted: 172,
+  ChromeReviewStateChanged: 173,
+  ChromePublished: 174,
+  ChromeRejected: 175,
+  ChromeDeployPercentageChanged: 176,
+  ChromeSubmissionCancelled: 177,
+  ChromeRolledBack: 178,
+  ChromePolicyFlagChanged: 179,
   TokenCreated: 300,
   TokenRevoked: 301,
   CiTokenCreated: 302,
@@ -199,6 +209,7 @@ export const StoreJobKind = {
   SyncStoreMetrics: 120,
   EnableAppleAnalytics: 121,
   WingetSync: 130,
+  ChromeSync: 140,
   ProcessWebhookEvent: 400,
   RegisterWebhooks: 401,
   SyncVersionStates: 402,
@@ -600,6 +611,8 @@ export interface ConnectionFingerprint {
   AccountLogin?: string | null
   Repository?: string | null
   TokenKind?: string | null
+  // Channels that address items under a publisher (Chrome Web Store).
+  PublisherId?: string | null
 }
 
 export interface StoreConnectionDto {

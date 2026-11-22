@@ -83,7 +83,10 @@ export function storeCode(store: StoreKind): string {
   return STORE_CODE[store]
 }
 
-export function storeName(store: StoreKind, names: { apple: string; google: string; microsoft: string; winget?: string }): string {
+export function storeName(
+  store: StoreKind,
+  names: { apple: string; google: string; microsoft: string; winget?: string; chrome?: string },
+): string {
   // A dictionary written before a channel existed names it by its key ("winget"), never as another store.
   const key = channelOf(store).key
   return names[key] ?? key

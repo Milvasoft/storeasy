@@ -19,17 +19,20 @@ namespace Storeasy.Infrastructure.Feedback;
 /// <param name="gateway"></param>
 /// <param name="notificationDispatcher"></param>
 /// <param name="timeProvider"></param>
+/// <param name="channels">Channels that read their own reviews (<see cref="IStoreChannelReviews"/>), asked before the gateway.</param>
 public sealed class SyncReviewsJobHandler(IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                           IStoreasyRepositoryBase<StoreReview> reviewRepository,
                                           IStoreReviewGateway gateway,
                                           INotificationDispatcher notificationDispatcher,
-                                          TimeProvider timeProvider) : IStoreJobHandler
+                                          TimeProvider timeProvider,
+                                          IEnumerable<IStoreChannelReviews> channels = null) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<StoreReview> _reviewRepository = reviewRepository;
     private readonly IStoreReviewGateway _gateway = gateway;
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IReadOnlyList<IStoreChannelReviews> _channels = [.. channels ?? []];
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.SyncReviews;
@@ -49,7 +52,10 @@ public sealed class SyncReviewsJobHandler(IStoreasyRepositoryBase<StoreApp> stor
             throw new StoreJobException("The store record has no connection.", transient: false);
 
         var step = await context.BeginStepAsync("reviews.list", StepDirection.Outbound, storeApp.ExternalId, cancellationToken: cancellationToken);
-        var records = await _gateway.ListReviewsAsync(storeApp.Store, connection.SecretJson, storeApp.ExternalId, cancellationToken);
+        var channel = _channels.LastOrDefault(c => c.Store == storeApp.Store);
+        var records = channel != null
+            ? await channel.ListReviewsAsync(connection.SecretJson, storeApp.ExternalId, cancellationToken)
+            : await _gateway.ListReviewsAsync(storeApp.Store, connection.SecretJson, storeApp.ExternalId, cancellationToken);
 
         await context.EndStepAsync(step, StoreJobStepStatus.Succeeded, $"{records.Count} reviews.", cancellationToken);
 

@@ -16,6 +16,7 @@ public static class StoreChannels
         new(StoreKind.Google, "google", "Google Play", StoreConnectionIcons.GooglePlay, CredentialExpiry.None, HasReviews: true, HasMetrics: true, "https://play.google.com/console"),
         new(StoreKind.Microsoft, "microsoft", "Microsoft Store", StoreConnectionIcons.MsStore, CredentialExpiry.Required, HasReviews: false, HasMetrics: true, "https://partner.microsoft.com/dashboard/apps-and-games/overview"),
         new(StoreKind.Winget, "winget", "winget", StoreConnectionIcons.Winget, CredentialExpiry.Optional, HasReviews: false, HasMetrics: false, "https://github.com/microsoft/winget-pkgs/pulls"),
+        new(StoreKind.Chrome, "chrome", "Chrome Web Store", StoreConnectionIcons.ChromeWebStore, CredentialExpiry.None, HasReviews: true, HasMetrics: true, "https://chrome.google.com/webstore/devconsole"),
     ];
 
     private static readonly Dictionary<StoreKind, StoreChannelInfo> _byStore = _all.ToDictionary(c => c.Store);

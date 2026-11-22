@@ -16,11 +16,12 @@ public class IntakeRulesTests
     [InlineData("pusula.ipa", ArtifactPlatform.Ios, PackageKind.Ipa)]
     [InlineData("Pusula_2.4.0.0.msixbundle", ArtifactPlatform.Windows, PackageKind.Msix)]
     [InlineData("Pusula.appxupload", ArtifactPlatform.Windows, PackageKind.Msix)]
+    [InlineData("kabuk-tabs-1.2.zip", ArtifactPlatform.Extension, PackageKind.ExtensionZip)]
     public void Classify_ShouldKnowEverySupportedExtension(string fileName, ArtifactPlatform platform, PackageKind kind)
         => IntakeRules.Classify(fileName).Should().Be((platform, kind));
 
     [Theory]
-    [InlineData("build.zip")]
+    [InlineData("build.tar.gz")]
     [InlineData("noextension")]
     [InlineData(null)]
     public void Classify_ShouldRefuseOtherFiles(string fileName) => IntakeRules.Classify(fileName).Should().BeNull();

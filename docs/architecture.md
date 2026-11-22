@@ -102,6 +102,10 @@ and MCP do not care which store they talk to:
 - **winget**: the GitHub REST API with the owner's token. Manifests are read from microsoft/winget-pkgs; the approved
   write pushes a branch with generated manifests to the owner's fork and opens a pull request, whose labels and checks
   are the review state and whose merge is the publication.
+- **Chrome Web Store**: the Chrome Web Store API v2 with a token from a service account key or an OAuth refresh token.
+  Items are read with `fetchStatus`; the approved writes upload a package and `publish`, set the deploy percentage,
+  cancel a submission or roll back. Reviews and metrics plug into the shared syncs through `IStoreChannelReviews` and
+  `IStoreChannelMetrics`, extension ZIPs into artifact intake through `IArtifactChannel`.
 
 Channels after the first three plug in through `IStoreChannel` (connections, sync, store reads), a content gateway, a
 change plan extension, a readiness contributor and their own jobs, with one row in `StoreChannels`; see
@@ -110,7 +114,7 @@ change plan extension, a readiness contributor and their own jobs, with one row 
 Work a store has no API for is an **assisted step**: a checklist, prepared answers and a hand-off prompt for a browser
 agent in the member's own session. storeasy never stores a store password.
 
-The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store and GitHub servers;
+The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store, GitHub and Chrome Web Store servers;
 real store calls are not yet exercised end to end.
 
 ## Live activity

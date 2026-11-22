@@ -121,13 +121,12 @@ public sealed class FakeGoogle : HttpMessageHandler
     }
 
     /// <inheritdoc/>
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-            _key.Dispose();
-
-        base.Dispose(disposing);
-    }
+    /// <remarks>
+    /// The key is not disposed here: the test host hands this one instance to IHttpClientFactory, which disposes an
+    /// expired handler chain (two minutes by default) while the host keeps using the fake. Disposing the key then
+    /// broke every later Google sign in test of a long run.
+    /// </remarks>
+    protected override void Dispose(bool disposing) => base.Dispose(disposing);
 
     private string IdToken(Grant grant)
     {

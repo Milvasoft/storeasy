@@ -24,4 +24,10 @@ public enum ArtifactPlatform : byte
     /// </summary>
     [Description("Windows")]
     Windows = 3,
+
+    /// <summary>
+    /// Browser extension (ZIP with manifest.json at its root).
+    /// </summary>
+    [Description("Browser extension")]
+    Extension = 4,
 }

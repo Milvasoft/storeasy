@@ -368,6 +368,46 @@ public enum AuditAction : short
     /// <summary>A winget pull request was closed without a merge.</summary>
     [Description("winget pull request closed")]
     WingetPullRequestClosed = 164,
+
+    /// <summary>A Chrome Web Store item was added by its extension id.</summary>
+    [Description("Chrome item added")]
+    ChromeItemAdded = 170,
+
+    /// <summary>An extension package was uploaded to a Chrome Web Store item.</summary>
+    [Description("Chrome package uploaded")]
+    ChromePackageUploaded = 171,
+
+    /// <summary>A Chrome Web Store item was submitted for review (or published at once when review was skipped).</summary>
+    [Description("Chrome item submitted")]
+    ChromeSubmitted = 172,
+
+    /// <summary>The submitted revision of a Chrome Web Store item changed state (pending review, staged, cancelled).</summary>
+    [Description("Chrome review state changed")]
+    ChromeReviewStateChanged = 173,
+
+    /// <summary>A new revision of a Chrome Web Store item was published.</summary>
+    [Description("Chrome item published")]
+    ChromePublished = 174,
+
+    /// <summary>A Chrome Web Store submission was rejected.</summary>
+    [Description("Chrome submission rejected")]
+    ChromeRejected = 175,
+
+    /// <summary>The deploy percentage of a published Chrome Web Store revision was raised.</summary>
+    [Description("Chrome deploy percentage raised")]
+    ChromeDeployPercentageChanged = 176,
+
+    /// <summary>The pending submission of a Chrome Web Store item was cancelled.</summary>
+    [Description("Chrome submission cancelled")]
+    ChromeSubmissionCancelled = 177,
+
+    /// <summary>A Chrome Web Store item was rolled back to an earlier package.</summary>
+    [Description("Chrome item rolled back")]
+    ChromeRolledBack = 178,
+
+    /// <summary>A Chrome Web Store item was warned or taken down for a policy violation, or the flag was cleared.</summary>
+    [Description("Chrome policy flag changed")]
+    ChromePolicyFlagChanged = 179,
     /// <summary>A personal access token was created.</summary>
     [Description("Token created")]
     TokenCreated = 300,

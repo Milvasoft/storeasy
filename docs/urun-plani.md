@@ -100,7 +100,7 @@ taşınır (bkz. 4.2); `store-ops` storeasy onun yerini alana kadar yerel CLI ve
 - Ödeme ve plan/paket (06 modülü): barındırılan sürüm ücretli olacaksa ayrı karar.
 - Mağaza analitiği ve gelir raporları.
 - Mobil uygulama.
-- App Store, Google Play ve Microsoft Store dışındaki mağazalar: winget yapıldı (22 Kasım 2026); diğerleri sırayla, kanal başına bir PR (bölüm 7.1).
+- App Store, Google Play ve Microsoft Store dışındaki mağazalar: winget ve Chrome Web Store yapıldı (22 Kasım 2026); diğerleri sırayla, kanal başına bir PR (bölüm 7.1).
 
 ## 4. Mimari
 
@@ -219,7 +219,7 @@ kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
 | Kanal | Neden storeasy'ye uyar | Not |
 |---|---|---|
 | winget (`microsoft/winget-pkgs`) | MSI/EXE ürünleri zaten storeasy'de; aynı paketin winget manifesti | **Yapıldı (22 Kasım 2026).** GitHub token'ı ve fork bağlantısı, paket ve manifest okuma, yeni sürüm ve dil metni planı, onaylanınca fork'a dal ve winget-pkgs'e PR, PR'ın etiket ve denetimlerinden inceleme durumu, kurallar; ayrıntı [connecting-stores.md](connecting-stores.md#winget). Diğer kanallar [adding-a-store.md](adding-a-store.md)'deki genişleme noktalarını izler |
-| Chrome Web Store | Mağaza sayfası, ekran görüntüleri, inceleme süreci, yorumlar, sık değişen politika son tarihleri | Chrome Web Store API ile yükleme ve yayın |
+| Chrome Web Store | Mağaza sayfası, ekran görüntüleri, inceleme süreci, yorumlar, sık değişen politika son tarihleri | **Yapıldı (22 Kasım 2026).** Chrome Web Store API v2: hizmet hesabı veya OAuth istemcisi bağlantısı, uzantı kimliğiyle öğe ekleme, durum okuma, paket alımında ZIP (Manifest V3 ve sürüm denetimi), gönderim, bekletilen sürümü yayınlama, dağıtım yüzdesi, gönderim iptali ve geri alma planları, yorumlar ve metrikler, kurallar. Mağaza sayfası, gizlilik uygulamaları ve görünürlük için API yok, yardımlı adımdır; ayrıntı [connecting-stores.md](connecting-stores.md#chrome-web-store) |
 | Microsoft Edge Add-ons | Chrome eklentisiyle aynı paket, ayrı mağaza | Partner Center Edge API |
 | Firefox Add-ons (AMO) | Mağaza sayfası, inceleme, yorumlar | AMO API ile imzalama ve gönderim |
 | Flathub | Linux uygulama mağazası, mağaza sayfası ve ekran görüntüleri | Gönderim GitHub deposu ve PR üzerinden |

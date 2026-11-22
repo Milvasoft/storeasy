@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, RefreshCw, Sparkles, Star } from 'lucide-react'
-import { Badge, StoreTag, type BadgeTone } from '@/components/ui/Badge'
+import { Badge, StoreTag, storeName, type BadgeTone } from '@/components/ui/Badge'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { Pagination } from '@/components/ui/DataTable'
 import { Callout } from '@/components/ui/Feedback'
@@ -28,6 +28,7 @@ import { useAiText } from '@/features/ai/i18n'
 import { AppWorkspace } from '@/features/common/AppWorkspace'
 import { storeFromSlug, storeSlug } from '@/features/common/store'
 import { useLiveRefresh } from '@/features/notifications/live'
+import { storesWith } from '@/lib/stores/channels'
 import { reviewKeys, reviewsApi } from './api'
 import { useReviewsText, type ReviewsDictionary } from './i18n'
 import { fillVariables, graphemeCount, repliesFor, variantFor } from './text'
@@ -309,6 +310,9 @@ function ReviewDetail({ review }: { review: ReviewListDto }) {
   let reply = null
   if (review.Store === StoreKind.Microsoft) {
     reply = <Callout tone="info">{t.reply.microsoft}</Callout>
+  } else if (review.ReplyMaxLength === 0) {
+    // A store whose API cannot reply (Chrome Web Store): answered in the store's own console.
+    reply = <Callout tone="info">{interpolate(t.reply.consoleOnly, { store: storeName(review.Store, base.enums.store) })}</Callout>
   } else if (!canReply) {
     reply = (
       <>
@@ -441,7 +445,8 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
     queryFn: () => reviewsApi.list(organization.Id, filter, request),
     placeholderData: keepPreviousData,
     // A reply being sent is a store job that ends without a review event: poll until none is sending.
-    refetchInterval: (query) => (query.state.data?.Data.some((row) => row.ReplyState === ReviewReplyState.Sending) ? SENDING_POLL_MS : false),
+    refetchInterval: (query) =>
+      query.state.data?.Data.some((row) => row.ReplyState === ReviewReplyState.Sending) ? SENDING_POLL_MS : false,
   })
   const markRead = useMutation({
     mutationFn: (ids: number[]) => reviewsApi.markRead(organization.Id, ids, true),
@@ -554,8 +559,7 @@ function ReviewInbox({ fixedAppId }: { fixedAppId: number | null }) {
             value={params.get('store') ?? ALL}
             options={[
               { value: ALL, label: interpolate(t.filters.storeAll, { all: base.common.all }) },
-              { value: storeSlug(StoreKind.Apple), label: base.enums.store.apple },
-              { value: storeSlug(StoreKind.Google), label: base.enums.store.google },
+              ...storesWith('hasReviews').map((store) => ({ value: storeSlug(store), label: storeName(store, base.enums.store) })),
             ]}
             onChange={(value) => update({ store: value })}
           />

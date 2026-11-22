@@ -195,6 +195,26 @@ public sealed class ArtifactPackageInfo
     /// Display name, when the package has one.
     /// </summary>
     public string DisplayName { get; set; }
+
+    /// <summary>
+    /// Browser extension: <c>manifest_version</c> of manifest.json.
+    /// </summary>
+    public int? ManifestVersion { get; set; }
+
+    /// <summary>
+    /// Browser extension: <c>permissions</c> and <c>optional_permissions</c> of manifest.json.
+    /// </summary>
+    public List<string> Permissions { get; set; }
+
+    /// <summary>
+    /// Browser extension: <c>host_permissions</c>, <c>optional_host_permissions</c> and content script matches.
+    /// </summary>
+    public List<string> HostPermissions { get; set; }
+
+    /// <summary>
+    /// Browser extension: what the offline manifest checks found (blocking problems start with "error:").
+    /// </summary>
+    public List<string> ManifestIssues { get; set; }
 }
 
 /// <summary>

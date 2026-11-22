@@ -19,13 +19,12 @@ public record SyncReviewsCommandHandler(IStoreasyRepositoryBase<StoreApp> StoreA
     /// <inheritdoc/>
     public async Task<Response<List<long>>> Handle(SyncReviewsCommand request, CancellationToken cancellationToken)
     {
-        var records = await _storeAppRepository.GetAllAsync(s => s.OrganizationId == request.OrganizationId
+        var records = (await _storeAppRepository.GetAllAsync(s => s.OrganizationId == request.OrganizationId
                                                                   && (request.AppId == null || s.AppId == request.AppId)
-                                                                  && (s.Store == StoreKind.Apple || s.Store == StoreKind.Google)
                                                                   && s.StoreConnectionId != null
                                                                   && !s.App.IsDeleted,
                                                              projection: s => new StoreApp { Id = s.Id, AppId = s.AppId, Store = s.Store },
-                                                             cancellationToken: cancellationToken);
+                                                             cancellationToken: cancellationToken)).Where(r => Domain.Stores.StoreChannels.HasReviews(r.Store)).ToList();
 
         if (records.Count == 0)
             return Response<List<long>>.Error(null, MessageKey.StoreAppNotFound);

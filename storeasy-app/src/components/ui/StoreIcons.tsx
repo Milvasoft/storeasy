@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils/cn'
 // Store logos: the App Store and Google Play marks are the paths of Simple Icons 13.21.0 (https://simpleicons.org,
 // CC0-1.0), drawn on a tile of our own. Simple Icons has no Microsoft Store icon (Microsoft asked for its removal), so
 // the Microsoft Store mark is storeasy's own simplified drawing. winget has no logo of its own on Simple Icons either; its
-// mark is storeasy's own drawing of a package with a download arrow. "App Store" is a trademark of Apple Inc., "Google Play"
+// mark is storeasy's own drawing of a package with a download arrow. The Chrome Web Store mark is storeasy's own drawing
+// too (a store bag with a ring), not Google's logo. "App Store" is a trademark of Apple Inc., "Google Play"
 // of Google LLC and "Microsoft Store" of Microsoft Corporation; the logos are used only to identify the store a
 // connection belongs to, and each is offered only on a connection of its own store. Generic icons are lucide-react
 // glyphs on a colored tile.
@@ -21,7 +22,7 @@ const APP_STORE_PATH =
 const GOOGLE_PLAY_PATH =
   'M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z'
 
-export type StoreLogoIcon = 'appstore' | 'googleplay' | 'msstore' | 'winget'
+export type StoreLogoIcon = 'appstore' | 'googleplay' | 'msstore' | 'winget' | 'chromewebstore'
 
 // The logo of each store, from the channel table (lib/stores/channels.ts).
 export const STORE_LOGO_ICON: Record<StoreKind, StoreLogoIcon> = byStore((channel) => channel.logo as StoreLogoIcon)
@@ -107,11 +108,24 @@ function WingetMark() {
  * One store connection icon as a small square tile (decorative: the caller keeps the store or connection name as text).
  * Sized by the surrounding CSS (`.sti`), 18 px by default.
  */
+function ChromeWebStoreMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+      <rect width="24" height="24" rx="6" fill="#1a73e8" />
+      <path d="M5 9h14l-1.2 9.2a1.6 1.6 0 0 1-1.6 1.4H7.8a1.6 1.6 0 0 1-1.6-1.4z" fill="#e8f0fe" />
+      <path d="M9 9V7.5a3 3 0 0 1 6 0V9" fill="none" stroke="#e8f0fe" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12" cy="14.2" r="3" fill="none" stroke="#1a73e8" strokeWidth="1.6" />
+      <circle cx="12" cy="14.2" r="1.1" fill="#1a73e8" />
+    </svg>
+  )
+}
+
 const MARKS: Record<StoreLogoIcon, () => JSX.Element> = {
   appstore: AppStoreMark,
   googleplay: GooglePlayMark,
   msstore: MsStoreMark,
   winget: WingetMark,
+  chromewebstore: ChromeWebStoreMark,
 }
 
 export function StoreIcon({ icon, className, title }: { icon: StoreIconKey; className?: string; title?: string }) {

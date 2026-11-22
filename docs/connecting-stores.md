@@ -228,6 +228,77 @@ none of them for winget. Manifests have no screenshots. Removing a version and c
 are not offered (moderators handle removals). Expiry reminders cover Microsoft client secrets only; a winget token's
 expiry date is shown on the connection.
 
+## Chrome Web Store
+
+storeasy talks to the [Chrome Web Store API v2](https://developer.chrome.com/docs/webstore/api) (API v1.1 was
+supported until 15 October 2026). The API works on items that already exist: it cannot create an item or list a
+publisher's items, so the first version is uploaded in the
+[developer dashboard](https://chrome.google.com/webstore/devconsole) and the item is then added to storeasy by its
+extension id.
+
+1. In the Google Cloud console, enable the **Chrome Web Store API** in a project.
+2. Pick one credential:
+   - **Service account** (recommended): create a service account and a JSON key for it (no Cloud roles are needed), then
+     in the developer dashboard add the service account's email under **Account** (one service account per publisher).
+   - **OAuth client and refresh token**: configure the OAuth consent screen, create an OAuth client id of type **Web
+     application**, and make a refresh token once (for example in the OAuth Playground with your own client) for the
+     scope `https://www.googleapis.com/auth/chromewebstore`, signed in with the Google account that owns the items.
+3. Copy the **publisher id** from **Account** in the developer dashboard (switch to the right publisher first).
+4. In storeasy, add a **Chrome Web Store** connection: the publisher id, the service account JSON key or the OAuth client
+   id, client secret and refresh token, and optionally one extension id of the publisher. The secret is
+   `{"publisherId": "...", "serviceAccountKey": "{...}", "itemId": "..."}` or
+   `{"publisherId": "...", "clientId": "...", "clientSecret": "...", "refreshToken": "...", "itemId": "..."}`.
+5. Verify it. storeasy gets an access token for the Chrome Web Store scope and, when an extension id was given, reads
+   that item's status under the publisher (the API has no call that reads a publisher, so without an id only the token
+   is proven).
+6. Add each item by its extension id (**Apps > Add a Chrome Web Store item** or `chrome/item`), to an existing app or a
+   new one. The API returns no item name, so the app keeps the name you give.
+
+The fingerprint is the publisher id, the credential kind and the service account email or the end of the OAuth client
+id; the secret is sealed like every store secret and never shown. **Replace key** takes a new credential for the same
+publisher (another publisher is refused with `StoreKeyAccountMismatch`) and checks it with Google first. Neither
+credential expires on its own, so no expiry date is kept.
+
+**What storeasy reads.** `fetchStatus` of each item: the published revision (state, version, deploy percentage), the
+revision submitted since the last publish (pending review, staged, rejected, cancelled), the last upload's state and the
+policy flags (warned, taken down); the rating summary; the seven day users. The versions become builds. Reviews come
+through the shared review sync (`fetchReviews`, newest first, up to 1,000) and store metrics through the shared metrics
+sync (`queryMetrics`: installs as downloads, impressions and page views, by country; the first read goes back 90 days).
+
+**Packages.** Artifact intake takes `.zip` extension packages (manifest.json at the root of the ZIP; the platform is
+"Browser extension"). The package is read and checked before anything reaches the store: Manifest V3 only (the store
+removed the last Manifest V2 items on 31 August 2026), a valid version higher than every version the store and intake
+know, the store's 75 character name and 132 character summary, a default locale for `__MSG_` names, and warnings for a
+missing 128 pixel icon, a Manifest V2 background page, an `update_url` outside the store and broad host access. With a
+delivery rule for browser extensions (target "upload only"), intake uploads the package to the item and stops: the
+upload creates the draft in the developer dashboard, nothing is submitted. Without a rule the package is held. CRX
+packages are not taken (the store signs uploaded ZIPs itself).
+
+**What storeasy writes, always as a change plan** (`chrome/change`, dry run, approved under **Plans** with **Submit for
+review** and the extension id and version typed):
+
+- **Submit**: upload an intake package (its SHA-256 checked again, the status read until the store has processed it)
+  or take the package uploaded last, then `publish`: for review, staged after approval (`STAGED_PUBLISH`), or asking to
+  skip the review where the item qualifies; optionally with an initial deploy percentage. Refused while a submission is
+  in review.
+- **Publish staged**: publish an approved, staged revision.
+- **Deploy percentage**: raise the published revision's rollout (only up, no new review; the store allows partial rollout
+  for items with more than 10,000 seven day users).
+- **Cancel submission** of a revision in review or staged.
+- **Roll back**: publish an earlier package again under a new, higher version number, with a reason the store keeps.
+
+**Review state.** A submission is *In review*, then *Published* (or *Published to testers*), *Staged* or *Rejected*;
+storeasy reads items with a submission in review or an upload in progress every 15 minutes (`chrome/sync` reads one item
+at once). A state change and a policy warning or take down are audited and notified like a store version state
+(in-app, e-mail, web push, the `version.state_changed` webhook). The rejection reason is shown only in the developer
+dashboard; the API does not return it.
+
+**Not in the API, so assisted steps.** The store listing (detailed description, category, language, screenshots, promo
+tiles), the **Privacy practices** tab (single purpose, permission justifications, data use disclosure, privacy policy,
+Limited Use certification) and the visibility (public, unlisted, private, trusted testers: API v2 no longer changes it)
+are edited in the developer dashboard; the rules catalog turns them into assisted steps with the dashboard's address.
+Review replies are not in the API either: reviews are read in storeasy and answered in the dashboard.
+
 ## Store page performance
 
 The app's **Store performance** tab shows impressions, page views, downloads and the conversion rate (downloads divided
@@ -239,6 +310,7 @@ the last 7 days because the stores complete recent days late. Daily rows are kep
 |---|---|---|
 | App Store | Analytics Reports API: "App Store Discovery and Engagement" (impressions, product page views) and "App Downloads" (first-time downloads, redownloads), standard reports, daily | Press **Enable analytics reports** once per app (Manage connections permission, a confirmation, audited). This is the one store write: it creates an ONGOING report request at Apple. Creating it needs an API key with the **Admin** role; reading the reports needs **Admin** or **Sales and Reports**. Apple delivers the first data one or two days later and every day after that with a delay of one to two days. Apple stops a request nobody reads for a long time; storeasy then shows it as not enabled again. |
 | Google Play | Play Console statistics exported to Cloud Storage: `stats/store_performance/store_performance_<package>_<yyyyMM>_country.csv` and `..._traffic_source.csv` (store listing visitors, acquisitions) | Enter the reports bucket on the tab (Play Console, **Download reports**, **Copy Cloud Storage URI**, e.g. `gs://pubsite_prod_rev_01234567890987654321`). The service account must be a Play Console user with **View app information and download bulk reports** set for the whole account (global). storeasy reads it with the `devstorage.read_only` scope; a refusal shows as "No access" on the tab. The first read takes the last 6 monthly files. Play reports no impressions. |
+| Chrome Web Store | Chrome Web Store API `queryMetrics`: installs, impressions and page views per day by country | Nothing new: the connection's credential reads them. The first read takes the last 90 days. The Chrome Web Store reports no traffic sources. |
 | Microsoft Store | Partner Center analytics API: `analytics/appacquisitions` (daily acquisitions by market and store client) and `analytics/funnel` (page views, one call per day) | Nothing new: the existing Entra app is used. It needs a Partner Center role that can read analytics (Manager or Developer); a 401 or 403 shows as "No access". The first read takes the last 90 days. Microsoft reports no impressions and counts funnel page views as users. |
 
 Conversion is computed only over the rows that report both page views and downloads, so one store's downloads are

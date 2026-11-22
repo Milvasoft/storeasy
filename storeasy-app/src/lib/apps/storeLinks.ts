@@ -36,6 +36,11 @@ export function storeLinksOf(record: Pick<AppStoreRecordDto, 'Store' | 'External
           ? `https://github.com/microsoft/winget-pkgs/pulls?q=${encodeURIComponent(`is:pr ${record.ExternalId}`)}`
           : 'https://github.com/microsoft/winget-pkgs/pulls',
       }
+    case StoreKind.Chrome:
+      return {
+        publicUrl: id ? `https://chromewebstore.google.com/detail/${id}` : null,
+        consoleUrl: 'https://chrome.google.com/webstore/devconsole',
+      }
     default:
       return { publicUrl: null, consoleUrl: '' }
   }
