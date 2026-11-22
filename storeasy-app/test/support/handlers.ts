@@ -268,6 +268,7 @@ export const defaultHandlers: HttpHandler[] = [
     const visible = testState.apps.filter((item) => includeHidden || !!item.HiddenDate === !!hidden)
     return json(listEnvelope(store ? visible.filter((item) => item.Stores?.some((record) => record.Store === store)) : visible))
   }),
+  endpoint('delete', '/Apps/app', ({ body }) => json(envelope((body as { AppId: number }).AppId))),
   endpoint('post', '/Apps/app/hidden', ({ body }) => json(envelope((body as { AppId: number }).AppId))),
   endpoint('post', '/Apps/app/alerts-muted', ({ body }) => json(envelope((body as { AppId: number }).AppId))),
   endpoint('post', '/Apps/app/order', ({ body }) => {

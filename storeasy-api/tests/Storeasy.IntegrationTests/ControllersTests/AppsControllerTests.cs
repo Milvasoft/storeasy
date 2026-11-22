@@ -407,6 +407,30 @@ public class AppsControllerTests(StoreasyApiFactory factory) : IntegrationTestBa
     }
 
     [Fact]
+    public async Task Delete_ShouldRefuseAnAppWithAListedStoreRecordAndCheckTheRole()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        GiveAppleApps(setup, new StoreAppRecord($"8{setup.Suffix}", $"com.{setup.Suffix}.app", "App"));
+        await SyncAsync(setup);
+        var appId = (await ListAppsAsync(setup)).Single().Id;
+        var viewerUser = await _factory.CreateUserAsync(email: $"v{TestApi.Unique()}@example.com");
+        var viewer = await _factory.LoginAsync(viewerUser.UserName, TestApi.DefaultPassword);
+        var (_, invitation) = await setup.Owner.Client.PostAsync<InvitationCreatedDto>("organizations/invitation", new { organizationId = setup.OrganizationId, email = viewerUser.Email, role = OrgRole.Viewer });
+        await viewer.Client.PostAsync<int>("organizations/invitation/accept", new { token = invitation.Data.Token });
+
+        // Act
+        var (viewerDelete, _) = await viewer.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = setup.OrganizationId, appId });
+        var (ownerDelete, refused) = await setup.Owner.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = setup.OrganizationId, appId });
+
+        // Assert
+        viewerDelete.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        ownerDelete.StatusCode.Should().NotBe(HttpStatusCode.OK, "an App Store record comes back with the next sync; hide it instead");
+        refused.IsSuccess.Should().BeFalse();
+        (await ListAppsAsync(setup)).Should().ContainSingle("nothing was deleted");
+    }
+
+    [Fact]
     public async Task MuteAndUnmute_ShouldKeepTheAppListedSurviveASyncAndAuditOnce()
     {
         // Arrange
