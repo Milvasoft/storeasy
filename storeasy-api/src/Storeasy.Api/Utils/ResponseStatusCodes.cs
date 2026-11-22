@@ -91,6 +91,8 @@ public static class ResponseStatusCodes
         [MessageKey.WingetVersionPullRequestOpen] = StatusCodes.Status409Conflict,
         [MessageKey.ChromeSubmissionPending] = StatusCodes.Status409Conflict,
         [MessageKey.ChromeVersionNotHigher] = StatusCodes.Status409Conflict,
+        [MessageKey.FirefoxVersionNotHigher] = StatusCodes.Status409Conflict,
+        [MessageKey.FirefoxVersionExists] = StatusCodes.Status409Conflict,
         [MessageKey.StoreKeyAccountMismatch] = StatusCodes.Status409Conflict,
         [MessageKey.PlanNotPending] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppNotConnected] = StatusCodes.Status409Conflict,

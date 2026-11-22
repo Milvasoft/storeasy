@@ -1,6 +1,7 @@
 # storeasy
 
 Manage App Store Connect, Google Play, Microsoft Store, winget and the Chrome Web Store from one place, through the official APIs: listings,
+Manage App Store Connect, Google Play, Microsoft Store, winget and Firefox Add-ons from one place, through the official APIs: listings,
 screenshots, builds, releases, reviews. Every write is diffed and dry-run first, checked against your role, audited, and
 you can watch it reach the store live. An MCP endpoint lets Claude (or any MCP client) do what the web app does, with
 the same checks.
@@ -49,6 +50,7 @@ integration tests against fake store servers but have not run against the real s
 | Microsoft Store: MSIX and MSI/EXE products, submissions, packages and flights, add-ons, installer checks | Built; fakes only |
 | winget: packages and manifests from microsoft/winget-pkgs, new version and locale text pull requests from the fork, review state of the pull requests | Built; fakes only |
 | Chrome Web Store: items by extension id, status, extension ZIP intake with Manifest V3 checks, submit, staged publish, rollout, cancel and rollback plans, reviews and metrics | Built; fakes only |
+| Firefox Add-ons: the account's add-ons, listing per locale, previews, icon, listed and unlisted versions from .xpi intake packages, review state, ratings and replies (AMO API v5) | Built; fakes only |
 | Subscriptions, offers and in-app purchases (both stores), purchase settings | Built; fakes only |
 | Reviews, rejections, TestFlight, App Store Connect webhooks, outgoing webhooks, notifications | Built; store calls fakes only |
 | Mockup studio: templates, device frames, captions per language, exports to screenshot plans | Built (caption translation suggestions need a provider; none ships) |
@@ -129,6 +131,7 @@ browser, MCP clients, CI
   PostgreSQL 17    Redis 7        S3 (SeaweedFS or AWS), presigned URLs only
         |
   App Store Connect API, Google Play Developer API, Microsoft Store submission API, GitHub API (winget), Chrome Web Store API v2
+  App Store Connect API, Google Play Developer API, Microsoft Store submission API, GitHub API (winget), AMO API v5 (Firefox Add-ons)
 ```
 
 | Folder | What |

@@ -41,6 +41,12 @@ export function storeLinksOf(record: Pick<AppStoreRecordDto, 'Store' | 'External
         publicUrl: id ? `https://chromewebstore.google.com/detail/${id}` : null,
         consoleUrl: 'https://chrome.google.com/webstore/devconsole',
       }
+    case StoreKind.Firefox:
+      // The record keeps the numeric AMO id; the pages take it as well as the slug.
+      return {
+        publicUrl: id ? `https://addons.mozilla.org/firefox/addon/${id}/` : null,
+        consoleUrl: id ? `https://addons.mozilla.org/developers/addon/${id}/edit` : 'https://addons.mozilla.org/developers/addons',
+      }
     default:
       return { publicUrl: null, consoleUrl: '' }
   }

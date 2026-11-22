@@ -1263,11 +1263,12 @@
             <param name="msSubmissionRepository"></param>
             <param name="wingetPullRequestRepository"></param>
             <param name="chromeItemRepository"></param>
+            <param name="firefoxAddonRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Chrome.ChromeItem},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Firefox.FirefoxAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreJob},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
             <summary>
             Queues the periodic store reads of the events phase as system jobs: version states per App Store connection, reviews
             and TestFlight per store record, and Microsoft Store syncs while a submission is pending. A target that already has a queued or running job of the same kind is skipped.
@@ -1277,6 +1278,7 @@
             <param name="msSubmissionRepository"></param>
             <param name="wingetPullRequestRepository"></param>
             <param name="chromeItemRepository"></param>
+            <param name="firefoxAddonRepository"></param>
             <param name="jobRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="auditTrail"></param>
@@ -1303,6 +1305,14 @@
             <summary>
             Queues a Chrome Web Store sync (pending items only) for every verified Chrome connection with an item in review or an
             upload in progress.
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns>Number of jobs queued.</returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Events.ScheduledStoreSyncs.QueueFirefoxSyncsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Queues a Firefox Add-ons sync (pending add-ons only) for every verified Firefox connection with a version awaiting
+            review.
             </summary>
             <param name="cancellationToken"></param>
             <returns>Number of jobs queued.</returns>
@@ -1449,8 +1459,9 @@
             <param name="notificationDispatcher"></param>
             <param name="orgWebhookPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that answer their own reviews (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelReplies"/>), asked before the gateway.</param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Feedback.StoreReview},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreReviewGateway,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.IOrgWebhookPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannelReplies})">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ReplyToReview"/> job: publishes the reply and records the outcome on the review. A failed
             attempt shows "failed" with the store's reason; a permanent failure tells the member who sent it.
@@ -1461,6 +1472,7 @@
             <param name="notificationDispatcher"></param>
             <param name="orgWebhookPublisher"></param>
             <param name="timeProvider"></param>
+            <param name="channels">Channels that answer their own reviews (<see cref="T:Storeasy.Application.Interfaces.IStoreChannelReplies"/>), asked before the gateway.</param>
         </member>
         <member name="P:Storeasy.Infrastructure.Feedback.ReplyToReviewJobHandler.Kind">
             <inheritdoc/>
@@ -2461,6 +2473,25 @@
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.EventScheduleJob.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.FirefoxSyncJob">
+            <summary>
+            Every 15 minutes: queues the Firefox Add-ons syncs of connections with a version awaiting review (those add-ons only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.FirefoxSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every 15 minutes: queues the Firefox Add-ons syncs of connections with a version awaiting review (those add-ons only).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.FirefoxSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.IdempotencyKeyCleanerJob">
@@ -7265,6 +7296,376 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Experiments.SyncAsoExperimentsJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.AmoClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAmoClient"/> over the addons.mozilla.org API v5 (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Firefox.AmoClient.HttpClientName"/>). Every
+            request carries <c>Authorization: JWT &lt;token&gt;</c>, a fresh HS256 token from the connection's issuer and secret.
+            Translated fields are read without <c>lang</c>, so every locale comes back. Tests replace the handler with a fake AMO.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.FirefoxOptions,System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IAmoClient"/> over the addons.mozilla.org API v5 (named HTTP client <see cref="F:Storeasy.Infrastructure.Stores.Firefox.AmoClient.HttpClientName"/>). Every
+            request carries <c>Authorization: JWT &lt;token&gt;</c>, a fresh HS256 token from the connection's issuer and secret.
+            Translated fields are read without <c>lang</c>, so every locale comes back. Tests replace the handler with a fake AMO.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Stores.Firefox.AmoClient.HttpClientName">
+            <summary>
+            Name of the HTTP client.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.GetProfileAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ListAddonsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.GetAddonAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ListVersionsAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.UpdateAddonAsync(System.String,System.String,System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.UploadIconAsync(System.String,System.String,Storeasy.Application.Interfaces.AmoFile,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.AddPreviewAsync(System.String,System.String,Storeasy.Application.Interfaces.AmoFile,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.DeletePreviewAsync(System.String,System.String,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.UploadAsync(System.String,Storeasy.Application.Interfaces.AmoFile,Storeasy.Domain.Enums.FirefoxVersionChannel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.GetUploadAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.CreateVersionAsync(System.String,System.String,Storeasy.Application.Interfaces.AmoVersionCreate,Storeasy.Application.Interfaces.AmoFile,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.UpdateVersionAsync(System.String,System.String,System.Int64,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ListRatingsAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ReplyAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ParseAddon(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps an add-on detail.
+            </summary>
+            <param name="root"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ParseVersion(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps a version.
+            </summary>
+            <param name="root"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ParseUpload(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps an upload and its validation.
+            </summary>
+            <param name="root"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ParseRating(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            Maps a rating; null for a reply or a rating without an id.
+            </summary>
+            <param name="root"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.StatusOf(System.String)">
+            <summary>
+            Maps an add-on status value.
+            </summary>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.ChannelName(Storeasy.Domain.Enums.FirefoxVersionChannel)">
+            <summary>
+            API name of a channel.
+            </summary>
+            <param name="channel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.Translated(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            A translated field: an object of locale to text (keys starting with <c>_</c> are skipped), or a plain text kept
+            under <c>_</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.Link(System.Text.Json.Nodes.JsonNode)">
+            <summary>
+            <c>homepage</c> and <c>support_url</c> are <c>{"url": {...}, "outgoing": {...}}</c> in v5; older answers give the
+            translated object directly.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.AmoClient.DescribeError(System.String)">
+            <summary>
+            The message of an AMO error body: <c>{"detail": ...}</c>, field errors (<c>{"field": ["..."]}</c>) or
+            <c>non_field_errors</c>; the body itself otherwise.
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel">
+            <summary>
+            The Firefox Add-ons engine as a store channel: the credential is an AMO API key (JWT issuer and secret), the products are
+            the add-ons the account authors (listed by the API), a product's builds are its listed and unlisted versions. It also
+            reads the ratings and answers them as the developer.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.#ctor(Storeasy.Application.Interfaces.IAmoClient,Storeasy.Application.Utils.Models.FirefoxOptions)">
+            <summary>
+            The Firefox Add-ons engine as a store channel: the credential is an AMO API key (JWT issuer and secret), the products are
+            the add-ons the account authors (listed by the API), a product's builds are its listed and unlisted versions. It also
+            reads the ratings and answers them as the developer.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.Inspect(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.InspectSecret(System.String)">
+            <summary>
+            The offline check of a Firefox secret.
+            </summary>
+            <param name="secretJson"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.VerifyAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.ListAppsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.GetAppAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.RecordOf(Storeasy.Application.Interfaces.AmoAddonRead)">
+            <summary>
+            The store record of an add-on: the numeric id, the guid as the bundle id, the name.
+            </summary>
+            <param name="addon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.ListBuildsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.BuildsOf(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.AmoVersionRead})">
+            <summary>
+            The versions as builds: approved versions are valid, versions awaiting review are processing, disabled ones invalid;
+            the channel is kept as the track.
+            </summary>
+            <param name="versions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.GetIconUrlAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.SyncJob(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.SameAccount(Storeasy.Domain.JsonModels.ConnectionFingerprint,Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.CredentialLabel(Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.ListReviewsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxChannel.ReplyAsync(System.String,System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway">
+            <summary>
+            The content read of a Firefox add-on (<see cref="T:Storeasy.Application.Utils.Firefox.FirefoxContent"/>): the add-on detail with every translation and its
+            listed and unlisted versions. Writes do not go through here: a Firefox plan is applied by
+            <see cref="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension"/>.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.#ctor(Storeasy.Application.Interfaces.IAmoClient,Storeasy.Application.Utils.Models.FirefoxOptions)">
+            <summary>
+            The content read of a Firefox add-on (<see cref="T:Storeasy.Application.Utils.Firefox.FirefoxContent"/>): the add-on detail with every translation and its
+            listed and unlisted versions. Writes do not go through here: a Firefox plan is applied by
+            <see cref="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension"/>.
+            </summary>
+            <param name="client"></param>
+            <param name="options"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.Store">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.ReadAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Domain.Enums.ContentParts,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.ReadStateAsync(Storeasy.Application.Interfaces.IAmoClient,System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads the add-on and its versions.
+            </summary>
+            <param name="client"></param>
+            <param name="secretJson"></param>
+            <param name="addon"></param>
+            <param name="versionPages"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.ListOptionsAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.StoreOptionKind,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxContentGateway.ApplyAsync(Storeasy.Application.Interfaces.StoreContentTarget,Storeasy.Application.Interfaces.ContentChangeSet,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension">
+            <summary>
+            Applies an approved Firefox plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.FirefoxChange"/>): patches the listing, uploads a package
+            (its SHA-256 checked again first), waits for AMO's validation and creates the version with its release notes, notes to
+            the reviewer, license and source code, adds or removes previews, replaces the icon, or edits release notes. Every file is
+            checked against the SHA-256 the plan was approved with. The add-on is read back into storeasy afterwards; the sync then
+            follows the review.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="fileStorage"></param>
+            <param name="addonRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension.#ctor(Storeasy.Application.Interfaces.IAmoClient,Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IFileStorage,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Firefox.FirefoxAddon},Storeasy.Application.Utils.Models.FirefoxOptions,System.TimeProvider)">
+            <summary>
+            Applies an approved Firefox plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.FirefoxChange"/>): patches the listing, uploads a package
+            (its SHA-256 checked again first), waits for AMO's validation and creates the version with its release notes, notes to
+            the reviewer, license and source code, adds or removes previews, replaces the icon, or edits release notes. Every file is
+            checked against the SHA-256 the plan was approved with. The add-on is read back into storeasy afterwards; the sync then
+            follows the review.
+            </summary>
+            <param name="client"></param>
+            <param name="contentService"></param>
+            <param name="fileStorage"></param>
+            <param name="addonRepository"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension.Handles(Storeasy.Domain.Enums.ChangePlanKind)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension.ReadBaseAsync(Storeasy.Application.Interfaces.StoreAppContext,System.Collections.Generic.IReadOnlyCollection{System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension.ApplyAsync(Storeasy.Application.Interfaces.ChangePlanApplyRequest,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxPlanExtension.AuditActionOf(Storeasy.Domain.Enums.ChangePlanKind,Storeasy.Domain.JsonModels.PlanItem)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxReadiness">
+            <summary>
+            Readiness of a Firefox add-on: its status on AMO (disabled by Mozilla, disabled by the developer, awaiting review), the
+            review state of the newest version, the listing texts AMO needs in the default locale, previews, and an .xpi package newer
+            than every version that passed the manifest checks. Policies with no API (data collection consent text, source code
+            review) are the rules catalog's assisted steps.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxReadiness.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Readiness of a Firefox add-on: its status on AMO (disabled by Mozilla, disabled by the developer, awaiting review), the
+            review state of the newest version, the listing texts AMO needs in the default locale, previews, and an .xpi package newer
+            than every version that passed the manifest checks. Policies with no API (data collection consent text, source code
+            review) are the rules catalog's assisted steps.
+            </summary>
+            <param name="sessionRepository"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxReadiness.EvaluateAsync(Storeasy.Application.Interfaces.StoreAppContext,Storeasy.Application.Interfaces.StoreContentSnapshot,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxServiceCollectionExtensions">
+            <summary>
+            Registers the Firefox Add-ons channel: the AMO client, the store channel (gateway calls, sync job, key replacement,
+            reviews and replies), the content read, the plan extension, readiness and the sync job (docs/adding-a-store.md).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxServiceCollectionExtensions.AddFirefoxServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the Firefox Add-ons services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Stores.Firefox.FirefoxSyncJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.FirefoxSync"/>: reads the Firefox add-ons of a connection from addons.mozilla.org. A full sync of a
+            connection first lists the account's add-ons and adds a storeasy app for each new one. Every add-on is then read (status,
+            listed and unlisted versions with their file status, rating, users); the versions become builds, the record is fixed to the
+            numeric id and the guid, and a state change (awaiting review, approved, disabled) is audited and notified like a store
+            version state change. The schedule runs it every 15 minutes for add-ons with a version awaiting review, reading only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IAmoClient,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Firefox.FirefoxAddon},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.FirefoxOptions,System.TimeProvider)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.FirefoxSync"/>: reads the Firefox add-ons of a connection from addons.mozilla.org. A full sync of a
+            connection first lists the account's add-ons and adds a storeasy app for each new one. Every add-on is then read (status,
+            listed and unlisted versions with their file status, rating, users); the versions become builds, the record is fixed to the
+            numeric id and the guid, and a state change (awaiting review, approved, disabled) is audited and notified like a store
+            version state change. The schedule runs it every 15 minutes for add-ons with a version awaiting review, reading only those.
+            </summary>
+            <param name="client"></param>
+            <param name="storeAppRepository"></param>
+            <param name="addonRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Stores.Firefox.FirefoxSyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Firefox.FirefoxSyncJobHandler.AddNewAddonsAsync(Storeasy.Application.Interfaces.IStoreJobContext,Storeasy.Application.Interfaces.OpenedStoreConnection,System.Threading.CancellationToken)">
+            <summary>
+            Adds a storeasy app, a store record and an add-on row for every add-on of the account storeasy does not know yet.
+            </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Stores.Microsoft.AuthenticodeProbe">
             <summary>

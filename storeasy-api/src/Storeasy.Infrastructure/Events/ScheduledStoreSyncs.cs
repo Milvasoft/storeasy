@@ -1,6 +1,7 @@
 ﻿using Storeasy.Application.Dtos.ChromeDtos;
 using Storeasy.Application.Dtos.EventDtos;
 using Storeasy.Application.Dtos.FeedbackDtos;
+using Storeasy.Application.Dtos.FirefoxDtos;
 using Storeasy.Application.Dtos.MsStoreDtos;
 using Storeasy.Application.Dtos.StoreMetricDtos;
 using Storeasy.Application.Dtos.TestFlightDtos;
@@ -9,6 +10,7 @@ using Storeasy.Application.Interfaces;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Chrome;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.Firefox;
 using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Stores;
 using Storeasy.Domain.Winget;
@@ -25,6 +27,7 @@ namespace Storeasy.Infrastructure.Events;
 /// <param name="msSubmissionRepository"></param>
 /// <param name="wingetPullRequestRepository"></param>
 /// <param name="chromeItemRepository"></param>
+/// <param name="firefoxAddonRepository"></param>
 /// <param name="jobRepository"></param>
 /// <param name="storeJobQueue"></param>
 /// <param name="auditTrail"></param>
@@ -33,6 +36,7 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                         IStoreasyRepositoryBase<MsSubmission> msSubmissionRepository,
                                         IStoreasyRepositoryBase<WingetPullRequest> wingetPullRequestRepository,
                                         IStoreasyRepositoryBase<ChromeItem> chromeItemRepository,
+                                        IStoreasyRepositoryBase<FirefoxAddon> firefoxAddonRepository,
                                         IStoreasyRepositoryBase<StoreJob> jobRepository,
                                         IStoreJobQueue storeJobQueue,
                                         IAuditTrail auditTrail)
@@ -42,6 +46,7 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
     private readonly IStoreasyRepositoryBase<MsSubmission> _msSubmissionRepository = msSubmissionRepository;
     private readonly IStoreasyRepositoryBase<WingetPullRequest> _wingetPullRequestRepository = wingetPullRequestRepository;
     private readonly IStoreasyRepositoryBase<ChromeItem> _chromeItemRepository = chromeItemRepository;
+    private readonly IStoreasyRepositoryBase<FirefoxAddon> _firefoxAddonRepository = firefoxAddonRepository;
     private readonly IStoreasyRepositoryBase<StoreJob> _jobRepository = jobRepository;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
     private readonly IAuditTrail _auditTrail = auditTrail;
@@ -113,6 +118,26 @@ public sealed class ScheduledStoreSyncs(IStoreasyRepositoryBase<StoreConnection>
                                                                                                            .ToList();
 
         return await QueueAsync(StoreJobKind.ChromeSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.ChromeSync, new ChromeSyncPayload(c.ConnectionId, null, true), StoreKind.Chrome))], cancellationToken);
+    }
+
+    /// <summary>
+    /// Queues a Firefox Add-ons sync (pending add-ons only) for every verified Firefox connection with a version awaiting
+    /// review.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>Number of jobs queued.</returns>
+    public async Task<int> QueueFirefoxSyncsAsync(CancellationToken cancellationToken)
+    {
+        var connectionIds = (await _firefoxAddonRepository.GetAllAsync(a => a.IsPending
+                                                                            && a.StoreApp.StoreConnectionId != null
+                                                                            && !a.StoreApp.App.IsDeleted
+                                                                            && a.StoreApp.StoreConnection.Status == ConnectionStatus.Verified,
+                                                                       projection: a => new FirefoxAddon { OrganizationId = a.OrganizationId, StoreApp = new StoreApp { StoreConnectionId = a.StoreApp.StoreConnectionId } },
+                                                                       cancellationToken: cancellationToken)).Select(a => (a.OrganizationId, ConnectionId: a.StoreApp.StoreConnectionId.Value))
+                                                                                                             .Distinct()
+                                                                                                             .ToList();
+
+        return await QueueAsync(StoreJobKind.FirefoxSync, [.. connectionIds.Select(c => new StoreJobRequest(c.OrganizationId, StoreJobKind.FirefoxSync, new FirefoxSyncPayload(c.ConnectionId, null, true), StoreKind.Firefox))], cancellationToken);
     }
 
     /// <summary>

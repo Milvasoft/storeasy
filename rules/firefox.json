@@ -1,0 +1,481 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "kind": "store-rules",
+  "catalogVersion": "1.4.0",
+  "store": "firefox",
+  "generatedAt": "2026-11-22T12:00:00Z",
+  "rules": [
+    {
+      "id": "firefox.packages.manifest",
+      "store": "firefox",
+      "category": "packages",
+      "title": {
+        "en": "The package has manifest.json at its root",
+        "tr": "Paket kökünde manifest.json bulunur"
+      },
+      "description": {
+        "en": "An add-on is a ZIP archive (.xpi or .zip) with manifest.json at its root, Manifest V2 or V3, a name and a version. AMO's validator checks the package again on upload; storeasy runs the offline checks when the package arrives and before a plan."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.manifest"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/",
+          "title": "Extension Workshop: Signing and distribution overview",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/manifest-v3-migration-guide/",
+          "title": "Extension Workshop: Manifest V3 migration guide",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.packages.version-format",
+      "store": "firefox",
+      "category": "packages",
+      "title": {
+        "en": "Version: up to four numbers, higher than every version",
+        "tr": "Sürüm: en çok dört sayı, öncekilerden yüksek"
+      },
+      "description": {
+        "en": "The version is one to four dot separated integers of up to nine digits without leading zeros. AMO refuses a version string that the add-on already has on any channel, and Firefox updates only to a higher version, so every new version must be higher than the newest listed or unlisted one."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.manifest",
+          "firefox.versions"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/version",
+          "title": "MDN: manifest.json version",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/addons.html",
+          "title": "addons-server: Add-ons API v5",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.packages.gecko-id",
+      "store": "firefox",
+      "category": "packages",
+      "title": {
+        "en": "The add-on id is in the manifest",
+        "tr": "Eklenti kimliği manifestte bulunur"
+      },
+      "description": {
+        "en": "browser_specific_settings.gecko.id identifies the add-on: an e-mail like id or a braced UUID. Manifest V3 add-ons must set it, and every update must carry the id of the add-on it updates."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.manifest"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_specific_settings",
+          "title": "MDN: browser_specific_settings",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/manifest-v3-migration-guide/",
+          "title": "Extension Workshop: Manifest V3 migration guide",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.privacy.data-collection",
+      "store": "firefox",
+      "category": "privacy",
+      "title": {
+        "en": "Data collection is declared in the manifest",
+        "tr": "Veri toplama manifestte beyan edilir"
+      },
+      "description": {
+        "en": "browser_specific_settings.gecko.data_collection_permissions declares the data the add-on collects or transmits (required and optional categories), or [\"none\"]. Firefox shows the consent prompt from it (Firefox 140 for desktop, 142 for Android). New add-ons must use it since 3 November 2025; updates of older add-ons will have to at a later date."
+      },
+      "requirement": {
+        "level": "required-from",
+        "from": "2025-11-03"
+      },
+      "effectiveDate": "2025-11-03",
+      "deadline": null,
+      "dateNote": "Existing add-ons: at a later date Mozilla has not announced.",
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.manifest"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/",
+          "title": "Extension Workshop: Firefox built-in data collection consent",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-policies/",
+          "title": "Extension Workshop: Add-on Policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.review.source-code",
+      "store": "firefox",
+      "category": "review",
+      "title": {
+        "en": "Source code for minified, bundled or transpiled code",
+        "tr": "Küçültülmüş veya paketlenmiş kod için kaynak kodu"
+      },
+      "description": {
+        "en": "When the package contains code made by a minifier, bundler, transpiler or other generator, the source code and step by step build instructions must be submitted with the version, so the reviewer can build the same files. storeasy flags scripts that look minified and lets a version plan attach the source archive."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.manifest"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/source-code-submission/",
+          "title": "Extension Workshop: Source code submission",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-policies/",
+          "title": "Extension Workshop: Add-on Policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.review.process",
+      "store": "firefox",
+      "category": "review",
+      "title": {
+        "en": "Listed versions are reviewed by Mozilla",
+        "tr": "Listelenen sürümler Mozilla tarafından incelenir"
+      },
+      "description": {
+        "en": "Listed versions are signed after a review (automatic first, a human review can follow at any time) and may be rejected or disabled later; unlisted versions are signed automatically for self distribution. A rejected version shows the reviewer's reason in the Developer Hub."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-review-process/",
+          "title": "Extension Workshop: Add-on review process",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/",
+          "title": "Extension Workshop: Signing and distribution overview",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.policy.add-on-policies",
+      "store": "firefox",
+      "category": "policy",
+      "title": {
+        "en": "The add-on follows the Add-on Policies",
+        "tr": "Eklenti, Eklenti Politikalarına uyar"
+      },
+      "description": {
+        "en": "No surprises: the add-on does what its listing says, asks only for the permissions it needs, keeps remote code out (no remote scripts, no eval of remote data), discloses and asks consent for data collection, and does not monetize in ways the policies forbid. A member confirms the policies before the first listed submission."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-policies/",
+          "title": "Extension Workshop: Add-on Policies",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.policy.enforcement",
+      "store": "firefox",
+      "category": "policy",
+      "title": {
+        "en": "Disabled add-ons are resolved in the Developer Hub",
+        "tr": "Devre dışı eklentiler Developer Hub'da çözülür"
+      },
+      "description": {
+        "en": "Mozilla can disable an add-on or a version for a policy violation; the add-on then shows as disabled and is no longer offered. The decision and the appeal are in the Developer Hub; storeasy shows the status and blocks new versions until it is resolved."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-policies/",
+          "title": "Extension Workshop: Add-on Policies",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-review-process/",
+          "title": "Extension Workshop: Add-on review process",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.privacy.privacy-policy",
+      "store": "firefox",
+      "category": "privacy",
+      "title": {
+        "en": "A privacy policy when the add-on collects data",
+        "tr": "Veri toplayan eklenti için gizlilik politikası"
+      },
+      "description": {
+        "en": "An add-on that collects or transmits user data needs a privacy policy on its listing that describes the data, its use and its sharing. The privacy policy is edited in the Developer Hub (the API storeasy uses does not write it)."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "assisted"
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/publish/add-on-policies/#data-disclosure-collection-and-management",
+          "title": "Add-on Policies: Data disclosure, collection and management",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.listing-limits.required-texts",
+      "store": "firefox",
+      "category": "listing-limits",
+      "title": {
+        "en": "Name and summary in the default locale",
+        "tr": "Varsayılan dilde ad ve özet"
+      },
+      "description": {
+        "en": "A listed add-on needs a name (at most 50 characters) and a summary (at most 250 characters) in its default locale, and categories; a description is strongly recommended. Other locales are optional and fall back to the default locale."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "params": {
+        "maxChars": 50
+      },
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.listing"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/addons.html",
+          "title": "addons-server: Add-ons API v5",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/create-an-appealing-listing/",
+          "title": "Extension Workshop: Create an appealing listing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.screenshots.previews",
+      "store": "firefox",
+      "category": "screenshots",
+      "title": {
+        "en": "Screenshots on the add-on page",
+        "tr": "Eklenti sayfasında ekran görüntüleri"
+      },
+      "description": {
+        "en": "Previews are PNG or JPEG screenshots; AMO recommends 1280x800 pixels (an aspect ratio of 1.6). Themes get generated previews and cannot upload their own."
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.previews"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/create-an-appealing-listing/",
+          "title": "Extension Workshop: Create an appealing listing",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/addons.html",
+          "title": "addons-server: Add-ons API v5",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.graphics.icon",
+      "store": "firefox",
+      "category": "graphics",
+      "title": {
+        "en": "Square icon",
+        "tr": "Kare simge"
+      },
+      "description": {
+        "en": "The add-on icon is a square PNG or JPEG; 128x128 pixels is recommended. Without one AMO shows a default icon."
+      },
+      "requirement": {
+        "level": "recommended"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "automatic",
+        "inputs": [
+          "firefox.icon"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/addons.html",
+          "title": "addons-server: Add-ons API v5",
+          "checkedAt": "2026-11-22"
+        },
+        {
+          "url": "https://extensionworkshop.com/documentation/develop/create-an-appealing-listing/",
+          "title": "Extension Workshop: Create an appealing listing",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.api-access.api-key",
+      "store": "firefox",
+      "category": "api-access",
+      "title": {
+        "en": "AMO API key (JWT issuer and secret)",
+        "tr": "AMO API anahtarı (JWT issuer ve secret)"
+      },
+      "description": {
+        "en": "storeasy signs every AMO API request with a JWT made from an API key of the Developer Hub (Tools, Manage API Keys): the issuer and the secret. The key acts as the account that created it, so that account must be an author of the add-ons. A request token lives at most five minutes."
+      },
+      "requirement": {
+        "level": "required"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/auth.html",
+          "title": "addons-server: API authentication",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    },
+    {
+      "id": "firefox.review.replies",
+      "store": "firefox",
+      "category": "review",
+      "title": {
+        "en": "Developer replies to ratings",
+        "tr": "Değerlendirmelere geliştirici yanıtı"
+      },
+      "description": {
+        "en": "Authors of an add-on can answer each rating once through the API; answering again edits the reply. Replies are public on the add-on page and follow the same conduct rules as the add-on."
+      },
+      "requirement": {
+        "level": "optional"
+      },
+      "effectiveDate": null,
+      "deadline": null,
+      "check": {
+        "kind": "info"
+      },
+      "sources": [
+        {
+          "url": "https://mozilla.github.io/addons-server/topics/api/ratings.html",
+          "title": "addons-server: Ratings API",
+          "checkedAt": "2026-11-22"
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

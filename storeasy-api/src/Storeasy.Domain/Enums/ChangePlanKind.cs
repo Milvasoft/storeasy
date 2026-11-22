@@ -130,6 +130,13 @@ public enum ChangePlanKind : byte
     ChromeChange = 110,
 
     /// <summary>
+    /// A Firefox Add-ons change (listing texts and links, categories, previews, icon, a new version upload with its release
+    /// notes and source code); what it writes is in the plan's Firefox change.
+    /// </summary>
+    [Description("Firefox Add-ons change")]
+    FirefoxChange = 120,
+
+    /// <summary>
     /// Subscriptions, offers, In-App Purchases and Play products (phase 7).
     /// </summary>
     [Description("Monetization")]

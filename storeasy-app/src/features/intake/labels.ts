@@ -99,8 +99,11 @@ export const PLATFORMS: ArtifactPlatform[] = [
   ArtifactPlatform.Extension,
 ]
 
-/** IntakeRules.StoreOf. */
-export function storeOf(platform: ArtifactPlatform): StoreKind {
+/** IntakeRules.StoreOf: a Firefox extension (.xpi) goes to Firefox Add-ons, every other file to its platform's store. */
+export function storeOf(platform: ArtifactPlatform, fileName?: string | null): StoreKind {
+  if (fileName?.toLowerCase().endsWith('.xpi')) {
+    return StoreKind.Firefox
+  }
   return platform === ArtifactPlatform.Ios
     ? StoreKind.Apple
     : platform === ArtifactPlatform.Android

@@ -27,6 +27,8 @@ import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationC
 import { queryKeys } from '@/lib/query/keys'
 import { AddMsProductDialog } from '@/features/microsoft/AddMsProductDialog'
 import { AddWingetPackageDialog } from '@/features/winget/AddWingetPackageDialog'
+import { AddFirefoxAddonDialog } from '@/features/firefox/AddFirefoxAddonDialog'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { AddChromeItemDialog } from '@/features/chrome/AddChromeItemDialog'
 import { useChrome } from '@/features/chrome/i18n/useChrome'
@@ -184,6 +186,8 @@ export function AppsPage() {
   const tw = useWinget()
   const [addingChrome, setAddingChrome] = useState(false)
   const tc = useChrome()
+  const [addingFirefox, setAddingFirefox] = useState(false)
+  const tf = useFirefox()
   const running = useRunningApps()
   const sync = useSyncApps()
   const editor = can(OrgPermission.EditContent)
@@ -442,6 +446,10 @@ export function AppsPage() {
                 <Plus aria-hidden />
                 {tc.add.title}
               </Button>
+              <Button onClick={() => setAddingFirefox(true)}>
+                <Plus aria-hidden />
+                {tf.add.title}
+              </Button>
               <Button variant="primary" loading={sync.isPending} disabled={noConnections} onClick={() => sync.mutate(null)}>
                 <RefreshCw aria-hidden />
                 {t.apps.sync}
@@ -534,6 +542,7 @@ export function AppsPage() {
               <Button onClick={() => setAddingMs(true)}>{tm.addProduct.open}</Button>
               <Button onClick={() => setAddingWinget(true)}>{tw.add.title}</Button>
               <Button onClick={() => setAddingChrome(true)}>{tc.add.title}</Button>
+              <Button onClick={() => setAddingFirefox(true)}>{tf.add.title}</Button>
             </>
           ) : undefined
         }
@@ -660,6 +669,11 @@ export function AppsPage() {
             open={addingChrome}
             onClose={() => setAddingChrome(false)}
             onAdded={(appId) => navigate(`/apps/${appId}/chrome`)}
+          />
+          <AddFirefoxAddonDialog
+            open={addingFirefox}
+            onClose={() => setAddingFirefox(false)}
+            onAdded={(appId) => navigate(`/apps/${appId}/firefox`)}
           />
         </>
       ) : null}

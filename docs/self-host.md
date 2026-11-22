@@ -413,6 +413,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Chrome:ApiBaseUrl`, `TokenUrl` | | `https://chromewebstore.googleapis.com`, `https://oauth2.googleapis.com/token` | Chrome Web Store API and the token endpoint of OAuth client credentials (a service account key names its own). |
 | `Storeasy:Chrome:ReviewPages`, `MetricsBackfillDays` | | `5`, `90` | Pages of 200 reviews a review sync reads, and the days the first metrics read goes back. |
 | `Storeasy:Chrome:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `10`, `3000` | Status reads after an upload the store is still processing, before a plan gives up (nothing is submitted then). |
+| `Storeasy:Firefox:ApiBaseUrl`, `TokenLifetimeSeconds` | | `https://addons.mozilla.org/api/v5`, `60` | AMO API v5 and the lifetime of each signed request token (AMO allows at most 300 seconds). |
+| `Storeasy:Firefox:RatingPages`, `VersionPages` | | `5`, `2` | Pages of 50 ratings a review sync reads, and pages of 50 versions a sync reads. |
+| `Storeasy:Firefox:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `20`, `3000` | Reads of an upload's validation while a version plan is applied, before the job is retried. |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
 
 #### Package intake
@@ -493,7 +496,7 @@ answers 503 from the next request on; a missing flag reads as on.
 
 ## 7. Master key: backup and rotation
 
-The master key seals every store credential (App Store Connect keys, Play service accounts, Microsoft Entra secrets, GitHub tokens),
+The master key seals every store credential (App Store Connect keys, Play service accounts, Microsoft Entra secrets, GitHub tokens, AMO API keys),
 saved demo passwords, the secrets of inbound webhook endpoints, outgoing webhook subscriptions and pull sources, and
 queued e-mails. Each record gets its own data key; the master key wraps the data keys. A database dump alone does not
 reveal any of them, and the key alone is useless without the database.
@@ -616,6 +619,8 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 | winget sync | Every 15 minutes (minute 10) | Review state of open winget pull requests (labels, checks, comments); a merge reads the package again. |
 | Chrome Web Store sync | Every 15 minutes (minute 12) | Status of Chrome Web Store items with a submission in review or an upload in progress. |
 | Review sync | Every 30 minutes | New App Store, Google Play and Chrome Web Store reviews. |
+| Firefox Add-ons sync | Every 15 minutes (minute 13) | Add-ons with a version awaiting review: status and the review result of their versions. |
+| Review sync | Every 30 minutes | New reviews of every store with reviews (App Store, Google Play, Firefox Add-ons). |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |
 | Rule watcher | Daily 06:00 | Reads the official store pages and files catalog proposals for the instance admin. |

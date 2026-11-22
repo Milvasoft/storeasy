@@ -7,7 +7,7 @@ several connections per store (for example two Apple developer accounts).
 
 Each connection can have an optional icon, picked when it is added and changed later with **Edit** (with its name): the
 store's own logo or a colored generic icon. Records that come from that connection show the icon in place of the
-`AS` / `GP` / `MS` / `WG` code; places that know only the store (filters, counts, store columns) use the icon of the store's
+`AS` / `GP` / `MS` / `WG` / `FX` code; places that know only the store (filters, counts, store columns) use the icon of the store's
 oldest connection that has one. Without an icon the code stays. Store logos are trademarks of their owners and only
 identify the store; each is offered only for its own store.
 
@@ -16,7 +16,7 @@ identify the store; each is offered only for its own store.
 | Kept | Never |
 |---|---|
 | The credential, sealed with AES-256-GCM envelope encryption (a data key per connection, wrapped by the instance master key) | Returned by any endpoint, MCP tool, export or log |
-| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date; winget fork, its owner and the token kind (and the expiry you entered) | Your Apple ID, Google account, Partner Center or GitHub password |
+| A fingerprint shown in the app: App Store Connect key id and the last 4 characters of the issuer id; Google service account e-mail and project id; Microsoft seller id, the last 4 characters of the tenant and client ids and the secret's expiry date; winget fork, its owner and the token kind (and the expiry you entered); Firefox Add-ons JWT issuer and AMO user id | Your Apple ID, Google account, Partner Center, GitHub or Firefox account password |
 | Last verification time and result | Copies of the credential in jobs, plans or audit entries |
 
 Only the store job runner, the verify command and replacing a key open a credential, in memory, for the duration of the
@@ -24,7 +24,7 @@ call. See [self-host.md](self-host.md#7-master-key-backup-and-rotation) for the 
 
 ## Replacing a key
 
-An Apple, Google or winget key is replaced in place with **Replace key** on the connection's card (`PUT
+An Apple, Google, winget or Firefox Add-ons key is replaced in place with **Replace key** on the connection's card (`PUT
 storeconnections/connection/key`, Manage store connections permission and a verified e-mail address). The connection
 keeps its id, so its apps, store records, jobs, plans and history stay. Typical case: the connection uses an App Manager
 key and the App Store analytics reports need an Admin key; Apple does not change a key's role, so create a new Admin key
@@ -35,6 +35,8 @@ and replace the old one with it.
 - **Google:** any service account JSON key is taken; it may be another service account or another Cloud project.
 - **winget:** a new GitHub token for the same fork; another fork is refused (`StoreKeyAccountMismatch`). Enter the new
   token's expiry date with it.
+- **Firefox Add-ons:** a new AMO API key of the same account (the user id in the JWT issuer); another account is refused
+  (`StoreKeyAccountMismatch`).
 
 storeasy runs the same offline checks as when adding a connection, then verifies the new key against the store. Only
 when the store accepts it is it sealed in place of the old one, with the new fingerprint and the connection marked
@@ -298,6 +300,70 @@ tiles), the **Privacy practices** tab (single purpose, permission justifications
 Limited Use certification) and the visibility (public, unlisted, private, trusted testers: API v2 no longer changes it)
 are edited in the developer dashboard; the rules catalog turns them into assisted steps with the dashboard's address.
 Review replies are not in the API either: reviews are read in storeasy and answered in the dashboard.
+## Firefox Add-ons
+
+Firefox Add-ons (addons.mozilla.org, AMO) is reached through the **AMO API v5** with an **API key** of your AMO
+account. Every request is signed with a short lived JWT (HS256) made from the key; the key acts as the account that
+created it, so that account must be an author of the add-ons.
+
+1. Sign in to [addons.mozilla.org](https://addons.mozilla.org) with the Firefox account that authors your add-ons.
+2. Open the **Developer Hub > Tools > Manage API Keys**
+   ([addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/)) and generate
+   credentials: a **JWT issuer** (`user:12345:67`) and a **JWT secret**.
+3. In storeasy, add a **Firefox Add-ons** connection with both values (the web app has a form; the secret is
+   `{"issuer": "user:12345:67", "secret": "..."}`).
+4. Verify it. storeasy reads `GET /api/v5/accounts/profile/` with a token that lives at most five minutes.
+5. **Sync apps** (or the connection's sync) lists the add-ons the account authors (`GET /api/v5/addons/addon/`) and adds a
+   storeasy app for each new one. **Apps > Add a Firefox add-on** (`firefox/addon`) adds one by its numeric id, guid or
+   slug, for example to attach it to the app of the same program in another store.
+
+The fingerprint is the JWT issuer and the AMO user id it names; the secret is sealed like every store secret and never
+shown. **Replace key** takes a new key of the same AMO account (another account is refused with
+`StoreKeyAccountMismatch`) and checks it with AMO first. Revoke the old key in the Developer Hub afterwards.
+
+**What storeasy reads.** The add-on (status, guid, slug, default locale, name, summary, description, homepage, support
+site and e-mail in every locale, categories, previews, icon, rating, average daily users, weekly downloads) and its
+listed and unlisted versions with their file review status, release notes, license, source code flag and data collection
+permissions. The store record keeps the numeric AMO id as its external id and the guid as its bundle id. Ratings are read
+into **Reviews** by the shared review sync (every 30 minutes).
+
+**What storeasy writes, always as a change plan** (`firefox/change`, dry run, approved under **Plans**):
+
+- **Listing**: name, summary, description, homepage, support site and e-mail per locale (an empty value removes that
+  locale's value; the default locale keeps its name and summary), and the categories (`PATCH /addons/addon/{id}/`).
+- **New version**: an `.xpi` intake received (upload it with the web, the CLI or CI like any package). Approving the plan
+  checks the stored file's SHA-256, uploads it on the **listed** or **unlisted** channel (`POST /addons/upload/`), waits
+  for AMO's validation (a failure stops the plan with AMO's messages), then creates the version with its release notes,
+  notes to the reviewer, license and the source code archive (`POST /addons/addon/{id}/versions/`, source code as a
+  multipart `PATCH`). The approval needs **Submit for review** and the guid and version typed as confirmation. Listed
+  versions wait for Mozilla's review; unlisted versions are signed at once for self distribution.
+- **Previews**: add PNG or JPEG assets, remove previews (`/addons/addon/{id}/previews/`).
+- **Icon**: a square PNG or JPEG asset (`PATCH /addons/addon/{id}/` with `icon`).
+- **Release notes** of an existing version (`PATCH /addons/addon/{id}/versions/{id}/`).
+
+Before a plan is saved storeasy runs the package and policy checks it can run offline: `manifest.json` at the root of the
+archive, Manifest V2 or V3 (V2 is a warning), a version of one to four numbers higher than every listed and unlisted
+version and not used before, `browser_specific_settings.gecko.id` present (required for Manifest V3) and equal to the
+add-on's guid, the data collection declaration (`data_collection_permissions`, required for new add-ons since 3 November
+2025; a warning here), name and summary limits, a license for the first listed version, broad host access and an
+`update_url` (warnings), and scripts that look minified or bundled (a warning that AMO requires the source code and build
+instructions; attach the source asset and write the instructions into the notes to the reviewer). Intake runs the same
+manifest checks when the package arrives and holds it for a plan (there is no automatic delivery to AMO).
+
+**Review state.** The newest version's file status (*Awaiting review*, *Approved*, *Disabled*) and the add-on status
+(*Approved*, *Awaiting review*, *Incomplete*, *Disabled by Mozilla*) are read by the sync; add-ons with a version awaiting
+review are read every 15 minutes. A change is audited and notified like a store version state (in-app, e-mail, web push,
+the `version.state_changed` webhook). A rejected version shows the reviewer's reason in the Developer Hub.
+
+**Ratings and replies.** Ratings come in through the shared review sync; a reply is sent as the developer
+(`POST /ratings/rating/{id}/reply/`, answering again edits the reply). AMO publishes no reply limit; storeasy keeps
+replies to 3,000 characters.
+
+**Not in the AMO API.** There is no statistics API: daily users and weekly downloads come from the add-on detail, the
+charts stay in the Developer Hub, so Firefox has no **Store page performance** section. The privacy policy, the EULA,
+the support details outside the fields above, the add-on's contributions link and disabling or deleting the add-on are
+left to the Developer Hub (rules catalog assisted steps cover the policy and privacy policy). Themes cannot upload
+previews. A `.zip` intake package is a Chrome Web Store package; upload a Firefox package as `.xpi`.
 
 ## Store page performance
 

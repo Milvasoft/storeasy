@@ -1612,6 +1612,57 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.FirefoxController">
+            <summary>
+            Firefox Add-ons (addons.mozilla.org API v5): the account's add-ons (added by the connection's sync, or one by id, guid or
+            slug), their listing, versions and review state, and plans that edit the listing, previews and icon, submit a new version
+            on the listed or unlisted channel, or edit release notes. Connections are added like every store's
+            (<c>POST connections</c>); ratings come through the shared reviews pages.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.FirefoxController.#ctor(MediatR.IMediator)">
+            <summary>
+            Firefox Add-ons (addons.mozilla.org API v5): the account's add-ons (added by the connection's sync, or one by id, guid or
+            slug), their listing, versions and review state, and plans that edit the listing, previews and icon, submit a new version
+            on the listed or unlisted channel, or edit release notes. Connections are added like every store's
+            (<c>POST connections</c>); ratings come through the shared reviews pages.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.FirefoxController.AddAddonAsync(Storeasy.Application.Features.Firefox.AddFirefoxAddon.AddFirefoxAddonCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds one add-on by its AMO id, guid or slug to a new or an existing app and queues its sync.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.FirefoxController.GetAddonAsync(Storeasy.Application.Features.Firefox.GetFirefoxAddon.GetFirefoxAddonQuery,System.Threading.CancellationToken)">
+            <summary>
+            The add-on: what the last sync saved, a live read of the listing, previews and versions, and the .xpi packages intake
+            received for the app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.FirefoxController.PlanChangeAsync(Storeasy.Application.Features.Firefox.PlanFirefoxChange.PlanFirefoxChangeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a write (listing, new version, previews, icon, release notes); approving the plan sends it.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.FirefoxController.SyncAsync(Storeasy.Application.Features.Firefox.SyncFirefox.SyncFirefoxCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of one add-on.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.HealthCheckController">
             <summary>
             Health check endpoints: a liveness probe and a readiness probe that checks the database and Redis, also at
@@ -4561,6 +4612,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261122001138_AddChromeChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

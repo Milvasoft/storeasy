@@ -20,12 +20,14 @@ namespace Storeasy.Infrastructure.Feedback;
 /// <param name="notificationDispatcher"></param>
 /// <param name="orgWebhookPublisher"></param>
 /// <param name="timeProvider"></param>
+/// <param name="channels">Channels that answer their own reviews (<see cref="IStoreChannelReplies"/>), asked before the gateway.</param>
 public sealed class ReplyToReviewJobHandler(IStoreasyRepositoryBase<StoreReview> reviewRepository,
                                            IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                            IStoreReviewGateway gateway,
                                            INotificationDispatcher notificationDispatcher,
                                            IOrgWebhookPublisher orgWebhookPublisher,
-                                           TimeProvider timeProvider) : IStoreJobHandler
+                                           TimeProvider timeProvider,
+                                           IEnumerable<IStoreChannelReplies> channels = null) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<StoreReview> _reviewRepository = reviewRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
@@ -33,6 +35,7 @@ public sealed class ReplyToReviewJobHandler(IStoreasyRepositoryBase<StoreReview>
     private readonly INotificationDispatcher _notificationDispatcher = notificationDispatcher;
     private readonly IOrgWebhookPublisher _orgWebhookPublisher = orgWebhookPublisher;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly IReadOnlyList<IStoreChannelReplies> _channels = [.. channels ?? []];
 
     /// <inheritdoc/>
     public StoreJobKind Kind => StoreJobKind.ReplyToReview;
@@ -60,7 +63,10 @@ public sealed class ReplyToReviewJobHandler(IStoreasyRepositoryBase<StoreReview>
                 throw new StoreJobException("The store record has no connection.", transient: false);
 
             var step = await context.BeginStepAsync("review.reply", StepDirection.Outbound, review.ExternalReviewId, cancellationToken: cancellationToken);
-            var reply = await _gateway.ReplyAsync(review.Store, connection.SecretJson, storeApp.ExternalId, review.ExternalReviewId, review.ReplyExternalId, payload.Body, cancellationToken);
+            var channel = _channels.LastOrDefault(c => c.Store == review.Store);
+            var reply = channel != null
+                ? await channel.ReplyAsync(connection.SecretJson, storeApp.ExternalId, review.ExternalReviewId, review.ReplyExternalId, payload.Body, cancellationToken)
+                : await _gateway.ReplyAsync(review.Store, connection.SecretJson, storeApp.ExternalId, review.ExternalReviewId, review.ReplyExternalId, payload.Body, cancellationToken);
 
             await context.EndStepAsync(step, StoreJobStepStatus.Succeeded, cancellationToken: cancellationToken);
 

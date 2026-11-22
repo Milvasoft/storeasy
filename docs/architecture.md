@@ -106,6 +106,10 @@ and MCP do not care which store they talk to:
   Items are read with `fetchStatus`; the approved writes upload a package and `publish`, set the deploy percentage,
   cancel a submission or roll back. Reviews and metrics plug into the shared syncs through `IStoreChannelReviews` and
   `IStoreChannelMetrics`, extension ZIPs into artifact intake through `IArtifactChannel`.
+- **Firefox Add-ons**: the AMO API v5 with an HS256 JWT signed per request from the account's API key. The account's
+  add-ons are listed; listing edits, previews and icon are direct writes, a version is an upload that AMO validates and
+  then a version on the listed or unlisted channel; the file's review status is the review state. Ratings and replies
+  plug into the shared review sync and reply job (`IStoreChannelReviews`, `IStoreChannelReplies`).
 
 Channels after the first three plug in through `IStoreChannel` (connections, sync, store reads), a content gateway, a
 change plan extension, a readiness contributor and their own jobs, with one row in `StoreChannels`; see
@@ -115,6 +119,7 @@ Work a store has no API for is an **assisted step**: a checklist, prepared answe
 agent in the member's own session. storeasy never stores a store password.
 
 The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store, GitHub and Chrome Web Store servers;
+The engines are covered by integration tests against fake App Store Connect, Google Play, Microsoft Store, GitHub and AMO servers;
 real store calls are not yet exercised end to end.
 
 ## Live activity

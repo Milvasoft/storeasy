@@ -203,6 +203,7 @@ the web app). URLs are valid at least 60 minutes.
 
 Errors: `400 ValidationError` (size over the organization limit, default 4 GiB, unsupported extension: `.ipa`, `.aab`,
 `.apk`, `.msix`, `.msixbundle`, `.appx`, `.appxbundle`, `.msixupload`, `.appxupload`, `.zip` for browser extensions), `400 DeliveryTargetNotAllowed`,
+`.apk`, `.msix`, `.msixbundle`, `.appx`, `.appxbundle`, `.msixupload`, `.appxupload`, `.xpi` for Firefox add-ons), `400 DeliveryTargetNotAllowed`,
 `404 AppNotFound`, `409 DeliveryStoreMismatch` (`delivery.store` is a store the app has no record in), `503
 StorageUnavailable` (no bucket).
 

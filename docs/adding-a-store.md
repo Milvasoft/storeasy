@@ -73,6 +73,17 @@ Where the only write path is a pull request to a public repository (winget-pkgs,
 the files and opening the pull request is the approved write; the pull request's state is the review state, and a merge
 is the publication.
 
+Reviews and replies plug in the same way. A channel whose API returns user reviews registers `IStoreChannelReviews`
+(singleton; the shared review sync asks it before the built in review gateway, and `HasReviews` in both channel tables
+adds the store to the review schedule and the reviews page filter). A channel whose API can answer them also registers
+`IStoreChannelReplies` (singleton; the shared reply job asks it before the gateway) and sets its limit in
+`ReviewRules.ReplyMaxLength`. Firefox Add-ons (`FirefoxChannel`) implements both.
+
+Artifact intake picks the store from the file: `IntakeRules.StoreOf(platform, fileName)` sends `.xpi` (platform
+`Extension`, kind `Xpi`) to Firefox Add-ons; the package reader and `ArtifactChecks` read and check the format, and intake
+matches the package's identifier (the add-on id) with the store record's bundle id. The web mirrors it in the intake
+labels (`storeOf(platform, fileName)`).
+
 ## 4. Numbers
 
 Enum values must not collide; take the next free block and keep a channel's values together:
@@ -84,6 +95,9 @@ Enum values must not collide; take the next free block and keep a channel's valu
 | `ChangePlanKind` | 1-17, 50, 70-72, 80 | 100 | 110 | 120, 130, ... |
 | `StoreKind` | 1-3 | 4 | 5 | 6, 7, ... |
 | `ArtifactPlatform`, `PackageKind` | 1-3, 1-4 | | 4 (`Extension`), 5 (`ExtensionZip`) | reuse `Extension` for browser extensions |
+
+Firefox Add-ons took `StoreKind` 6, `AuditAction` 180-189, `StoreJobKind` 150, `ChangePlanKind` 120, `ArtifactPlatform` 4
+(`Extension`, shared by browser extension channels) and `PackageKind` 6 (`Xpi`).
 
 Every enum value needs `"{Enum}.{Value}"` in both resx files (`ResxTests`), every audit action a web label
 (`auditLabels.test.ts` reads the C# enum), every job kind a label in `lib/jobs/labels.ts`, every plan kind one in

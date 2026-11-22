@@ -253,7 +253,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
 
         session.Package = package;
 
-        var store = IntakeRules.StoreOf(session.Platform);
+        var store = IntakeRules.StoreOf(session.Platform, session.FileName);
         var record = await _storeAppRepository.GetFirstOrDefaultAsync(s => s.AppId == session.AppId && s.OrganizationId == session.OrganizationId && s.Store == store,
                                                                       projection: s => new StoreApp { Id = s.Id, BundleId = s.BundleId, ExternalId = s.ExternalId },
                                                                       cancellationToken: cancellationToken);
@@ -441,7 +441,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
     private async Task DeliverAsync(ArtifactSession session, IStoreJobContext context, CancellationToken cancellationToken)
     {
         var step = Start(session, ArtifactStepKind.Deliver, session.StatusDescription);
-        var store = IntakeRules.StoreOf(session.Platform);
+        var store = IntakeRules.StoreOf(session.Platform, session.FileName);
 
         var record = await _storeAppRepository.GetFirstOrDefaultAsync(s => s.Id == session.StoreAppId && s.OrganizationId == session.OrganizationId,
                                                                       projection: s => new StoreApp { Id = s.Id, ExternalId = s.ExternalId, StoreConnectionId = s.StoreConnectionId },
@@ -691,7 +691,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
                                                          action,
                                                          session.Id.ToString(),
                                                          text,
-                                                         IntakeRules.StoreOf(session.Platform),
+                                                         IntakeRules.StoreOf(session.Platform, session.FileName),
                                                          new { SessionId = session.Id, session.AppId, session.FileName, session.Status, session.CiExitCode },
                                                          session.UserId,
                                                          session.UserName ?? (session.CiTokenPrefix != null ? $"ci:{session.CiTokenPrefix}" : session.TrustedPublisherId != null ? $"oidc:{session.TrustedPublisherId}" : "system"),
@@ -730,7 +730,7 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
             OrganizationId = session.OrganizationId,
             AppId = session.AppId,
             JobId = session.StoreJobId,
-            Store = IntakeRules.StoreOf(session.Platform),
+            Store = IntakeRules.StoreOf(session.Platform, session.FileName),
             Message = $"Session {session.Id}: {session.Status}",
             Date = Now(),
         }, cancellationToken);

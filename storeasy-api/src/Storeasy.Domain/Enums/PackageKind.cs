@@ -36,4 +36,10 @@ public enum PackageKind : byte
     /// </summary>
     [Description("Extension ZIP")]
     ExtensionZip = 5,
+
+    /// <summary>
+    /// Firefox extension package (.xpi: a ZIP with manifest.json at its root).
+    /// </summary>
+    [Description("XPI")]
+    Xpi = 6,
 }

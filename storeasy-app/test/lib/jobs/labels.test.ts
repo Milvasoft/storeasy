@@ -126,6 +126,7 @@ describe('app helpers', () => {
       [StoreKind.Microsoft]: 0,
       [StoreKind.Winget]: 0,
       [StoreKind.Chrome]: 0,
+      [StoreKind.Firefox]: 0,
     })
     expect(connectionIdsOf(app())).toEqual([11, 12])
   })

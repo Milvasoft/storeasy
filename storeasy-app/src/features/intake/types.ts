@@ -37,7 +37,7 @@ export type ArtifactStepKind = (typeof ArtifactStepKind)[keyof typeof ArtifactSt
 export const ArtifactStepStatus = { Pending: 1, Running: 2, Done: 3, Failed: 4, Skipped: 5 } as const
 export type ArtifactStepStatus = (typeof ArtifactStepStatus)[keyof typeof ArtifactStepStatus]
 
-export const PackageKind = { Ipa: 1, Aab: 2, Msix: 3, Apk: 4, ExtensionZip: 5 } as const
+export const PackageKind = { Ipa: 1, Aab: 2, Msix: 3, Apk: 4, ExtensionZip: 5, Xpi: 6 } as const
 export type PackageKind = (typeof PackageKind)[keyof typeof PackageKind]
 
 export const IdentityKind = { Oidc: 1, CiToken: 2, User: 3 } as const

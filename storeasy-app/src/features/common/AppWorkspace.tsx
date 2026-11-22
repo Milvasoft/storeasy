@@ -42,6 +42,7 @@ export type WorkspaceSection =
   | 'microsoft'
   | 'winget'
   | 'chrome'
+  | 'firefox'
 
 export type WorkspaceSub =
   | 'texts'
@@ -122,6 +123,7 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   microsoft: 'ms/product',
   winget: 'winget',
   chrome: 'chrome',
+  firefox: 'firefox',
 }
 
 // Sections that exist only for some stores: their tab shows when the app has a record there.
@@ -129,6 +131,7 @@ const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = {
   microsoft: [StoreKind.Microsoft],
   winget: [StoreKind.Winget],
   chrome: [StoreKind.Chrome],
+  firefox: [StoreKind.Firefox],
   storePerformance: storesWith('hasMetrics'),
   money: [StoreKind.Apple, StoreKind.Google],
   keywords: [StoreKind.Apple, StoreKind.Google],
@@ -158,6 +161,7 @@ const SECTIONS: WorkspaceSection[] = [
   'microsoft',
   'winget',
   'chrome',
+  'firefox',
 ]
 
 function sectionLabel(section: WorkspaceSection, t: P2Dictionary): string {

@@ -22,7 +22,7 @@ const APP_STORE_PATH =
 const GOOGLE_PLAY_PATH =
   'M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z'
 
-export type StoreLogoIcon = 'appstore' | 'googleplay' | 'msstore' | 'winget' | 'chromewebstore'
+export type StoreLogoIcon = 'appstore' | 'googleplay' | 'msstore' | 'winget' | 'chromewebstore' | 'firefoxaddons'
 
 // The logo of each store, from the channel table (lib/stores/channels.ts).
 export const STORE_LOGO_ICON: Record<StoreKind, StoreLogoIcon> = byStore((channel) => channel.logo as StoreLogoIcon)
@@ -104,6 +104,20 @@ function WingetMark() {
   )
 }
 
+// storeasy's own drawing for Firefox Add-ons (an add-on puzzle piece on a warm tile); the Firefox logo is a trademark of
+// the Mozilla Foundation and is not reproduced.
+function FirefoxAddonsMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+      <rect width="24" height="24" rx="6" fill="#e66000" />
+      <path
+        d="M7 8.5h3.2a1.8 1.8 0 1 1 3.6 0H17v3.2a1.8 1.8 0 1 0 0 3.6V18.5H13.8a1.8 1.8 0 1 0-3.6 0H7v-3.2a1.8 1.8 0 1 1 0-3.6z"
+        fill="#fff4e8"
+      />
+    </svg>
+  )
+}
+
 /**
  * One store connection icon as a small square tile (decorative: the caller keeps the store or connection name as text).
  * Sized by the surrounding CSS (`.sti`), 18 px by default.
@@ -126,6 +140,7 @@ const MARKS: Record<StoreLogoIcon, () => JSX.Element> = {
   msstore: MsStoreMark,
   winget: WingetMark,
   chromewebstore: ChromeWebStoreMark,
+  firefoxaddons: FirefoxAddonsMark,
 }
 
 export function StoreIcon({ icon, className, title }: { icon: StoreIconKey; className?: string; title?: string }) {

@@ -19,11 +19,19 @@ import { useChrome } from '@/features/chrome/i18n/useChrome'
 import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { wingetSecret } from '@/features/winget/rules'
+import { FirefoxCredentialForm, firefoxFieldErrors } from '@/features/firefox/connections'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
+import { EMPTY_FIREFOX_CREDENTIALS, firefoxSecret } from '@/features/firefox/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
 
 /** Whether a connection's key can be replaced in place (Microsoft secrets are renewed with "Renew secret"). */
 export function canReplaceKey(connection: StoreConnectionDto): boolean {
-  return connection.Store === StoreKind.Apple || connection.Store === StoreKind.Google || connection.Store === StoreKind.Winget
+  return (
+    connection.Store === StoreKind.Apple ||
+    connection.Store === StoreKind.Google ||
+    connection.Store === StoreKind.Winget ||
+    connection.Store === StoreKind.Firefox
+  )
 }
 
 /** The "Replace key" button of an App Store Connect or Google Play connection card. */
@@ -54,6 +62,7 @@ export function ReplaceKeyDialog({
 }) {
   const t = useT()
   const tw = useWinget()
+  const tf = useFirefox()
   const queryClient = useQueryClient()
   const store = connection?.Store ?? StoreKind.Apple
   const suffix = connection?.Fingerprint?.IssuerIdSuffix ?? null
@@ -70,6 +79,8 @@ export function ReplaceKeyDialog({
   })
   const [chrome, setChrome] = useState<ChromeCredentialFields>(chromeStart)
   const tc = useChrome()
+  // Firefox: a new API key of the same AMO account (the API refuses another account).
+  const [firefox, setFirefox] = useState(EMPTY_FIREFOX_CREDENTIALS)
   const [fileError, setFileError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [server, setServer] = useState<{ title: string; messages: string[] } | null>(null)
@@ -83,6 +94,7 @@ export function ReplaceKeyDialog({
     setWinget({ token: '', fork: connection?.Fingerprint?.Repository ?? '' })
     setWingetExpiry(null)
     setChrome(chromeStart())
+    setFirefox(EMPTY_FIREFOX_CREDENTIALS)
     setFileError(null)
     setSubmitted(false)
     setServer(null)
@@ -100,6 +112,8 @@ export function ReplaceKeyDialog({
             ? wingetSecret(winget)
             : store === StoreKind.Chrome
               ? chromeSecret(chrome)
+            : store === StoreKind.Firefox
+              ? firefoxSecret(firefox)
               : key.text.trim(),
         store === StoreKind.Winget && wingetExpiry ? expiryInstant(wingetExpiry) : null,
       ),
@@ -122,6 +136,7 @@ export function ReplaceKeyDialog({
       setKey(EMPTY_KEY)
       setWinget((current) => ({ ...current, token: '' }))
       setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
+      setFirefox((current) => ({ ...current, secret: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -146,6 +161,9 @@ export function ReplaceKeyDialog({
     }
     if (store === StoreKind.Chrome) {
       return chromeFieldErrors(chrome, tc)
+    }
+    if (store === StoreKind.Firefox) {
+      return firefoxFieldErrors(firefox, tf)
     }
     const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
     return { secret: !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null }
@@ -183,7 +201,9 @@ export function ReplaceKeyDialog({
           ? t.connections.replaceAppleBody
           : store === StoreKind.Winget
             ? tw.connection.replaceBody
-            : t.connections.replaceGoogleBody
+            : store === StoreKind.Firefox
+              ? tf.connection.replaceBody
+              : t.connections.replaceGoogleBody
       }
       footer={
         <>
@@ -213,6 +233,8 @@ export function ReplaceKeyDialog({
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
           ) : store === StoreKind.Chrome ? (
             <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
+          ) : store === StoreKind.Firefox ? (
+            <FirefoxCredentialForm fields={firefox} onChange={setFirefox} errors={shown} />
           ) : (
             <ConnectionKeyInput
               store={store}

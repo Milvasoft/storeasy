@@ -30,11 +30,13 @@ import {
 import { ALL_STORES, channelOf } from '@/lib/stores/channels'
 import { useWinget } from '@/features/winget/i18n/useWinget'
 import { useChrome } from '@/features/chrome/i18n/useChrome'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
 
 function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
   const t = useT()
   const tw = useWinget()
   const tc = useChrome()
+  const tf = useFirefox()
   if (connection.Store === StoreKind.Microsoft) {
     return <MsFingerprint connection={connection} />
   }
@@ -46,6 +48,11 @@ function Fingerprint({ connection }: { connection: StoreConnectionDto }) {
           [tw.connection.tokenKind, fingerprint.TokenKind],
           [tw.connection.expiry, connection.CredentialExpiryDate ? connection.CredentialExpiryDate.slice(0, 10) : null],
         ]
+      : connection.Store === StoreKind.Firefox
+        ? [
+            [tf.connection.keyId, fingerprint.KeyId],
+            [tf.connection.account, fingerprint.AccountLogin],
+          ]
       : connection.Store === StoreKind.Chrome
         ? [
             [tc.connection.publisherId, fingerprint.PublisherId],

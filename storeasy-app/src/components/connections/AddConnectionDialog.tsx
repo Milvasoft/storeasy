@@ -24,6 +24,9 @@ import { EMPTY_WINGET_CREDENTIALS, wingetSecret, type WingetCredentialFields } f
 import { ChromeCredentialForm, chromeFieldErrors } from '@/features/chrome/connections'
 import { useChrome } from '@/features/chrome/i18n/useChrome'
 import { chromeSecret, EMPTY_CHROME_CREDENTIALS, type ChromeCredentialFields } from '@/features/chrome/rules'
+import { FirefoxCredentialForm, firefoxFieldErrors } from '@/features/firefox/connections'
+import { useFirefox } from '@/features/firefox/i18n/useFirefox'
+import { EMPTY_FIREFOX_CREDENTIALS, firefoxSecret, type FirefoxCredentialFields } from '@/features/firefox/rules'
 import { AppleKeyFields, ConnectionKeyInput, EMPTY_KEY, type KeyText } from './ConnectionKeyInput'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
 import { StoreIconPicker } from './StoreIconPicker'
@@ -82,6 +85,7 @@ export function AddConnectionDialog({
   const t = useT()
   const tm = useMs()
   const tw = useWinget()
+  const tf = useFirefox()
   const queryClient = useQueryClient()
   const [step, setStep] = useState<Step>('pick')
   const [store, setStore] = useState<StoreKind>(StoreKind.Apple)
@@ -98,6 +102,7 @@ export function AddConnectionDialog({
   const [wingetExpiry, setWingetExpiry] = useState<DateOnly | null>(null)
   const [chrome, setChrome] = useState<ChromeCredentialFields>(EMPTY_CHROME_CREDENTIALS)
   const tc = useChrome()
+  const [firefox, setFirefox] = useState<FirefoxCredentialFields>(EMPTY_FIREFOX_CREDENTIALS)
   // Only a rejected file's message is kept here; field errors are computed from the values once the form was submitted,
   // so they clear as soon as a value becomes valid.
   const [errors, setErrors] = useState<Record<string, string | null>>({})
@@ -118,6 +123,7 @@ export function AddConnectionDialog({
     setWinget(EMPTY_WINGET_CREDENTIALS)
     setWingetExpiry(null)
     setChrome(EMPTY_CHROME_CREDENTIALS)
+    setFirefox(EMPTY_FIREFOX_CREDENTIALS)
     setErrors({})
     setSubmitted(false)
     setServer(null)
@@ -143,6 +149,8 @@ export function AddConnectionDialog({
               ? wingetSecret(winget)
               : store === StoreKind.Chrome
                 ? chromeSecret(chrome)
+              : store === StoreKind.Firefox
+                ? firefoxSecret(firefox)
                 : key.text.trim()
       const credentialExpiry = microsoft ? expiry : isWinget ? wingetExpiry : null
       const id = await connectionsApi.create(organizationId, {
@@ -179,6 +187,7 @@ export function AddConnectionDialog({
       setMs((current) => ({ ...current, clientSecret: '' }))
       setWinget((current) => ({ ...current, token: '' }))
       setChrome((current) => ({ ...current, serviceAccountKey: '', clientSecret: '', refreshToken: '' }))
+      setFirefox((current) => ({ ...current, secret: '' }))
       window.setTimeout(() => errorRef.current?.focus(), 0)
     },
   })
@@ -212,6 +221,8 @@ export function AddConnectionDialog({
       Object.assign(next, wingetFieldErrors(winget, wingetExpiry, tw))
     } else if (store === StoreKind.Chrome) {
       Object.assign(next, chromeFieldErrors(chrome, tc))
+    } else if (store === StoreKind.Firefox) {
+      Object.assign(next, firefoxFieldErrors(firefox, tf))
     } else {
       const problem = key.text ? readServiceAccount(key.text).problem : 'notJson'
       next.secret = !key.text ? t.connections.jsonRequired : problem ? t.connections.json[problem] : null
@@ -249,7 +260,9 @@ export function AddConnectionDialog({
             ? tm.connection.title
             : store === StoreKind.Winget
               ? tw.connection.title
-              : t.connections.googleTitle
+              : store === StoreKind.Firefox
+                ? tf.connection.title
+                : t.connections.googleTitle
 
   return (
     <Modal
@@ -334,6 +347,14 @@ export function AddConnectionDialog({
             selected={store === StoreKind.Chrome}
             onSelect={() => pickStore(StoreKind.Chrome)}
           />
+          <StoreCard
+            store={StoreKind.Firefox}
+            title={t.connections.stores.firefox.title}
+            body={t.connections.stores.firefox.body}
+            time={t.connections.stores.firefox.time}
+            selected={store === StoreKind.Firefox}
+            onSelect={() => pickStore(StoreKind.Firefox)}
+          />
           <Callout>{t.connections.encryptedNote}</Callout>
         </div>
       ) : null}
@@ -365,6 +386,8 @@ export function AddConnectionDialog({
             <WingetCredentialForm fields={winget} onChange={setWinget} expiry={wingetExpiry} onExpiry={setWingetExpiry} errors={shown} />
           ) : store === StoreKind.Chrome ? (
             <ChromeCredentialForm fields={chrome} onChange={setChrome} errors={shown} />
+          ) : store === StoreKind.Firefox ? (
+            <FirefoxCredentialForm fields={firefox} onChange={setFirefox} errors={shown} />
           ) : (
             <ConnectionKeyInput
               store={store}

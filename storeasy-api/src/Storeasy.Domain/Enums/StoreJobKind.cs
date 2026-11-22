@@ -45,6 +45,7 @@ public enum StoreJobKind : short
     [Description("AI pre-review")]
     PreReview = 90,
 
+    /// <summary>
     /// Processes one inbound webhook event (App Store version state change: state, rejection case, notifications).
     /// </summary>
     [Description("Process webhook event")]
@@ -124,6 +125,13 @@ public enum StoreJobKind : short
     /// </summary>
     [Description("Chrome Web Store sync")]
     ChromeSync = 140,
+
+    /// <summary>
+    /// Reads the Firefox add-ons of a connection from addons.mozilla.org (status, listed and unlisted versions with their file
+    /// review status, rating, users); state changes are audited and notified.
+    /// </summary>
+    [Description("Firefox Add-ons sync")]
+    FirefoxSync = 150,
 
     /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
