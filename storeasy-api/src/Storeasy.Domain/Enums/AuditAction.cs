@@ -127,6 +127,10 @@ public enum AuditAction : short
     [Description("App alerts unmuted")]
     AppAlertsUnmuted = 48,
 
+    /// <summary>A storeasy app was deleted with its store records (Chrome, Firefox and winget only).</summary>
+    [Description("App deleted")]
+    AppDeleted = 49,
+
     /// <summary>A change plan was approved and its apply job queued.</summary>
     [Description("Change plan approved")]
     PlanApproved = 50,

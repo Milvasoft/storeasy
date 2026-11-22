@@ -369,6 +369,9 @@ export const appsApi = {
     apiPost<number>('/Apps/app/unlink', { OrganizationId: organizationId, StoreAppId: storeAppId }),
 
   // Hides the app from the apps list and the overviews, or shows it again. Nothing is deleted; sync keeps it hidden.
+  // Deletes an app whose records were all added by id (Chrome, Firefox, winget), with those records and their builds.
+  remove: (organizationId: number, appId: number) => apiDelete<number>('/Apps/app', undefined, { OrganizationId: organizationId, AppId: appId }),
+
   setHidden: (organizationId: number, appId: number, hidden: boolean) =>
     apiPost<number>('/Apps/app/hidden', { OrganizationId: organizationId, AppId: appId, Hidden: hidden }),
 

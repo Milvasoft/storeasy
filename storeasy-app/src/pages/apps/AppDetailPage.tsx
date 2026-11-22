@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Bell, BellOff, Boxes, Download, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, Boxes, Download, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
+import { useDeleteApp } from '@/components/apps/useDeleteApp'
 import { useSetAppAlertsMuted } from '@/components/apps/useSetAppAlertsMuted'
 import { useSetAppHidden } from '@/components/apps/useSetAppHidden'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
@@ -25,7 +26,7 @@ import {
   type BuildDto,
   type StoreConnectionDto,
 } from '@/lib/api/types'
-import { connectionIdsOf, recordsOf } from '@/lib/apps/apps'
+import { connectionIdsOf, isDeletable, recordsOf } from '@/lib/apps/apps'
 import { storeLinksOf } from '@/lib/apps/storeLinks'
 import { useSyncApps } from '@/lib/apps/useSyncApps'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
@@ -417,6 +418,8 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
   const editor = can(OrgPermission.EditContent)
   const setHidden = useSetAppHidden()
   const setMuted = useSetAppAlertsMuted()
+  const deleteApp = useDeleteApp()
+  const confirm = useConfirm()
 
   const app = useQuery({
     queryKey: queryKeys.apps.detail(organization.Id, appId),
@@ -506,6 +509,25 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
                     <RefreshCw aria-hidden />
                     {t.app.sync}
                   </Button>
+                  {isDeletable(data) ? (
+                    <Button
+                      loading={deleteApp.isPending}
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: interpolate(t.apps.deleteTitle, { app: data.Name }),
+                          message: interpolate(t.apps.deleteBody, { app: data.Name }),
+                          confirmLabel: t.apps.delete,
+                          danger: true,
+                        })
+                        if (ok) {
+                          deleteApp.mutate(data)
+                        }
+                      }}
+                    >
+                      <Trash2 aria-hidden />
+                      {t.apps.delete}
+                    </Button>
+                  ) : null}
                 </>
               ) : undefined
             }

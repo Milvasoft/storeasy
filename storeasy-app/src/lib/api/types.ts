@@ -93,6 +93,7 @@ export const AuditAction = {
   AppsReordered: 46,
   AppAlertsMuted: 47,
   AppAlertsUnmuted: 48,
+  AppDeleted: 49,
   PlanApproved: 50,
   PlanRejected: 51,
   PlanDiscarded: 52,

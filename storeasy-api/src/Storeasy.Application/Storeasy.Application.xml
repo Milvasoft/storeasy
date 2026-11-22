@@ -14950,6 +14950,71 @@
         <member name="M:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Apps.AddGoogleApp.AddGoogleAppCommandValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand">
+            <summary>
+            Deletes an app whose store records were all added by id (Chrome Web Store items, Firefox add-ons, winget packages), with
+            those records, their builds and every row that hangs on them. An app with an App Store, Google Play or Microsoft Store
+            record is refused: sync would read the record again, so hide it instead. Returns the deleted app id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand.AppId">
+            <summary>
+            App to delete.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand"/>. The records and the app are deleted together; the database removes what hangs on
+            them (builds, Chrome items, Firefox add-ons, winget packages, plans). An app of another organization is reported as not
+            found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.ITransactionRunner,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand"/>. The records and the app are deleted together; the database removes what hangs on
+            them (builds, Chrome items, Firefox add-ons, winget packages, plans). An app of another organization is reported as not
+            found.
+            </summary>
+            <param name="AppRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="TransactionRunner"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.TransactionRunner">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.DeletableStores">
+            <summary>
+            Stores whose records are added by id and never listed by a sync, so deleting them cannot bring them back by itself.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandHandler.Handle(Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Apps.DeleteApp.DeleteAppCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery">
             <summary>
             Reads one app of the organization with its store records and newest builds.

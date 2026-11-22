@@ -127,6 +127,7 @@ public static class MessageKey
     public const string GlobalContentType = "Global.ContentType";
     public const string GlobalFileSize = "Global.FileSize";
     public const string AppNotFound = nameof(AppNotFound);
+    public const string AppDeleteNotAllowed = nameof(AppDeleteNotAllowed);
     public const string StoreAppNotFound = nameof(StoreAppNotFound);
     public const string StoreAppAlreadyAdded = nameof(StoreAppAlreadyAdded);
     public const string AppStoreAlreadyLinked = nameof(AppStoreAlreadyLinked);

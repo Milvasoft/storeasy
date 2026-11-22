@@ -16,6 +16,7 @@ using Storeasy.Application.Features.Readiness.GetAppCompliance;
 using Storeasy.Application.Features.Readiness.GetAppsOverview;
 using Storeasy.Application.Features.Readiness.GetReadiness;
 using Storeasy.Application.Features.Apps.AddGoogleApp;
+using Storeasy.Application.Features.Apps.DeleteApp;
 using Storeasy.Application.Features.Apps.GetAppDetail;
 using Storeasy.Application.Features.Apps.GetAppList;
 using Storeasy.Application.Features.Apps.LinkStoreApp;
@@ -96,6 +97,16 @@ public class AppsController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpPost("app/hidden")]
     public Task<Response<int>> SetAppHiddenAsync(SetAppHiddenCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Deletes an app whose store records were all added by id (Chrome Web Store, Firefox Add-ons, winget), with those
+    /// records and their builds. An app with an App Store, Google Play or Microsoft Store record is refused; hide it instead.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("app")]
+    public Task<Response<int>> DeleteAppAsync(DeleteAppCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 
     /// <summary>
     /// Mutes an app's alerts or turns them on again (editors and above). The app stays in the apps list and on its own

@@ -417,4 +417,36 @@ public class ChromeControllerTests(StoreasyApiFactory factory) : IntakeTestBase(
 
         replyHttp.StatusCode.Should().NotBe(HttpStatusCode.OK, "the Chrome Web Store API has no replies");
     }
+
+    [Fact]
+    public async Task DeleteApp_ShouldRemoveTheItemWithItsRecordAndLetItBeAddedAgain()
+    {
+        // Arrange
+        var setup = await NewSetupAsync();
+        var added = await AddItemAsync(setup);
+        var stranger = await NewSetupAsync();
+
+        // Act
+        var (foreign, _) = await stranger.Owner.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = stranger.OrganizationId, appId = added.AppId });
+        var (badId, _) = await setup.Owner.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = setup.OrganizationId, appId = 0 });
+        var (deleteHttp, deleted) = await setup.Owner.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = setup.OrganizationId, appId = added.AppId });
+        var (againHttp, _) = await setup.Owner.Client.SendAsync<int>(HttpMethod.Delete, "apps/app", new { organizationId = setup.OrganizationId, appId = added.AppId });
+        var records = await _factory.DbAsync(db => db.StoreApps.AsNoTracking().CountAsync(s => s.Id == added.StoreAppId));
+        var items = await _factory.DbAsync(db => db.ChromeItems.AsNoTracking().CountAsync(i => i.StoreAppId == added.StoreAppId));
+        var (itemHttp, _) = await setup.Owner.Client.GetAsync<ChromeItemDto>($"chrome/item?organizationId={setup.OrganizationId}&storeAppId={added.StoreAppId}");
+        var audited = await _factory.DbAsync(db => db.StoreAuditLogs.AsNoTracking().CountAsync(a => a.OrganizationId == setup.OrganizationId && a.Action == AuditAction.AppDeleted));
+        var readded = await AddItemAsync(setup);
+
+        // Assert
+        foreign.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        badId.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        deleteHttp.StatusCode.Should().Be(HttpStatusCode.OK, string.Join(", ", deleted.Messages?.Select(m => m.Message) ?? []));
+        deleted.Data.Should().Be(added.AppId);
+        againHttp.StatusCode.Should().Be(HttpStatusCode.NotFound, "the app is gone");
+        records.Should().Be(0);
+        items.Should().Be(0, "the item row goes with its record");
+        itemHttp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        audited.Should().Be(1);
+        readded.StoreAppId.Should().NotBe(added.StoreAppId, "the same extension id can be added again after a delete");
+    }
 }

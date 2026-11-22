@@ -1,5 +1,5 @@
 import { ALL_STORES, byStore } from '@/lib/stores/channels'
-import { type StoreKind, type AppListDto, type AppStoreRecordDto, type IsoDateTime } from '@/lib/api/types'
+import { StoreKind, type AppListDto, type AppStoreRecordDto, type IsoDateTime } from '@/lib/api/types'
 
 // Small pure helpers of the apps screens (design 6.1-6.7), unit tested.
 
@@ -56,6 +56,14 @@ export function moveTo(ids: readonly number[], id: number, targetId: number): nu
 
 export function recordsOf(app: AppListDto): AppStoreRecordDto[] {
   return [...(app.Stores ?? [])].sort((a, b) => a.Store - b.Store)
+}
+
+/** Stores whose records are added by id and never listed by a sync: only an app made of these can be deleted. */
+const DELETABLE_STORES: readonly StoreKind[] = [StoreKind.Winget, StoreKind.Chrome, StoreKind.Firefox]
+
+/** True when every store record of the app was added by id (Chrome, Firefox, winget), so the app can be deleted. */
+export function isDeletable(app: AppListDto): boolean {
+  return (app.Stores ?? []).every((record) => DELETABLE_STORES.includes(record.Store))
 }
 
 export function recordFor(app: AppListDto, store: StoreKind): AppStoreRecordDto | null {
