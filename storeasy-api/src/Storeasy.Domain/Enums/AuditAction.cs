@@ -348,6 +348,26 @@ public enum AuditAction : short
     /// <summary>A package flight group name was recorded.</summary>
     [Description("Microsoft flight group saved")]
     MsFlightGroupSaved = 155,
+
+    /// <summary>A winget package was added by its package identifier.</summary>
+    [Description("winget package added")]
+    WingetPackageAdded = 160,
+
+    /// <summary>A pull request with winget manifests was opened in winget-pkgs from the fork.</summary>
+    [Description("winget pull request opened")]
+    WingetPullRequestOpened = 161,
+
+    /// <summary>A winget pull request changed review state (validation, feedback, approval).</summary>
+    [Description("winget review state changed")]
+    WingetReviewStateChanged = 162,
+
+    /// <summary>A winget pull request was merged: the version is published.</summary>
+    [Description("winget version published")]
+    WingetPublished = 163,
+
+    /// <summary>A winget pull request was closed without a merge.</summary>
+    [Description("winget pull request closed")]
+    WingetPullRequestClosed = 164,
     /// <summary>A personal access token was created.</summary>
     [Description("Token created")]
     TokenCreated = 300,

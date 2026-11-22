@@ -322,11 +322,13 @@ export const connectionsApi = {
   // Replaces the key of an Apple or Google connection in place (same id, apps and history stay). The new key is verified
   // with the store first; 400 StoreKeyRejected (plus the store's answer) keeps the old key, StoreKeyIssuerMismatch when an
   // Apple key is of another team. Answers the updated connection.
-  replaceKey: (organizationId: number, connectionId: number, secret: string) =>
+  // credentialExpiryDate: the new credential's expiry, for stores that record one (a GitHub token).
+  replaceKey: (organizationId: number, connectionId: number, secret: string, credentialExpiryDate: string | null = null) =>
     apiPut<StoreConnectionDto>('/StoreConnections/connection/key', {
       OrganizationId: organizationId,
       ConnectionId: connectionId,
       Secret: secret,
+      CredentialExpiryDate: credentialExpiryDate,
     }),
 
   // Wipes the encrypted secret; cannot be undone.

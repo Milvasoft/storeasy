@@ -17,6 +17,7 @@ import { queryKeys } from '@/lib/query/keys'
 import { cn } from '@/lib/utils/cn'
 import { useP2 } from './i18n/useP2'
 import type { P2Dictionary } from './i18n/en'
+import { storesWith } from '@/lib/stores/channels'
 import { storeFromSlug, storeSlug } from './store'
 
 // The frame of the app screens of phase 2 (design 6.7: one store picker, the app's sections, the section's sub parts in a
@@ -39,6 +40,7 @@ export type WorkspaceSection =
   | 'compliance'
   | 'profile'
   | 'microsoft'
+  | 'winget'
 
 export type WorkspaceSub =
   | 'texts'
@@ -67,7 +69,8 @@ interface SubItem {
 const BOTH = [StoreKind.Apple, StoreKind.Google]
 const APPLE = [StoreKind.Apple]
 const GOOGLE = [StoreKind.Google]
-const ALL = [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]
+// Store page performance needs store metrics (winget has none).
+const ALL = storesWith('hasMetrics')
 
 // What each sub part supports; a sub part is offered only for the stores its API covers.
 const SUBS: Partial<Record<WorkspaceSection, SubItem[]>> = {
@@ -116,11 +119,14 @@ const SECTION_PATHS: Record<WorkspaceSection, string> = {
   compliance: 'compliance',
   profile: 'settings/profile',
   microsoft: 'ms/product',
+  winget: 'winget',
 }
 
 // Sections that exist only for some stores: their tab shows when the app has a record there.
 const SECTION_STORES: Partial<Record<WorkspaceSection, StoreKind[]>> = {
   microsoft: [StoreKind.Microsoft],
+  winget: [StoreKind.Winget],
+  storePerformance: storesWith('hasMetrics'),
   money: [StoreKind.Apple, StoreKind.Google],
   keywords: [StoreKind.Apple, StoreKind.Google],
 }
@@ -147,6 +153,7 @@ const SECTIONS: WorkspaceSection[] = [
   'compliance',
   'profile',
   'microsoft',
+  'winget',
 ]
 
 function sectionLabel(section: WorkspaceSection, t: P2Dictionary): string {

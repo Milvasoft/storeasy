@@ -26,6 +26,16 @@ export function storeLinksOf(record: Pick<AppStoreRecordDto, 'Store' | 'External
           ? `https://partner.microsoft.com/dashboard/products/${id}/overview`
           : 'https://partner.microsoft.com/dashboard/apps-and-games/overview',
       }
+    case StoreKind.Winget:
+      // winget has no store page: the package folder in winget-pkgs and its pull requests stand in.
+      return {
+        publicUrl: id
+          ? `https://github.com/microsoft/winget-pkgs/tree/master/manifests/${record.ExternalId![0].toLowerCase()}/${record.ExternalId!.split('.').map(encodeURIComponent).join('/')}`
+          : null,
+        consoleUrl: id
+          ? `https://github.com/microsoft/winget-pkgs/pulls?q=${encodeURIComponent(`is:pr ${record.ExternalId}`)}`
+          : 'https://github.com/microsoft/winget-pkgs/pulls',
+      }
     default:
       return { publicUrl: null, consoleUrl: '' }
   }

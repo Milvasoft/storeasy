@@ -2,6 +2,7 @@
 using Milvasoft.Core.Abstractions.Localization;
 using Storeasy.Application.Behaviours;
 using Storeasy.Application.Features.StoreConnections.AddStoreConnection;
+using Storeasy.Domain.MsStore;
 
 namespace Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey;
 
@@ -12,7 +13,7 @@ namespace Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionK
 public sealed class ReplaceStoreConnectionKeyCommandValidator : AbstractValidator<ReplaceStoreConnectionKeyCommand>
 {
     ///<inheritdoc cref="ReplaceStoreConnectionKeyCommandValidator"/>
-    public ReplaceStoreConnectionKeyCommandValidator(IMilvaLocalizer localizer)
+    public ReplaceStoreConnectionKeyCommandValidator(IMilvaLocalizer localizer, TimeProvider timeProvider)
     {
         RuleFor(command => command.ConnectionId)
             .GreaterThan(0)
@@ -22,5 +23,10 @@ public sealed class ReplaceStoreConnectionKeyCommandValidator : AbstractValidato
             .NotNullOrEmpty(localizer, MessageKey.StoreSecret)
             .MaximumLength(AddStoreConnectionCommandValidator.SecretMaxLength)
             .WithMessage(localizer[MessageKey.StoreSecret]);
+
+        RuleFor(command => command.CredentialExpiryDate)
+            .Must(date => MsSecretRules.IsValidExpiry(date, timeProvider.GetUtcNow().UtcDateTime))
+            .WithMessage(localizer[MessageKey.MsSecretExpiryInvalid])
+            .When(command => command.CredentialExpiryDate.HasValue);
     }
 }

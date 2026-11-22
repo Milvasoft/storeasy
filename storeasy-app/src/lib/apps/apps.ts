@@ -1,4 +1,5 @@
-import { StoreKind, type AppListDto, type AppStoreRecordDto, type IsoDateTime } from '@/lib/api/types'
+import { ALL_STORES, byStore } from '@/lib/stores/channels'
+import { type StoreKind, type AppListDto, type AppStoreRecordDto, type IsoDateTime } from '@/lib/api/types'
 
 // Small pure helpers of the apps screens (design 6.1-6.7), unit tested.
 
@@ -16,7 +17,7 @@ export function isValidPackageName(value: string): boolean {
   return PACKAGE_NAME_PATTERN.test(value.trim())
 }
 
-export const STORE_ORDER: readonly StoreKind[] = [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]
+export const STORE_ORDER: readonly StoreKind[] = ALL_STORES
 
 /**
  * The order of the apps list when no sort is asked (GetAppListQueryHandler): the apps a member placed by their place,
@@ -82,7 +83,7 @@ export function lastSyncOf(apps: AppListDto[]): IsoDateTime | null {
 
 /** How many of the apps have a record in each store (the store chips' counters). */
 export function storeCounts(apps: AppListDto[]): Record<StoreKind, number> {
-  const counts = { [StoreKind.Apple]: 0, [StoreKind.Google]: 0, [StoreKind.Microsoft]: 0 } as Record<StoreKind, number>
+  const counts = byStore(() => 0)
   for (const app of apps) {
     for (const store of new Set((app.Stores ?? []).map((record) => record.Store))) {
       counts[store] += 1

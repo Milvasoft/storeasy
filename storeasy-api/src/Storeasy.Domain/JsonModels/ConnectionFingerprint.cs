@@ -41,7 +41,23 @@ public class ConnectionFingerprint
     public string SellerId { get; set; }
 
     /// <summary>
-    /// UTC instant the client secret expires, as entered by the user. Microsoft only.
+    /// UTC instant the credential expires, as entered by the user (Microsoft client secrets, GitHub tokens).
     /// </summary>
     public DateTime? SecretExpiryDate { get; set; }
+
+    /// <summary>
+    /// Account the channel writes as, for channels that write through a code host (the GitHub user or organization that
+    /// owns the winget-pkgs fork).
+    /// </summary>
+    public string AccountLogin { get; set; }
+
+    /// <summary>
+    /// Repository the channel writes to, as <c>owner/name</c> (the winget-pkgs fork).
+    /// </summary>
+    public string Repository { get; set; }
+
+    /// <summary>
+    /// Kind of token, told from its prefix (<c>classic</c>, <c>fine-grained</c>, <c>app</c>), never the token itself.
+    /// </summary>
+    public string TokenKind { get; set; }
 }

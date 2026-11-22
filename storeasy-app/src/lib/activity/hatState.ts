@@ -10,6 +10,7 @@ import {
   type StoreJobListDto,
 } from '@/lib/api/types'
 import { ActivityEventType, InboundEventType, type ActivityEvent } from './events'
+import { ALL_STORES } from '@/lib/stores/channels'
 
 // The live view's state, built from the hub's events (pure, framework free, unit tested) and seeded with the jobs that
 // were already active when the page opened. The line, its tokens and pulses, the gates and the reduced motion view all
@@ -415,7 +416,7 @@ export function isActive(job: JobView): boolean {
   return job.status === StoreJobStatus.Queued || job.status === StoreJobStatus.Running
 }
 
-export const LANE_STORES: readonly StoreKind[] = [StoreKind.Apple, StoreKind.Google, StoreKind.Microsoft]
+export const LANE_STORES: readonly StoreKind[] = ALL_STORES
 
 export interface Lane {
   store: StoreKind

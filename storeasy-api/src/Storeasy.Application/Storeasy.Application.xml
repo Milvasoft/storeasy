@@ -12126,6 +12126,484 @@
             Projection expression for mapping User entity to UserListDto.
             </summary>
         </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto">
+            <summary>
+            An installer of a new winget version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Url">
+            <summary>
+            Download address on the publisher's own site or release page (https, stable and specific to the version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Architecture">
+            <summary>
+            Architecture of the installed binaries: <c>x86</c>, <c>x64</c>, <c>arm</c>, <c>arm64</c> or <c>neutral</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Type">
+            <summary>
+            <c>msi</c>, <c>exe</c>, <c>msix</c>, <c>inno</c>, <c>nullsoft</c>, <c>wix</c>, <c>burn</c>, <c>zip</c>,
+            <c>portable</c> or <c>appx</c>; empty keeps the previous version's type.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Scope">
+            <summary>
+            <c>user</c> or <c>machine</c>; empty when the installer does not fix one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Sha256">
+            <summary>
+            Known SHA-256 of the file. Optional: storeasy downloads the file when the plan is applied and computes it; when
+            given, the download must match or nothing is pushed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.SilentSwitches">
+            <summary>
+            Silent install switches (needed for <c>exe</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.SilentWithProgressSwitches">
+            <summary>
+            Silent with progress switches.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.ProductCode">
+            <summary>
+            MSI product code (<c>{GUID}</c>), used by winget to match the installed program.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto.Locale">
+            <summary>
+            Locale of the installer, when it is language specific.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetLocaleInputDto">
+            <summary>
+            Text edits of one locale manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleInputDto.Locale">
+            <summary>
+            Locale (<c>en-US</c>). The default locale's texts are required fields of the package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleInputDto.Fields">
+            <summary>
+            Field name (<c>PackageName</c>, <c>ShortDescription</c>, <c>Description</c>, <c>ReleaseNotes</c>, ...) to new
+            value; an empty value removes an optional field.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleInputDto.Tags">
+            <summary>
+            New tags; null keeps the tags.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto">
+            <summary>
+            A winget package storeasy tracks: what the last sync read from winget-pkgs, its pull requests and the installers
+            storeasy already knows for the same app (to prefill a new version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.StoreAppId">
+            <summary>Store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.AppId">
+            <summary>storeasy app.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.AppName">
+            <summary>App name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.ConnectionId">
+            <summary>winget connection.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.Fork">
+            <summary>Fork the pull requests come from (<c>owner/name</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.PackageIdentifier">
+            <summary>Package identifier.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.IsPublished">
+            <summary>Whether winget-pkgs has a version of the package.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.LatestVersion">
+            <summary>Highest version in winget-pkgs.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.Versions">
+            <summary>Every version in winget-pkgs, highest first.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.Publisher">
+            <summary>Publisher of the latest version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.PackageName">
+            <summary>Package name of the latest version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.DefaultLocale">
+            <summary>Default locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.Locales">
+            <summary>Locales of the latest version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.ManifestVersion">
+            <summary>Schema version of the latest manifests.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.WrittenManifestVersion">
+            <summary>Schema version storeasy writes.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.SyncedDate">
+            <summary>Last successful sync.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.SyncError">
+            <summary>Why the last sync failed.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.PackagePageUrl">
+            <summary>Package folder in winget-pkgs.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.PullRequests">
+            <summary>Pull requests, newest first.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.InstallerSources">
+            <summary>MSI/EXE installers of the app's Microsoft Store product a new version can start from.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageDto.Projection">
+            <summary>
+            Projection of the row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto">
+            <summary>
+            An installer storeasy knows from the app's Microsoft Store MSI/EXE product.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.Url">
+            <summary>Download address.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.Type">
+            <summary>winget installer type (<c>msi</c> or <c>exe</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.Architectures">
+            <summary>winget architectures.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.SilentSwitches">
+            <summary>Silent switches (EXE).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.Locales">
+            <summary>Locales of the installer.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto.SignatureStatus">
+            <summary>Result of storeasy's Authenticode check.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto">
+            <summary>
+            A pull request to winget-pkgs and its review state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Id">
+            <summary>Row id.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.StoreAppId">
+            <summary>Store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Number">
+            <summary>Number in winget-pkgs.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Url">
+            <summary>Page.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Title">
+            <summary>Title.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.PackageVersion">
+            <summary>Package version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.ChangeKind">
+            <summary>What it changes; null for one found by the sync.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.State">
+            <summary>Review state.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.IsOpen">
+            <summary>Whether it is open.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.NeedsAction">
+            <summary>Whether the author must act (validation failed or feedback asked).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Labels">
+            <summary>Labels.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Checks">
+            <summary>Check runs of the head commit.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Comments">
+            <summary>Newest bot and moderator comments.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.StatusHistory">
+            <summary>States seen.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.CreatedByStoreasy">
+            <summary>Whether storeasy opened it.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.PlanId">
+            <summary>The plan that opened it.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.OpenedDate">
+            <summary>Opened.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.MergedDate">
+            <summary>Merged (published).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.ClosedDate">
+            <summary>Closed.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.SyncedDate">
+            <summary>Last sync.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPullRequestDto.Projection">
+            <summary>
+            Projection of the row.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto">
+            <summary>
+            The manifests of one version as read from winget-pkgs, with the listing texts per locale and storeasy's checks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.StoreAppId">
+            <summary>Store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.PackageIdentifier">
+            <summary>Package identifier.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Version">
+            <summary>Version read.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Versions">
+            <summary>Every version in winget-pkgs, highest first.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.DefaultLocale">
+            <summary>Default locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.ManifestVersion">
+            <summary>Schema version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Locales">
+            <summary>Listing texts per locale, the default locale first (a list: locale tags are values, not keys).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Installers">
+            <summary>Installer entries.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Files">
+            <summary>Manifest files (name and YAML).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetManifestDto.Issues">
+            <summary>storeasy's schema and policy checks.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetLocaleTextsDto">
+            <summary>
+            The listing texts of one locale manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleTextsDto.Locale">
+            <summary>Locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleTextsDto.IsDefault">
+            <summary>Whether it is the default locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleTextsDto.Fields">
+            <summary>Text fields: manifest key to value.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetLocaleTextsDto.Tags">
+            <summary>Tags.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto">
+            <summary>
+            One installer entry of an installer manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Architecture">
+            <summary>Architecture.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Type">
+            <summary>Installer type.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Scope">
+            <summary>Scope.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Url">
+            <summary>Download address.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Sha256">
+            <summary>SHA-256.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.SilentSwitches">
+            <summary>Silent switches.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.SilentWithProgressSwitches">
+            <summary>Silent with progress switches.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.ProductCode">
+            <summary>MSI product code.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetInstallerDto.Locale">
+            <summary>Installer locale.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetFileDto">
+            <summary>
+            A manifest file.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetFileDto.FileName">
+            <summary>File name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetFileDto.Content">
+            <summary>YAML text.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto">
+            <summary>
+            A schema or policy problem, localized.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto.Key">
+            <summary>Message key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto.Message">
+            <summary>Message.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto.Field">
+            <summary>Manifest field.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto.Locale">
+            <summary>Locale.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetIssueDto.Blocking">
+            <summary>Whether the validation pipeline would reject it.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetPackageAddedDto">
+            <summary>
+            The answer of adding a winget package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageAddedDto.AppId">
+            <summary>storeasy app the package belongs to.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageAddedDto.StoreAppId">
+            <summary>Store record.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPackageAddedDto.JobId">
+            <summary>Sync job reading the package.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange">
+            <summary>
+            The change of a winget plan (<see cref="F:Storeasy.Domain.Enums.ChangePlanKind.WingetChange"/>), stored in the plan: the exact manifest files
+            the approved write pushes, and the pull request around them. Installer hashes not known at planning are computed from
+            the downloads when the plan is applied (<see cref="F:Storeasy.Application.Utils.Winget.WingetManifestValidator.PendingSha256"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Kind">
+            <summary>
+            What the pull request changes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.PackageIdentifier">
+            <summary>
+            Package identifier.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.PackageVersion">
+            <summary>
+            Version the manifests are for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.BaseVersion">
+            <summary>
+            Version the plan was built on; null for a new package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Files">
+            <summary>
+            Manifest files to push.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.DeletePaths">
+            <summary>
+            Files to remove (a singleton manifest replaced by a multi-file one).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Installers">
+            <summary>
+            Installers whose hash is computed or checked on apply, by position in <c>Installers</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Branch">
+            <summary>
+            Branch pushed to the fork.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Title">
+            <summary>
+            Pull request title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.Body">
+            <summary>
+            Pull request body.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedChange.CommitMessage">
+            <summary>
+            Commit message.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetPlannedInstaller">
+            <summary>
+            An installer entry of a planned installer manifest.
+            </summary>
+            <param name="Index">Position in the manifest's <c>Installers</c>.</param>
+            <param name="Url">Download address.</param>
+            <param name="ExpectedSha256">Hash given in the plan; null when it is computed on apply.</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.WingetDtos.WingetPlannedInstaller.#ctor(System.Int32,System.String,System.String)">
+            <summary>
+            An installer entry of a planned installer manifest.
+            </summary>
+            <param name="Index">Position in the manifest's <c>Installers</c>.</param>
+            <param name="Url">Download address.</param>
+            <param name="ExpectedSha256">Hash given in the plan; null when it is computed on apply.</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedInstaller.Index">
+            <summary>Position in the manifest's <c>Installers</c>.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedInstaller.Url">
+            <summary>Download address.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetPlannedInstaller.ExpectedSha256">
+            <summary>Hash given in the plan; null when it is computed on apply.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.WingetDtos.WingetSyncPayload">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync"/> job.
+            </summary>
+            <param name="ConnectionId">winget connection to read with.</param>
+            <param name="StoreAppId">Only this package; null for every package of the connection.</param>
+            <param name="OpenOnly">Only refresh open pull requests (the schedule).</param>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.WingetDtos.WingetSyncPayload.#ctor(System.Int32,System.Nullable{System.Int32},System.Boolean)">
+            <summary>
+            Payload of a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync"/> job.
+            </summary>
+            <param name="ConnectionId">winget connection to read with.</param>
+            <param name="StoreAppId">Only this package; null for every package of the connection.</param>
+            <param name="OpenOnly">Only refresh open pull requests (the schedule).</param>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetSyncPayload.ConnectionId">
+            <summary>winget connection to read with.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetSyncPayload.StoreAppId">
+            <summary>Only this package; null for every package of the connection.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.WingetDtos.WingetSyncPayload.OpenOnly">
+            <summary>Only refresh open pull requests (the schedule).</summary>
+        </member>
         <member name="T:Storeasy.Application.Features.Account.AccountDetail.AccountDetailQuery">
             <summary>
             Data transfer object for account details. The account is always the authenticated caller's own (taken from the token).
@@ -14244,13 +14722,15 @@
             </summary>
             <param name="ConnectionRepository"></param>
             <param name="StoreJobQueue"></param>
+            <param name="Channels"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreJobQueue)">
+        <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreJobQueue,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannel})">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand"/>. One job per connection, queued in one write.
             </summary>
             <param name="ConnectionRepository"></param>
             <param name="StoreJobQueue"></param>
+            <param name="Channels"></param>
         </member>
         <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.ConnectionRepository">
             <summary></summary>
@@ -14258,9 +14738,12 @@
         <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.StoreJobQueue">
             <summary></summary>
         </member>
+        <member name="P:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.Channels">
+            <summary></summary>
+        </member>
         <member name="F:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.SupportedStores">
             <summary>
-            Stores the sync job reads today.
+            The first three stores, synced by their own jobs; registered channels (IStoreChannel) bring their own sync job.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommandHandler.Handle(Storeasy.Application.Features.Apps.SyncApps.SyncAppsCommand,System.Threading.CancellationToken)">
@@ -25408,7 +25891,8 @@
             <summary>
             Adds store credentials to an organization. The secret is checked offline, sealed and stored; it is never returned.
             Apple: <c>{"issuerId","keyId","privateKey"}</c>. Google: the service account JSON key file content. Microsoft:
-            <c>{"tenantId","clientId","clientSecret","sellerId"}</c> with <see cref="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.CredentialExpiryDate"/>.
+            <c>{"tenantId","clientId","clientSecret","sellerId"}</c> with <see cref="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.CredentialExpiryDate"/>. winget:
+            <c>{"token","fork"}</c>, a GitHub token and the owner/name of the winget-pkgs fork, optionally with the token expiry.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.OrganizationId">
@@ -25437,8 +25921,8 @@
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommand.CredentialExpiryDate">
             <summary>
-            Microsoft only, required: UTC instant the Entra client secret expires (at most 24 months away). The expiry
-            reminders read it.
+            UTC instant the credential expires (at most 24 months away): required for Microsoft (the Entra client secret, read
+            by the expiry reminders), optional for winget (the GitHub token); ignored for the other stores.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.AddStoreConnection.AddStoreConnectionCommandHandler">
@@ -25558,9 +26042,10 @@
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand">
             <summary>
-            Replaces the key of an existing App Store Connect or Google Play connection in place, so the connection id and
+            Replaces the key of an existing App Store Connect, Google Play or channel (winget and later) connection in place, so the connection id and
             everything linked to it (apps, jobs, history) stay. An Apple key must belong to the same team (the same issuer id);
-            a Google service account may be another one. The new key is checked offline, verified against the store and only then
+            a Google service account may be another one; a channel's credential must be for the same account (the same winget-pkgs
+            fork). The new key is checked offline, verified against the store and only then
             sealed in place of the old one; when verification fails the old key stays. A Microsoft secret is replaced with
             <c>RotateMsConnectionSecretCommand</c>.
             </summary>
@@ -25570,13 +26055,18 @@
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.ConnectionId">
             <summary>
-            Apple or Google connection.
+            Apple, Google or channel connection.
             </summary>
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.Secret">
             <summary>
             The new secret JSON, in the shape the connection was added with. Apple: <c>{"issuerId","keyId","privateKey"}</c>.
-            Google: the service account JSON key file content. Masked in logs.
+            Google: the service account JSON key file content. winget: <c>{"token","fork"}</c>. Masked in logs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand.CredentialExpiryDate">
+            <summary>
+            Expiry of the new credential, for stores that record one (a GitHub token); ignored otherwise.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler">
@@ -25592,8 +26082,9 @@
             <param name="SecretProtector"></param>
             <param name="AuditTrail"></param>
             <param name="TimeProvider"></param>
+            <param name="Channels"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreGateway,Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreChannel})">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand"/>. The secret property is <c>[LogMasked]</c>. The new key is
             parsed with the same offline checks as adding a connection; an Apple key's issuer id is compared with the one sealed in
@@ -25606,6 +26097,7 @@
             <param name="SecretProtector"></param>
             <param name="AuditTrail"></param>
             <param name="TimeProvider"></param>
+            <param name="Channels"></param>
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.ConnectionRepository">
             <summary></summary>
@@ -25620,6 +26112,9 @@
             <summary></summary>
         </member>
         <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.Channels">
             <summary></summary>
         </member>
         <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandHandler.Handle(Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommand,System.Threading.CancellationToken)">
@@ -25638,7 +26133,7 @@
             the handler parses it; here it only has to be present and not too long.
             </summary>
         </member>
-        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+        <member name="M:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
             <inheritdoc cref="T:Storeasy.Application.Features.StoreConnections.ReplaceStoreConnectionKey.ReplaceStoreConnectionKeyCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.StoreConnections.UpdateStoreConnection.UpdateStoreConnectionCommand">
@@ -28964,6 +29459,380 @@
         </member>
         <member name="M:Storeasy.Application.Features.Webhooks.UpdateOrgWebhook.UpdateOrgWebhookCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Webhooks.UpdateOrgWebhook.UpdateOrgWebhookCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand">
+            <summary>
+            Adds a winget package by its package identifier (winget has no API that lists a publisher's packages). The package is
+            attached to an existing storeasy app (usually the one of the same program's Microsoft Store MSI/EXE product) or to a
+            new app, and a sync reads its manifests. A package without a version in winget-pkgs yet can be added too: its first
+            version is then a "new package" pull request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand.ConnectionId">
+            <summary>
+            winget connection.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand.PackageIdentifier">
+            <summary>
+            Package identifier (<c>Publisher.Package</c>, case sensitive as in winget-pkgs).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand.AppId">
+            <summary>
+            storeasy app to attach the package to; null creates a new app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand.Name">
+            <summary>
+            Name of a new app; defaults to the package identifier.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand"/>.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="PackageRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPackage},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand"/>.
+            </summary>
+            <param name="ConnectionRepository"></param>
+            <param name="AppRepository"></param>
+            <param name="StoreAppRepository"></param>
+            <param name="PackageRepository"></param>
+            <param name="StoreJobQueue"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.ConnectionRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.AppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.PackageRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandHandler.Handle(Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.AddWingetPackage.AddWingetPackageCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery">
+            <summary>
+            Reads the manifests of one version of a winget package live from winget-pkgs: the listing texts per locale, the
+            installers, the YAML files and storeasy's schema and policy checks.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery.StoreAppId">
+            <summary>
+            winget store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery.Version">
+            <summary>
+            Version folder to read; null reads the latest.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery"/> through the shared content read, so a store error comes back as for any
+            other store.
+            </summary>
+            <param name="contentService"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery"/> through the shared content read, so a store error comes back as for any
+            other store.
+            </summary>
+            <param name="contentService"></param>
+            <param name="localizer"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryHandler.Handle(Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.GetWingetManifest.GetWingetManifestQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery">
+            <summary>
+            Reads a winget package as the last sync saw it, with its pull requests and review states and the installers storeasy
+            knows for the same app. Database only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery.StoreAppId">
+            <summary>
+            winget store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery"/>. A record of another organization or another store is reported as not found.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="installerRepository"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Stores.StoreConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Storeasy.Application.Utils.Models.WingetOptions)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery"/>. A record of another organization or another store is reported as not found.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="installerRepository"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryHandler.Handle(Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.GetWingetPackage.GetWingetPackageQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery">
+            <summary>
+            Lists the pull requests of a winget package with their review state (validation, feedback, approval, merged =
+            published), newest first. Database only; the sync refreshes them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery.StoreAppId">
+            <summary>
+            winget store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery"/>. A record of another organization or another store is reported as
+            not found.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery"/>. A record of another organization or another store is reported as
+            not found.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="pullRequestRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryHandler.Handle(Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.GetWingetPullRequestList.GetWingetPullRequestListQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand">
+            <summary>
+            Plans a winget pull request: a new version (manifests built from the latest version's, with new installers given here
+            or taken from the app's Microsoft Store MSI/EXE product) or locale text edits of an existing version. The manifests are
+            checked against the schema and the winget-pkgs policies first; the plan shows every file it pushes. Approving it pushes
+            a branch to the fork and opens the pull request to microsoft/winget-pkgs; the merge (by the winget moderators) publishes
+            the version. Dry run by default.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.StoreAppId">
+            <summary>
+            winget store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.Kind">
+            <summary>
+            New version or locale texts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.Version">
+            <summary>
+            The new version (required for a new version), or the version whose texts change (null: the latest).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.Installers">
+            <summary>
+            Installers of a new version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.FromMicrosoftStore">
+            <summary>
+            Also take the installers of the app's Microsoft Store MSI/EXE product (one entry per architecture).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.Locales">
+            <summary>
+            Locale text edits (release notes of a new version go here too). A new package needs its default locale's
+            Publisher, PackageName, License and ShortDescription.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.DryRun">
+            <summary>
+            True (default): only save the plan for approval.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand.Confirm">
+            <summary>
+            Confirmation text when the plan is approved at once (the package identifier and the version).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand"/>.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="ChangePlanService"></param>
+            <param name="PullRequestRepository"></param>
+            <param name="InstallerRepository"></param>
+            <param name="Localizer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Winget.WingetPullRequest},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsInstallerPackage},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand"/>.
+            </summary>
+            <param name="ContentService"></param>
+            <param name="ChangePlanService"></param>
+            <param name="PullRequestRepository"></param>
+            <param name="InstallerRepository"></param>
+            <param name="Localizer"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.ContentService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.ChangePlanService">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.PullRequestRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.InstallerRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.Localizer">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandHandler.Handle(Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommand"/>. The manifest rules themselves are checked by the planner, which
+            reports every problem at once.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandValidator.MaxInstallers">
+            <summary>
+            Most installers of one version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandValidator.MaxLocales">
+            <summary>
+            Most locales edited at once.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.PlanWingetChange.PlanWingetChangeCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand">
+            <summary>
+            Queues a sync of one winget package: its versions and manifests from winget-pkgs and the review state of its pull
+            requests. The schedule refreshes open pull requests every 15 minutes on its own.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand.StoreAppId">
+            <summary>
+            winget store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand"/>.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreJobQueue)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand"/>.
+            </summary>
+            <param name="StoreAppRepository"></param>
+            <param name="StoreJobQueue"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandHandler.StoreAppRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandHandler.StoreJobQueue">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandHandler.Handle(Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Winget.SyncWinget.SyncWingetCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Interfaces.IAccountMailer">
             <summary>
@@ -33300,6 +34169,96 @@
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
+        <member name="T:Storeasy.Application.Interfaces.IStoreChannel">
+            <summary>
+            The engine of one store or distribution channel that plugs into the shared store code without a branch for it: the
+            store gateway (<see cref="T:Storeasy.Application.Interfaces.IStoreGateway"/>) hands its calls for <see cref="P:Storeasy.Application.Interfaces.IStoreChannel.Store"/> to the channel, "sync apps" queues
+            the channel's own sync job, and replacing a connection's key asks the channel whether the new credential is for the same
+            account. Registered as a singleton; one per <see cref="T:Storeasy.Domain.Enums.StoreKind"/>. The first three stores predate this interface and
+            are wired in directly; every channel after them implements it (docs/adding-a-store.md).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.IStoreChannel.Store">
+            <summary>
+            The store this engine serves.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.Inspect(System.String)">
+            <summary>
+            Parses and checks a credential offline: its fingerprint (without the secret) and the normalized JSON to encrypt.
+            </summary>
+            <param name="secretJson"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.VerifyAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Checks a credential against the store with the cheapest read that proves it works.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="productId">Optional product to probe.</param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.ListAppsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            The owner's products in the store, when the store can list them; otherwise throws a <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>
+            that says how a product is added.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.GetAppAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            One product by its external id.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="externalId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.ListBuildsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            The product's versions or packages as builds.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="externalId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.GetIconUrlAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Address of the product's icon, or null when the store has none.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="externalId"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.SyncJob(System.Int32,System.Int32)">
+            <summary>
+            The job "sync apps" queues for a connection of this store.
+            </summary>
+            <param name="organizationId"></param>
+            <param name="connectionId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.SameAccount(Storeasy.Domain.JsonModels.ConnectionFingerprint,Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <summary>
+            Whether a replacement credential belongs to the same account as the stored one (replacing a key must not move a
+            connection to another account).
+            </summary>
+            <param name="current">Fingerprint of the stored credential.</param>
+            <param name="next">Fingerprint of the replacement.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IStoreChannel.CredentialLabel(Storeasy.Domain.JsonModels.ConnectionFingerprint)">
+            <summary>
+            Short, non secret name of a credential for audit texts (a key id, an account).
+            </summary>
+            <param name="fingerprint"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Application.Interfaces.IStoreContentGateway">
             <summary>
             The content engine of one store (App Store Connect, Google Play; later Microsoft Store): reads the store's current
@@ -36106,6 +37065,214 @@
         </member>
         <member name="P:Storeasy.Application.Interfaces.WebPushMessage.NotificationId">
             <summary>In-app notification id, when there is one.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IWingetClient">
+            <summary>
+            GitHub calls of the winget channel: reads of microsoft/winget-pkgs (public, read with the owner's token for the higher
+            rate limit), the fork check, and the one write: a branch with the manifests pushed to the fork and the pull request
+            opened from it. Failures become <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.VerifyAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Checks the token and the fork: the token works, the fork exists, is a fork of winget-pkgs and the token can push to it.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.ListVersionsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Version folders of a package in winget-pkgs, highest first; empty when the package has none.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="packageIdentifier"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.ReadManifestFilesAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Manifest files of one version folder (file name to YAML text).
+            </summary>
+            <param name="secretJson"></param>
+            <param name="packageIdentifier"></param>
+            <param name="version"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.FindPullRequestsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Pull requests of the fork owner in winget-pkgs whose title names the package (newest first, open and closed).
+            </summary>
+            <param name="secretJson"></param>
+            <param name="packageIdentifier"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.GetPullRequestAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            One pull request with its labels, the check runs of its head commit and its newest comments.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="number"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.HashInstallerAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Downloads an installer from a public address and returns its SHA-256 (upper case hex) and size.
+            </summary>
+            <param name="url"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IWingetClient.OpenPullRequestAsync(System.String,Storeasy.Application.Interfaces.WingetPullRequestDraft,System.Threading.CancellationToken)">
+            <summary>
+            Brings the fork's default branch up to date with winget-pkgs, pushes a branch with the files in one commit and opens
+            the pull request. When GitHub refuses the pull request (a fine-grained token cannot open one in a repository its
+            owner does not own), the branch stays and the answer carries the compare page instead of a number.
+            </summary>
+            <param name="secretJson"></param>
+            <param name="draft"></param>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.WingetPullRequestRead">
+            <summary>
+            A pull request as read from GitHub.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Number">
+            <summary>Number.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Url">
+            <summary>Page.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Title">
+            <summary>Title.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Open">
+            <summary>Whether it is open.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Merged">
+            <summary>Whether it was merged.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Draft">
+            <summary>Whether it is a draft.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.HeadBranch">
+            <summary>Head branch (in the fork).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.HeadSha">
+            <summary>Head commit.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Labels">
+            <summary>Labels.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Checks">
+            <summary>Check runs of the head commit (empty for a search result).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.Comments">
+            <summary>Newest comments (empty for a search result).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.CreatedDate">
+            <summary>Opened.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.MergedDate">
+            <summary>Merged.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestRead.ClosedDate">
+            <summary>Closed.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.WingetPullRequestDraft">
+            <summary>
+            What to push and open.
+            </summary>
+            <param name="Branch">Branch to create in the fork.</param>
+            <param name="CommitMessage">Commit message.</param>
+            <param name="Title">Pull request title.</param>
+            <param name="Body">Pull request body (Markdown).</param>
+            <param name="Files">Files to add or replace (path inside the repository to text).</param>
+            <param name="DeletePaths">Files to remove (a version rewritten from a singleton manifest).</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.WingetPullRequestDraft.#ctor(System.String,System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.Winget.WingetManifestFile},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            What to push and open.
+            </summary>
+            <param name="Branch">Branch to create in the fork.</param>
+            <param name="CommitMessage">Commit message.</param>
+            <param name="Title">Pull request title.</param>
+            <param name="Body">Pull request body (Markdown).</param>
+            <param name="Files">Files to add or replace (path inside the repository to text).</param>
+            <param name="DeletePaths">Files to remove (a version rewritten from a singleton manifest).</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.Branch">
+            <summary>Branch to create in the fork.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.CommitMessage">
+            <summary>Commit message.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.Title">
+            <summary>Pull request title.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.Body">
+            <summary>Pull request body (Markdown).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.Files">
+            <summary>Files to add or replace (path inside the repository to text).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetPullRequestDraft.DeletePaths">
+            <summary>Files to remove (a version rewritten from a singleton manifest).</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.WingetOpenedPullRequest">
+            <summary>
+            The result of <see cref="M:Storeasy.Application.Interfaces.IWingetClient.OpenPullRequestAsync(System.String,Storeasy.Application.Interfaces.WingetPullRequestDraft,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Number">Pull request number; null when GitHub refused to open it.</param>
+            <param name="Url">Pull request page, or the compare page of the pushed branch.</param>
+            <param name="HeadSha">Commit pushed.</param>
+            <param name="RefusedReason">Why GitHub refused the pull request, when it did.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.WingetOpenedPullRequest.#ctor(System.Nullable{System.Int32},System.String,System.String,System.String)">
+            <summary>
+            The result of <see cref="M:Storeasy.Application.Interfaces.IWingetClient.OpenPullRequestAsync(System.String,Storeasy.Application.Interfaces.WingetPullRequestDraft,System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="Number">Pull request number; null when GitHub refused to open it.</param>
+            <param name="Url">Pull request page, or the compare page of the pushed branch.</param>
+            <param name="HeadSha">Commit pushed.</param>
+            <param name="RefusedReason">Why GitHub refused the pull request, when it did.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetOpenedPullRequest.Number">
+            <summary>Pull request number; null when GitHub refused to open it.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetOpenedPullRequest.Url">
+            <summary>Pull request page, or the compare page of the pushed branch.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetOpenedPullRequest.HeadSha">
+            <summary>Commit pushed.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetOpenedPullRequest.RefusedReason">
+            <summary>Why GitHub refused the pull request, when it did.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.WingetInstallerHash">
+            <summary>
+            Hash of a downloaded installer.
+            </summary>
+            <param name="Sha256">SHA-256, upper case hex (the form winget tools write).</param>
+            <param name="Size">Bytes read.</param>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.WingetInstallerHash.#ctor(System.String,System.Int64)">
+            <summary>
+            Hash of a downloaded installer.
+            </summary>
+            <param name="Sha256">SHA-256, upper case hex (the form winget tools write).</param>
+            <param name="Size">Bytes read.</param>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetInstallerHash.Sha256">
+            <summary>SHA-256, upper case hex (the form winget tools write).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Interfaces.WingetInstallerHash.Size">
+            <summary>Bytes read.</summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Ai.CategorySuggestionPrompt">
             <summary>
@@ -41159,7 +42326,7 @@
             <summary>
             Removes anything that looks like a credential from text before it is logged, stored or returned: bearer tokens,
             JWTs, PEM private keys, Google access tokens, Apple webhook signatures, signed URL query strings and
-            <c>access_token</c> query values (the SignalR websocket token).
+            <c>access_token</c> query values (the SignalR websocket token), storeasy, GitHub and Anthropic tokens.
             Ported from store-ops <c>redact()</c>.
             </summary>
         </member>
@@ -41298,6 +42465,25 @@
                     ○ Match the string "whsec".<br/>
             ○ Match '_'.<br/>
             ○ Match a character in the set [\-0-9A-Z_a-z] atomically at least 8 times.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Helpers.SecretRedactor.GitHubTokenRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\u0008(?&lt;kind&gt;gh[pousr]|github_pat)_[A-Za-z0-9_]{8,}</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '\b'.<br/>
+            ○ "kind" capture group.<br/>
+                ○ Match 'g'.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match 'h'.<br/>
+                        ○ Match a character in the set [oprsu].<br/>
+                    ○ Match the string "ithub_pat".<br/>
+            ○ Match '_'.<br/>
+            ○ Match a character in the set [0-9A-Z_a-z] atomically at least 8 times.<br/>
             </code>
             </remarks>
         </member>
@@ -42907,6 +44093,47 @@
         <member name="P:Storeasy.Application.Utils.Models.WebPushOptions.Enabled">
             <summary>
             Whether web push is configured.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Models.WingetOptions">
+            <summary>
+            Settings of the winget channel (configuration section <see cref="F:Storeasy.Application.Utils.Models.WingetOptions.SectionName"/>), bound once and registered as a
+            singleton. The defaults are GitHub and the community repository; tests point <see cref="P:Storeasy.Application.Utils.Models.WingetOptions.ApiBaseUrl"/> at a fake.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Models.WingetOptions.SectionName">
+            <summary>
+            Configuration section of the options.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.ApiBaseUrl">
+            <summary>
+            GitHub REST API base address.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.Upstream">
+            <summary>
+            The repository pull requests go to, as <c>owner/name</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.UpstreamBranch">
+            <summary>
+            Default branch of <see cref="P:Storeasy.Application.Utils.Models.WingetOptions.Upstream"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.InstallerMaxBytes">
+            <summary>
+            Largest installer downloaded to compute its hash (bytes).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.BlockPrivateDownloadAddresses">
+            <summary>
+            Whether installer downloads must resolve to public addresses (off only in tests).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.WingetOptions.SearchLimit">
+            <summary>
+            Most version folders whose pull requests a sync looks up by search.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Monetization.MonetizationAssistedSteps">
@@ -44565,6 +45792,1051 @@
             <param name="permissions"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetContent">
+            <summary>
+            The winget package as a store content snapshot (what the shared content reads, readiness and change plan conflict
+            checks work on): listing texts as <c>Listing|locale|Field</c> values, the version list and the raw manifest files of the
+            version read, plus a hash of those files that a plan's approval compares.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetContent.VersionsKey">
+            <summary>
+            Value key of the version list (highest first, comma separated).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetContent.BaseKey">
+            <summary>
+            Value key of the hash of the read version's manifest files.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetContent.FilePrefix">
+            <summary>
+            Value key prefix of a manifest file of the read version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetContent.ReadPrefix">
+            <summary>
+            Base key prefix naming the version a plan was built on (a text edit of an older version); its value is never set,
+            the key only tells the approval which version to read again.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetContent.PublishedState">
+            <summary>
+            Version state of a version in winget-pkgs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.ToSnapshot(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            A snapshot of <paramref name="version"/> (null: the package has no version yet).
+            </summary>
+            <param name="packageIdentifier"></param>
+            <param name="versions">Every version, highest first.</param>
+            <param name="version"></param>
+            <param name="files">Manifest files of <paramref name="version"/>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.VersionsOf(Storeasy.Application.Interfaces.StoreContentSnapshot)">
+            <summary>
+            Versions of a snapshot, highest first.
+            </summary>
+            <param name="snapshot"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.FilesOf(Storeasy.Application.Interfaces.StoreContentSnapshot)">
+            <summary>
+            Manifest files of a snapshot (file name to YAML).
+            </summary>
+            <param name="snapshot"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.Hash(System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            Hash of manifest files, independent of their order.
+            </summary>
+            <param name="files"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.ToDto(System.Int32,Storeasy.Application.Interfaces.StoreContentSnapshot,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            The manifests of a snapshot for the API, with storeasy's checks localized.
+            </summary>
+            <param name="storeAppId"></param>
+            <param name="snapshot"></param>
+            <param name="localizer"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.InstallersOf(Storeasy.Application.Utils.Winget.WingetManifestSet)">
+            <summary>
+            Installer entries of a set, with the manifest level values filled in.
+            </summary>
+            <param name="set"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetContent.Localize(System.Collections.Generic.IEnumerable{Storeasy.Application.Utils.Winget.WingetIssue},Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <summary>
+            Localized issues.
+            </summary>
+            <param name="issues"></param>
+            <param name="localizer"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetCredentials">
+            <summary>
+            The secret of a winget connection: a GitHub token and the owner's fork of winget-pkgs (<c>owner/name</c>). Stored
+            encrypted like every store secret; the fork is also in the fingerprint.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetCredentials.Token">
+            <summary>
+            GitHub personal access token: classic (<c>ghp_</c>, <c>public_repo</c> scope) or fine-grained (<c>github_pat_</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetCredentials.Fork">
+            <summary>
+            The fork of winget-pkgs the branches are pushed to, as <c>owner/name</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetCredentials.ForkOwner">
+            <summary>
+            Owner part of <see cref="P:Storeasy.Application.Utils.Winget.WingetCredentials.Fork"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetCredentials.ForkName">
+            <summary>
+            Name part of <see cref="P:Storeasy.Application.Utils.Winget.WingetCredentials.Fork"/>.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetCredentialParser">
+            <summary>
+            Parses and checks a winget secret offline.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetCredentialParser.ClassicToken">
+            <summary>
+            Token kind of a classic personal access token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetCredentialParser.FineGrainedToken">
+            <summary>
+            Token kind of a fine-grained personal access token.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetCredentialParser.TokenMaxLength">
+            <summary>
+            Longest token accepted.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetCredentialParser.TokenRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^(ghp_[A-Za-z0-9]{30,250}|github_pat_[A-Za-z0-9_]{30,250})$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match 'g'.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match the string "hp_".<br/>
+                        ○ Match an ASCII letter or digit atomically at least 30 and at most 250 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match the string "ithub_pat_".<br/>
+                        ○ Match a character in the set [0-9A-Z_a-z] atomically at least 30 and at most 250 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetCredentialParser.ForkRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}/[A-Za-z0-9._-]{1,100}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match an ASCII letter or digit.<br/>
+            ○ Loop greedily at most 38 times.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match an ASCII letter or digit.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match '-'.<br/>
+                        ○ Zero-width positive lookahead.<br/>
+                            ○ Match an ASCII letter or digit.<br/>
+            ○ Match '/'.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least 1 and at most 100 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetCredentialParser.Parse(System.String,System.String@)">
+            <summary>
+            The credentials of <paramref name="json"/>, or null with <paramref name="errorKey"/> set. Accepts
+            <c>{"token": "...", "fork": "owner/winget-pkgs"}</c>; a fork given as a GitHub address is reduced to
+            <c>owner/name</c>.
+            </summary>
+            <param name="json"></param>
+            <param name="errorKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetCredentialParser.KindOf(System.String)">
+            <summary>
+            <c>classic</c> or <c>fine-grained</c>, from the token's prefix.
+            </summary>
+            <param name="token"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetFields">
+            <summary>
+            The parts of the winget manifest schema storeasy checks and edits (schema 1.12.0, the version wingetcreate writes;
+            the limits are the same in the later schema versions). Source: winget-cli <c>schemas/JSON/manifests</c> and
+            winget-pkgs <c>doc/manifest/schema</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetFields.DefaultManifestVersion">
+            <summary>
+            Schema version storeasy writes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetFields.MinimumManifestVersion">
+            <summary>
+            Oldest schema version storeasy keeps when it rewrites a manifest; older ones are raised to
+            <see cref="F:Storeasy.Application.Utils.Winget.WingetFields.DefaultManifestVersion"/> (the pipeline labels deprecated versions <c>Manifest-Version-Deprecated</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.ListingFields">
+            <summary>
+            Fields of a locale manifest that storeasy edits as the package's "listing", with their limits (min, max length).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.LocaleFields">
+            <summary>
+            Every key of a locale manifest (used to split a singleton manifest).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetFields.MaxTags">
+            <summary>
+            Most tags of a locale manifest.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetFields.TagMaxLength">
+            <summary>
+            Maximum length of one tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.InstallerTypes">
+            <summary>
+            <c>InstallerType</c> values of the schema.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.AllowedInstallerTypes">
+            <summary>
+            Installer types the community repository accepts under <c>manifests/</c> (fonts live under <c>fonts/</c>; PWAs are
+            not supported).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.Architectures">
+            <summary>
+            <c>Architecture</c> values.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.Scopes">
+            <summary>
+            <c>Scope</c> values.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.Switches">
+            <summary>
+            <c>InstallerSwitches</c> keys with their maximum length.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetFields.NeedsSwitches">
+            <summary>
+            Installer types that need silent switches in the manifest (the others carry their own: msi, wix, inno, nullsoft,
+            burn, msix and portable).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.PackageIdentifier">
+            <remarks>
+            Pattern:<br/>
+            <code>^[^\.\s\\/:\*\?"&lt;&gt;\|\x01-\x1f]{1,32}(\.[^\.\s\\/:\*\?"&lt;&gt;\|\x01-\x1f]{1,32}){1,7}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [^\u0001-\u001F"*./:&lt;&gt;?\\|\s] atomically at least 1 and at most 32 times.<br/>
+            ○ Loop greedily at least 1 and at most 7 times.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match '.'.<br/>
+                    ○ Match a character in the set [^\u0001-\u001F"*./:&lt;&gt;?\\|\s] atomically at least 1 and at most 32 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.PackageVersion">
+            <remarks>
+            Pattern:<br/>
+            <code>^[^\\/:\*\?"&lt;&gt;\|\x01-\x1f]+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [^\u0001-\u001F"*/:&lt;&gt;?\\|] atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.Locale">
+            <remarks>
+            Pattern:<br/>
+            <code>^([a-zA-Z]{2,3}|[iI]-[a-zA-Z]+|[xX]-[a-zA-Z]{1,8})(-[a-zA-Z]{1,8})*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match with 3 alternative expressions.<br/>
+                    ○ Match an ASCII letter greedily at least 2 and at most 3 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ii].<br/>
+                        ○ Match '-'.<br/>
+                        ○ Match an ASCII letter greedily at least once.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Xx].<br/>
+                        ○ Match '-'.<br/>
+                        ○ Match an ASCII letter greedily at least 1 and at most 8 times.<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 2nd capture group.<br/>
+                    ○ Match '-'.<br/>
+                    ○ Match an ASCII letter atomically at least 1 and at most 8 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.Sha256">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Fa-f0-9]{64}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a hexadecimal digit exactly 64 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.Url">
+            <remarks>
+            Pattern:<br/>
+            <code>^([Hh][Tt][Tt][Pp][Ss]?)://.+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match a character in the set [Hh].<br/>
+                ○ Match a character in the set [Tt] exactly 2 times.<br/>
+                ○ Match a character in the set [Pp].<br/>
+                ○ Match a character in the set [Ss] atomically, optionally.<br/>
+            ○ Match the string "://".<br/>
+            ○ Match a character other than '\n' greedily at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.ManifestVersion">
+            <remarks>
+            Pattern:<br/>
+            <code>^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])(\.(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])){2}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match with 4 alternative expressions.<br/>
+                    ○ Match '0'.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-9].<br/>
+                        ○ Match a character in the set [0-9] atomically at most 3 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-5].<br/>
+                        ○ Match a character in the set [0-9] exactly 4 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match '6'.<br/>
+                        ○ Match with 2 alternative expressions.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [0-4].<br/>
+                                ○ Match a character in the set [0-9] exactly 3 times.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match '5'.<br/>
+                                ○ Match with 2 alternative expressions.<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match a character in the set [0-4].<br/>
+                                        ○ Match a character in the set [0-9] exactly 2 times.<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match '5'.<br/>
+                                        ○ Match with 2 alternative expressions.<br/>
+                                            ○ Match a sequence of expressions.<br/>
+                                                ○ Match a character in the set [0-2].<br/>
+                                                ○ Match a character in the set [0-9].<br/>
+                                            ○ Match a sequence of expressions.<br/>
+                                                ○ Match '3'.<br/>
+                                                ○ Match a character in the set [0-5].<br/>
+            ○ Loop exactly 2 times.<br/>
+                ○ 2nd capture group.<br/>
+                    ○ Match '.'.<br/>
+                    ○ 3rd capture group.<br/>
+                        ○ Match with 4 alternative expressions.<br/>
+                            ○ Match '0'.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [1-9].<br/>
+                                ○ Match a character in the set [0-9] greedily at most 3 times.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [1-5].<br/>
+                                ○ Match a character in the set [0-9] exactly 4 times.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match '6'.<br/>
+                                ○ Match with 2 alternative expressions.<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match a character in the set [0-4].<br/>
+                                        ○ Match a character in the set [0-9] exactly 3 times.<br/>
+                                    ○ Match a sequence of expressions.<br/>
+                                        ○ Match '5'.<br/>
+                                        ○ Match with 2 alternative expressions.<br/>
+                                            ○ Match a sequence of expressions.<br/>
+                                                ○ Match a character in the set [0-4].<br/>
+                                                ○ Match a character in the set [0-9] exactly 2 times.<br/>
+                                            ○ Match a sequence of expressions.<br/>
+                                                ○ Match '5'.<br/>
+                                                ○ Match with 2 alternative expressions.<br/>
+                                                    ○ Match a sequence of expressions.<br/>
+                                                        ○ Match a character in the set [0-2].<br/>
+                                                        ○ Match a character in the set [0-9].<br/>
+                                                    ○ Match a sequence of expressions.<br/>
+                                                        ○ Match '3'.<br/>
+                                                        ○ Match a character in the set [0-5].<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetFields.OsVersion">
+            <remarks>
+            Pattern:<br/>
+            <code>^(0|[1-9][0-9]{0,4})(\.(0|[1-9][0-9]{0,4})){0,3}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ 1st capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match '0'.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [1-9].<br/>
+                        ○ Match a character in the set [0-9] greedily at most 4 times.<br/>
+            ○ Loop greedily at most 3 times.<br/>
+                ○ 2nd capture group.<br/>
+                    ○ Match '.'.<br/>
+                    ○ 3rd capture group.<br/>
+                        ○ Match with 2 alternative expressions.<br/>
+                            ○ Match '0'.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [1-9].<br/>
+                                ○ Match a character in the set [0-9] greedily at most 4 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetTextField">
+            <summary>
+            A text field of a locale manifest.
+            </summary>
+            <param name="Name">Manifest key.</param>
+            <param name="MinLength">Minimum length when present (0: none).</param>
+            <param name="MaxLength">Maximum length.</param>
+            <param name="RequiredInDefault">Required in the default locale manifest.</param>
+            <param name="DefaultOnly">Only meaningful in the default locale manifest (Moniker).</param>
+            <param name="IsUrl">An http(s) address.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetTextField.#ctor(System.String,System.Int32,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            A text field of a locale manifest.
+            </summary>
+            <param name="Name">Manifest key.</param>
+            <param name="MinLength">Minimum length when present (0: none).</param>
+            <param name="MaxLength">Maximum length.</param>
+            <param name="RequiredInDefault">Required in the default locale manifest.</param>
+            <param name="DefaultOnly">Only meaningful in the default locale manifest (Moniker).</param>
+            <param name="IsUrl">An http(s) address.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.Name">
+            <summary>Manifest key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.MinLength">
+            <summary>Minimum length when present (0: none).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.MaxLength">
+            <summary>Maximum length.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.RequiredInDefault">
+            <summary>Required in the default locale manifest.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.DefaultOnly">
+            <summary>Only meaningful in the default locale manifest (Moniker).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetTextField.IsUrl">
+            <summary>An http(s) address.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetInstallerSources">
+            <summary>
+            What the Microsoft Store MSI/EXE engine already knows about an installer (address, type, architectures, languages,
+            silent switches) in winget terms, so a new winget version can start from the same packages.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetInstallerSources.From(Storeasy.Domain.MsStore.MsInstallerPackage)">
+            <summary>
+            The installer of a Microsoft Store MSI/EXE package as a winget installer source.
+            </summary>
+            <param name="package"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetInstallerSources.ToInputs(System.Collections.Generic.IEnumerable{Storeasy.Application.Dtos.WingetDtos.WingetInstallerSourceDto})">
+            <summary>
+            The installers of a new version taken from the sources: one entry per architecture. A source without an
+            architecture counts as x64 (Partner Center requires one, so this only happens for incomplete rows).
+            </summary>
+            <param name="sources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetInstallerSources.Architecture(System.String)">
+            <summary>
+            winget architecture of a Partner Center one (Neutral, X86, X64, Arm, Arm64); null for an unknown value.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetManifestSet">
+            <summary>
+            One version of a package as a multi-file manifest (the only kind winget-pkgs accepts): a version manifest, a default
+            locale manifest, an installer manifest and any number of locale manifests. Fields are kept as parsed, so a rewrite
+            keeps what storeasy does not edit.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestSet.VersionType">
+            <summary>
+            Manifest type of the version manifest.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestSet.DefaultLocaleType">
+            <summary>
+            Manifest type of the default locale manifest.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestSet.InstallerType">
+            <summary>
+            Manifest type of the installer manifest.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestSet.LocaleType">
+            <summary>
+            Manifest type of a locale manifest.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestSet.SingletonType">
+            <summary>
+            Manifest type of a single file manifest (not allowed in winget-pkgs).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.Version">
+            <summary>
+            The version manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.Installer">
+            <summary>
+            The installer manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.DefaultLocale">
+            <summary>
+            The default locale manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.Locales">
+            <summary>
+            Other locale manifests by locale tag.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.Unreadable">
+            <summary>
+            Files that could not be read or have an unknown type, with the reason (kept for the readiness report).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.WasSingleton">
+            <summary>
+            Whether the set came from a single file (singleton) manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.PackageIdentifier">
+            <summary>
+            <c>PackageIdentifier</c> of the version manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.PackageVersion">
+            <summary>
+            <c>PackageVersion</c> of the version manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.DefaultLocaleTag">
+            <summary>
+            <c>DefaultLocale</c> of the version manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.ManifestVersion">
+            <summary>
+            <c>ManifestVersion</c> of the version manifest.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestSet.LocaleTags">
+            <summary>
+            Every locale tag, the default first.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestSet.Locale(System.String)">
+            <summary>
+            The locale manifest of <paramref name="locale"/> (the default one included), or null.
+            </summary>
+            <param name="locale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestSet.Clone">
+            <summary>
+            A deep copy.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestSet.FromFiles(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+            <summary>
+            Reads the files of one version folder (file name to YAML). A singleton manifest is split into the three manifests
+            so it can be rewritten as a multi-file one.
+            </summary>
+            <param name="files"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestSet.ToFiles">
+            <summary>
+            The files of the set for a pull request: path inside winget-pkgs to YAML text, each with the schema header winget
+            tools write.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestSet.Render(Storeasy.Application.Utils.Winget.YamlMap,System.String)">
+            <summary>
+            YAML of one manifest with the generator and schema comment lines.
+            </summary>
+            <param name="manifest"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetManifestFile">
+            <summary>
+            One manifest file of a pull request.
+            </summary>
+            <param name="Path">Path inside winget-pkgs.</param>
+            <param name="Content">YAML text (LF line ends).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestFile.#ctor(System.String,System.String)">
+            <summary>
+            One manifest file of a pull request.
+            </summary>
+            <param name="Path">Path inside winget-pkgs.</param>
+            <param name="Content">YAML text (LF line ends).</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestFile.Path">
+            <summary>Path inside winget-pkgs.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetManifestFile.Content">
+            <summary>YAML text (LF line ends).</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetPaths">
+            <summary>
+            Paths and schema addresses of winget-pkgs.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPaths.PackageFolder(System.String)">
+            <summary>
+            Folder of a package: <c>manifests/&lt;first letter, lower case&gt;/&lt;one folder per identifier segment&gt;</c>.
+            </summary>
+            <param name="packageIdentifier"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPaths.VersionFolder(System.String,System.String)">
+            <summary>
+            Folder of one version of a package.
+            </summary>
+            <param name="packageIdentifier"></param>
+            <param name="version"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPaths.SchemaUrl(System.String,System.String)">
+            <summary>
+            JSON schema address of a manifest type and schema version (the <c>yaml-language-server</c> line).
+            </summary>
+            <param name="type"></param>
+            <param name="manifestVersion"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPaths.PackagePage(System.String,System.String)">
+            <summary>
+            Web page of a package folder in winget-pkgs.
+            </summary>
+            <param name="upstream">Upstream repository as <c>owner/name</c>.</param>
+            <param name="packageIdentifier"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetIssue">
+            <summary>
+            One problem found in a manifest set: a message key with its arguments, where it is, and whether it stops the pull
+            request (a blocking issue is what the validation pipeline would reject).
+            </summary>
+            <param name="Key">Message key.</param>
+            <param name="Args">Message arguments.</param>
+            <param name="Field">Manifest field.</param>
+            <param name="Locale">Locale, for a locale manifest.</param>
+            <param name="Blocking">Whether the plan cannot be applied.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetIssue.#ctor(System.String,System.Object[],System.String,System.String,System.Boolean)">
+            <summary>
+            One problem found in a manifest set: a message key with its arguments, where it is, and whether it stops the pull
+            request (a blocking issue is what the validation pipeline would reject).
+            </summary>
+            <param name="Key">Message key.</param>
+            <param name="Args">Message arguments.</param>
+            <param name="Field">Manifest field.</param>
+            <param name="Locale">Locale, for a locale manifest.</param>
+            <param name="Blocking">Whether the plan cannot be applied.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetIssue.Key">
+            <summary>Message key.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetIssue.Args">
+            <summary>Message arguments.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetIssue.Field">
+            <summary>Manifest field.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetIssue.Locale">
+            <summary>Locale, for a locale manifest.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetIssue.Blocking">
+            <summary>Whether the plan cannot be applied.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetManifestValidator">
+            <summary>
+            Checks a manifest set against the manifest schema (<see cref="T:Storeasy.Application.Utils.Winget.WingetFields"/>) and the winget-pkgs policies storeasy can
+            check without running the installer: multi-file manifests only, one identifier and version across the files,
+            unattended installers, no duplicate installer entries, https installer addresses on the publisher's own domain.
+            Running the installer is the validation pipeline's job.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetManifestValidator.PendingSha256">
+            <summary>
+            Placeholder of an installer hash computed when the plan is applied.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestValidator.Validate(Storeasy.Application.Utils.Winget.WingetManifestSet)">
+            <summary>
+            Every issue of <paramref name="set"/>.
+            </summary>
+            <param name="set"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetManifestValidator.SameSite(System.String,System.String)">
+            <summary>
+            Whether two hosts belong to the same site: equal, or sharing their last two labels (<c>download.example.com</c> and
+            <c>www.example.com</c>). A GitHub release asset counts as the publisher's when the publisher's address is the same
+            GitHub host.
+            </summary>
+            <param name="a"></param>
+            <param name="b"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetPlanInput">
+            <summary>
+            What a winget plan is built from.
+            </summary>
+            <param name="PackageIdentifier">Package identifier.</param>
+            <param name="Base">The package as read now (the latest version for a new version, the edited version for texts).</param>
+            <param name="Kind">New version or locale texts.</param>
+            <param name="Version">New version, or the version whose texts change (null: the latest).</param>
+            <param name="Installers">Installers of a new version.</param>
+            <param name="Locales">Locale text edits.</param>
+            <param name="OpenPullRequests">Open pull requests storeasy knows for the package: version to number.</param>
+            <param name="Now">Current UTC instant (branch names).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPlanInput.#ctor(System.String,Storeasy.Application.Interfaces.StoreContentSnapshot,Storeasy.Domain.Enums.WingetChangeKind,System.String,System.Collections.Generic.IReadOnlyList{Storeasy.Application.Dtos.WingetDtos.WingetInstallerInputDto},System.Collections.Generic.IReadOnlyList{Storeasy.Application.Dtos.WingetDtos.WingetLocaleInputDto},System.Collections.Generic.IReadOnlyDictionary{System.String,System.Int32},System.DateTime)">
+            <summary>
+            What a winget plan is built from.
+            </summary>
+            <param name="PackageIdentifier">Package identifier.</param>
+            <param name="Base">The package as read now (the latest version for a new version, the edited version for texts).</param>
+            <param name="Kind">New version or locale texts.</param>
+            <param name="Version">New version, or the version whose texts change (null: the latest).</param>
+            <param name="Installers">Installers of a new version.</param>
+            <param name="Locales">Locale text edits.</param>
+            <param name="OpenPullRequests">Open pull requests storeasy knows for the package: version to number.</param>
+            <param name="Now">Current UTC instant (branch names).</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.PackageIdentifier">
+            <summary>Package identifier.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Base">
+            <summary>The package as read now (the latest version for a new version, the edited version for texts).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Kind">
+            <summary>New version or locale texts.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Version">
+            <summary>New version, or the version whose texts change (null: the latest).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Installers">
+            <summary>Installers of a new version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Locales">
+            <summary>Locale text edits.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.OpenPullRequests">
+            <summary>Open pull requests storeasy knows for the package: version to number.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanInput.Now">
+            <summary>Current UTC instant (branch names).</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetPlanResult">
+            <summary>
+            A built winget plan, or the issues that stop it.
+            </summary>
+            <param name="Draft">The plan; null when blocked.</param>
+            <param name="Issues">Every issue found (blocking and not).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPlanResult.#ctor(Storeasy.Application.Utils.Content.PlanDraft,System.Collections.Generic.List{Storeasy.Application.Utils.Winget.WingetIssue})">
+            <summary>
+            A built winget plan, or the issues that stop it.
+            </summary>
+            <param name="Draft">The plan; null when blocked.</param>
+            <param name="Issues">Every issue found (blocking and not).</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanResult.Draft">
+            <summary>The plan; null when blocked.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanResult.Issues">
+            <summary>Every issue found (blocking and not).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetPlanResult.IsBlocked">
+            <summary>
+            Whether a blocking issue stops the plan.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetPlanner">
+            <summary>
+            Builds the manifests of a winget pull request from the package's current manifests and the requested change, the way
+            wingetcreate's update does: the latest version's manifests are copied, the version and the installers are replaced,
+            version specific fields (release notes, release date, product codes, hashes) are dropped unless given again, and the
+            result is checked with <see cref="T:Storeasy.Application.Utils.Winget.WingetManifestValidator"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetPlanner.ListingGroup">
+            <summary>
+            Plan item group of locale texts.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetPlanner.InstallerGroup">
+            <summary>
+            Plan item group of installer entries.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetPlanner.ManifestGroup">
+            <summary>
+            Plan item group of manifest files.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetPlanner.Build(Storeasy.Application.Utils.Winget.WingetPlanInput)">
+            <summary>
+            Builds the plan.
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetReviewStates">
+            <summary>
+            Turns a winget-pkgs pull request (its state, labels and check runs) into a <see cref="T:Storeasy.Domain.Enums.WingetPullRequestState"/>. The
+            validation pipeline and the moderators drive the pull request with labels (winget-pkgs doc/ValidationFailureGuide.md
+            and doc/Moderation.md); a waived label (<c>Waived-X</c>) cancels <c>X</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetReviewStates.FeedbackLabels">
+            <summary>
+            Labels that ask the author to act.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetReviewStates.PassedLabels">
+            <summary>
+            Labels of a passed validation.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetReviewStates.ApprovedLabel">
+            <summary>
+            Label of a moderator's approval.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Winget.WingetReviewStates.PublishedLabel">
+            <summary>
+            Label the publish pipeline sets after the merge.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetReviewStates.IsFailure(System.String)">
+            <summary>
+            Whether <paramref name="label"/> reports a validation failure the author must fix (internal errors of the pipeline
+            are retried by the moderators and do not count).
+            </summary>
+            <param name="label"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetReviewStates.Of(System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{Storeasy.Domain.JsonModels.WingetCheck})">
+            <summary>
+            The review state of a pull request.
+            </summary>
+            <param name="open">Whether GitHub reports the pull request open.</param>
+            <param name="merged">Whether it was merged.</param>
+            <param name="draft">Whether it is a draft.</param>
+            <param name="labels">Its labels.</param>
+            <param name="checks">Check runs of the head commit.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetReviewStates.NeedsAction(Storeasy.Domain.Enums.WingetPullRequestState)">
+            <summary>
+            Whether the state waits for the author (the activity board and notifications flag it).
+            </summary>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetVersions">
+            <summary>
+            winget's version order (winget-pkgs doc/Authoring.md, "Version sorting"): versions split on dots, each part compared by
+            its leading number then by the text after it, where a part without text is higher than the same number with text
+            (1.2.34 &gt; 1.2.34-beta); missing parts count as 0 (1.2 = 1.2.0). Leading non digits are trimmed, as newer clients do.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Winget.WingetVersions.Comparer">
+            <summary>
+            The shared comparer.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetVersions.Descending(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Versions highest first.
+            </summary>
+            <param name="versions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetVersions.Compare(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.YamlMap">
+            <summary>
+            An ordered YAML mapping (manifest fields keep their order, so a rewritten manifest diffs cleanly).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Get(System.String)">
+            <summary>
+            Value of <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Text(System.String)">
+            <summary>
+            String value of <paramref name="key"/>, or null when missing or not a scalar.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Map(System.String)">
+            <summary>
+            Mapping value of <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Seq(System.String)">
+            <summary>
+            Sequence value of <paramref name="key"/>, or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Has(System.String)">
+            <summary>
+            Whether the mapping has <paramref name="key"/>.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Set(System.String,System.Object,System.String)">
+            <summary>
+            Sets <paramref name="key"/> in place, or appends it (before <paramref name="before"/> when that key exists). A null
+            value removes the key.
+            </summary>
+            <param name="key"></param>
+            <param name="value"></param>
+            <param name="before">Key to insert a new key in front of (keeps <c>ManifestType</c> and <c>ManifestVersion</c> last).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.YamlMap.Clone">
+            <summary>
+            A deep copy.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetYamlException">
+            <summary>
+            Thrown for YAML the reader does not understand.
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetYamlException.#ctor(System.String)">
+            <summary>
+            Thrown for YAML the reader does not understand.
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Winget.WingetYaml">
+            <summary>
+            Reads and writes the block style YAML subset winget manifests use (mappings, sequences, plain, quoted and block
+            scalars, empty flow collections and one line flow sequences, comments). Scalars stay strings: the manifest schema, not
+            YAML, decides their type. No dependency: the subset is small and the writer must produce the layout winget-pkgs
+            expects (sequence items at their key's indent, block scalars for multi line texts).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetYaml.Parse(System.String)">
+            <summary>
+            Parses one YAML document into a mapping.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetYaml.Write(Storeasy.Application.Utils.Winget.YamlMap,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Writes a mapping as block YAML with LF line ends and a final line feed.
+            </summary>
+            <param name="map"></param>
+            <param name="header">Comment lines written first (without <c>#</c>).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetYaml.CloneValue(System.Object)">
+            <summary>
+            A deep copy of a parsed value.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Winget.WingetYaml.Scalar(System.String)">
+            <summary>
+            The scalar as written: plain when YAML reads it back unchanged, single quoted otherwise, double quoted when it holds
+            control characters.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
         <member name="T:System.Text.RegularExpressions.Generated.LocalePattern_0">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LocalePattern method.</summary>
         </member>
@@ -45109,98 +47381,418 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17">
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GitHubTokenRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubTokenRegex_17.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AnthropicKeyRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_17.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.AnthropicKeyRegex_18.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_18">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_19">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PlanIdPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_18.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PlanIdPattern_19.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_18.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_19.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_18.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PlanIdPattern_19.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the IsoPeriodPattern method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_19.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.IsoPeriodPattern_20.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_21">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TokenRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.TokenRegex_21.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_21.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_21.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_22">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ForkRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ForkRegex_22.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_22.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_22.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_23">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PackageIdentifier method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PackageIdentifier_23.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_23.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_23.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_24">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PackageVersion method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PackageVersion_24.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_24.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_24.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_25">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Locale method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Locale_25.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_25.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_25.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_26">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Sha256 method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Sha256_26.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_26.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_26.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Url_27">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Url method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Url_27.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Url_27.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Url_27.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_28">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ManifestVersion method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ManifestVersion_28.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_28.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_28.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_29">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the OsVersion method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.OsVersion_29.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_29.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_29.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -45243,6 +47835,9 @@
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiHexDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFabcdef".</summary>
         </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLetters">
+            <summary>Supports searching for characters in or not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".</summary>
         </member>
@@ -45258,6 +47853,9 @@
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersLowerAndDigits">
             <summary>Supports searching for characters in or not in "0123456789abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiWordChars">
+            <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_1000000FEFFFF0700000000">
             <summary>Supports searching for characters in or not in " ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>
         </member>
@@ -45266,6 +47864,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_F8F8FF83FEFFFF97FEFFFF07">
             <summary>Supports searching for characters in or not in "#$%&amp;'+,-./0123456789?ABCDEFGHIJKLMNOPQRSTUVWXYZ\\_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_FEFFFFFF048400D40000001000000010">
+            <summary>Supports searching for characters in or not in "\u0001\u0002\u0003\u0004\u0005\u0006\a\b\t\n\v\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\"*/:&lt;&gt;?\\|".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfAnyStrings_Ordinal_15381D7EC22302E26EDED7C5B275895127D6CF1E8ACBE526582B9D3BEBFA157B">
             <summary>Supports searching for the specified strings.</summary>
@@ -45278,6 +47879,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_44C219C80D27E866DAA491F05C8840B5648C8FA56186C5316FB104F18B9916B4">
             <summary>Supports searching for the string "https://".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_81BE33139CD7EE62A793DA78314355239DE279FA74E35F1D0D4C1B81855F7AF7">
+            <summary>Supports searching for the string "\bg".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_A64DAC029B0DA501025A341B6A7080E38E5AC0CE0E0C9663DEAAD6A6E60D5F77">
             <summary>Supports searching for the string "-----BEGIN ".</summary>

@@ -11,6 +11,7 @@ import { PageSkeleton } from '@/components/ui/primitives'
 import { useDeployment } from '@/features/access/publicSettings'
 import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
+import { wingetRoutes } from '@/features/winget/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
 import { ServerFeatureFlags } from '@/lib/features/FeatureFlagsContext'
 import { HOME_PATH } from '@/lib/nav/nav'
@@ -265,6 +266,7 @@ export function App() {
         <Route path="/account/security" element={<SecurityPage />} />
         {contentRoutes()}
         {microsoftRoutes()}
+        {wingetRoutes()}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

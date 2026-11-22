@@ -2809,6 +2809,21 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.MsFlightGroupSaved">
             <summary>A package flight group name was recorded.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPackageAdded">
+            <summary>A winget package was added by its package identifier.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPullRequestOpened">
+            <summary>A pull request with winget manifests was opened in winget-pkgs from the fork.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WingetReviewStateChanged">
+            <summary>A winget pull request changed review state (validation, feedback, approval).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPublished">
+            <summary>A winget pull request was merged: the version is published.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.WingetPullRequestClosed">
+            <summary>A winget pull request was closed without a merge.</summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.AuditAction.TokenCreated">
             <summary>A personal access token was created.</summary>
         </member>
@@ -3100,6 +3115,11 @@
             <summary>
             A Microsoft Store change (listings, images, packages, pricing, installers, rollout, flights, add-ons, discarding a
             draft); what it writes is in the plan's Microsoft change set.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ChangePlanKind.WingetChange">
+            <summary>
+            A winget manifest pull request (new version or locale texts); applying it opens the pull request.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.ChangePlanKind.Monetization">
@@ -5060,6 +5080,11 @@
             Downloads MSI/EXE installers and checks their Authenticode signature.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.WingetSync">
+            <summary>
+            Reads the winget packages of a connection from winget-pkgs and the review state of their pull requests.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
             <summary>
             Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
@@ -5138,7 +5163,9 @@
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreKind">
             <summary>
-            A store storeasy talks to. Shared models never assume a fixed set: an app may live in one, two or all three stores.
+            A store or distribution channel storeasy talks to. Shared models never assume a fixed set: an app may live in any
+            number of them. What each one supports (credential expiry, reviews, metrics, its console) is in
+            <see cref="T:Storeasy.Domain.Stores.StoreChannels"/>; docs/adding-a-store.md lists every place a new value is wired in.
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreKind.Apple">
@@ -5153,8 +5180,13 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreKind.Microsoft">
             <summary>
-            Microsoft Store (Partner Center submission APIs, Microsoft Entra app). Connections and sync arrive in phase 5;
-            until then the store engine answers "not supported yet".
+            Microsoft Store (Partner Center submission APIs, Microsoft Entra app).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreKind.Winget">
+            <summary>
+            Windows Package Manager community repository (<c>microsoft/winget-pkgs</c> on GitHub). Manifests go in as pull
+            requests from the owner's fork, opened with the owner's GitHub token; a merged pull request is a published version.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.StoreMetricKind">
@@ -5444,6 +5476,72 @@
             Google Play Real-time developer notifications through a Cloud Pub/Sub push subscription: the push request carries
             a Google signed OIDC token (<c>Authorization: Bearer</c>) whose audience is the receiver address and whose e-mail is
             the subscription's service account.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WingetChangeKind">
+            <summary>
+            What a winget change plan sends to winget-pkgs. Each kind is one pull request with one manifest set, as the repository
+            requires (one package version per pull request).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetChangeKind.NewVersion">
+            <summary>
+            A new version: version, default locale, installer and locale manifests generated from installers storeasy knows
+            (the Microsoft Store MSI/EXE packages of the same app) or given in the plan.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetChangeKind.Listing">
+            <summary>
+            Locale text edits (the winget "listing") on an existing version: its default locale and locale manifests are
+            rewritten, the installer manifest is kept.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.WingetPullRequestState">
+            <summary>
+            Review state of a winget-pkgs pull request, read from the pull request itself, its labels and the validation
+            pipeline's checks (docs/connecting-stores.md, winget). A merged pull request is a published version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.Validating">
+            <summary>
+            Open, the validation pipeline has not finished yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.ValidationFailed">
+            <summary>
+            The validation pipeline failed (an error label such as <c>Validation-Error</c>,
+            <c>Manifest-Validation-Error</c>, <c>Error-Hash-Mismatch</c>, or a failed check).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.NeedsAuthorFeedback">
+            <summary>
+            A moderator or the bot asks the author for a change (<c>Needs-Author-Feedback</c>, <c>Changes-Requested</c>,
+            <c>Needs-CLA</c>); the pull request closes by itself if nobody answers.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.ValidationCompleted">
+            <summary>
+            Validation passed (<c>Validation-Completed</c> or <c>Azure-Pipeline-Passed</c>), waiting for a moderator.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.Approved">
+            <summary>
+            A moderator approved the pull request (<c>Moderator-Approved</c>); it merges next.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.Merged">
+            <summary>
+            Merged: the version is in the winget source once the publish pipeline ran.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.Closed">
+            <summary>
+            Closed without a merge (by the author, a moderator or the bot after a feedback timeout).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.WingetPullRequestState.Draft">
+            <summary>
+            A draft pull request; the pipeline does not run until it is marked ready for review.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Events.AppVersionState">
@@ -8010,7 +8108,23 @@
         </member>
         <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.SecretExpiryDate">
             <summary>
-            UTC instant the client secret expires, as entered by the user. Microsoft only.
+            UTC instant the credential expires, as entered by the user (Microsoft client secrets, GitHub tokens).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.AccountLogin">
+            <summary>
+            Account the channel writes as, for channels that write through a code host (the GitHub user or organization that
+            owns the winget-pkgs fork).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.Repository">
+            <summary>
+            Repository the channel writes to, as <c>owner/name</c> (the winget-pkgs fork).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ConnectionFingerprint.TokenKind">
+            <summary>
+            Kind of token, told from its prefix (<c>classic</c>, <c>fine-grained</c>, <c>app</c>), never the token itself.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.JsonModels.ExternalWebhookRegistration">
@@ -9197,6 +9311,82 @@
         <member name="P:Storeasy.Domain.JsonModels.RequestInfo.Body">
             <summary>
             Request body.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.WingetStateChange">
+            <summary>
+            One state a winget pull request was seen in, with the first time storeasy saw it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetStateChange.State">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetStateChange.Date">
+            <summary>
+            UTC instant storeasy first saw the state.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.WingetCheck">
+            <summary>
+            One check run on the head commit of a winget pull request (the validation pipeline reports its result as checks).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetCheck.Name">
+            <summary>
+            Check name.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetCheck.Status">
+            <summary>
+            <c>queued</c>, <c>in_progress</c> or <c>completed</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetCheck.Conclusion">
+            <summary>
+            Result of a completed check (<c>success</c>, <c>failure</c>, <c>neutral</c>, <c>cancelled</c>, <c>timed_out</c>,
+            <c>action_required</c>, <c>skipped</c>); null while it runs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetCheck.Url">
+            <summary>
+            Page of the check run.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.WingetComment">
+            <summary>
+            A comment of the validation bot or a moderator on a winget pull request, shortened.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.JsonModels.WingetComment.ExcerptMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.JsonModels.WingetComment.Excerpt"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetComment.Author">
+            <summary>
+            GitHub login of the author.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetComment.IsBot">
+            <summary>
+            Whether the author is a bot account.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetComment.Excerpt">
+            <summary>
+            Start of the comment text (HTML comments and badges removed).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetComment.Url">
+            <summary>
+            Page of the comment.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.WingetComment.Date">
+            <summary>
+            UTC instant the comment was written.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Language">
@@ -11752,9 +11942,14 @@
             Catalog key of Microsoft Store.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Rules.RuleStores.Winget">
+            <summary>
+            Catalog key of winget.
+            </summary>
+        </member>
         <member name="M:Storeasy.Domain.Rules.RuleStores.Parse(System.String)">
             <summary>
-            Store kind of a catalog key; null for an unknown key.
+            Store kind of a catalog key (the <see cref="T:Storeasy.Domain.Stores.StoreChannels"/> key); null for an unknown key.
             </summary>
             <param name="key"></param>
             <returns></returns>
@@ -12138,6 +12333,140 @@
             UTC instant of the action.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Stores.StoreChannels">
+            <summary>
+            What shared code needs to know about a store or distribution channel, in one table: the key used in URLs and the rules
+            catalog, the display name, the logo icon key, and which shared features apply to it. Shared code asks this table
+            instead of switching over <see cref="T:Storeasy.Domain.Enums.StoreKind"/>, so a new channel is one row here plus its own engine
+            (docs/adding-a-store.md). The web app mirrors the table in <c>storeasy-app/src/lib/stores/channels.ts</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannels.All">
+            <summary>
+            Every channel, in <see cref="T:Storeasy.Domain.Enums.StoreKind"/> order.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.Of(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            The row of <paramref name="store"/>; null for a value without a row (never for a defined <see cref="T:Storeasy.Domain.Enums.StoreKind"/>,
+            a unit test checks that).
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.OfKey(System.String)">
+            <summary>
+            The channel with the key <paramref name="key"/> (<c>apple</c>, <c>winget</c>), or null.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.DisplayName(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Display name of <paramref name="store"/> (falls back to the enum name).
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.CredentialExpires(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Whether a connection of <paramref name="store"/> records the expiry date of its credential (Entra client secrets,
+            GitHub tokens).
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.CredentialExpiryRequired(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Whether a connection of <paramref name="store"/> must be given the expiry date of its credential.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.HasReviews(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Stores with user reviews storeasy reads and answers.
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannels.HasMetrics(Storeasy.Domain.Enums.StoreKind)">
+            <summary>
+            Stores with store page metrics (impressions, page views, installs).
+            </summary>
+            <param name="store"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.StoreChannelInfo">
+            <summary>
+            One row of <see cref="T:Storeasy.Domain.Stores.StoreChannels"/>.
+            </summary>
+            <param name="Store">The store.</param>
+            <param name="Key">Lower case key: the <c>?store=</c> value of the web app and the rules catalog store key.</param>
+            <param name="DisplayName">Name shown to people and given to AI prompts.</param>
+            <param name="LogoIcon">Connection icon key of the store's own logo (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>).</param>
+            <param name="CredentialExpiry">Whether a connection records the expiry date of its credential, and whether it must.</param>
+            <param name="HasReviews">Whether the store has user reviews storeasy reads.</param>
+            <param name="HasMetrics">Whether the store has store page metrics storeasy reads.</param>
+            <param name="ConsoleUrl">The store's own console, where the owner acts on what storeasy cannot do.</param>
+        </member>
+        <member name="M:Storeasy.Domain.Stores.StoreChannelInfo.#ctor(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.String,Storeasy.Domain.Stores.CredentialExpiry,System.Boolean,System.Boolean,System.String)">
+            <summary>
+            One row of <see cref="T:Storeasy.Domain.Stores.StoreChannels"/>.
+            </summary>
+            <param name="Store">The store.</param>
+            <param name="Key">Lower case key: the <c>?store=</c> value of the web app and the rules catalog store key.</param>
+            <param name="DisplayName">Name shown to people and given to AI prompts.</param>
+            <param name="LogoIcon">Connection icon key of the store's own logo (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>).</param>
+            <param name="CredentialExpiry">Whether a connection records the expiry date of its credential, and whether it must.</param>
+            <param name="HasReviews">Whether the store has user reviews storeasy reads.</param>
+            <param name="HasMetrics">Whether the store has store page metrics storeasy reads.</param>
+            <param name="ConsoleUrl">The store's own console, where the owner acts on what storeasy cannot do.</param>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.Store">
+            <summary>The store.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.Key">
+            <summary>Lower case key: the <c>?store=</c> value of the web app and the rules catalog store key.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.DisplayName">
+            <summary>Name shown to people and given to AI prompts.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.LogoIcon">
+            <summary>Connection icon key of the store's own logo (<see cref="T:Storeasy.Domain.Stores.StoreConnectionIcons"/>).</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.CredentialExpiry">
+            <summary>Whether a connection records the expiry date of its credential, and whether it must.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.HasReviews">
+            <summary>Whether the store has user reviews storeasy reads.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.HasMetrics">
+            <summary>Whether the store has store page metrics storeasy reads.</summary>
+        </member>
+        <member name="P:Storeasy.Domain.Stores.StoreChannelInfo.ConsoleUrl">
+            <summary>The store's own console, where the owner acts on what storeasy cannot do.</summary>
+        </member>
+        <member name="T:Storeasy.Domain.Stores.CredentialExpiry">
+            <summary>
+            Whether a store connection records when its credential expires.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.CredentialExpiry.None">
+            <summary>
+            The credential has no expiry storeasy tracks (App Store Connect keys, Google service account keys).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.CredentialExpiry.Optional">
+            <summary>
+            The owner may give the expiry date (a GitHub token without an expiry has none).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Stores.CredentialExpiry.Required">
+            <summary>
+            The owner must give the expiry date (Microsoft Entra client secrets always expire).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Stores.StoreConnection">
             <summary>
             An organization's credentials for one store account. The secret (the .p8 key with its ids, or the service account
@@ -12232,7 +12561,7 @@
         <member name="T:Storeasy.Domain.Stores.StoreConnectionIcons">
             <summary>
             The icons a member can pick for a store connection, so its records are told apart at a glance (the web draws them;
-            the API stores only the key). A fixed list, no uploads. The three store logos only identify their own store, so each
+            the API stores only the key). A fixed list, no uploads. The store logos only identify their own store, so each
             is allowed only on a connection of that store; the generic icons fit any store.
             </summary>
         </member>
@@ -12250,6 +12579,9 @@
         <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.MsStore">
             <summary>Microsoft Store logo (Microsoft connections only).</summary>
         </member>
+        <member name="F:Storeasy.Domain.Stores.StoreConnectionIcons.Winget">
+            <summary>winget logo (winget connections only).</summary>
+        </member>
         <member name="P:Storeasy.Domain.Stores.StoreConnectionIcons.Generic">
             <summary>
             The generic icons, in the order the web shows them.
@@ -12257,7 +12589,7 @@
         </member>
         <member name="M:Storeasy.Domain.Stores.StoreConnectionIcons.LogoOf(Storeasy.Domain.Enums.StoreKind)">
             <summary>
-            The store logo of <paramref name="store"/>.
+            The store logo of <paramref name="store"/> (<see cref="T:Storeasy.Domain.Stores.StoreChannels"/>).
             </summary>
             <param name="store"></param>
             <returns></returns>
@@ -14127,6 +14459,238 @@
         <member name="P:Storeasy.Domain.WebPushSubscription.User">
             <summary>
             Navigation property of the user.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Winget.WingetPackage">
+            <summary>
+            winget side of a store record (<see cref="P:Storeasy.Domain.Winget.WingetPackage.StoreApp"/> with <see cref="F:Storeasy.Domain.Enums.StoreKind.Winget"/>, whose external id is
+            the package identifier): what the last sync read from the package's manifests in winget-pkgs.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPackage.IdentifierMaxLength">
+            <summary>
+            Maximum length of a package identifier (manifest schema).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPackage.VersionMaxLength">
+            <summary>
+            Maximum length of a package version (manifest schema).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPackage.NameMaxLength">
+            <summary>
+            Maximum length of the publisher and package names (manifest schema).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPackage.LocaleMaxLength">
+            <summary>
+            Maximum length of a locale tag (manifest schema).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPackage.SyncErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Winget.WingetPackage.SyncError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.StoreAppId">
+            <summary>
+            The store record.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.PackageIdentifier">
+            <summary>
+            Package identifier (<c>Publisher.Package</c>), as in the manifests (case sensitive).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.IsPublished">
+            <summary>
+            Whether winget-pkgs has at least one version of the package; false for a package whose first version is not merged.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.LatestVersion">
+            <summary>
+            Highest version in winget-pkgs (winget's version order).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.Versions">
+            <summary>
+            Every version folder in winget-pkgs, highest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.Publisher">
+            <summary>
+            <c>Publisher</c> of the latest version's default locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.PackageName">
+            <summary>
+            <c>PackageName</c> of the latest version's default locale.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.DefaultLocale">
+            <summary>
+            <c>DefaultLocale</c> of the latest version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.Locales">
+            <summary>
+            Every locale of the latest version (default first).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.ManifestVersion">
+            <summary>
+            <c>ManifestVersion</c> (schema version) of the latest version's manifests.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.SyncError">
+            <summary>
+            Why the last sync could not read the package; null after a successful one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPackage.StoreApp">
+            <summary>
+            The store record.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Winget.WingetPullRequest">
+            <summary>
+            A pull request to winget-pkgs for one package: opened by storeasy from an approved change plan, or found by the sync
+            among the fork owner's pull requests. Its state is the winget review state (<see cref="T:Storeasy.Domain.Enums.WingetPullRequestState"/>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPullRequest.TitleMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Winget.WingetPullRequest.Title"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPullRequest.BranchMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Winget.WingetPullRequest.HeadBranch"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Winget.WingetPullRequest.MaxComments">
+            <summary>
+            Most comments kept in <see cref="P:Storeasy.Domain.Winget.WingetPullRequest.Comments"/> (the newest).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.StoreAppId">
+            <summary>
+            The store record of the package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Number">
+            <summary>
+            Pull request number in winget-pkgs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Url">
+            <summary>
+            Page of the pull request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.HeadBranch">
+            <summary>
+            Branch of the fork the pull request comes from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.HeadSha">
+            <summary>
+            Head commit; check runs are read on it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.PackageVersion">
+            <summary>
+            Package version the manifests are for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.ChangeKind">
+            <summary>
+            What the pull request changes; null for one found by the sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.State">
+            <summary>
+            Review state.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.IsOpen">
+            <summary>
+            Whether the pull request is open (the schedule syncs only open ones).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Labels">
+            <summary>
+            Labels, as GitHub shows them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Checks">
+            <summary>
+            Check runs of the head commit.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.Comments">
+            <summary>
+            Newest bot and moderator comments (at most <see cref="F:Storeasy.Domain.Winget.WingetPullRequest.MaxComments"/>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.StatusHistory">
+            <summary>
+            States seen, oldest first.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.CreatedByStoreasy">
+            <summary>
+            Whether storeasy opened the pull request.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.PlanId">
+            <summary>
+            The change plan that opened it, when storeasy did.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.OpenedDate">
+            <summary>
+            UTC instant the pull request was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.MergedDate">
+            <summary>
+            UTC instant it was merged.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.ClosedDate">
+            <summary>
+            UTC instant it was closed (merged or not).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.SyncedDate">
+            <summary>
+            UTC instant of the last sync.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Winget.WingetPullRequest.StoreApp">
+            <summary>
+            The store record.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.DomainAssembly">

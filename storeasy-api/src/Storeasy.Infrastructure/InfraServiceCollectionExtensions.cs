@@ -39,6 +39,7 @@ using Storeasy.Infrastructure.StoreJobs;
 using Storeasy.Infrastructure.StoreMetrics;
 using Storeasy.Infrastructure.Stores;
 using Storeasy.Infrastructure.Stores.Content;
+using Storeasy.Infrastructure.Stores.Winget;
 using Storeasy.Infrastructure.Stores.Monetization;
 using Storeasy.Infrastructure.Studio;
 using Storeasy.Infrastructure.Stores.Microsoft;
@@ -130,6 +131,9 @@ public static class InfraServiceCollectionExtensions
 
         // Microsoft Store (phase 5): client, token cache and job handlers.
         services.AddMicrosoftStoreServices(configurationManager);
+
+        // Channels after the first three stores plug in through IStoreChannel (docs/adding-a-store.md).
+        services.AddWingetServices(configurationManager);
 
         // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
         var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();
