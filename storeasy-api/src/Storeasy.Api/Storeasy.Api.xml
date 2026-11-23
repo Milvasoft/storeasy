@@ -2621,6 +2621,54 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetDownloadsAsync(Storeasy.Application.Features.Registries.GetPackageDownloads.GetPackageDownloadsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Downloads and usage of a package: totals, daily series, per version counts.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetListingAsync(Storeasy.Application.Features.Registries.GetPackageListing.GetPackageListingQuery,System.Threading.CancellationToken)">
+            <summary>
+            The package's registry listing, read live, with readiness checks.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetGroupsAsync(Storeasy.Application.Features.Registries.GetPackageGroupList.GetPackageGroupListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The package groups with their members.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetGroupSuggestionsAsync(Storeasy.Application.Features.Registries.GetPackageGroupSuggestions.GetPackageGroupSuggestionsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Suggested groups of packages that share a source repository.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SaveGroupAsync(Storeasy.Application.Features.Registries.SavePackageGroup.SavePackageGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds or changes a package group.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.RemoveGroupAsync(Storeasy.Application.Features.Registries.RemovePackageGroup.RemovePackageGroupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a package group (its packages stay tracked).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RejectionsController">
             <summary>
             Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
@@ -4773,6 +4821,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261123064946_AddRegistriesPhase2.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261123141022_AddRegistriesPhase3">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123141022_AddRegistriesPhase3.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123141022_AddRegistriesPhase3.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123141022_AddRegistriesPhase3.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

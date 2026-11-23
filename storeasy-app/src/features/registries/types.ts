@@ -41,6 +41,11 @@ export interface TrackedPackageSummaryDto {
   SetupRepository?: string | null
   SetupWorkflow?: string | null
   PublisherCheck: PublisherCheckStatus
+  TotalDownloads?: number | null
+  RecentDownloads?: number | null
+  RecentDownloadsDays?: number | null
+  PackageGroupId?: number | null
+  PackageGroupName?: string | null
 }
 
 export interface TrackedPackageVersionDto {
@@ -52,6 +57,7 @@ export interface TrackedPackageVersionDto {
   Message?: string | null
   HasProvenance?: boolean | null
   CiRunUrl?: string | null
+  Downloads?: number | null
 }
 
 export interface PackageAlertDto {
@@ -136,6 +142,81 @@ export interface TokenReminderInput {
   Label: string
   UsedIn: string
   ExpiryDate: string
+}
+
+// Storeasy.Domain.Enums.DownloadScope.
+export const DownloadScope = { Total: 1, LastWeek: 2 } as const
+export type DownloadScope = (typeof DownloadScope)[keyof typeof DownloadScope]
+
+// Storeasy.Domain.Enums.ListingCheckStatus.
+export const ListingCheckStatus = { Ok: 1, Warning: 2, Missing: 3 } as const
+export type ListingCheckStatus = (typeof ListingCheckStatus)[keyof typeof ListingCheckStatus]
+
+// Storeasy.Domain.Enums.ReadmeFormat.
+export const ReadmeFormat = { Markdown: 1, Html: 2, Text: 3 } as const
+export type ReadmeFormat = (typeof ReadmeFormat)[keyof typeof ReadmeFormat]
+
+export interface PackageDownloadsDto {
+  TrackedPackageId: number
+  Registry: PackageRegistry
+  Available: boolean
+  TotalDownloads?: number | null
+  RecentDownloads?: number | null
+  RecentDownloadsDays?: number | null
+  VersionScope?: DownloadScope | null
+  Likes?: number | null
+  Points?: number | null
+  MaxPoints?: number | null
+  DownloadsSyncedDate?: IsoDateTime | null
+  Series?: Array<{ Day: IsoDateTime; Downloads: number }> | null
+  Versions?: Array<{ Version: string; Downloads: number }> | null
+}
+
+export interface PackageListingDto {
+  TrackedPackageId: number
+  Registry: PackageRegistry
+  Available: boolean
+  ReadError?: string | null
+  Version?: string | null
+  Description?: string | null
+  Readme?: string | null
+  ReadmeFormat?: ReadmeFormat | null
+  Keywords?: string[] | null
+  License?: string | null
+  Homepage?: string | null
+  Repository?: string | null
+  Authors?: string[] | null
+  IconUrl?: string | null
+  Checks?: Array<{ Key: string; Status: ListingCheckStatus }> | null
+  ShipsWithRelease: boolean
+  RegistryUrl?: string | null
+}
+
+export interface PackageGroupMemberDto {
+  TrackedPackageId: number
+  Registry: PackageRegistry
+  Name: string
+  LatestVersion?: string | null
+  LatestPublishedDate?: IsoDateTime | null
+  Behind: boolean
+  OpenAlertCount: number
+}
+
+export interface PackageGroupDto {
+  Id: number
+  Name: string
+  HighestVersion?: string | null
+  BehindCount: number
+  LastReleaseDate?: IsoDateTime | null
+  OpenAlertCount: number
+  Members?: PackageGroupMemberDto[] | null
+}
+
+export interface PackageGroupSuggestionDto {
+  Name: string
+  Repository?: string | null
+  TrackedPackageIds?: number[] | null
+  PackageNames?: string[] | null
 }
 
 export interface TrackedPackageAddedDto {

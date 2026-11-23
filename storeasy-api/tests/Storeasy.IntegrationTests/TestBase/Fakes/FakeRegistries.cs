@@ -41,6 +41,27 @@ public sealed class FakeRegistries : HttpMessageHandler
     /// <summary>pub.dev address the tests configure.</summary>
     public const string PubBaseUrl = "https://pub.registry.fake";
 
+    /// <summary>NuGet search address the tests configure.</summary>
+    public const string NuGetSearchUrl = "https://nuget-search.registry.fake/query";
+
+    /// <summary>NuGet flat container address the tests configure.</summary>
+    public const string NuGetFlatContainerBaseUrl = "https://nuget.registry.fake/v3-flatcontainer";
+
+    /// <summary>npm download counts address the tests configure.</summary>
+    public const string NpmDownloadsBaseUrl = "https://npm-downloads.registry.fake";
+
+    /// <summary>pypistats address the tests configure.</summary>
+    public const string PyPIStatsBaseUrl = "https://pypistats.registry.fake/api";
+
+    /// <summary>Packagist site address the tests configure.</summary>
+    public const string PackagistSiteBaseUrl = "https://packagist-site.registry.fake";
+
+    /// <summary>NuGet search answers by lower case id.</summary>
+    public ConcurrentDictionary<string, string> NuGetSearch { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>npm daily downloads by package name.</summary>
+    public ConcurrentDictionary<string, string> NpmRanges { get; } = new(StringComparer.Ordinal);
+
     /// <summary>OSV.dev API address the tests configure.</summary>
     public const string OsvBaseUrl = "https://osv.registry.fake/v1";
 
@@ -329,6 +350,72 @@ public sealed class FakeRegistries : HttpMessageHandler
     }
 
     /// <summary>
+    /// npm download counts of a package: one count per day of <paramref name="days"/> and the last week per version.
+    /// </summary>
+    public void SetNpmDownloads(string name, IReadOnlyDictionary<DateTime, long> days, IReadOnlyDictionary<string, long> versions)
+    {
+        NpmRanges[name] = new JsonObject
+        {
+            ["package"] = name,
+            ["downloads"] = new JsonArray([.. days.OrderBy(d => d.Key).Select(d => (JsonNode)new JsonObject { ["day"] = d.Key.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), ["downloads"] = d.Value })]),
+        }.ToJsonString();
+
+        var perVersion = new JsonObject();
+
+        foreach (var (version, count) in versions)
+            perVersion[version] = count;
+
+        Responses[$"{NpmDownloadsBaseUrl}/versions/{Uri.EscapeDataString(name).Replace("%2F", "%2f", StringComparison.Ordinal)}/last-week"] = new JsonObject { ["package"] = name, ["downloads"] = perVersion }.ToJsonString();
+    }
+
+    /// <summary>
+    /// The NuGet search entry of a package: all time and per version downloads and the listing fields.
+    /// </summary>
+    public void SetNuGetSearch(string id, long total, IReadOnlyDictionary<string, long> versions, string description = null, string iconUrl = null, string readme = null)
+    {
+        NuGetSearch[id.ToLowerInvariant()] = new JsonObject
+        {
+            ["totalHits"] = 1,
+            ["data"] = new JsonArray(new JsonObject
+            {
+                ["id"] = id,
+                ["version"] = versions.Keys.LastOrDefault(),
+                ["description"] = description,
+                ["tags"] = new JsonArray("acme", "tools"),
+                ["iconUrl"] = iconUrl,
+                ["licenseUrl"] = "https://licenses.nuget.org/MIT",
+                ["projectUrl"] = $"https://github.com/acme/{id}",
+                ["authors"] = new JsonArray("Acme"),
+                ["totalDownloads"] = total,
+                ["versions"] = new JsonArray([.. versions.Select(v => (JsonNode)new JsonObject { ["version"] = v.Key, ["downloads"] = v.Value })]),
+            }),
+        }.ToJsonString();
+
+        if (readme != null && versions.Count > 0)
+            Responses[$"{NuGetFlatContainerBaseUrl}/{id.ToLowerInvariant()}/{versions.Keys.Last().ToLowerInvariant()}/readme"] = readme;
+    }
+
+    /// <summary>
+    /// Adds a description, README and keywords to an npm packument set before.
+    /// </summary>
+    public void SetNpmListing(string name, string description, string readme, params string[] keywords)
+    {
+        var encoded = name.StartsWith('@') ? "@" + name[1..].Replace("/", "%2f", StringComparison.Ordinal) : name;
+        var packument = JsonNode.Parse(Responses[$"{NpmBaseUrl}/{encoded}"])!.AsObject();
+
+        packument["description"] = description;
+        packument["readme"] = readme;
+        packument["keywords"] = new JsonArray([.. keywords.Select(k => (JsonNode)k)]);
+        packument["license"] = "MIT";
+        Responses[$"{NpmBaseUrl}/{encoded}"] = packument.ToJsonString();
+    }
+
+    /// <summary>
+    /// The HTML README crates.io serves for a crate version.
+    /// </summary>
+    public void SetCrateReadme(string name, string version, string html) => Responses[$"{CratesBaseUrl}/crates/{name}/{version}/readme"] = html;
+
+    /// <summary>
     /// An OSV.dev advisory for one package version.
     /// </summary>
     public void SetAdvisory(string ecosystem, string name, string version, string id, string severity = "HIGH", string summary = "Remote code execution")
@@ -358,6 +445,21 @@ public sealed class FakeRegistries : HttpMessageHandler
 
         if (url.StartsWith(OsvBaseUrl, StringComparison.Ordinal) && OsvDown)
             return Json(HttpStatusCode.ServiceUnavailable, "{}");
+
+        if (url == NuGetSearchUrl)
+        {
+            var id = System.Web.HttpUtility.ParseQueryString(request.RequestUri.Query)["q"]?.Replace("packageid:", string.Empty, StringComparison.Ordinal).ToLowerInvariant() ?? string.Empty;
+
+            return Json(HttpStatusCode.OK, NuGetSearch.TryGetValue(id, out var search) ? search : "{\"totalHits\":0,\"data\":[]}");
+        }
+
+        if (url.StartsWith($"{NpmDownloadsBaseUrl}/downloads/range/", StringComparison.Ordinal))
+        {
+            var rest = url[$"{NpmDownloadsBaseUrl}/downloads/range/".Length..];
+            var name = rest[(rest.IndexOf('/', StringComparison.Ordinal) + 1)..];
+
+            return NpmRanges.TryGetValue(name, out var range) ? Json(HttpStatusCode.OK, range) : Json(HttpStatusCode.NotFound, "{\"error\":\"not found\"}");
+        }
 
         if (request.Method == HttpMethod.Post && url == $"{OsvBaseUrl}/querybatch")
             return Json(HttpStatusCode.OK, QueryBatch(JsonNode.Parse(await request.Content!.ReadAsStringAsync(cancellationToken))));

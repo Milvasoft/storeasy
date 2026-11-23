@@ -66,6 +66,12 @@ public class TrackedPackageVersion : AuditableEntity<long>
     public string CiRunUrl { get; set; }
 
     /// <summary>
+    /// Downloads of the version as the registry counts them (all time, or the last 7 days on npm; see
+    /// <see cref="TrackedPackage.VersionDownloadsScope"/>); null where the registry gives none.
+    /// </summary>
+    public long? Downloads { get; set; }
+
+    /// <summary>
     /// The package.
     /// </summary>
     [ForeignKey(nameof(TrackedPackageId))]

@@ -76,7 +76,8 @@ describe('package registries', () => {
       'href',
       'https://osv.dev/vulnerability/GHSA-abcd-1234-wxyz',
     )
-    const versions = screen.getByRole('table', { name: 'Versions' })
+    await user.click(screen.getByRole('tab', { name: 'Versions' }))
+    const versions = await screen.findByRole('table', { name: 'Versions' })
     expect(within(versions).getByText('2.4.0 (latest)')).toBeInTheDocument()
     expect(within(versions).getByText('Deprecated')).toBeInTheDocument()
     expect(lastRequestTo('/registries/package')?.query).toMatchObject({ TrackedPackageId: String(NPM_PACKAGE_ID) })

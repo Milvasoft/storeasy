@@ -11,17 +11,19 @@ setupRegistriesApi()
 
 configure({ asyncUtilTimeout: 5000 })
 
-function renderPackage() {
-  return renderWithProviders(<RegistryPackagePage />, {
+async function renderPackage() {
+  const rendered = renderWithProviders(<RegistryPackagePage />, {
     route: `/registries/${NPM_PACKAGE_ID}`,
     path: '/registries/:packageId',
     lang: 'en',
   })
+  await rendered.user.click(await screen.findByRole('tab', { name: 'Trusted publishing' }))
+  return rendered
 }
 
 describe('trusted publishing wizard', () => {
   it('shows the registry values, the CI file and the check of the latest release', async () => {
-    renderPackage()
+    await renderPackage()
 
     const section = await screen.findByRole('region', { name: 'Trusted publishing' })
     expect(await within(section).findByText('Does not match the setup', { selector: '.card *' })).toBeInTheDocument()
@@ -38,7 +40,7 @@ describe('trusted publishing wizard', () => {
   })
 
   it('checks the values, previews and saves the setup', async () => {
-    const { user } = renderPackage()
+    const { user } = await renderPackage()
 
     const section = await screen.findByRole('region', { name: 'Trusted publishing' })
     const repository = await within(section).findByLabelText(/Repository/, { selector: 'input' })
@@ -76,7 +78,7 @@ describe('trusted publishing wizard', () => {
       RegistryFields: [],
       WorkflowText: null,
     })
-    renderPackage()
+    await renderPackage()
 
     expect(await screen.findByText(/Maven Central does not offer trusted publishing/)).toBeInTheDocument()
   })

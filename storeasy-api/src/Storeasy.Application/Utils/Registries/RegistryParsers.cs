@@ -389,7 +389,10 @@ public static partial class RegistryParsers
                         .FirstOrDefault(url => url != null);
     }
 
-    private static JsonNode Parse(string json)
+    /// <summary>
+    /// Parses <paramref name="json"/>; null for empty or malformed text.
+    /// </summary>
+    internal static JsonNode Parse(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
             return null;

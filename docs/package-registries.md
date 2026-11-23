@@ -98,14 +98,52 @@ day (an alert, an audit entry and a notification), and suggests trusted publishi
 token itself is never accepted: a value that looks like one (`npm_...`, `pypi-...`, NuGet and crates.io keys, GitHub
 and GitLab tokens, long secret like strings) is refused. The check runs daily and right after a reminder is saved.
 
+## Downloads and usage
+
+The **Downloads** tab of a package page and the downloads column of the summary (sortable) show what each registry
+publishes. Every sync stores the registry's daily counts and a daily snapshot of the all time total, so a trend builds
+up even where the registry gives totals only.
+
+| Registry | Source | All time | Recent | Daily | Per version |
+|---|---|---|---|---|---|
+| npm | `api.npmjs.org/downloads/range` and `/versions/<name>/last-week` | none | last 30 days | yes (180 days) | last 7 days |
+| NuGet | search API (`totalDownloads`, `versions[].downloads`) | yes | none | from snapshots | all time |
+| PyPI | pypistats.org (`/recent`, `/overall?mirrors=false`) | none | last 30 days | yes (180 days) | none |
+| crates.io | crate `downloads`, `recent_downloads`, `/downloads` | yes | last 90 days | yes | all time |
+| RubyGems | gem `downloads`, versions `downloads_count` | yes | none | from snapshots | all time |
+| Packagist | `packages/<name>.json` `downloads`, `favers` | yes | last 30 days | from snapshots | none |
+| pub.dev | `/score`: `downloadCount30Days`, likes, points | none | last 30 days | none | none |
+| Maven Central | none: Maven Central publishes no download counts | | | | |
+
+Dependents are not shown yet: the deps.dev v3 API has no documented dependents method.
+
+## Listing
+
+The **Listing** tab reads the package's page on its registry live: description, README, keywords, license, home page,
+repository, authors and (NuGet) icon, with readiness checks (missing README, license, repository address or icon, a
+description under 20 characters, no keywords). The README is shown as text; HTML from a registry (crates.io) is reduced to
+its text and never rendered. No registry has an API that edits this metadata: it ships with the package and changes with
+the next release (npm, NuGet, PyPI, crates.io, RubyGems, pub.dev, Maven Central); Packagist reads `composer.json` from the
+repository.
+
+## Groups
+
+**Package groups** (from the registries page) put packages that are released together side by side: each member's
+latest version and release date, which members are behind the group's highest version, and open alerts. storeasy
+suggests groups from packages that share a source repository (for example every Milvasoft.* package of
+Milvasoft/Milvasoft). Groups are storeasy data; nothing changes on a registry.
+
 ## MCP
 
 `registries_packages_list`, `registries_package_get` and `registries_alerts_list` read; `registries_package_add`,
 `registries_package_remove` and `registries_package_sync` write storeasy's own data only; `registries_setup_get` and
 `registries_reminders_list` read the wizard (the CI file as text) and the reminders, `registries_setup_save`,
-`registries_reminder_save` and `registries_reminder_remove` save them ([mcp.md](mcp.md)).
+`registries_reminder_save` and `registries_reminder_remove` save them; `registries_downloads_get`, `registries_listing_get`,
+`registries_groups_list` and `registries_groups_suggest` read, `registries_group_save` and `registries_group_remove` save
+groups ([mcp.md](mcp.md)).
 
 ## Not yet
 
-The trusted publishing setup wizard and warnings about expiring registry tokens (they need registry credentials) come
-later, as do Maven Central, RubyGems, Packagist and pub.dev.
+Releasing from storeasy through your CI (a GitHub connection, release plans per package or group that push a tag or
+dispatch the workflow, and following the run until the version appears) and registry write operations with stored,
+encrypted API keys (unlist, deprecate, dist-tags, yank) come next.

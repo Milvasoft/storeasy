@@ -127,6 +127,8 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<TrackedPackageVersion> TrackedPackageVersions { get; set; }
     public DbSet<PackageAlert> PackageAlerts { get; set; }
     public DbSet<RegistryTokenReminder> RegistryTokenReminders { get; set; }
+    public DbSet<PackageGroup> PackageGroups { get; set; }
+    public DbSet<PackageDownloadDay> PackageDownloadDays { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

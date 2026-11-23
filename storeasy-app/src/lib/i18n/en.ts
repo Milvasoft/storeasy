@@ -1343,6 +1343,8 @@ export const en = {
       registryTokenReminderSaved: 'Token reminder saved',
       registryTokenReminderRemoved: 'Token reminder removed',
       registryTokenExpiring: 'Registry token expiring',
+      registryGroupSaved: 'Package group saved',
+      registryGroupRemoved: 'Package group removed',
     },
   },
 }

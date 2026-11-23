@@ -620,4 +620,12 @@ public enum AuditAction : short
     /// <summary>A recorded registry token expires soon or has expired.</summary>
     [Description("Registry token expiring")]
     RegistryTokenExpiring = 510,
+
+    /// <summary>A package group was added or changed.</summary>
+    [Description("Package group saved")]
+    RegistryGroupSaved = 511,
+
+    /// <summary>A package group was removed.</summary>
+    [Description("Package group removed")]
+    RegistryGroupRemoved = 512,
 }

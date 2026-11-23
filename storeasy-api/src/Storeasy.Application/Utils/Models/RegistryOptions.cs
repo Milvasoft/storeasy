@@ -57,6 +57,31 @@ public class RegistryOptions
     public string PubBaseUrl { get; set; } = "https://pub.dev";
 
     /// <summary>
+    /// NuGet search (<c>SearchQueryService</c> of the nuget.org service index): download counts and listing.
+    /// </summary>
+    public string NuGetSearchUrl { get; set; } = "https://azuresearch-usnc.nuget.org/query";
+
+    /// <summary>
+    /// NuGet flat container (<c>ReadmeUriTemplate</c> of the service index): package READMEs.
+    /// </summary>
+    public string NuGetFlatContainerBaseUrl { get; set; } = "https://api.nuget.org/v3-flatcontainer";
+
+    /// <summary>
+    /// npm download counts API.
+    /// </summary>
+    public string NpmDownloadsBaseUrl { get; set; } = "https://api.npmjs.org";
+
+    /// <summary>
+    /// pypistats.org API (PyPI download counts; PyPI itself publishes none).
+    /// </summary>
+    public string PyPIStatsBaseUrl { get; set; } = "https://pypistats.org/api";
+
+    /// <summary>
+    /// Packagist site (package details with download counts).
+    /// </summary>
+    public string PackagistSiteBaseUrl { get; set; } = "https://packagist.org";
+
+    /// <summary>
     /// OSV.dev API (security advisories).
     /// </summary>
     public string OsvBaseUrl { get; set; } = "https://api.osv.dev/v1";

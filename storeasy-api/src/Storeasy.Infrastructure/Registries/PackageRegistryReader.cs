@@ -161,6 +161,75 @@ public sealed class PackageRegistryReader(IHttpClientFactory httpClientFactory, 
             : [])];
     }
 
+    /// <inheritdoc/>
+    public async Task<RegistryDownloadsRead> ReadDownloadsAsync(PackageRegistry registry, string name, DateTime today, CancellationToken cancellationToken)
+    {
+        var path = RegistryNames.PathName(registry, name);
+
+        switch (registry)
+        {
+            case PackageRegistry.NuGet:
+                return RegistryDownloads.ParseNuGetSearch(await NuGetSearchAsync(name, cancellationToken), name);
+            case PackageRegistry.Npm:
+                var range = $"{today.AddDays(-RegistryDownloads.MaxDays + 1):yyyy-MM-dd}:{today:yyyy-MM-dd}";
+                var npmRange = await GetAsync($"{Base(_options.NpmDownloadsBaseUrl)}/downloads/range/{range}/{name}", null, cancellationToken);
+                var npmVersions = await TryGetAsync($"{Base(_options.NpmDownloadsBaseUrl)}/versions/{Uri.EscapeDataString(name)}/last-week", cancellationToken);
+                return RegistryDownloads.ParseNpm(npmRange, npmVersions, today);
+            case PackageRegistry.PyPI:
+                var recent = await GetAsync($"{Base(_options.PyPIStatsBaseUrl)}/packages/{path}/recent", null, cancellationToken);
+                return RegistryDownloads.ParsePyPIStats(recent, await TryGetAsync($"{Base(_options.PyPIStatsBaseUrl)}/packages/{path}/overall?mirrors=false", cancellationToken));
+            case PackageRegistry.Crates:
+                var crate = await GetAsync($"{Base(_options.CratesBaseUrl)}/crates/{path}", null, cancellationToken);
+                return RegistryDownloads.ParseCrate(crate, await TryGetAsync($"{Base(_options.CratesBaseUrl)}/crates/{path}/downloads", cancellationToken));
+            case PackageRegistry.RubyGems:
+                var gem = await GetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/gems/{path}.json", null, cancellationToken);
+                return RegistryDownloads.ParseRubyGems(gem, await TryGetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/versions/{path}.json", cancellationToken));
+            case PackageRegistry.Packagist:
+                return RegistryDownloads.ParsePackagist(await GetAsync($"{Base(_options.PackagistSiteBaseUrl)}/packages/{name.ToLowerInvariant()}.json", null, cancellationToken));
+            case PackageRegistry.Pub:
+                return RegistryDownloads.ParsePubScore(await GetAsync($"{Base(_options.PubBaseUrl)}/api/packages/{path}/score", null, cancellationToken));
+            default:
+                return null;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<RegistryListingRead> ReadListingAsync(PackageRegistry registry, string name, string latestVersion, CancellationToken cancellationToken)
+    {
+        var path = RegistryNames.PathName(registry, name);
+
+        switch (registry)
+        {
+            case PackageRegistry.Npm:
+                var packument = await GetAsync($"{Base(_options.NpmBaseUrl)}/{path}", null, cancellationToken);
+                return packument == null ? null : RegistryListing.ParseNpm(packument);
+            case PackageRegistry.NuGet:
+                var readme = latestVersion == null ? null : await TryGetAsync($"{Base(_options.NuGetFlatContainerBaseUrl)}/{name.ToLowerInvariant()}/{latestVersion.ToLowerInvariant()}/readme", cancellationToken);
+                return RegistryListing.ParseNuGet(await NuGetSearchAsync(name, cancellationToken), name, readme);
+            case PackageRegistry.PyPI:
+                var pypi = await GetAsync($"{Base(_options.PyPIBaseUrl)}/pypi/{path}/json", null, cancellationToken);
+                return pypi == null ? null : RegistryListing.ParsePyPI(pypi);
+            case PackageRegistry.Crates:
+                var crate = await GetAsync($"{Base(_options.CratesBaseUrl)}/crates/{path}", null, cancellationToken);
+                var html = crate == null || latestVersion == null ? null : await TryGetAsync($"{Base(_options.CratesBaseUrl)}/crates/{path}/{Uri.EscapeDataString(latestVersion)}/readme", cancellationToken);
+                return crate == null ? null : RegistryListing.ParseCrate(crate, html);
+            case PackageRegistry.RubyGems:
+                var gem = await GetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/gems/{path}.json", null, cancellationToken);
+                return gem == null ? null : RegistryListing.ParseRubyGems(gem);
+            case PackageRegistry.Packagist:
+                var packagist = await GetAsync($"{Base(_options.PackagistSiteBaseUrl)}/packages/{name.ToLowerInvariant()}.json", null, cancellationToken);
+                return packagist == null ? null : RegistryListing.ParsePackagist(packagist, latestVersion);
+            case PackageRegistry.Pub:
+                var pub = await GetAsync($"{Base(_options.PubBaseUrl)}/api/packages/{path}", null, cancellationToken);
+                return pub == null ? null : RegistryListing.ParsePub(pub, await TryGetAsync($"{Base(_options.PubBaseUrl)}/api/packages/{path}/score", cancellationToken));
+            default:
+                return null;
+        }
+    }
+
+    private Task<string> NuGetSearchAsync(string id, CancellationToken cancellationToken)
+        => GetAsync($"{_options.NuGetSearchUrl}?q=packageid:{Uri.EscapeDataString(id)}&prerelease=true&semVerLevel=2.0.0", null, cancellationToken);
+
     private async Task<RegistryPackageRead> ReadNuGetAsync(string path, CancellationToken cancellationToken)
     {
         var index = await GetAsync($"{Base(_options.NuGetRegistrationBaseUrl)}/{path}/index.json", null, cancellationToken);
