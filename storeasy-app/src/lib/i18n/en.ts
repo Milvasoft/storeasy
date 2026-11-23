@@ -344,6 +344,7 @@ export const en = {
     compliance: 'Compliance calendar',
     studio: 'Studio',
     intake: 'Package intake',
+    registries: 'Package registries',
     connections: 'Store connections',
     webhooks: 'Webhooks',
     members: 'Members',
@@ -1090,6 +1091,7 @@ export const en = {
       syncTestFlight: 'Sync TestFlight',
       updateTestFlight: 'Update TestFlight',
       pingWebhooks: 'Ping webhooks',
+      registrySync: 'Sync package registries',
     },
     state: {
       queued: 'Queued',
@@ -1330,6 +1332,12 @@ export const en = {
       asoExperimentWinnerApplied: 'Winning variant applied',
       asoExperimentResultRecorded: 'Experiment result recorded',
       asoExperimentSubmitted: 'Experiment submitted for review',
+      registryPackageAdded: 'Package tracked',
+      registryPackageRemoved: 'Package untracked',
+      registryVersionPublished: 'Package version published',
+      registryVersionDeprecated: 'Package version deprecated',
+      registryVersionYanked: 'Package version yanked',
+      registryAdvisoryFound: 'Package security advisory',
     },
   },
 }

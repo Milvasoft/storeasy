@@ -201,6 +201,12 @@ export const AuditAction = {
   AsoExperimentWinnerApplied: 496,
   AsoExperimentResultRecorded: 497,
   AsoExperimentSubmitted: 498,
+  RegistryPackageAdded: 500,
+  RegistryPackageRemoved: 501,
+  RegistryVersionPublished: 502,
+  RegistryVersionDeprecated: 503,
+  RegistryVersionYanked: 504,
+  RegistryAdvisoryFound: 505,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -230,6 +236,7 @@ export const StoreJobKind = {
   SyncTestFlight: 405,
   UpdateTestFlight: 406,
   PingWebhooks: 407,
+  RegistrySync: 500,
 } as const
 export type StoreJobKind = (typeof StoreJobKind)[keyof typeof StoreJobKind]
 

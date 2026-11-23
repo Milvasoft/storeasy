@@ -23,6 +23,8 @@ export type FeatureFlagKey =
   | 'AccountSessions'
   | 'Platform'
   | 'RuleWatcher'
+  // The package registries module (server kill switch Registries; the menu item is hidden while it is off).
+  | 'Registries'
 
 export type FeatureFlags = Record<FeatureFlagKey, boolean>
 
@@ -45,6 +47,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   Platform: true,
   // The rule watcher's proposals and sources (platform administrators, phase 4).
   RuleWatcher: true,
+  // Package registries (npm, NuGet, PyPI, crates.io packages and their alerts).
+  Registries: true,
 }
 
 /** The server's flag states as client keys: known keys only, matched without dots. */
@@ -88,6 +92,11 @@ function useFlagsContext(): FeatureFlagsValue {
 
 export function useFeature(key: FeatureFlagKey): boolean {
   return useFlagsContext().isEnabled(key)
+}
+
+/** Every flag at once, for lists that filter by flag (a hook cannot be called per item). */
+export function useFeatureFlags(): (key: FeatureFlagKey) => boolean {
+  return useFlagsContext().isEnabled
 }
 
 /**

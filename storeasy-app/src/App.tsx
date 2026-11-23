@@ -13,6 +13,7 @@ import { contentRoutes } from '@/features/routes'
 import { microsoftRoutes } from '@/features/microsoft/routes'
 import { wingetRoutes } from '@/features/winget/routes'
 import { chromeRoutes } from '@/features/chrome/routes'
+import { registriesRoutes } from '@/features/registries/routes'
 import { firefoxRoutes } from '@/features/firefox/routes'
 import { ActivityProvider } from '@/lib/activity/ActivityContext'
 import { ServerFeatureFlags } from '@/lib/features/FeatureFlagsContext'
@@ -270,6 +271,7 @@ export function App() {
         {microsoftRoutes()}
         {wingetRoutes()}
         {chromeRoutes()}
+        {registriesRoutes()}
         {firefoxRoutes()}
         <Route path="*" element={<NotFoundPage />} />
       </Route>

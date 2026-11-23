@@ -34,6 +34,8 @@ function typeKey(type: NotificationType): TypeKey {
       return 'ruleProposal'
     case NotificationType.VersionState:
       return 'versionState'
+    case NotificationType.PackageRegistry:
+      return 'packageRegistry'
     default:
       return 'other'
   }

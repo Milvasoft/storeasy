@@ -30,6 +30,7 @@ const KIND_KEY: Record<StoreJobKind, keyof Dictionary['jobs']['kind']> = {
   [StoreJobKind.SyncTestFlight]: 'syncTestFlight',
   [StoreJobKind.UpdateTestFlight]: 'updateTestFlight',
   [StoreJobKind.PingWebhooks]: 'pingWebhooks',
+  [StoreJobKind.RegistrySync]: 'registrySync',
 }
 
 export function jobKindLabel(kind: StoreJobKind | null | undefined, t: Dictionary): string {

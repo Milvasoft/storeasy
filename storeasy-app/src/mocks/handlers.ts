@@ -1,6 +1,7 @@
 import { delay, http, HttpResponse, type HttpHandler } from 'msw'
 import { activityMockHandlers } from './activityMock'
 import { appsMockHandlers } from './appsMock'
+import { registriesMockHandlers } from './registriesMock'
 import { studioMockHandlers } from './studioMock'
 import type { FilterCriteria, ListRequest } from '@/lib/api/list'
 import {
@@ -411,6 +412,7 @@ export const mockHandlers: HttpHandler[] = [
   ...studioMockHandlers,
   ...activityMockHandlers,
   ...appsMockHandlers,
+  ...registriesMockHandlers,
   // Phase 8: instance settings, server feature flags, organization roles and settings, sessions and push.
   http.get(`${BASE}/System/public-settings`, () =>
     envelope({ registrationMode: 1, googleSignInEnabled: false, version: '1.0.0-dev', webPushPublicKey: null }),
