@@ -230,7 +230,7 @@ kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
 Kütüphane depoları (npm, NuGet, PyPI ve benzerleri) bu listede değildir: mağaza sayfası, ekran görüntüsü ve inceleme
 süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
 
-### 7.2 Paket depoları modülü (faz 1 yapıldı)
+### 7.2 Paket depoları modülü (faz 1 ve 2 yapıldı)
 
 Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
 olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
@@ -254,6 +254,15 @@ provenance olmadığı için uyarı yok), altı saatlik senkron ve "şimdi senkr
 araçları (`registries_*`), web sayfası ve `Registries` özellik anahtarıyla kapatma. Ayrıntı
 [package-registries.md](package-registries.md). Trusted publishing kurulum sihirbazı, süresi dolan token uyarıları
 (depo kimlik bilgisi gerektirir) ve Maven Central, RubyGems, Packagist, pub.dev sonraya kaldı.
+
+**Faz 2 yapıldı (23 Kasım 2026).** Paket başına trusted publishing sihirbazı (npm, PyPI, crates.io, NuGet, RubyGems,
+pub.dev): depo ayarlarına girilecek değerler ve ayar sayfası bağlantısı, GitHub Actions (npm ve PyPI için GitLab CI de)
+için kopyalanacak OIDC iş akışı, son yayının provenance'ını kayıtlı kurulumla karşılaştıran kontrol ve eşleşmezse
+`PublisherMismatch` uyarısı. Maven Central ve Packagist'te trusted publishing yok, arayüz bunu söyler. Token hatırlatıcıları
+token saklamadan: ad, depo, kullanıldığı yer ve bitiş tarihi; 14 ve 3 gün önce ve o gün `TokenExpiring` uyarısı, denetim
+kaydı ve bildirim; token'a benzeyen değer reddedilir. Yeni depolar (yalnız okuma): Maven Central, RubyGems (sigstore
+attestation ile provenance), Packagist (abandoned kullanımdan kaldırma sayılır), pub.dev (discontinued ve retracted).
+MCP araçları `registries_setup_*` ve `registries_reminder*`. storeasy depoya veya repoya hiçbir şey yazmaz.
 
 Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 

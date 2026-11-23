@@ -68,7 +68,7 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
         var ids = packages.Select(p => p.Id).ToList();
         var versions = (await _versionRepository.GetAllAsync(v => ids.Contains(v.TrackedPackageId) && v.OrganizationId == organizationId, cancellationToken: cancellationToken))
                        .ToLookup(v => v.TrackedPackageId);
-        var openAlerts = (await _alertRepository.GetAllAsync(a => ids.Contains(a.TrackedPackageId) && a.OrganizationId == organizationId && a.ResolvedDate == null, cancellationToken: cancellationToken))
+        var openAlerts = (await _alertRepository.GetAllAsync(a => a.TrackedPackageId != null && ids.Contains(a.TrackedPackageId.Value) && a.OrganizationId == organizationId && a.ResolvedDate == null, cancellationToken: cancellationToken))
                          .ToLookup(a => a.TrackedPackageId);
 
         var reads = new List<PackageRead>();
@@ -172,11 +172,12 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
         if (package.Registry != PackageRegistry.Npm || latest.HasProvenance == true)
             targets.Add(latest);
 
-        if (package.Registry == PackageRegistry.PyPI)
+        // PyPI and RubyGems answer provenance per version (file); a few unchecked versions are read per sync.
+        if (package.Registry is PackageRegistry.PyPI or PackageRegistry.RubyGems)
         {
             var checkedVersions = known.Where(v => v.HasProvenance != null).Select(v => v.Version).ToHashSet(StringComparer.Ordinal);
 
-            targets.AddRange(read.Versions.Where(v => v != latest && !checkedVersions.Contains(v.Version) && v.ArtifactFile != null)
+            targets.AddRange(read.Versions.Where(v => v != latest && !checkedVersions.Contains(v.Version) && (package.Registry != PackageRegistry.PyPI || v.ArtifactFile != null))
                                           .OrderByDescending(v => v.Published ?? DateTime.MinValue)
                                           .Take(Math.Max(0, _options.ProvenanceChecksPerSync)));
         }
@@ -285,6 +286,7 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
             RegistryChangeKind.NewVersion => MessageKey.NotificationRegistryNewVersion,
             RegistryChangeKind.Deprecated => MessageKey.NotificationRegistryDeprecated,
             RegistryChangeKind.Yanked => MessageKey.NotificationRegistryYanked,
+            RegistryChangeKind.PublisherMismatch => MessageKey.NotificationRegistryPublisherMismatch,
             _ => MessageKey.NotificationRegistryAdvisory,
         },
         TextArgs = [package.Name, RegistryNames.DisplayName(package.Registry), change.Version, change.Detail ?? string.Empty],
@@ -300,6 +302,7 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
         RegistryChangeKind.NewVersion => AuditAction.RegistryVersionPublished,
         RegistryChangeKind.Deprecated => AuditAction.RegistryVersionDeprecated,
         RegistryChangeKind.Yanked => AuditAction.RegistryVersionYanked,
+        RegistryChangeKind.PublisherMismatch => AuditAction.RegistryPublisherMismatch,
         _ => AuditAction.RegistryAdvisoryFound,
     };
 }

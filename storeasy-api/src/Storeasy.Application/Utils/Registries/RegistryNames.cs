@@ -33,6 +33,22 @@ public static partial class RegistryNames
     [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9_-]*$")]
     private static partial Regex CrateName();
 
+    // Maven Central: groupId:artifactId.
+    [GeneratedRegex(@"^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$")]
+    private static partial Regex MavenName();
+
+    // RubyGems: letters, digits, dots, dashes and underscores, starting with a letter or digit.
+    [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9._-]*$")]
+    private static partial Regex GemName();
+
+    // Packagist: vendor/package in lower case (Composer's name rule).
+    [GeneratedRegex(@"^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$")]
+    private static partial Regex PackagistName();
+
+    // pub.dev: lower case letters, digits and underscores, not starting with a digit.
+    [GeneratedRegex(@"^[a-z_][a-z0-9_]*$")]
+    private static partial Regex PubName();
+
     [GeneratedRegex(@"[-_.]+")]
     private static partial Regex PyPISeparators();
 
@@ -52,6 +68,10 @@ public static partial class RegistryNames
             PackageRegistry.NuGet => name.Length <= NuGetMaxLength && NuGetId().IsMatch(name),
             PackageRegistry.PyPI => name.Length <= Domain.Registries.TrackedPackage.NameMaxLength && PyPIName().IsMatch(name),
             PackageRegistry.Crates => name.Length <= CrateMaxLength && CrateName().IsMatch(name),
+            PackageRegistry.Maven => name.Length <= Domain.Registries.TrackedPackage.NameMaxLength && MavenName().IsMatch(name),
+            PackageRegistry.RubyGems => name.Length <= CrateMaxLength * 2 && GemName().IsMatch(name),
+            PackageRegistry.Packagist => name.Length <= Domain.Registries.TrackedPackage.NameMaxLength && PackagistName().IsMatch(name),
+            PackageRegistry.Pub => name.Length <= CrateMaxLength && PubName().IsMatch(name),
             _ => false,
         };
     }
@@ -82,6 +102,10 @@ public static partial class RegistryNames
         PackageRegistry.NuGet => $"https://www.nuget.org/packages/{name}",
         PackageRegistry.PyPI => $"https://pypi.org/project/{name}/",
         PackageRegistry.Crates => $"https://crates.io/crates/{name}",
+        PackageRegistry.Maven => $"https://central.sonatype.com/artifact/{name.Replace(':', '/')}",
+        PackageRegistry.RubyGems => $"https://rubygems.org/gems/{name}",
+        PackageRegistry.Packagist => $"https://packagist.org/packages/{name}",
+        PackageRegistry.Pub => $"https://pub.dev/packages/{name}",
         _ => null,
     };
 
@@ -94,6 +118,10 @@ public static partial class RegistryNames
         PackageRegistry.NuGet => "NuGet",
         PackageRegistry.PyPI => "PyPI",
         PackageRegistry.Crates => "crates.io",
+        PackageRegistry.Maven => "Maven Central",
+        PackageRegistry.RubyGems => "RubyGems",
+        PackageRegistry.Packagist => "Packagist",
+        PackageRegistry.Pub => "pub.dev",
         _ => registry.ToString(),
     };
 
@@ -106,13 +134,20 @@ public static partial class RegistryNames
         PackageRegistry.NuGet => "NuGet",
         PackageRegistry.PyPI => "PyPI",
         PackageRegistry.Crates => "crates.io",
+        PackageRegistry.Maven => "Maven",
+        PackageRegistry.RubyGems => "RubyGems",
+        PackageRegistry.Packagist => "Packagist",
+        PackageRegistry.Pub => "Pub",
         _ => null,
     };
 
     /// <summary>
-    /// Whether the registry records provenance of a published version (NuGet does not).
+    /// Whether storeasy can read the provenance of a published version on the registry: npm, PyPI, crates.io (trusted
+    /// publishing data) and RubyGems (sigstore attestations). NuGet, Maven Central, Packagist and pub.dev expose none, so
+    /// no provenance alert is raised for them.
     /// </summary>
-    public static bool SupportsProvenance(PackageRegistry registry) => registry != PackageRegistry.NuGet;
+    public static bool SupportsProvenance(PackageRegistry registry)
+        => registry is PackageRegistry.Npm or PackageRegistry.PyPI or PackageRegistry.Crates or PackageRegistry.RubyGems;
 
     /// <summary>
     /// An advisory's page on osv.dev.

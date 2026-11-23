@@ -33,11 +33,20 @@ public static class RegistriesServiceCollectionExtensions
         services.AddSingleton<IPackageRegistryReader, PackageRegistryReader>();
         services.AddScoped<IRegistrySyncer, RegistrySyncer>();
         services.AddScoped<IStoreJobHandler, RegistrySyncJobHandler>();
+        services.AddScoped<IRegistryReminderChecker, RegistryReminderChecker>();
 
         services.AddMilvaCronJob<RegistrySyncJob>(c =>
         {
             c.TimeZoneInfo = TimeZoneInfo.Utc;
             c.CronExpression = "25 * * * *";
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        // Token expiry reminders, daily.
+        services.AddMilvaCronJob<RegistryReminderJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = "0 7 * * *";
             c.CronFormat = CronFormat.Standard;
         });
 

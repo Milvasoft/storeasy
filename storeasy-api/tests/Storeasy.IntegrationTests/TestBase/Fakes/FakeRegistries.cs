@@ -26,6 +26,21 @@ public sealed class FakeRegistries : HttpMessageHandler
     /// <summary>crates.io API address the tests configure.</summary>
     public const string CratesBaseUrl = "https://crates.registry.fake/api/v1";
 
+    /// <summary>Maven Central repository address the tests configure.</summary>
+    public const string MavenRepositoryBaseUrl = "https://maven.registry.fake/maven2";
+
+    /// <summary>Maven Central search address the tests configure.</summary>
+    public const string MavenSearchBaseUrl = "https://maven-search.registry.fake/solrsearch/select";
+
+    /// <summary>RubyGems address the tests configure.</summary>
+    public const string RubyGemsBaseUrl = "https://rubygems.registry.fake";
+
+    /// <summary>Packagist metadata address the tests configure.</summary>
+    public const string PackagistBaseUrl = "https://packagist.registry.fake";
+
+    /// <summary>pub.dev address the tests configure.</summary>
+    public const string PubBaseUrl = "https://pub.registry.fake";
+
     /// <summary>OSV.dev API address the tests configure.</summary>
     public const string OsvBaseUrl = "https://osv.registry.fake/v1";
 
@@ -59,7 +74,7 @@ public sealed class FakeRegistries : HttpMessageHandler
     /// An npm package (unscoped or <c>@scope/name</c>) whose latest is the last version; provenance versions get an
     /// attestation naming <c>https://github.com/acme/&lt;name&gt;</c> and run <paramref name="runId"/>.
     /// </summary>
-    public void SetNpm(string name, IReadOnlyList<Version> versions, long runId = 1001)
+    public void SetNpm(string name, IReadOnlyList<Version> versions, long runId = 1001, string workflow = ".github/workflows/release.yml")
     {
         var encoded = name.StartsWith('@') ? "@" + name[1..].Replace("/", "%2f", StringComparison.Ordinal) : name;
         var time = new JsonObject { ["created"] = Iso(versions[0].Published), ["modified"] = Iso(versions[^1].Published) };
@@ -79,7 +94,7 @@ public sealed class FakeRegistries : HttpMessageHandler
                     ["provenance"] = new JsonObject { ["predicateType"] = "https://slsa.dev/provenance/v1" },
                 };
 
-                Responses[$"{NpmBaseUrl}/-/npm/v1/attestations/{encoded}@{version.Number}"] = NpmAttestations(name, version.Number, runId);
+                Responses[$"{NpmBaseUrl}/-/npm/v1/attestations/{encoded}@{version.Number}"] = NpmAttestations(name, runId, workflow);
             }
 
             var item = new JsonObject { ["name"] = name, ["version"] = version.Number, ["dist"] = dist };
@@ -210,6 +225,110 @@ public sealed class FakeRegistries : HttpMessageHandler
     }
 
     /// <summary>
+    /// A Maven Central artifact (<c>group:artifact</c>): its maven-metadata.xml and the search answer with the dates.
+    /// </summary>
+    public void SetMaven(string name, IReadOnlyList<Version> versions)
+    {
+        var colon = name.IndexOf(':', StringComparison.Ordinal);
+        var group = name[..colon];
+        var artifact = name[(colon + 1)..];
+        var xml = new StringBuilder("<metadata><groupId>").Append(group).Append("</groupId><artifactId>").Append(artifact).Append("</artifactId><versioning>")
+            .Append("<release>").Append(versions[^1].Number).Append("</release><versions>");
+
+        foreach (var version in versions)
+            xml.Append("<version>").Append(version.Number).Append("</version>");
+
+        Responses[$"{MavenRepositoryBaseUrl}/{group.Replace('.', '/')}/{artifact}/maven-metadata.xml"] = xml.Append("</versions></versioning></metadata>").ToString();
+        Responses[MavenSearchBaseUrl] = new JsonObject
+        {
+            ["response"] = new JsonObject
+            {
+                ["docs"] = new JsonArray([.. versions.Select(v => (JsonNode)new JsonObject { ["g"] = group, ["a"] = artifact, ["v"] = v.Number, ["timestamp"] = new DateTimeOffset(v.Published).ToUnixTimeMilliseconds() })]),
+            },
+        }.ToJsonString();
+    }
+
+    /// <summary>
+    /// A gem; provenance versions answer the attestations endpoint with a SLSA bundle from <c>acme/&lt;name&gt;</c>.
+    /// </summary>
+    public void SetRubyGem(string name, IReadOnlyList<Version> versions)
+    {
+        Responses[$"{RubyGemsBaseUrl}/api/v1/gems/{name}.json"] = new JsonObject
+        {
+            ["name"] = name,
+            ["version"] = versions[^1].Number,
+            ["source_code_uri"] = $"https://github.com/acme/{name}",
+        }.ToJsonString();
+        Responses[$"{RubyGemsBaseUrl}/api/v1/versions/{name}.json"] = new JsonArray([.. versions.Reverse().Select(v => (JsonNode)new JsonObject { ["number"] = v.Number, ["created_at"] = Iso(v.Published), ["platform"] = "ruby" })]).ToJsonString();
+
+        foreach (var version in versions)
+        {
+            var bundles = new JsonArray();
+
+            if (version.Provenance)
+            {
+                var statement = new JsonObject
+                {
+                    ["predicateType"] = "https://slsa.dev/provenance/v1",
+                    ["predicate"] = new JsonObject
+                    {
+                        ["buildDefinition"] = new JsonObject { ["externalParameters"] = new JsonObject { ["workflow"] = new JsonObject { ["repository"] = $"https://github.com/acme/{name}", ["path"] = ".github/workflows/release.yml" } } },
+                        ["runDetails"] = new JsonObject { ["metadata"] = new JsonObject { ["invocationId"] = $"https://github.com/acme/{name}/actions/runs/31" } },
+                    },
+                };
+
+                bundles.Add(new JsonObject { ["dsseEnvelope"] = new JsonObject { ["payload"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(statement.ToJsonString())) } });
+            }
+
+            Responses[$"{RubyGemsBaseUrl}/api/v1/attestations/{name}-{version.Number}.json"] = bundles.ToJsonString();
+        }
+    }
+
+    /// <summary>
+    /// A Packagist package (minified p2 metadata, newest first); <paramref name="abandoned"/> marks it abandoned for that
+    /// replacement.
+    /// </summary>
+    public void SetPackagist(string name, IReadOnlyList<Version> versions, string abandoned = null)
+    {
+        var items = new JsonArray();
+        var first = true;
+
+        foreach (var version in versions.Reverse())
+        {
+            var item = new JsonObject { ["version"] = version.Number, ["version_normalized"] = version.Number + ".0", ["time"] = Iso(version.Published) };
+
+            if (first)
+            {
+                item["name"] = name;
+                item["source"] = new JsonObject { ["url"] = $"https://github.com/{name}.git", ["type"] = "git" };
+
+                if (abandoned != null)
+                    item["abandoned"] = abandoned;
+
+                first = false;
+            }
+
+            items.Add(item);
+        }
+
+        Responses[$"{PackagistBaseUrl}/p2/{name}.json"] = new JsonObject { ["minified"] = "composer/2.0", ["packages"] = new JsonObject { [name] = items } }.ToJsonString();
+    }
+
+    /// <summary>
+    /// A pub.dev package; <paramref name="replacedBy"/> marks it discontinued in favour of that package.
+    /// </summary>
+    public void SetPub(string name, IReadOnlyList<Version> versions, string replacedBy = null)
+    {
+        Responses[$"{PubBaseUrl}/api/packages/{name}"] = new JsonObject
+        {
+            ["name"] = name,
+            ["latest"] = new JsonObject { ["version"] = versions[^1].Number, ["pubspec"] = new JsonObject { ["repository"] = $"https://github.com/acme/{name}" }, ["published"] = Iso(versions[^1].Published) },
+            ["versions"] = new JsonArray([.. versions.Select(v => (JsonNode)new JsonObject { ["version"] = v.Number, ["published"] = Iso(v.Published), ["retracted"] = v.Yanked })]),
+        }.ToJsonString();
+        Responses[$"{PubBaseUrl}/api/packages/{name}/options"] = new JsonObject { ["isDiscontinued"] = replacedBy != null, ["replacedBy"] = replacedBy, ["isUnlisted"] = false }.ToJsonString();
+    }
+
+    /// <summary>
     /// An OSV.dev advisory for one package version.
     /// </summary>
     public void SetAdvisory(string ecosystem, string name, string version, string id, string severity = "HIGH", string summary = "Remote code execution")
@@ -261,7 +380,7 @@ public sealed class FakeRegistries : HttpMessageHandler
         return new JsonObject { ["results"] = results }.ToJsonString();
     }
 
-    private static string NpmAttestations(string name, string version, long runId)
+    private static string NpmAttestations(string name, long runId, string workflow)
     {
         var statement = new JsonObject
         {
@@ -273,7 +392,7 @@ public sealed class FakeRegistries : HttpMessageHandler
                 {
                     ["externalParameters"] = new JsonObject
                     {
-                        ["workflow"] = new JsonObject { ["ref"] = "refs/heads/main", ["repository"] = $"https://github.com/acme/{Short(name)}", ["path"] = ".github/workflows/release.yml" },
+                        ["workflow"] = new JsonObject { ["ref"] = "refs/heads/main", ["repository"] = $"https://github.com/acme/{Short(name)}", ["path"] = workflow },
                     },
                 },
                 ["runDetails"] = new JsonObject

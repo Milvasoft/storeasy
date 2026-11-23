@@ -67,6 +67,18 @@ public class TrackedPackageSummaryDto
     /// <summary>The package's page on its registry.</summary>
     public string RegistryUrl { get; set; }
 
+    /// <summary>CI provider of the trusted publishing setup; null without one.</summary>
+    public CiProvider? SetupProvider { get; set; }
+
+    /// <summary>Repository of the trusted publishing setup.</summary>
+    public string SetupRepository { get; set; }
+
+    /// <summary>Workflow file of the trusted publishing setup.</summary>
+    public string SetupWorkflow { get; set; }
+
+    /// <summary>Whether the latest version came from the setup's repository and workflow.</summary>
+    public PublisherCheckStatus PublisherCheck { get; set; }
+
     /// <summary>
     /// Projection of the row (the linked app only while it is not deleted).
     /// </summary>
@@ -87,6 +99,9 @@ public class TrackedPackageSummaryDto
         OpenAlertCount = p.Alerts.Count(a => a.ResolvedDate == null),
         SyncedDate = p.SyncedDate,
         SyncError = p.SyncError,
+        SetupProvider = p.SetupProvider,
+        SetupRepository = p.SetupRepository,
+        SetupWorkflow = p.SetupWorkflow,
     };
 
     /// <summary>
@@ -96,6 +111,17 @@ public class TrackedPackageSummaryDto
     {
         RegistryUrl = RegistryNames.PageUrl(Registry, Name);
         ProvenanceSupported = RegistryNames.SupportsProvenance(Registry);
+        PublisherCheck = TrustedPublishing.Check(new TrackedPackage
+        {
+            Registry = Registry,
+            LatestVersion = LatestVersion,
+            HasProvenance = HasProvenance,
+            SourceRepository = SourceRepository,
+            LatestWorkflow = LatestWorkflow,
+            SetupProvider = SetupProvider,
+            SetupRepository = SetupRepository,
+            SetupWorkflow = SetupWorkflow,
+        }).Status;
 
         return this;
     }
@@ -167,7 +193,10 @@ public class PackageAlertDto
     public long Id { get; set; }
 
     /// <summary>Tracked package.</summary>
-    public int TrackedPackageId { get; set; }
+    public int? TrackedPackageId { get; set; }
+
+    /// <summary>Token reminder of a token expiry alert.</summary>
+    public int? TokenReminderId { get; set; }
 
     /// <summary>Registry of the package.</summary>
     public PackageRegistry Registry { get; set; }
@@ -206,8 +235,9 @@ public class PackageAlertDto
     {
         Id = a.Id,
         TrackedPackageId = a.TrackedPackageId,
-        Registry = a.TrackedPackage.Registry,
-        PackageName = a.TrackedPackage.Name,
+        TokenReminderId = a.TokenReminderId,
+        Registry = a.TrackedPackage != null ? a.TrackedPackage.Registry : a.TokenReminder.Registry,
+        PackageName = a.TrackedPackage != null ? a.TrackedPackage.Name : a.TokenReminder.Label,
         Kind = a.Kind,
         Version = a.Version,
         AdvisoryId = a.AdvisoryId,
@@ -238,4 +268,204 @@ public class TrackedPackageAddedDto
 
     /// <summary>Sync job reading the package.</summary>
     public long JobId { get; set; }
+}
+
+/// <summary>
+/// One value to fill in on the registry's trusted publisher settings.
+/// </summary>
+public class SetupFieldDto
+{
+    /// <summary>Field (<c>owner</c>, <c>repository</c>, <c>workflow</c>, <c>environment</c>, <c>namespace</c>, <c>project</c>,
+    /// <c>pipelineFile</c>, <c>repositoryPath</c>, <c>tagPattern</c>).</summary>
+    public string Key { get; set; }
+
+    /// <summary>What to fill in.</summary>
+    public string Value { get; set; }
+}
+
+/// <summary>
+/// The trusted publishing wizard of a tracked package: the registry side, the CI file and the check of the latest release.
+/// </summary>
+public class TrustedPublishingDto
+{
+    /// <summary>Tracked package.</summary>
+    public int TrackedPackageId { get; set; }
+
+    /// <summary>Registry.</summary>
+    public PackageRegistry Registry { get; set; }
+
+    /// <summary>Package name.</summary>
+    public string PackageName { get; set; }
+
+    /// <summary>CI providers the registry accepts trusted publishing from; empty when it has none.</summary>
+    public List<CiProvider> Providers { get; set; } = [];
+
+    /// <summary>Where the trusted publisher is set up on the registry.</summary>
+    public string SettingsUrl { get; set; }
+
+    /// <summary>Whether these are the saved values (false for a preview).</summary>
+    public bool Saved { get; set; }
+
+    /// <summary>CI provider of the setup (or the preview).</summary>
+    public CiProvider? Provider { get; set; }
+
+    /// <summary>Repository (<c>owner/repo</c> or <c>namespace/project</c>).</summary>
+    public string Repository { get; set; }
+
+    /// <summary>Workflow file name (GitHub) or top-level CI file path (GitLab).</summary>
+    public string Workflow { get; set; }
+
+    /// <summary>CI environment.</summary>
+    public string Environment { get; set; }
+
+    /// <summary>Registry user the CI logs in as (NuGet).</summary>
+    public string RegistryUser { get; set; }
+
+    /// <summary>UTC instant the setup was saved.</summary>
+    public DateTime? SetupDate { get; set; }
+
+    /// <summary>Step 1: what to fill in on the registry.</summary>
+    public List<SetupFieldDto> RegistryFields { get; set; } = [];
+
+    /// <summary>Step 2: the path of the CI file in the repository.</summary>
+    public string WorkflowPath { get; set; }
+
+    /// <summary>Step 2: the CI file (text to copy; storeasy never commits it).</summary>
+    public string WorkflowText { get; set; }
+
+    /// <summary>Step 3: the latest release against the saved setup.</summary>
+    public PublisherCheckDto Check { get; set; }
+
+    /// <summary>
+    /// Builds the wizard of <paramref name="package"/> for the given setup values (the saved ones, or a preview).
+    /// </summary>
+    public static TrustedPublishingDto Build(TrackedPackage package, CiProvider? provider, string repository, string workflow, string environment, string registryUser, bool saved)
+    {
+        var dto = new TrustedPublishingDto
+        {
+            TrackedPackageId = package.Id,
+            Registry = package.Registry,
+            PackageName = package.Name,
+            Providers = [.. TrustedPublishing.Providers(package.Registry)],
+            SettingsUrl = TrustedPublishing.SettingsUrl(package.Registry, package.Name),
+            Saved = saved,
+            Provider = provider,
+            Repository = repository,
+            Workflow = workflow,
+            Environment = environment,
+            RegistryUser = registryUser,
+            SetupDate = saved ? package.SetupDate : null,
+        };
+
+        if (provider is CiProvider ci && dto.Providers.Contains(ci))
+        {
+            dto.RegistryFields = [.. TrustedPublishing.RegistryFields(package.Registry, ci, repository, workflow, environment).Select(f => new SetupFieldDto { Key = f.Key, Value = f.Value })];
+            dto.WorkflowPath = string.IsNullOrEmpty(workflow) ? null : TrustedPublishing.WorkflowPath(ci, workflow);
+            dto.WorkflowText = TrustedPublishing.WorkflowText(package.Registry, ci, environment, registryUser);
+        }
+
+        var check = TrustedPublishing.Check(package);
+
+        dto.Check = new PublisherCheckDto
+        {
+            Status = check.Status,
+            ExpectedRepository = check.ExpectedRepository,
+            ExpectedWorkflow = check.ExpectedWorkflow,
+            ObservedRepository = check.ObservedRepository,
+            ObservedWorkflow = check.ObservedWorkflow,
+            Version = check.Version,
+            CiRunUrl = package.HasProvenance ? package.LatestCiRunUrl : null,
+        };
+
+        return dto;
+    }
+}
+
+/// <summary>
+/// The latest release of a tracked package against its trusted publishing setup.
+/// </summary>
+public class PublisherCheckDto
+{
+    /// <summary>Outcome.</summary>
+    public PublisherCheckStatus Status { get; set; }
+
+    /// <summary>Repository address the setup expects.</summary>
+    public string ExpectedRepository { get; set; }
+
+    /// <summary>Workflow path the setup expects.</summary>
+    public string ExpectedWorkflow { get; set; }
+
+    /// <summary>Repository the latest version's provenance names.</summary>
+    public string ObservedRepository { get; set; }
+
+    /// <summary>Workflow the latest version's provenance names.</summary>
+    public string ObservedWorkflow { get; set; }
+
+    /// <summary>The latest version.</summary>
+    public string Version { get; set; }
+
+    /// <summary>CI run that published it.</summary>
+    public string CiRunUrl { get; set; }
+}
+
+/// <summary>
+/// A registry token reminder (never the token).
+/// </summary>
+public class TokenReminderDto
+{
+    /// <summary>Reminder.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Registry.</summary>
+    public PackageRegistry Registry { get; set; }
+
+    /// <summary>Label.</summary>
+    public string Label { get; set; }
+
+    /// <summary>Where the token is used.</summary>
+    public string UsedIn { get; set; }
+
+    /// <summary>Expiry day (UTC).</summary>
+    public DateTime ExpiryDate { get; set; }
+
+    /// <summary>Linked package.</summary>
+    public int? TrackedPackageId { get; set; }
+
+    /// <summary>Name of the linked package.</summary>
+    public string PackageName { get; set; }
+
+    /// <summary>Days left until the expiry (negative after it).</summary>
+    public int DaysLeft { get; set; }
+
+    /// <summary>Warning stage today: 0 none, 1 within 14 days, 2 within 3 days, 3 expired.</summary>
+    public byte Stage { get; set; }
+
+    /// <summary>Whether the registry offers trusted publishing, so the token can be replaced.</summary>
+    public bool TrustedPublishingAvailable { get; set; }
+
+    /// <summary>
+    /// Projection of the row.
+    /// </summary>
+    public static Expression<Func<RegistryTokenReminder, TokenReminderDto>> Projection { get; } = r => new TokenReminderDto
+    {
+        Id = r.Id,
+        Registry = r.Registry,
+        Label = r.Label,
+        UsedIn = r.UsedIn,
+        ExpiryDate = r.ExpiryDate,
+        TrackedPackageId = r.TrackedPackageId,
+        PackageName = r.TrackedPackage != null ? r.TrackedPackage.Name : null,
+    };
+
+    /// <summary>
+    /// Fills the values computed for <paramref name="today"/>.
+    /// </summary>
+    public TokenReminderDto Complete(DateTime today)
+    {
+        DaysLeft = TokenReminderRules.DaysLeft(ExpiryDate, today);
+        Stage = TokenReminderRules.Stage(ExpiryDate, today);
+        TrustedPublishingAvailable = TrustedPublishing.Providers(Registry).Count > 0;
+
+        return this;
+    }
 }

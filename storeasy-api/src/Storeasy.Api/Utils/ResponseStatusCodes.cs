@@ -66,6 +66,7 @@ public static class ResponseStatusCodes
         [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.TrackedPackageNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.TokenReminderNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationProductNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationGroupNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationOfferNotFound] = StatusCodes.Status404NotFound,

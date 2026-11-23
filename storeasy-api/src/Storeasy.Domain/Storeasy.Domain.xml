@@ -3133,6 +3133,21 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryAdvisoryFound">
             <summary>A security advisory was found for the latest version of a tracked package.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistrySetupSaved">
+            <summary>The trusted publishing setup of a tracked package was saved or cleared.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPublisherMismatch">
+            <summary>The latest version of a tracked package did not come from the expected repository or workflow.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryTokenReminderSaved">
+            <summary>A registry token reminder was added or changed (the token itself is never stored).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryTokenReminderRemoved">
+            <summary>A registry token reminder was removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryTokenExpiring">
+            <summary>A recorded registry token expires soon or has expired.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -3525,6 +3540,21 @@
         <member name="F:Storeasy.Domain.Enums.ChromeUploadState.Missing">
             <summary>
             The store has no such upload.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.CiProvider">
+            <summary>
+            CI provider a trusted publishing setup of a tracked package publishes from.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.CiProvider.GitHubActions">
+            <summary>
+            GitHub Actions.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.CiProvider.GitLabCi">
+            <summary>
+            GitLab CI/CD (gitlab.com).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ComplianceStatus">
@@ -4951,6 +4981,16 @@
             A security advisory (OSV.dev) affects the latest version.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.PublisherMismatch">
+            <summary>
+            The latest version was published by another repository or workflow than the trusted publishing setup expects.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.TokenExpiring">
+            <summary>
+            A long lived registry token a member recorded (never the token itself) expires within 14 days or has expired.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.PackageKind">
             <summary>
             Package format. Values are explicit and never reused.
@@ -5011,6 +5051,26 @@
         <member name="F:Storeasy.Domain.Enums.PackageRegistry.Crates">
             <summary>
             crates.io.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.Maven">
+            <summary>
+            Maven Central (repo1.maven.org, search.maven.org); names are <c>groupId:artifactId</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.RubyGems">
+            <summary>
+            RubyGems (rubygems.org).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.Packagist">
+            <summary>
+            Packagist (packagist.org); names are <c>vendor/package</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.Pub">
+            <summary>
+            pub.dev (Dart and Flutter packages).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.PreReviewArea">
@@ -5166,6 +5226,38 @@
         <member name="F:Storeasy.Domain.Enums.ProductState.Removed">
             <summary>
             Removed from sale.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PublisherCheckStatus">
+            <summary>
+            Whether the latest version of a tracked package came from the repository and workflow its trusted publishing setup
+            expects.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PublisherCheckStatus.NotConfigured">
+            <summary>
+            The package has no trusted publishing setup in storeasy.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PublisherCheckStatus.NotVerifiable">
+            <summary>
+            The registry does not say which repository or workflow published a version (NuGet, pub.dev, Maven Central,
+            Packagist), so storeasy cannot check it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PublisherCheckStatus.NoProvenance">
+            <summary>
+            The latest version has no provenance yet: publish once from the new workflow.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PublisherCheckStatus.Match">
+            <summary>
+            The latest version came from the expected repository and workflow.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PublisherCheckStatus.Mismatch">
+            <summary>
+            The latest version came from another repository or workflow.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ReadinessStatus">
@@ -12038,7 +12130,12 @@
         </member>
         <member name="P:Storeasy.Domain.Registries.PackageAlert.TrackedPackageId">
             <summary>
-            The package.
+            The package; null for a <see cref="F:Storeasy.Domain.Enums.PackageAlertKind.TokenExpiring"/> alert, which belongs to a token reminder.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.TokenReminderId">
+            <summary>
+            The token reminder of a <see cref="F:Storeasy.Domain.Enums.PackageAlertKind.TokenExpiring"/> alert.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Registries.PackageAlert.Kind">
@@ -12086,6 +12183,68 @@
             The package.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.TokenReminder">
+            <summary>
+            The token reminder.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.RegistryTokenReminder">
+            <summary>
+            A reminder about a long lived registry token a member uses somewhere (a CI secret): its label, registry, where it is
+            used and its expiry date. The token itself is never stored or accepted. storeasy warns 14 and 3 days before and on the
+            expiry date and suggests trusted publishing instead.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryTokenReminder.LabelMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryTokenReminder.Label"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryTokenReminder.UsedInMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryTokenReminder.UsedIn"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.Registry">
+            <summary>
+            Registry the token is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.Label">
+            <summary>
+            A name for the token (for example "npm publish token"); never the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.UsedIn">
+            <summary>
+            Where the token is used, for example the CI secret name and repository; never the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.ExpiryDate">
+            <summary>
+            The day the token expires (UTC).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.TrackedPackageId">
+            <summary>
+            A tracked package the token publishes, when a member linked one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.WarnedStage">
+            <summary>
+            The last warning sent: 0 none, 1 the 14 day, 2 the 3 day, 3 the expiry warning. Reset when the expiry date changes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryTokenReminder.TrackedPackage">
+            <summary>
+            The linked package.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Registries.TrackedPackage">
             <summary>
             A package the organization watches on a package registry (npm, NuGet, PyPI, crates.io): what the last sync read from
@@ -12115,6 +12274,21 @@
         <member name="F:Storeasy.Domain.Registries.TrackedPackage.SyncErrorMaxLength">
             <summary>
             Maximum length of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SyncError"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.SetupRepositoryMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SetupRepository"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.SetupWorkflowMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SetupWorkflow"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.SetupEnvironmentMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SetupEnvironment"/> and <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SetupRegistryUser"/>.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.OrganizationId">
@@ -12182,6 +12356,37 @@
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.SyncError">
             <summary>
             Why the last sync could not read the package; null after a successful one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupProvider">
+            <summary>
+            CI provider of the trusted publishing setup; null while the package has no setup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupRepository">
+            <summary>
+            Repository the setup expects releases from: <c>owner/repo</c> (GitHub) or <c>namespace/project</c> (GitLab).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupWorkflow">
+            <summary>
+            Workflow file the setup expects: a file name in <c>.github/workflows</c> (GitHub) or the top-level CI file path
+            (GitLab).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupEnvironment">
+            <summary>
+            CI environment of the setup, when the registry setting names one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupRegistryUser">
+            <summary>
+            Registry user the CI logs in as, where the registry asks for one (NuGet's <c>NuGet/login</c> action).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupDate">
+            <summary>
+            UTC instant the setup was saved.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.App">

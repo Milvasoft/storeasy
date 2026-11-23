@@ -577,6 +577,17 @@ public static class MessageKey
     public const string NotificationRegistryDeprecated = "Notification.RegistryDeprecated";
     public const string NotificationRegistryYanked = "Notification.RegistryYanked";
     public const string NotificationRegistryAdvisory = "Notification.RegistryAdvisory";
+    public const string NotificationRegistryPublisherMismatch = "Notification.RegistryPublisherMismatch";
+    public const string NotificationRegistryTokenExpiring = "Notification.RegistryTokenExpiring";
+    public const string NotificationRegistryTokenExpired = "Notification.RegistryTokenExpired";
+    public const string GlobalCiProvider = "Global.CiProvider";
+    public const string GlobalTokenReminder = "Global.RegistryTokenReminder";
+    public const string RegistryTrustedPublishingUnsupported = nameof(RegistryTrustedPublishingUnsupported);
+    public const string RegistrySetupRepositoryInvalid = nameof(RegistrySetupRepositoryInvalid);
+    public const string RegistrySetupWorkflowInvalid = nameof(RegistrySetupWorkflowInvalid);
+    public const string RegistrySetupNameInvalid = nameof(RegistrySetupNameInvalid);
+    public const string RegistryTokenValueRefused = nameof(RegistryTokenValueRefused);
+    public const string TokenReminderNotFound = nameof(TokenReminderNotFound);
     public const string ReadinessFirefoxStatus = "Readiness.FirefoxStatus";
     public const string ReadinessFirefoxStatusOk = "Readiness.FirefoxStatusOk";
     public const string ReadinessFirefoxDisabled = "Readiness.FirefoxDisabled";

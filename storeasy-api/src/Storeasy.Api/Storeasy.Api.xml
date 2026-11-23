@@ -2580,6 +2580,47 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetSetupAsync(Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery,System.Threading.CancellationToken)">
+            <summary>
+            The trusted publishing wizard of a package: registry settings, the CI file to copy and the check of the latest
+            release (the saved setup, or a preview of the given values).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SaveSetupAsync(Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves or clears the trusted publishing setup of a package.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetRemindersAsync(Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The registry token reminders of the organization (never the tokens).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SaveReminderAsync(Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand,System.Threading.CancellationToken)">
+            <summary>
+            Adds or changes a token reminder; a value that looks like a token is refused.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.RemoveReminderAsync(Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a token reminder.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RejectionsController">
             <summary>
             Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
@@ -4720,6 +4761,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261123061414_AddPackageRegistries.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261123064946_AddRegistriesPhase2">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123064946_AddRegistriesPhase2.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123064946_AddRegistriesPhase2.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123064946_AddRegistriesPhase2.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

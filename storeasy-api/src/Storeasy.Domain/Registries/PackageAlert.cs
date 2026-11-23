@@ -36,9 +36,14 @@ public class PackageAlert : AuditableEntity<long>
     public int OrganizationId { get; set; }
 
     /// <summary>
-    /// The package.
+    /// The package; null for a <see cref="PackageAlertKind.TokenExpiring"/> alert, which belongs to a token reminder.
     /// </summary>
-    public int TrackedPackageId { get; set; }
+    public int? TrackedPackageId { get; set; }
+
+    /// <summary>
+    /// The token reminder of a <see cref="PackageAlertKind.TokenExpiring"/> alert.
+    /// </summary>
+    public int? TokenReminderId { get; set; }
 
     /// <summary>
     /// What the alert is about.
@@ -89,5 +94,13 @@ public class PackageAlert : AuditableEntity<long>
     /// The package.
     /// </summary>
     [ForeignKey(nameof(TrackedPackageId))]
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public virtual TrackedPackage TrackedPackage { get; set; }
+
+    /// <summary>
+    /// The token reminder.
+    /// </summary>
+    [ForeignKey(nameof(TokenReminderId))]
+    [DeleteBehavior(DeleteBehavior.Cascade)]
+    public virtual RegistryTokenReminder TokenReminder { get; set; }
 }

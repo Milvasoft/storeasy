@@ -17,6 +17,8 @@ import { interpolate } from '@/lib/i18n/interpolate'
 import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationContext'
 import { showToast } from '@/lib/toast/toast'
 import { AddPackageDialog } from './AddPackageDialog'
+import { TokenReminders } from './TokenReminders'
+import { TrustedPublishingSection } from './TrustedPublishingSection'
 import { registriesApi } from './api'
 import { useRegistries } from './i18n/useRegistries'
 import type { RegistriesDictionary } from './i18n/en'
@@ -189,6 +191,7 @@ function PackageList() {
       <PageHeader title={t.title} subtitle={t.subtitle} actions={actions} />
       {!canEdit ? <Callout tone="info">{t.readOnly}</Callout> : null}
       <div className="mt-3">{body}</div>
+      <TokenReminders canEdit={canEdit} />
       <AddPackageDialog open={adding} onClose={() => setAdding(false)} />
     </>
   )
@@ -413,6 +416,7 @@ function PackageDetail({ packageId }: { packageId: number }) {
             ) : null}
           </dl>
         </article>
+        <TrustedPublishingSection packageId={item.Id} canEdit={canEdit} />
         <section aria-label={t.detail.alerts} className="grid gap-2">
           <h2 className="text-[15px] font-semibold">{t.detail.alerts}</h2>
           {alerts.length === 0 ? (

@@ -1338,6 +1338,11 @@ export const en = {
       registryVersionDeprecated: 'Package version deprecated',
       registryVersionYanked: 'Package version yanked',
       registryAdvisoryFound: 'Package security advisory',
+      registrySetupSaved: 'Trusted publishing setup saved',
+      registryPublisherMismatch: 'Package publisher mismatch',
+      registryTokenReminderSaved: 'Token reminder saved',
+      registryTokenReminderRemoved: 'Token reminder removed',
+      registryTokenExpiring: 'Registry token expiring',
     },
   },
 }

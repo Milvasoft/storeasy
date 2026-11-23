@@ -600,4 +600,24 @@ public enum AuditAction : short
     /// <summary>A security advisory was found for the latest version of a tracked package.</summary>
     [Description("Package security advisory")]
     RegistryAdvisoryFound = 505,
+
+    /// <summary>The trusted publishing setup of a tracked package was saved or cleared.</summary>
+    [Description("Trusted publishing setup saved")]
+    RegistrySetupSaved = 506,
+
+    /// <summary>The latest version of a tracked package did not come from the expected repository or workflow.</summary>
+    [Description("Package publisher mismatch")]
+    RegistryPublisherMismatch = 507,
+
+    /// <summary>A registry token reminder was added or changed (the token itself is never stored).</summary>
+    [Description("Token reminder saved")]
+    RegistryTokenReminderSaved = 508,
+
+    /// <summary>A registry token reminder was removed.</summary>
+    [Description("Token reminder removed")]
+    RegistryTokenReminderRemoved = 509,
+
+    /// <summary>A recorded registry token expires soon or has expired.</summary>
+    [Description("Registry token expiring")]
+    RegistryTokenExpiring = 510,
 }

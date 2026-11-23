@@ -45,6 +45,19 @@ public interface IRegistrySyncer
 }
 
 /// <summary>
+/// Token expiry reminders: opens and resolves <see cref="PackageAlertKind.TokenExpiring"/> alerts and warns 14 and 3 days
+/// before and on the expiry date (audit entry and notification). Tokens are never stored.
+/// </summary>
+public interface IRegistryReminderChecker
+{
+    /// <summary>
+    /// Checks the reminders of <paramref name="organizationId"/>, or of every organization (the daily schedule, nothing
+    /// while the module is switched off); returns the number of warnings sent.
+    /// </summary>
+    Task<int> CheckAsync(int? organizationId, CancellationToken cancellationToken);
+}
+
+/// <summary>
 /// Result of <see cref="IRegistrySyncer.SyncAsync"/>.
 /// </summary>
 /// <param name="Read">Packages read.</param>

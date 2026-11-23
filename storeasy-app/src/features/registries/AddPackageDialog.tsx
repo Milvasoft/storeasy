@@ -25,6 +25,10 @@ const HINT_KEY = {
   [PackageRegistry.NuGet]: 'nuget',
   [PackageRegistry.PyPI]: 'pypi',
   [PackageRegistry.Crates]: 'crates',
+  [PackageRegistry.Maven]: 'maven',
+  [PackageRegistry.RubyGems]: 'rubygems',
+  [PackageRegistry.Packagist]: 'packagist',
+  [PackageRegistry.Pub]: 'pub',
 } as const
 
 /** Starts tracking a package by registry and name; the API checks the name on the registry and queues the first sync. */

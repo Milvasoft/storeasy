@@ -1338,6 +1338,11 @@ export const tr: Dictionary = {
       registryVersionDeprecated: 'Paket sürümü kullanımdan kaldırıldı',
       registryVersionYanked: 'Paket sürümü geri çekildi',
       registryAdvisoryFound: 'Paket güvenlik bildirimi',
+      registrySetupSaved: 'Trusted publishing kurulumu kaydedildi',
+      registryPublisherMismatch: 'Paket yayıncısı eşleşmiyor',
+      registryTokenReminderSaved: 'Token hatırlatıcısı kaydedildi',
+      registryTokenReminderRemoved: 'Token hatırlatıcısı kaldırıldı',
+      registryTokenExpiring: "Depo token'ının süresi doluyor",
     },
   },
 }

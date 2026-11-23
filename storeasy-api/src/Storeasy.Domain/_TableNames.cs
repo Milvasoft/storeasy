@@ -89,5 +89,6 @@ public static class TableNames
     public const string TrackedPackages = nameof(TrackedPackages);
     public const string TrackedPackageVersions = nameof(TrackedPackageVersions);
     public const string PackageAlerts = nameof(PackageAlerts);
+    public const string RegistryTokenReminders = nameof(RegistryTokenReminders);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

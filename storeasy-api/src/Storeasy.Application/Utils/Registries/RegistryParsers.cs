@@ -10,7 +10,7 @@ namespace Storeasy.Application.Utils.Registries;
 /// <see cref="ProvenanceRead"/> and <see cref="RegistryAdvisory"/>. Field names follow the official documentation and the
 /// live answers (docs/package-registries.md); unknown or missing fields are left empty, never guessed.
 /// </summary>
-public static class RegistryParsers
+public static partial class RegistryParsers
 {
     /// <summary>
     /// SLSA provenance predicate types start with this (npm publishes v0.2 and v1).
@@ -72,8 +72,14 @@ public static class RegistryParsers
     {
         var attestations = Parse(json)?["attestations"] as JsonArray;
         var provenance = attestations?.FirstOrDefault(a => Text(a?["predicateType"])?.StartsWith(SlsaPredicatePrefix, StringComparison.Ordinal) == true);
-        var payload = Text(provenance?["bundle"]?["dsseEnvelope"]?["payload"]);
+        return ProvenanceOfPayload(Text(provenance?["bundle"]?["dsseEnvelope"]?["payload"]));
+    }
 
+    /// <summary>
+    /// Reads a base64 in-toto statement with a SLSA provenance predicate (v1 or v0.2); null when it is not one.
+    /// </summary>
+    private static ProvenanceRead ProvenanceOfPayload(string payload)
+    {
         if (string.IsNullOrEmpty(payload))
             return null;
 

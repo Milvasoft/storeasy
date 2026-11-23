@@ -1,8 +1,12 @@
 import { HttpResponse, type HttpHandler } from 'msw'
 import { beforeEach } from 'vitest'
 import {
+  CiProvider,
   PackageAlertKind,
   PackageRegistry,
+  PublisherCheckStatus,
+  type TokenReminderDto,
+  type TrustedPublishingDto,
   type PackageAlertDto,
   type TrackedPackageDto,
   type TrackedPackageSummaryDto,
@@ -58,6 +62,10 @@ export function packageSummary(overrides: Partial<TrackedPackageSummaryDto> = {}
       SyncedDate: '2026-11-22T10:00:00Z',
       SyncError: null,
       RegistryUrl: 'https://www.npmjs.com/package/@kuzeylab/pusula-sdk',
+      SetupProvider: CiProvider.GitHubActions,
+      SetupRepository: 'kuzeylab/pusula-sdk',
+      SetupWorkflow: 'release.yml',
+      PublisherCheck: PublisherCheckStatus.Match,
     },
     overrides,
   )
@@ -93,9 +101,61 @@ export function trackedPackage(overrides: Partial<TrackedPackageDto> = {}): Trac
   )
 }
 
+export function trustedPublishing(overrides: Partial<TrustedPublishingDto> = {}): TrustedPublishingDto {
+  return make<TrustedPublishingDto>(
+    {
+      TrackedPackageId: NPM_PACKAGE_ID,
+      Registry: PackageRegistry.Npm,
+      PackageName: '@kuzeylab/pusula-sdk',
+      Providers: [CiProvider.GitHubActions, CiProvider.GitLabCi],
+      SettingsUrl: 'https://www.npmjs.com/package/@kuzeylab/pusula-sdk/access',
+      Saved: true,
+      Provider: CiProvider.GitHubActions,
+      Repository: 'kuzeylab/pusula-sdk',
+      Workflow: 'release.yml',
+      Environment: 'npm',
+      RegistryFields: [
+        { Key: 'owner', Value: 'kuzeylab' },
+        { Key: 'repository', Value: 'pusula-sdk' },
+        { Key: 'workflow', Value: 'release.yml' },
+        { Key: 'environment', Value: 'npm' },
+      ],
+      WorkflowPath: '.github/workflows/release.yml',
+      WorkflowText: 'name: Publish to npm\npermissions:\n  id-token: write\n',
+      Check: {
+        Status: PublisherCheckStatus.Mismatch,
+        ExpectedRepository: 'https://github.com/kuzeylab/pusula-sdk',
+        ExpectedWorkflow: '.github/workflows/release.yml',
+        ObservedRepository: 'https://github.com/kuzeylab/pusula-sdk',
+        ObservedWorkflow: '.github/workflows/manual.yml',
+        Version: '2.4.0',
+      },
+    },
+    overrides,
+  )
+}
+
+export function tokenReminder(overrides: Partial<TokenReminderDto> = {}): TokenReminderDto {
+  return make<TokenReminderDto>(
+    {
+      Id: 71,
+      Registry: PackageRegistry.NuGet,
+      Label: 'NuGet push key',
+      UsedIn: 'NUGET_API_KEY in kuzeylab/pusula',
+      ExpiryDate: '2026-11-25T00:00:00Z',
+      DaysLeft: 2,
+      Stage: 2,
+      TrustedPublishingAvailable: true,
+    },
+    overrides,
+  )
+}
+
 export interface RegistriesState {
   packages: TrackedPackageSummaryDto[]
   package: TrackedPackageDto
+  setup: TrustedPublishingDto
+  reminders: TokenReminderDto[]
 }
 
 function initialRegistries(): RegistriesState {
@@ -118,6 +178,8 @@ function initialRegistries(): RegistriesState {
       }),
     ],
     package: trackedPackage(),
+    setup: trustedPublishing(),
+    reminders: [tokenReminder()],
   }
 }
 
@@ -132,6 +194,11 @@ export const registriesHandlers: HttpHandler[] = [
   endpoint('post', '/registries/package', () => json(envelope({ Id: 33, Name: 'serde_json', JobId: 52100 }))),
   endpoint('delete', '/registries/package', () => json(envelope(NPM_PACKAGE_ID))),
   endpoint('post', '/registries/sync', () => json(envelope(52101))),
+  endpoint('get', '/registries/setup', () => json(envelope(registriesState.setup))),
+  endpoint('put', '/registries/setup', () => json(envelope(registriesState.setup))),
+  endpoint('get', '/registries/reminders', () => json(envelope(registriesState.reminders))),
+  endpoint('post', '/registries/reminder', () => json(envelope(72))),
+  endpoint('delete', '/registries/reminder', () => json(envelope(71))),
 ]
 
 /** Resets the registries data and answers its endpoints for every test of the calling file. */

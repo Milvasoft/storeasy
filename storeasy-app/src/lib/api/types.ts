@@ -207,6 +207,11 @@ export const AuditAction = {
   RegistryVersionDeprecated: 503,
   RegistryVersionYanked: 504,
   RegistryAdvisoryFound: 505,
+  RegistrySetupSaved: 506,
+  RegistryPublisherMismatch: 507,
+  RegistryTokenReminderSaved: 508,
+  RegistryTokenReminderRemoved: 509,
+  RegistryTokenExpiring: 510,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 

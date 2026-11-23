@@ -59,6 +59,11 @@ using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
+using Storeasy.Application.Features.Registries.GetPackageSetup;
+using Storeasy.Application.Features.Registries.GetTokenReminderList;
+using Storeasy.Application.Features.Registries.RemoveTokenReminder;
+using Storeasy.Application.Features.Registries.SavePackageSetup;
+using Storeasy.Application.Features.Registries.SaveTokenReminder;
 using Storeasy.Application.Features.Registries.GetTrackedPackage;
 using Storeasy.Application.Features.Registries.GetTrackedPackageList;
 using Storeasy.Application.Features.Registries.RemoveTrackedPackage;
@@ -405,6 +410,11 @@ public static class McpToolCatalog
         Gated(FeatureFlagKeys.Registries, Write<AddTrackedPackageCommand>("registries_package_add", "Starts tracking a package by registry and name (checked against the registry's naming rules and its public API), optionally linked to an app (appId), and queues its first sync. No registry token is asked or stored.")),
         Gated(FeatureFlagKeys.Registries, Write<RemoveTrackedPackageCommand>("registries_package_remove", "Stops tracking a package and deletes its versions and alerts in storeasy; nothing changes on the registry.")),
         Gated(FeatureFlagKeys.Registries, Write<SyncTrackedPackageCommand>("registries_package_sync", "Queues a sync of one tracked package (trackedPackageId) or of every package now; the schedule syncs every package every six hours.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageSetupQuery>("registries_setup_get", "Reads the trusted publishing wizard of a tracked package: which CI providers the registry accepts (none for Maven Central and Packagist), the registry settings page and the values to fill in, the ready to copy CI file as text (OIDC, provenance where the registry records it) and whether the latest release came from the expected repository and workflow. Pass provider, repository, workflow, environment and registryUser to preview without saving.")),
+        Gated(FeatureFlagKeys.Registries, Write<SavePackageSetupCommand>("registries_setup_save", "Saves the trusted publishing setup of a tracked package in storeasy (provider GitHubActions or GitLabCi, repository owner/repo, workflow file, optional environment and NuGet registryUser), or clears it with no provider. Every sync then raises a PublisherMismatch alert when a release comes from elsewhere. Nothing is written to the registry or the repository; the CI file is returned as text.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetTokenReminderListQuery>("registries_reminders_list", "Lists the registry token reminders (label, registry, where the token is used, expiry date, days left, warning stage). Tokens are never stored.")),
+        Gated(FeatureFlagKeys.Registries, Write<SaveTokenReminderCommand>("registries_reminder_save", "Adds (no id) or changes a registry token reminder: label, registry, usedIn (for example the CI secret name), expiryDate, optional trackedPackageId. Never send the token: a value that looks like one is refused. storeasy warns 14 and 3 days before and on the expiry date.")),
+        Gated(FeatureFlagKeys.Registries, Write<RemoveTokenReminderCommand>("registries_reminder_remove", "Removes a registry token reminder and its alerts.")),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),
