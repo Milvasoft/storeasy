@@ -997,6 +997,28 @@
             UTC instant of the last successful sync; null until the first sync confirmed the record.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionState">
+            <summary>
+            State of the record's latest known store version as the store names it (<c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>,
+            <c>READY_FOR_SALE</c>, a Microsoft Store submission status); only on the app detail, null when storeasy has not
+            seen a version of the record (Google Play has no review state in its API).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionString">
+            <summary>
+            User facing version of <see cref="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionState"/> (1.4).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionBuildNumber">
+            <summary>
+            Build number attached to that version, if known.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionStateDate">
+            <summary>
+            UTC instant <see cref="P:Storeasy.Application.Dtos.AppDtos.AppStoreRecordDto.VersionState"/> was last changed.
+            </summary>
+        </member>
         <member name="T:Storeasy.Application.Dtos.AppDtos.BuildDownloadDto">
             <summary>
             A short lived presigned download URL of the package storeasy keeps for a build.
@@ -15031,21 +15053,30 @@
         <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found. Each build carries
-            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
+            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>), and each store record the state of
+            its latest known store version (<see cref="T:Storeasy.Domain.Events.AppVersionState"/>).
             </summary>
             <param name="appRepository"></param>
             <param name="sessionRepository"></param>
+            <param name="versionStateRepository"></param>
         </member>
-        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession})">
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Events.AppVersionState})">
             <summary>
             Handles <see cref="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery"/>. An app of another organization is reported as not found. Each build carries
-            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>).
+            the upload session whose package storeasy still keeps (<see cref="T:Storeasy.Application.Utils.Helpers.BuildPackages"/>), and each store record the state of
+            its latest known store version (<see cref="T:Storeasy.Domain.Events.AppVersionState"/>).
             </summary>
             <param name="appRepository"></param>
             <param name="sessionRepository"></param>
+            <param name="versionStateRepository"></param>
         </member>
         <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.Handle(Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQuery,System.Threading.CancellationToken)">
             <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryHandler.FillVersionStatesAsync(System.Int32,Storeasy.Application.Dtos.AppDtos.AppDetailDto,System.Threading.CancellationToken)">
+            <summary>
+            The latest changed version state of each store record.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Features.Apps.GetAppDetail.GetAppDetailQueryValidator">
             <summary>

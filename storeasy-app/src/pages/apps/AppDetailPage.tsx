@@ -1,7 +1,20 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Bell, BellOff, Boxes, Download, ExternalLink, Eye, EyeOff, Link2, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Bell,
+  BellOff,
+  Boxes,
+  Download,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Link2,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react'
 import { LinkRecordDialog } from '@/components/apps/AppDialogs'
 import { AppAvatar } from '@/components/apps/AppAvatar'
 import { useDeleteApp } from '@/components/apps/useDeleteApp'
@@ -27,6 +40,7 @@ import {
   type StoreConnectionDto,
 } from '@/lib/api/types'
 import { connectionIdsOf, isDeletable, recordsOf } from '@/lib/apps/apps'
+import { versionStateView } from '@/lib/apps/versionState'
 import { storeLinksOf } from '@/lib/apps/storeLinks'
 import { useSyncApps } from '@/lib/apps/useSyncApps'
 import { useFormat, useT } from '@/lib/i18n/I18nContext'
@@ -270,6 +284,23 @@ function RecordCard({
         ) : null}
         <dt>{t.app.connection}</dt>
         <dd>{connection?.Name ?? '-'}</dd>
+        <dt>{t.app.versionState}</dt>
+        <dd>
+          {record.VersionState ? (
+            <span className="flex flex-wrap items-center gap-2">
+              <Badge tone={versionStateView(record.VersionState, t).tone} small>
+                {versionStateView(record.VersionState, t).label}
+              </Badge>
+              <span className="mono text-[12.5px]">
+                {record.VersionString ?? '-'}
+                {record.VersionBuildNumber ? ` (${record.VersionBuildNumber})` : ''}
+              </span>
+              {record.VersionStateDate ? <span className="text-fg2 text-[12.5px]">{format.dateTime(record.VersionStateDate)}</span> : null}
+            </span>
+          ) : (
+            <span className="text-fg2">{record.Store === StoreKind.Google ? t.app.versionStateGoogle : t.app.versionStateNone}</span>
+          )}
+        </dd>
         <dt>{t.app.lastSync}</dt>
         <dd className="tabular-nums">{record.SyncedDate ? format.dateTime(record.SyncedDate) : t.app.notSynced}</dd>
       </dl>

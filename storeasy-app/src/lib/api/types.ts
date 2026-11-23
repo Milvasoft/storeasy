@@ -656,6 +656,11 @@ export interface AppStoreRecordDto {
   StoreConnectionId?: number | null
   /** Null until the first sync confirmed the record. */
   SyncedDate?: IsoDateTime | null
+  /** App detail only: state of the latest known store version (WAITING_FOR_REVIEW...), null when none is known. */
+  VersionState?: string | null
+  VersionString?: string | null
+  VersionBuildNumber?: string | null
+  VersionStateDate?: IsoDateTime | null
 }
 
 export interface AppListDto {

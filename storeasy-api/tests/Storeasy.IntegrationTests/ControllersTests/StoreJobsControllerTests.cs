@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Storeasy.Application.Dtos.AppDtos;
 using Storeasy.Application.Dtos.OrganizationDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
@@ -235,6 +236,30 @@ public class StoreJobsControllerTests(StoreasyApiFactory factory) : IntegrationT
         wrongOrganization.StatusCode.Should().Be(HttpStatusCode.NotFound, "a job of another organization is not found");
         viewerDetail.StatusCode.Should().Be(HttpStatusCode.OK);
         viewerCancel.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task AppDetail_ShouldCarryTheLatestVersionStateOfEachRecord()
+    {
+        // Arrange
+        var org = await _factory.NewOrgAsync();
+        var (appId, storeAppId, _) = await _factory.AddAppAsync(org, name: "Pusula");
+        var now = DateTime.UtcNow;
+
+        await _factory.DbAsync(async db =>
+        {
+            db.AppVersionStates.AddRange(
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = appId, StoreAppId = storeAppId, Store = StoreKind.Apple, ExternalVersionId = $"d1{org.Suffix}", VersionString = "2.3.0", State = "READY_FOR_SALE", ChangedDate = now.AddDays(-30) },
+                new AppVersionState { OrganizationId = org.OrganizationId, AppId = appId, StoreAppId = storeAppId, Store = StoreKind.Apple, ExternalVersionId = $"d2{org.Suffix}", VersionString = "2.4.0", BuildNumber = "51", State = "WAITING_FOR_REVIEW", ChangedDate = now.AddHours(-2) });
+            await db.SaveChangesAsync();
+        });
+
+        // Act
+        var (http, detail) = await org.Owner.Client.GetAsync<AppDetailDto>($"apps/app?organizationId={org.OrganizationId}&appId={appId}");
+
+        // Assert
+        http.StatusCode.Should().Be(HttpStatusCode.OK);
+        detail.Data.Stores.Should().ContainSingle().Which.Should().Match<AppStoreRecordDto>(r => r.VersionState == "WAITING_FOR_REVIEW" && r.VersionString == "2.4.0" && r.VersionBuildNumber == "51" && r.VersionStateDate != null);
     }
 
     [Fact]
