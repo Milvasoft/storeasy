@@ -110,12 +110,37 @@ public sealed class ChromeChannel(IChromeWebStoreClient client, ChromeOptions op
         => _client.FetchReviewsAsync(secretJson, externalId, _options.ReviewPages, cancellationToken);
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// <c>queryMetrics</c> takes one dimension per request and not every metric supports every dimension (impressions
+    /// only take the UTM dimensions), so each metric is read on its own: by country, or for every country when the store
+    /// refuses the country dimension for it.
+    /// </remarks>
     public async Task<StoreMetricBatch> ReadMetricsAsync(string secretJson, string externalId, DateOnly from, DateOnly to, CancellationToken cancellationToken)
     {
-        var rows = await _client.QueryMetricsAsync(secretJson, externalId, Metrics, "country", from, to, cancellationToken);
+        var rows = new List<ChromeMetricRead>();
+
+        foreach (var metric in Metrics)
+        {
+            try
+            {
+                rows.AddRange(await _client.QueryMetricsAsync(secretJson, externalId, [metric], "country", from, to, cancellationToken));
+            }
+            catch (StoreCallException ex) when (IsUnsupportedDimension(ex))
+            {
+                rows.AddRange(await _client.QueryMetricsAsync(secretJson, externalId, [metric], null, from, to, cancellationToken));
+            }
+        }
 
         return new StoreMetricBatch(ToMetricRows(rows));
     }
+
+    /// <summary>
+    /// True for the store's refusal of a dimension the metric does not support (400, "Invalid format for 'dimensions'").
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns></returns>
+    public static bool IsUnsupportedDimension(StoreCallException exception)
+        => exception is { Transient: false, StatusCode: 400 } && exception.Message.Contains("dimensions", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Store metric rows (by country and for every country) of <c>queryMetrics</c> rows sliced by country: installs are

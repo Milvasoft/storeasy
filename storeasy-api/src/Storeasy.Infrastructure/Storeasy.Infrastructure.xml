@@ -5990,6 +5990,18 @@
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ReadMetricsAsync(System.String,System.String,System.DateOnly,System.DateOnly,System.Threading.CancellationToken)">
             <inheritdoc/>
+            <remarks>
+            <c>queryMetrics</c> takes one dimension per request and not every metric supports every dimension (impressions
+            only take the UTM dimensions), so each metric is read on its own: by country, or for every country when the store
+            refuses the country dimension for it.
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.IsUnsupportedDimension(Storeasy.Application.Interfaces.StoreCallException)">
+            <summary>
+            True for the store's refusal of a dimension the metric does not support (400, "Invalid format for 'dimensions'").
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
         </member>
         <member name="M:Storeasy.Infrastructure.Stores.Chrome.ChromeChannel.ToMetricRows(System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.ChromeMetricRead})">
             <summary>
