@@ -43,6 +43,7 @@ export const notificationsEn = {
     ruleChanged: 'Rule changed',
     ruleProposal: 'Catalog proposal',
     versionState: 'Version state',
+    packageRegistry: 'Package registries',
     other: 'Notification',
   },
   describe: {
@@ -60,6 +61,7 @@ export const notificationsEn = {
     ruleChanged: 'A store rule affecting my apps changed',
     ruleProposal: 'A rule catalog proposal waits (platform admins)',
     versionState: 'An App Store version changed state',
+    packageRegistry: 'A tracked package has a new version, a deprecated or yanked version or a security advisory',
     other: 'Other notifications',
   },
   prefs: {
@@ -120,6 +122,7 @@ export const notificationsTr: NotificationsDictionary = {
     ruleChanged: 'Kural değişti',
     ruleProposal: 'Katalog önerisi',
     versionState: 'Sürüm durumu',
+    packageRegistry: 'Paket depoları',
     other: 'Bildirim',
   },
   describe: {
@@ -137,6 +140,7 @@ export const notificationsTr: NotificationsDictionary = {
     ruleChanged: 'Uygulamalarımı etkileyen bir mağaza kuralı değişti',
     ruleProposal: 'Bir katalog önerisi bekliyor (platform yöneticileri)',
     versionState: 'Bir App Store sürümü durum değiştirdi',
+    packageRegistry: 'İzlenen bir paketin yeni sürümü, kullanımdan kaldırılan veya geri çekilen sürümü ya da güvenlik bildirimi var',
     other: 'Diğer bildirimler',
   },
   prefs: {

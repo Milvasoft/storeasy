@@ -65,6 +65,7 @@ public static class ResponseStatusCodes
         [MessageKey.AssetNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.AppNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.StoreAppNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.TrackedPackageNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationProductNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationGroupNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationOfferNotFound] = StatusCodes.Status404NotFound,
@@ -114,6 +115,7 @@ public static class ResponseStatusCodes
         [MessageKey.StoreJobAlreadyFinished] = StatusCodes.Status409Conflict,
         [MessageKey.AssetNotUploaded] = StatusCodes.Status409Conflict,
         [MessageKey.StoreAppAlreadyAdded] = StatusCodes.Status409Conflict,
+        [MessageKey.TrackedPackageAlreadyAdded] = StatusCodes.Status409Conflict,
         [MessageKey.AppStoreAlreadyLinked] = StatusCodes.Status409Conflict,
         [MessageKey.MonetizationProductIdTaken] = StatusCodes.Status409Conflict,
         [MessageKey.MonetizationGroupExists] = StatusCodes.Status409Conflict,
@@ -148,6 +150,7 @@ public static class ResponseStatusCodes
 
         // 502 - the store did not answer.
         [MessageKey.StoreUnreachable] = StatusCodes.Status502BadGateway,
+        [MessageKey.RegistryUnreachable] = StatusCodes.Status502BadGateway,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,

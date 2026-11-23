@@ -345,6 +345,7 @@ export const tr: Dictionary = {
     compliance: 'Uyum takvimi',
     studio: 'Stüdyo',
     intake: 'Paket alma',
+    registries: 'Paket depoları',
     connections: 'Mağaza bağlantıları',
     webhooks: "Webhook'lar",
     members: 'Üyeler',
@@ -1090,6 +1091,7 @@ export const tr: Dictionary = {
       syncTestFlight: 'TestFlight senkronu',
       updateTestFlight: 'TestFlight güncelleme',
       pingWebhooks: 'Webhook denemesi',
+      registrySync: 'Paket depoları senkronu',
     },
     state: {
       queued: 'Kuyrukta',
@@ -1330,6 +1332,12 @@ export const tr: Dictionary = {
       asoExperimentWinnerApplied: 'Kazanan varyant uygulandı',
       asoExperimentResultRecorded: 'Deney sonucu kaydedildi',
       asoExperimentSubmitted: 'Deney incelemeye gönderildi',
+      registryPackageAdded: 'Paket izlemeye alındı',
+      registryPackageRemoved: 'Paket izlemeden çıkarıldı',
+      registryVersionPublished: 'Paket sürümü yayımlandı',
+      registryVersionDeprecated: 'Paket sürümü kullanımdan kaldırıldı',
+      registryVersionYanked: 'Paket sürümü geri çekildi',
+      registryAdvisoryFound: 'Paket güvenlik bildirimi',
     },
   },
 }

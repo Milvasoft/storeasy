@@ -99,6 +99,10 @@ Enum values must not collide; take the next free block and keep a channel's valu
 Firefox Add-ons took `StoreKind` 6, `AuditAction` 180-189, `StoreJobKind` 150, `ChangePlanKind` 120, `ArtifactPlatform` 4
 (`Extension`, shared by browser extension channels) and `PackageKind` 6 (`Xpi`).
 
+The package registries module ([package-registries.md](package-registries.md)) is not a store and takes no `StoreKind`;
+its values sit in their own band: `AuditAction` 500-505, `StoreJobKind` 500, `NotificationType` 54, `NotificationEntity`
+52.
+
 Every enum value needs `"{Enum}.{Value}"` in both resx files (`ResxTests`), every audit action a web label
 (`auditLabels.test.ts` reads the C# enum), every job kind a label in `lib/jobs/labels.ts`, every plan kind one in
 `features/common/labels.ts`.

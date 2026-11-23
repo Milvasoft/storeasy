@@ -3115,6 +3115,24 @@
             An approved plan submitted an experiment or custom product page for App Review.
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPackageAdded">
+            <summary>A package was added to the package registries module.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPackageRemoved">
+            <summary>A package was removed from the package registries module.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryVersionPublished">
+            <summary>A new version of a tracked package appeared on its registry.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryVersionDeprecated">
+            <summary>A version of a tracked package was deprecated.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryVersionYanked">
+            <summary>A version of a tracked package was yanked or unlisted.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryAdvisoryFound">
+            <summary>A security advisory was found for the latest version of a tracked package.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -4675,6 +4693,9 @@
         <member name="F:Storeasy.Domain.Enums.NotificationEntity.AppVersionState">
             <summary>An App Store version state.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.TrackedPackage">
+            <summary>A tracked package of the package registries module.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.NotificationType">
             <summary>
             Notication types.
@@ -4721,6 +4742,9 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.NotificationType.VersionState">
             <summary>An App Store version changed state (in review, approved, ready for sale).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.PackageRegistry">
+            <summary>A tracked package changed on its registry (new version, deprecated or yanked version, security advisory).</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.OfferKind">
             <summary>
@@ -4902,6 +4926,31 @@
             than the member who assigns it holds and never the owner only permissions.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.PackageAlertKind">
+            <summary>
+            Kinds of alerts of a tracked package (package registries module).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.Deprecated">
+            <summary>
+            The latest version is deprecated, or a version was deprecated after storeasy started tracking the package.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.Yanked">
+            <summary>
+            A version was yanked (crates.io, PyPI) or unlisted (NuGet) after storeasy started tracking the package.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.NoProvenance">
+            <summary>
+            The latest version was published without provenance (not raised for NuGet, which has none).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageAlertKind.Advisory">
+            <summary>
+            A security advisory (OSV.dev) affects the latest version.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.PackageKind">
             <summary>
             Package format. Values are explicit and never reused.
@@ -4935,6 +4984,33 @@
         <member name="F:Storeasy.Domain.Enums.PackageKind.Xpi">
             <summary>
             Firefox extension package (.xpi: a ZIP with manifest.json at its root).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.PackageRegistry">
+            <summary>
+            Package registries the package registries module watches (docs/urun-plani.md section 7.2). Separate from
+            <see cref="T:Storeasy.Domain.Enums.StoreKind"/>: a registry has no store page, screenshots or review process, and storeasy only reads its public
+            API (no credential is stored).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.Npm">
+            <summary>
+            npm (registry.npmjs.org).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.NuGet">
+            <summary>
+            NuGet (nuget.org).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.PyPI">
+            <summary>
+            PyPI (pypi.org).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.PackageRegistry.Crates">
+            <summary>
+            crates.io.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.PreReviewArea">
@@ -5541,6 +5617,13 @@
             <summary>
             Reads the Firefox add-ons of a connection from addons.mozilla.org (status, listed and unlisted versions with their file
             review status, rating, users); state changes are audited and notified.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.RegistrySync">
+            <summary>
+            Reads the tracked packages of an organization (or one of them) from their registries' public APIs and OSV.dev: versions,
+            deprecations, yanks, provenance and security advisories. New versions, deprecations, yanks and advisories are audited
+            and notified. Numbered in the package registries band (not a store).
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
@@ -6634,6 +6717,12 @@
         </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.StudioAiCaptions">
             <summary>Mockup studio caption suggestions (a paid translation provider when one is configured; 503 when off).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.Registries">
+            <summary>
+            The package registries module (npm, NuGet, PyPI, crates.io packages, their alerts and the six hourly sync; 503 and no
+            scheduled sync when off).
+            </summary>
         </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">
             <summary>All known keys, in display order.</summary>
@@ -11920,6 +12009,255 @@
             Formats the permission and group name with a dot.
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.PackageAlert">
+            <summary>
+            An alert of a <see cref="P:Storeasy.Domain.Registries.PackageAlert.TrackedPackage"/>: open while its condition holds, resolved (with the date) by the sync that sees
+            the condition gone.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.PackageAlert.AdvisoryIdMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.PackageAlert.AdvisoryId"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.PackageAlert.SeverityMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.PackageAlert.Severity"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.PackageAlert.SummaryMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.PackageAlert.Summary"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.TrackedPackageId">
+            <summary>
+            The package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.Kind">
+            <summary>
+            What the alert is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.Version">
+            <summary>
+            The version the alert is about.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.AdvisoryId">
+            <summary>
+            Advisory id (<c>GHSA-...</c>, <c>RUSTSEC-...</c>, <c>PYSEC-...</c>) of an <see cref="F:Storeasy.Domain.Enums.PackageAlertKind.Advisory"/> alert.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.Severity">
+            <summary>
+            Severity of an advisory (<c>LOW</c>, <c>MODERATE</c>, <c>HIGH</c>, <c>CRITICAL</c>) when the advisory database gives one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.Summary">
+            <summary>
+            One line: the advisory summary, the deprecation message or the yank reason.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.Url">
+            <summary>
+            Address with the details (the advisory).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.OpenedDate">
+            <summary>
+            UTC instant the alert was opened.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.ResolvedDate">
+            <summary>
+            UTC instant the alert was resolved; null while open.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageAlert.TrackedPackage">
+            <summary>
+            The package.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.TrackedPackage">
+            <summary>
+            A package the organization watches on a package registry (npm, NuGet, PyPI, crates.io): what the last sync read from
+            the registry's public API. storeasy does not publish packages and stores no registry token; publishing stays in CI.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.NameMaxLength">
+            <summary>
+            Maximum length of a package name (npm allows 214 characters, the longest of the four registries).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.VersionMaxLength">
+            <summary>
+            Maximum length of a version string.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.UrlMaxLength">
+            <summary>
+            Maximum length of an address (repository, CI run).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.MessageMaxLength">
+            <summary>
+            Maximum length of a deprecation message.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.TrackedPackage.SyncErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.SyncError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Registry">
+            <summary>
+            The registry.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Name">
+            <summary>
+            Package name as the registry spells it (npm names may be scoped, <c>@scope/name</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.AppId">
+            <summary>
+            storeasy app the package belongs to, when a member linked one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.LatestVersion">
+            <summary>
+            The registry's latest version (npm <c>dist-tags.latest</c>, crates.io <c>max_stable_version</c>, PyPI
+            <c>info.version</c>, NuGet the highest listed version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.LatestPublishedDate">
+            <summary>
+            UTC instant the latest version was published.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SourceRepository">
+            <summary>
+            Source repository: from the latest version's provenance when it has one, otherwise the repository the package declares.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.LatestCiRunUrl">
+            <summary>
+            CI run that published the latest version (from its provenance); null without provenance or when the registry does not
+            name the run (PyPI names the workflow only).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.LatestWorkflow">
+            <summary>
+            CI workflow that published the latest version (from its provenance), e.g. <c>.github/workflows/release.yml</c>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.HasProvenance">
+            <summary>
+            Whether the latest version has provenance (always false for NuGet, which has none).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.DeprecationMessage">
+            <summary>
+            Deprecation message of the latest version; null when it is not deprecated.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SyncedDate">
+            <summary>
+            UTC instant of the last successful sync; null until the first one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.SyncError">
+            <summary>
+            Why the last sync could not read the package; null after a successful one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.App">
+            <summary>
+            The linked app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Versions">
+            <summary>
+            Versions the registry lists.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Alerts">
+            <summary>
+            Alerts, open and resolved.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.TrackedPackageVersion">
+            <summary>
+            One version of a <see cref="P:Storeasy.Domain.Registries.TrackedPackageVersion.TrackedPackage"/> as the registry lists it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.TrackedPackageId">
+            <summary>
+            The package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.Version">
+            <summary>
+            Version string as the registry spells it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.PublishedDate">
+            <summary>
+            UTC instant the version was published; null when the registry does not say (an unlisted NuGet version).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.IsYanked">
+            <summary>
+            Yanked (crates.io, PyPI: every file of the release yanked).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.IsUnlisted">
+            <summary>
+            Unlisted (NuGet).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.IsDeprecated">
+            <summary>
+            Deprecated (npm, NuGet).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.Message">
+            <summary>
+            Deprecation message or yank reason.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.HasProvenance">
+            <summary>
+            Whether the version has provenance; null when it was not checked (PyPI checks the newest versions only).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.CiRunUrl">
+            <summary>
+            CI run that published the version (from its provenance).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.TrackedPackage">
+            <summary>
+            The package.
+            </summary>
         </member>
         <member name="T:Storeasy.Domain.Role">
             <summary>

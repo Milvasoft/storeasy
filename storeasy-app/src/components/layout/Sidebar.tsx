@@ -5,7 +5,7 @@ import { useActivity } from '@/lib/activity/ActivityContext'
 import { activeJobCount } from '@/lib/activity/hatState'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useGlobalPermissions } from '@/lib/auth/globalPermissions'
-import { useFeature, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
+import { useFeature, useFeatureFlags, type FeatureFlagKey } from '@/lib/features/FeatureFlagsContext'
 import { useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { navGroups, navLabel, HOME_PATH, type NavItem } from '@/lib/nav/nav'
@@ -57,6 +57,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { state } = useActivity()
   const liveCount = activeJobCount(state)
   const { singleTeam } = useDeployment()
+  const isEnabled = useFeatureFlags()
 
   return (
     <>
@@ -69,7 +70,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           .filter((group) => !group.managerOnly || isManager)
           .map((group) => {
             const items = group.items.filter(
-              (item) => (!item.permission || can(item.permission)) && (!item.globalPermission || global.has(item.globalPermission)),
+              (item) =>
+                (!item.permission || can(item.permission)) &&
+                (!item.globalPermission || global.has(item.globalPermission)) &&
+                !(item.hideWhenOff && item.feature && !isEnabled(item.feature)),
             )
             if (items.length === 0) {
               return null

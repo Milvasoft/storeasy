@@ -18,6 +18,7 @@ export const NotificationType = {
   RuleChanged: 51,
   RuleProposal: 52,
   VersionState: 53,
+  PackageRegistry: 54,
 } as const
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 
@@ -35,6 +36,7 @@ export const NotificationEntity = {
   WebhookEvent: 49,
   Rule: 50,
   AppVersionState: 51,
+  TrackedPackage: 52,
 } as const
 export type NotificationEntity = (typeof NotificationEntity)[keyof typeof NotificationEntity]
 

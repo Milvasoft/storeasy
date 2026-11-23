@@ -416,6 +416,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Firefox:ApiBaseUrl`, `TokenLifetimeSeconds` | | `https://addons.mozilla.org/api/v5`, `60` | AMO API v5 and the lifetime of each signed request token (AMO allows at most 300 seconds). |
 | `Storeasy:Firefox:RatingPages`, `VersionPages` | | `5`, `2` | Pages of 50 ratings a review sync reads, and pages of 50 versions a sync reads. |
 | `Storeasy:Firefox:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `20`, `3000` | Reads of an upload's validation while a version plan is applied, before the job is retried. |
+| `Storeasy:Registries:NpmBaseUrl`, `NuGetRegistrationBaseUrl`, `PyPIBaseUrl`, `CratesBaseUrl`, `OsvBaseUrl` | | `https://registry.npmjs.org`, `https://api.nuget.org/v3/registration5-gz-semver2`, `https://pypi.org`, `https://crates.io/api/v1`, `https://api.osv.dev/v1` | Public APIs the package registries module reads (no credential). |
+| `Storeasy:Registries:UserAgent`, `RequestTimeoutSeconds` | | `storeasy (+https://storeasy.milvasoft.com)`, `30` | User-Agent of every registry request (crates.io requires a descriptive one) and the timeout of one request. |
+| `Storeasy:Registries:SyncIntervalHours`, `MaxVersions`, `ProvenanceChecksPerSync`, `MaxAdvisoryDetails`, `MaxPackagesPerOrganization` | | `6`, `1000`, `5`, `50`, `500` | Hours between two syncs of a package, versions kept per package, PyPI versions checked for provenance per sync, advisories read in detail per sync, packages an organization can track. |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
 
 #### Package intake
@@ -475,13 +478,14 @@ With both `SeqUri` and `OpenTelemetry:CollectorUrl` empty in `prod`, logs go to 
 
 ### Feature flags
 
-Two runtime kill switches exist, managed by the instance admin (admin area, **Feature flags**). A switched off feature
+Three runtime kill switches exist, managed by the instance admin (admin area, **Feature flags**). A switched off feature
 answers 503 from the next request on; a missing flag reads as on.
 
 | Flag | Covers |
 |---|---|
 | `Export` | Excel exports. |
 | `Studio.AiCaptions` | Caption translation suggestions in the mockup studio. No translation provider ships with storeasy, so the suggestions answer 503 on a self-hosted instance either way. |
+| `Registries` | The package registries module (npm, NuGet, PyPI, crates.io packages and their alerts): its endpoints and MCP tools answer 503, the menu item is hidden and the scheduled sync stops. |
 
 ### Web app
 
@@ -622,6 +626,7 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 | Firefox Add-ons sync | Every 15 minutes (minute 13) | Add-ons with a version awaiting review: status and the review result of their versions. |
 | Review sync | Every 30 minutes | New reviews of every store with reviews (App Store, Google Play, Firefox Add-ons). |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
+| Package registries sync | Hourly (minute 25) | Queues a sync for each organization with a tracked package not read in the last 6 hours (`Storeasy:Registries:SyncIntervalHours`); nothing while the `Registries` flag is off. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |
 | Rule watcher | Daily 06:00 | Reads the official store pages and files catalog proposals for the instance admin. |
 | Audit log cleanup | Daily 03:30 | Deletes entries older than the organization's retention (90, 180, 365 or 730 days; default 365). |

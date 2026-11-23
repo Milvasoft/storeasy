@@ -230,7 +230,7 @@ kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
 Kütüphane depoları (npm, NuGet, PyPI ve benzerleri) bu listede değildir: mağaza sayfası, ekran görüntüsü ve inceleme
 süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
 
-### 7.2 Paket depoları modülü (planlandı, şimdilik yapılmıyor)
+### 7.2 Paket depoları modülü (faz 1 yapıldı)
 
 Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
 olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
@@ -246,6 +246,14 @@ olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağaza
 | Uyarılar | Süresi dolan token'lar, provenance'ı olmayan yayınlar, kullanımdan kaldırılan (deprecated) veya geri çekilen (yanked) sürümler, güvenlik bildirimleri |
 | Geçmiş | Yayın geçmişi, denetim kaydı ve bildirimlerle |
 | MCP | Okuma araçları (paket özeti, uyarılar); yazma yalnız onaylı ve dry run ile |
+
+**Faz 1 yapıldı (23 Kasım 2026).** npm, NuGet, PyPI ve crates.io paketleri yalnız herkese açık API'lerden okunur,
+token saklanmaz. Paket özeti (son sürüm, yayın tarihi, provenance'tan CI çalışması), sürüm listesi, uyarılar
+(kullanımdan kaldırılan ve geri çekilen sürüm, provenance'ı olmayan son sürüm, OSV.dev güvenlik bildirimi; NuGet'te
+provenance olmadığı için uyarı yok), altı saatlik senkron ve "şimdi senkronla", denetim kaydı ve bildirimler, MCP
+araçları (`registries_*`), web sayfası ve `Registries` özellik anahtarıyla kapatma. Ayrıntı
+[package-registries.md](package-registries.md). Trusted publishing kurulum sihirbazı, süresi dolan token uyarıları
+(depo kimlik bilgisi gerektirir) ve Maven Central, RubyGems, Packagist, pub.dev sonraya kaldı.
 
 Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 

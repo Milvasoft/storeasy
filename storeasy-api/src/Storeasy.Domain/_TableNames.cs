@@ -86,5 +86,8 @@ public static class TableNames
     public const string StoreMetrics = nameof(StoreMetrics);
     public const string StoreMetricFeeds = nameof(StoreMetricFeeds);
     public const string AsoExperiments = nameof(AsoExperiments);
+    public const string TrackedPackages = nameof(TrackedPackages);
+    public const string TrackedPackageVersions = nameof(TrackedPackageVersions);
+    public const string PackageAlerts = nameof(PackageAlerts);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

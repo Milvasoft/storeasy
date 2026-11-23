@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   List,
   MessageSquare,
+  Package,
   Plug,
   Radar,
   Server,
@@ -37,6 +38,7 @@ export type NavKey =
   | 'compliance'
   | 'studio'
   | 'intake'
+  | 'registries'
   | 'connections'
   | 'webhooks'
   | 'members'
@@ -61,6 +63,8 @@ export interface NavItem {
   // A platform (global) permission, "Group.Action" (design 17.27 menu map); App.SuperAdmin sees every item.
   globalPermission?: string
   feature?: FeatureFlagKey
+  // Hidden while the feature is off (a module that can be switched off), instead of the "coming" mark.
+  hideWhenOff?: boolean
 }
 
 export interface NavGroup {
@@ -88,6 +92,7 @@ export const NAV: NavGroup[] = [
     key: 'delivery',
     items: [
       { key: 'intake', path: '/intake', icon: CloudUpload, feature: 'Intake' },
+      { key: 'registries', path: '/registries', icon: Package, feature: 'Registries', hideWhenOff: true },
       { key: 'connections', path: '/connections', icon: Plug, permission: OrgPermission.ManageConnections },
       { key: 'webhooks', path: '/webhooks', icon: Webhook, permission: OrgPermission.ManageWebhooks, feature: 'Webhooks' },
     ],
@@ -151,7 +156,7 @@ function navItem(key: NavKey): NavItem {
 // instead of an organization world and a platform world side by side. The routes stay the same.
 export const SINGLE_TEAM_NAV: NavGroup[] = [
   NAV[0],
-  { key: 'delivery', items: [navItem('intake'), navItem('webhooks')] },
+  { key: 'delivery', items: [navItem('intake'), navItem('registries'), navItem('webhooks')] },
   NAV[3],
   {
     key: 'settings',

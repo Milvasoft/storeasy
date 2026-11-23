@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261122144905_AddFirefoxChannel";
+    public override string LastMigrationId => "20261123061414_AddPackageRegistries";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -3694,6 +3694,209 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("Permissions");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageAlert", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("AdvisoryId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime>("OpenedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("ResolvedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Severity")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("Summary")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("TrackedPackageId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Url")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("Version")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "ResolvedDate");
+
+                b.HasIndex("TrackedPackageId", "ResolvedDate");
+
+                b.ToTable("PackageAlerts");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackage", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int?>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DeprecationMessage")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<bool>("HasProvenance")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("LatestCiRunUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("LatestPublishedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LatestVersion")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<string>("LatestWorkflow")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(214)
+                    .HasColumnType("character varying(214)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Registry")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("SourceRepository")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("SyncError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId");
+
+                b.HasIndex("SyncedDate");
+
+                b.HasIndex("OrganizationId", "Registry", "Name")
+                    .IsUnique();
+
+                b.ToTable("TrackedPackages");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackageVersion", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("CiRunUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<bool?>("HasProvenance")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("IsDeprecated")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("IsUnlisted")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("IsYanked")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Message")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("PublishedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<int>("TrackedPackageId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Version")
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TrackedPackageId", "Version")
+                    .IsUnique();
+
+                b.ToTable("TrackedPackageVersions");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Role", b =>
             {
                 var id = b.Property<int>("Id")
@@ -5531,6 +5734,38 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Organization");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageAlert", b =>
+            {
+                b.HasOne("Storeasy.Domain.Registries.TrackedPackage", "TrackedPackage")
+                    .WithMany("Alerts")
+                    .HasForeignKey("TrackedPackageId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("TrackedPackage");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackage", b =>
+            {
+                b.HasOne("Storeasy.Domain.Apps.App", "App")
+                    .WithMany()
+                    .HasForeignKey("AppId")
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                b.Navigation("App");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackageVersion", b =>
+            {
+                b.HasOne("Storeasy.Domain.Registries.TrackedPackage", "TrackedPackage")
+                    .WithMany("Versions")
+                    .HasForeignKey("TrackedPackageId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("TrackedPackage");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.RolePermissionRelation", b =>
             {
                 b.HasOne("Storeasy.Domain.Permission", "Permission")
@@ -5751,6 +5986,13 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
         modelBuilder.Entity("Storeasy.Domain.Permission", b =>
             {
                 b.Navigation("RolePermissionRelations");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackage", b =>
+            {
+                b.Navigation("Alerts");
+
+                b.Navigation("Versions");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Role", b =>

@@ -50,4 +50,7 @@ public enum NotificationType : byte
 
     /// <summary>An App Store version changed state (in review, approved, ready for sale).</summary>
     VersionState = 53,
+
+    /// <summary>A tracked package changed on its registry (new version, deprecated or yanked version, security advisory).</summary>
+    PackageRegistry = 54,
 }

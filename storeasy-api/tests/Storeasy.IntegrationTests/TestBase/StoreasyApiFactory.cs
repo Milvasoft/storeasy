@@ -188,6 +188,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeAsoStores AsoStores { get; } = new();
 
     /// <summary>
+    /// npm, NuGet, PyPI, crates.io and OSV.dev as the package registries module reads them.
+    /// </summary>
+    public FakeRegistries Registries { get; } = new();
+
+    /// <summary>
     /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
     /// </summary>
     public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
@@ -324,6 +329,18 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             // ASO keywords: the stores' public search endpoints answer from the fake.
             services.AddHttpClient(Storeasy.Infrastructure.Aso.AsoHttp.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => AsoStores);
+
+            // Package registries: the public APIs answer from the fake.
+            services.AddHttpClient(Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Registries);
+            services.RemoveAll<RegistryOptions>();
+            services.AddSingleton(new RegistryOptions
+            {
+                NpmBaseUrl = FakeRegistries.NpmBaseUrl,
+                NuGetRegistrationBaseUrl = FakeRegistries.NuGetBaseUrl,
+                PyPIBaseUrl = FakeRegistries.PyPIBaseUrl,
+                CratesBaseUrl = FakeRegistries.CratesBaseUrl,
+                OsvBaseUrl = FakeRegistries.OsvBaseUrl,
+            });
         });
     }
 
