@@ -5,6 +5,18 @@ using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.RegistryDtos;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
+using Storeasy.Application.Features.Registries.ApproveRegistryPlan;
+using Storeasy.Application.Features.Registries.DetectReleaseSettings;
+using Storeasy.Application.Features.Registries.GetRegistryConnectionList;
+using Storeasy.Application.Features.Registries.GetRegistryPlan;
+using Storeasy.Application.Features.Registries.GetRegistryPlanList;
+using Storeasy.Application.Features.Registries.GetReleaseSettings;
+using Storeasy.Application.Features.Registries.PlanRegistryOperation;
+using Storeasy.Application.Features.Registries.PlanRegistryRelease;
+using Storeasy.Application.Features.Registries.RejectRegistryPlan;
+using Storeasy.Application.Features.Registries.RemoveRegistryConnection;
+using Storeasy.Application.Features.Registries.SaveRegistryConnection;
+using Storeasy.Application.Features.Registries.SaveReleaseSettings;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
 using Storeasy.Application.Features.Registries.GetPackageDownloads;
 using Storeasy.Application.Features.Registries.GetPackageListing;
@@ -28,7 +40,8 @@ namespace Storeasy.Api.Controllers;
 
 /// <summary>
 /// Package registries module (npm, NuGet, PyPI, crates.io): tracked packages, their versions and alerts, read from the
-/// registries' public APIs and OSV.dev. storeasy watches packages and never publishes them; no registry token is stored.
+/// registries' public APIs and OSV.dev. Releases go through the repository's own CI (a version bump commit, a tag or a workflow dispatch with the organization's
+/// GitHub token) and registry operations use the organization's registry keys; both only from a plan a member approved.
 /// The whole module answers 503 while the <c>Registries</c> feature flag is off.
 /// </summary>
 /// <param name="mediator"></param>
@@ -198,4 +211,117 @@ public class RegistriesController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpDelete("group")]
     public Task<Response<int>> RemoveGroupAsync(RemovePackageGroupCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The registry credentials of the organization (fingerprints, never the secrets).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("connections")]
+    public Task<Response<List<RegistryConnectionDto>>> GetConnectionsAsync([FromQuery] GetRegistryConnectionListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Saves a GitHub token or a registry key (encrypted; a GitHub token is verified).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("connection")]
+    [RateLimit(30, 3600, "registries-connection-save")]
+    public Task<Response<int>> SaveConnectionAsync(SaveRegistryConnectionCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Removes a registry credential.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("connection")]
+    public Task<Response<int>> RemoveConnectionAsync(RemoveRegistryConnectionCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The release settings of a package or a group, with the next version suggestions.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("release")]
+    public Task<Response<ReleaseSettingsDto>> GetReleaseSettingsAsync([FromQuery] GetReleaseSettingsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Saves or clears the release settings of a package or a group.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("release")]
+    public Task<Response<int>> SaveReleaseSettingsAsync(SaveReleaseSettingsCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Release settings suggested from the repository's workflow files (read with the GitHub token).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("release/detect")]
+    [RateLimit(60, 3600, "registries-release-detect")]
+    public Task<Response<List<ReleaseSuggestionDto>>> DetectReleaseSettingsAsync([FromQuery] DetectReleaseSettingsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Plans a release: the exact file changes, the tag or the dispatch. Nothing is written until the plan is approved.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("release/plan")]
+    [RateLimit(60, 3600, "registries-release-plan")]
+    public Task<Response<RegistryPlanDto>> PlanReleaseAsync(PlanRegistryReleaseCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Plans a registry operation (unlist, relist, deprecate, dist-tag, yank). Nothing is written until the plan is approved.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("operation/plan")]
+    [RateLimit(60, 3600, "registries-operation-plan")]
+    public Task<Response<RegistryPlanDto>> PlanOperationAsync(PlanRegistryOperationCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The registry plans of the organization, of a package or of a group.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("plans")]
+    public Task<Response<List<RegistryPlanDto>>> GetPlansAsync([FromQuery] GetRegistryPlanListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// One registry plan with its file changes and release progress.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("plan")]
+    public Task<Response<RegistryPlanDto>> GetPlanAsync([FromQuery] GetRegistryPlanQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Approves a pending plan with its typed confirmation (production release permission) and queues it.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("plan/approve")]
+    [RateLimit(30, 3600, "registries-plan-approve")]
+    public Task<Response<RegistryPlanDto>> ApprovePlanAsync(ApproveRegistryPlanCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Rejects a pending plan.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("plan/reject")]
+    public Task<Response<RegistryPlanDto>> RejectPlanAsync(RejectRegistryPlanCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 }

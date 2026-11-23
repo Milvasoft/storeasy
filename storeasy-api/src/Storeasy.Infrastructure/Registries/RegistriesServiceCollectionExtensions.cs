@@ -35,6 +35,13 @@ public static class RegistriesServiceCollectionExtensions
         services.AddScoped<IStoreJobHandler, RegistrySyncJobHandler>();
         services.AddScoped<IRegistryReminderChecker, RegistryReminderChecker>();
 
+        // Releases and registry operations (only from approved plans). Tests replace the GitHub handler.
+        services.AddHttpClient(RegistryGitHubClient.HttpClientName, client => client.Timeout = TimeSpan.FromMinutes(2));
+        services.AddSingleton<IRegistryGitHub, RegistryGitHubClient>();
+        services.AddSingleton<IRegistryWriter, RegistryWriter>();
+        services.AddScoped<IRegistryPlanService, RegistryPlanService>();
+        services.AddScoped<IStoreJobHandler, RegistryPlanApplyJobHandler>();
+
         services.AddMilvaCronJob<RegistrySyncJob>(c =>
         {
             c.TimeZoneInfo = TimeZoneInfo.Utc;
@@ -47,6 +54,14 @@ public static class RegistriesServiceCollectionExtensions
         {
             c.TimeZoneInfo = TimeZoneInfo.Utc;
             c.CronExpression = "0 7 * * *";
+            c.CronFormat = CronFormat.Standard;
+        });
+
+        // Started releases, every five minutes.
+        services.AddMilvaCronJob<RegistryReleaseFollowJob>(c =>
+        {
+            c.TimeZoneInfo = TimeZoneInfo.Utc;
+            c.CronExpression = "*/5 * * * *";
             c.CronFormat = CronFormat.Standard;
         });
 

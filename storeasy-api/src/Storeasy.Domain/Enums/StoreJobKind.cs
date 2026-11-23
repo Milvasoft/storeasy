@@ -142,6 +142,14 @@ public enum StoreJobKind : short
     RegistrySync = 500,
 
     /// <summary>
+    /// Writes an approved registry plan: starts a release in CI on GitHub (bump commit, tag or workflow dispatch), or performs
+    /// a registry operation with the stored key (unlist, relist, deprecate, dist-tag, yank). The release is then followed by
+    /// the schedule until the version appears.
+    /// </summary>
+    [Description("Apply registry plan")]
+    RegistryPlanApply = 501,
+
+    /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
     /// Numbered in the analytics band.
     /// </summary>

@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261123141022_AddRegistriesPhase3";
+    public override string LastMigrationId => "20261123144705_AddRegistriesReleases";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -3827,12 +3827,214 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<int>("OrganizationId")
                     .HasColumnType("integer");
 
+                b.Property<ReleaseSettings>("Release")
+                    .HasColumnType("jsonb");
+
                 b.HasKey("Id");
 
                 b.HasIndex("OrganizationId", "Name")
                     .IsUnique();
 
                 b.ToTable("PackageGroups");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.RegistryConnection", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedSecret")
+                    .HasColumnType("bytea");
+
+                b.Property<DateTime?>("ExpiryDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Fingerprint")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("LastVerifiedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastVerifyError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<int?>("TokenReminderId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "Kind")
+                    .IsUnique();
+
+                b.ToTable("RegistryConnections");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.RegistryPlan", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("Argument")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<string>("BaseSha")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("CommitSha")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ConfirmText")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("CreatedByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("CurrentVersion")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("DecidedByUserName")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<DateTime?>("DecisionDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<Dictionary<string, string>>("DispatchInputs")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("Error")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<DateTime>("ExpiryDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<List<ReleaseFileChange>>("Files")
+                    .HasColumnType("jsonb");
+
+                b.Property<DateTime?>("FinishedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte?>("FollowStatus")
+                    .HasColumnType("smallint");
+
+                b.Property<byte>("Kind")
+                    .HasColumnType("smallint");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("PackageGroupId")
+                    .HasColumnType("integer");
+
+                b.PrimitiveCollection<string>("PackageIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<ReleaseSettings>("Release")
+                    .HasColumnType("jsonb");
+
+                b.Property<byte>("RequiredPermission")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("RunConclusion")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<long?>("RunId")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("RunStatus")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<string>("RunUrl")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("StartedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<long?>("StoreJobId")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("Tag")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Title")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
+
+                b.Property<int?>("TrackedPackageId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Version")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("FollowStatus");
+
+                b.HasIndex("OrganizationId", "Status");
+
+                b.ToTable("RegistryPlans");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Registries.RegistryTokenReminder", b =>
@@ -3964,6 +4166,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<byte>("Registry")
                     .HasColumnType("smallint");
+
+                b.Property<ReleaseSettings>("Release")
+                    .HasColumnType("jsonb");
 
                 b.Property<DateTime?>("SetupDate")
                     .HasColumnType("timestamp with time zone");

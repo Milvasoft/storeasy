@@ -193,6 +193,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeRegistries Registries { get; } = new();
 
     /// <summary>
+    /// GitHub as the package registries releases use it (contents, git data, Actions).
+    /// </summary>
+    public FakeRegistryGitHub RegistryGitHub { get; } = new();
+
+    /// <summary>
     /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
     /// </summary>
     public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
@@ -332,6 +337,7 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
 
             // Package registries: the public APIs answer from the fake.
             services.AddHttpClient(Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Registries);
+            services.AddHttpClient(Storeasy.Infrastructure.Registries.RegistryGitHubClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => RegistryGitHub);
             services.RemoveAll<RegistryOptions>();
             services.AddSingleton(new RegistryOptions
             {
@@ -350,6 +356,8 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
                 NpmDownloadsBaseUrl = FakeRegistries.NpmDownloadsBaseUrl,
                 PyPIStatsBaseUrl = FakeRegistries.PyPIStatsBaseUrl,
                 PackagistSiteBaseUrl = FakeRegistries.PackagistSiteBaseUrl,
+                NuGetPublishUrl = FakeRegistries.NuGetPublishUrl,
+                GitHubApiBaseUrl = FakeRegistryGitHub.BaseUrl,
             });
         });
     }

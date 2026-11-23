@@ -92,5 +92,7 @@ public static class TableNames
     public const string RegistryTokenReminders = nameof(RegistryTokenReminders);
     public const string PackageGroups = nameof(PackageGroups);
     public const string PackageDownloadDays = nameof(PackageDownloadDays);
+    public const string RegistryConnections = nameof(RegistryConnections);
+    public const string RegistryPlans = nameof(RegistryPlans);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

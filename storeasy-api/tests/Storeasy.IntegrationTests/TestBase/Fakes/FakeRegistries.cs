@@ -56,6 +56,15 @@ public sealed class FakeRegistries : HttpMessageHandler
     /// <summary>Packagist site address the tests configure.</summary>
     public const string PackagistSiteBaseUrl = "https://packagist-site.registry.fake";
 
+    /// <summary>NuGet publish endpoint (unlist and relist) the tests configure.</summary>
+    public const string NuGetPublishUrl = "https://nuget-publish.registry.fake/api/v2/package";
+
+    /// <summary>Registry writes (unlist, deprecate, dist-tag, yank) as "METHOD url|authorization|body".</summary>
+    public ConcurrentQueue<string> Writes { get; } = new();
+
+    /// <summary>Status the registry answers to writes (403 to test a refused key).</summary>
+    public HttpStatusCode WriteStatus { get; set; } = HttpStatusCode.OK;
+
     /// <summary>NuGet search answers by lower case id.</summary>
     public ConcurrentDictionary<string, string> NuGetSearch { get; } = new(StringComparer.Ordinal);
 
@@ -463,6 +472,15 @@ public sealed class FakeRegistries : HttpMessageHandler
 
         if (request.Method == HttpMethod.Post && url == $"{OsvBaseUrl}/querybatch")
             return Json(HttpStatusCode.OK, QueryBatch(JsonNode.Parse(await request.Content!.ReadAsStringAsync(cancellationToken))));
+
+        if (request.Method != HttpMethod.Get)
+        {
+            var authorization = request.Headers.TryGetValues("Authorization", out var values) ? string.Join(",", values) : request.Headers.TryGetValues("X-NuGet-ApiKey", out var keys) ? "X-NuGet-ApiKey " + string.Join(",", keys) : string.Empty;
+
+            Writes.Enqueue($"{request.Method} {url}|{authorization}|{(request.Content == null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken))}");
+
+            return Json(WriteStatus, WriteStatus == HttpStatusCode.OK ? "{\"ok\":true}" : "{\"error\":\"Forbidden\"}");
+        }
 
         return Responses.TryGetValue(url, out var body) ? Json(HttpStatusCode.OK, body) : Json(HttpStatusCode.NotFound, "{\"error\":\"Not found\"}");
     }

@@ -2519,7 +2519,8 @@
         <member name="T:Storeasy.Api.Controllers.RegistriesController">
             <summary>
             Package registries module (npm, NuGet, PyPI, crates.io): tracked packages, their versions and alerts, read from the
-            registries' public APIs and OSV.dev. storeasy watches packages and never publishes them; no registry token is stored.
+            registries' public APIs and OSV.dev. Releases go through the repository's own CI (a version bump commit, a tag or a workflow dispatch with the organization's
+            GitHub token) and registry operations use the organization's registry keys; both only from a plan a member approved.
             The whole module answers 503 while the <c>Registries</c> feature flag is off.
             </summary>
             <param name="mediator"></param>
@@ -2527,7 +2528,8 @@
         <member name="M:Storeasy.Api.Controllers.RegistriesController.#ctor(MediatR.IMediator)">
             <summary>
             Package registries module (npm, NuGet, PyPI, crates.io): tracked packages, their versions and alerts, read from the
-            registries' public APIs and OSV.dev. storeasy watches packages and never publishes them; no registry token is stored.
+            registries' public APIs and OSV.dev. Releases go through the repository's own CI (a version bump commit, a tag or a workflow dispatch with the organization's
+            GitHub token) and registry operations use the organization's registry keys; both only from a plan a member approved.
             The whole module answers 503 while the <c>Registries</c> feature flag is off.
             </summary>
             <param name="mediator"></param>
@@ -2664,6 +2666,102 @@
         <member name="M:Storeasy.Api.Controllers.RegistriesController.RemoveGroupAsync(Storeasy.Application.Features.Registries.RemovePackageGroup.RemovePackageGroupCommand,System.Threading.CancellationToken)">
             <summary>
             Removes a package group (its packages stay tracked).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetConnectionsAsync(Storeasy.Application.Features.Registries.GetRegistryConnectionList.GetRegistryConnectionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The registry credentials of the organization (fingerprints, never the secrets).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SaveConnectionAsync(Storeasy.Application.Features.Registries.SaveRegistryConnection.SaveRegistryConnectionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves a GitHub token or a registry key (encrypted; a GitHub token is verified).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.RemoveConnectionAsync(Storeasy.Application.Features.Registries.RemoveRegistryConnection.RemoveRegistryConnectionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes a registry credential.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetReleaseSettingsAsync(Storeasy.Application.Features.Registries.GetReleaseSettings.GetReleaseSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            The release settings of a package or a group, with the next version suggestions.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SaveReleaseSettingsAsync(Storeasy.Application.Features.Registries.SaveReleaseSettings.SaveReleaseSettingsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves or clears the release settings of a package or a group.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.DetectReleaseSettingsAsync(Storeasy.Application.Features.Registries.DetectReleaseSettings.DetectReleaseSettingsQuery,System.Threading.CancellationToken)">
+            <summary>
+            Release settings suggested from the repository's workflow files (read with the GitHub token).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.PlanReleaseAsync(Storeasy.Application.Features.Registries.PlanRegistryRelease.PlanRegistryReleaseCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a release: the exact file changes, the tag or the dispatch. Nothing is written until the plan is approved.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.PlanOperationAsync(Storeasy.Application.Features.Registries.PlanRegistryOperation.PlanRegistryOperationCommand,System.Threading.CancellationToken)">
+            <summary>
+            Plans a registry operation (unlist, relist, deprecate, dist-tag, yank). Nothing is written until the plan is approved.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetPlansAsync(Storeasy.Application.Features.Registries.GetRegistryPlanList.GetRegistryPlanListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The registry plans of the organization, of a package or of a group.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetPlanAsync(Storeasy.Application.Features.Registries.GetRegistryPlan.GetRegistryPlanQuery,System.Threading.CancellationToken)">
+            <summary>
+            One registry plan with its file changes and release progress.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.ApprovePlanAsync(Storeasy.Application.Features.Registries.ApproveRegistryPlan.ApproveRegistryPlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Approves a pending plan with its typed confirmation (production release permission) and queues it.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.RejectPlanAsync(Storeasy.Application.Features.Registries.RejectRegistryPlan.RejectRegistryPlanCommand,System.Threading.CancellationToken)">
+            <summary>
+            Rejects a pending plan.
             </summary>
             <param name="request"></param>
             <param name="cancellation"></param>
@@ -4133,7 +4231,7 @@
         </member>
         <member name="T:Storeasy.Api.Mcp.McpCustomTools">
             <summary>
-            Tools that compose requests: approving a plan (with the confirmation rules), submitting for review, a screenshot folder
+            Tools that compose requests: approving a plan or a registry plan (with the confirmation rules), submitting for review, a screenshot folder
             upload and turning a studio export into screenshot plans.
             </summary>
         </member>
@@ -4833,6 +4931,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261123141022_AddRegistriesPhase3.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261123144705_AddRegistriesReleases">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123144705_AddRegistriesReleases.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123144705_AddRegistriesReleases.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123144705_AddRegistriesReleases.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">
