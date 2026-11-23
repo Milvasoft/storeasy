@@ -151,4 +151,33 @@ export const registriesMockHandlers: HttpHandler[] = [
   http.get(`${BASE}/registries/reminders`, () => envelope([])),
   http.post(`${BASE}/registries/reminder`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
   http.delete(`${BASE}/registries/reminder`, () => envelope(0)),
+  http.get(`${BASE}/registries/downloads`, ({ request }) => {
+    const id = Number(new URL(request.url).searchParams.get('TrackedPackageId'))
+    const item = packages.find((candidate) => candidate.Id === id)
+    return envelope({
+      TrackedPackageId: id,
+      Registry: item?.Registry ?? PackageRegistry.Npm,
+      Available: true,
+      RecentDownloads: 1200,
+      RecentDownloadsDays: 30,
+      Series: [],
+      Versions: [],
+    })
+  }),
+  http.get(`${BASE}/registries/listing`, ({ request }) => {
+    const id = Number(new URL(request.url).searchParams.get('TrackedPackageId'))
+    const item = packages.find((candidate) => candidate.Id === id)
+    return envelope({
+      TrackedPackageId: id,
+      Registry: item?.Registry ?? PackageRegistry.Npm,
+      Available: true,
+      Description: item?.Name,
+      Checks: [],
+      ShipsWithRelease: true,
+    })
+  }),
+  http.get(`${BASE}/registries/groups`, () => envelope([])),
+  http.get(`${BASE}/registries/groups/suggestions`, () => envelope([])),
+  http.post(`${BASE}/registries/group`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.delete(`${BASE}/registries/group`, () => envelope(0)),
 ]

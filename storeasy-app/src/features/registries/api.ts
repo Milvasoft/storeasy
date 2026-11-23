@@ -1,6 +1,10 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/http'
 import type {
   PackageAlertDto,
+  PackageDownloadsDto,
+  PackageGroupDto,
+  PackageGroupSuggestionDto,
+  PackageListingDto,
   PackageRegistry,
   SetupInput,
   TokenReminderDto,
@@ -62,6 +66,23 @@ export const registriesApi = {
 
   saveReminder: (organizationId: number, reminder: TokenReminderInput) =>
     apiPost<number>('/registries/reminder', { OrganizationId: organizationId, ...reminder }),
+
+  downloads: (organizationId: number, trackedPackageId: number) =>
+    apiGet<PackageDownloadsDto>('/registries/downloads', { OrganizationId: organizationId, TrackedPackageId: trackedPackageId }),
+
+  listing: (organizationId: number, trackedPackageId: number) =>
+    apiGet<PackageListingDto>('/registries/listing', { OrganizationId: organizationId, TrackedPackageId: trackedPackageId }),
+
+  groups: (organizationId: number) => apiGet<PackageGroupDto[]>('/registries/groups', { OrganizationId: organizationId }),
+
+  groupSuggestions: (organizationId: number) =>
+    apiGet<PackageGroupSuggestionDto[]>('/registries/groups/suggestions', { OrganizationId: organizationId }),
+
+  saveGroup: (organizationId: number, id: number | null, name: string, trackedPackageIds: number[]) =>
+    apiPost<number>('/registries/group', { OrganizationId: organizationId, Id: id, Name: name, TrackedPackageIds: trackedPackageIds }),
+
+  removeGroup: (organizationId: number, id: number) =>
+    apiDelete<number>('/registries/group', undefined, { OrganizationId: organizationId, Id: id }),
 
   removeReminder: (organizationId: number, id: number) =>
     apiDelete<number>('/registries/reminder', undefined, { OrganizationId: organizationId, Id: id }),

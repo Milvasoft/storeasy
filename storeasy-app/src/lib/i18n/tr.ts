@@ -1343,6 +1343,8 @@ export const tr: Dictionary = {
       registryTokenReminderSaved: 'Token hatırlatıcısı kaydedildi',
       registryTokenReminderRemoved: 'Token hatırlatıcısı kaldırıldı',
       registryTokenExpiring: "Depo token'ının süresi doluyor",
+      registryGroupSaved: 'Paket grubu kaydedildi',
+      registryGroupRemoved: 'Paket grubu kaldırıldı',
     },
   },
 }

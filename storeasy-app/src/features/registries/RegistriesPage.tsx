@@ -19,6 +19,9 @@ import { showToast } from '@/lib/toast/toast'
 import { AddPackageDialog } from './AddPackageDialog'
 import { TokenReminders } from './TokenReminders'
 import { TrustedPublishingSection } from './TrustedPublishingSection'
+import { DownloadsTab, ListingTab } from './PackageInsights'
+import { Tabs } from '@/components/ui/Tabs'
+import { Select } from '@/components/ui/Select'
 import { registriesApi } from './api'
 import { useRegistries } from './i18n/useRegistries'
 import type { RegistriesDictionary } from './i18n/en'
@@ -88,6 +91,27 @@ function useSync() {
   })
 }
 
+type PackageSort = 'alerts' | 'name' | 'downloads' | 'published'
+
+const downloadsOf = (row: TrackedPackageSummaryDto) => row.TotalDownloads ?? row.RecentDownloads ?? -1
+
+/** The summary in the chosen order (the API answers open alerts first, then by name). */
+export function sortPackages(rows: TrackedPackageSummaryDto[], sort: PackageSort): TrackedPackageSummaryDto[] {
+  const byName = (a: TrackedPackageSummaryDto, b: TrackedPackageSummaryDto) => a.Name.localeCompare(b.Name)
+  switch (sort) {
+    case 'name':
+      return [...rows].sort(byName)
+    case 'downloads':
+      return [...rows].sort((a, b) => downloadsOf(b) - downloadsOf(a) || byName(a, b))
+    case 'published':
+      return [...rows].sort((a, b) => (b.LatestPublishedDate ?? '').localeCompare(a.LatestPublishedDate ?? '') || byName(a, b))
+    default:
+      return rows
+  }
+}
+
+type DetailTab = 'overview' | 'versions' | 'downloads' | 'listing' | 'trusted'
+
 function PackageList() {
   const t = useRegistries()
   const format = useFormat()
@@ -96,6 +120,7 @@ function PackageList() {
   const { can } = useOrganization()
   const canEdit = can(OrgPermission.EditContent)
   const [adding, setAdding] = useState(false)
+  const [sort, setSort] = useState<PackageSort>('alerts')
   const sync = useSync()
 
   const packages = useQuery({
@@ -124,6 +149,17 @@ function PackageList() {
       cell: (row) => (row.LatestCiRunUrl ? <ExternalAnchor href={row.LatestCiRunUrl}>{t.ciRunLink}</ExternalAnchor> : '-'),
     },
     { key: 'provenance', header: t.table.provenance, cell: (row) => <ProvenanceBadge row={row} t={t} /> },
+    {
+      key: 'downloads',
+      header: t.table.downloads,
+      role: 'hidePhone',
+      cell: (row) =>
+        row.TotalDownloads != null
+          ? format.number(row.TotalDownloads)
+          : row.RecentDownloads != null
+            ? `${format.number(row.RecentDownloads)} / ${row.RecentDownloadsDays ?? 30}d`
+            : '-',
+    },
     {
       key: 'alerts',
       header: t.table.alerts,
@@ -178,7 +214,7 @@ function PackageList() {
       <DataTable
         caption={t.table.caption}
         columns={columns}
-        rows={packages.data}
+        rows={sortPackages(packages.data, sort)}
         rowKey={(row) => row.Id}
         onRowClick={(row) => navigate(`/registries/${row.Id}`)}
         busy={packages.isFetching}
@@ -189,6 +225,24 @@ function PackageList() {
   return (
     <>
       <PageHeader title={t.title} subtitle={t.subtitle} actions={actions} />
+      <div className="flex flex-wrap items-center gap-2">
+        <Link to="/registries/groups" className="btn">
+          {t.groups.title}
+        </Link>
+        <div className="ml-auto w-56">
+          <Select
+            aria-label={t.sort.label}
+            value={sort}
+            options={[
+              { value: 'alerts' as PackageSort, label: t.sort.alerts },
+              { value: 'name' as PackageSort, label: t.sort.name },
+              { value: 'downloads' as PackageSort, label: t.sort.downloads },
+              { value: 'published' as PackageSort, label: t.sort.published },
+            ]}
+            onChange={setSort}
+          />
+        </div>
+      </div>
       {!canEdit ? <Callout tone="info">{t.readOnly}</Callout> : null}
       <div className="mt-3">{body}</div>
       <TokenReminders canEdit={canEdit} />
@@ -233,6 +287,7 @@ function PackageDetail({ packageId }: { packageId: number }) {
   const { can } = useOrganization()
   const canEdit = can(OrgPermission.EditContent)
   const sync = useSync()
+  const [tab, setTab] = useState<DetailTab>('overview')
 
   const data = useQuery({
     queryKey: registriesKeys.package(organization.Id, packageId),
@@ -313,6 +368,12 @@ function PackageDetail({ packageId }: { packageId: number }) {
       role: 'hidePhone',
       cell: (row) => (row.CiRunUrl ? <ExternalAnchor href={row.CiRunUrl}>{t.ciRunLink}</ExternalAnchor> : '-'),
     },
+    {
+      key: 'downloads',
+      header: t.table.downloads,
+      role: 'hidePhone',
+      cell: (row) => (row.Downloads != null ? format.number(row.Downloads) : '-'),
+    },
   ]
 
   const alertColumns: Column<PackageAlertDto>[] = [
@@ -377,58 +438,80 @@ function PackageDetail({ packageId }: { packageId: number }) {
             {item.DeprecationMessage}
           </Callout>
         ) : null}
-        <article className="card" aria-label={t.detail.overview}>
-          <div className="card-h">
-            <h2 className="h3">{t.detail.overview}</h2>
-          </div>
-          <dl className="card-b grid gap-2 sm:grid-cols-2">
-            <div>
-              <dt className="text-fg3">{t.table.published}</dt>
-              <dd>{item.LatestPublishedDate ? format.dateTime(item.LatestPublishedDate) : '-'}</dd>
+        <Tabs<DetailTab>
+          label={item.Name}
+          value={tab}
+          onChange={setTab}
+          items={[
+            { value: 'overview', label: t.tabs.overview },
+            { value: 'versions', label: t.tabs.versions },
+            { value: 'downloads', label: t.tabs.downloads },
+            { value: 'listing', label: t.tabs.listing },
+            { value: 'trusted', label: t.tabs.trusted },
+          ]}
+        />
+        {tab === 'overview' ? (
+          <article className="card" aria-label={t.detail.overview}>
+            <div className="card-h">
+              <h2 className="h3">{t.detail.overview}</h2>
             </div>
-            <div>
-              <dt className="text-fg3">{t.table.ciRun}</dt>
-              <dd>{item.LatestCiRunUrl ? <ExternalAnchor href={item.LatestCiRunUrl}>{t.ciRunLink}</ExternalAnchor> : '-'}</dd>
-            </div>
-            <div>
-              <dt className="text-fg3">{t.workflow}</dt>
-              <dd className="mono">{item.LatestWorkflow ?? '-'}</dd>
-            </div>
-            <div>
-              <dt className="text-fg3">{t.detail.repository}</dt>
-              <dd>{item.SourceRepository ? <ExternalAnchor href={item.SourceRepository}>{item.SourceRepository}</ExternalAnchor> : '-'}</dd>
-            </div>
-            <div>
-              <dt className="text-fg3">{t.detail.app}</dt>
-              <dd>{item.AppId ? <Link to={`/apps/${item.AppId}`}>{item.AppName}</Link> : '-'}</dd>
-            </div>
-            <div>
-              <dt className="text-fg3">{t.detail.lastSynced}</dt>
-              <dd>{item.SyncedDate ? format.relative(item.SyncedDate) : t.detail.neverSynced}</dd>
-            </div>
-            {item.RegistryUrl ? (
+            <dl className="card-b grid gap-2 sm:grid-cols-2">
               <div>
-                <dt className="sr-only">{t.detail.registryPage}</dt>
+                <dt className="text-fg3">{t.table.published}</dt>
+                <dd>{item.LatestPublishedDate ? format.dateTime(item.LatestPublishedDate) : '-'}</dd>
+              </div>
+              <div>
+                <dt className="text-fg3">{t.table.ciRun}</dt>
+                <dd>{item.LatestCiRunUrl ? <ExternalAnchor href={item.LatestCiRunUrl}>{t.ciRunLink}</ExternalAnchor> : '-'}</dd>
+              </div>
+              <div>
+                <dt className="text-fg3">{t.workflow}</dt>
+                <dd className="mono">{item.LatestWorkflow ?? '-'}</dd>
+              </div>
+              <div>
+                <dt className="text-fg3">{t.detail.repository}</dt>
                 <dd>
-                  <ExternalAnchor href={item.RegistryUrl}>{t.detail.registryPage}</ExternalAnchor>
+                  {item.SourceRepository ? <ExternalAnchor href={item.SourceRepository}>{item.SourceRepository}</ExternalAnchor> : '-'}
                 </dd>
               </div>
-            ) : null}
-          </dl>
-        </article>
-        <TrustedPublishingSection packageId={item.Id} canEdit={canEdit} />
-        <section aria-label={t.detail.alerts} className="grid gap-2">
-          <h2 className="text-[15px] font-semibold">{t.detail.alerts}</h2>
-          {alerts.length === 0 ? (
-            <p className="text-fg3">{t.detail.noAlerts}</p>
-          ) : (
-            <DataTable caption={t.detail.alerts} columns={alertColumns} rows={alerts} rowKey={(row) => row.Id} />
-          )}
-        </section>
-        <section aria-label={t.detail.versions} className="grid gap-2">
-          <h2 className="text-[15px] font-semibold">{t.detail.versions}</h2>
-          <DataTable caption={t.detail.versions} columns={versionColumns} rows={versions} rowKey={(row) => row.Version} />
-        </section>
+              <div>
+                <dt className="text-fg3">{t.detail.app}</dt>
+                <dd>{item.AppId ? <Link to={`/apps/${item.AppId}`}>{item.AppName}</Link> : '-'}</dd>
+              </div>
+              <div>
+                <dt className="text-fg3">{t.detail.lastSynced}</dt>
+                <dd>{item.SyncedDate ? format.relative(item.SyncedDate) : t.detail.neverSynced}</dd>
+              </div>
+              {item.RegistryUrl ? (
+                <div>
+                  <dt className="sr-only">{t.detail.registryPage}</dt>
+                  <dd>
+                    <ExternalAnchor href={item.RegistryUrl}>{t.detail.registryPage}</ExternalAnchor>
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </article>
+        ) : null}
+        {tab === 'trusted' ? <TrustedPublishingSection packageId={item.Id} canEdit={canEdit} /> : null}
+        {tab === 'downloads' ? <DownloadsTab packageId={item.Id} /> : null}
+        {tab === 'listing' ? <ListingTab packageId={item.Id} /> : null}
+        {tab === 'overview' ? (
+          <section aria-label={t.detail.alerts} className="grid gap-2">
+            <h2 className="text-[15px] font-semibold">{t.detail.alerts}</h2>
+            {alerts.length === 0 ? (
+              <p className="text-fg3">{t.detail.noAlerts}</p>
+            ) : (
+              <DataTable caption={t.detail.alerts} columns={alertColumns} rows={alerts} rowKey={(row) => row.Id} />
+            )}
+          </section>
+        ) : null}
+        {tab === 'versions' ? (
+          <section aria-label={t.detail.versions} className="grid gap-2">
+            <h2 className="text-[15px] font-semibold">{t.detail.versions}</h2>
+            <DataTable caption={t.detail.versions} columns={versionColumns} rows={versions} rowKey={(row) => row.Version} />
+          </section>
+        ) : null}
       </div>
     </>
   )

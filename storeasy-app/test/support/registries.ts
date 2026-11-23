@@ -5,6 +5,13 @@ import {
   PackageAlertKind,
   PackageRegistry,
   PublisherCheckStatus,
+  DownloadScope,
+  ListingCheckStatus,
+  ReadmeFormat,
+  type PackageDownloadsDto,
+  type PackageGroupDto,
+  type PackageGroupSuggestionDto,
+  type PackageListingDto,
   type TokenReminderDto,
   type TrustedPublishingDto,
   type PackageAlertDto,
@@ -151,11 +158,90 @@ export function tokenReminder(overrides: Partial<TokenReminderDto> = {}): TokenR
   )
 }
 
+export function packageDownloads(overrides: Partial<PackageDownloadsDto> = {}): PackageDownloadsDto {
+  return make<PackageDownloadsDto>(
+    {
+      TrackedPackageId: NPM_PACKAGE_ID,
+      Registry: PackageRegistry.Npm,
+      Available: true,
+      RecentDownloads: 1200,
+      RecentDownloadsDays: 30,
+      VersionScope: DownloadScope.LastWeek,
+      DownloadsSyncedDate: '2026-11-22T10:00:00Z',
+      Series: [
+        { Day: '2026-11-20T00:00:00Z', Downloads: 40 },
+        { Day: '2026-11-21T00:00:00Z', Downloads: 60 },
+      ],
+      Versions: [{ Version: '2.4.0', Downloads: 90 }],
+    },
+    overrides,
+  )
+}
+
+export function packageListing(overrides: Partial<PackageListingDto> = {}): PackageListingDto {
+  return make<PackageListingDto>(
+    {
+      TrackedPackageId: NPM_PACKAGE_ID,
+      Registry: PackageRegistry.Npm,
+      Available: true,
+      Version: '2.4.0',
+      Description: 'Pusula SDK',
+      Readme: '# Pusula SDK<script>alert(1)</script>',
+      ReadmeFormat: ReadmeFormat.Markdown,
+      Keywords: ['maps'],
+      License: 'MIT',
+      Repository: 'https://github.com/kuzeylab/pusula-sdk',
+      Authors: ['Kuzey Lab'],
+      Checks: [
+        { Key: 'description', Status: ListingCheckStatus.Warning },
+        { Key: 'readme', Status: ListingCheckStatus.Ok },
+      ],
+      ShipsWithRelease: true,
+    },
+    overrides,
+  )
+}
+
+export function packageGroup(overrides: Partial<PackageGroupDto> = {}): PackageGroupDto {
+  return make<PackageGroupDto>(
+    {
+      Id: 5,
+      Name: 'Pusula SDKs',
+      HighestVersion: '2.4.0',
+      BehindCount: 1,
+      OpenAlertCount: 1,
+      Members: [
+        {
+          TrackedPackageId: NUGET_PACKAGE_ID,
+          Registry: PackageRegistry.NuGet,
+          Name: 'KuzeyLab.Pusula.Client',
+          LatestVersion: '1.8.0',
+          Behind: true,
+          OpenAlertCount: 0,
+        },
+        {
+          TrackedPackageId: NPM_PACKAGE_ID,
+          Registry: PackageRegistry.Npm,
+          Name: '@kuzeylab/pusula-sdk',
+          LatestVersion: '2.4.0',
+          Behind: false,
+          OpenAlertCount: 1,
+        },
+      ],
+    },
+    overrides,
+  )
+}
+
 export interface RegistriesState {
   packages: TrackedPackageSummaryDto[]
   package: TrackedPackageDto
   setup: TrustedPublishingDto
   reminders: TokenReminderDto[]
+  downloads: PackageDownloadsDto
+  listing: PackageListingDto
+  groups: PackageGroupDto[]
+  suggestions: PackageGroupSuggestionDto[]
 }
 
 function initialRegistries(): RegistriesState {
@@ -180,6 +266,12 @@ function initialRegistries(): RegistriesState {
     package: trackedPackage(),
     setup: trustedPublishing(),
     reminders: [tokenReminder()],
+    downloads: packageDownloads(),
+    listing: packageListing(),
+    groups: [packageGroup()],
+    suggestions: [
+      { Name: 'kuzeylab/tools', Repository: 'https://github.com/kuzeylab/tools', TrackedPackageIds: [41, 42], PackageNames: ['a', 'b'] },
+    ],
   }
 }
 
@@ -199,6 +291,12 @@ export const registriesHandlers: HttpHandler[] = [
   endpoint('get', '/registries/reminders', () => json(envelope(registriesState.reminders))),
   endpoint('post', '/registries/reminder', () => json(envelope(72))),
   endpoint('delete', '/registries/reminder', () => json(envelope(71))),
+  endpoint('get', '/registries/downloads', () => json(envelope(registriesState.downloads))),
+  endpoint('get', '/registries/listing', () => json(envelope(registriesState.listing))),
+  endpoint('get', '/registries/groups', () => json(envelope(registriesState.groups))),
+  endpoint('get', '/registries/groups/suggestions', () => json(envelope(registriesState.suggestions))),
+  endpoint('post', '/registries/group', () => json(envelope(6))),
+  endpoint('delete', '/registries/group', () => json(envelope(5))),
 ]
 
 /** Resets the registries data and answers its endpoints for every test of the calling file. */

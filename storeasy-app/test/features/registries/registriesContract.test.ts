@@ -41,7 +41,7 @@ function controllerRoutes(): Set<string> {
 
 describe('package registries api contract', () => {
   it('finds every endpoint of RegistriesController the screens call', () => {
-    expect(calledEndpoints().size).toBe(11)
+    expect(calledEndpoints().size).toBe(17)
     expect([...calledEndpoints()].sort()).toEqual([...controllerRoutes()].sort())
   })
 

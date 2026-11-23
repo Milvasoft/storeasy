@@ -212,6 +212,8 @@ export const AuditAction = {
   RegistryTokenReminderSaved: 508,
   RegistryTokenReminderRemoved: 509,
   RegistryTokenExpiring: 510,
+  RegistryGroupSaved: 511,
+  RegistryGroupRemoved: 512,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
