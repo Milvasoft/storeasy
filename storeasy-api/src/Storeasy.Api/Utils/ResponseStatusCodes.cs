@@ -68,6 +68,9 @@ public static class ResponseStatusCodes
         [MessageKey.TrackedPackageNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.TokenReminderNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.PackageGroupNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RegistryConnectionNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RegistryPlanNotFound] = StatusCodes.Status404NotFound,
+        [MessageKey.RegistryVersionNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationProductNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationGroupNotFound] = StatusCodes.Status404NotFound,
         [MessageKey.MonetizationOfferNotFound] = StatusCodes.Status404NotFound,
@@ -90,6 +93,7 @@ public static class ResponseStatusCodes
         [MessageKey.OrganizationRoleNameExists] = StatusCodes.Status409Conflict,
         [MessageKey.OrganizationRoleLimitReached] = StatusCodes.Status409Conflict,
         [MessageKey.PlanConflict] = StatusCodes.Status409Conflict,
+        [MessageKey.RegistryReleaseTagExists] = StatusCodes.Status409Conflict,
         [MessageKey.WingetVersionExists] = StatusCodes.Status409Conflict,
         [MessageKey.WingetVersionPullRequestOpen] = StatusCodes.Status409Conflict,
         [MessageKey.ChromeSubmissionPending] = StatusCodes.Status409Conflict,
@@ -154,6 +158,7 @@ public static class ResponseStatusCodes
         // 502 - the store did not answer.
         [MessageKey.StoreUnreachable] = StatusCodes.Status502BadGateway,
         [MessageKey.RegistryUnreachable] = StatusCodes.Status502BadGateway,
+        [MessageKey.RegistryGitHubUnreachable] = StatusCodes.Status502BadGateway,
 
         // 429 - the caller exceeded a rate limit (see RateLimitAttribute).
         [MessageKey.TooManyRequests] = StatusCodes.Status429TooManyRequests,

@@ -2572,6 +2572,27 @@
         <member name="P:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.RegistryReleaseFollowJob">
+            <summary>
+            Every five minutes: follows the started releases (<see cref="M:Storeasy.Application.Interfaces.IRegistryPlanService.FollowAsync(System.Threading.CancellationToken)"/>): the CI run on GitHub,
+            then the registries until they show the version, or the follow window ends.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistryReleaseFollowJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every five minutes: follows the started releases (<see cref="M:Storeasy.Application.Interfaces.IRegistryPlanService.FollowAsync(System.Threading.CancellationToken)"/>): the CI run on GitHub,
+            then the registries until they show the version, or the follow window ends.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistryReleaseFollowJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.RegistryReminderJob">
             <summary>
             Daily: warns about registry tokens members recorded (never the tokens) 14 and 3 days before and on their expiry
@@ -3629,6 +3650,167 @@
             <param name="configurationManager"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistryGitHubClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryGitHub"/> over the GitHub REST API (named HTTP client <see cref="F:Storeasy.Infrastructure.Registries.RegistryGitHubClient.HttpClientName"/>, API version
+            2022-11-28) with a fine-grained personal access token. Contents and the git data API commit version bumps and create
+            tags; the Actions API dispatches workflows and reads runs. Tests replace the handler with a fake GitHub.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.RegistryOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryGitHub"/> over the GitHub REST API (named HTTP client <see cref="F:Storeasy.Infrastructure.Registries.RegistryGitHubClient.HttpClientName"/>, API version
+            2022-11-28) with a fine-grained personal access token. Contents and the git data API commit version bumps and create
+            tags; the Actions API dispatches workflows and reads runs. Tests replace the handler with a fake GitHub.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Registries.RegistryGitHubClient.HttpClientName">
+            <summary>
+            Name of the HTTP client.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.GetLoginAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.GetFileAsync(System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.ListWorkflowFilesAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.GetBranchShaAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.TagExistsAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.CommitFilesAsync(System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.String,System.String,System.String}},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.CreateTagAsync(System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.DispatchAsync(System.String,System.String,System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.ListRunsAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.GetRunAsync(System.String,System.String,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryGitHubClient.Ref(System.String)">
+            <summary>
+            The <c>ref</c> query of a contents read; none reads the default branch.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistryPlanApplyJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegistryPlanApply"/>: writes an approved registry plan (<see cref="M:Storeasy.Application.Interfaces.IRegistryPlanService.ApplyAsync(System.Int64,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)"/>):
+            the version bump commit, the tag or the workflow dispatch of a release, or a registry operation with the stored key.
+            </summary>
+            <param name="planService"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanApplyJobHandler.#ctor(Storeasy.Application.Interfaces.IRegistryPlanService)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegistryPlanApply"/>: writes an approved registry plan (<see cref="M:Storeasy.Application.Interfaces.IRegistryPlanService.ApplyAsync(System.Int64,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)"/>):
+            the version bump commit, the tag or the workflow dispatch of a release, or a registry operation with the stored key.
+            </summary>
+            <param name="planService"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Registries.RegistryPlanApplyJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanApplyJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistryPlanService">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryPlanService"/> (docs/package-registries.md). Releases are started in the repository's CI on GitHub
+            (a version bump commit, a tag or a workflow dispatch) and followed until the registries show the version; operations
+            (unlist, deprecate, dist-tag, yank) use the stored registry key. Every write comes from a plan a member approved with the
+            typed confirmation and the production release permission; nothing starts on its own.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="groupRepository"></param>
+            <param name="versionRepository"></param>
+            <param name="planRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="gitHub"></param>
+            <param name="writer"></param>
+            <param name="reader"></param>
+            <param name="storeJobQueue"></param>
+            <param name="organizationAccess"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="featureFlagService"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageGroup},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackageVersion},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryPlan},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IRegistryGitHub,Storeasy.Application.Interfaces.IRegistryWriter,Storeasy.Application.Interfaces.IPackageRegistryReader,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Application.Interfaces.ICurrentUser,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.RegistryOptions,Storeasy.Application.Interfaces.IFeatureFlagService,System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryPlanService"/> (docs/package-registries.md). Releases are started in the repository's CI on GitHub
+            (a version bump commit, a tag or a workflow dispatch) and followed until the registries show the version; operations
+            (unlist, deprecate, dist-tag, yank) use the stored registry key. Every write comes from a plan a member approved with the
+            typed confirmation and the production release permission; nothing starts on its own.
+            </summary>
+            <param name="packageRepository"></param>
+            <param name="groupRepository"></param>
+            <param name="versionRepository"></param>
+            <param name="planRepository"></param>
+            <param name="connectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="gitHub"></param>
+            <param name="writer"></param>
+            <param name="reader"></param>
+            <param name="storeJobQueue"></param>
+            <param name="organizationAccess"></param>
+            <param name="currentUser"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="featureFlagService"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.PlanReleaseAsync(System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.PlanOperationAsync(System.Int32,System.Int32,Storeasy.Domain.Enums.RegistryPlanKind,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.ApproveAsync(System.Int32,System.Int64,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.RejectAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.DetectAsync(System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.ApplyAsync(System.Int64,Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.FollowAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.FollowOneAsync(Storeasy.Domain.Registries.RegistryPlan,System.String,System.Collections.Generic.List{Storeasy.Domain.Registries.TrackedPackage},System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            One step of following a release: the CI run (found by the bump commit or the tagged commit, or named by the
+            dispatch), then the registries. Returns the audit action of a change worth reporting.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryPlanService.ReadFilesAsync(System.String,Storeasy.Domain.Registries.RegistryPlan,System.Threading.CancellationToken)">
+            <summary>
+            Reads every version file of the plan's settings at the branch and records the change; a message key when a file or
+            its version is missing.
+            </summary>
+        </member>
         <member name="T:Storeasy.Infrastructure.Registries.RegistryReminderChecker">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IRegistryReminderChecker"/>: reads the reminders within 14 days of their expiry, warned before or with an
@@ -3746,6 +3928,45 @@
             <inheritdoc/>
         </member>
         <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistryWriter">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryWriter"/>: the registries' documented write calls, with the organization's stored key, only from an
+            approved plan.
+            <list type="bullet">
+            <item>NuGet: <c>DELETE</c> (unlist) and <c>POST</c> (relist) <c>{publish}/{id}/{version}</c> with <c>X-NuGet-ApiKey</c>.</item>
+            <item>npm: deprecation is the packument read with <c>?write=true</c> and put back with <c>versions[v].deprecated</c> set
+            (as the npm CLI does); a dist-tag is <c>PUT /-/package/{name}/dist-tags/{tag}</c> with the version as a JSON string;
+            <c>Authorization: Bearer</c>.</item>
+            <item>crates.io: <c>DELETE /crates/{name}/{version}/yank</c> and <c>PUT .../unyank</c> with the token as
+            <c>Authorization</c>.</item>
+            <item>RubyGems: <c>DELETE /api/v1/gems/yank</c> with <c>gem_name</c> and <c>version</c> and the key as
+            <c>Authorization</c>.</item>
+            </list>
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryWriter.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.RegistryOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryWriter"/>: the registries' documented write calls, with the organization's stored key, only from an
+            approved plan.
+            <list type="bullet">
+            <item>NuGet: <c>DELETE</c> (unlist) and <c>POST</c> (relist) <c>{publish}/{id}/{version}</c> with <c>X-NuGet-ApiKey</c>.</item>
+            <item>npm: deprecation is the packument read with <c>?write=true</c> and put back with <c>versions[v].deprecated</c> set
+            (as the npm CLI does); a dist-tag is <c>PUT /-/package/{name}/dist-tags/{tag}</c> with the version as a JSON string;
+            <c>Authorization: Bearer</c>.</item>
+            <item>crates.io: <c>DELETE /crates/{name}/{version}/yank</c> and <c>PUT .../unyank</c> with the token as
+            <c>Authorization</c>.</item>
+            <item>RubyGems: <c>DELETE /api/v1/gems/yank</c> with <c>gem_name</c> and <c>version</c> and the key as
+            <c>Authorization</c>.</item>
+            </list>
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryWriter.WriteAsync(Storeasy.Domain.Enums.RegistryPlanKind,Storeasy.Domain.Enums.PackageRegistry,System.String,System.String,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Rules.ContentNormalizer">

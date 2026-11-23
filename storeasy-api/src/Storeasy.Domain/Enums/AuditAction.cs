@@ -628,4 +628,48 @@ public enum AuditAction : short
     /// <summary>A package group was removed.</summary>
     [Description("Package group removed")]
     RegistryGroupRemoved = 512,
+
+    /// <summary>A GitHub token or registry API key of the package registries module was saved (never the secret).</summary>
+    [Description("Registry credential saved")]
+    RegistryConnectionSaved = 513,
+
+    /// <summary>A GitHub token or registry API key of the package registries module was removed.</summary>
+    [Description("Registry credential removed")]
+    RegistryConnectionRemoved = 514,
+
+    /// <summary>The release settings of a package or group were saved.</summary>
+    [Description("Release settings saved")]
+    RegistryReleaseSettingsSaved = 515,
+
+    /// <summary>A registry plan (release or operation) was made.</summary>
+    [Description("Registry plan made")]
+    RegistryPlanCreated = 516,
+
+    /// <summary>A registry plan was approved.</summary>
+    [Description("Registry plan approved")]
+    RegistryPlanApproved = 517,
+
+    /// <summary>A registry plan was rejected.</summary>
+    [Description("Registry plan rejected")]
+    RegistryPlanRejected = 518,
+
+    /// <summary>A release was started in CI (bump commit, tag or workflow dispatch).</summary>
+    [Description("Release started")]
+    RegistryReleaseStarted = 519,
+
+    /// <summary>The CI run of a release finished.</summary>
+    [Description("Release run finished")]
+    RegistryReleaseRunFinished = 520,
+
+    /// <summary>The released version appeared on every registry in scope.</summary>
+    [Description("Release published")]
+    RegistryReleasePublished = 521,
+
+    /// <summary>A release failed or timed out.</summary>
+    [Description("Release failed")]
+    RegistryReleaseFailed = 522,
+
+    /// <summary>A registry operation (unlist, relist, deprecate, dist-tag, yank) was written.</summary>
+    [Description("Registry operation applied")]
+    RegistryOperationApplied = 523,
 }

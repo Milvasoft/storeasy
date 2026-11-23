@@ -1,4 +1,5 @@
-import type { IsoDateTime } from '@/lib/api/types'
+import type { ChangePlanStatus } from '@/features/common/types'
+import type { ConnectionStatus, IsoDateTime } from '@/lib/api/types'
 
 // Shapes of the package registries endpoints (storeasy-api RegistriesController, Storeasy.Application.Dtos.RegistryDtos),
 // PascalCase as the API sends them.
@@ -223,4 +224,131 @@ export interface TrackedPackageAddedDto {
   Id: number
   Name: string
   JobId: number
+}
+
+// Releases and registry operations (phase 4).
+
+// Storeasy.Domain.Enums.RegistryConnectionKind: a GitHub token or a registry's key.
+export const RegistryConnectionKind = { GitHub: 1, NuGet: 2, Npm: 3, Crates: 4, RubyGems: 5 } as const
+export type RegistryConnectionKind = (typeof RegistryConnectionKind)[keyof typeof RegistryConnectionKind]
+
+// Storeasy.Domain.Enums.ReleaseTrigger: what starts the repository's CI.
+export const ReleaseTrigger = { VersionBump: 1, Tag: 2, VersionBumpAndTag: 3, Dispatch: 4 } as const
+export type ReleaseTrigger = (typeof ReleaseTrigger)[keyof typeof ReleaseTrigger]
+
+// Storeasy.Domain.Enums.VersionFileFormat.
+export const VersionFileFormat = { MsBuild: 1, PackageJson: 2, Toml: 3, Ruby: 4, Pom: 5, PlainText: 6 } as const
+export type VersionFileFormat = (typeof VersionFileFormat)[keyof typeof VersionFileFormat]
+
+// Storeasy.Domain.Enums.RegistryPlanKind.
+export const RegistryPlanKind = { Release: 1, Unlist: 2, Relist: 3, Deprecate: 4, Undeprecate: 5, DistTag: 6, Yank: 7, Unyank: 8 } as const
+export type RegistryPlanKind = (typeof RegistryPlanKind)[keyof typeof RegistryPlanKind]
+
+// Storeasy.Domain.Enums.ReleaseFollowStatus.
+export const ReleaseFollowStatus = { Following: 1, Published: 2, Failed: 3, TimedOut: 4 } as const
+export type ReleaseFollowStatus = (typeof ReleaseFollowStatus)[keyof typeof ReleaseFollowStatus]
+
+export interface RegistryConnectionDto {
+  Id: number
+  Kind: RegistryConnectionKind
+  Fingerprint: string
+  Status: ConnectionStatus
+  LastVerifiedDate?: IsoDateTime | null
+  LastVerifyError?: string | null
+  ExpiryDate?: IsoDateTime | null
+}
+
+export interface RegistryConnectionInput {
+  Kind: RegistryConnectionKind
+  Secret: string
+  ExpiryDate: string
+}
+
+export interface VersionFileSetting {
+  Path: string
+  Format: VersionFileFormat
+}
+
+export interface ReleaseSettings {
+  Repository: string
+  Branch: string
+  Trigger: ReleaseTrigger
+  VersionFiles: VersionFileSetting[]
+  TagPattern?: string | null
+  Workflow?: string | null
+  DispatchVersionInput?: string | null
+  DispatchPrereleaseInput?: string | null
+  DispatchTakesTag: boolean
+}
+
+export interface VersionSuggestionDto {
+  Kind: string
+  Version: string
+}
+
+export interface ReleaseSettingsDto {
+  TrackedPackageId?: number | null
+  PackageGroupId?: number | null
+  PackageGroupName?: string | null
+  FromGroup: boolean
+  Settings?: ReleaseSettings | null
+  Problems: string[]
+  CurrentVersion?: string | null
+  NextVersions: VersionSuggestionDto[]
+  GitHubConnected: boolean
+}
+
+export interface ReleaseSuggestionDto {
+  Settings: ReleaseSettings
+  Reason: string
+}
+
+export interface ReleaseFileChange {
+  Path: string
+  BaseSha: string
+  OldVersion: string
+  Before: string
+  After: string
+  Line: number
+}
+
+export interface RegistryPlanDto {
+  Id: number
+  TrackedPackageId?: number | null
+  PackageGroupId?: number | null
+  Kind: RegistryPlanKind
+  Status: ChangePlanStatus
+  Title: string
+  Version: string
+  CurrentVersion?: string | null
+  Tag?: string | null
+  ConfirmText: string
+  RequiredPermission: number
+  Release?: ReleaseSettings | null
+  Files: ReleaseFileChange[]
+  PackageIds: number[]
+  DispatchInputs: Record<string, string>
+  BaseSha?: string | null
+  Argument?: string | null
+  ExpiryDate: IsoDateTime
+  CreatedByUserName?: string | null
+  CreationDate?: IsoDateTime | null
+  DecidedByUserName?: string | null
+  DecisionDate?: IsoDateTime | null
+  StoreJobId?: number | null
+  CommitSha?: string | null
+  RunId?: number | null
+  RunUrl?: string | null
+  RunStatus?: string | null
+  RunConclusion?: string | null
+  FollowStatus?: ReleaseFollowStatus | null
+  StartedDate?: IsoDateTime | null
+  FinishedDate?: IsoDateTime | null
+  Error?: string | null
+}
+
+// The package or the group a release belongs to.
+export interface ReleaseScope {
+  TrackedPackageId?: number
+  PackageGroupId?: number
 }

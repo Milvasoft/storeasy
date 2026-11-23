@@ -8,4 +8,7 @@ export const registriesKeys = {
   downloads: (organizationId: number, trackedPackageId: number) => ['registries', 'downloads', organizationId, trackedPackageId] as const,
   listing: (organizationId: number, trackedPackageId: number) => ['registries', 'listing', organizationId, trackedPackageId] as const,
   groups: (organizationId: number) => ['registries', 'groups', organizationId] as const,
+  connections: (organizationId: number) => ['registries', 'connections', organizationId] as const,
+  release: (organizationId: number, scope: string) => ['registries', 'release', organizationId, scope] as const,
+  plans: (organizationId: number, scope: string) => ['registries', 'plans', organizationId, scope] as const,
 }

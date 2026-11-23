@@ -121,4 +121,24 @@ public class RegistryOptions
     /// Most packages an organization can track.
     /// </summary>
     public int MaxPackagesPerOrganization { get; set; } = 500;
+
+    /// <summary>
+    /// GitHub REST API (releases: version bump commits, tags, workflow dispatches and runs).
+    /// </summary>
+    public string GitHubApiBaseUrl { get; set; } = "https://api.github.com";
+
+    /// <summary>
+    /// NuGet publish endpoint (<c>PackagePublish/2.0.0</c> of the service index): unlist and relist.
+    /// </summary>
+    public string NuGetPublishUrl { get; set; } = "https://www.nuget.org/api/v2/package";
+
+    /// <summary>
+    /// Hours a started release is followed until the registries show its version.
+    /// </summary>
+    public int ReleaseFollowHours { get; set; } = 2;
+
+    /// <summary>
+    /// Hours a registry plan waits for approval before it expires.
+    /// </summary>
+    public int PlanLifetimeHours { get; set; } = 48;
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Milvasoft.Core.EntityBases.Concrete.Auditing;
+using Storeasy.Domain.JsonModels;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -28,6 +29,12 @@ public class PackageGroup : AuditableEntity<int>
     /// </summary>
     [MaxLength(NameMaxLength)]
     public string Name { get; set; }
+
+    /// <summary>
+    /// How a release of the group starts in its repository's CI; null until set.
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public ReleaseSettings Release { get; set; }
 
     /// <summary>
     /// Member packages.

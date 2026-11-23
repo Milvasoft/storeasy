@@ -73,6 +73,14 @@ using Storeasy.Application.Features.Registries.SaveTokenReminder;
 using Storeasy.Application.Features.Registries.GetTrackedPackage;
 using Storeasy.Application.Features.Registries.GetTrackedPackageList;
 using Storeasy.Application.Features.Registries.RemoveTrackedPackage;
+using Storeasy.Application.Features.Registries.DetectReleaseSettings;
+using Storeasy.Application.Features.Registries.GetRegistryPlan;
+using Storeasy.Application.Features.Registries.GetRegistryPlanList;
+using Storeasy.Application.Features.Registries.GetReleaseSettings;
+using Storeasy.Application.Features.Registries.PlanRegistryOperation;
+using Storeasy.Application.Features.Registries.PlanRegistryRelease;
+using Storeasy.Application.Features.Registries.RejectRegistryPlan;
+using Storeasy.Application.Features.Registries.SaveReleaseSettings;
 using Storeasy.Application.Features.Registries.SyncTrackedPackage;
 using Storeasy.Application.Features.Listings.GetCategories;
 using Storeasy.Application.Features.Listings.GetListing;
@@ -427,6 +435,14 @@ public static class McpToolCatalog
         Gated(FeatureFlagKeys.Registries, Read<GetPackageGroupSuggestionsQuery>("registries_groups_suggest", "Suggests package groups from tracked packages without a group that share a source repository.")),
         Gated(FeatureFlagKeys.Registries, Write<SavePackageGroupCommand>("registries_group_save", "Adds (no id) or changes a package group in storeasy: name and member trackedPackageIds (a package moves out of any other group). Nothing changes on a registry.")),
         Gated(FeatureFlagKeys.Registries, Write<RemovePackageGroupCommand>("registries_group_remove", "Removes a package group in storeasy; its packages stay tracked.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetReleaseSettingsQuery>("registries_release_settings_get", "Reads how a tracked package (trackedPackageId) or a group (packageGroupId) is released through its repository's CI: repository, branch, trigger (VersionBump, Tag, VersionBumpAndTag, Dispatch), version files, tag pattern, workflow and dispatch inputs, the problems of the settings, the current version and the next version suggestions (patch, minor, major, prerelease). A package without its own settings uses its group's.")),
+        Gated(FeatureFlagKeys.Registries, Write<SaveReleaseSettingsCommand>("registries_release_settings_save", "Saves or clears (no settings) the release settings of a tracked package or a group in storeasy: repository owner/repo, branch, trigger, versionFiles (path and format MsBuild, PackageJson, Toml, Ruby, Pom, PlainText), tagPattern with {version}, workflow file and dispatch input names. Nothing is written to the repository.")),
+        Gated(FeatureFlagKeys.Registries, Read<DetectReleaseSettingsQuery>("registries_release_detect", "Suggests release settings from the repository's workflow files (read with the organization's GitHub token): tag patterns, version bump paths and dispatch inputs of the workflows that publish to the package's registry.")),
+        Gated(FeatureFlagKeys.Registries, Write<PlanRegistryReleaseCommand>("registries_release_plan", "Plans a release of a tracked package or a group at a version: checks the version for each registry and against the current one, reads the version files on the branch and returns the exact line changes, the tag and the dispatch inputs. The apply job commits the bump, creates the tag or dispatches the workflow; storeasy then follows the CI run until the registries show the version." + " Returns a registry plan (id, confirmText and the exact changes); nothing is written until registries_plan_approve with the plan id.")),
+        Gated(FeatureFlagKeys.Registries, Write<PlanRegistryOperationCommand>("registries_operation_plan", "Plans a registry operation on a known version of a tracked package with the organization's stored registry key: Unlist or Relist (NuGet), Deprecate with a message, Undeprecate or DistTag with the tag name as argument (npm), Yank or Unyank (crates.io), Yank (RubyGems). PyPI yanks, Packagist abandons and NuGet deprecations have no API: do them on the registry's site." + " Returns a registry plan (id, confirmText and the exact changes); nothing is written until registries_plan_approve with the plan id.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetRegistryPlanListQuery>("registries_plans_list", "Lists the registry plans (releases and operations) of the organization, a package or a group: status, version, tag, the CI run and the release progress (Following, Published, Failed, TimedOut).")),
+        Gated(FeatureFlagKeys.Registries, Read<GetRegistryPlanQuery>("registries_plan_get", "Reads one registry plan: its confirmText, the exact file changes with their base sha, the tag or dispatch inputs, the commit, the CI run link and status, and the error of a failed plan.")),
+        Gated(FeatureFlagKeys.Registries, Write<RejectRegistryPlanCommand>("registries_plan_reject", "Rejects a pending registry plan (needs the plan's permission); nothing is written.")),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),

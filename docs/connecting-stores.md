@@ -384,6 +384,31 @@ never divided by another store's page views. The country filter and the source b
 same data; Google Play reports countries and traffic sources in separate files, so a country filter with a source
 breakdown shows only the stores that report both together.
 
+## Package registries
+
+Releases and registry operations of the [package registries module](package-registries.md) use one GitHub token and one
+key per registry for the organization, added under **Package registries > Credentials for releases and actions**
+(Manage connections permission). They are sealed like store credentials, shown only by a fingerprint and used only by
+approved plans. Give each the least access:
+
+- **GitHub:** a fine-grained personal access token (GitHub > Settings > Developer settings > Fine-grained tokens), owned
+  by the organization that owns the repositories, limited to the repositories you release, with **Contents: Read and
+  write** (version files, bump commits, tags), **Actions: Read and write** (workflow dispatch and runs) and **Metadata:
+  Read** (always included). Add **Workflows: Write** only if a version file sits under `.github/workflows`. Set an
+  expiration date. Note: whether a tag created with the token starts `on: push: tags` workflows has not been confirmed
+  for every setup (tags created by the Actions `GITHUB_TOKEN` do not); a version bump commit or a workflow dispatch
+  always starts the CI.
+- **NuGet:** an API key (nuget.org > API Keys) with only the **Unlist package** scope and a glob pattern for your
+  package ids. Enter its expiry date; storeasy reminds you before it.
+- **npm:** a granular access token with **Read and write** on the packages (or the scope) you manage. Deprecation and
+  dist-tags do not publish; if your account enforces two factor authentication for writes, the token needs the bypass
+  option, otherwise npm refuses it.
+- **crates.io:** an API token (crates.io > Account Settings > API Tokens) with the **yank** scope, limited to your crates.
+- **RubyGems:** an API key with only the **Yank rubygem** scope, optionally limited to one gem. A key on an account
+  with multi factor authentication for API calls is refused, since storeasy cannot send a one time code.
+
+PyPI, Packagist and NuGet deprecation have no write API that storeasy uses; no key is stored for them.
+
 ## Troubleshooting
 
 | Symptom | Check |

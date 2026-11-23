@@ -2,6 +2,7 @@
 using Milvasoft.Core.EntityBases.Concrete.Auditing;
 using Storeasy.Domain.Apps;
 using Storeasy.Domain.Enums;
+using Storeasy.Domain.JsonModels;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -164,6 +165,12 @@ public class TrackedPackage : AuditableEntity<int>
     /// UTC instant the setup was saved.
     /// </summary>
     public DateTime? SetupDate { get; set; }
+
+    /// <summary>
+    /// How a release of the package starts in its repository's CI; null until set (a group's settings win for a member).
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public ReleaseSettings Release { get; set; }
 
     /// <summary>
     /// Group the package is released with.

@@ -3154,6 +3154,39 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryGroupRemoved">
             <summary>A package group was removed.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryConnectionSaved">
+            <summary>A GitHub token or registry API key of the package registries module was saved (never the secret).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryConnectionRemoved">
+            <summary>A GitHub token or registry API key of the package registries module was removed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryReleaseSettingsSaved">
+            <summary>The release settings of a package or group were saved.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPlanCreated">
+            <summary>A registry plan (release or operation) was made.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPlanApproved">
+            <summary>A registry plan was approved.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryPlanRejected">
+            <summary>A registry plan was rejected.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryReleaseStarted">
+            <summary>A release was started in CI (bump commit, tag or workflow dispatch).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryReleaseRunFinished">
+            <summary>The CI run of a release finished.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryReleasePublished">
+            <summary>The released version appeared on every registry in scope.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryReleaseFailed">
+            <summary>A release failed or timed out.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryOperationApplied">
+            <summary>A registry operation (unlist, relist, deprecate, dist-tag, yank) was written.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -5376,6 +5409,82 @@
             Nobody may register; accounts are created by an instance admin.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.RegistryConnectionKind">
+            <summary>
+            Credentials the package registries module can hold (encrypted, never returned): a GitHub token to start releases in CI,
+            and registry API keys for registry write operations (unlist, deprecate, dist-tags, yank). Publishing itself stays in CI.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryConnectionKind.GitHub">
+            <summary>
+            A GitHub fine-grained personal access token (Contents, Actions and Metadata on the release repositories).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryConnectionKind.NuGet">
+            <summary>
+            A nuget.org API key with the unlist scope.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryConnectionKind.Npm">
+            <summary>
+            An npm granular access token with read and write access.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryConnectionKind.Crates">
+            <summary>
+            A crates.io API token with the yank scope.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryConnectionKind.RubyGems">
+            <summary>
+            A RubyGems API key with the yank scope.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.RegistryPlanKind">
+            <summary>
+            What an approved registry plan does.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Release">
+            <summary>
+            Starts a release in CI (version bump, tag or workflow dispatch on GitHub).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Unlist">
+            <summary>
+            Unlists a NuGet version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Relist">
+            <summary>
+            Lists a NuGet version again.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Deprecate">
+            <summary>
+            Deprecates an npm version with a message.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Undeprecate">
+            <summary>
+            Removes the deprecation of an npm version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.DistTag">
+            <summary>
+            Points an npm dist-tag at a version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Yank">
+            <summary>
+            Yanks a crates.io or RubyGems version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.RegistryPlanKind.Unyank">
+            <summary>
+            Unyanks a crates.io version.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.RejectionCloseReason">
             <summary>
             Why a rejection case was closed. Values are explicit and never reused.
@@ -5426,6 +5535,31 @@
         <member name="F:Storeasy.Domain.Enums.RejectionState.Closed">
             <summary>Resubmitted or closed by hand; read only history.</summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.ReleaseFollowStatus">
+            <summary>
+            Where a started release stands, as storeasy follows the CI run and the registry.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseFollowStatus.Following">
+            <summary>
+            The CI run is queued or running, or the registry does not show the version yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseFollowStatus.Published">
+            <summary>
+            Every package in scope shows the new version on its registry.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseFollowStatus.Failed">
+            <summary>
+            The CI run failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseFollowStatus.TimedOut">
+            <summary>
+            The version did not appear within the follow window.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.ReleasePlanKind">
             <summary>
             What a release plan does.
@@ -5439,6 +5573,31 @@
         <member name="F:Storeasy.Domain.Enums.ReleasePlanKind.AssignTrack">
             <summary>
             Put version codes on a Play track.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ReleaseTrigger">
+            <summary>
+            How a repository's CI starts a release, as storeasy starts it (docs/package-registries.md).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseTrigger.VersionBump">
+            <summary>
+            Commit a version bump to the version file(s) on the branch; a workflow watching those paths publishes.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseTrigger.Tag">
+            <summary>
+            Push a tag (for example <c>v{version}</c> or <c>cli-v{version}</c>) at the branch head; the tag is the version.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseTrigger.VersionBumpAndTag">
+            <summary>
+            Commit a version bump, then push a tag on that commit (workflows that check the manifest against the tag).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReleaseTrigger.Dispatch">
+            <summary>
+            Start a workflow with <c>workflow_dispatch</c> and the version as an input.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.ReleaseType">
@@ -5779,6 +5938,13 @@
             and notified. Numbered in the package registries band (not a store).
             </summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.RegistryPlanApply">
+            <summary>
+            Writes an approved registry plan: starts a release in CI on GitHub (bump commit, tag or workflow dispatch), or performs
+            a registry operation with the stored key (unlist, relist, deprecate, dist-tag, yank). The release is then followed by
+            the schedule until the version appears.
+            </summary>
+        </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
             <summary>
             Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
@@ -6103,6 +6269,41 @@
         <member name="F:Storeasy.Domain.Enums.UserType.AppUser">
             <summary>
             Can see user profile and view screens.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.VersionFileFormat">
+            <summary>
+            Where the version sits in a version file a release bumps.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.MsBuild">
+            <summary>
+            MSBuild (<c>Directory.Build.props</c>, <c>.csproj</c>): the first <c>&lt;PackageVersion&gt;</c>, else <c>&lt;Version&gt;</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.PackageJson">
+            <summary>
+            <c>package.json</c>: the first <c>"version"</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.Toml">
+            <summary>
+            TOML (<c>pyproject.toml</c>, <c>Cargo.toml</c>): the first <c>version = "..."</c> line.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.Ruby">
+            <summary>
+            <c>.gemspec</c> or <c>version.rb</c>: the first <c>.version = "..."</c> or <c>VERSION = "..."</c>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.Pom">
+            <summary>
+            <c>pom.xml</c>: the project's own <c>&lt;version&gt;</c> (outside <c>&lt;parent&gt;</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.VersionFileFormat.PlainText">
+            <summary>
+            A file that holds only the version (<c>VERSION</c>).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.WebhookDeliveryStatus">
@@ -10218,6 +10419,107 @@
             Where it came from.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.JsonModels.ReleaseSettings">
+            <summary>
+            How storeasy starts a release of a package or a group in its repository's CI.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.Repository">
+            <summary>
+            GitHub repository (<c>owner/repo</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.Branch">
+            <summary>
+            Branch the release starts from (and the bump is committed to).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.Trigger">
+            <summary>
+            How the release starts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.VersionFiles">
+            <summary>
+            Files a version bump changes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.TagPattern">
+            <summary>
+            Tag to push, with <c>{version}</c> for the version (for example <c>v{version}</c>, <c>sdk-rust-v{version}</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.Workflow">
+            <summary>
+            Workflow file that publishes (in <c>.github/workflows</c>): dispatched by <see cref="F:Storeasy.Domain.Enums.ReleaseTrigger.Dispatch"/>,
+            and the run storeasy follows.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.DispatchVersionInput">
+            <summary>
+            Name of the dispatch input that takes the version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.DispatchPrereleaseInput">
+            <summary>
+            Name of the dispatch input that takes whether the release is a prerelease; null when the workflow has none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseSettings.DispatchTakesTag">
+            <summary>
+            Whether the dispatch version input takes the tag (<c>v1.2.3</c>) rather than the bare version.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.VersionFileSetting">
+            <summary>
+            A version file of <see cref="T:Storeasy.Domain.JsonModels.ReleaseSettings"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.VersionFileSetting.Path">
+            <summary>
+            Path in the repository.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.VersionFileSetting.Format">
+            <summary>
+            Where the version is in the file.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.JsonModels.ReleaseFileChange">
+            <summary>
+            One file change of a release plan: the file as the plan read it and as the release commits it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.Path">
+            <summary>
+            Path in the repository.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.BaseSha">
+            <summary>
+            Blob sha the plan read; approval refuses when the file changed since.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.OldVersion">
+            <summary>
+            Version in the file before.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.Before">
+            <summary>
+            The changed line before.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.After">
+            <summary>
+            The changed line after.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.JsonModels.ReleaseFileChange.Line">
+            <summary>
+            Line number of the change (1 based).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.JsonModels.RequestInfo">
             <summary>
             Contains api request information.
@@ -12307,9 +12609,263 @@
             Name of the group.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Registries.PackageGroup.Release">
+            <summary>
+            How a release of the group starts in its repository's CI; null until set.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Registries.PackageGroup.Packages">
             <summary>
             Member packages.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.RegistryConnection">
+            <summary>
+            A credential of the package registries module, one per organization and kind: a GitHub token to start releases in CI or
+            a registry API key for write operations. The secret is sealed with the same envelope encryption as store connection
+            secrets and never returned; only a fingerprint is shown.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryConnection.FingerprintMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryConnection.Fingerprint"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryConnection.ErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryConnection.LastVerifyError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.Kind">
+            <summary>
+            What the credential is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.Fingerprint">
+            <summary>
+            What identifies the credential without the secret: the GitHub login, or the last characters of a key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.EncryptedSecret">
+            <summary>
+            Secret sealed with the data key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.EncryptedDataKey">
+            <summary>
+            Data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.KeyVersion">
+            <summary>
+            Master key version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.Status">
+            <summary>
+            Result of the last check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.LastVerifiedDate">
+            <summary>
+            UTC instant of the last successful check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.LastVerifyError">
+            <summary>
+            Why the last check failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.ExpiryDate">
+            <summary>
+            Day the credential expires, as the member gave it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryConnection.TokenReminderId">
+            <summary>
+            Token reminder kept for the expiry date (registry keys only).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.RegistryPlan">
+            <summary>
+            A planned registry write (a release started in CI, or an operation such as unlist, deprecate, dist-tag or yank). It is
+            shown with its exact changes, approved with a typed confirmation by a member with the permission it needs, and only
+            then written by a job. Nothing is ever started automatically.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryPlan.TitleMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryPlan.Title"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryPlan.ShortMaxLength">
+            <summary>
+            Maximum length of short texts (version, tag, sha, confirmation).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.RegistryPlan.ErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.RegistryPlan.Error"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.TrackedPackageId">
+            <summary>
+            The package, for a package plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.PackageGroupId">
+            <summary>
+            The group, for a group release.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Kind">
+            <summary>
+            What the plan does.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Title">
+            <summary>
+            One line summary.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Version">
+            <summary>
+            Version the plan releases or acts on.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.CurrentVersion">
+            <summary>
+            Version before the release (the package's latest, or the group's highest).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Tag">
+            <summary>
+            Tag the release pushes.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.ConfirmText">
+            <summary>
+            Text the approver types.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.RequiredPermission">
+            <summary>
+            Permission the approver needs.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Release">
+            <summary>
+            The release settings the plan was made with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Files">
+            <summary>
+            File changes of a version bump.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.PackageIds">
+            <summary>
+            Packages the plan covers (one for a package plan, the members for a group release).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.DispatchInputs">
+            <summary>
+            Inputs of a workflow dispatch.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.BaseSha">
+            <summary>
+            Branch head the plan read; a tag is pushed on it, and approval refuses when the branch moved for a bump.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Argument">
+            <summary>
+            Text argument of an operation (deprecation message, dist-tag name).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.ExpiryDate">
+            <summary>
+            UTC instant after which the plan can no longer be approved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.CreatedByUserName">
+            <summary>
+            Who planned it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.DecidedByUserName">
+            <summary>
+            Who decided it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.DecisionDate">
+            <summary>
+            UTC instant of the decision.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.StoreJobId">
+            <summary>
+            The job that writes it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.CommitSha">
+            <summary>
+            Commit of the version bump.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.RunId">
+            <summary>
+            CI run storeasy follows.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.RunUrl">
+            <summary>
+            Address of the CI run.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.RunStatus">
+            <summary>
+            Status of the CI run (<c>queued</c>, <c>in_progress</c>, <c>completed</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.RunConclusion">
+            <summary>
+            Conclusion of the completed CI run (<c>success</c>, <c>failure</c>, ...).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.FollowStatus">
+            <summary>
+            Where a started release stands; null for operations and plans not applied.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.StartedDate">
+            <summary>
+            UTC instant the release was started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.FinishedDate">
+            <summary>
+            UTC instant the follow ended.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.RegistryPlan.Error">
+            <summary>
+            Why writing or following failed.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Registries.RegistryTokenReminder">
@@ -12511,6 +13067,11 @@
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.SetupDate">
             <summary>
             UTC instant the setup was saved.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Release">
+            <summary>
+            How a release of the package starts in its repository's CI; null until set (a group's settings win for a member).
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.PackageGroupId">

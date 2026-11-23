@@ -1,6 +1,17 @@
 import type { BadgeTone } from '@/components/ui/Badge'
 import type { RegistriesDictionary } from './i18n/en'
-import { CiProvider, PackageAlertKind, PackageRegistry, PublisherCheckStatus } from './types'
+import {
+  CiProvider,
+  PackageAlertKind,
+  PackageRegistry,
+  PublisherCheckStatus,
+  RegistryConnectionKind,
+  RegistryPlanKind,
+  ReleaseFollowStatus,
+  ReleaseTrigger,
+  VersionFileFormat,
+  type ReleaseSettings,
+} from './types'
 
 // The registries' name rules (the API's RegistryNames checks the same) and the labels of the registry enums.
 
@@ -137,4 +148,125 @@ export function looksLikeToken(text: string): boolean {
     return true
   }
   return (text.match(/[A-Za-z0-9+=_-]{32,}/g) ?? []).some((run) => /[0-9]/.test(run) && /[A-Za-z]/.test(run))
+}
+
+// Releases and registry operations.
+
+const camel = (name: string) => name.charAt(0).toLowerCase() + name.slice(1)
+
+function nameOf<T extends Record<string, number>>(values: T, value: number): string {
+  return camel(Object.keys(values).find((key) => values[key] === value) ?? '')
+}
+
+export function triggerLabel(trigger: ReleaseTrigger, t: RegistriesDictionary): string {
+  return t.release.triggerKind[nameOf(ReleaseTrigger, trigger) as keyof RegistriesDictionary['release']['triggerKind']]
+}
+
+export function triggerHint(trigger: ReleaseTrigger, t: RegistriesDictionary): string {
+  return t.release.triggerHint[nameOf(ReleaseTrigger, trigger) as keyof RegistriesDictionary['release']['triggerHint']]
+}
+
+export function formatLabel(format: VersionFileFormat, t: RegistriesDictionary): string {
+  return t.release.formatKind[nameOf(VersionFileFormat, format) as keyof RegistriesDictionary['release']['formatKind']]
+}
+
+export function planKindLabel(kind: RegistryPlanKind, t: RegistriesDictionary): string {
+  return t.operations.kind[nameOf(RegistryPlanKind, kind) as keyof RegistriesDictionary['operations']['kind']]
+}
+
+export function followLabel(status: ReleaseFollowStatus, t: RegistriesDictionary): string {
+  return t.plan.follow[nameOf(ReleaseFollowStatus, status) as keyof RegistriesDictionary['plan']['follow']]
+}
+
+export function followTone(status: ReleaseFollowStatus): BadgeTone {
+  if (status === ReleaseFollowStatus.Published) {
+    return 'success'
+  }
+  return status === ReleaseFollowStatus.Following ? 'info' : 'danger'
+}
+
+export function connectionKindLabel(kind: RegistryConnectionKind, t: RegistriesDictionary): string {
+  return t.credentials.kindLabel[nameOf(RegistryConnectionKind, kind) as keyof RegistriesDictionary['credentials']['kindLabel']]
+}
+
+export function connectionKindHint(kind: RegistryConnectionKind, t: RegistriesDictionary): string {
+  return t.credentials.kindHint[nameOf(RegistryConnectionKind, kind) as keyof RegistriesDictionary['credentials']['kindHint']]
+}
+
+export const CONNECTION_KINDS: readonly RegistryConnectionKind[] = [
+  RegistryConnectionKind.GitHub,
+  RegistryConnectionKind.NuGet,
+  RegistryConnectionKind.Npm,
+  RegistryConnectionKind.Crates,
+  RegistryConnectionKind.RubyGems,
+]
+
+// The API's RegistrySecrets.Supports: the registry operations with an official API.
+const OPERATIONS: Partial<Record<PackageRegistry, RegistryPlanKind[]>> = {
+  [PackageRegistry.NuGet]: [RegistryPlanKind.Unlist, RegistryPlanKind.Relist],
+  [PackageRegistry.Npm]: [RegistryPlanKind.Deprecate, RegistryPlanKind.Undeprecate, RegistryPlanKind.DistTag],
+  [PackageRegistry.Crates]: [RegistryPlanKind.Yank, RegistryPlanKind.Unyank],
+  [PackageRegistry.RubyGems]: [RegistryPlanKind.Yank],
+}
+
+export function operationsOf(registry: PackageRegistry): RegistryPlanKind[] {
+  return OPERATIONS[registry] ?? []
+}
+
+// The key a registry's operations need (RegistrySecrets.KindOf).
+export function keyKindOf(registry: PackageRegistry): RegistryConnectionKind | null {
+  const kinds: Partial<Record<PackageRegistry, RegistryConnectionKind>> = {
+    [PackageRegistry.NuGet]: RegistryConnectionKind.NuGet,
+    [PackageRegistry.Npm]: RegistryConnectionKind.Npm,
+    [PackageRegistry.Crates]: RegistryConnectionKind.Crates,
+    [PackageRegistry.RubyGems]: RegistryConnectionKind.RubyGems,
+  }
+  return kinds[registry] ?? null
+}
+
+export function needsArgument(kind: RegistryPlanKind): boolean {
+  return kind === RegistryPlanKind.Deprecate || kind === RegistryPlanKind.DistTag
+}
+
+// The API's ChangePlanRules.ConfirmationMatches: the text typed exactly, ignoring surrounding spaces.
+export function confirmationMatches(expected: string, typed: string): boolean {
+  return typed.trim() === expected.trim()
+}
+
+export const EMPTY_RELEASE: ReleaseSettings = {
+  Repository: '',
+  Branch: 'master',
+  Trigger: ReleaseTrigger.Tag,
+  VersionFiles: [],
+  TagPattern: 'v{version}',
+  Workflow: '',
+  DispatchVersionInput: '',
+  DispatchPrereleaseInput: '',
+  DispatchTakesTag: false,
+}
+
+// The settings as the API takes them: blanks become null, unused fields are dropped.
+export function cleanRelease(settings: ReleaseSettings): ReleaseSettings {
+  const bumps = settings.Trigger === ReleaseTrigger.VersionBump || settings.Trigger === ReleaseTrigger.VersionBumpAndTag
+  const tags = settings.Trigger === ReleaseTrigger.Tag || settings.Trigger === ReleaseTrigger.VersionBumpAndTag
+  const dispatch = settings.Trigger === ReleaseTrigger.Dispatch
+  const text = (value?: string | null) => (value?.trim() ? value.trim() : null)
+  return {
+    Repository: settings.Repository.trim(),
+    Branch: settings.Branch.trim() || 'master',
+    Trigger: settings.Trigger,
+    VersionFiles: bumps
+      ? settings.VersionFiles.filter((file) => file.Path.trim()).map((file) => ({ ...file, Path: file.Path.trim() }))
+      : [],
+    TagPattern: tags ? text(settings.TagPattern) : null,
+    Workflow: text(settings.Workflow),
+    DispatchVersionInput: dispatch ? text(settings.DispatchVersionInput) : null,
+    DispatchPrereleaseInput: dispatch ? text(settings.DispatchPrereleaseInput) : null,
+    DispatchTakesTag: dispatch && settings.DispatchTakesTag,
+  }
+}
+
+// The PyPI page where a release is yanked by hand (PyPI has no yank API).
+export function pypiManageUrl(name: string): string {
+  return `https://pypi.org/manage/project/${encodeURIComponent(name)}/releases/`
 }

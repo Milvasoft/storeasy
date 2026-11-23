@@ -6,6 +6,14 @@ import type {
   PackageGroupSuggestionDto,
   PackageListingDto,
   PackageRegistry,
+  RegistryConnectionDto,
+  RegistryConnectionInput,
+  RegistryPlanDto,
+  RegistryPlanKind,
+  ReleaseScope,
+  ReleaseSettings,
+  ReleaseSettingsDto,
+  ReleaseSuggestionDto,
   SetupInput,
   TokenReminderDto,
   TokenReminderInput,
@@ -17,7 +25,8 @@ import type {
 
 // The package registries endpoints (storeasy-api RegistriesController, route prefix registries). Reads answer storeasy's
 // rows; add checks the name on the registry and queues the first sync; sync queues a job. The whole module answers 503
-// while the Registries feature flag is off. registriesContract.test.ts checks every endpoint has a handler in
+// while the Registries feature flag is off. Releases and registry operations are plans: nothing is written until a plan is
+// approved with its typed confirmation. registriesContract.test.ts checks every endpoint has a handler in
 // test/support/registries.ts.
 
 export const registriesApi = {
@@ -86,4 +95,60 @@ export const registriesApi = {
 
   removeReminder: (organizationId: number, id: number) =>
     apiDelete<number>('/registries/reminder', undefined, { OrganizationId: organizationId, Id: id }),
+
+  connections: (organizationId: number) => apiGet<RegistryConnectionDto[]>('/registries/connections', { OrganizationId: organizationId }),
+
+  // The secret goes to storeasy once and is sealed there; it is never sent back.
+  saveConnection: (organizationId: number, connection: RegistryConnectionInput) =>
+    apiPost<number>('/registries/connection', {
+      OrganizationId: organizationId,
+      Kind: connection.Kind,
+      Secret: connection.Secret,
+      ExpiryDate: connection.ExpiryDate || null,
+    }),
+
+  removeConnection: (organizationId: number, id: number) =>
+    apiDelete<number>('/registries/connection', undefined, { OrganizationId: organizationId, Id: id }),
+
+  release: (organizationId: number, scope: ReleaseScope, prerelease?: string) =>
+    apiGet<ReleaseSettingsDto>('/registries/release', {
+      OrganizationId: organizationId,
+      ...scope,
+      ...(prerelease ? { Prerelease: prerelease } : {}),
+    }),
+
+  // Saves the settings, or clears them with null.
+  saveRelease: (organizationId: number, scope: ReleaseScope, settings: ReleaseSettings | null) =>
+    apiPut<number>('/registries/release', { OrganizationId: organizationId, ...scope, Settings: settings }),
+
+  detectRelease: (organizationId: number, scope: ReleaseScope, repository?: string) =>
+    apiGet<ReleaseSuggestionDto[]>('/registries/release/detect', {
+      OrganizationId: organizationId,
+      ...scope,
+      ...(repository ? { Repository: repository } : {}),
+    }),
+
+  planRelease: (organizationId: number, scope: ReleaseScope, version: string) =>
+    apiPost<RegistryPlanDto>('/registries/release/plan', { OrganizationId: organizationId, ...scope, Version: version }),
+
+  planOperation: (organizationId: number, trackedPackageId: number, kind: RegistryPlanKind, version: string, argument?: string) =>
+    apiPost<RegistryPlanDto>('/registries/operation/plan', {
+      OrganizationId: organizationId,
+      TrackedPackageId: trackedPackageId,
+      Kind: kind,
+      Version: version,
+      Argument: argument || null,
+    }),
+
+  plans: (organizationId: number, scope: ReleaseScope) =>
+    apiGet<RegistryPlanDto[]>('/registries/plans', { OrganizationId: organizationId, ...scope }),
+
+  plan: (organizationId: number, planId: number) =>
+    apiGet<RegistryPlanDto>('/registries/plan', { OrganizationId: organizationId, PlanId: planId }),
+
+  approvePlan: (organizationId: number, planId: number, confirm: string) =>
+    apiPost<RegistryPlanDto>('/registries/plan/approve', { OrganizationId: organizationId, PlanId: planId, Confirm: confirm }),
+
+  rejectPlan: (organizationId: number, planId: number) =>
+    apiPost<RegistryPlanDto>('/registries/plan/reject', { OrganizationId: organizationId, PlanId: planId }),
 }

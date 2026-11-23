@@ -7,9 +7,11 @@ using Storeasy.Application.Features.Mockups.GetMockupExportManifest;
 using Storeasy.Application.Features.Iap.ApplyIapPlan;
 using Storeasy.Application.Features.MsStore.SubmitMsSubmission;
 using Storeasy.Application.Features.Subscriptions.ApplySubscriptionPlan;
+using Storeasy.Application.Features.Registries.ApproveRegistryPlan;
 using Storeasy.Application.Features.Releases.SubmitForReview;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
+using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 using Storeasy.Domain.JsonModels;
 using System.Text.Json;
@@ -18,7 +20,7 @@ using System.Text.Json.Nodes;
 namespace Storeasy.Api.Mcp;
 
 /// <summary>
-/// Tools that compose requests: approving a plan (with the confirmation rules), submitting for review, a screenshot folder
+/// Tools that compose requests: approving a plan or a registry plan (with the confirmation rules), submitting for review, a screenshot folder
 /// upload and turning a studio export into screenshot plans.
 /// </summary>
 public static class McpCustomTools
@@ -99,6 +101,17 @@ public static class McpCustomTools
             Schema = Schema(("planId", Integer("Plan id.")), ("confirm", Boolean("Must be true for plans that need a typed confirmation.")), ("confirmText", Text("The plan's confirmText, typed exactly."))).Required("planId"),
             Handler = (arguments, services, cancellationToken) => ApproveWithAsync(arguments, services, (planId, confirm) => new ApplyIapPlanCommand { PlanId = planId, Confirm = confirm }, cancellationToken),
         },
+        new()
+        {
+            Name = "registries_plan_approve",
+            Kind = McpToolKind.Write,
+            Description = "Approves a pending registry plan (a release or a registry operation) and queues it, with the same checks as the web: the "
+                          + "ReleaseProduction permission, confirm: true and confirmText typed exactly as the plan's confirmText (package or group name and "
+                          + "version). A release plan whose version files changed on the branch since the plan is refused; plan it again. Never automatic.",
+            Schema = Schema(("planId", Integer("Registry plan id.")), ("confirm", Boolean("Must be true.")), ("confirmText", Text("The plan's confirmText, typed exactly."))).Required("planId", "confirm", "confirmText"),
+            Handler = ApproveRegistryPlanAsync,
+            FeatureFlag = FeatureFlagKeys.Registries,
+        },
     ];
 
     private static Task<object> ApprovePlanAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
@@ -118,6 +131,18 @@ public static class McpCustomTools
             return McpToolInvoker.Failure(services, MessageKey.McpConfirmRequired, detail.Data.ConfirmText);
 
         return await McpToolInvoker.SendAsync(services, approval(planId, confirmText), cancellationToken);
+    }
+
+    private static async Task<object> ApproveRegistryPlanAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
+    {
+        if (arguments["confirm"]?.GetValue<bool>() != true)
+            return McpToolInvoker.Failure(services, MessageKey.McpConfirmRequired, "<package or group name> <version>");
+
+        return await McpToolInvoker.SendAsync(services, new ApproveRegistryPlanCommand
+        {
+            PlanId = arguments["planId"]?.GetValue<long>() ?? 0,
+            Confirm = arguments["confirmText"]?.GetValue<string>(),
+        }, cancellationToken);
     }
 
     private static async Task<object> SubmitForReviewAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
