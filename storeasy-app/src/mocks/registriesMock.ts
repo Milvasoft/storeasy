@@ -1,6 +1,7 @@
 import { http, HttpResponse, type HttpHandler } from 'msw'
 import {
   PackageAlertKind,
+  PublisherCheckStatus,
   PackageRegistry,
   type PackageAlertDto,
   type TrackedPackageDto,
@@ -48,6 +49,7 @@ let packages: TrackedPackageDto[] = [
     HasProvenance: true,
     ProvenanceSupported: true,
     OpenAlertCount: 1,
+    PublisherCheck: PublisherCheckStatus.NotConfigured,
     SyncedDate: '2026-11-22T10:00:00Z',
     RegistryUrl: 'https://www.npmjs.com/package/@kuzeylab/pusula-sdk',
     Versions: [
@@ -79,6 +81,7 @@ let packages: TrackedPackageDto[] = [
     HasProvenance: false,
     ProvenanceSupported: false,
     OpenAlertCount: 0,
+    PublisherCheck: PublisherCheckStatus.NotConfigured,
     SyncedDate: '2026-11-22T10:00:00Z',
     RegistryUrl: 'https://www.nuget.org/packages/KuzeyLab.Pusula.Client',
     Versions: [
@@ -119,6 +122,7 @@ export const registriesMockHandlers: HttpHandler[] = [
         HasProvenance: false,
         ProvenanceSupported: body.Registry !== PackageRegistry.NuGet,
         OpenAlertCount: 0,
+        PublisherCheck: PublisherCheckStatus.NotConfigured,
         Versions: [],
         Alerts: [],
       },
@@ -131,4 +135,20 @@ export const registriesMockHandlers: HttpHandler[] = [
     return envelope(body.TrackedPackageId)
   }),
   http.post(`${BASE}/registries/sync`, () => envelope(99_499)),
+  http.get(`${BASE}/registries/setup`, ({ request }) => {
+    const id = Number(new URL(request.url).searchParams.get('TrackedPackageId'))
+    const item = packages.find((candidate) => candidate.Id === id)
+    return envelope({
+      TrackedPackageId: id,
+      Registry: item?.Registry ?? PackageRegistry.Npm,
+      PackageName: item?.Name ?? '',
+      Providers: item?.Registry === PackageRegistry.NuGet ? [1] : [1, 2],
+      Saved: false,
+      Check: { Status: 1 },
+    })
+  }),
+  http.put(`${BASE}/registries/setup`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.get(`${BASE}/registries/reminders`, () => envelope([])),
+  http.post(`${BASE}/registries/reminder`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.delete(`${BASE}/registries/reminder`, () => envelope(0)),
 ]
