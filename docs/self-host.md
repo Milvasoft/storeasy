@@ -417,6 +417,7 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Firefox:RatingPages`, `VersionPages` | | `5`, `2` | Pages of 50 ratings a review sync reads, and pages of 50 versions a sync reads. |
 | `Storeasy:Firefox:UploadPollAttempts`, `UploadPollIntervalMilliseconds` | | `20`, `3000` | Reads of an upload's validation while a version plan is applied, before the job is retried. |
 | `Storeasy:Registries:NpmBaseUrl`, `NuGetRegistrationBaseUrl`, `PyPIBaseUrl`, `CratesBaseUrl`, `OsvBaseUrl` | | `https://registry.npmjs.org`, `https://api.nuget.org/v3/registration5-gz-semver2`, `https://pypi.org`, `https://crates.io/api/v1`, `https://api.osv.dev/v1` | Public APIs the package registries module reads (no credential). |
+| `Storeasy:Registries:MavenRepositoryBaseUrl`, `MavenSearchBaseUrl`, `RubyGemsBaseUrl`, `PackagistBaseUrl`, `PubBaseUrl` | | `https://repo1.maven.org/maven2`, `https://search.maven.org/solrsearch/select`, `https://rubygems.org`, `https://repo.packagist.org`, `https://pub.dev` | Public APIs of the phase 2 registries. |
 | `Storeasy:Registries:UserAgent`, `RequestTimeoutSeconds` | | `storeasy (+https://storeasy.milvasoft.com)`, `30` | User-Agent of every registry request (crates.io requires a descriptive one) and the timeout of one request. |
 | `Storeasy:Registries:SyncIntervalHours`, `MaxVersions`, `ProvenanceChecksPerSync`, `MaxAdvisoryDetails`, `MaxPackagesPerOrganization` | | `6`, `1000`, `5`, `50`, `500` | Hours between two syncs of a package, versions kept per package, PyPI versions checked for provenance per sync, advisories read in detail per sync, packages an organization can track. |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
@@ -626,6 +627,7 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 | Firefox Add-ons sync | Every 15 minutes (minute 13) | Add-ons with a version awaiting review: status and the review result of their versions. |
 | Review sync | Every 30 minutes | New reviews of every store with reviews (App Store, Google Play, Firefox Add-ons). |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
+| Registry token reminders | Daily 07:00 | Warns 14 and 3 days before and on the expiry of the registry tokens members recorded (never the tokens); nothing while the `Registries` flag is off. |
 | Package registries sync | Hourly (minute 25) | Queues a sync for each organization with a tracked package not read in the last 6 hours (`Storeasy:Registries:SyncIntervalHours`); nothing while the `Registries` flag is off. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |
 | Rule watcher | Daily 06:00 | Reads the official store pages and files catalog proposals for the instance admin. |

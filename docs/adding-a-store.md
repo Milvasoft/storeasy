@@ -100,7 +100,7 @@ Firefox Add-ons took `StoreKind` 6, `AuditAction` 180-189, `StoreJobKind` 150, `
 (`Extension`, shared by browser extension channels) and `PackageKind` 6 (`Xpi`).
 
 The package registries module ([package-registries.md](package-registries.md)) is not a store and takes no `StoreKind`;
-its values sit in their own band: `AuditAction` 500-505, `StoreJobKind` 500, `NotificationType` 54, `NotificationEntity`
+its values sit in their own band: `AuditAction` 500-510, `StoreJobKind` 500, `NotificationType` 54, `NotificationEntity`
 52.
 
 Every enum value needs `"{Enum}.{Value}"` in both resx files (`ResxTests`), every audit action a web label
