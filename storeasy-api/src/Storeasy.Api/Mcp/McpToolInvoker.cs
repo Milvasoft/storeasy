@@ -52,6 +52,9 @@ public static class McpToolInvoker
         if (tool == null)
             return Error($"Unknown tool: {context.Params?.Name}");
 
+        if (tool.FeatureFlag != null && services.GetService<IFeatureFlagService>() is { } featureFlags && !await featureFlags.IsEnabledAsync(tool.FeatureFlag, cancellationToken))
+            return Result(Failure(services, MessageKey.FeatureDisabled));
+
         var auditTrail = services.GetService<IAuditTrail>();
 
         if (auditTrail != null)

@@ -2516,6 +2516,70 @@
             <param name="cancellation"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.RegistriesController">
+            <summary>
+            Package registries module (npm, NuGet, PyPI, crates.io): tracked packages, their versions and alerts, read from the
+            registries' public APIs and OSV.dev. storeasy watches packages and never publishes them; no registry token is stored.
+            The whole module answers 503 while the <c>Registries</c> feature flag is off.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.#ctor(MediatR.IMediator)">
+            <summary>
+            Package registries module (npm, NuGet, PyPI, crates.io): tracked packages, their versions and alerts, read from the
+            registries' public APIs and OSV.dev. storeasy watches packages and never publishes them; no registry token is stored.
+            The whole module answers 503 while the <c>Registries</c> feature flag is off.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetPackagesAsync(Storeasy.Application.Features.Registries.GetTrackedPackageList.GetTrackedPackageListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The package summary: every tracked package with its latest version, publish date, CI run, provenance and open alerts.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetPackageAsync(Storeasy.Application.Features.Registries.GetTrackedPackage.GetTrackedPackageQuery,System.Threading.CancellationToken)">
+            <summary>
+            One tracked package with its versions and alerts.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.GetAlertsAsync(Storeasy.Application.Features.Registries.GetPackageAlertList.GetPackageAlertListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The package alerts of the organization (open ones unless resolved ones are asked for).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.AddPackageAsync(Storeasy.Application.Features.Registries.AddTrackedPackage.AddTrackedPackageCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts tracking a package (the name is checked on the registry) and queues its first sync.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.RemovePackageAsync(Storeasy.Application.Features.Registries.RemoveTrackedPackage.RemoveTrackedPackageCommand,System.Threading.CancellationToken)">
+            <summary>
+            Stops tracking a package.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.RegistriesController.SyncAsync(Storeasy.Application.Features.Registries.SyncTrackedPackage.SyncTrackedPackageCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a sync of one package, or of every package.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.RejectionsController">
             <summary>
             Rejection cases (docs/urun-plani.md 11.3): opened by the App Store Connect webhook or the version state sync, the
@@ -4042,6 +4106,11 @@
             <param name="name"></param>
             <returns></returns>
         </member>
+        <member name="M:Storeasy.Api.Mcp.McpToolCatalog.Gated(System.String,Storeasy.Api.Mcp.McpToolDefinition)">
+            <summary>
+            The tool behind a feature flag: while the flag is off a call answers <c>FeatureDisabled</c> like the REST endpoint.
+            </summary>
+        </member>
         <member name="T:Storeasy.Api.Mcp.McpToolKind">
             <summary>
             What a remote MCP tool does to the stores.
@@ -4137,6 +4206,12 @@
         <member name="P:Storeasy.Api.Mcp.McpToolDefinition.Handler">
             <summary>
             Own implementation: arguments, request services, cancellation; returns the result envelope.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Api.Mcp.McpToolDefinition.FeatureFlag">
+            <summary>
+            Feature flag (one of <c>FeatureFlagKeys</c>) the tool depends on; while it is off a call is refused with
+            <c>FeatureDisabled</c>. Null for tools that are always on.
             </summary>
         </member>
         <member name="T:Storeasy.Api.Mcp.McpToolInvoker">
@@ -4633,6 +4708,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261122144905_AddFirefoxChannel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261123061414_AddPackageRegistries">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123061414_AddPackageRegistries.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123061414_AddPackageRegistries.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261123061414_AddPackageRegistries.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

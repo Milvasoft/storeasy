@@ -22,6 +22,7 @@ using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Tokens;
 using Storeasy.Domain.Chrome;
 using Storeasy.Domain.Firefox;
+using Storeasy.Domain.Registries;
 using Storeasy.Domain.Winget;
 
 namespace Storeasy.Infrastructure.Persistence.Context;
@@ -122,6 +123,9 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<StoreMetric> StoreMetrics { get; set; }
     public DbSet<StoreMetricFeed> StoreMetricFeeds { get; set; }
     public DbSet<AsoExperiment> AsoExperiments { get; set; }
+    public DbSet<TrackedPackage> TrackedPackages { get; set; }
+    public DbSet<TrackedPackageVersion> TrackedPackageVersions { get; set; }
+    public DbSet<PackageAlert> PackageAlerts { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>

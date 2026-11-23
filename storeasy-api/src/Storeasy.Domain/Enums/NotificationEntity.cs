@@ -44,4 +44,7 @@ public enum NotificationEntity : byte
 
     /// <summary>An App Store version state.</summary>
     AppVersionState = 51,
+
+    /// <summary>A tracked package of the package registries module.</summary>
+    TrackedPackage = 52,
 }

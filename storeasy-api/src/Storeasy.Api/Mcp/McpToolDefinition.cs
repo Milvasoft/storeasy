@@ -82,4 +82,10 @@ public sealed class McpToolDefinition
     /// Own implementation: arguments, request services, cancellation; returns the result envelope.
     /// </summary>
     public Func<JsonObject, IServiceProvider, CancellationToken, Task<object>> Handler { get; init; }
+
+    /// <summary>
+    /// Feature flag (one of <c>FeatureFlagKeys</c>) the tool depends on; while it is off a call is refused with
+    /// <c>FeatureDisabled</c>. Null for tools that are always on.
+    /// </summary>
+    public string FeatureFlag { get; init; }
 }

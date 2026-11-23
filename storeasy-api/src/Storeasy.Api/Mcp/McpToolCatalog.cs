@@ -57,6 +57,12 @@ using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds;
 using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
+using Storeasy.Application.Features.Registries.AddTrackedPackage;
+using Storeasy.Application.Features.Registries.GetPackageAlertList;
+using Storeasy.Application.Features.Registries.GetTrackedPackage;
+using Storeasy.Application.Features.Registries.GetTrackedPackageList;
+using Storeasy.Application.Features.Registries.RemoveTrackedPackage;
+using Storeasy.Application.Features.Registries.SyncTrackedPackage;
 using Storeasy.Application.Features.Listings.GetCategories;
 using Storeasy.Application.Features.Listings.GetListing;
 using Storeasy.Application.Features.Listings.GetListingByField;
@@ -176,6 +182,7 @@ using Storeasy.Application.Features.TestFlight.UpdateBetaGroupBuilds;
 using Storeasy.Application.Features.TestFlight.UpdateBetaGroupTesters;
 using Storeasy.Application.Features.TestFlight.UpdateBetaLocalization;
 using Storeasy.Application.Features.TestFlight.UpdateWhatToTest;
+using Storeasy.Domain;
 using Storeasy.Domain.Enums;
 
 
@@ -391,6 +398,13 @@ public static class McpToolCatalog
         Read<GetFirefoxAddonQuery>("firefox_addon_get", "Reads a Firefox add-on: status (approved, awaiting review, disabled), listed and unlisted versions with their review status, rating, daily users, weekly downloads, state history, a live read of the listing per locale, categories, previews and icon, and the .xpi packages intake received for the app with their manifest checks."),
         Plan<PlanFirefoxChangeCommand>("firefox_change_plan", "Plans a Firefox Add-ons write: kind Listing (listing values per field and locale: Name, Summary, Description, Homepage, SupportUrl, SupportEmail; categories), Version (an .xpi intake session, channel Listed or Unlisted, releaseNotes per locale, approvalNotes, license, compatibility, sourceAssetId for minified code), Previews (addPreviewAssetIds, deletePreviewIds), Icon (iconAssetId), ReleaseNotes (version, releaseNotes). The add-on is read live and the checks run first (version higher than every version, gecko id matches the add-on, Manifest V2 or V3, data collection declaration, limits)."),
         Write<SyncFirefoxCommand>("firefox_sync", "Queues a sync of one Firefox add-on: status, versions and their review status, rating and users."),
+        // Package registries (npm, NuGet, PyPI, crates.io public APIs; storeasy watches packages and never publishes them)
+        Gated(FeatureFlagKeys.Registries, Read<GetTrackedPackageListQuery>("registries_packages_list", "Lists the tracked packages (npm, NuGet, PyPI, crates.io) with their latest version, publish date, the CI run that published it (from provenance), provenance, source repository and number of open alerts. Filter by registry (Npm, NuGet, PyPI, Crates) or appId.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetTrackedPackageQuery>("registries_package_get", "Reads one tracked package: every version (published date, yanked, unlisted, deprecated, provenance and CI run) and its alerts, open first.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageAlertListQuery>("registries_alerts_list", "Lists the package alerts of the organization: Deprecated, Yanked, NoProvenance (not raised for NuGet, which has no provenance) and Advisory (OSV.dev, with id, severity and link). Open ones only unless includeResolved.")),
+        Gated(FeatureFlagKeys.Registries, Write<AddTrackedPackageCommand>("registries_package_add", "Starts tracking a package by registry and name (checked against the registry's naming rules and its public API), optionally linked to an app (appId), and queues its first sync. No registry token is asked or stored.")),
+        Gated(FeatureFlagKeys.Registries, Write<RemoveTrackedPackageCommand>("registries_package_remove", "Stops tracking a package and deletes its versions and alerts in storeasy; nothing changes on the registry.")),
+        Gated(FeatureFlagKeys.Registries, Write<SyncTrackedPackageCommand>("registries_package_sync", "Queues a sync of one tracked package (trackedPackageId) or of every package now; the schedule syncs every package every six hours.")),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),
@@ -435,6 +449,23 @@ public static class McpToolCatalog
         Write<ExportMockupsCommand>("mockups_export", "Queues a mockup export job that renders and stores the images (no store write). Returns the job id."),
         Read<GetMockupExportManifestQuery>("mockups_export_manifest", "Reads the manifest of a finished export job (asset ids by store, class and locale)."),
     ];
+
+    /// <summary>
+    /// The tool behind a feature flag: while the flag is off a call answers <c>FeatureDisabled</c> like the REST endpoint.
+    /// </summary>
+    private static McpToolDefinition Gated(string featureFlag, McpToolDefinition tool) => new()
+    {
+        Name = tool.Name,
+        Description = tool.Description,
+        Kind = tool.Kind,
+        RequestType = tool.RequestType,
+        Fixed = tool.Fixed,
+        Hidden = tool.Hidden,
+        Uploads = tool.Uploads,
+        Schema = tool.Schema,
+        Handler = tool.Handler,
+        FeatureFlag = featureFlag,
+    };
 
     private static McpToolDefinition Read<TRequest>(string name, string description, params (string Property, object Value)[] fixedValues)
         => Define(typeof(TRequest), name, description, McpToolKind.Read, fixedValues, [], []);

@@ -39,8 +39,14 @@ public static class FeatureFlagKeys
     /// <summary>Mockup studio caption suggestions (a paid translation provider when one is configured; 503 when off).</summary>
     public const string StudioAiCaptions = "Studio.AiCaptions";
 
+    /// <summary>
+    /// The package registries module (npm, NuGet, PyPI, crates.io packages, their alerts and the six hourly sync; 503 and no
+    /// scheduled sync when off).
+    /// </summary>
+    public const string Registries = "Registries";
+
     /// <summary>All known keys, in display order.</summary>
-    public static readonly string[] All = [Export, StudioAiCaptions];
+    public static readonly string[] All = [Export, StudioAiCaptions, Registries];
 
     /// <summary>
     /// Localization key of the description of <paramref name="key"/>.

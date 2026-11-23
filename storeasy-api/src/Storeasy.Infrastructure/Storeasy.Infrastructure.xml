@@ -2572,6 +2572,27 @@
         <member name="P:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.RegistrySyncJob">
+            <summary>
+            Every hour: queues a package registries sync for each organization with a package not synced within the interval (six
+            hours by default), so every package is read about every six hours. Nothing runs while the module's feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistrySyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every hour: queues a package registries sync for each organization with a package not synced within the interval (six
+            hours by default), so every package is read about every six hours. Nothing runs while the module's feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistrySyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.ReviewSyncJob">
             <summary>
             Every 30 minutes: queues the review syncs.
@@ -3515,6 +3536,142 @@
             Base repository of the application entities.
             </summary>
             <param name="dbContext"></param>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.PackageRegistryReader">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IPackageRegistryReader"/> over the public APIs of npm, NuGet, PyPI, crates.io and OSV.dev (named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName"/>, anonymous, with <see cref="P:Storeasy.Application.Utils.Models.RegistryOptions.UserAgent"/>). A 404 is "not found"; 429 and 5xx
+            answers, timeouts and network errors are transient <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>s. Tests replace the handler with fake
+            registries.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.RegistryOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IPackageRegistryReader"/> over the public APIs of npm, NuGet, PyPI, crates.io and OSV.dev (named HTTP client
+            <see cref="F:Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName"/>, anonymous, with <see cref="P:Storeasy.Application.Utils.Models.RegistryOptions.UserAgent"/>). A 404 is "not found"; 429 and 5xx
+            answers, timeouts and network errors are transient <see cref="T:Storeasy.Application.Interfaces.StoreCallException"/>s. Tests replace the handler with fake
+            registries.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName">
+            <summary>
+            Name of the HTTP client.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Registries.PackageRegistryReader.PyPIIntegrityMediaType">
+            <summary>
+            Media type of the PyPI Integrity API.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadPackageAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadProvenanceAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,Storeasy.Application.Utils.Registries.RegistryVersionRead,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadAdvisoriesAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.Registries.AdvisoryQuery},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistriesServiceCollectionExtensions">
+            <summary>
+            Registers the package registries module (docs/package-registries.md): the reader of the registries' public APIs, the
+            syncer, the sync job and the hourly schedule. The module is separate from the stores and is switched off with the
+            <c>Registries</c> feature flag.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistriesServiceCollectionExtensions.AddRegistryServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the package registries services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistrySyncer">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistrySyncer"/>: reads every package from its registry (and the provenance of its latest version, PyPI also
+            of a few unchecked versions), asks OSV.dev once for the advisories of every latest version, merges with
+            <see cref="T:Storeasy.Application.Utils.Registries.RegistrySyncRules"/>, saves the rows in bulk and audits and notifies the changes. A package the registry
+            cannot be read for keeps its rows and gets a sync error.
+            </summary>
+            <param name="reader"></param>
+            <param name="packageRepository"></param>
+            <param name="versionRepository"></param>
+            <param name="alertRepository"></param>
+            <param name="storeJobQueue"></param>
+            <param name="featureFlagService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.#ctor(Storeasy.Application.Interfaces.IPackageRegistryReader,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackageVersion},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageAlert},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.RegistryOptions,System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistrySyncer"/>: reads every package from its registry (and the provenance of its latest version, PyPI also
+            of a few unchecked versions), asks OSV.dev once for the advisories of every latest version, merges with
+            <see cref="T:Storeasy.Application.Utils.Registries.RegistrySyncRules"/>, saves the rows in bulk and audits and notifies the changes. A package the registry
+            cannot be read for keeps its rows and gets a sync error.
+            </summary>
+            <param name="reader"></param>
+            <param name="packageRepository"></param>
+            <param name="versionRepository"></param>
+            <param name="alertRepository"></param>
+            <param name="storeJobQueue"></param>
+            <param name="featureFlagService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.SyncAsync(System.Int32,System.Nullable{System.Int32},System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.QueueDueAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.ReadAsync(Storeasy.Domain.Registries.TrackedPackage,System.Collections.Generic.List{Storeasy.Domain.Registries.TrackedPackageVersion},System.Threading.CancellationToken)">
+            <summary>
+            Reads one package with its provenance; null (and the package's sync error set) when the registry could not be read.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.ReadProvenanceAsync(Storeasy.Domain.Registries.TrackedPackage,Storeasy.Application.Utils.Registries.RegistryPackageRead,System.Collections.Generic.List{Storeasy.Domain.Registries.TrackedPackageVersion},System.Threading.CancellationToken)">
+            <summary>
+            The provenance reads of a package: the latest version (npm only when the packument says it has one), and for PyPI up
+            to <see cref="P:Storeasy.Application.Utils.Models.RegistryOptions.ProvenanceChecksPerSync"/> versions never checked, newest first. A failed provenance read
+            leaves the version unchecked.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.ReadAdvisoriesAsync(System.Collections.Generic.List{Storeasy.Infrastructure.Registries.RegistrySyncer.PackageRead},System.Threading.CancellationToken)">
+            <summary>
+            The advisories of every read package's latest version (one OSV.dev batch); null when OSV.dev could not be read, so the
+            open advisory alerts stay as they are.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegistrySync"/>: syncs the tracked packages of the job's organization (or the one of the payload)
+            with <see cref="T:Storeasy.Application.Interfaces.IRegistrySyncer"/>. A package that could not be read fails the step but not the job; the next sync tries
+            it again.
+            </summary>
+            <param name="syncer"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler.#ctor(Storeasy.Application.Interfaces.IRegistrySyncer)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegistrySync"/>: syncs the tracked packages of the job's organization (or the one of the payload)
+            with <see cref="T:Storeasy.Application.Interfaces.IRegistrySyncer"/>. A package that could not be read fails the step but not the job; the next sync tries
+            it again.
+            </summary>
+            <param name="syncer"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Rules.ContentNormalizer">
             <summary>

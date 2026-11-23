@@ -576,4 +576,28 @@ public enum AuditAction : short
     /// </summary>
     [Description("Experiment submitted for review")]
     AsoExperimentSubmitted = 498,
+
+    /// <summary>A package was added to the package registries module.</summary>
+    [Description("Package tracked")]
+    RegistryPackageAdded = 500,
+
+    /// <summary>A package was removed from the package registries module.</summary>
+    [Description("Package untracked")]
+    RegistryPackageRemoved = 501,
+
+    /// <summary>A new version of a tracked package appeared on its registry.</summary>
+    [Description("Package version published")]
+    RegistryVersionPublished = 502,
+
+    /// <summary>A version of a tracked package was deprecated.</summary>
+    [Description("Package version deprecated")]
+    RegistryVersionDeprecated = 503,
+
+    /// <summary>A version of a tracked package was yanked or unlisted.</summary>
+    [Description("Package version yanked")]
+    RegistryVersionYanked = 504,
+
+    /// <summary>A security advisory was found for the latest version of a tracked package.</summary>
+    [Description("Package security advisory")]
+    RegistryAdvisoryFound = 505,
 }

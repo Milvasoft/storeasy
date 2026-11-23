@@ -25,6 +25,7 @@ public static class NotificationKinds
         NotificationType.RuleChanged,
         NotificationType.RuleProposal,
         NotificationType.ConnectionAlert,
+        NotificationType.PackageRegistry,
     ];
 
     /// <summary>
@@ -47,7 +48,7 @@ public static class NotificationKinds
     /// </summary>
     public static (bool InApp, bool Email) Default(NotificationType kind) => kind switch
     {
-        NotificationType.JobSucceeded or NotificationType.NewReview or NotificationType.VersionState => (true, false),
+        NotificationType.JobSucceeded or NotificationType.NewReview or NotificationType.VersionState or NotificationType.PackageRegistry => (true, false),
         _ => (true, true),
     };
 

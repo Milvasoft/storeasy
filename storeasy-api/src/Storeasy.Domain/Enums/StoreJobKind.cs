@@ -134,6 +134,14 @@ public enum StoreJobKind : short
     FirefoxSync = 150,
 
     /// <summary>
+    /// Reads the tracked packages of an organization (or one of them) from their registries' public APIs and OSV.dev: versions,
+    /// deprecations, yanks, provenance and security advisories. New versions, deprecations, yanks and advisories are audited
+    /// and notified. Numbered in the package registries band (not a store).
+    /// </summary>
+    [Description("Sync package registries")]
+    RegistrySync = 500,
+
+    /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
     /// Numbered in the analytics band.
     /// </summary>
