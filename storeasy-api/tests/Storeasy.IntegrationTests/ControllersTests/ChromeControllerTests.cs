@@ -410,8 +410,8 @@ public class ChromeControllerTests(StoreasyApiFactory factory) : IntakeTestBase(
 
         var metrics = await _factory.DbAsync(db => db.StoreMetrics.Where(m => m.StoreAppId == added.StoreAppId).ToListAsync());
 
-        metrics.Should().Contain(m => m.Country == "TR" && m.Downloads == 7 && m.Impressions == 300 && m.PageViews == 40);
-        metrics.Should().Contain(m => m.Country == StoreMetricRules.AllCountries && m.Downloads == 7);
+        metrics.Should().Contain(m => m.Country == "TR" && m.Downloads == 7 && m.PageViews == 40);
+        metrics.Should().Contain(m => m.Country == StoreMetricRules.AllCountries && m.Downloads == 7 && m.Impressions == 300, "impressions have no country dimension, they count for every country");
 
         var (replyHttp, _) = await setup.Owner.Client.PostAsync<long>("reviews/reply", new { organizationId = setup.OrganizationId, reviewId = reviews[0].Id, body = "Thanks" });
 

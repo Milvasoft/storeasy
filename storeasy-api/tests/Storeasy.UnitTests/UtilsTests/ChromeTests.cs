@@ -251,6 +251,15 @@ public class ChromeTests
     }
 
     [Fact]
+    public void UnsupportedDimension_ShouldOnlyMatchTheStoresDimensionRefusal()
+    {
+        ChromeChannel.IsUnsupportedDimension(new StoreCallException("400: Invalid format for 'dimensions': 'country'.", 400, false)).Should().BeTrue();
+        ChromeChannel.IsUnsupportedDimension(new StoreCallException("400: Invalid value for 'metrics'.", 400, false)).Should().BeFalse();
+        ChromeChannel.IsUnsupportedDimension(new StoreCallException("403: Permission denied (dimensions).", 403, false)).Should().BeFalse();
+        ChromeChannel.IsUnsupportedDimension(new StoreCallException("400: dimensions", 400, true)).Should().BeFalse();
+    }
+
+    [Fact]
     public void Channel_ShouldBeInTheChannelTable()
     {
         var channel = StoreChannels.Of(StoreKind.Chrome);

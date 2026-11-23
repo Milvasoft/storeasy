@@ -422,7 +422,24 @@ public sealed class FakeChromeWebStore : HttpMessageHandler
             });
         }
 
-        return Json(new JsonObject { ["metricRows"] = new JsonArray([.. item.MetricRows.Select(r => (JsonNode)r.DeepClone())]) });
+        var dimensions = query.GetValues("dimensions") ?? [];
+
+        // Like the store: impressions only take the UTM dimensions.
+        if (metrics.Contains("impressions") && dimensions.Any(d => !d.StartsWith("utm-", StringComparison.Ordinal)))
+            return Error(HttpStatusCode.BadRequest, "Invalid format for 'dimensions': 'country'. Expected format: 'Supported dimensions for metric 'impressions': utm-campaign, utm-content, utm-medium, utm-source, utm-term'.");
+
+        var rows = item.MetricRows.Select(r =>
+        {
+            var values = (r["metricValues"] as JsonArray ?? []).Where(v => metrics.Contains(v?["metric"]?.GetValue<string>())).Select(v => v.DeepClone()).ToArray();
+            var row = new JsonObject { ["date"] = r["date"]?.DeepClone(), ["metricValues"] = new JsonArray(values) };
+
+            if (dimensions.Length > 0)
+                row["dimensionValues"] = r["dimensionValues"]?.DeepClone();
+
+            return (JsonNode)row;
+        });
+
+        return Json(new JsonObject { ["metricRows"] = new JsonArray([.. rows]) });
     }
 
     private static HttpResponseMessage Json(JsonObject body) => new(HttpStatusCode.OK) { Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json") };
