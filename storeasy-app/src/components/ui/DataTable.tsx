@@ -43,7 +43,7 @@ export function DataTable<T>({
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.key} scope="col" className={column.className}>
+              <th key={column.key} scope="col" className={cn(column.role === 'action' && 'ta', column.className)}>
                 {column.header}
               </th>
             ))}

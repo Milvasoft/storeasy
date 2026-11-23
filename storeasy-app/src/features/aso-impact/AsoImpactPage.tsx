@@ -31,6 +31,7 @@ import {
   type AsoImpactRanksDto,
   type AsoImpactReportDto,
 } from './types'
+import { useMeasuredWidth } from '@/lib/hooks/useMeasuredWidth'
 
 // The Impact part of the Store performance section: the app's changes as a timeline and, for the chosen one, the before
 // and after cards, a paired chart, keyword rank changes and the confounding warning. Read only.
@@ -178,7 +179,7 @@ export function PairedChart({
   t: ImpactDictionary
 }) {
   const titleId = useId()
-  const width = 640
+  const [frame, width] = useMeasuredWidth<HTMLElement>(640)
   const height = 180
   const pad = { top: 10, right: 10, bottom: 22, left: 52 }
   const value = (day: AsoImpactDayDto): number | null => day[metric] ?? null
@@ -193,8 +194,8 @@ export function PairedChart({
     linePaths(days.map((day, index) => ({ x: x(index), y: value(day) == null ? null : y(value(day) as number) })))
 
   return (
-    <figure className="m-0 grid gap-2">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-labelledby={titleId}>
+    <figure ref={frame} className="m-0 grid gap-2">
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} className="block" role="img" aria-labelledby={titleId}>
         <title id={titleId}>{label}</title>
         {[0, 0.5, 1].map((share) => (
           <g key={share}>

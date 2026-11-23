@@ -211,6 +211,8 @@ export const registriesEn = {
     readError: 'The registry did not answer: {error}',
     description: 'Description',
     readme: 'README',
+    readmePreview: 'Preview',
+    readmeSource: 'Source',
     readmeHtml: 'Shown as text; the registry renders it as HTML.',
     keywords: 'Keywords',
     license: 'License',

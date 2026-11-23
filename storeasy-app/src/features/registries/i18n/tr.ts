@@ -211,6 +211,8 @@ export const registriesTr: RegistriesDictionary = {
     readError: 'Depo yanıt vermedi: {error}',
     description: 'Açıklama',
     readme: 'README',
+    readmePreview: 'Önizleme',
+    readmeSource: 'Kaynak',
     readmeHtml: 'Metin olarak gösterilir; depo onu HTML olarak gösterir.',
     keywords: 'Anahtar kelimeler',
     license: 'Lisans',

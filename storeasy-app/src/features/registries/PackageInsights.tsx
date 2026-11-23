@@ -13,9 +13,10 @@ import { registriesApi } from './api'
 import { useRegistries } from './i18n/useRegistries'
 import type { RegistriesDictionary } from './i18n/en'
 import { registriesKeys } from './keys'
-import { DownloadScope, ListingCheckStatus, ReadmeFormat } from './types'
+import { ReadmeView } from './ReadmeView'
+import { DownloadScope, ListingCheckStatus } from './types'
 
-// The Downloads and Listing tabs of a package page (docs/package-registries.md). The README is always shown as text:
+// The Downloads and Listing tabs of a package page (docs/package-registries.md). The README (ReadmeView) is previewed as Markdown or shown as text:
 // registry HTML is never rendered.
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -206,9 +207,8 @@ export function ListingTab({ packageId }: { packageId: number }) {
           <div className="card-h">
             <h3 className="h3">{t.listing.readme}</h3>
           </div>
-          <div className="card-b grid gap-2">
-            {listing.ReadmeFormat === ReadmeFormat.Html ? <p className="text-fg3">{t.listing.readmeHtml}</p> : null}
-            <pre className="code max-h-[480px] overflow-auto whitespace-pre-wrap">{listing.Readme}</pre>
+          <div className="card-b">
+            <ReadmeView readme={listing.Readme} format={listing.ReadmeFormat ?? null} t={t} />
           </div>
         </article>
       ) : null}

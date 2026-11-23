@@ -1,5 +1,6 @@
 import { useId, useMemo, useState } from 'react'
 import type { DateOnly } from '@/lib/api/types'
+import { useMeasuredWidth } from '@/lib/hooks/useMeasuredWidth'
 import { ChartMarkers, type ChartMarker } from '@/features/aso-impact/ChartMarkers'
 
 // A small dependency free line chart of one metric per day: a line over the days with data (a gap where a day has no
@@ -22,7 +23,8 @@ interface MetricChartProps {
   onMarker?: (id: string) => void
 }
 
-const WIDTH = 720
+// Width used until the container is measured.
+const DEFAULT_WIDTH = 720
 const PAD = { top: 12, right: 12, bottom: 28, left: 56 }
 
 /** Splits the points into runs without gaps, as SVG path data. */
@@ -58,28 +60,31 @@ export function niceMax(value: number): number {
 export function MetricChart({ points, label, formatValue, formatDate, height = 220, markers = [], onMarker }: MetricChartProps) {
   const titleId = useId()
   const [hover, setHover] = useState<number | null>(null)
+  const [frame, width] = useMeasuredWidth<HTMLElement>(DEFAULT_WIDTH)
 
   const layout = useMemo(() => {
     const values = points.map((point) => point.value).filter((value): value is number => value != null)
     const top = niceMax(Math.max(0, ...values))
-    const innerWidth = WIDTH - PAD.left - PAD.right
+    const innerWidth = width - PAD.left - PAD.right
     const innerHeight = height - PAD.top - PAD.bottom
     const step = points.length > 1 ? innerWidth / (points.length - 1) : 0
     const x = (index: number) => PAD.left + (points.length > 1 ? index * step : innerWidth / 2)
     const y = (value: number) => PAD.top + innerHeight - (value / top) * innerHeight
     const placed = points.map((point, index) => ({ x: x(index), y: point.value == null ? null : y(point.value) }))
     return { top, innerWidth, innerHeight, x, y, placed, paths: linePaths(placed) }
-  }, [points, height])
+  }, [points, height, width])
 
   const guides = [0, 0.5, 1].map((share) => layout.top * share)
   const ticks = points.length > 2 ? [0, Math.floor((points.length - 1) / 2), points.length - 1] : points.map((_, index) => index)
   const hovered = hover != null ? points[hover] : null
 
   return (
-    <figure className="m-0">
+    <figure ref={frame} className="m-0">
       <svg
-        viewBox={`0 0 ${WIDTH} ${height}`}
-        className="h-auto w-full"
+        viewBox={`0 0 ${width} ${height}`}
+        width="100%"
+        height={height}
+        className="block"
         role="img"
         aria-labelledby={titleId}
         onMouseLeave={() => setHover(null)}
@@ -89,7 +94,7 @@ export function MetricChart({ points, label, formatValue, formatDate, height = 2
           }
           const box = event.currentTarget.getBoundingClientRect()
           const ratio = box.width > 0 ? (event.clientX - box.left) / box.width : 0
-          const position = ratio * WIDTH
+          const position = ratio * width
           const index = points.length > 1 ? Math.round((position - PAD.left) / (layout.innerWidth / (points.length - 1))) : 0
           setHover(Math.min(points.length - 1, Math.max(0, index)))
         }}
@@ -99,7 +104,7 @@ export function MetricChart({ points, label, formatValue, formatDate, height = 2
           <g key={value}>
             <line
               x1={PAD.left}
-              x2={WIDTH - PAD.right}
+              x2={width - PAD.right}
               y1={layout.y(value)}
               y2={layout.y(value)}
               className="stroke-border"
