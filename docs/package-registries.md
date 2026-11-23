@@ -1,9 +1,11 @@
 # Package registries
 
 storeasy watches the packages you publish to npm, NuGet, PyPI, crates.io, Maven Central, RubyGems, Packagist and pub.dev: the latest version, when it was published,
-which CI run published it, provenance, and alerts about deprecated or yanked versions and security advisories. It does
-not publish anything: publishing stays in your CI (GitHub Actions, Azure DevOps, changesets, release-please), and
-storeasy stores no registry token. Only the registries' public APIs are read.
+which CI run published it, provenance, and alerts about deprecated or yanked versions and security advisories. Releases are
+started from storeasy but published by your own CI (GitHub Actions): storeasy commits a version bump, pushes a tag or
+dispatches the workflow, then follows the run until the registry shows the version. Registry operations (unlist,
+deprecate, dist-tags, yank) use registry keys the organization stores encrypted. Both happen only from a plan a member
+approved with a typed confirmation. Reading uses only the registries' public APIs.
 
 The module is separate from the stores: a package is not a store record, it has no store page, screenshots or review.
 An instance admin can switch the whole module off with the `Registries` feature flag (the menu item disappears, the
@@ -133,6 +135,73 @@ latest version and release date, which members are behind the group's highest ve
 suggests groups from packages that share a source repository (for example every Milvasoft.* package of
 Milvasoft/Milvasoft). Groups are storeasy data; nothing changes on a registry.
 
+## Releases
+
+A release is started in your repository's own CI and published there (trusted publishing or the CI's own secrets);
+storeasy never builds or uploads a package. It needs a GitHub token of the organization (see
+[Credentials](#credentials)).
+
+**Release settings** live on a package (its **Release** tab) or on a group (the **Release** button of the group card); a
+package without its own settings uses its group's. They name the repository (`owner/repo`), the branch (`master` by
+default) and what starts the CI:
+
+| Trigger | What storeasy writes on approval | Fits |
+|---|---|---|
+| Version bump commit | One commit on the branch with the new version in each version file (the contents API for one file, the git data API for several) | Workflows that run on a push touching the version file, for example the Milvasoft packages (`**/Directory.Build.props`) |
+| Tag push | A tag from the pattern (`v{version}`, `sdk-rust-v{version}`) on the branch head | Workflows that run on tags and read the version from the tag |
+| Version bump, then tag | The bump commit, then the tag on that commit | Tag workflows that check the version in the manifest (`package.json`, `Cargo.toml`, `pyproject.toml`, `pom.xml`, `.gemspec`) |
+| Workflow dispatch | `workflow_dispatch` of the workflow with its version input (and a `prerelease` input when named); or the tag when the input takes one | Workflows with a manual start, for example `release.yml` with `version` and `prerelease` |
+
+Version files are located by format: an MSBuild `<PackageVersion>` (else `<Version>`) in `Directory.Build.props` or a
+`.csproj`, `"version"` in `package.json`, the first `version = "..."` line of a TOML file (`pyproject.toml`,
+`Cargo.toml`), `.version = "..."` or `VERSION = "..."` in Ruby, the project's own `<version>` in `pom.xml` (not the
+parent's), or a file holding only the version. **Suggest from the workflows** reads `.github/workflows` with the token
+and proposes settings from the workflows that publish to the package's registry: tag patterns, push paths with
+`Directory.Build.props` or a project file, dispatch inputs named `version` or `tag`.
+
+**Planning** a version shows the current version and the next patch, minor, major and (with a label such as `rc.1`)
+prerelease. The version is checked for every registry of the package or group (SemVer on npm, crates.io and pub.dev,
+NuGet's two to four parts, PEP 440 on PyPI) and must be higher than the current one. The plan reads each version file
+on the branch and shows the exact line before and after, with the file's blob sha; it names the tag (refused when the
+tag already exists) or the dispatch inputs. Nothing is written yet.
+
+**Approving** needs the **Release to production** permission and the confirmation typed exactly (the package or group
+name and the version). The version files are read again: if one changed on the branch since the plan, the approval is
+refused and the release must be planned again. A plan expires after 48 hours. Approval queues the apply job, which
+commits, tags or dispatches, and the plan shows the commit and, for a dispatch, the run.
+
+**Following**: every five minutes storeasy finds the CI run (the dispatched run, or the runs on the bump or tagged
+commit, matched to the workflow file when one is set) and its status, then reads the registries until every package of
+the plan shows the version. The plan ends as *On the registry*, *Failed* (the run's conclusion with a link to the run)
+or *Not seen on the registry in time* (after 2 hours). Each step is audited and notified. Nothing is ever started
+without an approved plan.
+
+## Registry operations
+
+The **Registry actions** button of a version in the **Versions** tab plans one change on the registry with the
+organization's stored key for that registry; the same approval rules apply (Release to production permission, typed
+confirmation), and the version must be known to storeasy.
+
+| Registry | Actions | Call |
+|---|---|---|
+| NuGet | Unlist, relist | `DELETE` and `POST https://www.nuget.org/api/v2/package/{id}/{version}` with `X-NuGet-ApiKey` |
+| npm | Deprecate (with a message), undeprecate, set a dist-tag | The packument read with `?write=true` and put back with `deprecated` set (as the npm CLI does); `PUT /-/package/{name}/dist-tags/{tag}` |
+| crates.io | Yank, unyank | `DELETE /api/v1/crates/{name}/{version}/yank`, `PUT .../unyank` |
+| RubyGems | Yank | `DELETE /api/v1/gems/yank` with `gem_name` and `version` |
+
+PyPI has no API for yanking: the dialog links to the project's releases page. Packagist has no API to mark a package
+abandoned, and NuGet deprecation has no documented API; both are done on the registry's site. After an operation the
+package is synced again.
+
+## Credentials
+
+**Credentials for releases and actions** on the registries page hold one GitHub token and one key per registry for the
+organization (Manage connections permission). They are sealed with the same envelope encryption as store connection
+secrets, opened only to read the repository for a plan or an approval, by the apply job and by the follow schedule, and shown only as a fingerprint (the GitHub login, or the
+last four characters of a key). A GitHub token is verified with `GET /user` when saved. A registry key with an expiry
+date gets a [token reminder](#token-reminders) that follows the key. How to create each one with the least access:
+[connecting-stores.md](connecting-stores.md#package-registries).
+
 ## MCP
 
 `registries_packages_list`, `registries_package_get` and `registries_alerts_list` read; `registries_package_add`,
@@ -140,10 +209,13 @@ Milvasoft/Milvasoft). Groups are storeasy data; nothing changes on a registry.
 `registries_reminders_list` read the wizard (the CI file as text) and the reminders, `registries_setup_save`,
 `registries_reminder_save` and `registries_reminder_remove` save them; `registries_downloads_get`, `registries_listing_get`,
 `registries_groups_list` and `registries_groups_suggest` read, `registries_group_save` and `registries_group_remove` save
-groups ([mcp.md](mcp.md)).
+groups. For releases and operations `registries_release_settings_get`, `registries_release_detect`,
+`registries_plans_list` and `registries_plan_get` read, `registries_release_settings_save` saves settings,
+`registries_release_plan` and `registries_operation_plan` make plans (nothing is written),
+`registries_plan_approve` approves one with `confirm: true` and the typed `confirmText` (Release to production permission)
+and `registries_plan_reject` rejects one. Credentials are not handled by MCP ([mcp.md](mcp.md)).
 
 ## Not yet
 
-Releasing from storeasy through your CI (a GitHub connection, release plans per package or group that push a tag or
-dispatch the workflow, and following the run until the version appears) and registry write operations with stored,
-encrypted API keys (unlist, deprecate, dist-tags, yank) come next.
+Dependents are not shown (the deps.dev v3 API has no documented dependents method). Releases go through GitHub
+Actions only; GitLab CI and Azure DevOps pipelines are not started from storeasy.

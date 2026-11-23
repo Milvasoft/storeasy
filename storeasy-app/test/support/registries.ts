@@ -1,7 +1,17 @@
 import { HttpResponse, type HttpHandler } from 'msw'
 import { beforeEach } from 'vitest'
+import { ChangePlanStatus } from '@/features/common/types'
+import { ConnectionStatus } from '@/lib/api/types'
 import {
   CiProvider,
+  RegistryConnectionKind,
+  RegistryPlanKind,
+  ReleaseTrigger,
+  VersionFileFormat,
+  type RegistryConnectionDto,
+  type RegistryPlanDto,
+  type ReleaseSettingsDto,
+  type ReleaseSuggestionDto,
   PackageAlertKind,
   PackageRegistry,
   PublisherCheckStatus,
@@ -233,6 +243,101 @@ export function packageGroup(overrides: Partial<PackageGroupDto> = {}): PackageG
   )
 }
 
+export function registryConnection(overrides: Partial<RegistryConnectionDto> = {}): RegistryConnectionDto {
+  return make<RegistryConnectionDto>(
+    {
+      Id: 81,
+      Kind: RegistryConnectionKind.GitHub,
+      Fingerprint: 'kuzeylab-bot',
+      Status: ConnectionStatus.Verified,
+      LastVerifiedDate: '2026-11-22T09:00:00Z',
+      LastVerifyError: null,
+      ExpiryDate: null,
+    },
+    overrides,
+  )
+}
+
+export function releaseSettings(overrides: Partial<ReleaseSettingsDto> = {}): ReleaseSettingsDto {
+  return make<ReleaseSettingsDto>(
+    {
+      TrackedPackageId: NPM_PACKAGE_ID,
+      PackageGroupId: null,
+      PackageGroupName: null,
+      FromGroup: false,
+      Settings: {
+        Repository: 'kuzeylab/pusula-sdk',
+        Branch: 'master',
+        Trigger: ReleaseTrigger.VersionBump,
+        VersionFiles: [{ Path: 'package.json', Format: VersionFileFormat.PackageJson }],
+        TagPattern: null,
+        Workflow: 'release.yml',
+        DispatchVersionInput: null,
+        DispatchPrereleaseInput: null,
+        DispatchTakesTag: false,
+      },
+      Problems: [],
+      CurrentVersion: '2.4.0',
+      NextVersions: [
+        { Kind: 'patch', Version: '2.4.1' },
+        { Kind: 'minor', Version: '2.5.0' },
+        { Kind: 'major', Version: '3.0.0' },
+      ],
+      GitHubConnected: true,
+    },
+    overrides,
+  )
+}
+
+export function registryPlan(overrides: Partial<RegistryPlanDto> = {}): RegistryPlanDto {
+  return make<RegistryPlanDto>(
+    {
+      Id: 610,
+      TrackedPackageId: NPM_PACKAGE_ID,
+      PackageGroupId: null,
+      Kind: RegistryPlanKind.Release,
+      Status: ChangePlanStatus.Pending,
+      Title: 'Release @kuzeylab/pusula-sdk 2.4.1',
+      Version: '2.4.1',
+      CurrentVersion: '2.4.0',
+      Tag: null,
+      ConfirmText: '@kuzeylab/pusula-sdk 2.4.1',
+      RequiredPermission: 4,
+      Release: releaseSettings().Settings,
+      Files: [
+        {
+          Path: 'package.json',
+          BaseSha: 'abc123',
+          OldVersion: '2.4.0',
+          Before: '  "version": "2.4.0",',
+          After: '  "version": "2.4.1",',
+          Line: 3,
+        },
+      ],
+      PackageIds: [NPM_PACKAGE_ID],
+      DispatchInputs: {},
+      BaseSha: 'f00dbabe',
+      Argument: null,
+      ExpiryDate: '2026-11-25T10:00:00Z',
+      CreatedByUserName: 'deniz',
+      CreationDate: '2026-11-23T10:00:00Z',
+      DecidedByUserName: null,
+      DecisionDate: null,
+      StoreJobId: null,
+      CommitSha: null,
+      RunId: null,
+      RunUrl: null,
+      RunStatus: null,
+      RunConclusion: null,
+      FollowStatus: null,
+      StartedDate: null,
+      FinishedDate: null,
+      Error: null,
+    },
+    overrides,
+  )
+}
+
 export interface RegistriesState {
   packages: TrackedPackageSummaryDto[]
   package: TrackedPackageDto
@@ -242,6 +347,11 @@ export interface RegistriesState {
   listing: PackageListingDto
   groups: PackageGroupDto[]
   suggestions: PackageGroupSuggestionDto[]
+  connections: RegistryConnectionDto[]
+  release: ReleaseSettingsDto
+  detected: ReleaseSuggestionDto[]
+  plans: RegistryPlanDto[]
+  plan: RegistryPlanDto
 }
 
 function initialRegistries(): RegistriesState {
@@ -272,6 +382,22 @@ function initialRegistries(): RegistriesState {
     suggestions: [
       { Name: 'kuzeylab/tools', Repository: 'https://github.com/kuzeylab/tools', TrackedPackageIds: [41, 42], PackageNames: ['a', 'b'] },
     ],
+    connections: [registryConnection()],
+    release: releaseSettings(),
+    detected: [
+      {
+        Settings: {
+          ...releaseSettings().Settings!,
+          Trigger: ReleaseTrigger.Tag,
+          VersionFiles: [],
+          TagPattern: 'sdk-node-v{version}',
+          Workflow: 'sdk-publish.yml',
+        },
+        Reason: 'sdk-publish.yml runs on tags sdk-node-v*.',
+      },
+    ],
+    plans: [],
+    plan: registryPlan(),
   }
 }
 
@@ -297,6 +423,20 @@ export const registriesHandlers: HttpHandler[] = [
   endpoint('get', '/registries/groups/suggestions', () => json(envelope(registriesState.suggestions))),
   endpoint('post', '/registries/group', () => json(envelope(6))),
   endpoint('delete', '/registries/group', () => json(envelope(5))),
+  endpoint('get', '/registries/connections', () => json(envelope(registriesState.connections))),
+  endpoint('post', '/registries/connection', () => json(envelope(82))),
+  endpoint('delete', '/registries/connection', () => json(envelope(81))),
+  endpoint('get', '/registries/release', () => json(envelope(registriesState.release))),
+  endpoint('put', '/registries/release', () => json(envelope(NPM_PACKAGE_ID))),
+  endpoint('get', '/registries/release/detect', () => json(envelope(registriesState.detected))),
+  endpoint('post', '/registries/release/plan', () => json(envelope(registriesState.plan))),
+  endpoint('post', '/registries/operation/plan', () => json(envelope(registriesState.plan))),
+  endpoint('get', '/registries/plans', () => json(envelope(registriesState.plans))),
+  endpoint('get', '/registries/plan', () => json(envelope(registriesState.plan))),
+  endpoint('post', '/registries/plan/approve', () =>
+    json(envelope({ ...registriesState.plan, Status: ChangePlanStatus.Approved, StoreJobId: 52200 })),
+  ),
+  endpoint('post', '/registries/plan/reject', () => json(envelope({ ...registriesState.plan, Status: ChangePlanStatus.Rejected }))),
 ]
 
 /** Resets the registries data and answers its endpoints for every test of the calling file. */

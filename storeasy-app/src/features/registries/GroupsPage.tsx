@@ -19,6 +19,7 @@ import { showToast } from '@/lib/toast/toast'
 import { registriesApi } from './api'
 import { useRegistries } from './i18n/useRegistries'
 import { registriesKeys } from './keys'
+import { ReleaseSection } from './ReleaseSection'
 import { registryLabel } from './rules'
 import type { PackageGroupDto, PackageGroupMemberDto } from './types'
 
@@ -103,6 +104,7 @@ function GroupDialog({ draft, onClose }: { draft: GroupDraft; onClose: () => voi
 }
 
 function GroupCard({ group, canEdit, onEdit }: { group: PackageGroupDto; canEdit: boolean; onEdit: () => void }) {
+  const [releasing, setReleasing] = useState(false)
   const t = useRegistries()
   const base = useT()
   const format = useFormat()
@@ -185,6 +187,9 @@ function GroupCard({ group, canEdit, onEdit }: { group: PackageGroupDto; canEdit
         <Badge tone={group.BehindCount > 0 ? 'warning' : 'success'}>
           {group.BehindCount > 0 ? interpolate(t.groups.behind, { count: group.BehindCount }) : t.groups.allCurrent}
         </Badge>
+        <Button variant="ghost" aria-expanded={releasing} onClick={() => setReleasing(!releasing)}>
+          {t.release.title}
+        </Button>
         {canEdit ? (
           <>
             <Button variant="ghost" onClick={onEdit}>
@@ -198,6 +203,11 @@ function GroupCard({ group, canEdit, onEdit }: { group: PackageGroupDto; canEdit
       </div>
       <div className="card-b">
         <DataTable caption={group.Name} columns={columns} rows={group.Members ?? []} rowKey={(row) => row.TrackedPackageId} />
+        {releasing ? (
+          <div className="mt-4">
+            <ReleaseSection scope={{ PackageGroupId: group.Id }} canEdit={canEdit} />
+          </div>
+        ) : null}
       </div>
     </article>
   )

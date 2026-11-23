@@ -230,7 +230,7 @@ kanallara açık kalır, mevcut üç mağazaya özel varsayım koda gömülmez.
 Kütüphane depoları (npm, NuGet, PyPI ve benzerleri) bu listede değildir: mağaza sayfası, ekran görüntüsü ve inceleme
 süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
 
-### 7.2 Paket depoları modülü (faz 1 ve 2 yapıldı)
+### 7.2 Paket depoları modülü (faz 1, 2 ve 3 yapıldı)
 
 Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
 olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
@@ -275,6 +275,18 @@ kelimeler, lisans, bağlantılar ve hazırlık kontrolleri; bu bilgiler bir sonr
 Paket sayfasında sekmeler, MCP okuma araçları. Kalanlar: GitHub bağlantısı ve CI üzerinden yayın planı (etiket veya
 workflow_dispatch, çalışmanın takibi), şifreli depo anahtarlarıyla yazma işlemleri, bağımlı paket sayısı (deps.dev v3'te
 belgelenmiş uç yok).
+
+**Faz 3, ikinci bölüm yapıldı (23 Kasım 2026).** CI üzerinden yayın: kuruluş başına şifreli GitHub token'ı (yalnız
+parmak izi gösterilir), paket veya grup başına yayın ayarı (repo, dal, tetikleyici: sürüm artırma commit'i, etiket,
+sürüm artırma ve etiket, workflow_dispatch; sürüm dosyası biçimleri MSBuild, package.json, TOML, Ruby, POM, düz metin),
+workflow dosyalarından ayar önerisi, sonraki sürüm önerileri ve depo kurallarına göre sürüm kontrolü, dosyadaki satırın
+önce ve sonra hâlini gösteren plan, Üretime yayın izni ve yazılı onay, plandan sonra dosya değiştiyse onayın reddi,
+uygulama işi (commit, etiket veya dispatch) ve beş dakikada bir CI çalışmasını ve depoyu izleyen takip (yayımlandı,
+başarısız, zaman aşımı), her adımda denetim kaydı ve bildirim. Depo işlemleri şifreli anahtarlarla ve aynı plan ve onayla:
+NuGet unlist ve relist, npm deprecate, undeprecate ve dist-tag, crates.io yank ve unyank, RubyGems yank; PyPI'de API yok,
+proje sayfasına bağlantı verilir. Anahtar bitiş tarihi token hatırlatıcısına bağlanır. Not: yayın planı mağaza
+değişiklik planından (ChangePlan) ayrı bir kayıttır (RegistryPlan), çünkü mağaza planı bir mağaza kaydına bağlıdır; onay
+kuralları aynıdır. Kalan: GitLab CI ve Azure DevOps ile yayın, bağımlı paket sayısı.
 
 Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 

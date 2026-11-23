@@ -214,6 +214,17 @@ export const AuditAction = {
   RegistryTokenExpiring: 510,
   RegistryGroupSaved: 511,
   RegistryGroupRemoved: 512,
+  RegistryConnectionSaved: 513,
+  RegistryConnectionRemoved: 514,
+  RegistryReleaseSettingsSaved: 515,
+  RegistryPlanCreated: 516,
+  RegistryPlanApproved: 517,
+  RegistryPlanRejected: 518,
+  RegistryReleaseStarted: 519,
+  RegistryReleaseRunFinished: 520,
+  RegistryReleasePublished: 521,
+  RegistryReleaseFailed: 522,
+  RegistryOperationApplied: 523,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -244,6 +255,7 @@ export const StoreJobKind = {
   UpdateTestFlight: 406,
   PingWebhooks: 407,
   RegistrySync: 500,
+  RegistryPlanApply: 501,
 } as const
 export type StoreJobKind = (typeof StoreJobKind)[keyof typeof StoreJobKind]
 

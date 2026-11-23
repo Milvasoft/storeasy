@@ -18,6 +18,9 @@ import { useCurrentOrganization, useOrganization } from '@/lib/org/OrganizationC
 import { showToast } from '@/lib/toast/toast'
 import { AddPackageDialog } from './AddPackageDialog'
 import { TokenReminders } from './TokenReminders'
+import { RegistryCredentials } from './RegistryCredentials'
+import { RegistryOperationsDialog } from './RegistryOperations'
+import { ReleaseSection } from './ReleaseSection'
 import { TrustedPublishingSection } from './TrustedPublishingSection'
 import { DownloadsTab, ListingTab } from './PackageInsights'
 import { Tabs } from '@/components/ui/Tabs'
@@ -26,8 +29,8 @@ import { registriesApi } from './api'
 import { useRegistries } from './i18n/useRegistries'
 import type { RegistriesDictionary } from './i18n/en'
 import { registriesKeys } from './keys'
-import { alertKindLabel, alertTone, registryLabel } from './rules'
-import type { PackageAlertDto, TrackedPackageSummaryDto, TrackedPackageVersionDto } from './types'
+import { alertKindLabel, alertTone, operationsOf, registryLabel } from './rules'
+import { PackageRegistry, type PackageAlertDto, type TrackedPackageSummaryDto, type TrackedPackageVersionDto } from './types'
 
 // The package registries module (docs/package-registries.md): the summary of every tracked package and one package's
 // versions and alerts. storeasy only reads the registries' public APIs; publishing stays in CI.
@@ -110,7 +113,7 @@ export function sortPackages(rows: TrackedPackageSummaryDto[], sort: PackageSort
   }
 }
 
-type DetailTab = 'overview' | 'versions' | 'downloads' | 'listing' | 'trusted'
+type DetailTab = 'overview' | 'versions' | 'downloads' | 'listing' | 'trusted' | 'release'
 
 function PackageList() {
   const t = useRegistries()
@@ -246,6 +249,7 @@ function PackageList() {
       {!canEdit ? <Callout tone="info">{t.readOnly}</Callout> : null}
       <div className="mt-3">{body}</div>
       <TokenReminders canEdit={canEdit} />
+      <RegistryCredentials canManage={can(OrgPermission.ManageConnections)} />
       <AddPackageDialog open={adding} onClose={() => setAdding(false)} />
     </>
   )
@@ -288,6 +292,7 @@ function PackageDetail({ packageId }: { packageId: number }) {
   const canEdit = can(OrgPermission.EditContent)
   const sync = useSync()
   const [tab, setTab] = useState<DetailTab>('overview')
+  const [acting, setActing] = useState<string | null>(null)
 
   const data = useQuery({
     queryKey: registriesKeys.package(organization.Id, packageId),
@@ -374,6 +379,17 @@ function PackageDetail({ packageId }: { packageId: number }) {
       role: 'hidePhone',
       cell: (row) => (row.Downloads != null ? format.number(row.Downloads) : '-'),
     },
+    {
+      key: 'actions',
+      header: '',
+      role: 'action',
+      cell: (row) =>
+        canEdit && (operationsOf(item.Registry).length > 0 || item.Registry === PackageRegistry.PyPI) ? (
+          <Button variant="ghost" aria-label={`${t.operations.title} ${row.Version}`} onClick={() => setActing(row.Version)}>
+            {t.operations.title}
+          </Button>
+        ) : null,
+    },
   ]
 
   const alertColumns: Column<PackageAlertDto>[] = [
@@ -448,6 +464,7 @@ function PackageDetail({ packageId }: { packageId: number }) {
             { value: 'downloads', label: t.tabs.downloads },
             { value: 'listing', label: t.tabs.listing },
             { value: 'trusted', label: t.tabs.trusted },
+            { value: 'release', label: t.tabs.release },
           ]}
         />
         {tab === 'overview' ? (
@@ -494,6 +511,7 @@ function PackageDetail({ packageId }: { packageId: number }) {
           </article>
         ) : null}
         {tab === 'trusted' ? <TrustedPublishingSection packageId={item.Id} canEdit={canEdit} /> : null}
+        {tab === 'release' ? <ReleaseSection scope={{ TrackedPackageId: item.Id }} canEdit={canEdit} /> : null}
         {tab === 'downloads' ? <DownloadsTab packageId={item.Id} /> : null}
         {tab === 'listing' ? <ListingTab packageId={item.Id} /> : null}
         {tab === 'overview' ? (
@@ -511,6 +529,15 @@ function PackageDetail({ packageId }: { packageId: number }) {
             <h2 className="text-[15px] font-semibold">{t.detail.versions}</h2>
             <DataTable caption={t.detail.versions} columns={versionColumns} rows={versions} rowKey={(row) => row.Version} />
           </section>
+        ) : null}
+        {acting ? (
+          <RegistryOperationsDialog
+            packageId={item.Id}
+            name={item.Name}
+            registry={item.Registry}
+            version={acting}
+            onClose={() => setActing(null)}
+          />
         ) : null}
       </div>
     </>

@@ -180,4 +180,19 @@ export const registriesMockHandlers: HttpHandler[] = [
   http.get(`${BASE}/registries/groups/suggestions`, () => envelope([])),
   http.post(`${BASE}/registries/group`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
   http.delete(`${BASE}/registries/group`, () => envelope(0)),
+  // Releases and registry operations: readable, but the demo never stores a credential or makes a plan.
+  http.get(`${BASE}/registries/connections`, () => envelope([])),
+  http.post(`${BASE}/registries/connection`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.delete(`${BASE}/registries/connection`, () => envelope(0)),
+  http.get(`${BASE}/registries/release`, () =>
+    envelope({ FromGroup: false, Settings: null, Problems: ['RegistryReleaseNotSet'], CurrentVersion: null, NextVersions: [], GitHubConnected: false }),
+  ),
+  http.put(`${BASE}/registries/release`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.get(`${BASE}/registries/release/detect`, () => refuse('RegistryConnectionMissing', 'Add a GitHub token first.', 400)),
+  http.post(`${BASE}/registries/release/plan`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.post(`${BASE}/registries/operation/plan`, () => refuse('FeatureDisabled', 'Not available in the demo.', 503)),
+  http.get(`${BASE}/registries/plans`, () => envelope([])),
+  http.get(`${BASE}/registries/plan`, () => refuse('RegistryPlanNotFound', 'Registry plan not found.', 404)),
+  http.post(`${BASE}/registries/plan/approve`, () => refuse('RegistryPlanNotFound', 'Registry plan not found.', 404)),
+  http.post(`${BASE}/registries/plan/reject`, () => refuse('RegistryPlanNotFound', 'Registry plan not found.', 404)),
 ]
