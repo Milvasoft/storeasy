@@ -235,8 +235,11 @@ süreçleri yoktur. Onlar ayrı bir modüldür (bölüm 7.2).
 Buğra'nın kararı (19 Kasım 2026): kütüphane depoları mağaza modelinin içine karışmadan, ayrı ve kapatılabilir bir modül
 olarak eklenecek. Öncelik bölüm 7.1'deki winget ve tarayıcı eklenti mağazalarından sonradır.
 
-İlke: storeasy yayını yapan değil, durumu izleyen ve kurulumu kolaylaştıran araçtır. Yayının kendisi CI'da kalır
-(GitHub Actions, Azure DevOps, changesets, release-please); storeasy depolara token saklamaz.
+İlke (Buğra'nın kararı, 23 Kasım 2026): modül yalnız izlemekle kalmaz; storeasy'den yayın, toplu sürüm yönetimi, paket
+sayfası yönetimi ve indirme ile kullanım bilgisi de verir. Yayının kendisi mevcut CI'da kalır: storeasy CI'ı tetikler
+(etiket gönderir veya iş akışını başlatır), CI OIDC ile yayımlar; yayın için depo token'ı tutulmaz. Depoda yazma işlemleri
+(kullanımdan kaldırma, listeden çıkarma, dist-tag, yank) için storeasy depo API anahtarlarını mağaza bağlantı sırlarıyla
+aynı zarf şifrelemesiyle saklayabilir; bu işlemler mağaza yazmaları gibi her zaman plan ve onayla yapılır.
 
 | Kapsam | Ayrıntı |
 |---|---|
@@ -263,6 +266,15 @@ token saklamadan: ad, depo, kullanıldığı yer ve bitiş tarihi; 14 ve 3 gün 
 kaydı ve bildirim; token'a benzeyen değer reddedilir. Yeni depolar (yalnız okuma): Maven Central, RubyGems (sigstore
 attestation ile provenance), Packagist (abandoned kullanımdan kaldırma sayılır), pub.dev (discontinued ve retracted).
 MCP araçları `registries_setup_*` ve `registries_reminder*`. storeasy depoya veya repoya hiçbir şey yazmaz.
+
+**Faz 3, ilk bölüm yapıldı (23 Kasım 2026).** İndirme ve kullanım: paket başına toplam, son dönem, sürüm başına ve
+günlük seri (deponun günlük sayısı yoksa toplamın günlük kaydı tutulur; Maven Central indirme yayımlamaz), özet tabloda
+sıralanabilir indirme sütunu. Paket grupları: üyelerin son sürümleri, grubun en yüksek sürümünün gerisinde kalanlar,
+aynı repodan gelen paketlerden grup önerisi. Paket sayfası: depodaki açıklama, README (metin olarak), anahtar
+kelimeler, lisans, bağlantılar ve hazırlık kontrolleri; bu bilgiler bir sonraki yayınla değişir (Packagist'te repodan).
+Paket sayfasında sekmeler, MCP okuma araçları. Kalanlar: GitHub bağlantısı ve CI üzerinden yayın planı (etiket veya
+workflow_dispatch, çalışmanın takibi), şifreli depo anahtarlarıyla yazma işlemleri, bağımlı paket sayısı (deps.dev v3'te
+belgelenmiş uç yok).
 
 Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 
