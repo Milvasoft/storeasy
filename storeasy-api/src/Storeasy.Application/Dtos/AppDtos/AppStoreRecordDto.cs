@@ -39,4 +39,26 @@ public class AppStoreRecordDto
     /// UTC instant of the last successful sync; null until the first sync confirmed the record.
     /// </summary>
     public DateTime? SyncedDate { get; set; }
+
+    /// <summary>
+    /// State of the record's latest known store version as the store names it (<c>WAITING_FOR_REVIEW</c>, <c>IN_REVIEW</c>,
+    /// <c>READY_FOR_SALE</c>, a Microsoft Store submission status); only on the app detail, null when storeasy has not
+    /// seen a version of the record (Google Play has no review state in its API).
+    /// </summary>
+    public string VersionState { get; set; }
+
+    /// <summary>
+    /// User facing version of <see cref="VersionState"/> (1.4).
+    /// </summary>
+    public string VersionString { get; set; }
+
+    /// <summary>
+    /// Build number attached to that version, if known.
+    /// </summary>
+    public string VersionBuildNumber { get; set; }
+
+    /// <summary>
+    /// UTC instant <see cref="VersionState"/> was last changed.
+    /// </summary>
+    public DateTime? VersionStateDate { get; set; }
 }

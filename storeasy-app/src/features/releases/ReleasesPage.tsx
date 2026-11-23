@@ -9,7 +9,7 @@ import { ScreenState } from '@/components/ui/ScreenState'
 import { Select } from '@/components/ui/Select'
 import { Button, CardSkeleton, Checkbox, EmptyState, Field, Input, PageHeader, RadioGroup, Textarea } from '@/components/ui/primitives'
 import { BuildProcessingState, OrgPermission, StoreKind } from '@/lib/api/types'
-import { useFormat } from '@/lib/i18n/I18nContext'
+import { useFormat, useT } from '@/lib/i18n/I18nContext'
 import { interpolate } from '@/lib/i18n/interpolate'
 import { buildsApi, releasesApi, type ReleasePlanInput, type RolloutInput } from '@/features/common/api'
 import { AppWorkspace, type WorkspaceContext } from '@/features/common/AppWorkspace'
@@ -28,6 +28,7 @@ import {
   type TrackDto,
   type TrackReleaseDto,
 } from '@/features/common/types'
+import { versionStateView } from '@/lib/apps/versionState'
 
 // Design 8.2, 8.6-8.13: versions and tracks, every change a plan. Permissions follow ChangePlanRules: release settings,
 // build link and export compliance need EditContent; Apple phased release and Play production need ReleaseProduction;
@@ -406,6 +407,7 @@ type AppleDialog = { kind: 'link' | 'export' | 'settings' | 'submit'; version: S
 
 function AppleVersions({ context, versions, plan }: { context: WorkspaceContext; versions: StoreVersionDto[]; plan: Planner }) {
   const t = useP2()
+  const base = useT()
   const format = useFormat()
   const confirm = useConfirm()
   const { can, editor, app, organizationId, record } = context
@@ -434,7 +436,7 @@ function AppleVersions({ context, versions, plan }: { context: WorkspaceContext;
             <div className="card-h">
               <h2 className="h3 mono">{version.VersionString ?? '-'}</h2>
               {version.Platform ? <Tag>{version.Platform}</Tag> : null}
-              <Badge tone={editable ? 'info' : 'neutral'}>{version.State ?? '-'}</Badge>
+              <Badge tone={versionStateView(version.State, base).tone}>{versionStateView(version.State, base).label}</Badge>
             </div>
             <div className="card-b grid gap-3">
               <dl className="kv">
