@@ -35,6 +35,7 @@ import type {
   AsoRankPointDto,
   AsoTrackedKeywordDto,
 } from './types'
+import { useMeasuredWidth } from '@/lib/hooks/useMeasuredWidth'
 
 // The "Keywords" tab of an app: tracked keywords with their daily rank, research from store data (seeds, measuring,
 // adding to tracking) and Apple's keywords field helper. Every score is an estimate from public store data.
@@ -709,7 +710,9 @@ function RankChart({
   onMarker?: (id: string) => void
 }) {
   const format = useFormat()
-  const width = 640
+  // Drawn at the container's width less the 16 units of margin around the plot.
+  const [frame, measured] = useMeasuredWidth<HTMLElement>(656)
+  const width = Math.max(120, measured - 16)
   const height = 200
   const known = [...points, ...competitors.flatMap((series) => series.points)]
     .filter((point) => point.Rank != null)
@@ -725,8 +728,15 @@ function RankChart({
     )
 
   return (
-    <figure className="m-0 grid gap-2">
-      <svg viewBox={`-8 -8 ${width + 16} ${height + 16}`} role="img" aria-label={t.detail.chart} className="h-auto w-full">
+    <figure ref={frame} className="m-0 grid gap-2">
+      <svg
+        viewBox={`-8 -8 ${width + 16} ${height + 16}`}
+        width="100%"
+        height={height + 16}
+        role="img"
+        aria-label={t.detail.chart}
+        className="block"
+      >
         <line x1={0} y1={height} x2={width} y2={height} stroke="currentColor" className="text-border" strokeDasharray="4 4" />
         {competitors.map((series, index) => (
           <path
