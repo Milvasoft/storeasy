@@ -24,6 +24,18 @@ public interface IPackageRegistryReader
     /// <c>MaxAdvisoryDetails</c> advisories).
     /// </summary>
     Task<List<List<RegistryAdvisory>>> ReadAdvisoriesAsync(IReadOnlyList<AdvisoryQuery> queries, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reads the downloads and usage of a package (totals, the registry's daily counts, per version counts, likes and
+    /// points, whatever the registry gives); null for Maven Central, which publishes no download counts.
+    /// </summary>
+    Task<RegistryDownloadsRead> ReadDownloadsAsync(PackageRegistry registry, string name, DateTime today, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reads the package's page on its registry (description, README, keywords, license, links, authors, icon) for
+    /// <paramref name="latestVersion"/>; null when the registry does not know the package or offers no listing (Maven Central).
+    /// </summary>
+    Task<RegistryListingRead> ReadListingAsync(PackageRegistry registry, string name, string latestVersion, CancellationToken cancellationToken);
 }
 
 /// <summary>

@@ -6,6 +6,12 @@ using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.RegistryDtos;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
+using Storeasy.Application.Features.Registries.GetPackageDownloads;
+using Storeasy.Application.Features.Registries.GetPackageListing;
+using Storeasy.Application.Features.Registries.GetPackageGroupList;
+using Storeasy.Application.Features.Registries.GetPackageGroupSuggestions;
+using Storeasy.Application.Features.Registries.SavePackageGroup;
+using Storeasy.Application.Features.Registries.RemovePackageGroup;
 using Storeasy.Application.Features.Registries.GetPackageSetup;
 using Storeasy.Application.Features.Registries.GetTokenReminderList;
 using Storeasy.Application.Features.Registries.RemoveTokenReminder;
@@ -137,4 +143,59 @@ public class RegistriesController(IMediator mediator) : ControllerBase
     /// <returns></returns>
     [HttpDelete("reminder")]
     public Task<Response<int>> RemoveReminderAsync(RemoveTokenReminderCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Downloads and usage of a package: totals, daily series, per version counts.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("downloads")]
+    public Task<Response<PackageDownloadsDto>> GetDownloadsAsync([FromQuery] GetPackageDownloadsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The package's registry listing, read live, with readiness checks.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("listing")]
+    [RateLimit(300, 3600, "registries-listing")]
+    public Task<Response<PackageListingDto>> GetListingAsync([FromQuery] GetPackageListingQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The package groups with their members.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("groups")]
+    public Task<Response<List<PackageGroupDto>>> GetGroupsAsync([FromQuery] GetPackageGroupListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Suggested groups of packages that share a source repository.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("groups/suggestions")]
+    public Task<Response<List<PackageGroupSuggestionDto>>> GetGroupSuggestionsAsync([FromQuery] GetPackageGroupSuggestionsQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Adds or changes a package group.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("group")]
+    public Task<Response<int>> SaveGroupAsync(SavePackageGroupCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Removes a package group (its packages stay tracked).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("group")]
+    public Task<Response<int>> RemoveGroupAsync(RemovePackageGroupCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 }

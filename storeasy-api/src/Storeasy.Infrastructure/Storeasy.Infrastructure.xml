@@ -3608,6 +3608,12 @@
         <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadAdvisoriesAsync(System.Collections.Generic.IReadOnlyList{Storeasy.Application.Utils.Registries.AdvisoryQuery},System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadDownloadsAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadListingAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Registries.RegistriesServiceCollectionExtensions">
             <summary>
             Registers the package registries module (docs/package-registries.md): the reader of the registries' public APIs, the
@@ -3663,6 +3669,7 @@
             <param name="packageRepository"></param>
             <param name="versionRepository"></param>
             <param name="alertRepository"></param>
+            <param name="dayRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="featureFlagService"></param>
             <param name="auditTrail"></param>
@@ -3670,7 +3677,7 @@
             <param name="options"></param>
             <param name="timeProvider"></param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.#ctor(Storeasy.Application.Interfaces.IPackageRegistryReader,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackageVersion},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageAlert},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.RegistryOptions,System.TimeProvider)">
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.#ctor(Storeasy.Application.Interfaces.IPackageRegistryReader,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackageVersion},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageAlert},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageDownloadDay},Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Utils.Models.RegistryOptions,System.TimeProvider)">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IRegistrySyncer"/>: reads every package from its registry (and the provenance of its latest version, PyPI also
             of a few unchecked versions), asks OSV.dev once for the advisories of every latest version, merges with
@@ -3681,6 +3688,7 @@
             <param name="packageRepository"></param>
             <param name="versionRepository"></param>
             <param name="alertRepository"></param>
+            <param name="dayRepository"></param>
             <param name="storeJobQueue"></param>
             <param name="featureFlagService"></param>
             <param name="auditTrail"></param>
@@ -3710,6 +3718,12 @@
             <summary>
             The advisories of every read package's latest version (one OSV.dev batch); null when OSV.dev could not be read, so the
             open advisory alerts stay as they are.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistrySyncer.DownloadsAsync(System.Int32,System.Collections.Generic.List{System.Int32},System.Collections.Generic.List{System.ValueTuple{Storeasy.Domain.Registries.TrackedPackage,Storeasy.Application.Utils.Registries.RegistrySyncOutcome}},System.Linq.ILookup{System.Int32,Storeasy.Domain.Registries.TrackedPackageVersion},System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Reads the downloads of every read package (a registry that cannot be read leaves the package's downloads as they
+            were) and merges them into the package, its versions and its day rows.
             </summary>
         </member>
         <member name="T:Storeasy.Infrastructure.Registries.RegistrySyncJobHandler">

@@ -345,6 +345,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
                 RubyGemsBaseUrl = FakeRegistries.RubyGemsBaseUrl,
                 PackagistBaseUrl = FakeRegistries.PackagistBaseUrl,
                 PubBaseUrl = FakeRegistries.PubBaseUrl,
+                NuGetSearchUrl = FakeRegistries.NuGetSearchUrl,
+                NuGetFlatContainerBaseUrl = FakeRegistries.NuGetFlatContainerBaseUrl,
+                NpmDownloadsBaseUrl = FakeRegistries.NpmDownloadsBaseUrl,
+                PyPIStatsBaseUrl = FakeRegistries.PyPIStatsBaseUrl,
+                PackagistSiteBaseUrl = FakeRegistries.PackagistSiteBaseUrl,
             });
         });
     }

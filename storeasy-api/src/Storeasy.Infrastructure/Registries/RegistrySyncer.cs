@@ -22,6 +22,7 @@ namespace Storeasy.Infrastructure.Registries;
 /// <param name="packageRepository"></param>
 /// <param name="versionRepository"></param>
 /// <param name="alertRepository"></param>
+/// <param name="dayRepository"></param>
 /// <param name="storeJobQueue"></param>
 /// <param name="featureFlagService"></param>
 /// <param name="auditTrail"></param>
@@ -32,6 +33,7 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
                                    IStoreasyRepositoryBase<TrackedPackage> packageRepository,
                                    IStoreasyRepositoryBase<TrackedPackageVersion> versionRepository,
                                    IStoreasyRepositoryBase<PackageAlert> alertRepository,
+                                   IStoreasyRepositoryBase<PackageDownloadDay> dayRepository,
                                    IStoreJobQueue storeJobQueue,
                                    IFeatureFlagService featureFlagService,
                                    IAuditTrail auditTrail,
@@ -43,6 +45,7 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
     private readonly IStoreasyRepositoryBase<TrackedPackage> _packageRepository = packageRepository;
     private readonly IStoreasyRepositoryBase<TrackedPackageVersion> _versionRepository = versionRepository;
     private readonly IStoreasyRepositoryBase<PackageAlert> _alertRepository = alertRepository;
+    private readonly IStoreasyRepositoryBase<PackageDownloadDay> _dayRepository = dayRepository;
     private readonly IStoreJobQueue _storeJobQueue = storeJobQueue;
     private readonly IFeatureFlagService _featureFlagService = featureFlagService;
     private readonly IAuditTrail _auditTrail = auditTrail;
@@ -97,7 +100,9 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
             outcomes.Add((package, outcome));
         }
 
-        await SaveAsync(packages, outcomes, cancellationToken);
+        var downloads = await DownloadsAsync(organizationId, ids, outcomes, versions, now, cancellationToken);
+
+        await SaveAsync(packages, outcomes, downloads, cancellationToken);
         await ReportAsync(outcomes, cancellationToken);
 
         return new RegistrySyncSummary(reads.Count, failed, outcomes.Sum(o => o.Outcome.Changes.Count));
@@ -232,12 +237,54 @@ public sealed class RegistrySyncer(IPackageRegistryReader reader,
         }
     }
 
-    private async Task SaveAsync(List<TrackedPackage> packages, List<(TrackedPackage Package, RegistrySyncOutcome Outcome)> outcomes, CancellationToken cancellationToken)
+    /// <summary>
+    /// Reads the downloads of every read package (a registry that cannot be read leaves the package's downloads as they
+    /// were) and merges them into the package, its versions and its day rows.
+    /// </summary>
+    private async Task<List<DownloadsOutcome>> DownloadsAsync(int organizationId,
+                                                              List<int> ids,
+                                                              List<(TrackedPackage Package, RegistrySyncOutcome Outcome)> outcomes,
+                                                              ILookup<int, TrackedPackageVersion> versions,
+                                                              DateTime now,
+                                                              CancellationToken cancellationToken)
+    {
+        var reads = new List<RegistryDownloadsRead>();
+
+        foreach (var (package, _) in outcomes)
+        {
+            try
+            {
+                reads.Add(await _reader.ReadDownloadsAsync(package.Registry, package.Name, now.Date, cancellationToken));
+            }
+            catch (StoreCallException)
+            {
+                reads.Add(null);
+            }
+        }
+
+        var since = now.Date.AddDays(-RegistryDownloads.MaxDays);
+        var days = (await _dayRepository.GetAllAsync(d => ids.Contains(d.TrackedPackageId) && d.OrganizationId == organizationId && d.Day >= since, cancellationToken: cancellationToken))
+                   .ToLookup(d => d.TrackedPackageId);
+
+        return [.. outcomes.Select((o, i) => reads[i] == null
+            ? new DownloadsOutcome()
+            : RegistryDownloads.Apply(o.Package, reads[i], [.. versions[o.Package.Id], .. o.Outcome.AddedVersions], [.. days[o.Package.Id]], now))];
+    }
+
+    private async Task SaveAsync(List<TrackedPackage> packages, List<(TrackedPackage Package, RegistrySyncOutcome Outcome)> outcomes, List<DownloadsOutcome> downloads, CancellationToken cancellationToken)
     {
         await _packageRepository.UpdateAsync(packages, cancellationToken);
 
         var added = outcomes.SelectMany(o => o.Outcome.AddedVersions).ToList();
-        var updated = outcomes.SelectMany(o => o.Outcome.UpdatedVersions).ToList();
+        var updated = outcomes.SelectMany(o => o.Outcome.UpdatedVersions).Concat(downloads.SelectMany(d => d.UpdatedVersions)).Distinct().ToList();
+        var addedDays = downloads.SelectMany(d => d.AddedDays).ToList();
+        var updatedDays = downloads.SelectMany(d => d.UpdatedDays).ToList();
+
+        if (addedDays.Count > 0)
+            await _dayRepository.AddRangeAsync(addedDays, cancellationToken);
+
+        if (updatedDays.Count > 0)
+            await _dayRepository.UpdateAsync(updatedDays, cancellationToken);
         var opened = outcomes.SelectMany(o => o.Outcome.OpenedAlerts).ToList();
         var resolved = outcomes.SelectMany(o => o.Outcome.ResolvedAlerts).ToList();
 

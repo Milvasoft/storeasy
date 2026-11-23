@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261123064946_AddRegistriesPhase2";
+    public override string LastMigrationId => "20261123141022_AddRegistriesPhase3";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -3763,6 +3763,78 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("PackageAlerts");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageDownloadDay", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime>("Day")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<long?>("Downloads")
+                    .HasColumnType("bigint");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<long?>("TotalDownloads")
+                    .HasColumnType("bigint");
+
+                b.Property<int>("TrackedPackageId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TrackedPackageId", "Day")
+                    .IsUnique();
+
+                b.ToTable("PackageDownloadDays");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageGroup", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Name")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId", "Name")
+                    .IsUnique();
+
+                b.ToTable("PackageGroups");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Registries.RegistryTokenReminder", b =>
             {
                 var id = b.Property<int>("Id")
@@ -3838,6 +3910,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(500)
                     .HasColumnType("character varying(500)");
 
+                b.Property<DateTime?>("DownloadsSyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
                 b.Property<bool>("HasProvenance")
                     .HasColumnType("boolean");
 
@@ -3862,11 +3937,29 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(500)
                     .HasColumnType("character varying(500)");
 
+                b.Property<long?>("Likes")
+                    .HasColumnType("bigint");
+
+                b.Property<int?>("MaxPoints")
+                    .HasColumnType("integer");
+
                 b.Property<string>("Name")
                     .HasMaxLength(214)
                     .HasColumnType("character varying(214)");
 
                 b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("PackageGroupId")
+                    .HasColumnType("integer");
+
+                b.Property<int?>("Points")
+                    .HasColumnType("integer");
+
+                b.Property<long?>("RecentDownloads")
+                    .HasColumnType("bigint");
+
+                b.Property<int?>("RecentDownloadsDays")
                     .HasColumnType("integer");
 
                 b.Property<byte>("Registry")
@@ -3905,9 +3998,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Property<DateTime?>("SyncedDate")
                     .HasColumnType("timestamp with time zone");
 
+                b.Property<long?>("TotalDownloads")
+                    .HasColumnType("bigint");
+
+                b.Property<byte?>("VersionDownloadsScope")
+                    .HasColumnType("smallint");
+
                 b.HasKey("Id");
 
                 b.HasIndex("AppId");
+
+                b.HasIndex("PackageGroupId");
 
                 b.HasIndex("SyncedDate");
 
@@ -3934,6 +4035,9 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<string>("CreatorUserName")
                     .HasColumnType("text");
+
+                b.Property<long?>("Downloads")
+                    .HasColumnType("bigint");
 
                 b.Property<bool?>("HasProvenance")
                     .HasColumnType("boolean");
@@ -5832,6 +5936,17 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("TrackedPackage");
             });
 
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageDownloadDay", b =>
+            {
+                b.HasOne("Storeasy.Domain.Registries.TrackedPackage", "TrackedPackage")
+                    .WithMany()
+                    .HasForeignKey("TrackedPackageId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("TrackedPackage");
+            });
+
         modelBuilder.Entity("Storeasy.Domain.Registries.RegistryTokenReminder", b =>
             {
                 b.HasOne("Storeasy.Domain.Registries.TrackedPackage", "TrackedPackage")
@@ -5849,7 +5964,14 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                     .HasForeignKey("AppId")
                     .OnDelete(DeleteBehavior.SetNull);
 
+                b.HasOne("Storeasy.Domain.Registries.PackageGroup", "PackageGroup")
+                    .WithMany("Packages")
+                    .HasForeignKey("PackageGroupId")
+                    .OnDelete(DeleteBehavior.SetNull);
+
                 b.Navigation("App");
+
+                b.Navigation("PackageGroup");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackageVersion", b =>
@@ -6083,6 +6205,11 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
         modelBuilder.Entity("Storeasy.Domain.Permission", b =>
             {
                 b.Navigation("RolePermissionRelations");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Registries.PackageGroup", b =>
+            {
+                b.Navigation("Packages");
             });
 
         modelBuilder.Entity("Storeasy.Domain.Registries.TrackedPackage", b =>

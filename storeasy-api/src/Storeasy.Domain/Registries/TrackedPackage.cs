@@ -166,6 +166,58 @@ public class TrackedPackage : AuditableEntity<int>
     public DateTime? SetupDate { get; set; }
 
     /// <summary>
+    /// Group the package is released with.
+    /// </summary>
+    public int? PackageGroupId { get; set; }
+
+    /// <summary>
+    /// All time downloads; null where the registry gives no total (PyPI) or none at all (Maven Central).
+    /// </summary>
+    public long? TotalDownloads { get; set; }
+
+    /// <summary>
+    /// Downloads in the last <see cref="RecentDownloadsDays"/> days, as the registry counts them.
+    /// </summary>
+    public long? RecentDownloads { get; set; }
+
+    /// <summary>
+    /// Window of <see cref="RecentDownloads"/> in days (30 on npm, PyPI, Packagist and pub.dev, 90 on crates.io).
+    /// </summary>
+    public int? RecentDownloadsDays { get; set; }
+
+    /// <summary>
+    /// What the per version download counts cover; null where the registry gives none.
+    /// </summary>
+    public DownloadScope? VersionDownloadsScope { get; set; }
+
+    /// <summary>
+    /// Likes (pub.dev) or favers (Packagist).
+    /// </summary>
+    public long? Likes { get; set; }
+
+    /// <summary>
+    /// pub.dev points granted.
+    /// </summary>
+    public int? Points { get; set; }
+
+    /// <summary>
+    /// pub.dev points possible.
+    /// </summary>
+    public int? MaxPoints { get; set; }
+
+    /// <summary>
+    /// UTC instant the downloads were last read.
+    /// </summary>
+    public DateTime? DownloadsSyncedDate { get; set; }
+
+    /// <summary>
+    /// The group.
+    /// </summary>
+    [ForeignKey(nameof(PackageGroupId))]
+    [DeleteBehavior(DeleteBehavior.SetNull)]
+    public virtual PackageGroup PackageGroup { get; set; }
+
+    /// <summary>
     /// The linked app.
     /// </summary>
     [ForeignKey(nameof(AppId))]

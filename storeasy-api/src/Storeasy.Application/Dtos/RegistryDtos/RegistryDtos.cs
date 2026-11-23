@@ -79,6 +79,21 @@ public class TrackedPackageSummaryDto
     /// <summary>Whether the latest version came from the setup's repository and workflow.</summary>
     public PublisherCheckStatus PublisherCheck { get; set; }
 
+    /// <summary>All time downloads.</summary>
+    public long? TotalDownloads { get; set; }
+
+    /// <summary>Downloads in the last <see cref="RecentDownloadsDays"/> days.</summary>
+    public long? RecentDownloads { get; set; }
+
+    /// <summary>Window of <see cref="RecentDownloads"/>.</summary>
+    public int? RecentDownloadsDays { get; set; }
+
+    /// <summary>Group the package is released with.</summary>
+    public int? PackageGroupId { get; set; }
+
+    /// <summary>Name of the group.</summary>
+    public string PackageGroupName { get; set; }
+
     /// <summary>
     /// Projection of the row (the linked app only while it is not deleted).
     /// </summary>
@@ -102,6 +117,11 @@ public class TrackedPackageSummaryDto
         SetupProvider = p.SetupProvider,
         SetupRepository = p.SetupRepository,
         SetupWorkflow = p.SetupWorkflow,
+        TotalDownloads = p.TotalDownloads,
+        RecentDownloads = p.RecentDownloads,
+        RecentDownloadsDays = p.RecentDownloadsDays,
+        PackageGroupId = p.PackageGroupId,
+        PackageGroupName = p.PackageGroup != null ? p.PackageGroup.Name : null,
     };
 
     /// <summary>
@@ -168,11 +188,15 @@ public class TrackedPackageVersionDto
     /// <summary>CI run that published it.</summary>
     public string CiRunUrl { get; set; }
 
+    /// <summary>Downloads as the registry counts them (all time, or the last 7 days on npm).</summary>
+    public long? Downloads { get; set; }
+
     /// <summary>
     /// Projection of the row.
     /// </summary>
     public static Expression<Func<TrackedPackageVersion, TrackedPackageVersionDto>> Projection { get; } = v => new TrackedPackageVersionDto
     {
+        Downloads = v.Downloads,
         Version = v.Version,
         PublishedDate = v.PublishedDate,
         IsYanked = v.IsYanked,
@@ -468,4 +492,245 @@ public class TokenReminderDto
 
         return this;
     }
+}
+
+/// <summary>
+/// One day of a package's downloads.
+/// </summary>
+public class DownloadDayDto
+{
+    /// <summary>UTC day.</summary>
+    public DateTime Day { get; set; }
+
+    /// <summary>Downloads on the day (the registry's count, or the growth of the all time total since the day before).</summary>
+    public long Downloads { get; set; }
+}
+
+/// <summary>
+/// Downloads of one version.
+/// </summary>
+public class VersionDownloadsDto
+{
+    /// <summary>Version.</summary>
+    public string Version { get; set; }
+
+    /// <summary>Downloads (see <see cref="PackageDownloadsDto.VersionScope"/>).</summary>
+    public long Downloads { get; set; }
+}
+
+/// <summary>
+/// Downloads and usage of a tracked package.
+/// </summary>
+public class PackageDownloadsDto
+{
+    /// <summary>Tracked package.</summary>
+    public int TrackedPackageId { get; set; }
+
+    /// <summary>Registry.</summary>
+    public PackageRegistry Registry { get; set; }
+
+    /// <summary>Whether the registry publishes download counts (false for Maven Central).</summary>
+    public bool Available { get; set; }
+
+    /// <summary>All time downloads.</summary>
+    public long? TotalDownloads { get; set; }
+
+    /// <summary>Downloads in the last <see cref="RecentDownloadsDays"/> days.</summary>
+    public long? RecentDownloads { get; set; }
+
+    /// <summary>Window of <see cref="RecentDownloads"/>.</summary>
+    public int? RecentDownloadsDays { get; set; }
+
+    /// <summary>What the per version counts cover.</summary>
+    public DownloadScope? VersionScope { get; set; }
+
+    /// <summary>Likes (pub.dev) or favers (Packagist).</summary>
+    public long? Likes { get; set; }
+
+    /// <summary>pub.dev points granted.</summary>
+    public int? Points { get; set; }
+
+    /// <summary>pub.dev points possible.</summary>
+    public int? MaxPoints { get; set; }
+
+    /// <summary>UTC instant the downloads were last read.</summary>
+    public DateTime? DownloadsSyncedDate { get; set; }
+
+    /// <summary>Daily series, oldest first.</summary>
+    public List<DownloadDayDto> Series { get; set; } = [];
+
+    /// <summary>Downloads per version, most downloaded first.</summary>
+    public List<VersionDownloadsDto> Versions { get; set; } = [];
+}
+
+/// <summary>
+/// One readiness check of a listing.
+/// </summary>
+public class ListingCheckDto
+{
+    /// <summary>What is checked (<c>description</c>, <c>readme</c>, <c>license</c>, <c>repository</c>, <c>keywords</c>,
+    /// <c>icon</c>).</summary>
+    public string Key { get; set; }
+
+    /// <summary>Result.</summary>
+    public ListingCheckStatus Status { get; set; }
+}
+
+/// <summary>
+/// A package's page on its registry, read live, with readiness checks.
+/// </summary>
+public class PackageListingDto
+{
+    /// <summary>Tracked package.</summary>
+    public int TrackedPackageId { get; set; }
+
+    /// <summary>Registry.</summary>
+    public PackageRegistry Registry { get; set; }
+
+    /// <summary>Whether storeasy can read the registry's listing (false for Maven Central).</summary>
+    public bool Available { get; set; }
+
+    /// <summary>Why the listing could not be read, when it could not.</summary>
+    public string ReadError { get; set; }
+
+    /// <summary>Version the listing belongs to.</summary>
+    public string Version { get; set; }
+
+    /// <summary>Description.</summary>
+    public string Description { get; set; }
+
+    /// <summary>README as text (HTML reduced to its text; never rendered as HTML).</summary>
+    public string Readme { get; set; }
+
+    /// <summary>Format the registry served the README in.</summary>
+    public ReadmeFormat? ReadmeFormat { get; set; }
+
+    /// <summary>Keywords, tags or topics.</summary>
+    public List<string> Keywords { get; set; } = [];
+
+    /// <summary>License.</summary>
+    public string License { get; set; }
+
+    /// <summary>Home page.</summary>
+    public string Homepage { get; set; }
+
+    /// <summary>Source repository.</summary>
+    public string Repository { get; set; }
+
+    /// <summary>Authors.</summary>
+    public List<string> Authors { get; set; } = [];
+
+    /// <summary>Icon address.</summary>
+    public string IconUrl { get; set; }
+
+    /// <summary>Readiness checks.</summary>
+    public List<ListingCheckDto> Checks { get; set; } = [];
+
+    /// <summary>Whether the listing changes only with a new release (false for Packagist, which reads the repository).</summary>
+    public bool ShipsWithRelease { get; set; }
+
+    /// <summary>The package's page on its registry.</summary>
+    public string RegistryUrl { get; set; }
+}
+
+/// <summary>
+/// One member of a package group.
+/// </summary>
+public class PackageGroupMemberDto
+{
+    /// <summary>Tracked package.</summary>
+    public int TrackedPackageId { get; set; }
+
+    /// <summary>Registry.</summary>
+    public PackageRegistry Registry { get; set; }
+
+    /// <summary>Name.</summary>
+    public string Name { get; set; }
+
+    /// <summary>Latest version.</summary>
+    public string LatestVersion { get; set; }
+
+    /// <summary>UTC instant the latest version was published.</summary>
+    public DateTime? LatestPublishedDate { get; set; }
+
+    /// <summary>Whether the latest version is below the group's highest version.</summary>
+    public bool Behind { get; set; }
+
+    /// <summary>Open alerts.</summary>
+    public int OpenAlertCount { get; set; }
+}
+
+/// <summary>
+/// A package group with its members.
+/// </summary>
+public class PackageGroupDto
+{
+    /// <summary>Group.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Name.</summary>
+    public string Name { get; set; }
+
+    /// <summary>Highest latest version among the members.</summary>
+    public string HighestVersion { get; set; }
+
+    /// <summary>Members behind <see cref="HighestVersion"/>.</summary>
+    public int BehindCount { get; set; }
+
+    /// <summary>Most recent release among the members.</summary>
+    public DateTime? LastReleaseDate { get; set; }
+
+    /// <summary>Open alerts of all members.</summary>
+    public int OpenAlertCount { get; set; }
+
+    /// <summary>Members, behind first, then by name.</summary>
+    public List<PackageGroupMemberDto> Members { get; set; } = [];
+
+    /// <summary>
+    /// Builds the group from its members' rows.
+    /// </summary>
+    public static PackageGroupDto From(int id, string name, IEnumerable<TrackedPackageSummaryDto> members)
+    {
+        var list = members.ToList();
+        var highest = PackageGroups.Highest(list.Select(m => m.LatestVersion));
+        var rows = list.Select(m => new PackageGroupMemberDto
+        {
+            TrackedPackageId = m.Id,
+            Registry = m.Registry,
+            Name = m.Name,
+            LatestVersion = m.LatestVersion,
+            LatestPublishedDate = m.LatestPublishedDate,
+            Behind = highest != null && PackageGroups.Compare(m.LatestVersion, highest) < 0,
+            OpenAlertCount = m.OpenAlertCount,
+        }).OrderByDescending(m => m.Behind).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
+
+        return new PackageGroupDto
+        {
+            Id = id,
+            Name = name,
+            HighestVersion = highest,
+            BehindCount = rows.Count(r => r.Behind),
+            LastReleaseDate = rows.Max(r => r.LatestPublishedDate),
+            OpenAlertCount = rows.Sum(r => r.OpenAlertCount),
+            Members = rows,
+        };
+    }
+}
+
+/// <summary>
+/// A suggested group of packages from one source repository.
+/// </summary>
+public class PackageGroupSuggestionDto
+{
+    /// <summary>Suggested name (<c>owner/repo</c>).</summary>
+    public string Name { get; set; }
+
+    /// <summary>The shared repository.</summary>
+    public string Repository { get; set; }
+
+    /// <summary>Members.</summary>
+    public List<int> TrackedPackageIds { get; set; } = [];
+
+    /// <summary>Names of the members.</summary>
+    public List<string> PackageNames { get; set; } = [];
 }

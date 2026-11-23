@@ -3148,6 +3148,12 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryTokenExpiring">
             <summary>A recorded registry token expires soon or has expired.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryGroupSaved">
+            <summary>A package group was added or changed.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryGroupRemoved">
+            <summary>A package group was removed.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -3730,6 +3736,21 @@
             organizations and a platform administrator created by <c>developer/database/init</c>.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Enums.DownloadScope">
+            <summary>
+            What the per version download counts of a registry cover.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DownloadScope.Total">
+            <summary>
+            All time downloads of the version (NuGet, crates.io, RubyGems).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.DownloadScope.LastWeek">
+            <summary>
+            Downloads of the version in the last 7 days (npm).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.EmailOutboxKind">
             <summary>
             What an e-mail outbox row holds. Values are explicit and never reused.
@@ -4032,6 +4053,26 @@
         <member name="F:Storeasy.Domain.Enums.InvitationStatus.Accepted">
             <summary>
             Already used.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ListingCheckStatus">
+            <summary>
+            Result of one readiness check of a package's registry listing.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ListingCheckStatus.Ok">
+            <summary>
+            The listing has it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ListingCheckStatus.Warning">
+            <summary>
+            The listing has it, but it could be better (a very short description).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ListingCheckStatus.Missing">
+            <summary>
+            The listing lacks it.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.MediaKind">
@@ -5293,6 +5334,26 @@
         <member name="F:Storeasy.Domain.Enums.ReadinessStatus.Unknown">
             <summary>
             storeasy cannot tell (data missing).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.ReadmeFormat">
+            <summary>
+            Format a registry serves a package README in. storeasy shows it as text either way; HTML is reduced to its text.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadmeFormat.Markdown">
+            <summary>
+            Markdown (npm, NuGet, PyPI with <c>text/markdown</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadmeFormat.Html">
+            <summary>
+            HTML rendered by the registry (crates.io); storeasy keeps its text only.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.ReadmeFormat.Text">
+            <summary>
+            Plain text or reStructuredText (PyPI).
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.RegistrationMode">
@@ -12188,6 +12249,69 @@
             The token reminder.
             </summary>
         </member>
+        <member name="T:Storeasy.Domain.Registries.PackageDownloadDay">
+            <summary>
+            One day of a tracked package's downloads: the registry's daily count where it gives one (npm, PyPI, crates.io), and
+            storeasy's snapshot of the all time total on that day (every registry with a total), so a trend exists even where the
+            registry gives totals only.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.TrackedPackageId">
+            <summary>
+            The package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.Day">
+            <summary>
+            The UTC day.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.Downloads">
+            <summary>
+            Downloads on that day as the registry counts them; null where it gives no daily counts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.TotalDownloads">
+            <summary>
+            All time downloads storeasy read on that day; null where the registry gives no total (PyPI).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageDownloadDay.TrackedPackage">
+            <summary>
+            The package.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Registries.PackageGroup">
+            <summary>
+            A named group of tracked packages that are released together (for example every Milvasoft.* package of one
+            repository). A package belongs to at most one group.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Registries.PackageGroup.NameMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Registries.PackageGroup.Name"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageGroup.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageGroup.Name">
+            <summary>
+            Name of the group.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.PackageGroup.Packages">
+            <summary>
+            Member packages.
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.Registries.RegistryTokenReminder">
             <summary>
             A reminder about a long lived registry token a member uses somewhere (a CI secret): its label, registry, where it is
@@ -12389,6 +12513,56 @@
             UTC instant the setup was saved.
             </summary>
         </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.PackageGroupId">
+            <summary>
+            Group the package is released with.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.TotalDownloads">
+            <summary>
+            All time downloads; null where the registry gives no total (PyPI) or none at all (Maven Central).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.RecentDownloads">
+            <summary>
+            Downloads in the last <see cref="P:Storeasy.Domain.Registries.TrackedPackage.RecentDownloadsDays"/> days, as the registry counts them.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.RecentDownloadsDays">
+            <summary>
+            Window of <see cref="P:Storeasy.Domain.Registries.TrackedPackage.RecentDownloads"/> in days (30 on npm, PyPI, Packagist and pub.dev, 90 on crates.io).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.VersionDownloadsScope">
+            <summary>
+            What the per version download counts cover; null where the registry gives none.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Likes">
+            <summary>
+            Likes (pub.dev) or favers (Packagist).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.Points">
+            <summary>
+            pub.dev points granted.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.MaxPoints">
+            <summary>
+            pub.dev points possible.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.DownloadsSyncedDate">
+            <summary>
+            UTC instant the downloads were last read.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackage.PackageGroup">
+            <summary>
+            The group.
+            </summary>
+        </member>
         <member name="P:Storeasy.Domain.Registries.TrackedPackage.App">
             <summary>
             The linked app.
@@ -12457,6 +12631,12 @@
         <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.CiRunUrl">
             <summary>
             CI run that published the version (from its provenance).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.Downloads">
+            <summary>
+            Downloads of the version as the registry counts them (all time, or the last 7 days on npm; see
+            <see cref="P:Storeasy.Domain.Registries.TrackedPackage.VersionDownloadsScope"/>); null where the registry gives none.
             </summary>
         </member>
         <member name="P:Storeasy.Domain.Registries.TrackedPackageVersion.TrackedPackage">

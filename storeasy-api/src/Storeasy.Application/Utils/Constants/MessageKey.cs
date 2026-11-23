@@ -588,6 +588,9 @@ public static class MessageKey
     public const string RegistrySetupNameInvalid = nameof(RegistrySetupNameInvalid);
     public const string RegistryTokenValueRefused = nameof(RegistryTokenValueRefused);
     public const string TokenReminderNotFound = nameof(TokenReminderNotFound);
+    public const string GlobalPackageGroup = "Global.PackageGroup";
+    public const string PackageGroupNotFound = nameof(PackageGroupNotFound);
+    public const string PackageGroupNameTaken = nameof(PackageGroupNameTaken);
     public const string ReadinessFirefoxStatus = "Readiness.FirefoxStatus";
     public const string ReadinessFirefoxStatusOk = "Readiness.FirefoxStatusOk";
     public const string ReadinessFirefoxDisabled = "Readiness.FirefoxDisabled";

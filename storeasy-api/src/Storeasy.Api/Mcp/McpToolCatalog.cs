@@ -59,6 +59,12 @@ using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
+using Storeasy.Application.Features.Registries.GetPackageDownloads;
+using Storeasy.Application.Features.Registries.GetPackageListing;
+using Storeasy.Application.Features.Registries.GetPackageGroupList;
+using Storeasy.Application.Features.Registries.GetPackageGroupSuggestions;
+using Storeasy.Application.Features.Registries.SavePackageGroup;
+using Storeasy.Application.Features.Registries.RemovePackageGroup;
 using Storeasy.Application.Features.Registries.GetPackageSetup;
 using Storeasy.Application.Features.Registries.GetTokenReminderList;
 using Storeasy.Application.Features.Registries.RemoveTokenReminder;
@@ -415,6 +421,12 @@ public static class McpToolCatalog
         Gated(FeatureFlagKeys.Registries, Read<GetTokenReminderListQuery>("registries_reminders_list", "Lists the registry token reminders (label, registry, where the token is used, expiry date, days left, warning stage). Tokens are never stored.")),
         Gated(FeatureFlagKeys.Registries, Write<SaveTokenReminderCommand>("registries_reminder_save", "Adds (no id) or changes a registry token reminder: label, registry, usedIn (for example the CI secret name), expiryDate, optional trackedPackageId. Never send the token: a value that looks like one is refused. storeasy warns 14 and 3 days before and on the expiry date.")),
         Gated(FeatureFlagKeys.Registries, Write<RemoveTokenReminderCommand>("registries_reminder_remove", "Removes a registry token reminder and its alerts.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageDownloadsQuery>("registries_downloads_get", "Reads the downloads and usage of a tracked package: all time total, the recent window (30 days, 90 on crates.io), likes and pub.dev points, a daily series (the registry's daily counts on npm, PyPI and crates.io, elsewhere the growth of the daily total snapshots) and per version counts (all time, or the last 7 days on npm). Maven Central publishes none.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageListingQuery>("registries_listing_get", "Reads a tracked package's page on its registry live (description, README as text, keywords, license, home page, repository, authors, icon) with readiness checks. No registry has an API to edit it: it ships with the next release (Packagist reads composer.json from the repository).")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageGroupListQuery>("registries_groups_list", "Lists the package groups: each member's latest version and release date, which members are behind the group's highest version, and open alerts.")),
+        Gated(FeatureFlagKeys.Registries, Read<GetPackageGroupSuggestionsQuery>("registries_groups_suggest", "Suggests package groups from tracked packages without a group that share a source repository.")),
+        Gated(FeatureFlagKeys.Registries, Write<SavePackageGroupCommand>("registries_group_save", "Adds (no id) or changes a package group in storeasy: name and member trackedPackageIds (a package moves out of any other group). Nothing changes on a registry.")),
+        Gated(FeatureFlagKeys.Registries, Write<RemovePackageGroupCommand>("registries_group_remove", "Removes a package group in storeasy; its packages stay tracked.")),
 
         // Subscriptions, in-app purchases and purchase settings
         Read<GetSubscriptionGroupsQuery>("subscriptions_groups", "Lists the subscription groups and subscriptions (App Store) or subscriptions and base plans (Play) of a store record."),
