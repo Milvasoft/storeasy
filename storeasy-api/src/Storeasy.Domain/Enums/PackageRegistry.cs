@@ -32,4 +32,28 @@ public enum PackageRegistry : byte
     /// </summary>
     [Description("crates.io")]
     Crates = 4,
+
+    /// <summary>
+    /// Maven Central (repo1.maven.org, search.maven.org); names are <c>groupId:artifactId</c>.
+    /// </summary>
+    [Description("Maven Central")]
+    Maven = 5,
+
+    /// <summary>
+    /// RubyGems (rubygems.org).
+    /// </summary>
+    [Description("RubyGems")]
+    RubyGems = 6,
+
+    /// <summary>
+    /// Packagist (packagist.org); names are <c>vendor/package</c>.
+    /// </summary>
+    [Description("Packagist")]
+    Packagist = 7,
+
+    /// <summary>
+    /// pub.dev (Dart and Flutter packages).
+    /// </summary>
+    [Description("pub.dev")]
+    Pub = 8,
 }

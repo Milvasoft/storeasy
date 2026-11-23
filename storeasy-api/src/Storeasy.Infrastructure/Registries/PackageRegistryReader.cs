@@ -53,8 +53,54 @@ public sealed class PackageRegistryReader(IHttpClientFactory httpClientFactory, 
             case PackageRegistry.Crates:
                 var crate = await GetAsync($"{Base(_options.CratesBaseUrl)}/crates/{path}", null, cancellationToken);
                 return crate == null ? null : RegistryParsers.ParseCrate(crate);
+            case PackageRegistry.Maven:
+                return await ReadMavenAsync(name, cancellationToken);
+            case PackageRegistry.RubyGems:
+                var gem = await GetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/gems/{path}.json", null, cancellationToken);
+                return gem == null ? null : RegistryParsers.ParseRubyGems(gem, await GetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/versions/{path}.json", null, cancellationToken));
+            case PackageRegistry.Packagist:
+                var lower = name.ToLowerInvariant();
+                var p2 = await GetAsync($"{Base(_options.PackagistBaseUrl)}/p2/{lower}.json", null, cancellationToken);
+                return p2 == null ? null : RegistryParsers.ParsePackagist(lower, p2);
+            case PackageRegistry.Pub:
+                var pub = await GetAsync($"{Base(_options.PubBaseUrl)}/api/packages/{path}", null, cancellationToken);
+                return pub == null ? null : RegistryParsers.ParsePub(pub, await TryGetAsync($"{Base(_options.PubBaseUrl)}/api/packages/{path}/options", cancellationToken));
             default:
                 throw new StoreCallException($"Unknown registry {registry}.", null, transient: false);
+        }
+    }
+
+    /// <summary>
+    /// Maven Central: the versions from <c>maven-metadata.xml</c>, their dates from the search API (a failed search only
+    /// leaves the dates empty).
+    /// </summary>
+    private async Task<RegistryPackageRead> ReadMavenAsync(string name, CancellationToken cancellationToken)
+    {
+        var colon = name.IndexOf(':', StringComparison.Ordinal);
+        var group = name[..colon];
+        var artifact = name[(colon + 1)..];
+        var metadata = await GetAsync($"{Base(_options.MavenRepositoryBaseUrl)}/{group.Replace('.', '/')}/{Uri.EscapeDataString(artifact)}/maven-metadata.xml", "application/xml", cancellationToken);
+
+        if (metadata == null)
+            return null;
+
+        var search = await TryGetAsync($"{Base(_options.MavenSearchBaseUrl)}?q=g:{Uri.EscapeDataString(group)}+AND+a:{Uri.EscapeDataString(artifact)}&core=gav&rows=200&wt=json", cancellationToken);
+
+        return RegistryParsers.ParseMaven(name, metadata, search);
+    }
+
+    /// <summary>
+    /// A read whose failure only leaves an optional value out.
+    /// </summary>
+    private async Task<string> TryGetAsync(string url, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetAsync(url, null, cancellationToken);
+        }
+        catch (StoreCallException)
+        {
+            return null;
         }
     }
 
@@ -70,6 +116,9 @@ public sealed class PackageRegistryReader(IHttpClientFactory httpClientFactory, 
                 var url = $"{Base(_options.PyPIBaseUrl)}/integrity/{RegistryNames.PathName(registry, name)}/{Uri.EscapeDataString(version.Version)}/{Uri.EscapeDataString(version.ArtifactFile)}/provenance";
                 var pypi = await GetAsync(url, PyPIIntegrityMediaType, cancellationToken);
                 return pypi == null ? null : RegistryParsers.ParsePyPIProvenance(pypi);
+            case PackageRegistry.RubyGems:
+                var gem = await GetAsync($"{Base(_options.RubyGemsBaseUrl)}/api/v1/attestations/{RegistryNames.PathName(registry, name)}-{Uri.EscapeDataString(version.Version)}.json", null, cancellationToken);
+                return gem == null ? null : RegistryParsers.ParseRubyGemsAttestations(gem);
             case PackageRegistry.Crates when version.HasProvenance == true:
                 return new ProvenanceRead(version.SourceRepository, null, version.CiRunUrl);
             default:

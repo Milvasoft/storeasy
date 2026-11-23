@@ -6,6 +6,11 @@ using Storeasy.Api.Utils;
 using Storeasy.Application.Dtos.RegistryDtos;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
+using Storeasy.Application.Features.Registries.GetPackageSetup;
+using Storeasy.Application.Features.Registries.GetTokenReminderList;
+using Storeasy.Application.Features.Registries.RemoveTokenReminder;
+using Storeasy.Application.Features.Registries.SavePackageSetup;
+using Storeasy.Application.Features.Registries.SaveTokenReminder;
 using Storeasy.Application.Features.Registries.GetTrackedPackage;
 using Storeasy.Application.Features.Registries.GetTrackedPackageList;
 using Storeasy.Application.Features.Registries.RemoveTrackedPackage;
@@ -85,4 +90,51 @@ public class RegistriesController(IMediator mediator) : ControllerBase
     [HttpPost("sync")]
     [RateLimit(60, 3600, "registries-sync")]
     public Task<Response<long>> SyncAsync(SyncTrackedPackageCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The trusted publishing wizard of a package: registry settings, the CI file to copy and the check of the latest
+    /// release (the saved setup, or a preview of the given values).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("setup")]
+    public Task<Response<TrustedPublishingDto>> GetSetupAsync([FromQuery] GetPackageSetupQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Saves or clears the trusted publishing setup of a package.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPut("setup")]
+    public Task<Response<TrustedPublishingDto>> SaveSetupAsync(SavePackageSetupCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// The registry token reminders of the organization (never the tokens).
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpGet("reminders")]
+    public Task<Response<List<TokenReminderDto>>> GetRemindersAsync([FromQuery] GetTokenReminderListQuery request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Adds or changes a token reminder; a value that looks like a token is refused.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpPost("reminder")]
+    [RateLimit(60, 3600, "registries-reminder-save")]
+    public Task<Response<int>> SaveReminderAsync(SaveTokenReminderCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
+
+    /// <summary>
+    /// Removes a token reminder.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    [HttpDelete("reminder")]
+    public Task<Response<int>> RemoveReminderAsync(RemoveTokenReminderCommand request, CancellationToken cancellation) => _mediator.Send(request, cancellation);
 }

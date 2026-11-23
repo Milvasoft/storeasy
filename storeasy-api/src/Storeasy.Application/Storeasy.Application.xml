@@ -10746,6 +10746,18 @@
         <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.RegistryUrl">
             <summary>The package's page on its registry.</summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.SetupProvider">
+            <summary>CI provider of the trusted publishing setup; null without one.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.SetupRepository">
+            <summary>Repository of the trusted publishing setup.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.SetupWorkflow">
+            <summary>Workflow file of the trusted publishing setup.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.PublisherCheck">
+            <summary>Whether the latest version came from the setup's repository and workflow.</summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageSummaryDto.Projection">
             <summary>
             Projection of the row (the linked app only while it is not deleted).
@@ -10812,6 +10824,9 @@
         <member name="P:Storeasy.Application.Dtos.RegistryDtos.PackageAlertDto.TrackedPackageId">
             <summary>Tracked package.</summary>
         </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PackageAlertDto.TokenReminderId">
+            <summary>Token reminder of a token expiry alert.</summary>
+        </member>
         <member name="P:Storeasy.Application.Dtos.RegistryDtos.PackageAlertDto.Registry">
             <summary>Registry of the package.</summary>
         </member>
@@ -10865,6 +10880,147 @@
         </member>
         <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrackedPackageAddedDto.JobId">
             <summary>Sync job reading the package.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.RegistryDtos.SetupFieldDto">
+            <summary>
+            One value to fill in on the registry's trusted publisher settings.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.SetupFieldDto.Key">
+            <summary>Field (<c>owner</c>, <c>repository</c>, <c>workflow</c>, <c>environment</c>, <c>namespace</c>, <c>project</c>,
+            <c>pipelineFile</c>, <c>repositoryPath</c>, <c>tagPattern</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.SetupFieldDto.Value">
+            <summary>What to fill in.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto">
+            <summary>
+            The trusted publishing wizard of a tracked package: the registry side, the CI file and the check of the latest release.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.TrackedPackageId">
+            <summary>Tracked package.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Registry">
+            <summary>Registry.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.PackageName">
+            <summary>Package name.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Providers">
+            <summary>CI providers the registry accepts trusted publishing from; empty when it has none.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.SettingsUrl">
+            <summary>Where the trusted publisher is set up on the registry.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Saved">
+            <summary>Whether these are the saved values (false for a preview).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Provider">
+            <summary>CI provider of the setup (or the preview).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Repository">
+            <summary>Repository (<c>owner/repo</c> or <c>namespace/project</c>).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Workflow">
+            <summary>Workflow file name (GitHub) or top-level CI file path (GitLab).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Environment">
+            <summary>CI environment.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.RegistryUser">
+            <summary>Registry user the CI logs in as (NuGet).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.SetupDate">
+            <summary>UTC instant the setup was saved.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.RegistryFields">
+            <summary>Step 1: what to fill in on the registry.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.WorkflowPath">
+            <summary>Step 2: the path of the CI file in the repository.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.WorkflowText">
+            <summary>Step 2: the CI file (text to copy; storeasy never commits it).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Check">
+            <summary>Step 3: the latest release against the saved setup.</summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.RegistryDtos.TrustedPublishingDto.Build(Storeasy.Domain.Registries.TrackedPackage,System.Nullable{Storeasy.Domain.Enums.CiProvider},System.String,System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Builds the wizard of <paramref name="package"/> for the given setup values (the saved ones, or a preview).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto">
+            <summary>
+            The latest release of a tracked package against its trusted publishing setup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.Status">
+            <summary>Outcome.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.ExpectedRepository">
+            <summary>Repository address the setup expects.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.ExpectedWorkflow">
+            <summary>Workflow path the setup expects.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.ObservedRepository">
+            <summary>Repository the latest version's provenance names.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.ObservedWorkflow">
+            <summary>Workflow the latest version's provenance names.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.Version">
+            <summary>The latest version.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.PublisherCheckDto.CiRunUrl">
+            <summary>CI run that published it.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto">
+            <summary>
+            A registry token reminder (never the token).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Id">
+            <summary>Reminder.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Registry">
+            <summary>Registry.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Label">
+            <summary>Label.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.UsedIn">
+            <summary>Where the token is used.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.ExpiryDate">
+            <summary>Expiry day (UTC).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.TrackedPackageId">
+            <summary>Linked package.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.PackageName">
+            <summary>Name of the linked package.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.DaysLeft">
+            <summary>Days left until the expiry (negative after it).</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Stage">
+            <summary>Warning stage today: 0 none, 1 within 14 days, 2 within 3 days, 3 expired.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.TrustedPublishingAvailable">
+            <summary>Whether the registry offers trusted publishing, so the token can be replaced.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Projection">
+            <summary>
+            Projection of the row.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Dtos.RegistryDtos.TokenReminderDto.Complete(System.DateTime)">
+            <summary>
+            Fills the values computed for <paramref name="today"/>.
+            </summary>
         </member>
         <member name="T:Storeasy.Application.Dtos.RoleDtos.RoleDetailDto">
             <summary>
@@ -25055,6 +25211,95 @@
         <member name="M:Storeasy.Application.Features.Registries.GetPackageAlertList.GetPackageAlertListQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Registries.GetPackageAlertList.GetPackageAlertListQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery">
+            <summary>
+            The trusted publishing wizard of a tracked package: what to fill in on the registry, the CI file to copy and whether the
+            latest release came from the expected repository and workflow. With <see cref="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.Provider"/> set the wizard is a preview
+            of those values; without it, the saved setup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.TrackedPackageId">
+            <summary>
+            Tracked package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.Provider">
+            <summary>
+            CI provider of a preview; null reads the saved setup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.Repository">
+            <summary>
+            Repository of a preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.Workflow">
+            <summary>
+            Workflow file of a preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.Environment">
+            <summary>
+            CI environment of a preview.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery.RegistryUser">
+            <summary>
+            Registry user of a preview (NuGet).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery"/>. A package of another organization is reported as not found.
+            </summary>
+            <param name="packageRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage})">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery"/>. A package of another organization is reported as not found.
+            </summary>
+            <param name="packageRepository"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryHandler.Handle(Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQuery"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Registries.GetPackageSetup.GetPackageSetupQueryValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery">
+            <summary>
+            The registry token reminders of the organization (label, registry, where the token is used, expiry and how many days
+            are left), soonest expiry first. Tokens themselves are never stored.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQueryHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery"/>.
+            </summary>
+            <param name="reminderRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQueryHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryTokenReminder},System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery"/>.
+            </summary>
+            <param name="reminderRepository"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQueryHandler.Handle(Storeasy.Application.Features.Registries.GetTokenReminderList.GetTokenReminderListQuery,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Application.Features.Registries.GetTrackedPackageList.GetTrackedPackageListQuery">
             <summary>
             The package summary of the organization: every tracked package with its registry, latest version, publish date, the CI
@@ -25137,6 +25382,50 @@
         <member name="M:Storeasy.Application.Features.Registries.GetTrackedPackage.GetTrackedPackageQueryValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Registries.GetTrackedPackage.GetTrackedPackageQueryValidator"/>
         </member>
+        <member name="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand">
+            <summary>
+            Removes a registry token reminder and its alerts.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand.Id">
+            <summary>
+            Reminder.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand"/>. A reminder of another organization is reported as not found.
+            </summary>
+            <param name="ReminderRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryTokenReminder},Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand"/>. A reminder of another organization is reported as not found.
+            </summary>
+            <param name="ReminderRepository"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandHandler.ReminderRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandHandler.Handle(Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Registries.RemoveTokenReminder.RemoveTokenReminderCommandValidator"/>
+        </member>
         <member name="T:Storeasy.Application.Features.Registries.RemoveTrackedPackage.RemoveTrackedPackageCommand">
             <summary>
             Stops tracking a package: the package, its versions and its alerts are deleted. Nothing changes on the registry.
@@ -25180,6 +25469,166 @@
         </member>
         <member name="M:Storeasy.Application.Features.Registries.RemoveTrackedPackage.RemoveTrackedPackageCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
             <inheritdoc cref="T:Storeasy.Application.Features.Registries.RemoveTrackedPackage.RemoveTrackedPackageCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand">
+            <summary>
+            Saves the trusted publishing setup of a tracked package (the repository, workflow and environment releases should come
+            from), or clears it with a null <see cref="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.Provider"/>. Every sync then checks the latest release against it and raises a
+            publisher mismatch alert. Nothing is written to the registry or the repository.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.TrackedPackageId">
+            <summary>
+            Tracked package.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.Provider">
+            <summary>
+            CI provider; null clears the setup.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.Repository">
+            <summary>
+            Repository: <c>owner/repo</c> on GitHub, <c>namespace/project</c> on GitLab.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.Workflow">
+            <summary>
+            Workflow file name in <c>.github/workflows</c> (GitHub) or the top-level CI file path (GitLab).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.Environment">
+            <summary>
+            CI environment; optional.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand.RegistryUser">
+            <summary>
+            Registry user the CI logs in as (NuGet's <c>NuGet/login</c> action); optional.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand"/>. A package of another organization is reported as not found.
+            </summary>
+            <param name="PackageRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IAuditTrail,System.TimeProvider)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand"/>. A package of another organization is reported as not found.
+            </summary>
+            <param name="PackageRepository"></param>
+            <param name="AuditTrail"></param>
+            <param name="TimeProvider"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler.PackageRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler.TimeProvider">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandHandler.Handle(Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommand"/>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Registries.SavePackageSetup.SavePackageSetupCommandValidator"/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand">
+            <summary>
+            Adds (<see cref="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.Id"/> null) or changes a registry token reminder: a label, the registry, where the token is used and its
+            expiry date. The token itself is never accepted: a label or a "used in" text that looks like a token is refused.
+            storeasy warns 14 and 3 days before and on the expiry date.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.OrganizationId">
+            <inheritdoc/>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.Id">
+            <summary>
+            Reminder to change; null adds one.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.Registry">
+            <summary>
+            Registry the token is for.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.Label">
+            <summary>
+            A name for the token, for example "npm publish token" (never the token).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.UsedIn">
+            <summary>
+            Where the token is used, for example the CI secret name (never the token).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.ExpiryDate">
+            <summary>
+            The day the token expires.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand.TrackedPackageId">
+            <summary>
+            A tracked package the token publishes.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand"/>. A reminder or package of another organization is reported as not found.
+            The organization's reminders are checked at once, so a token that already expires soon is warned about right away.
+            </summary>
+            <param name="ReminderRepository"></param>
+            <param name="PackageRepository"></param>
+            <param name="ReminderChecker"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryTokenReminder},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.TrackedPackage},Storeasy.Application.Interfaces.IRegistryReminderChecker,Storeasy.Application.Interfaces.IAuditTrail)">
+            <summary>
+            Handles <see cref="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand"/>. A reminder or package of another organization is reported as not found.
+            The organization's reminders are checked at once, so a token that already expires soon is warned about right away.
+            </summary>
+            <param name="ReminderRepository"></param>
+            <param name="PackageRepository"></param>
+            <param name="ReminderChecker"></param>
+            <param name="AuditTrail"></param>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.ReminderRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.PackageRepository">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.ReminderChecker">
+            <summary></summary>
+        </member>
+        <member name="P:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.AuditTrail">
+            <summary></summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandHandler.Handle(Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandValidator">
+            <summary>
+            Validations of <see cref="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommand"/>. A label or a "used in" text that looks like a token value is
+            refused with <see cref="F:Storeasy.Application.Utils.Constants.MessageKey.RegistryTokenValueRefused"/>: storeasy never takes a registry token.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandValidator.#ctor(Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer)">
+            <inheritdoc cref="T:Storeasy.Application.Features.Registries.SaveTokenReminder.SaveTokenReminderCommandValidator"/>
         </member>
         <member name="T:Storeasy.Application.Features.Registries.SyncTrackedPackage.SyncTrackedPackageCommand">
             <summary>
@@ -35945,6 +36394,18 @@
             <summary>
             Queues a <see cref="F:Storeasy.Domain.Enums.StoreJobKind.RegistrySync"/> job for every organization with a package not synced within the
             interval (nothing while the module is switched off); returns the number of jobs.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Interfaces.IRegistryReminderChecker">
+            <summary>
+            Token expiry reminders: opens and resolves <see cref="F:Storeasy.Domain.Enums.PackageAlertKind.TokenExpiring"/> alerts and warns 14 and 3 days
+            before and on the expiry date (audit entry and notification). Tokens are never stored.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Interfaces.IRegistryReminderChecker.CheckAsync(System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Checks the reminders of <paramref name="organizationId"/>, or of every organization (the daily schedule, nothing
+            while the module is switched off); returns the number of warnings sent.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Interfaces.RegistrySyncSummary">
@@ -48069,6 +48530,31 @@
             crates.io API.
             </summary>
         </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.MavenRepositoryBaseUrl">
+            <summary>
+            Maven Central repository (<c>maven-metadata.xml</c> of an artifact).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.MavenSearchBaseUrl">
+            <summary>
+            Maven Central search API (the publish dates of the versions).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.RubyGemsBaseUrl">
+            <summary>
+            RubyGems API.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.PackagistBaseUrl">
+            <summary>
+            Packagist metadata repository (<c>/p2/&lt;vendor&gt;/&lt;package&gt;.json</c>).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.PubBaseUrl">
+            <summary>
+            pub.dev API.
+            </summary>
+        </member>
         <member name="P:Storeasy.Application.Utils.Models.RegistryOptions.OsvBaseUrl">
             <summary>
             OSV.dev API (security advisories).
@@ -50206,6 +50692,72 @@
             </code>
             </remarks>
         </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.MavenName">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Match ':'.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.GemName">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9][A-Za-z0-9._-]*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match an ASCII letter or digit.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.PackagistName">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9a-z].<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match a character in the set [\-._] atomically, optionally.<br/>
+                    ○ Match a character in the set [0-9a-z] greedily at least once.<br/>
+            ○ Match '/'.<br/>
+            ○ Match a character in the set [0-9a-z].<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 2nd capture group.<br/>
+                    ○ Optional (greedy).<br/>
+                        ○ 3rd capture group.<br/>
+                            ○ Match with 2 alternative expressions.<br/>
+                                ○ Match a character in the set [._].<br/>
+                                ○ Match '-' atomically at least 1 and at most 2 times.<br/>
+                    ○ Match a character in the set [0-9a-z] greedily at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.PubName">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-z_][a-z0-9_]*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [_a-z].<br/>
+            ○ Match a character in the set [0-9_a-z] atomically any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
         <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.PyPISeparators">
             <remarks>
             Pattern:<br/>
@@ -50249,7 +50801,9 @@
         </member>
         <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.SupportsProvenance(Storeasy.Domain.Enums.PackageRegistry)">
             <summary>
-            Whether the registry records provenance of a published version (NuGet does not).
+            Whether storeasy can read the provenance of a published version on the registry: npm, PyPI, crates.io (trusted
+            publishing data) and RubyGems (sigstore attestations). NuGet, Maven Central, Packagist and pub.dev expose none, so
+            no provenance alert is raised for them.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Utils.Registries.RegistryNames.AdvisoryUrl(System.String)">
@@ -50262,6 +50816,9 @@
             Reads the public JSON answers of npm, NuGet, PyPI, crates.io and OSV.dev into <see cref="T:Storeasy.Application.Utils.Registries.RegistryPackageRead"/>,
             <see cref="T:Storeasy.Application.Utils.Registries.ProvenanceRead"/> and <see cref="T:Storeasy.Application.Utils.Registries.RegistryAdvisory"/>. Field names follow the official documentation and the
             live answers (docs/package-registries.md); unknown or missing fields are left empty, never guessed.
+            </summary>
+            <summary>
+            The answers of Maven Central, RubyGems, Packagist and pub.dev (package registries phase 2).
             </summary>
         </member>
         <member name="F:Storeasy.Application.Utils.Registries.RegistryParsers.SlsaPredicatePrefix">
@@ -50283,6 +50840,11 @@
             <c>predicate.buildDefinition.externalParameters.workflow.repository</c> and <c>.path</c> and
             <c>predicate.runDetails.metadata.invocationId</c>; v0.2 <c>predicate.invocation.configSource.uri</c> and
             <c>.entryPoint</c> and <c>predicate.metadata.buildInvocationId</c>.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ProvenanceOfPayload(System.String)">
+            <summary>
+            Reads a base64 in-toto statement with a SLSA provenance predicate (v1 or v0.2); null when it is not one.
             </summary>
         </member>
         <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParseNuGetIndex(System.String)">
@@ -50346,6 +50908,46 @@
         <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.RunUrl(System.String)">
             <summary>
             A CI run address without the trailing <c>/attempts/&lt;n&gt;</c> of GitHub's invocation ids.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParseMaven(System.String,System.String,System.String)">
+            <summary>
+            Maven Central: the artifact's <c>maven-metadata.xml</c> (<c>versioning/release</c>, <c>versioning/latest</c> and
+            <c>versioning/versions/version</c>) and, when given, the search answer of <c>search.maven.org</c> with
+            <c>core=gav</c>, whose <c>response.docs[]</c> carry <c>v</c> and <c>timestamp</c> (epoch milliseconds). Maven Central
+            has no deprecation, yank or provenance data.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParseRubyGems(System.String,System.String)">
+            <summary>
+            RubyGems: <c>/api/v1/gems/&lt;name&gt;.json</c> (<c>name</c>, <c>version</c>, <c>source_code_uri</c> or
+            <c>metadata.source_code_uri</c>, <c>homepage_uri</c>) and <c>/api/v1/versions/&lt;name&gt;.json</c> (<c>number</c>,
+            <c>created_at</c>, <c>platform</c>, <c>yanked</c> when the answer carries it). A version built for several platforms
+            is one version.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParseRubyGemsAttestations(System.String)">
+            <summary>
+            RubyGems attestations (<c>/api/v1/attestations/&lt;name&gt;-&lt;version&gt;.json</c>): an array of sigstore bundles,
+            empty without attestations. The SLSA provenance of a bundle's <c>dsseEnvelope.payload</c> names the repository,
+            workflow and run; a bundle storeasy cannot read still counts as provenance (without those details).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParsePackagist(System.String,System.String)">
+            <summary>
+            Packagist p2 metadata (<c>repo.packagist.org/p2/&lt;vendor&gt;/&lt;package&gt;.json</c>, tagged releases only). The
+            answer is minified (<c>"minified": "composer/2.0"</c>): each version lists only the keys that differ from the version
+            before it, and <c>__unset</c> removes a key. Reads <c>version</c>, <c>version_normalized</c>, <c>time</c>,
+            <c>source.url</c> and <c>abandoned</c> (true, or the advised replacement) as the deprecation of the latest version.
+            The latest version is the newest stable one.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.RegistryParsers.ParsePub(System.String,System.String)">
+            <summary>
+            pub.dev (<c>/api/packages/&lt;name&gt;</c>): <c>name</c>, <c>latest.version</c>, <c>latest.pubspec.repository</c>
+            (or <c>homepage</c>), <c>versions[]</c> with <c>version</c>, <c>published</c> and <c>retracted</c> (a retracted
+            version reads as yanked); and, when given, the options (<c>/api/packages/&lt;name&gt;/options</c>):
+            <c>isDiscontinued</c> and <c>replacedBy</c> as the deprecation of the latest version.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Registries.RegistryPackageRead">
@@ -50530,6 +51132,9 @@
         <member name="F:Storeasy.Application.Utils.Registries.RegistryChangeKind.Advisory">
             <summary>A security advisory now affects the latest version.</summary>
         </member>
+        <member name="F:Storeasy.Application.Utils.Registries.RegistryChangeKind.PublisherMismatch">
+            <summary>The latest version did not come from the repository and workflow of the trusted publishing setup.</summary>
+        </member>
         <member name="T:Storeasy.Application.Utils.Registries.RegistryChange">
             <summary>
             One change a sync found.
@@ -50623,6 +51228,8 @@
             the version stays deprecated.</item>
             <item><b>Yanked</b>: a version was yanked or unlisted after the first sync; open while it stays so.</item>
             <item><b>NoProvenance</b>: the latest version has no provenance (never for NuGet, which has none).</item>
+            <item><b>PublisherMismatch</b>: the package has a trusted publishing setup and the latest version's provenance names
+            another repository or workflow (<see cref="M:Storeasy.Application.Utils.Registries.TrustedPublishing.Check(Storeasy.Domain.Registries.TrackedPackage)"/>).</item>
             <item><b>Advisory</b>: OSV.dev reports an advisory for the latest version; when OSV.dev could not be read the open
             advisory alerts are kept as they are.</item>
             </list>
@@ -50649,6 +51256,390 @@
             <summary>
             Merges <paramref name="read"/> into <paramref name="package"/> and its <paramref name="versions"/>, and decides the
             alerts against the <paramref name="openAlerts"/>. <paramref name="advisories"/> null means OSV.dev was not read.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.TokenReminderRules">
+            <summary>
+            Token expiry reminders (docs/package-registries.md): when to warn about a recorded token and how to refuse a token
+            value. storeasy stores no registry token, so a label or a "used in" text that looks like one is refused.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.FirstWarningDays">
+            <summary>
+            Days before the expiry of the first warning.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.SecondWarningDays">
+            <summary>
+            Days before the expiry of the second warning.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.StageNone">
+            <summary>
+            No warning yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.StageFirst">
+            <summary>
+            The 14 day warning.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.StageSecond">
+            <summary>
+            The 3 day warning.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Application.Utils.Registries.TokenReminderRules.StageExpired">
+            <summary>
+            The expiry warning.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.KnownToken">
+            <remarks>
+            Pattern:<br/>
+            <code>(^|[\s:=])(npm_[A-Za-z0-9]{16,}|pypi-[A-Za-z0-9_-]{16,}|oy2[a-z0-9]{20,}|cio[A-Za-z0-9]{20,}|rubygems_[a-f0-9]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{16,})</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ 1st capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match if at the beginning of the string.<br/>
+                    ○ Match a character in the set [:=\s].<br/>
+            ○ 2nd capture group.<br/>
+                ○ Match with 6 alternative expressions, atomically.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Nn].<br/>
+                        ○ Match a character in the set [Pp].<br/>
+                        ○ Match a character in the set [Mm].<br/>
+                        ○ Match '_'.<br/>
+                        ○ Match a character in the set [0-9A-Za-z\u212A] atomically at least 16 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Pp].<br/>
+                        ○ Match a character in the set [Yy].<br/>
+                        ○ Match a character in the set [Pp].<br/>
+                        ○ Match a character in the set [Ii].<br/>
+                        ○ Match '-'.<br/>
+                        ○ Match a character in the set [\-0-9A-Z_a-z\u212A] atomically at least 16 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Oo].<br/>
+                        ○ Match a character in the set [Yy].<br/>
+                        ○ Match '2'.<br/>
+                        ○ Match a character in the set [0-9A-Za-z\u212A] atomically at least 20 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ii].<br/>
+                        ○ Match a character in the set [Oo].<br/>
+                        ○ Match a character in the set [0-9A-Za-z\u212A] atomically at least 20 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Rr].<br/>
+                        ○ Match a character in the set [Uu].<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                        ○ Match a character in the set [Yy].<br/>
+                        ○ Match a character in the set [Gg].<br/>
+                        ○ Match a character in the set [Ee].<br/>
+                        ○ Match a character in the set [Mm].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                        ○ Match '_'.<br/>
+                        ○ Match a hexadecimal digit atomically at least 16 times.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Gg].<br/>
+                        ○ Match with 3 alternative expressions, atomically.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Hh].<br/>
+                                ○ Match a character in the set [OPRSUoprsu].<br/>
+                                ○ Match '_'.<br/>
+                                ○ Match a character in the set [0-9A-Za-z\u212A] atomically at least 20 times.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ii].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match a character in the set [Hh].<br/>
+                                ○ Match a character in the set [Uu].<br/>
+                                ○ Match a character in the set [Bb].<br/>
+                                ○ Match '_'.<br/>
+                                ○ Match a character in the set [Pp].<br/>
+                                ○ Match a character in the set [Aa].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match '_'.<br/>
+                                ○ Match a character in the set [0-9A-Z_a-z\u212A] atomically at least 20 times.<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ll].<br/>
+                                ○ Match a character in the set [Pp].<br/>
+                                ○ Match a character in the set [Aa].<br/>
+                                ○ Match a character in the set [Tt].<br/>
+                                ○ Match '-'.<br/>
+                                ○ Match a character in the set [\-0-9A-Z_a-z\u212A] atomically at least 16 times.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.LongSecret">
+            <remarks>
+            Pattern:<br/>
+            <code>[A-Za-z0-9+=_-]{32,}</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a character in the set [+\-0-9=A-Z_a-z] atomically at least 32 times.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.DaysLeft(System.DateTime,System.DateTime)">
+            <summary>
+            Days from <paramref name="today"/> to the expiry day (negative after it).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Stage(System.DateTime,System.DateTime)">
+            <summary>
+            The warning stage on <paramref name="today"/>: expired on or after the expiry day, then 3 and 14 days before.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Decide(System.Byte,System.Boolean,System.DateTime,System.DateTime)">
+            <summary>
+            What the daily check does with one reminder: open its alert when it comes within 14 days, warn (audit and notify) once
+            per stage, and resolve the alert when the expiry moved out of the 14 days.
+            </summary>
+            <param name="warnedStage">The last stage warned about.</param>
+            <param name="hasOpenAlert">Whether the reminder has an open alert.</param>
+            <param name="expiryDate">Expiry day.</param>
+            <param name="today">Today (UTC).</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TokenReminderRules.LooksLikeToken(System.String)">
+            <summary>
+            Whether <paramref name="text"/> looks like a token value (a known token prefix or a long secret like string).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.ReminderDecision">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Decide(System.Byte,System.Boolean,System.DateTime,System.DateTime)"/>.
+            </summary>
+            <param name="Open">Open a token expiry alert.</param>
+            <param name="Resolve">Resolve the open alert.</param>
+            <param name="Warn">Audit and notify the new stage.</param>
+            <param name="Stage">The stage to remember.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.ReminderDecision.#ctor(System.Boolean,System.Boolean,System.Boolean,System.Byte)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Decide(System.Byte,System.Boolean,System.DateTime,System.DateTime)"/>.
+            </summary>
+            <param name="Open">Open a token expiry alert.</param>
+            <param name="Resolve">Resolve the open alert.</param>
+            <param name="Warn">Audit and notify the new stage.</param>
+            <param name="Stage">The stage to remember.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.ReminderDecision.Open">
+            <summary>Open a token expiry alert.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.ReminderDecision.Resolve">
+            <summary>Resolve the open alert.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.ReminderDecision.Warn">
+            <summary>Audit and notify the new stage.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.ReminderDecision.Stage">
+            <summary>The stage to remember.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.SetupField">
+            <summary>
+            One value the member fills in on the registry's trusted publisher settings page.
+            </summary>
+            <param name="Key">Field: <c>owner</c>, <c>repository</c>, <c>workflow</c>, <c>environment</c>, <c>namespace</c>,
+            <c>project</c>, <c>pipelineFile</c>, <c>repositoryPath</c> or <c>tagPattern</c>.</param>
+            <param name="Value">What to fill in.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.SetupField.#ctor(System.String,System.String)">
+            <summary>
+            One value the member fills in on the registry's trusted publisher settings page.
+            </summary>
+            <param name="Key">Field: <c>owner</c>, <c>repository</c>, <c>workflow</c>, <c>environment</c>, <c>namespace</c>,
+            <c>project</c>, <c>pipelineFile</c>, <c>repositoryPath</c> or <c>tagPattern</c>.</param>
+            <param name="Value">What to fill in.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.SetupField.Key">
+            <summary>Field: <c>owner</c>, <c>repository</c>, <c>workflow</c>, <c>environment</c>, <c>namespace</c>,
+            <c>project</c>, <c>pipelineFile</c>, <c>repositoryPath</c> or <c>tagPattern</c>.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.SetupField.Value">
+            <summary>What to fill in.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.PublisherCheck">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Utils.Registries.TrustedPublishing.Check(Storeasy.Domain.Registries.TrackedPackage)"/>.
+            </summary>
+            <param name="Status">Outcome.</param>
+            <param name="ExpectedRepository">Repository address the setup expects.</param>
+            <param name="ExpectedWorkflow">Workflow file the setup expects.</param>
+            <param name="ObservedRepository">Repository the latest version's provenance names.</param>
+            <param name="ObservedWorkflow">Workflow the latest version's provenance names.</param>
+            <param name="Version">The latest version.</param>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.PublisherCheck.#ctor(Storeasy.Domain.Enums.PublisherCheckStatus,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Result of <see cref="M:Storeasy.Application.Utils.Registries.TrustedPublishing.Check(Storeasy.Domain.Registries.TrackedPackage)"/>.
+            </summary>
+            <param name="Status">Outcome.</param>
+            <param name="ExpectedRepository">Repository address the setup expects.</param>
+            <param name="ExpectedWorkflow">Workflow file the setup expects.</param>
+            <param name="ObservedRepository">Repository the latest version's provenance names.</param>
+            <param name="ObservedWorkflow">Workflow the latest version's provenance names.</param>
+            <param name="Version">The latest version.</param>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.Status">
+            <summary>Outcome.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.ExpectedRepository">
+            <summary>Repository address the setup expects.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.ExpectedWorkflow">
+            <summary>Workflow file the setup expects.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.ObservedRepository">
+            <summary>Repository the latest version's provenance names.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.ObservedWorkflow">
+            <summary>Workflow the latest version's provenance names.</summary>
+        </member>
+        <member name="P:Storeasy.Application.Utils.Registries.PublisherCheck.Version">
+            <summary>The latest version.</summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.TrustedPublishing">
+            <summary>
+            The trusted publishing wizard (docs/package-registries.md): which registries offer trusted publishing from which CI,
+            what to fill in on the registry's settings page, a ready to copy CI file that publishes with OIDC (and provenance where
+            the registry records it), and the check of the latest release against the setup. storeasy never writes to a registry
+            or a repository: the CI file is text for the member to commit.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.GitHubRepository">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-0-9A-Za-z] atomically at least once.<br/>
+            ○ Match '/'.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.GitLabRepository">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)+$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Loop greedily at least once.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match '/'.<br/>
+                    ○ Match a character in the set [\-.0-9A-Z_a-z] atomically at least once.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.WorkflowFile">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9._-]+\.ya?ml$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] greedily at least once.<br/>
+            ○ Match the string ".y".<br/>
+            ○ Match 'a' atomically, optionally.<br/>
+            ○ Match the string "ml".<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.PipelineFile">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*\.ya?ml$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z] greedily at least once.<br/>
+            ○ Loop greedily any number of times.<br/>
+                ○ 1st capture group.<br/>
+                    ○ Match '/'.<br/>
+                    ○ Match a character in the set [\-.0-9A-Z_a-z] greedily at least once.<br/>
+            ○ Match the string ".y".<br/>
+            ○ Match 'a' atomically, optionally.<br/>
+            ○ Match the string "ml".<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.EnvironmentName">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Za-z0-9._-][A-Za-z0-9._ -]*$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [\-.0-9A-Z_a-z].<br/>
+            ○ Match a character in the set [ \-.0-9A-Z_a-z] atomically any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.Providers(Storeasy.Domain.Enums.PackageRegistry)">
+            <summary>
+            CI providers the registry accepts trusted publishing from (empty: the registry has none). npm and PyPI take GitHub
+            Actions and GitLab CI/CD; crates.io, NuGet (storeasy writes its GitHub login action only), RubyGems and pub.dev take
+            GitHub Actions. Maven Central and Packagist have no trusted publishing.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.SettingsUrl(Storeasy.Domain.Enums.PackageRegistry,System.String)">
+            <summary>
+            Where the trusted publisher is set up on the registry.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.IsRepository(Storeasy.Domain.Enums.CiProvider,System.String)">
+            <summary>
+            Whether <paramref name="value"/> is a repository of <paramref name="provider"/>: <c>owner/repo</c> on GitHub,
+            <c>namespace/project</c> (with subgroups) on GitLab.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.IsWorkflow(Storeasy.Domain.Enums.CiProvider,System.String)">
+            <summary>
+            Whether <paramref name="value"/> is a workflow of <paramref name="provider"/>: a file name in
+            <c>.github/workflows</c> on GitHub, the top-level CI file path on GitLab.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.IsName(System.String)">
+            <summary>
+            Whether <paramref name="value"/> is an environment (or registry user) name.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.WorkflowPath(Storeasy.Domain.Enums.CiProvider,System.String)">
+            <summary>
+            The path the CI file is saved at in the repository.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.RegistryFields(Storeasy.Domain.Enums.PackageRegistry,Storeasy.Domain.Enums.CiProvider,System.String,System.String,System.String)">
+            <summary>
+            What to fill in on the registry's trusted publisher settings, in the order the registry asks for it.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.Check(Storeasy.Domain.Registries.TrackedPackage)">
+            <summary>
+            The latest release against the setup: the repository (and the workflow file, where the provenance names it) of the
+            latest version's provenance must be the setup's.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Application.Utils.Registries.TrustedPublishing.WorkflowText(Storeasy.Domain.Enums.PackageRegistry,Storeasy.Domain.Enums.CiProvider,System.String,System.String)">
+            <summary>
+            A ready to copy CI file for <paramref name="registry"/> and <paramref name="provider"/> that publishes on a <c>v*</c>
+            tag with OIDC (no stored token) and provenance where the registry records it; null when the registry has no trusted
+            publishing from that provider. Text only: storeasy never commits it.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Application.Utils.Registries.TrustedPublishing.Yaml">
+            <summary>
+            A tiny YAML writer: two spaces per level, LF line ends.
             </summary>
         </member>
         <member name="T:Storeasy.Application.Utils.Winget.WingetContent">
@@ -52720,322 +53711,674 @@
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_32">
+        <member name="T:System.Text.RegularExpressions.Generated.MavenName_32">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the MavenName method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.MavenName_32.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MavenName_32.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MavenName_32.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GemName_33">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GemName method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.GemName_33.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GemName_33.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GemName_33.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackagistName_34">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PackagistName method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PackagistName_34.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackagistName_34.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PackagistName_34.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PubName_35">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PubName method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PubName_35.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PubName_35.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PubName_35.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_36">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PyPISeparators method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PyPISeparators_32.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PyPISeparators_36.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_32.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_36.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_32.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PyPISeparators_36.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_33">
+        <member name="T:System.Text.RegularExpressions.Generated.KnownToken_37">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the KnownToken method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.KnownToken_37.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KnownToken_37.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.KnownToken_37.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LongSecret_38">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the LongSecret method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.LongSecret_38.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LongSecret_38.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.LongSecret_38.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubRepository_39">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GitHubRepository method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.GitHubRepository_39.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubRepository_39.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitHubRepository_39.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitLabRepository_40">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the GitLabRepository method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.GitLabRepository_40.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitLabRepository_40.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.GitLabRepository_40.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.WorkflowFile_41">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the WorkflowFile method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.WorkflowFile_41.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.WorkflowFile_41.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.WorkflowFile_41.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PipelineFile_42">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PipelineFile method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.PipelineFile_42.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PipelineFile_42.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.PipelineFile_42.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.EnvironmentName_43">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the EnvironmentName method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.EnvironmentName_43.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.EnvironmentName_43.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.EnvironmentName_43.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_44">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TokenRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.TokenRegex_33.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.TokenRegex_44.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_33.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_44.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_33.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.TokenRegex_44.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_34">
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_45">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ForkRegex method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.ForkRegex_34.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.ForkRegex_45.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_34.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_45.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_34.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ForkRegex_45.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_35">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_46">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PackageIdentifier method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PackageIdentifier_35.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PackageIdentifier_46.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_35.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_46.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_35.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageIdentifier_46.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_36">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_47">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the PackageVersion method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.PackageVersion_36.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.PackageVersion_47.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_36.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_47.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_36.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.PackageVersion_47.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Locale_37">
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_48">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Locale method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.Locale_37.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.Locale_48.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Locale_37.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_48.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Locale_37.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Locale_48.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Sha256_38">
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_49">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Sha256 method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.Sha256_38.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.Sha256_49.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Sha256_38.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_49.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Sha256_38.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Sha256_49.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Url_39">
+        <member name="T:System.Text.RegularExpressions.Generated.Url_50">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Url method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.Url_39.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.Url_50.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Url_39.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.Url_50.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.Url_39.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.Url_50.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_40">
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_51">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ManifestVersion method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.ManifestVersion_40.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.ManifestVersion_51.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_40.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_51.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_40.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.ManifestVersion_51.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_41">
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_52">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the OsVersion method.</summary>
         </member>
-        <member name="F:System.Text.RegularExpressions.Generated.OsVersion_41.Instance">
+        <member name="F:System.Text.RegularExpressions.Generated.OsVersion_52.Instance">
             <summary>Cached, thread-safe singleton instance.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_41.#ctor">
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_52.#ctor">
             <summary>Initializes the instance.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory">
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory">
             <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory.CreateInstance">
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory.CreateInstance">
             <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
         </member>
-        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory.Runner">
+        <member name="T:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory.Runner">
             <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
             <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
             <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if a possible match was found; false if no more matches are possible.</returns>
         </member>
-        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_41.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+        <member name="M:System.Text.RegularExpressions.Generated.OsVersion_52.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
             <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
             <param name="inputSpan">The text being scanned by the regular expression.</param>
             <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
@@ -53048,6 +54391,9 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
             <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IndexOfNonAsciiOrAny_4A67C3D88CCF51F5B9E27258BD132C1802FDCD091AB7B8A90E9014655D62133B(System.ReadOnlySpan{System.Char})">
+            <summary>Finds the next index of any character that matches a character in the set [:=CGN-PRcgn-pr\s].</summary>
         </member>
         <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsBoundaryWordChar(System.Char)">
             <summary>Determines whether the specified index is a boundary word character.</summary>
@@ -53084,14 +54430,23 @@
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigits">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".</summary>
         </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDash">
+            <summary>Supports searching for characters in or not in "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDashDotUnderscore">
             <summary>Supports searching for characters in or not in "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDashUnderscore">
             <summary>Supports searching for characters in or not in "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndDashUnderscoreKelvinSign">
+            <summary>Supports searching for characters in or not in "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzK".</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndKelvinSign">
             <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzK".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersAndDigitsAndUnderscoreKelvinSign">
+            <summary>Supports searching for characters in or not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzK".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLettersLowerAndDigits">
             <summary>Supports searching for characters in or not in "0123456789abcdefghijklmnopqrstuvwxyz".</summary>
@@ -53102,8 +54457,14 @@
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_1000000FEFFFF0700000000">
             <summary>Supports searching for characters in or not in " ABCDEFGHIJKLMNOPQRSTUVWXYZ".</summary>
         </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_160FF03FEFFFF87FEFFFF07">
+            <summary>Supports searching for characters in or not in " -.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_20FF03FEFFFF87FEFFFF47">
             <summary>Supports searching for characters in or not in "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_28FF23FEFFFF87FEFFFF07">
+            <summary>Supports searching for characters in or not in "+-0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_60FF0300000080FEFFFF47">
             <summary>Supports searching for characters in or not in "-.0123456789_abcdefghijklmnopqrstuvwxyz~".</summary>
@@ -53116,6 +54477,12 @@
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_FEFFFFFF048400D40000001000000010">
             <summary>Supports searching for characters in or not in "\u0001\u0002\u0003\u0004\u0005\u0006\a\b\t\n\v\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\"*/:&lt;&gt;?\\|".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_FF0300000080FEFFFF07">
+            <summary>Supports searching for characters in or not in "0123456789_abcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_FFC1FFFFFEFFFFDB773FFAFF773FFAFF">
+            <summary>Supports searching for characters in or not in "\0\u0001\u0002\u0003\u0004\u0005\u0006\a\b\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f!\"#$%&amp;'()*+,-./0123456789;&lt;&gt;?@ABDEFHIJKLMQSTUVWXYZ[\\]^_`abdefhijklmqstuvwxyz{|}~\u007f".</summary>
         </member>
         <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfAnyStrings_Ordinal_15381D7EC22302E26EDED7C5B275895127D6CF1E8ACBE526582B9D3BEBFA157B">
             <summary>Supports searching for the specified strings.</summary>

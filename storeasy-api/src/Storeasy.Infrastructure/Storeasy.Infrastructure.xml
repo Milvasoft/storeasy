@@ -2572,6 +2572,27 @@
         <member name="P:Storeasy.Infrastructure.Jobs.NotificationCleanerJob.SqlFileName">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.RegistryReminderJob">
+            <summary>
+            Daily: warns about registry tokens members recorded (never the tokens) 14 and 3 days before and on their expiry
+            (<see cref="T:Storeasy.Application.Interfaces.IRegistryReminderChecker"/>). Nothing runs while the module's feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistryReminderJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Daily: warns about registry tokens members recorded (never the tokens) 14 and 3 days before and on their expiry
+            (<see cref="T:Storeasy.Application.Interfaces.IRegistryReminderChecker"/>). Nothing runs while the module's feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.RegistryReminderJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Jobs.RegistrySyncJob">
             <summary>
             Every hour: queues a package registries sync for each organization with a package not synced within the interval (six
@@ -3570,6 +3591,17 @@
         <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadPackageAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadMavenAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Maven Central: the versions from <c>maven-metadata.xml</c>, their dates from the search API (a failed search only
+            leaves the dates empty).
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.TryGetAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            A read whose failure only leaves an optional value out.
+            </summary>
+        </member>
         <member name="M:Storeasy.Infrastructure.Registries.PackageRegistryReader.ReadProvenanceAsync(Storeasy.Domain.Enums.PackageRegistry,System.String,Storeasy.Application.Utils.Registries.RegistryVersionRead,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -3590,6 +3622,35 @@
             <param name="services"></param>
             <param name="configurationManager"></param>
             <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Registries.RegistryReminderChecker">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryReminderChecker"/>: reads the reminders within 14 days of their expiry, warned before or with an
+            open alert, decides each with <see cref="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Decide(System.Byte,System.Boolean,System.DateTime,System.DateTime)"/>, saves the alerts and stages in bulk, and audits
+            and notifies every new stage (14 days, 3 days, expired), suggesting trusted publishing.
+            </summary>
+            <param name="reminderRepository"></param>
+            <param name="alertRepository"></param>
+            <param name="featureFlagService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryReminderChecker.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryTokenReminder},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.PackageAlert},Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,System.TimeProvider)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IRegistryReminderChecker"/>: reads the reminders within 14 days of their expiry, warned before or with an
+            open alert, decides each with <see cref="M:Storeasy.Application.Utils.Registries.TokenReminderRules.Decide(System.Byte,System.Boolean,System.DateTime,System.DateTime)"/>, saves the alerts and stages in bulk, and audits
+            and notifies every new stage (14 days, 3 days, expired), suggesting trusted publishing.
+            </summary>
+            <param name="reminderRepository"></param>
+            <param name="alertRepository"></param>
+            <param name="featureFlagService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="timeProvider"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Registries.RegistryReminderChecker.CheckAsync(System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Registries.RegistrySyncer">
             <summary>

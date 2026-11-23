@@ -42,6 +42,21 @@ public class TrackedPackage : AuditableEntity<int>
     public const int SyncErrorMaxLength = 500;
 
     /// <summary>
+    /// Maximum length of <see cref="SetupRepository"/>.
+    /// </summary>
+    public const int SetupRepositoryMaxLength = 200;
+
+    /// <summary>
+    /// Maximum length of <see cref="SetupWorkflow"/>.
+    /// </summary>
+    public const int SetupWorkflowMaxLength = 200;
+
+    /// <summary>
+    /// Maximum length of <see cref="SetupEnvironment"/> and <see cref="SetupRegistryUser"/>.
+    /// </summary>
+    public const int SetupEnvironmentMaxLength = 100;
+
+    /// <summary>
     /// Owning organization.
     /// </summary>
     public int OrganizationId { get; set; }
@@ -114,6 +129,41 @@ public class TrackedPackage : AuditableEntity<int>
     /// </summary>
     [MaxLength(SyncErrorMaxLength)]
     public string SyncError { get; set; }
+
+    /// <summary>
+    /// CI provider of the trusted publishing setup; null while the package has no setup.
+    /// </summary>
+    public CiProvider? SetupProvider { get; set; }
+
+    /// <summary>
+    /// Repository the setup expects releases from: <c>owner/repo</c> (GitHub) or <c>namespace/project</c> (GitLab).
+    /// </summary>
+    [MaxLength(SetupRepositoryMaxLength)]
+    public string SetupRepository { get; set; }
+
+    /// <summary>
+    /// Workflow file the setup expects: a file name in <c>.github/workflows</c> (GitHub) or the top-level CI file path
+    /// (GitLab).
+    /// </summary>
+    [MaxLength(SetupWorkflowMaxLength)]
+    public string SetupWorkflow { get; set; }
+
+    /// <summary>
+    /// CI environment of the setup, when the registry setting names one.
+    /// </summary>
+    [MaxLength(SetupEnvironmentMaxLength)]
+    public string SetupEnvironment { get; set; }
+
+    /// <summary>
+    /// Registry user the CI logs in as, where the registry asks for one (NuGet's <c>NuGet/login</c> action).
+    /// </summary>
+    [MaxLength(SetupEnvironmentMaxLength)]
+    public string SetupRegistryUser { get; set; }
+
+    /// <summary>
+    /// UTC instant the setup was saved.
+    /// </summary>
+    public DateTime? SetupDate { get; set; }
 
     /// <summary>
     /// The linked app.

@@ -18,6 +18,9 @@ public enum RegistryChangeKind
 
     /// <summary>A security advisory now affects the latest version.</summary>
     Advisory,
+
+    /// <summary>The latest version did not come from the repository and workflow of the trusted publishing setup.</summary>
+    PublisherMismatch,
 }
 
 /// <summary>
@@ -67,6 +70,8 @@ public sealed class RegistrySyncOutcome
 /// the version stays deprecated.</item>
 /// <item><b>Yanked</b>: a version was yanked or unlisted after the first sync; open while it stays so.</item>
 /// <item><b>NoProvenance</b>: the latest version has no provenance (never for NuGet, which has none).</item>
+/// <item><b>PublisherMismatch</b>: the package has a trusted publishing setup and the latest version's provenance names
+/// another repository or workflow (<see cref="TrustedPublishing.Check"/>).</item>
 /// <item><b>Advisory</b>: OSV.dev reports an advisory for the latest version; when OSV.dev could not be read the open
 /// advisory alerts are kept as they are.</item>
 /// </list>
@@ -164,6 +169,8 @@ public static class RegistrySyncRules
 
             if (candidate.Kind == PackageAlertKind.Advisory)
                 outcome.Changes.Add(new RegistryChange(RegistryChangeKind.Advisory, candidate.Version, $"{candidate.AdvisoryId} {candidate.Summary}".Trim()));
+            else if (candidate.Kind == PackageAlertKind.PublisherMismatch)
+                outcome.Changes.Add(new RegistryChange(RegistryChangeKind.PublisherMismatch, candidate.Version, candidate.Summary));
         }
 
         var wanted = desired.Select(KeyOf).ToHashSet();
@@ -252,6 +259,11 @@ public static class RegistrySyncRules
 
         if (RegistryNames.SupportsProvenance(package.Registry) && latestRow is { HasProvenance: false })
             candidates.Add(new AlertCandidate(PackageAlertKind.NoProvenance, latestRow.Version, null, null, null, null));
+
+        var check = TrustedPublishing.Check(package);
+
+        if (check.Status == PublisherCheckStatus.Mismatch)
+            candidates.Add(new AlertCandidate(PackageAlertKind.PublisherMismatch, check.Version, null, null, $"{check.ObservedRepository} {check.ObservedWorkflow}".Trim(), check.ObservedRepository));
 
         if (advisories == null)
             candidates.AddRange(openAlerts.Where(a => a.Kind == PackageAlertKind.Advisory).Select(a => new AlertCandidate(a.Kind, a.Version, a.AdvisoryId, a.Severity, a.Summary, a.Url)));

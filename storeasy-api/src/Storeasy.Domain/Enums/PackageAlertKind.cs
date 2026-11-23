@@ -30,4 +30,16 @@ public enum PackageAlertKind : byte
     /// </summary>
     [Description("Security advisory")]
     Advisory = 4,
+
+    /// <summary>
+    /// The latest version was published by another repository or workflow than the trusted publishing setup expects.
+    /// </summary>
+    [Description("Publisher mismatch")]
+    PublisherMismatch = 5,
+
+    /// <summary>
+    /// A long lived registry token a member recorded (never the token itself) expires within 14 days or has expired.
+    /// </summary>
+    [Description("Token expiring")]
+    TokenExpiring = 6,
 }

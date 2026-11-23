@@ -340,6 +340,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
                 PyPIBaseUrl = FakeRegistries.PyPIBaseUrl,
                 CratesBaseUrl = FakeRegistries.CratesBaseUrl,
                 OsvBaseUrl = FakeRegistries.OsvBaseUrl,
+                MavenRepositoryBaseUrl = FakeRegistries.MavenRepositoryBaseUrl,
+                MavenSearchBaseUrl = FakeRegistries.MavenSearchBaseUrl,
+                RubyGemsBaseUrl = FakeRegistries.RubyGemsBaseUrl,
+                PackagistBaseUrl = FakeRegistries.PackagistBaseUrl,
+                PubBaseUrl = FakeRegistries.PubBaseUrl,
             });
         });
     }

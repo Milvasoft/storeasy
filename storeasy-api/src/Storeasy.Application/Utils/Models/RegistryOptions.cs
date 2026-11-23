@@ -32,6 +32,31 @@ public class RegistryOptions
     public string CratesBaseUrl { get; set; } = "https://crates.io/api/v1";
 
     /// <summary>
+    /// Maven Central repository (<c>maven-metadata.xml</c> of an artifact).
+    /// </summary>
+    public string MavenRepositoryBaseUrl { get; set; } = "https://repo1.maven.org/maven2";
+
+    /// <summary>
+    /// Maven Central search API (the publish dates of the versions).
+    /// </summary>
+    public string MavenSearchBaseUrl { get; set; } = "https://search.maven.org/solrsearch/select";
+
+    /// <summary>
+    /// RubyGems API.
+    /// </summary>
+    public string RubyGemsBaseUrl { get; set; } = "https://rubygems.org";
+
+    /// <summary>
+    /// Packagist metadata repository (<c>/p2/&lt;vendor&gt;/&lt;package&gt;.json</c>).
+    /// </summary>
+    public string PackagistBaseUrl { get; set; } = "https://repo.packagist.org";
+
+    /// <summary>
+    /// pub.dev API.
+    /// </summary>
+    public string PubBaseUrl { get; set; } = "https://pub.dev";
+
+    /// <summary>
     /// OSV.dev API (security advisories).
     /// </summary>
     public string OsvBaseUrl { get; set; } = "https://api.osv.dev/v1";
