@@ -209,7 +209,7 @@ public class RegistryPhase2Tests
         text.Should().Contain(expected);
         text.Should().Contain(provider == CiProvider.GitLabCi ? "id_tokens:" : "id-token: write");
         text.Should().Contain("release");
-        text.Should().NotContain("—").And.NotContain("–");
+        text.Should().NotContain("\u2014").And.NotContain("\u2013");
     }
 
     [Fact]
