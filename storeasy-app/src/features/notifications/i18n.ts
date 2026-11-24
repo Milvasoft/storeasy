@@ -44,6 +44,7 @@ export const notificationsEn = {
     ruleProposal: 'Catalog proposal',
     versionState: 'Version state',
     packageRegistry: 'Package registries',
+    easBuild: 'EAS builds',
     other: 'Notification',
   },
   describe: {
@@ -62,6 +63,7 @@ export const notificationsEn = {
     ruleProposal: 'A rule catalog proposal waits (platform admins)',
     versionState: 'An App Store version changed state',
     packageRegistry: 'A tracked package has a new version, a deprecated or yanked version or a security advisory',
+    easBuild: 'An EAS build finished, failed or was canceled',
     other: 'Other notifications',
   },
   prefs: {
@@ -123,6 +125,7 @@ export const notificationsTr: NotificationsDictionary = {
     ruleProposal: 'Katalog önerisi',
     versionState: 'Sürüm durumu',
     packageRegistry: 'Paket depoları',
+    easBuild: 'EAS derlemeleri',
     other: 'Bildirim',
   },
   describe: {
@@ -141,6 +144,7 @@ export const notificationsTr: NotificationsDictionary = {
     ruleProposal: 'Bir katalog önerisi bekliyor (platform yöneticileri)',
     versionState: 'Bir App Store sürümü durum değiştirdi',
     packageRegistry: 'İzlenen bir paketin yeni sürümü, kullanımdan kaldırılan veya geri çekilen sürümü ya da güvenlik bildirimi var',
+    easBuild: 'Bir EAS derlemesi bitti, başarısız oldu veya iptal edildi',
     other: 'Diğer bildirimler',
   },
   prefs: {

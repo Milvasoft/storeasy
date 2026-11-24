@@ -421,6 +421,9 @@ needs outbound HTTPS to the push services (`fcm.googleapis.com`, `updates.push.s
 | `Storeasy:Registries:NuGetSearchUrl`, `NuGetFlatContainerBaseUrl`, `NpmDownloadsBaseUrl`, `PyPIStatsBaseUrl`, `PackagistSiteBaseUrl` | | `https://azuresearch-usnc.nuget.org/query`, `https://api.nuget.org/v3-flatcontainer`, `https://api.npmjs.org`, `https://pypistats.org/api`, `https://packagist.org` | Download counts and listings (NuGet's search and README addresses are the `SearchQueryService` and `ReadmeUriTemplate` of its service index). |
 | `Storeasy:Registries:UserAgent`, `RequestTimeoutSeconds` | | `storeasy (+https://storeasy.milvasoft.com)`, `30` | User-Agent of every registry request (crates.io requires a descriptive one) and the timeout of one request. |
 | `Storeasy:Registries:GitHubApiBaseUrl`, `NuGetPublishUrl` | | `https://api.github.com`, `https://www.nuget.org/api/v2/package` | GitHub REST API of releases (version bump commits, tags, workflow dispatches, runs) and NuGet's publish endpoint (unlist and relist). Both are called only by approved plans, with the organization's sealed credentials. |
+| `Storeasy:Eas:ApiUrl`, `WebsiteUrl` | | `https://api.expo.dev/graphql`, `https://expo.dev` | Expo GraphQL API of EAS builds and submissions, and the web site for build pages and project settings links. Called with the organization's sealed Expo token only. |
+| `Storeasy:Eas:DownloadDomains` | | `expo.dev`, `*.expo.dev`, `storage.googleapis.com` | Hosts a finished EAS build's package may be downloaded from when it is sent to the build intake. |
+| `Storeasy:Eas:RequestTimeoutSeconds`, `BuildsPerSync`, `RequestTimeoutHours` | | `30`, `20`, `2` | Timeout of one Expo request, recent builds read per project and sync, and hours storeasy waits for Expo to create a build it asked for. |
 | `Storeasy:Registries:ReleaseFollowHours`, `PlanLifetimeHours` | | `2`, `48` | Hours a started release is followed until the registries show the version, and hours a registry plan waits for approval. |
 | `Storeasy:Registries:SyncIntervalHours`, `MaxVersions`, `ProvenanceChecksPerSync`, `MaxAdvisoryDetails`, `MaxPackagesPerOrganization` | | `6`, `1000`, `5`, `50`, `500` | Hours between two syncs of a package, versions kept per package, PyPI versions checked for provenance per sync, advisories read in detail per sync, packages an organization can track. |
 | `Storeasy:Studio:FontsPath`, `PreviewMaxWidth`, `AssetCacheMegabytes` | | empty (`StudioFonts` next to the application), `800`, `128` | Mockup studio fonts (open licensed, shipped in the image), widest preview in pixels and the memory of the raw screenshot cache. |
@@ -489,6 +492,7 @@ answers 503 from the next request on; a missing flag reads as on.
 |---|---|
 | `Export` | Excel exports. |
 | `Studio.AiCaptions` | Caption translation suggestions in the mockup studio. No translation provider ships with storeasy, so the suggestions answer 503 on a self-hosted instance either way. |
+| `EasBuilds` | EAS builds through the Expo API: its endpoints and MCP tools answer 503, the EAS tab and the Expo connection section are hidden and the schedules stop. |
 | `Registries` | The package registries module (npm, NuGet, PyPI, crates.io packages and their alerts): its endpoints and MCP tools answer 503, the menu item is hidden and the scheduled sync stops. |
 
 ### Web app
@@ -631,6 +635,8 @@ watcher also needs `Storeasy:RuleWatcher:Enabled`.
 | Review sync | Every 30 minutes | New reviews of every store with reviews (App Store, Google Play, Firefox Add-ons). |
 | TestFlight sync | Every 6 hours | Groups, testers, builds and their expiry. |
 | Registry token reminders | Daily 07:00 | Warns 14 and 3 days before and on the expiry of the registry tokens members recorded (never the tokens); nothing while the `Registries` flag is off. |
+| EAS builds follow | Every 2 minutes | Follows EAS builds still running or not created yet and running EAS submissions; runs the chosen after build step (intake or EAS Submit) and prepares (never approves) the review or production plans of builds that reached their test channel. Nothing while the `EasBuilds` flag is off. |
+| EAS builds sync | Hourly (minute 40) | Queues a read of the recent builds of every linked app (also those started with eas-cli) for each organization with an Expo token; nothing while the `EasBuilds` flag is off. |
 | Registry releases follow | Every 5 minutes | Follows started releases: the CI run on GitHub, then the registries until they show the version; marks a release failed or timed out. Nothing while the `Registries` flag is off. |
 | Package registries sync | Hourly (minute 25) | Queues a sync for each organization with a tracked package not read in the last 6 hours (`Storeasy:Registries:SyncIntervalHours`); nothing while the `Registries` flag is off. |
 | Deadline reminders | Daily 08:00 | TestFlight build expiry (14, 7, 1 days), compliance deadlines (30, 7, 1 days), Microsoft client secret expiry (30, 7, 1 days). |

@@ -54,8 +54,10 @@ import { JobsPage } from '@/pages/activity/JobsPages'
 import { JobRow } from '@/pages/ActivityPage'
 import { workspaceTabs } from '@/features/common/AppWorkspace'
 import { useP2 } from '@/features/common/i18n/useP2'
+import { EasTab } from '@/features/eas/EasTab'
+import { useFeature } from '@/lib/features/FeatureFlagsContext'
 
-export type AppTab = 'overview' | 'builds' | 'jobs'
+export type AppTab = 'overview' | 'builds' | 'jobs' | 'eas'
 
 const STATES = Object.values(BuildProcessingState)
 
@@ -436,6 +438,7 @@ function Overview({ app, connections, started }: { app: AppDetailDto; connection
  * right now, and its jobs. "Sync" queues the sync of the connections its records are read with.
  */
 export function AppDetailPage({ tab }: { tab: AppTab }) {
+  const easEnabled = useFeature('EasBuilds')
   const t = useT()
   const p2 = useP2()
   const format = useFormat()
@@ -572,6 +575,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
             { value: 'overview', label: t.app.overview, to: `/apps/${data.Id}` },
             { value: 'builds', label: t.app.builds, to: `/apps/${data.Id}/builds`, count: (data.Builds ?? []).length },
             { value: 'jobs', label: t.app.jobs, to: `/apps/${data.Id}/jobs` },
+            ...(easEnabled ? [{ value: 'eas', label: 'EAS', to: `/apps/${data.Id}/eas` }] : []),
             ...workspaceTabs(
               data.Id,
               p2,
@@ -583,6 +587,7 @@ export function AppDetailPage({ tab }: { tab: AppTab }) {
       {tab === 'overview' ? <Overview app={data} connections={connections.data ?? []} started={started} /> : null}
       {tab === 'builds' ? <BuildsTab app={data} /> : null}
       {tab === 'jobs' ? <JobsPage appId={data.Id} /> : null}
+      {tab === 'eas' && easEnabled ? <EasTab appId={data.Id} /> : null}
       {editor ? <LinkRecordDialog app={data} others={others.data?.Data ?? []} open={linking} onClose={() => setLinking(false)} /> : null}
     </>
   )

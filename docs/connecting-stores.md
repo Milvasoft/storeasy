@@ -409,6 +409,23 @@ approved plans. Give each the least access:
 
 PyPI, Packagist and NuGet deprecation have no write API that storeasy uses; no key is stored for them.
 
+## Expo (EAS builds)
+
+[EAS builds](eas-builds.md) use one Expo access token per organization, added under **Connections > Expo (EAS builds)**
+(Manage connections permission). Use a robot, not a personal token:
+
+1. On expo.dev open the account (or organization) that owns the projects, **Settings > Access tokens > Robot users**,
+   and create a robot user. Give it the **Developer** role, the least role that can start builds, cancel them and
+   create submissions; it cannot manage billing or members.
+2. Create an access token for the robot and paste it into storeasy. storeasy asks Expo whose token it is and shows the
+   robot's name; the token itself is sealed and never shown again.
+3. For EAS Submit, store the submit credentials on expo.dev (`eas credentials`): an App Store Connect API key for
+   submissions (App Manager role is enough for TestFlight) and a Google service account key for submissions. storeasy
+   never sends its own App Store Connect or Google keys to Expo.
+
+Building from storeasy needs the project's GitHub repository connected on expo.dev (**Project settings > GitHub**). Revoke
+the robot's token on expo.dev to cut storeasy off; then remove it in storeasy.
+
 ## Troubleshooting
 
 | Symptom | Check |

@@ -225,6 +225,19 @@ export const AuditAction = {
   RegistryReleasePublished: 521,
   RegistryReleaseFailed: 522,
   RegistryOperationApplied: 523,
+  ExpoConnectionSaved: 530,
+  ExpoConnectionRemoved: 531,
+  EasProjectLinked: 532,
+  EasBuildStarted: 533,
+  EasBuildFinished: 534,
+  EasBuildFailed: 535,
+  EasBuildCanceled: 536,
+  EasBuildSentToIntake: 537,
+  EasSubmissionStarted: 538,
+  EasSubmissionFinished: 539,
+  EasSubmissionFailed: 540,
+  EasReviewPlanPrepared: 541,
+  EasChainSaved: 542,
 } as const
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
 
@@ -256,6 +269,7 @@ export const StoreJobKind = {
   PingWebhooks: 407,
   RegistrySync: 500,
   RegistryPlanApply: 501,
+  EasSync: 510,
 } as const
 export type StoreJobKind = (typeof StoreJobKind)[keyof typeof StoreJobKind]
 
