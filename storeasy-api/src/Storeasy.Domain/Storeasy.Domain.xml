@@ -2161,6 +2161,410 @@
             <param name="kind"></param>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Domain.Eas.EasBuild">
+            <summary>
+            An EAS build of a linked project: one storeasy started from GitHub (first only a background job receipt, then the build)
+            or one started elsewhere (eas-cli, a GitHub trigger) and read from Expo.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.EasBuild.ShortMaxLength">
+            <summary>
+            Maximum length of the short text columns.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.EasBuild.UrlMaxLength">
+            <summary>
+            Maximum length of addresses.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.EasBuild.ErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Eas.EasBuild.ErrorMessage"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ProjectId">
+            <summary>
+            Expo project id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.BuildId">
+            <summary>
+            Expo build id; null until Expo created the build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ReceiptId">
+            <summary>
+            Expo background job receipt of a build storeasy requested from GitHub.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.Platform">
+            <summary>
+            Platform.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.Profile">
+            <summary>
+            Build profile of eas.json.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.GitRef">
+            <summary>
+            Git ref storeasy asked for (branch, tag or commit).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.GitCommitHash">
+            <summary>
+            Commit the build was made from.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.AppVersion">
+            <summary>
+            App version (version / versionName).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.AppBuildVersion">
+            <summary>
+            Build number (buildNumber / versionCode).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.Distribution">
+            <summary>
+            Distribution (store, internal, simulator).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.StartedBy">
+            <summary>
+            Who started it, as Expo names the actor; or the storeasy member.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.StartedInStoreasy">
+            <summary>
+            Whether storeasy started it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.PageUrl">
+            <summary>
+            The build's page on expo.dev (logs and artifacts).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.LogsUrl">
+            <summary>
+            The first build log file, as Expo returns it (signed and short lived).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ArtifactUrl">
+            <summary>
+            The built package (IPA, AAB, APK).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.StartedDate">
+            <summary>
+            When Expo created the build (or storeasy asked for it).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.FinishedDate">
+            <summary>
+            When it finished, errored or was canceled.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ErrorCode">
+            <summary>
+            Expo's error code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ErrorMessage">
+            <summary>
+            Expo's error message.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ArtifactSessionId">
+            <summary>
+            The intake session the artifact was sent to.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.EndReported">
+            <summary>
+            Whether the end (finished, errored, canceled) was reported.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.AfterBuild">
+            <summary>
+            What happens once the build finished (chosen when it was started).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.PrepareReviewPlan">
+            <summary>
+            Once the build reached the test channel, prepare (never approve) the review or production plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.SubmitTrack">
+            <summary>
+            Play track of the chained EAS Submit (Android).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.SubmitReleaseStatus">
+            <summary>
+            Play release status of the chained EAS Submit (Android).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ChainDone">
+            <summary>
+            Whether the after build step ran.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ReviewPlanDone">
+            <summary>
+            Whether the review plan step ended (plans made, or given up).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ReviewPlanIds">
+            <summary>
+            The change plans prepared for review or production (pending until a member approves them).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasBuild.ChainError">
+            <summary>
+            Why a chained step could not run.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Eas.EasProjectLink">
+            <summary>
+            The EAS project of a storeasy app (at most one per app). Kept apart from the app, which holds nothing store or service
+            specific.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.EasProjectLink.ShortMaxLength">
+            <summary>
+            Maximum length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.ProjectId">
+            <summary>
+            Expo project (app) id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.AccountName">
+            <summary>
+            Expo account that owns the project.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.Slug">
+            <summary>
+            Project slug.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.GitHubRepository">
+            <summary>
+            GitHub repository (owner/repo) linked to the project on expo.dev; null without the GitHub integration.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.DefaultBranch">
+            <summary>
+            Default branch of that repository.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.SyncedDate">
+            <summary>
+            When the builds were last read from Expo.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.SyncError">
+            <summary>
+            Why the last read failed.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.AfterBuild">
+            <summary>
+            Default of what happens after a build of this app finished.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.PrepareReviewPlan">
+            <summary>
+            Default: once the build reached the test channel, prepare (never approve) the review or production plan.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.SubmitTrack">
+            <summary>
+            Default Play track of EAS Submit (Android).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasProjectLink.SubmitReleaseStatus">
+            <summary>
+            Default Play release status of EAS Submit (Android).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Eas.EasSubmission">
+            <summary>
+            An EAS Submit submission storeasy started for a finished build: iOS to App Store Connect (TestFlight), Android to a
+            Play track.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.EasSubmission.ShortMaxLength">
+            <summary>
+            Maximum length of the short text columns.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.AppId">
+            <summary>
+            storeasy app.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.EasBuildId">
+            <summary>
+            storeasy id of the build.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.SubmissionId">
+            <summary>
+            Expo submission id.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.Platform">
+            <summary>
+            Platform.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.Status">
+            <summary>
+            State.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.Track">
+            <summary>
+            Play track (Android); null for iOS (TestFlight).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.ReleaseStatus">
+            <summary>
+            Play release status (Android).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.StartedBy">
+            <summary>
+            Who started it (a member, or the build's chain option).
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.FromChain">
+            <summary>
+            Whether the build's chain option started it.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.StartedDate">
+            <summary>
+            Started.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.FinishedDate">
+            <summary>
+            Ended.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.LogsUrl">
+            <summary>
+            First log file.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.ErrorCode">
+            <summary>
+            Expo's error code.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.ErrorMessage">
+            <summary>
+            Expo's error message.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.EasSubmission.EndReported">
+            <summary>
+            Whether the end was reported.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Eas.ExpoConnection">
+            <summary>
+            The organization's Expo access token (personal or robot), one per organization. It is sealed with the same envelope
+            encryption as store connection secrets and never returned; only the Expo actor's name is shown.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.ExpoConnection.FingerprintMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Eas.ExpoConnection.Fingerprint"/>.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Eas.ExpoConnection.ErrorMaxLength">
+            <summary>
+            Maximum length of <see cref="P:Storeasy.Domain.Eas.ExpoConnection.LastVerifyError"/>.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.OrganizationId">
+            <summary>
+            Owning organization.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.Fingerprint">
+            <summary>
+            What identifies the token without the secret: the Expo actor's name (user or robot) and kind.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.EncryptedSecret">
+            <summary>
+            Secret sealed with the data key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.EncryptedDataKey">
+            <summary>
+            Data key sealed with the master key.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.KeyVersion">
+            <summary>
+            Master key version.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.Status">
+            <summary>
+            Result of the last check.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.LastVerifiedDate">
+            <summary>
+            When Expo last accepted the token.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Domain.Eas.ExpoConnection.LastVerifyError">
+            <summary>
+            Why the last check failed (no secret).
+            </summary>
+        </member>
         <member name="T:Storeasy.Domain.EmailOutboxItem">
             <summary>
             One e-mail waiting for the background sender. The payload (recipient, subject, body with any one time link) is sealed
@@ -3187,6 +3591,45 @@
         <member name="F:Storeasy.Domain.Enums.AuditAction.RegistryOperationApplied">
             <summary>A registry operation (unlist, relist, deprecate, dist-tag, yank) was written.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ExpoConnectionSaved">
+            <summary>The organization saved or replaced its Expo access token (fingerprint only).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.ExpoConnectionRemoved">
+            <summary>The organization removed its Expo access token.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasProjectLinked">
+            <summary>An app was linked to an EAS project, or unlinked.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasBuildStarted">
+            <summary>A member started an EAS build from GitHub.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasBuildFinished">
+            <summary>An EAS build finished.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasBuildFailed">
+            <summary>An EAS build errored, or Expo could not start it.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasBuildCanceled">
+            <summary>An EAS build was canceled.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasBuildSentToIntake">
+            <summary>A finished build's package was handed to the build intake.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasSubmissionStarted">
+            <summary>An EAS Submit submission was started (by a member or a build chain option).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasSubmissionFinished">
+            <summary>An EAS Submit submission finished.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasSubmissionFailed">
+            <summary>An EAS Submit submission errored or was canceled.</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasReviewPlanPrepared">
+            <summary>A build reached its test channel and its review or production plan was prepared (not approved).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.AuditAction.EasChainSaved">
+            <summary>The app's after build defaults were saved.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.BetaInviteType">
             <summary>
             How a TestFlight tester joined. Values are explicit and never reused.
@@ -3782,6 +4225,131 @@
         <member name="F:Storeasy.Domain.Enums.DownloadScope.LastWeek">
             <summary>
             Downloads of the version in the last 7 days (npm).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.EasAfterBuild">
+            <summary>
+            What storeasy does with a build once it finished, chosen when the build is started (the app's default or per build).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasAfterBuild.None">
+            <summary>
+            Nothing.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasAfterBuild.Intake">
+            <summary>
+            Send the package to the build intake (the app's delivery rule takes it to a test channel).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasAfterBuild.Submit">
+            <summary>
+            Submit it with EAS Submit (TestFlight, or a Play track).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.EasBuildStatus">
+            <summary>
+            State of an EAS build (Expo's <c>BuildStatus</c>), plus the states of a build storeasy asked for before Expo created it.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.Requested">
+            <summary>
+            storeasy asked Expo to build from GitHub; Expo has not created the build yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.New">
+            <summary>
+            Created, not queued yet.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.InQueue">
+            <summary>
+            Waiting for a worker.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.InProgress">
+            <summary>
+            Building.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.PendingCancel">
+            <summary>
+            Being canceled.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.Finished">
+            <summary>
+            Built; the artifact is ready.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.Errored">
+            <summary>
+            Failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.Canceled">
+            <summary>
+            Canceled.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasBuildStatus.NotStarted">
+            <summary>
+            Expo could not start the build from GitHub (for example no GitHub integration or an unknown profile).
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.EasPlatform">
+            <summary>
+            Platform of an EAS build (Expo's <c>AppPlatform</c>); <see cref="F:Storeasy.Domain.Enums.EasPlatform.All"/> only when starting builds.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasPlatform.Ios">
+            <summary>
+            iOS.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasPlatform.Android">
+            <summary>
+            Android.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasPlatform.All">
+            <summary>
+            Both platforms: one build each.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Domain.Enums.EasSubmissionStatus">
+            <summary>
+            State of an EAS Submit submission (Expo's <c>SubmissionStatus</c>).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.AwaitingBuild">
+            <summary>
+            Waiting for its build.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.InQueue">
+            <summary>
+            Waiting for a worker.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.InProgress">
+            <summary>
+            Uploading to the store.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.Finished">
+            <summary>
+            The store took the build.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.Errored">
+            <summary>
+            Failed.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.EasSubmissionStatus.Canceled">
+            <summary>
+            Canceled.
             </summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.EmailOutboxKind">
@@ -4800,6 +5368,9 @@
         <member name="F:Storeasy.Domain.Enums.NotificationEntity.TrackedPackage">
             <summary>A tracked package of the package registries module.</summary>
         </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationEntity.EasBuild">
+            <summary>An EAS build.</summary>
+        </member>
         <member name="T:Storeasy.Domain.Enums.NotificationType">
             <summary>
             Notication types.
@@ -4849,6 +5420,9 @@
         </member>
         <member name="F:Storeasy.Domain.Enums.NotificationType.PackageRegistry">
             <summary>A tracked package changed on its registry (new version, deprecated or yanked version, security advisory).</summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.NotificationType.EasBuild">
+            <summary>An EAS build finished, failed or was canceled.</summary>
         </member>
         <member name="T:Storeasy.Domain.Enums.OfferKind">
             <summary>
@@ -5943,6 +6517,13 @@
             Writes an approved registry plan: starts a release in CI on GitHub (bump commit, tag or workflow dispatch), or performs
             a registry operation with the stored key (unlist, relist, deprecate, dist-tag, yank). The release is then followed by
             the schedule until the version appears.
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.Enums.StoreJobKind.EasSync">
+            <summary>
+            Reads the recent EAS builds of one linked app (or of every linked app of the organization) from Expo: builds storeasy
+            started and those started elsewhere (eas-cli, GitHub triggers). Finished and failed builds are audited and notified.
+            Numbered in the EAS band (not a store).
             </summary>
         </member>
         <member name="F:Storeasy.Domain.Enums.StoreJobKind.SyncStoreMetrics">
@@ -7076,6 +7657,12 @@
             <summary>
             The package registries module (npm, NuGet, PyPI, crates.io packages, their alerts and the six hourly sync; 503 and no
             scheduled sync when off).
+            </summary>
+        </member>
+        <member name="F:Storeasy.Domain.FeatureFlagKeys.EasBuilds">
+            <summary>
+            EAS builds through the Expo API (the Expo connection, project links, starting and following builds; 503 and no
+            scheduled follow when off).
             </summary>
         </member>
         <member name="F:Storeasy.Domain.FeatureFlagKeys.All">

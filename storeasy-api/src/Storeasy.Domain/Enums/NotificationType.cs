@@ -53,4 +53,7 @@ public enum NotificationType : byte
 
     /// <summary>A tracked package changed on its registry (new version, deprecated or yanked version, security advisory).</summary>
     PackageRegistry = 54,
+
+    /// <summary>An EAS build finished, failed or was canceled.</summary>
+    EasBuild = 55,
 }

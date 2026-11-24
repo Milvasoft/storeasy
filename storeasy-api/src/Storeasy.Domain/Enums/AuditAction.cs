@@ -672,4 +672,56 @@ public enum AuditAction : short
     /// <summary>A registry operation (unlist, relist, deprecate, dist-tag, yank) was written.</summary>
     [Description("Registry operation applied")]
     RegistryOperationApplied = 523,
+
+    /// <summary>The organization saved or replaced its Expo access token (fingerprint only).</summary>
+    [Description("Expo connection saved")]
+    ExpoConnectionSaved = 530,
+
+    /// <summary>The organization removed its Expo access token.</summary>
+    [Description("Expo connection removed")]
+    ExpoConnectionRemoved = 531,
+
+    /// <summary>An app was linked to an EAS project, or unlinked.</summary>
+    [Description("EAS project linked")]
+    EasProjectLinked = 532,
+
+    /// <summary>A member started an EAS build from GitHub.</summary>
+    [Description("EAS build started")]
+    EasBuildStarted = 533,
+
+    /// <summary>An EAS build finished.</summary>
+    [Description("EAS build finished")]
+    EasBuildFinished = 534,
+
+    /// <summary>An EAS build errored, or Expo could not start it.</summary>
+    [Description("EAS build failed")]
+    EasBuildFailed = 535,
+
+    /// <summary>An EAS build was canceled.</summary>
+    [Description("EAS build canceled")]
+    EasBuildCanceled = 536,
+
+    /// <summary>A finished build's package was handed to the build intake.</summary>
+    [Description("EAS build sent to intake")]
+    EasBuildSentToIntake = 537,
+
+    /// <summary>An EAS Submit submission was started (by a member or a build chain option).</summary>
+    [Description("EAS submission started")]
+    EasSubmissionStarted = 538,
+
+    /// <summary>An EAS Submit submission finished.</summary>
+    [Description("EAS submission finished")]
+    EasSubmissionFinished = 539,
+
+    /// <summary>An EAS Submit submission errored or was canceled.</summary>
+    [Description("EAS submission failed")]
+    EasSubmissionFailed = 540,
+
+    /// <summary>A build reached its test channel and its review or production plan was prepared (not approved).</summary>
+    [Description("Review plan prepared")]
+    EasReviewPlanPrepared = 541,
+
+    /// <summary>The app's after build defaults were saved.</summary>
+    [Description("EAS defaults saved")]
+    EasChainSaved = 542,
 }

@@ -19,7 +19,7 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261123144705_AddRegistriesReleases";
+    public override string LastMigrationId => "20261124200804_AddEasBuilds";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -1123,6 +1123,370 @@ partial class StoreasyDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("OrganizationId", "Status");
 
                 b.ToTable("ChangePlans");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Eas.EasBuild", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<byte>("AfterBuild")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("AppBuildVersion")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("AppVersion")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<long?>("ArtifactSessionId")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("ArtifactUrl")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<string>("BuildId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<bool>("ChainDone")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("ChainError")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("Distribution")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<bool>("EndReported")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("ErrorCode")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<DateTime?>("FinishedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("GitCommitHash")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("GitRef")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("LogsUrl")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<string>("PageUrl")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<byte>("Platform")
+                    .HasColumnType("smallint");
+
+                b.Property<bool>("PrepareReviewPlan")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("Profile")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ProjectId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ReceiptId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<bool>("ReviewPlanDone")
+                    .HasColumnType("boolean");
+
+                b.PrimitiveCollection<string>("ReviewPlanIds")
+                    .HasColumnType("jsonb");
+
+                b.Property<string>("StartedBy")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("StartedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<bool>("StartedInStoreasy")
+                    .HasColumnType("boolean");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("SubmitReleaseStatus")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("SubmitTrack")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("Status");
+
+                b.HasIndex("AppId", "CreationDate");
+
+                b.HasIndex("OrganizationId", "BuildId")
+                    .IsUnique();
+
+                b.ToTable("EasBuilds");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Eas.EasProjectLink", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<string>("AccountName")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<byte>("AfterBuild")
+                    .HasColumnType("smallint");
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("DefaultBranch")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("GitHubRepository")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<bool>("PrepareReviewPlan")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("ProjectId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Slug")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("SubmitReleaseStatus")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("SubmitTrack")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("SyncError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTime?>("SyncedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId")
+                    .IsUnique();
+
+                b.HasIndex("OrganizationId");
+
+                b.ToTable("EasProjectLinks");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Eas.EasSubmission", b =>
+            {
+                var id = b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<int>("AppId")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<long>("EasBuildId")
+                    .HasColumnType("bigint");
+
+                b.Property<bool>("EndReported")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("ErrorCode")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
+
+                b.Property<DateTime?>("FinishedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<bool>("FromChain")
+                    .HasColumnType("boolean");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<string>("LogsUrl")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Platform")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("ReleaseStatus")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("StartedBy")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTime?>("StartedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.Property<string>("SubmissionId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("Track")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AppId");
+
+                b.HasIndex("Status");
+
+                b.HasIndex("OrganizationId", "SubmissionId")
+                    .IsUnique();
+
+                b.ToTable("EasSubmissions");
+            });
+
+        modelBuilder.Entity("Storeasy.Domain.Eas.ExpoConnection", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
+
+                b.Property<DateTime?>("CreationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("CreatorUserName")
+                    .HasColumnType("text");
+
+                b.Property<byte[]>("EncryptedDataKey")
+                    .HasColumnType("bytea");
+
+                b.Property<byte[]>("EncryptedSecret")
+                    .HasColumnType("bytea");
+
+                b.Property<string>("Fingerprint")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<int>("KeyVersion")
+                    .HasColumnType("integer");
+
+                b.Property<DateTime?>("LastModificationDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastModifierUserName")
+                    .HasColumnType("text");
+
+                b.Property<DateTime?>("LastVerifiedDate")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("LastVerifyError")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<int>("OrganizationId")
+                    .HasColumnType("integer");
+
+                b.Property<byte>("Status")
+                    .HasColumnType("smallint");
+
+                b.HasKey("Id");
+
+                b.HasIndex("OrganizationId")
+                    .IsUnique();
+
+                b.ToTable("ExpoConnections");
             });
 
         modelBuilder.Entity("Storeasy.Domain.EmailOutboxItem", b =>

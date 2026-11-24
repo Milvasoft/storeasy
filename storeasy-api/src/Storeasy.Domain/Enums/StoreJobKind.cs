@@ -150,6 +150,14 @@ public enum StoreJobKind : short
     RegistryPlanApply = 501,
 
     /// <summary>
+    /// Reads the recent EAS builds of one linked app (or of every linked app of the organization) from Expo: builds storeasy
+    /// started and those started elsewhere (eas-cli, GitHub triggers). Finished and failed builds are audited and notified.
+    /// Numbered in the EAS band (not a store).
+    /// </summary>
+    [Description("Sync EAS builds")]
+    EasSync = 510,
+
+    /// <summary>
     /// Reads the store page performance metrics (impressions, page views, downloads) of one store record into storeasy.
     /// Numbered in the analytics band.
     /// </summary>

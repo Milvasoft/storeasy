@@ -198,6 +198,11 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public FakeRegistryGitHub RegistryGitHub { get; } = new();
 
     /// <summary>
+    /// Expo GraphQL API as EAS builds use it.
+    /// </summary>
+    public FakeExpo Expo { get; } = new();
+
+    /// <summary>
     /// VAPID key pair of the test hosts (generated once per run; base64url public point and private scalar).
     /// </summary>
     public static (string PublicKey, string PrivateKey) VapidKeys { get; } = CreateVapidKeys();
@@ -338,6 +343,9 @@ public class StoreasyApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             // Package registries: the public APIs answer from the fake.
             services.AddHttpClient(Storeasy.Infrastructure.Registries.PackageRegistryReader.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Registries);
             services.AddHttpClient(Storeasy.Infrastructure.Registries.RegistryGitHubClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => RegistryGitHub);
+            services.AddHttpClient(Storeasy.Infrastructure.Eas.ExpoClient.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => Expo);
+            services.RemoveAll<EasOptions>();
+            services.AddSingleton(new EasOptions { ApiUrl = FakeExpo.ApiUrl, DownloadDomains = ["expo.dev", "*.expo.dev"] });
             services.RemoveAll<RegistryOptions>();
             services.AddSingleton(new RegistryOptions
             {

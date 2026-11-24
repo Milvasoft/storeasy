@@ -7,6 +7,9 @@ using Storeasy.Application.Features.Mockups.GetMockupExportManifest;
 using Storeasy.Application.Features.Iap.ApplyIapPlan;
 using Storeasy.Application.Features.MsStore.SubmitMsSubmission;
 using Storeasy.Application.Features.Subscriptions.ApplySubscriptionPlan;
+using Storeasy.Application.Dtos.EasDtos;
+using Storeasy.Application.Features.Eas.StartEasBuild;
+using Storeasy.Application.Features.Eas.StartEasSubmission;
 using Storeasy.Application.Features.Registries.ApproveRegistryPlan;
 using Storeasy.Application.Features.Releases.SubmitForReview;
 using Storeasy.Application.Interfaces;
@@ -112,6 +115,45 @@ public static class McpCustomTools
             Handler = ApproveRegistryPlanAsync,
             FeatureFlag = FeatureFlagKeys.Registries,
         },
+        new()
+        {
+            Name = "eas_build_start",
+            Kind = McpToolKind.Write,
+            Description = "Starts EAS builds of a linked app from the GitHub repository connected to its EAS project on expo.dev, at a git ref, one "
+                          + "build per platform (uses the account's EAS build quota). Same checks as the web: ReleaseTest permission, confirm: true and "
+                          + "confirmText typed exactly as the app name and the platform word (iOS, Android or all), for example \"Pusula iOS\". Returns the "
+                          + "builds with their storeasy ids; follow them with eas_build_get. afterBuild and prepareReviewPlan choose what happens once a build "
+                          + "finished (the app's defaults when left out). Never automatic.",
+            Schema = Schema(("appId", Integer("storeasy app linked to an EAS project.")),
+                            ("platform", Text("ios, android or all.")),
+                            ("profile", Text("Build profile of eas.json (eas_build_profiles).")),
+                            ("gitRef", Text("Branch, tag or commit.")),
+                            ("afterBuild", Text("Optional, overrides the app's default: none, intake (the build intake and its delivery rule) or submit (EAS Submit).")),
+                            ("submitTrack", Text("With afterBuild submit, Android: internal, alpha, beta or production (production needs ReleaseProduction).")),
+                            ("submitReleaseStatus", Text("With afterBuild submit, Android: COMPLETED, DRAFT, IN_PROGRESS or HALTED.")),
+                            ("prepareReviewPlan", Boolean("Optional: once the build reached its test channel, prepare (never approve) the review or production plan.")),
+                            ("confirm", Boolean("Must be true.")),
+                            ("confirmText", Text("App name and platform word, typed exactly."))).Required("appId", "platform", "profile", "gitRef", "confirm", "confirmText"),
+            Handler = StartEasBuildAsync,
+            FeatureFlag = FeatureFlagKeys.EasBuilds,
+        },
+        new()
+        {
+            Name = "eas_submit_start",
+            Kind = McpToolKind.Write,
+            Description = "Submits a finished EAS build (storeasy id) with EAS Submit: iOS to App Store Connect (TestFlight) with the App Store Connect "
+                          + "API key stored for submissions on expo.dev, Android to a Play track (track internal, alpha, beta or production; releaseStatus "
+                          + "COMPLETED, DRAFT, IN_PROGRESS or HALTED) with the Google service account key on expo.dev. Same checks as the web: ReleaseTest "
+                          + "permission (ReleaseProduction for the production track), confirm: true and confirmText typed exactly as the app name and the "
+                          + "platform word (iOS or Android). Returns the submission; follow it with eas_submission_get. Never automatic.",
+            Schema = Schema(("id", Integer("storeasy build id of a finished build.")),
+                            ("track", Text("Android: internal, alpha, beta or production.")),
+                            ("releaseStatus", Text("Android: COMPLETED, DRAFT, IN_PROGRESS or HALTED.")),
+                            ("confirm", Boolean("Must be true.")),
+                            ("confirmText", Text("App name and platform word, typed exactly."))).Required("id", "confirm", "confirmText"),
+            Handler = StartEasSubmissionAsync,
+            FeatureFlag = FeatureFlagKeys.EasBuilds,
+        },
     ];
 
     private static Task<object> ApprovePlanAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
@@ -141,6 +183,68 @@ public static class McpCustomTools
         return await McpToolInvoker.SendAsync(services, new ApproveRegistryPlanCommand
         {
             PlanId = arguments["planId"]?.GetValue<long>() ?? 0,
+            Confirm = arguments["confirmText"]?.GetValue<string>(),
+        }, cancellationToken);
+    }
+
+    private static async Task<object> StartEasBuildAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
+    {
+        if (arguments["confirm"]?.GetValue<bool>() != true)
+            return McpToolInvoker.Failure(services, MessageKey.McpConfirmRequired, "<app name> <iOS|Android|all>");
+
+        var platform = arguments["platform"]?.GetValue<string>()?.Trim().ToLowerInvariant() switch
+        {
+            "ios" => EasPlatform.Ios,
+            "android" => EasPlatform.Android,
+            "all" or "both" => EasPlatform.All,
+            _ => (EasPlatform)0,
+        };
+
+        return await McpToolInvoker.SendAsync(services, new StartEasBuildCommand
+        {
+            AppId = arguments["appId"]?.GetValue<int>() ?? 0,
+            Platform = platform,
+            Profile = arguments["profile"]?.GetValue<string>(),
+            GitRef = arguments["gitRef"]?.GetValue<string>(),
+            Chain = Chain(arguments),
+            Confirm = arguments["confirmText"]?.GetValue<string>(),
+        }, cancellationToken);
+    }
+
+    // The after build choice of eas_build_start; null keeps the app's defaults.
+    private static EasChainDto Chain(JsonObject arguments)
+    {
+        var afterBuild = arguments["afterBuild"]?.GetValue<string>();
+        var prepare = arguments["prepareReviewPlan"]?.GetValue<bool>();
+
+        if (afterBuild == null && prepare == null)
+            return null;
+
+        return new EasChainDto
+        {
+            AfterBuild = afterBuild?.Trim().ToLowerInvariant() switch
+            {
+                null or "none" => EasAfterBuild.None,
+                "intake" => EasAfterBuild.Intake,
+                "submit" => EasAfterBuild.Submit,
+                _ => (EasAfterBuild)0,
+            },
+            PrepareReviewPlan = prepare ?? false,
+            SubmitTrack = arguments["submitTrack"]?.GetValue<string>(),
+            SubmitReleaseStatus = arguments["submitReleaseStatus"]?.GetValue<string>(),
+        };
+    }
+
+    private static async Task<object> StartEasSubmissionAsync(JsonObject arguments, IServiceProvider services, CancellationToken cancellationToken)
+    {
+        if (arguments["confirm"]?.GetValue<bool>() != true)
+            return McpToolInvoker.Failure(services, MessageKey.McpConfirmRequired, "<app name> <iOS|Android>");
+
+        return await McpToolInvoker.SendAsync(services, new StartEasSubmissionCommand
+        {
+            Id = arguments["id"]?.GetValue<long>() ?? 0,
+            Track = arguments["track"]?.GetValue<string>(),
+            ReleaseStatus = arguments["releaseStatus"]?.GetValue<string>(),
             Confirm = arguments["confirmText"]?.GetValue<string>(),
         }, cancellationToken);
     }

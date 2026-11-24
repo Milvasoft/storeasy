@@ -45,8 +45,14 @@ public static class FeatureFlagKeys
     /// </summary>
     public const string Registries = "Registries";
 
+    /// <summary>
+    /// EAS builds through the Expo API (the Expo connection, project links, starting and following builds; 503 and no
+    /// scheduled follow when off).
+    /// </summary>
+    public const string EasBuilds = "EasBuilds";
+
     /// <summary>All known keys, in display order.</summary>
-    public static readonly string[] All = [Export, StudioAiCaptions, Registries];
+    public static readonly string[] All = [Export, StudioAiCaptions, Registries, EasBuilds];
 
     /// <summary>
     /// Localization key of the description of <paramref name="key"/>.

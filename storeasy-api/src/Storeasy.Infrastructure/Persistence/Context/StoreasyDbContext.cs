@@ -22,6 +22,7 @@ using Storeasy.Domain.MsStore;
 using Storeasy.Domain.Tokens;
 using Storeasy.Domain.Chrome;
 using Storeasy.Domain.Firefox;
+using Storeasy.Domain.Eas;
 using Storeasy.Domain.Registries;
 using Storeasy.Domain.Winget;
 
@@ -131,6 +132,26 @@ public class StoreasyDbContext(DbContextOptions options) : MilvaBulkDbContext(op
     public DbSet<PackageDownloadDay> PackageDownloadDays { get; set; }
     public DbSet<RegistryConnection> RegistryConnections { get; set; }
     public DbSet<RegistryPlan> RegistryPlans { get; set; }
+
+    /// <summary>
+    /// Expo access tokens of the organizations.
+    /// </summary>
+    public DbSet<ExpoConnection> ExpoConnections { get; set; }
+
+    /// <summary>
+    /// EAS projects linked to apps.
+    /// </summary>
+    public DbSet<EasProjectLink> EasProjectLinks { get; set; }
+
+    /// <summary>
+    /// EAS builds of linked projects.
+    /// </summary>
+    public DbSet<EasBuild> EasBuilds { get; set; }
+
+    /// <summary>
+    /// EAS Submit submissions storeasy started.
+    /// </summary>
+    public DbSet<EasSubmission> EasSubmissions { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
