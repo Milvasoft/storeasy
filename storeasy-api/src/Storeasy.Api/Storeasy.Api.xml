@@ -1574,6 +1574,150 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Storeasy.Api.Controllers.EasController">
+            <summary>
+            EAS builds through the Expo API (docs/eas-builds.md): the organization's Expo token, EAS project links, builds started
+            from GitHub on a member's request, their progress, and handing a finished package to the build intake. The whole
+            controller answers 503 while the <c>EasBuilds</c> feature flag is off.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.#ctor(MediatR.IMediator)">
+            <summary>
+            EAS builds through the Expo API (docs/eas-builds.md): the organization's Expo token, EAS project links, builds started
+            from GitHub on a member's request, their progress, and handing a finished package to the build intake. The whole
+            controller answers 503 while the <c>EasBuilds</c> feature flag is off.
+            </summary>
+            <param name="mediator"></param>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetConnectionAsync(Storeasy.Application.Features.Eas.GetExpoConnection.GetExpoConnectionQuery,System.Threading.CancellationToken)">
+            <summary>
+            The organization's Expo connection (the actor's name, never the token).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.SaveConnectionAsync(Storeasy.Application.Features.Eas.SaveExpoConnection.SaveExpoConnectionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves or replaces the Expo access token after Expo named its actor.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.RemoveConnectionAsync(Storeasy.Application.Features.Eas.RemoveExpoConnection.RemoveExpoConnectionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Removes the Expo access token.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetProjectsAsync(Storeasy.Application.Features.Eas.GetEasProjectList.GetEasProjectListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The EAS projects the token can see, best matches of an app first.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.LinkProjectAsync(Storeasy.Application.Features.Eas.LinkEasProject.LinkEasProjectCommand,System.Threading.CancellationToken)">
+            <summary>
+            Links an app to an EAS project, or unlinks it.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetAppAsync(Storeasy.Application.Features.Eas.GetEasApp.GetEasAppQuery,System.Threading.CancellationToken)">
+            <summary>
+            An app's EAS project link and recent builds.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetProfilesAsync(Storeasy.Application.Features.Eas.GetEasProfiles.GetEasProfilesQuery,System.Threading.CancellationToken)">
+            <summary>
+            The build profiles of the linked repository, or the defaults.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.StartBuildAsync(Storeasy.Application.Features.Eas.StartEasBuild.StartEasBuildCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts EAS builds from GitHub after the typed confirmation (uses the EAS build quota).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetBuildAsync(Storeasy.Application.Features.Eas.GetEasBuild.GetEasBuildQuery,System.Threading.CancellationToken)">
+            <summary>
+            One EAS build.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.CancelBuildAsync(Storeasy.Application.Features.Eas.CancelEasBuild.CancelEasBuildCommand,System.Threading.CancellationToken)">
+            <summary>
+            Cancels a queued or running EAS build.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.SendToIntakeAsync(Storeasy.Application.Features.Eas.SendEasBuildToIntake.SendEasBuildToIntakeCommand,System.Threading.CancellationToken)">
+            <summary>
+            Hands a finished build's package to the build intake.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.SyncAsync(Storeasy.Application.Features.Eas.SyncEasBuilds.SyncEasBuildsCommand,System.Threading.CancellationToken)">
+            <summary>
+            Queues a read of the recent EAS builds of an app, or of every linked app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.SaveChainAsync(Storeasy.Application.Features.Eas.SaveEasChain.SaveEasChainCommand,System.Threading.CancellationToken)">
+            <summary>
+            Saves the app's after build defaults (send to intake, EAS Submit, review plan).
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.StartSubmissionAsync(Storeasy.Application.Features.Eas.StartEasSubmission.StartEasSubmissionCommand,System.Threading.CancellationToken)">
+            <summary>
+            Starts EAS Submit of a finished build after the typed confirmation.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetSubmissionsAsync(Storeasy.Application.Features.Eas.GetEasSubmissionList.GetEasSubmissionListQuery,System.Threading.CancellationToken)">
+            <summary>
+            The EAS Submit submissions of an app.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Storeasy.Api.Controllers.EasController.GetSubmissionAsync(Storeasy.Application.Features.Eas.GetEasSubmission.GetEasSubmissionQuery,System.Threading.CancellationToken)">
+            <summary>
+            One EAS Submit submission.
+            </summary>
+            <param name="request"></param>
+            <param name="cancellation"></param>
+            <returns></returns>
+        </member>
         <member name="T:Storeasy.Api.Controllers.ExportsController">
             <summary>
             Export endpoints.
@@ -4943,6 +5087,18 @@
             <inheritdoc />
         </member>
         <member name="M:Storeasy.Api.Migrations._20261123144705_AddRegistriesReleases.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Storeasy.Api.Migrations._20261124200804_AddEasBuilds">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261124200804_AddEasBuilds.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261124200804_AddEasBuilds.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Storeasy.Api.Migrations._20261124200804_AddEasBuilds.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
         <member name="T:Storeasy.Api.Migrations.MigrationHostedService">

@@ -1,4 +1,5 @@
-﻿using Storeasy.Application.Dtos.ActivityDtos;
+﻿using Storeasy.Application.Utils.Models;
+using Storeasy.Application.Dtos.ActivityDtos;
 using Storeasy.Application.Dtos.StoreJobDtos;
 using Storeasy.Application.Interfaces;
 using Storeasy.Application.Utils.Constants;
@@ -47,6 +48,7 @@ namespace Storeasy.Infrastructure.Intake;
 /// <param name="activityPublisher"></param>
 /// <param name="timeProvider"></param>
 /// <param name="channels">Channels after the first three stores that take intake packages (<see cref="IArtifactChannel"/>).</param>
+/// <param name="easOptions">Hosts an EAS build package sent from the EAS page may be downloaded from.</param>
 public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSession> sessionRepository,
                                               IStoreasyRepositoryBase<StoreApp> storeAppRepository,
                                               IStoreasyRepositoryBase<Build> buildRepository,
@@ -66,9 +68,11 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
                                               IAuditTrail auditTrail,
                                               IActivityPublisher activityPublisher,
                                               TimeProvider timeProvider,
-                                              IEnumerable<IArtifactChannel> channels = null) : IStoreJobHandler
+                                              IEnumerable<IArtifactChannel> channels = null,
+                                              EasOptions easOptions = null) : IStoreJobHandler
 {
     private readonly IStoreasyRepositoryBase<ArtifactSession> _sessionRepository = sessionRepository;
+    private readonly EasOptions _easOptions = easOptions ?? new EasOptions();
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<Build> _buildRepository = buildRepository;
     private readonly IStoreasyRepositoryBase<DeliveryRule> _ruleRepository = ruleRepository;
@@ -147,9 +151,12 @@ public sealed class ProcessArtifactJobHandler(IStoreasyRepositoryBase<ArtifactSe
     private async Task DownloadAsync(ArtifactSession session, IStoreJobContext context, CancellationToken cancellationToken)
     {
         var step = Start(session, ArtifactStepKind.Upload, "Downloading");
-        var source = await _pullSourceRepository.GetFirstOrDefaultAsync(p => p.Id == session.PullSourceId && p.OrganizationId == session.OrganizationId,
-                                                                        projection: p => new ArtifactPullSource { Id = p.Id, AllowedDomains = p.AllowedDomains },
-                                                                        cancellationToken: cancellationToken);
+        // A package sent from the EAS page has no pull source: the hosts come from the EAS settings.
+        var source = session.PullSourceId == null
+            ? session.Source == ArtifactSource.Eas ? new ArtifactPullSource { AllowedDomains = _easOptions.DownloadDomains } : null
+            : await _pullSourceRepository.GetFirstOrDefaultAsync(p => p.Id == session.PullSourceId && p.OrganizationId == session.OrganizationId,
+                                                                 projection: p => new ArtifactPullSource { Id = p.Id, AllowedDomains = p.AllowedDomains },
+                                                                 cancellationToken: cancellationToken);
 
         if (source == null)
         {

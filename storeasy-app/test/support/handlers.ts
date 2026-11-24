@@ -323,9 +323,11 @@ export const defaultHandlers: HttpHandler[] = [
 
 /**
  * Endpoints of the feature screens the shell itself calls on every page (the notification bell), answered empty by
- * default; test/support/phase4.ts answers them with data. Kept apart from defaultHandlers, which mirror endpoints.ts.
+ * default; test/support/phase4.ts answers them with data. Kept apart from defaultHandlers, which mirror endpoints.ts. The
+ * connections page also shows the Expo connection section (test/support/eas.ts answers the EAS screens with data).
  */
 export const shellHandlers: HttpHandler[] = [
+  endpoint('get', '/eas/connection', () => json(envelope(null))),
   endpoint('patch', '/Account/notifications', () => json(listEnvelope([]))),
   endpoint('put', '/Account/notifications/seen', () => json(envelope(null))),
   endpoint('delete', '/Account/notifications', () => json(envelope(null))),

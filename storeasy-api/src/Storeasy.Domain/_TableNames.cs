@@ -94,5 +94,9 @@ public static class TableNames
     public const string PackageDownloadDays = nameof(PackageDownloadDays);
     public const string RegistryConnections = nameof(RegistryConnections);
     public const string RegistryPlans = nameof(RegistryPlans);
+    public const string ExpoConnections = nameof(ExpoConnections);
+    public const string EasProjectLinks = nameof(EasProjectLinks);
+    public const string EasBuilds = nameof(EasBuilds);
+    public const string EasSubmissions = nameof(EasSubmissions);
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

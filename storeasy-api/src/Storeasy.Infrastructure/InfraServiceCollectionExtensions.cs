@@ -44,6 +44,7 @@ using Storeasy.Infrastructure.Stores.Firefox;
 using Storeasy.Infrastructure.Stores.Winget;
 using Storeasy.Infrastructure.Stores.Monetization;
 using Storeasy.Infrastructure.Studio;
+using Storeasy.Infrastructure.Eas;
 using Storeasy.Infrastructure.Registries;
 using Storeasy.Infrastructure.Stores.Microsoft;
 using Npgsql;
@@ -142,6 +143,7 @@ public static class InfraServiceCollectionExtensions
 
         // Package registries module (npm, NuGet, PyPI, crates.io; not a store).
         services.AddRegistryServices(configurationManager);
+        services.AddEasServices(configurationManager);
 
         // Private bucket, presigned URLs only (Storage:S3). Without a bucket the upload endpoints answer 503.
         var storageOptions = configurationManager.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();

@@ -894,6 +894,283 @@
         <member name="M:Storeasy.Infrastructure.Aso.NullAsoPopularityProvider.GetPopularityAsync(Storeasy.Domain.Enums.StoreKind,System.String,System.String,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:Storeasy.Infrastructure.Eas.EasService">
+            <summary>
+            The after build steps and EAS Submit of <see cref="T:Storeasy.Infrastructure.Eas.EasService"/>: what a member chose when starting a build (send to the
+            intake, or EAS Submit) runs once the build finished; once the build reached its test channel the review (App Store) or
+            production (Play) plans are prepared and left pending, never approved. EAS Submit can also be started on a finished build.
+            </summary>
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IEasService"/> (docs/eas-builds.md). Builds are started only on a member's request with the typed
+            confirmation: Expo builds from the GitHub repository linked to the project on expo.dev (<c>createGitHubBuild</c>), so no
+            archive is uploaded. The schedule then follows the request and the build; a finished package can be handed to the
+            build intake, whose delivery rule takes it to a test channel as for any other upload.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="linkRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="appRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="registryConnectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="expo"></param>
+            <param name="gitHub"></param>
+            <param name="storeJobQueue"></param>
+            <param name="intakeService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="currentUser"></param>
+            <param name="localizer"></param>
+            <param name="featureFlagService"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="submissionRepository"></param>
+            <param name="storeBuildRepository"></param>
+            <param name="sessionRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="organizationAccess"></param>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SaveChainAsync(System.Int32,System.Int32,Storeasy.Application.Dtos.EasDtos.EasChainDto,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.StartSubmissionAsync(System.Int32,System.Int64,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.ListSubmissionsAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.GetSubmissionAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SubmitCoreAsync(Storeasy.Domain.Eas.EasBuild,System.String,System.String,System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Starts EAS Submit of a finished build: the store identifiers come from the app's store records in storeasy, the
+            credentials from the project on expo.dev (storeasy never sends its own store keys to Expo). Returns the saved
+            submission, or the message key of why it could not start.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.PendingChainOrganizationsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Organizations with work waiting after a build: an after build step, a review plan or a running submission.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.FollowChainAsync(System.Collections.Generic.Dictionary{System.Int32,System.String},System.Threading.CancellationToken)">
+            <summary>
+            The after build steps of ended builds, the review plans of builds that reached their test channel, and running
+            submissions. Returns how many changed.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.ClaimChainStepsAsync(System.Int64[],System.Threading.CancellationToken)">
+            <summary>
+            Once a build reached its test channel, prepares its plans and leaves them pending: on the App Store attaching the build
+            to the editable version (with the export compliance answer of an earlier build) and the review submission; on Play the
+            production release of its version code. Returns whether the build changed.
+            </summary>
+            <summary>
+            Sets <see cref="P:Storeasy.Domain.Eas.EasBuild.ChainDone"/> on the given builds that still need their after build step, in one statement,
+            and returns the ids this run claimed; a build another run claimed first is left out.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.ReachedTestChannelAsync(Storeasy.Domain.Eas.EasBuild,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Whether the build is in its test channel: on the App Store a processed (valid) build of its build number; on Play its
+            intake session delivered, or its EAS Submit finished.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.FollowSubmissionsAsync(System.Collections.Generic.Dictionary{System.Int32,System.String},System.Threading.CancellationToken)">
+            <summary>
+            Reads the running submissions from Expo; reports the ended ones. Returns how many changed.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.ExpoConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasProjectLink},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasBuild},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IExpoApi,Storeasy.Application.Interfaces.IRegistryGitHub,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IArtifactIntakeService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.ICurrentUser,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Utils.Models.EasOptions,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IEasService"/> (docs/eas-builds.md). Builds are started only on a member's request with the typed
+            confirmation: Expo builds from the GitHub repository linked to the project on expo.dev (<c>createGitHubBuild</c>), so no
+            archive is uploaded. The schedule then follows the request and the build; a finished package can be handed to the
+            build intake, whose delivery rule takes it to a test channel as for any other upload.
+            </summary>
+            <param name="connectionRepository"></param>
+            <param name="linkRepository"></param>
+            <param name="buildRepository"></param>
+            <param name="appRepository"></param>
+            <param name="storeAppRepository"></param>
+            <param name="registryConnectionRepository"></param>
+            <param name="secretProtector"></param>
+            <param name="expo"></param>
+            <param name="gitHub"></param>
+            <param name="storeJobQueue"></param>
+            <param name="intakeService"></param>
+            <param name="auditTrail"></param>
+            <param name="notificationDispatcher"></param>
+            <param name="currentUser"></param>
+            <param name="localizer"></param>
+            <param name="featureFlagService"></param>
+            <param name="options"></param>
+            <param name="timeProvider"></param>
+            <param name="submissionRepository"></param>
+            <param name="storeBuildRepository"></param>
+            <param name="sessionRepository"></param>
+            <param name="contentService"></param>
+            <param name="changePlanService"></param>
+            <param name="organizationAccess"></param>
+            <param name="dbContext"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.GetConnectionAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SaveConnectionAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.RemoveConnectionAsync(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.ListProjectsAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.LinkProjectAsync(System.Int32,System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.GetAppAsync(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.GetProfilesAsync(System.Int32,System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.StartBuildAsync(System.Int32,System.Int32,Storeasy.Domain.Enums.EasPlatform,System.String,System.String,Storeasy.Application.Dtos.EasDtos.EasChainDto,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.GetBuildAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.CancelBuildAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SendToIntakeAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SendToIntakeCoreAsync(Storeasy.Domain.Eas.EasBuild,System.Threading.CancellationToken)">
+            <summary>
+            Hands a finished build's package to the intake; returns a message key or text when it cannot.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.QueueSyncAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.SyncAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.FollowAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.QueueLinkedAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.FollowOneAsync(Storeasy.Domain.Eas.EasBuild,System.String,System.Threading.CancellationToken)">
+            <summary>
+            One step of following a build: the receipt of a requested build, then the build itself. Returns whether it changed.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.Merge(Storeasy.Domain.Eas.EasBuild,Storeasy.Application.Interfaces.ExpoBuild)">
+            <summary>
+            Copies Expo's view of a build; returns whether anything a member sees changed.
+            </summary>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Eas.EasServiceCollectionExtensions">
+            <summary>
+            Registers EAS builds (docs/eas-builds.md): the Expo client, the service, the sync job and the schedules. Switched off
+            with the <c>EasBuilds</c> feature flag.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasServiceCollectionExtensions.AddEasServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationManager)">
+            <summary>
+            Adds the EAS services.
+            </summary>
+            <param name="services"></param>
+            <param name="configurationManager"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Eas.EasSyncJobHandler">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EasSync"/>: reads the recent EAS builds of one linked app, or every linked app of the job's
+            organization, with <see cref="M:Storeasy.Application.Interfaces.IEasService.SyncAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="easService"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasSyncJobHandler.#ctor(Storeasy.Application.Interfaces.IEasService)">
+            <summary>
+            <see cref="F:Storeasy.Domain.Enums.StoreJobKind.EasSync"/>: reads the recent EAS builds of one linked app, or every linked app of the job's
+            organization, with <see cref="M:Storeasy.Application.Interfaces.IEasService.SyncAsync(System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)"/>.
+            </summary>
+            <param name="easService"></param>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Eas.EasSyncJobHandler.Kind">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.EasSyncJobHandler.ExecuteAsync(Storeasy.Application.Interfaces.IStoreJobContext,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Eas.ExpoClient">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IExpoApi"/> over Expo's GraphQL API (named HTTP client <see cref="F:Storeasy.Infrastructure.Eas.ExpoClient.HttpClientName"/>) with an access token as
+            <c>Authorization: Bearer</c>, as eas-cli sends <c>EXPO_TOKEN</c>. The operations follow the schema eas-cli is generated
+            from (packages/eas-cli/src/graphql/generated.ts): <c>meActor</c>, <c>app.byId</c>, <c>builds.byId</c>,
+            <c>backgroundJobReceipt.byId</c>, <c>githubApp.createGitHubBuild</c> and <c>build.cancelBuild</c>. Tests replace the
+            handler with a fake Expo.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.#ctor(System.Net.Http.IHttpClientFactory,Storeasy.Application.Utils.Models.EasOptions)">
+            <summary>
+            <see cref="T:Storeasy.Application.Interfaces.IExpoApi"/> over Expo's GraphQL API (named HTTP client <see cref="F:Storeasy.Infrastructure.Eas.ExpoClient.HttpClientName"/>) with an access token as
+            <c>Authorization: Bearer</c>, as eas-cli sends <c>EXPO_TOKEN</c>. The operations follow the schema eas-cli is generated
+            from (packages/eas-cli/src/graphql/generated.ts): <c>meActor</c>, <c>app.byId</c>, <c>builds.byId</c>,
+            <c>backgroundJobReceipt.byId</c>, <c>githubApp.createGitHubBuild</c> and <c>build.cancelBuild</c>. Tests replace the
+            handler with a fake Expo.
+            </summary>
+            <param name="httpClientFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="F:Storeasy.Infrastructure.Eas.ExpoClient.HttpClientName">
+            <summary>
+            Name of the HTTP client.
+            </summary>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetActorAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.ListProjectsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetProjectAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.ListBuildsAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetBuildAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.StartGitHubBuildAsync(System.String,System.String,Storeasy.Domain.Enums.EasPlatform,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetReceiptAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.CancelBuildAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetSubmitCredentialsAsync(System.String,System.String,Storeasy.Domain.Enums.EasPlatform,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.StartSubmissionAsync(System.String,Storeasy.Application.Interfaces.ExpoSubmitRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Eas.ExpoClient.GetSubmissionAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="T:Storeasy.Infrastructure.Email.EmailOutbox">
             <summary>
             Default <see cref="T:Storeasy.Application.Interfaces.IEmailOutbox"/>: one insert per call, the payload sealed with the secret protector
@@ -1881,6 +2158,9 @@
         <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.AcceptPulledAsync(Storeasy.Application.Interfaces.ArtifactPullRequest,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.AcceptDownloadAsync(System.Int32,System.Int32,System.String,System.String,Storeasy.Domain.Enums.ArtifactSource,Storeasy.Domain.Intake.ArtifactSourceRef,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:Storeasy.Infrastructure.Intake.ArtifactIntakeService.DeliverHeldAsync(System.Int32,System.Int64,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -2313,8 +2593,9 @@
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
             <param name="channels">Channels after the first three stores that take intake packages (<see cref="T:Storeasy.Application.Interfaces.IArtifactChannel"/>).</param>
+            <param name="easOptions">Hosts an EAS build package sent from the EAS page may be downloaded from.</param>
         </member>
-        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IArtifactChannel})">
+        <member name="M:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.DeliveryRule},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactPullSource},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Assets.Asset},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.MsStore.MsSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.IntakeSetting},Storeasy.Application.Interfaces.IFileStorage,Storeasy.Infrastructure.Intake.Packages.PackageReader,Storeasy.Infrastructure.Intake.ArtifactDownloader,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IStoreContentGateway},Storeasy.Application.Interfaces.IAppleBuildUploader,Storeasy.Infrastructure.Intake.AppleTestFlightClient,Storeasy.Application.Interfaces.ITestFlightGateway,Storeasy.Application.Interfaces.IRulesCatalog,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.IActivityPublisher,System.TimeProvider,System.Collections.Generic.IEnumerable{Storeasy.Application.Interfaces.IArtifactChannel},Storeasy.Application.Utils.Models.EasOptions)">
             <summary>
             The <see cref="F:Storeasy.Domain.Enums.StoreJobKind.ProcessArtifact"/> job (docs/urun-plani.md 11.8, design 13.14): downloads a pulled package,
             verifies the SHA-256, reads the package and matches it with the app's store record, runs the catalog checks, picks the
@@ -2345,6 +2626,7 @@
             <param name="activityPublisher"></param>
             <param name="timeProvider"></param>
             <param name="channels">Channels after the first three stores that take intake packages (<see cref="T:Storeasy.Application.Interfaces.IArtifactChannel"/>).</param>
+            <param name="easOptions">Hosts an EAS build package sent from the EAS page may be downloaded from.</param>
         </member>
         <member name="P:Storeasy.Infrastructure.Intake.ProcessArtifactJobHandler.Kind">
             <inheritdoc/>
@@ -2447,6 +2729,48 @@
             <param name="options"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Jobs.DeadlineReminderJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.EasFollowJob">
+            <summary>
+            Every two minutes: follows the EAS builds still running or not created yet (<see cref="M:Storeasy.Application.Interfaces.IEasService.FollowAsync(System.Threading.CancellationToken)"/>).
+            Nothing runs while the <c>EasBuilds</c> feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EasFollowJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Every two minutes: follows the EAS builds still running or not created yet (<see cref="M:Storeasy.Application.Interfaces.IEasService.FollowAsync(System.Threading.CancellationToken)"/>).
+            Nothing runs while the <c>EasBuilds</c> feature flag is off.
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EasFollowJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Storeasy.Infrastructure.Jobs.EasSyncJob">
+            <summary>
+            Hourly: queues a sync of the EAS builds for every organization with a linked app and an Expo connection, so builds
+            started elsewhere (eas-cli, GitHub triggers) show up (<see cref="M:Storeasy.Application.Interfaces.IEasService.QueueLinkedAsync(System.Threading.CancellationToken)"/>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EasSyncJob.#ctor(Milvasoft.JobScheduling.IScheduleConfig,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Storeasy.Application.Utils.Models.EventScheduleOptions)">
+            <summary>
+            Hourly: queues a sync of the EAS builds for every organization with a linked app and an Expo connection, so builds
+            started elsewhere (eas-cli, GitHub triggers) show up (<see cref="M:Storeasy.Application.Interfaces.IEasService.QueueLinkedAsync(System.Threading.CancellationToken)"/>).
+            </summary>
+            <param name="scheduleConfig"></param>
+            <param name="scopeFactory"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:Storeasy.Infrastructure.Jobs.EasSyncJob.RunAsync(System.IServiceProvider,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:Storeasy.Infrastructure.Jobs.EventScheduleJob">
@@ -3375,6 +3699,26 @@
                    and HttpMethod is POST,PUT or DELETE it will gets performer user in constructor from database.
                    This can affect performance little bit. But you want audit every record easily you must use this :( </para>
             </remarks>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.ExpoConnections">
+            <summary>
+            Expo access tokens of the organizations.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.EasProjectLinks">
+            <summary>
+            EAS projects linked to apps.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.EasBuilds">
+            <summary>
+            EAS builds of linked projects.
+            </summary>
+        </member>
+        <member name="P:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.EasSubmissions">
+            <summary>
+            EAS Submit submissions storeasy started.
+            </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <summary>

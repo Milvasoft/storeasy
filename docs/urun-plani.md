@@ -290,6 +290,22 @@ kuralları aynıdır. Kalan: GitLab CI ve Azure DevOps ile yayın, bağımlı pa
 
 Kapsam dışı: paket derleme, sürüm numarası belirleme ve yayını storeasy'nin kendisinin yapması.
 
+### 7.3 EAS derlemeleri (yapıldı)
+
+Buğra'nın kararı (24 Kasım 2026): storeasy, EAS derlemelerini Expo API üzerinden yalnız bir üye istediğinde tetikler ve
+izler; derleme zamanlamaya bağlı olarak kendiliğinden başlamaz. Başlatma ekranında maliyet için tek bir nötr satır
+bulunur ("EAS derleme kotanızı kullanır").
+
+**Yapıldı (24 Kasım 2026).** Kuruluş başına şifreli Expo erişim token'ı (robot önerilir, yalnız sahibinin adı görünür,
+MCP'de yok), uygulamayı EAS projesine bağlama (paket kimliği veya ada göre öneri), projeye expo.dev'de bağlı GitHub
+deposundan derleme başlatma (`githubApp.createGitHubBuild`; platform, eas.json'dan profil, dal/etiket/commit, yazılı
+onay), iki dakikada bir izleme, CLI ile başlatılan derlemelerin de listelenmesi, iptal, bitmiş paketi derleme alımına
+gönderme veya EAS Submit ile gönderme (kimlik bilgileri expo.dev'de; storeasy kendi mağaza anahtarlarını Expo'ya
+vermez). Derleme başlatılırken seçilen ve uygulama başına varsayılanı olan derleme sonrası adımlar: alıma gönder veya
+EAS Submit, isteğe bağlı olarak derleme test kanalına ulaşınca App Store inceleme planlarını veya Play üretim planını
+hazırlama; planlar hiçbir zaman kendiliğinden onaylanmaz, kendi izin ve yazılı onaylarını korur. Web'de uygulamanın EAS
+sekmesi, MCP'de `eas_*` araçları. Ayrıntı [eas-builds.md](eas-builds.md).
+
 ## 8. Güvenlik
 
 - Mağaza gizli değerleri: zarf şifreleme (K6), yalnız `StoreJobRunner` ve doğrulama komutu çözer, bellekte kısa süre.

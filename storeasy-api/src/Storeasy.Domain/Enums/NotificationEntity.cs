@@ -47,4 +47,7 @@ public enum NotificationEntity : byte
 
     /// <summary>A tracked package of the package registries module.</summary>
     TrackedPackage = 52,
+
+    /// <summary>An EAS build.</summary>
+    EasBuild = 53,
 }

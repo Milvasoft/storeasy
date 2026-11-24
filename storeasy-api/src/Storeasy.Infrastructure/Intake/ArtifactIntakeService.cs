@@ -268,33 +268,47 @@ public sealed partial class ArtifactIntakeService(IStoreasyRepositoryBase<Artifa
     }
 
     /// <inheritdoc/>
-    public async Task<Response<ArtifactUploadDto>> AcceptPulledAsync(ArtifactPullRequest request, CancellationToken cancellationToken)
-    {
-        var source = request.Source;
+    public Task<Response<ArtifactUploadDto>> AcceptPulledAsync(ArtifactPullRequest request, CancellationToken cancellationToken)
+        => AcceptRemoteAsync(request.Source.OrganizationId, request.Source.AppId, request.Source.Id, request.FileName, request.DownloadUrl, request.Size, request.Sha256, request.SourceKind, request.SourceRef, cancellationToken);
 
-        if (IntakeRules.Classify(request.FileName) is not { } classified)
+    /// <inheritdoc/>
+    public Task<Response<ArtifactUploadDto>> AcceptDownloadAsync(int organizationId, int appId, string fileName, string downloadUrl, ArtifactSource sourceKind, ArtifactSourceRef sourceRef, CancellationToken cancellationToken)
+        => AcceptRemoteAsync(organizationId, appId, null, fileName, downloadUrl, null, null, sourceKind, sourceRef, cancellationToken);
+
+    private async Task<Response<ArtifactUploadDto>> AcceptRemoteAsync(int organizationId,
+                                                                      int appId,
+                                                                      int? pullSourceId,
+                                                                      string fileName,
+                                                                      string downloadUrl,
+                                                                      long? size,
+                                                                      string announcedSha256,
+                                                                      ArtifactSource sourceKind,
+                                                                      ArtifactSourceRef sourceRef,
+                                                                      CancellationToken cancellationToken)
+    {
+        if (IntakeRules.Classify(fileName) is not { } classified)
             return Response<ArtifactUploadDto>.Error(null, MessageKey.ArtifactTypeNotSupported);
 
-        var sha256 = request.Sha256?.ToLowerInvariant();
+        var sha256 = announcedSha256?.ToLowerInvariant();
 
         if (sha256 != null)
         {
-            var existing = await FindSameFileAsync(source.OrganizationId, source.AppId, sha256, null, cancellationToken);
+            var existing = await FindSameFileAsync(organizationId, appId, sha256, null, cancellationToken);
 
             if (existing != null)
             {
-                var open = new ArtifactOpenRequest(source.OrganizationId, source.AppId, request.FileName, request.Size ?? existing.Size, sha256, null, request.SourceKind, request.SourceRef, null);
+                var open = new ArtifactOpenRequest(organizationId, appId, fileName, size ?? existing.Size, sha256, null, sourceKind, sourceRef, null);
 
                 return Response<ArtifactUploadDto>.Success(await RecordDuplicateAsync(open, classified.Platform, existing.Id, cancellationToken));
             }
         }
 
         var now = Now();
-        var session = NewSession(source.OrganizationId, source.AppId, classified.Platform, request.FileName, request.Size ?? 0, sha256, request.SourceKind, request.SourceRef, now);
+        var session = NewSession(organizationId, appId, classified.Platform, fileName, size ?? 0, sha256, sourceKind, sourceRef, now);
 
-        session.ObjectKey = ObjectKey(source.OrganizationId, source.AppId, request.FileName);
-        session.DownloadUrl = request.DownloadUrl;
-        session.PullSourceId = source.Id;
+        session.ObjectKey = ObjectKey(organizationId, appId, fileName);
+        session.DownloadUrl = downloadUrl;
+        session.PullSourceId = pullSourceId;
         session.ContentType = "application/octet-stream";
         session.IdentityKind = null;
         session.UserId = null;

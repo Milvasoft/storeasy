@@ -257,6 +257,7 @@ export function App() {
         <Route path="/apps/:appId" element={<AppDetailPage tab="overview" />} />
         <Route path="/apps/:appId/builds" element={<AppDetailPage tab="builds" />} />
         <Route path="/apps/:appId/jobs" element={<AppDetailPage tab="jobs" />} />
+        <Route path="/apps/:appId/eas" element={<AppDetailPage tab="eas" />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/activity/jobs" element={<JobsPage />} />
         <Route path="/activity/jobs/:jobId" element={<JobDetailPage />} />

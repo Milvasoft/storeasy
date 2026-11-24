@@ -49,6 +49,20 @@ public interface IArtifactIntakeService
     Task<Response<ArtifactUploadDto>> AcceptPulledAsync(ArtifactPullRequest request, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Records a package storeasy itself was asked to fetch (a finished EAS build a member sent to the intake) and queues
+    /// its download and processing. The download is limited to the hosts configured for <paramref name="sourceKind"/>.
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <param name="appId"></param>
+    /// <param name="fileName"></param>
+    /// <param name="downloadUrl">Address to download from (already checked against the allowed hosts).</param>
+    /// <param name="sourceKind"></param>
+    /// <param name="sourceRef"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<Response<ArtifactUploadDto>> AcceptDownloadAsync(int organizationId, int appId, string fileName, string downloadUrl, ArtifactSource sourceKind, ArtifactSourceRef sourceRef, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Delivers a held session by hand (the member's permission for the target is checked).
     /// </summary>
     /// <param name="organizationId"></param>

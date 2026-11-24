@@ -25,6 +25,8 @@ export type FeatureFlagKey =
   | 'RuleWatcher'
   // The package registries module (server kill switch Registries; the menu item is hidden while it is off).
   | 'Registries'
+  // EAS builds through the Expo API (server kill switch EasBuilds; the app tab and the connection section are hidden while it is off).
+  | 'EasBuilds'
 
 export type FeatureFlags = Record<FeatureFlagKey, boolean>
 
@@ -49,6 +51,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   RuleWatcher: true,
   // Package registries (npm, NuGet, PyPI, crates.io packages and their alerts).
   Registries: true,
+  EasBuilds: true,
 }
 
 /** The server's flag states as client keys: known keys only, matched without dots. */

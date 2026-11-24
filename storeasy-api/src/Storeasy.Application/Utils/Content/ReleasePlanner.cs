@@ -213,6 +213,33 @@ public static class ReleasePlanner
     }
 
     /// <summary>
+    /// Attaching an App Store build (its id and build number) to the version of <paramref name="snapshot"/>, with its export
+    /// compliance answer when one is given.
+    /// </summary>
+    public static PlanDraft BuildLink(StoreContentSnapshot snapshot, string buildExternalId, string buildNumber, bool? usesNonExemptEncryption)
+    {
+        var desired = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [Storeasy.Domain.Content.ContentKey.Of(Storeasy.Domain.Content.ContentGroups.Build, null, "build")] = buildExternalId,
+        };
+
+        if (usesNonExemptEncryption != null)
+            desired[Storeasy.Domain.Content.ContentKey.Of(Storeasy.Domain.Content.ContentGroups.Build, null, "usesNonExemptEncryption")] = usesNonExemptEncryption.Value ? "true" : "false";
+
+        var draft = FieldPlanner.Build(ChangePlanKind.BuildLink, $"Attach build {buildNumber} to {snapshot.VersionString}", snapshot, desired, g => new Storeasy.Domain.JsonModels.PlanCall
+        {
+            Method = "PATCH",
+            Path = "/v1/appStoreVersions/relationships/build",
+            Target = buildNumber,
+        });
+
+        if (draft.Items.Count > 0 && draft.Changes.Fields.All(f => f.Field != "build"))
+            draft.Changes.Fields.Add(new FieldChange(Storeasy.Domain.Content.ContentGroups.Build, null, "buildId", buildExternalId));
+
+        return draft;
+    }
+
+    /// <summary>
     /// Submission of the version for App Review.
     /// </summary>
     /// <param name="snapshot"></param>

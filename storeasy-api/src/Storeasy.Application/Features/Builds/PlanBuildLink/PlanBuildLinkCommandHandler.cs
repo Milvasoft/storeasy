@@ -44,23 +44,7 @@ public record PlanBuildLinkCommandHandler(IStoreContentService ContentService,
         if (!read.Snapshot.VersionEditable)
             return Response<ChangePlanDto>.Error(null, MessageKey.VersionNotEditable);
 
-        var desired = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            [Storeasy.Domain.Content.ContentKey.Of(Storeasy.Domain.Content.ContentGroups.Build, null, "build")] = build.ExternalId,
-        };
-
-        if (request.UsesNonExemptEncryption != null)
-            desired[Storeasy.Domain.Content.ContentKey.Of(Storeasy.Domain.Content.ContentGroups.Build, null, "usesNonExemptEncryption")] = request.UsesNonExemptEncryption.Value ? "true" : "false";
-
-        var draft = FieldPlanner.Build(ChangePlanKind.BuildLink, $"Attach build {build.BuildNumber} to {read.Snapshot.VersionString}", read.Snapshot, desired, g => new Storeasy.Domain.JsonModels.PlanCall
-        {
-            Method = "PATCH",
-            Path = "/v1/appStoreVersions/relationships/build",
-            Target = build.BuildNumber,
-        });
-
-        if (draft.Items.Count > 0 && draft.Changes.Fields.All(f => f.Field != "build"))
-            draft.Changes.Fields.Add(new FieldChange(Storeasy.Domain.Content.ContentGroups.Build, null, "buildId", build.ExternalId));
+        var draft = ReleasePlanner.BuildLink(read.Snapshot, build.ExternalId, build.BuildNumber, request.UsesNonExemptEncryption);
 
         return await _changePlanService.SaveAsync(read.App, read.Snapshot, draft, request.DryRun, null, cancellationToken);
     }

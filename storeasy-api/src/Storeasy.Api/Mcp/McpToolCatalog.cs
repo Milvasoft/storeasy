@@ -57,6 +57,17 @@ using Storeasy.Application.Features.AsoKeywords.ResearchAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.SuggestAsoKeywordSeeds;
 using Storeasy.Application.Features.AsoKeywords.TrackAsoKeywords;
 using Storeasy.Application.Features.AsoKeywords.UntrackAsoKeywords;
+using Storeasy.Application.Features.Eas.CancelEasBuild;
+using Storeasy.Application.Features.Eas.GetEasApp;
+using Storeasy.Application.Features.Eas.GetEasBuild;
+using Storeasy.Application.Features.Eas.GetEasProfiles;
+using Storeasy.Application.Features.Eas.GetEasProjectList;
+using Storeasy.Application.Features.Eas.GetEasSubmission;
+using Storeasy.Application.Features.Eas.GetEasSubmissionList;
+using Storeasy.Application.Features.Eas.SaveEasChain;
+using Storeasy.Application.Features.Eas.LinkEasProject;
+using Storeasy.Application.Features.Eas.SendEasBuildToIntake;
+using Storeasy.Application.Features.Eas.SyncEasBuilds;
 using Storeasy.Application.Features.Registries.AddTrackedPackage;
 using Storeasy.Application.Features.Registries.GetPackageAlertList;
 using Storeasy.Application.Features.Registries.GetPackageDownloads;
@@ -435,6 +446,17 @@ public static class McpToolCatalog
         Gated(FeatureFlagKeys.Registries, Read<GetPackageGroupSuggestionsQuery>("registries_groups_suggest", "Suggests package groups from tracked packages without a group that share a source repository.")),
         Gated(FeatureFlagKeys.Registries, Write<SavePackageGroupCommand>("registries_group_save", "Adds (no id) or changes a package group in storeasy: name and member trackedPackageIds (a package moves out of any other group). Nothing changes on a registry.")),
         Gated(FeatureFlagKeys.Registries, Write<RemovePackageGroupCommand>("registries_group_remove", "Removes a package group in storeasy; its packages stay tracked.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasProjectListQuery>("eas_projects_list", "Lists the EAS projects the organization's Expo token can see (id, account, slug, name, the GitHub repository linked on expo.dev, the bundle id or package name of the latest build). With appId the best matches for that app come first (match 3: bundle id or package name, 2: name) and linkedAppId shows a project already linked.")),
+        Gated(FeatureFlagKeys.EasBuilds, Write<LinkEasProjectCommand>("eas_project_link", "Links a storeasy app (appId) to an EAS project (projectId from eas_projects_list), or unlinks it with an empty projectId, and queues a read of its builds. EditContent permission.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasAppQuery>("eas_builds_list", "Reads an app's EAS project link and its recent builds, newest first: storeasy id, Expo build id, platform, state (Requested, New, InQueue, InProgress, PendingCancel, Finished, Errored, Canceled, NotStarted), profile, git ref and commit, app version and build number, who started it, the expo.dev page, logs and package links, dates and error.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasBuildQuery>("eas_build_get", "Reads one EAS build by its storeasy id (as eas_build_start and eas_builds_list return it); the schedule refreshes running builds every two minutes.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasProfilesQuery>("eas_build_profiles", "Lists the build profiles to start a build with: from eas.json in the project's GitHub repository (at gitRef, else the default branch) when the organization's GitHub token can read it, otherwise development, preview and production.")),
+        Gated(FeatureFlagKeys.EasBuilds, Write<CancelEasBuildCommand>("eas_build_cancel", "Cancels a queued or running EAS build (storeasy id). ReleaseTest permission; audited.")),
+        Gated(FeatureFlagKeys.EasBuilds, Write<SendEasBuildToIntakeCommand>("eas_build_send_to_intake", "Hands a finished EAS build's package (IPA, AAB, APK; not simulator builds) to the build intake by storeasy id; the app's delivery rule then takes it to TestFlight or a Play test track as for any upload. ReleaseTest permission; audited.")),
+        Gated(FeatureFlagKeys.EasBuilds, Write<SyncEasBuildsCommand>("eas_builds_sync", "Queues a read of the recent EAS builds of one app (appId) or every linked app, including builds started with eas-cli. Returns the job id.")),
+        Gated(FeatureFlagKeys.EasBuilds, Write<SaveEasChainCommand>("eas_chain_save", "Saves an app's defaults of what happens after an EAS build finished: chain.afterBuild None, Intake (the build intake and the app's delivery rule) or Submit (EAS Submit; for Android chain.submitTrack internal, alpha, beta or production and chain.submitReleaseStatus COMPLETED, DRAFT, IN_PROGRESS or HALTED), and chain.prepareReviewPlan (once the build reached its test channel the App Store review plans or the Play production plan are prepared and left pending; never approved). eas_build_start can override them per build.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasSubmissionListQuery>("eas_submissions_list", "Lists the EAS Submit submissions of an app (appId), newest first: storeasy id, Expo submission id, build, platform, state (AwaitingBuild, InQueue, InProgress, Finished, Errored, Canceled), Play track and release status, whether a build's after build option started it, logs and error.")),
+        Gated(FeatureFlagKeys.EasBuilds, Read<GetEasSubmissionQuery>("eas_submission_get", "Reads one EAS Submit submission by its storeasy id (as eas_submit_start returns it); the schedule refreshes running submissions every two minutes.")),
         Gated(FeatureFlagKeys.Registries, Read<GetReleaseSettingsQuery>("registries_release_settings_get", "Reads how a tracked package (trackedPackageId) or a group (packageGroupId) is released through its repository's CI: repository, branch, trigger (VersionBump, Tag, VersionBumpAndTag, Dispatch), version files, tag pattern, workflow and dispatch inputs, the problems of the settings, the current version and the next version suggestions (patch, minor, major, prerelease). A package without its own settings uses its group's.")),
         Gated(FeatureFlagKeys.Registries, Write<SaveReleaseSettingsCommand>("registries_release_settings_save", "Saves or clears (no settings) the release settings of a tracked package or a group in storeasy: repository owner/repo, branch, trigger, versionFiles (path and format MsBuild, PackageJson, Toml, Ruby, Pom, PlainText), tagPattern with {version}, workflow file and dispatch input names. Nothing is written to the repository.")),
         Gated(FeatureFlagKeys.Registries, Read<DetectReleaseSettingsQuery>("registries_release_detect", "Suggests release settings from the repository's workflow files (read with the organization's GitHub token): tag patterns, version bump paths and dispatch inputs of the workflows that publish to the package's registry.")),

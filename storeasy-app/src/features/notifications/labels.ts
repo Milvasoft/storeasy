@@ -36,6 +36,8 @@ function typeKey(type: NotificationType): TypeKey {
       return 'versionState'
     case NotificationType.PackageRegistry:
       return 'packageRegistry'
+    case NotificationType.EasBuild:
+      return 'easBuild'
     default:
       return 'other'
   }
