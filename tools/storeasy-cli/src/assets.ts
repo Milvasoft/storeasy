@@ -24,6 +24,7 @@ const IMAGE_TYPES: Record<string, string> = {
   '.gif': 'image/gif',
   '.mp4': 'video/mp4',
   '.mov': 'video/quicktime',
+  '.m4v': 'video/x-m4v',
   '.json': 'application/json',
   '.txt': 'text/plain',
   '.pdf': 'application/pdf',
@@ -34,12 +35,15 @@ export function assetContentType(fileName: string): string {
   return (m && IMAGE_TYPES[m[0].toLowerCase()]) ?? contentTypeOf(fileName)
 }
 
-/** PUT bytes to a presigned URL with retries; returns the ETag. */
-export async function putWithRetry(api: ApiClient, url: string, body: Uint8Array, attempts = 4): Promise<string> {
+/**
+ * PUT bytes to a presigned URL with retries; returns the ETag. A single upload URL is signed with the asset's content
+ * type, so `contentType` must be sent with it (S3 answers 403 otherwise); part URLs of a multipart upload sign none.
+ */
+export async function putWithRetry(api: ApiClient, url: string, body: Uint8Array, attempts = 4, contentType?: string): Promise<string> {
   let last = ''
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await api.fetch(url, { method: 'PUT', body })
+      const res = await api.fetch(url, { method: 'PUT', body, headers: contentType ? { 'Content-Type': contentType } : undefined })
       await res.body?.cancel().catch(() => undefined)
       if (res.ok) {
         return res.headers.get('etag') ?? ''
@@ -69,12 +73,13 @@ export async function uploadAsset(api: ApiClient, filePath: string, purpose: num
   const bytes = await readFile(filePath)
   const fileName = basename(filePath)
   const sha256 = createHash('sha256').update(bytes).digest('hex')
+  const contentType = assetContentType(fileName)
   const up = await api.request<AssetUploadDto>('POST', '/api/v1.0/assets/upload', {
-    body: { purpose, fileName, contentType: assetContentType(fileName), size: bytes.length, sha256 },
+    body: { purpose, fileName, contentType, size: bytes.length, sha256 },
   })
   const parts: UploadedPart[] = []
   if (up.uploadUrl) {
-    await putWithRetry(api, up.uploadUrl, bytes)
+    await putWithRetry(api, up.uploadUrl, bytes, 4, contentType)
   } else {
     const partSize = up.partSize ?? 0
     if (!partSize || !up.parts?.length) {

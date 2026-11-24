@@ -91,7 +91,7 @@ export const DEFAULT_CI = 'sci_7f2a4QmV9xT2kLr8NwZp3Hc6YbJd1EuS5gAo'
 export class FakeStoreasy {
   readonly requests: Recorded[] = []
   readonly sessions = new Map<number, Session>()
-  readonly assets = new Map<number, { fileName: string; purpose: number; sha256: string; size: number; stored?: Buffer; complete: boolean }>()
+  readonly assets = new Map<number, { fileName: string; purpose: number; contentType?: string; sha256: string; size: number; stored?: Buffer; complete: boolean }>()
   readonly mcpCalls: Array<{ name: string; arguments: Record<string, unknown>; authorization?: string }> = []
   /** Fault injection on S3 part PUTs: part number to a list of failures, consumed one per attempt. */
   readonly partFaults = new Map<number, Array<number | 'reset'>>()
@@ -203,6 +203,14 @@ export class FakeStoreasy {
 
     // ---- fake S3 ----
     if (path.startsWith('/s3/') && method === 'PUT') {
+      // Like S3: a single upload URL is signed with the asset's content type, and a PUT without it is refused.
+      const asset = /^\/s3\/asset-(\d+)\//.exec(path)
+      const signed = asset ? this.assets.get(Number(asset[1]))?.contentType : undefined
+      if (signed && req.headers['content-type'] !== signed) {
+        res.writeHead(403)
+        res.end('SignatureDoesNotMatch')
+        return
+      }
       return this.handleS3(path, raw, res)
     }
     // ---- fake CI OIDC issuers ----
@@ -292,9 +300,9 @@ export class FakeStoreasy {
       return this.getSession(Number(url.searchParams.get('SessionId')), res)
     }
     if (path === '/api/v1.0/assets/upload' && method === 'POST') {
-      const b = body as { purpose: number; fileName: string; sha256: string; size: number }
+      const b = body as { purpose: number; fileName: string; contentType?: string; sha256: string; size: number }
       const id = this.nextAsset++
-      this.assets.set(id, { fileName: b.fileName, purpose: b.purpose, sha256: b.sha256, size: b.size, complete: false })
+      this.assets.set(id, { fileName: b.fileName, purpose: b.purpose, contentType: b.contentType, sha256: b.sha256, size: b.size, complete: false })
       return ok(res, { assetId: id, uploadUrl: `${this.baseUrl}/s3/asset-${id}/1?X-Amz-Signature=abc`, partSize: null, parts: [] })
     }
     if (path === '/api/v1.0/assets/asset/complete' && method === 'POST') {
