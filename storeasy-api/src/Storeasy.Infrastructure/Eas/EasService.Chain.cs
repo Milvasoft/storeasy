@@ -1,4 +1,7 @@
-﻿using Milvasoft.Components.Rest.MilvaResponse;
+﻿using Storeasy.Domain;
+using Npgsql;
+using Microsoft.EntityFrameworkCore;
+using Milvasoft.Components.Rest.MilvaResponse;
 using Storeasy.Application.Dtos.EasDtos;
 using Storeasy.Application.Dtos.NotificationDtos;
 using Storeasy.Application.Interfaces;
@@ -22,6 +25,13 @@ namespace Storeasy.Infrastructure.Eas;
 /// </summary>
 public sealed partial class EasService
 {
+    private static readonly string _claimChainSql = $"""
+                                                     UPDATE "{TableNames.EasBuilds}"
+                                                     SET "ChainDone" = TRUE
+                                                     WHERE "Id" = ANY(@ids) AND NOT "ChainDone"
+                                                     RETURNING "Id" AS "Value"
+                                                     """;
+
     private const int _reviewPlanWaitHours = 24;
 
     #region Defaults and submissions
@@ -198,9 +208,18 @@ public sealed partial class EasService
 
         _auditTrail.Channel = ActionChannel.System;
 
-        foreach (var build in builds.Where(b => b.AfterBuild != EasAfterBuild.None && !b.ChainDone))
+        // Claim the steps in the database first: the cron and a manual sync can follow at the same time, and only the run
+        // whose update flips ChainDone performs a step (an intake hand off or an EAS Submit must run once).
+        var pending = builds.Where(b => b.AfterBuild != EasAfterBuild.None && !b.ChainDone).ToList();
+        var claimed = await ClaimChainStepsAsync([.. pending.Select(b => b.Id)], cancellationToken);
+
+        foreach (var build in pending)
         {
             build.ChainDone = true;
+
+            if (!claimed.Contains(build.Id))
+                continue;
+
             changed++;
 
             if (build.Status != EasBuildStatus.Finished)
@@ -235,6 +254,20 @@ public sealed partial class EasService
     /// to the editable version (with the export compliance answer of an earlier build) and the review submission; on Play the
     /// production release of its version code. Returns whether the build changed.
     /// </summary>
+    /// <summary>
+    /// Sets <see cref="EasBuild.ChainDone"/> on the given builds that still need their after build step, in one statement,
+    /// and returns the ids this run claimed; a build another run claimed first is left out.
+    /// </summary>
+    private async Task<HashSet<long>> ClaimChainStepsAsync(long[] ids, CancellationToken cancellationToken)
+    {
+        if (ids.Length == 0)
+            return [];
+
+        var claimed = await _dbContext.Database.SqlQueryRaw<long>(_claimChainSql, new NpgsqlParameter("ids", ids)).ToListAsync(cancellationToken);
+
+        return [.. claimed];
+    }
+
     private async Task<bool> PrepareReviewPlanAsync(EasBuild build, CancellationToken cancellationToken)
     {
         if (build.Status != EasBuildStatus.Finished)

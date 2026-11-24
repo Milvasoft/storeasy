@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Storeasy.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 using Milvasoft.Components.Rest.MilvaResponse;
 using Milvasoft.Core.Abstractions.Localization;
 using Storeasy.Application.Dtos.EasDtos;
@@ -50,6 +51,7 @@ namespace Storeasy.Infrastructure.Eas;
 /// <param name="contentService"></param>
 /// <param name="changePlanService"></param>
 /// <param name="organizationAccess"></param>
+/// <param name="dbContext"></param>
 public sealed partial class EasService(IStoreasyRepositoryBase<ExpoConnection> connectionRepository,
                                IStoreasyRepositoryBase<EasProjectLink> linkRepository,
                                IStoreasyRepositoryBase<EasBuild> buildRepository,
@@ -73,13 +75,15 @@ public sealed partial class EasService(IStoreasyRepositoryBase<ExpoConnection> c
                                IStoreasyRepositoryBase<ArtifactSession> sessionRepository,
                                IStoreContentService contentService,
                                IChangePlanService changePlanService,
-                               IOrganizationAccess organizationAccess) : IEasService
+                               IOrganizationAccess organizationAccess,
+                               StoreasyDbContext dbContext) : IEasService
 {
     private const int _listedBuilds = 50;
 
     private readonly IStoreasyRepositoryBase<ExpoConnection> _connectionRepository = connectionRepository;
     private readonly IStoreasyRepositoryBase<EasProjectLink> _linkRepository = linkRepository;
     private readonly IStoreasyRepositoryBase<EasBuild> _buildRepository = buildRepository;
+    private readonly StoreasyDbContext _dbContext = dbContext;
     private readonly IStoreasyRepositoryBase<App> _appRepository = appRepository;
     private readonly IStoreasyRepositoryBase<StoreApp> _storeAppRepository = storeAppRepository;
     private readonly IStoreasyRepositoryBase<RegistryConnection> _registryConnectionRepository = registryConnectionRepository;

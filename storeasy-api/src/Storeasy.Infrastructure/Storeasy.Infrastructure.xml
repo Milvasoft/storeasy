@@ -930,6 +930,7 @@
             <param name="contentService"></param>
             <param name="changePlanService"></param>
             <param name="organizationAccess"></param>
+            <param name="dbContext"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Eas.EasService.SaveChainAsync(System.Int32,System.Int32,Storeasy.Application.Dtos.EasDtos.EasChainDto,System.Threading.CancellationToken)">
             <inheritdoc/>
@@ -961,11 +962,15 @@
             submissions. Returns how many changed.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Eas.EasService.PrepareReviewPlanAsync(Storeasy.Domain.Eas.EasBuild,System.Threading.CancellationToken)">
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.ClaimChainStepsAsync(System.Int64[],System.Threading.CancellationToken)">
             <summary>
             Once a build reached its test channel, prepares its plans and leaves them pending: on the App Store attaching the build
             to the editable version (with the export compliance answer of an earlier build) and the review submission; on Play the
             production release of its version code. Returns whether the build changed.
+            </summary>
+            <summary>
+            Sets <see cref="P:Storeasy.Domain.Eas.EasBuild.ChainDone"/> on the given builds that still need their after build step, in one statement,
+            and returns the ids this run claimed; a build another run claimed first is left out.
             </summary>
         </member>
         <member name="M:Storeasy.Infrastructure.Eas.EasService.ReachedTestChannelAsync(Storeasy.Domain.Eas.EasBuild,System.Int32,System.Threading.CancellationToken)">
@@ -979,7 +984,7 @@
             Reads the running submissions from Expo; reports the ended ones. Returns how many changed.
             </summary>
         </member>
-        <member name="M:Storeasy.Infrastructure.Eas.EasService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.ExpoConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasProjectLink},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasBuild},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IExpoApi,Storeasy.Application.Interfaces.IRegistryGitHub,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IArtifactIntakeService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.ICurrentUser,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Utils.Models.EasOptions,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IOrganizationAccess)">
+        <member name="M:Storeasy.Infrastructure.Eas.EasService.#ctor(Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.ExpoConnection},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasProjectLink},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasBuild},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.App},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.StoreApp},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Registries.RegistryConnection},Storeasy.Application.Interfaces.ISecretProtector,Storeasy.Application.Interfaces.IExpoApi,Storeasy.Application.Interfaces.IRegistryGitHub,Storeasy.Application.Interfaces.IStoreJobQueue,Storeasy.Application.Interfaces.IArtifactIntakeService,Storeasy.Application.Interfaces.IAuditTrail,Storeasy.Application.Interfaces.INotificationDispatcher,Storeasy.Application.Interfaces.ICurrentUser,Milvasoft.Core.Abstractions.Localization.IMilvaLocalizer,Storeasy.Application.Interfaces.IFeatureFlagService,Storeasy.Application.Utils.Models.EasOptions,System.TimeProvider,Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Eas.EasSubmission},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Apps.Build},Storeasy.Application.Interfaces.IStoreasyRepositoryBase{Storeasy.Domain.Intake.ArtifactSession},Storeasy.Application.Interfaces.IStoreContentService,Storeasy.Application.Interfaces.IChangePlanService,Storeasy.Application.Interfaces.IOrganizationAccess,Storeasy.Infrastructure.Persistence.Context.StoreasyDbContext)">
             <summary>
             <see cref="T:Storeasy.Application.Interfaces.IEasService"/> (docs/eas-builds.md). Builds are started only on a member's request with the typed
             confirmation: Expo builds from the GitHub repository linked to the project on expo.dev (<c>createGitHubBuild</c>), so no
@@ -1010,6 +1015,7 @@
             <param name="contentService"></param>
             <param name="changePlanService"></param>
             <param name="organizationAccess"></param>
+            <param name="dbContext"></param>
         </member>
         <member name="M:Storeasy.Infrastructure.Eas.EasService.GetConnectionAsync(System.Int32,System.Threading.CancellationToken)">
             <inheritdoc/>
